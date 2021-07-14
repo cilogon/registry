@@ -1,0 +1,411 @@
+# COmanage Registry Localizations
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.0.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+# For common code to know which component it is
+msgid "product.code"
+msgstr "registry"
+
+# This should match the ISO 639-1 two letter language code for the translation
+msgid "registry.meta.lang"
+msgstr "en"
+
+msgid "registry.meta.logo"
+msgstr "COmanage Logo"
+
+msgid "registry.meta.powered"
+msgstr "Powered by"
+
+msgid "registry.meta.registry"
+msgstr "COmanage Registry"
+
+### Command Line text
+msgid "registry.cmd.db.noop"
+msgstr "SQL NOT EXECUTED"
+
+msgid "registry.cmd.db.ok"
+msgstr "Database schema update successful"
+
+msgid "registry.cmd.db.schema"
+msgstr "Loading database schema from {0}"
+
+msgid "registry.cmd.opt.admin-username"
+msgstr "Username of initial platform administrator"
+
+msgid "registry.cmd.opt.force"
+msgstr "Force a rerun of setup (only if you know what you are doing)""
+
+msgid "registry.cmd.opt.not"
+msgstr "Calculate changes but do not apply"
+
+# msgid "registry.cmd.se.admin"
+# msgstr "Creating initial administrator permission"
+
+# msgid "registry.cmd.se.admin.user"
+# msgstr "Enter administrator's login username"
+
+msgid "registry.cmd.se.already"
+msgstr "Setup appears to have already run"
+
+msgid "registry.cmd.se.salt"
+msgstr "Generating salt file"
+
+### Controllers (Models)
+msgid "registry.ct.ApiUsers"
+msgstr "{0,plural,=1{API User} other{API Users}}"
+
+msgid "registry.ct.CoPeople"
+msgstr "{0,plural,=1{CO Person} other{CO People}}"
+
+msgid "registry.ct.CoSettings"
+msgstr "{0,plural,=1{CO Setting} other{CO Settings}}"
+
+msgid "registry.ct.Cos"
+msgstr "{0,plural,=1{CO} other{COs}}"
+
+msgid "registry.ct.Cous"
+msgstr "{0,plural,=1{COU} other{COUs}}"
+
+msgid "registry.ct.Dashboards"
+msgstr "{0,plural,=1{Dashboard} other{Dashboards}}"
+
+### Enumerations
+msgid "registry.en.BooleanEnum.0"
+msgstr "False"
+
+msgid "registry.en.BooleanEnum.1"
+msgstr "True"
+
+msgid "registry.en.SetBooleanEnum.0"
+msgstr "Not Set"
+
+msgid "registry.en.SetBooleanEnum.1"
+msgstr "Set"
+
+msgid "registry.en.StatusEnum.A"
+msgstr "Active"
+
+msgid "registry.en.StatusEnum.C"
+msgstr "Confirmed"
+
+msgid "registry.en.StatusEnum.D"
+msgstr "Deleted"
+
+msgid "registry.en.StatusEnum.D2"
+msgstr "Duplicate"
+
+msgid "registry.en.StatusEnum.GP"
+msgstr "Grace Period"
+
+msgid "registry.en.StatusEnum.I"
+msgstr "Invited"
+
+msgid "registry.en.StatusEnum.LK"
+msgstr "Locked"
+
+msgid "registry.en.StatusEnum.N"
+msgstr "Denied"
+
+msgid "registry.en.StatusEnum.P"
+msgstr "Pending"
+
+msgid "registry.en.StatusEnum.PA"
+msgstr "Pending Approval"
+
+msgid "registry.en.StatusEnum.PC"
+msgstr "Pending Confirmation"
+
+msgid "registry.en.StatusEnum.S"
+msgstr "Suspended"
+
+msgid "registry.en.StatusEnum.X"
+msgstr "Declined"
+
+msgid "registry.en.StatusEnum.XP"
+msgstr "Expired"
+
+msgid "registry.en.StatusEnum.Y"
+msgstr "Approved"
+
+msgid "registry.en.SuspendableStatusEnum.A"
+msgstr "Active"
+
+msgid "registry.en.SuspendableStatusEnum.S"
+msgstr "Suspended"
+
+msgid "registry.en.TemplateableStatusEnum.A"
+msgstr "Active"
+
+msgid "registry.en.TemplateableStatusEnum.S"
+msgstr "Suspended"
+
+msgid "registry.en.TemplateableStatusEnum.T"
+msgstr "Template"
+
+msgid "registry.en.YesBooleanEnum.0"
+msgstr "No"
+
+msgid "registry.en.YesBooleanEnum.1"
+msgstr "Yes"
+
+### Error Messages
+msgid "registry.er.api.object"
+msgstr "Did not find \"{0}\" object in request"
+
+msgid "registry.er.api.username.prefix"
+msgstr "API username must begin with \"{0}\""
+
+msgid "registry.er.api.username.suffix"
+msgstr "API username requires a suffix"
+
+msgid "registry.er.auth.api.expired"
+msgstr "API User \"{0}\" has expired"
+
+msgid "registry.er.auth.api.failed"
+msgstr "Authentication Failed"
+
+msgid "registry.er.auth.api.invalid"
+msgstr "Authentication request did not include Username and/or API Key"
+
+msgid "registry.er.auth.api.ip"
+msgstr "Invalid IP Addres \"{0}\" for API User \"{1}\""
+
+msgid "registry.er.auth.api.key"
+msgstr "Invalid API Key provided for \"{0}\""
+
+msgid "registry.er.auth.api.status"
+msgstr "API User \"{0}\" is not Active"
+
+msgid "registry.er.auth.api.toosoon"
+msgstr "API User \"{0}\" is not yet valid"
+
+msgid "registry.er.auth.api.unknown"
+msgstr "Username \"{0}\" not found in api_users table"
+
+msgid "registry.er.coid"
+msgstr "CO ID not found"
+
+msgid "registry.er.cou.parent"
+msgstr "COU Parent ID not valid"
+
+msgid "registry.er.db.config"
+msgstr "Invalid database configuration \"{0}\""
+
+msgid "registry.er.delete.active"
+msgstr "This record is in Active status and cannot be deleted"
+
+msgid "registry.er.edit.comanage"
+msgstr "Cannot edit or delete the COmanage CO"
+
+msgid "registry.er.edit.readonly"
+msgstr "This record is read only and cannot be edited"
+
+msgid "registry.er.exists"
+msgstr "{0} already exists with this name"
+
+msgid "registry.er.fields"
+msgstr "Please recheck these fields: {0}"
+
+msgid "registry.er.fields.primary_link"
+msgstr "The Primary Link {0} is frozen and cannot be changed"
+
+msgid "registry.er.file"
+msgstr "Cannot read file {0}"
+
+msgid "registry.er.input.blank"
+msgstr "Value cannot consist of only blank characters"
+
+msgid "registry.er.input.condreq"
+msgstr "When this value is selected, {0} cannot be empty"
+
+msgid "registry.er.input.invalid"
+msgstr "Invalid character found"
+
+msgid "registry.er.notfound"
+msgstr "{0} not found"
+
+msgid "registry.er.notprov"
+msgstr "{0} not provided"
+
+msgid "registry.er.perm"
+msgstr "Permission Denied"
+
+msgid "registry.er.primary_link"
+msgstr "Could not find value for Primary Link {0}"
+
+msgid "registry.er.save"
+msgstr "Save Failed ({0})"
+
+msgid "registry.er.schema.column"
+msgstr "No type defined for table {0} column {1}"
+
+msgid "registry.er.schema.parse"
+msgstr "Failed to parse file {0}"
+
+### Fields
+### Keys of the form registry.fd.MyModels.field_name[.desc] will apply only to MyModels.field_name
+### Keys of the form registry.fd.field_name[.desc] will apply if no model specific key is found
+msgid "registry.fd.action"
+msgstr "Action"
+
+msgid "registry.fd.api_key"
+msgstr "API Key"
+
+msgid "registry.fd.date_of_birth"
+msgstr "Date of Birth"
+
+msgid "registry.fd.description"
+msgstr "Description"
+
+msgid "registry.fd.family"
+msgstr "Family Name"
+
+msgid "registry.fd.given"
+msgstr "Given Name"
+
+msgid "registry.fd.name"
+msgstr "Name"
+
+msgid "registry.fd.parent_id"
+msgstr "Parent"
+
+msgid "registry.fd.privileged"
+msgstr "Privileged"
+
+msgid "registry.fd.ApiUsers.privileged.desc"
+msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."
+
+msgid "registry.fd.remote_ip"
+msgstr "IP Address"
+
+msgid "registry.fd.ApiUsers.remote_ip.desc"
+msgstr "If specified, a <a href="https://www.php.net/manual/en/reference.pcre.pattern.syntax.php">regular expression</a> describing the IP address(es) from which this API User may connect. Be sure to escape dots (eg: "/10\\.0\\.1\\.150/")."
+
+msgid "registry.fd.required"
+msgstr "Required"
+
+msgid "registry.fd.status"
+msgstr "Status"
+
+msgid "registry.fd.username"
+msgstr "Username"
+
+msgid "registry.fd.ApiUsers.username.desc"
+msgstr "The API User Name must be prefixed with the string \"co_#.\""
+
+msgid "registry.fd.valid_from"
+msgstr "Valid From"
+
+msgid "registry.fd.valid_from.desc"
+msgstr "Leave blank for immediate validity"
+
+msgid "registry.fd.valid_from.tz"
+msgstr "Valid From ({0})"
+
+msgid "registry.fd.valid_through"
+msgstr "Valid Through"
+
+msgid "registry.fd.valid_through.desc"
+msgstr "Leave blank for indefinite validity"
+
+msgid "registry.fd.valid_through.tz"
+msgstr "Valid Through ({0})"
+
+msgid "registry.home.collab"
+msgstr "Available Collaborations"
+
+msgid "registry.home.welcome"
+msgstr "Welcome to {0}."
+
+### Informational (Banner) Messages
+msgid "registry.in.api.cmp"
+msgstr "API Users created in the COmanage CO are given full privileges to all Registry data."
+
+msgid "registry.in.api.key"
+msgstr "This newly generated API Key cannot be recovered. If it is lost a new key must be generated."
+
+### Menu Messages
+msgid "registry.me.co.switch"
+msgstr "Switch Collaboration"
+
+msgid "registry.me.co.co_people"
+msgstr "CO People"
+
+msgid "registry.me.co.configuration"
+msgstr "Configuration"
+
+### Operations (Commands)
+msgid "registry.op.add.a"
+msgstr "Add New {0}"
+
+msgid "registry.op.api.key.generate"
+msgstr "Generate API Key"
+
+msgid "registry.op.api.key.generate.confirm"
+msgstr "Are you sure you wish to generate a new API Key?"
+
+msgid "registry.op.dashboard.configuration"
+msgstr "Manage {0} Configuration"
+
+msgid "registry.op.delete"
+msgstr "Delete"
+
+msgid "registry.op.delete.confirm"
+msgstr "Are you sure you wish to delete this record ({0})?"
+
+msgid "registry.op.duplicate"
+msgstr "Duplicate"
+
+msgid "registry.op.edit"
+msgstr "Edit"
+
+msgid "registry.op.edit.a"
+msgstr "Edit {0}"
+
+msgid "registry.op.login"
+msgstr "Login"
+
+msgid "registry.op.logout"
+msgstr "Logout"
+
+msgid "registry.op.save"
+msgstr "Save"
+
+msgid "registry.op.skip_to_content"
+msgstr "Skip to main content"
+
+msgid "registry.op.view"
+msgstr "View"
+
+msgid "registry.op.view.a"
+msgstr "View {0}"
+
+### Results
+msgid "registry.rs.deleted"
+msgstr "Deleted"
+
+msgid "registry.rs.deleted.a"
+msgstr "{0} Deleted"
+
+msgid "registry.rs.saved"
+msgstr "Saved"

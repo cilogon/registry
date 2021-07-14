@@ -1,0 +1,183 @@
+{
+  "description": "COmanage Registry Database Schema File",
+  "format": "1",
+  "since": "Registry v5.0.0",
+  "license": "Apache 2, see LICENSE for details",
+  "documentation": "https://spaces.at.internet2.edu/display/COmanage/Database+Schema+Definition",
+  
+  "columnLibrary": {
+    "comment": "Columns with names matching those defined here will by default inherit these properties",
+    
+    "columns": {
+      "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
+      "co_person_id": { "type": "integer", "foreignkey": { "table": "co_people", "column": "id" } },
+      "description": { "type": "string", "size": 128 },
+      "id": { "type": "integer", "autoincrement": true, "primarykey": true },
+      "name": { "type": "string", "size": 128, "notnull": true },
+      "org_identity_id": { "type": "integer", "foreignkey": { "table": "org_identities", "column": "id" } },
+      "status": { "type": "string", "size": 2 },
+      "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
+      "valid_from": { "type": "datetime" },
+      "valid_through": { "type": "datetime" }
+    }
+  },
+  
+  "tables": {
+    "cos": {
+      "columns": {
+        "id": {},
+        "name": {},
+        "description": {},
+        "status": {}
+      },
+      "indexes": {
+        "cos_i1": {
+          "columns": [ "name" ],
+          "unique": true
+        }
+      },
+      "changelog": true
+    },
+    
+    "types": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "attribute": { "type": "string", "size": 32 },
+        "name": { "type": "string", "size": 32 },
+        "display_name": { "type": "string", "size": 64 },
+        "edupersonaffiliation": { "type": "string", "size": 32 },
+        "status": {}
+      },
+      "indexes": {
+        "types_i1": { "columns": [ "co_id", "attribute" ] },
+        "types_i2": { "columns": [ "co_id", "attribute", "name" ] }
+      }
+    },
+    
+    "api_users": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "username": { "type": "string", "size": 64, "notnull": true },
+        "api_key": { "type": "string", "size": 256 },
+        "status": {},
+        "privileged": { "type": "boolean" },
+        "valid_from": {},
+        "valid_through": {},
+        "remote_ip": { "type": "string", "size": 80 }
+      },
+      "indexes": {
+        "api_users_i1": { "columns": [ "co_id" ] },
+        "api_users_i2": { "columns": [ "username" ] }
+      }
+    },
+    
+    "cous": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "description": {},
+        "parent_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
+        "lft": { "type": "integer" },
+        "rght": { "type": "integer" }
+      },
+      "indexes": {
+        "cous_i1": { "columns": [ "co_id" ] },
+        "cous_i2": { "columns": [ "name" ] },
+        "cous_i3": { "columns": [ "co_id", "name" ] },
+        "cous_i4": {
+          "comment": "We don't really need an index, but DBAL will create one for all foreign keys if none exists",
+          "columns": [ "parent_id" ]
+        }
+      }
+    },
+    
+    "dashboards": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "description": {}
+      },
+      "indexes": {
+        "dashboards_i1": { "columns": [ "co_id"] }
+      }
+    },
+    
+    "co_people": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "status": {},
+        "timezone": { "type": "string", "size": 80 },
+        "date_of_birth": { "type": "date" }
+      },
+      "indexes": {
+        "co_people_i1": { "columns": [ "co_id" ] }
+      }
+    },
+    
+    "org_identities": {
+      "columns": {
+        "id": {},
+        "co_person_id": { "notnull": true },
+        "status": {},
+        "affiliation": { "type": "string", "size": 32 },
+        "date_of_birth": { "type": "date" },
+        "title": { "type": "string", "size": 128 },
+        "organization": { "type": "string", "size": 128 },
+        "department": { "type": "string", "size": 128 },
+        "valid_from": {},
+        "valid_through": {}
+      },
+      "indexes": {
+        "org_identities_i1": { "columns": [ "co_person_id" ] }
+      }
+    },
+    
+    "names": {
+      "columns": {
+        "id": {},
+        "honorific": { "type": "string", "size": 32 },
+        "given": { "type": "string", "size": 128 },
+        "middle": { "type": "string", "size": 128 },
+        "family": { "type": "string", "size": 128 },
+        "suffix": { "type": "string", "size": 32 },
+        "type_id": {},
+        "language": { "type": "string", "size": 16 },
+        "primary_name": { "type": "boolean" }
+      },
+      "indexes": {
+        "names_i1": { "columns": [ "type_id"] }
+      },
+      "mvea": [ "co_person", "org_identity" ],
+      "sourced": true
+    },
+    
+    "identifiers": {
+      "XXX": [ "add index for co_provision_target_id+co_person_id" ],
+      "columns": {
+        "id": {},
+        "identifier": { "type": "string", "size": 512 },
+        "type_id": {},
+        "login": { "type": "boolean" },
+        "status": {}
+      },
+      "indexes": {
+        "identifiers_i1": { "columns": [ "identifier", "type_id", "co_person_id" ] },
+        "identifiers_i2": { "columns": [ "identifier", "type_id", "org_identity_id" ] },
+        "identifiers_i3": { "columns": [ "type_id"] }
+      },
+      "mvea": [ "co_person", "org_identity" ],
+      "sourced": true
+    }
+  },
+  
+  "drop-tables":[
+    {
+      "comment": "A list of tables to manually drop, not yet implemented"
+    }
+  ]
+}

@@ -1,0 +1,350 @@
+<?php
+/**
+ * COmanage Registry API Users Table
+ *
+ * Portions licensed to the University Corporation for Advanced Internet
+ * Development, Inc. ("UCAID") under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * UCAID licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
+ * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+declare(strict_types = 1);
+
+namespace App\Model\Table;
+
+use \Cake\Auth\FallbackPasswordHasher;
+use \Cake\Chronos\Chronos;
+use \Cake\ORM\Query;
+use \Cake\ORM\RulesChecker;
+use \Cake\ORM\Table;
+use \Cake\ORM\TableRegistry;
+use \Cake\Validation\Validator;
+use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Random\RandomString;
+
+class ApiUsersTable extends Table {
+  use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\RulesTrait;
+  use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\ValidationTrait;
+  
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array  $config Configuration options passed to constructor
+   */
+  
+  public function initialize(array $config): void {
+    // Timestamp behavior handles created/modified updates
+    $this->addBehavior('Changelog');
+    $this->addBehavior('Timestamp');
+    $this->addBehavior('Timezone');
+    
+    // ApiUsers are configuration
+    $this->setIsConfigurationTable(true);
+    
+    // Define associations
+    $this->belongsTo('Cos');
+    
+    $this->setDisplayField('username');
+    
+    $this->setPrimaryLink('co_id');
+    $this->setAllowLookupPrimaryLink(['generate', 'generateApiKey']);
+    $this->setRequiresCO(true);
+    
+    $this->setAutoViewVars([
+      'statuses' => [
+        'type' => 'enum',
+        'class' => 'SuspendableStatusEnum'
+      ]
+    ]);
+  }
+  
+  /**
+   * Define business rules to supplement the default trait implementation.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildTableRules(RulesChecker $rules): RulesChecker {
+    // We don't want to perform the uniqueness check until after then namespacing
+    // check in order to avoid information leakage. This requires more complicated
+    // rule building.
+    
+    $rules->add(function($entity, $options) use($rules) {
+        // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
+      $ret = $this->ruleIsUsernameValid($entity, $options);
+      
+      if($ret !== true) {
+        // Return the error message
+        return $ret;
+      }
+      
+      // AR-ApiUser-3 API usernames must be unique across the entire platform.
+      $rule = $rules->isUnique(['username'], __('registry.er.exists', [__('registry.ct.ApiUsers', [1])]));
+      
+      return $rule($entity, $options);
+    },
+    'isUsernameValid',
+    ['errorField' => 'username']);
+    
+    return $rules;
+  }
+  
+  /**
+   * Generate (and save) an API Key for the specified API User.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id API User ID
+   * @return string  API Key
+   */
+  
+  public function generateKey(int $id) {
+    $token = RandomString::generateAppKey();
+    
+    // Note hashing happens in the entity (ApiUser.php)
+    $apiUser = $this->get($id);
+    $apiUser->api_key = $token;
+    
+    $this->save($apiUser);
+    
+    return $token;
+  }
+  
+  /**
+   * Obtain an API User's priviledged status. Note this function will not validate
+   * any aspects of the record (status, valid_from, etc) -- use validateKey for that.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $username API Username
+   * @param  int    $coId     CO ID
+   * @return boolean          True if $username is a privileged API user, false otherwise
+   * @throws InvalidArgumentException
+   */
+  
+  public function getUserPrivilege(string $username, int $coId) {
+    $apiUser = $this->find()->where(['username' => $username])->first();
+    
+    if(empty($apiUser)) {
+      throw new \InvalidArgumentException(__('registry.er.auth.api.unknown', [$username]));
+    }
+    
+    return $apiUser->privileged;
+  }
+
+  /**
+   * Application Rule to determine if the current entity username is valid.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleIsUsernameValid($entity, $options) {
+    // We need to pull the CO data to check the name
+    
+    if(!$entity->co_id) {
+      return __('registry.er.coid');
+    }
+    
+    $Cos = TableRegistry::getTableLocator()->get('Cos');
+    
+    $co = $Cos->get($entity->co_id);
+
+    if(!$co) {
+      return __('registry.er.notfound', [__('registry.ct.cos', [1])]);
+    }
+    
+    $prefix = "co_" . $co->id . ".";
+    
+    // Return false if the prefix doesn't match the CO ID
+    if(strncmp($entity->username, $prefix, strlen($prefix))) {
+      return __('registry.er.api.username.prefix', [$prefix]);
+    }
+    
+    // Or if there's nothing after the dot
+    if(strlen($entity->username) == strlen($prefix)) {
+      return __('registry.er.api.username.suffix');
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Validate an API Key.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $username API Username
+   * @param  string $apiKey   API Key to validate
+   * @param  string $remoteIp IP Address of request
+   * @return boolean          true if the API Key validates
+   * @throws InvalidArgumentException
+   */
+  
+  public function validateKey(string $username, string $apiKey, string $remoteIp) {
+    // First pull the ApiUser record for $username. Note we don't know which
+    // CO we're querying for, so $username requires the CO name as a prefix
+    // (except for legacy usernames, which are assumed to be part of the
+    // COmanage CO).
+    
+    // We could add where clauses to filter on status, etc, but by manually
+    // examining the record we can provide better error information.
+    $apiUser = $this->find()->where(['username' => $username])->first();
+    
+    if(empty($apiUser)) {
+      throw new \InvalidArgumentException(__('registry.er.auth.api.unknown', [$username]));
+    }
+    
+    // First validate the key. We use the FallbackPasswordHasher because API Users
+    // that were created in version prior to 5.0.0 use Cake 2's SHA-1 hashing.
+    // We can detect that here and rehash the password, but only when the apiuser
+    // authenticates.
+    
+    $Hasher = new FallbackPasswordHasher([
+      'hashers' => [
+        'Default' => [],
+        'Weak' => ['hashType' => 'sha1']
+      ]
+    ]);
+    
+    if(!$Hasher->check($apiKey, $apiUser->api_key)) {
+      throw new \InvalidArgumentException('registry.er.auth.api.key', [$username]);
+    }
+    
+    if($Hasher->needsRehash($apiUser->api_key)) {
+      // We'll rehash passwords even if subsequent eligibility checks fail
+      \Cake\Log\Log::write('debug', "Rehashing password for API User \"" . $username . "\"");
+      
+      $apiUser->api_key = $apiKey;
+      // We disable rules checking to permit legacy usernames (those not prefixed
+      // with the CO name to remain)
+      $this->save($apiUser, ['checkRules' => false]);
+    }
+    
+    // Is the ApiUser active?
+    if($apiUser->status != SuspendableStatusEnum::Active) {
+      throw new \InvalidArgumentException(__('registry.er.auth.api.status', [$username]));
+    }
+    
+    // Are we within the validity window, if applicable?
+    $now = Chronos::now();
+    
+    if($apiUser->valid_from
+       && $now->lt($apiUser->valid_from)) {
+      throw new \InvalidArgumentException(__('registry.er.auth.api.toosoon', [$username]));
+    }
+    
+    if($apiUser->valid_through
+       && $now->gt($apiUser->valid_through)) {
+      throw new \InvalidArgumentException(__('registry.er.auth.api.expired', [$username]));
+    }
+    
+    // Perform the IP Address check
+    if($apiUser->remote_ip
+       && !preg_match($apiUser->remote_ip, $remoteIp)) {
+      throw new \InvalidArgumentException(__('registry.er.auth.api.ip', [$remoteIp, $username]));
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Set validation rules.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Validator $validator Validator
+   * @return $validator           Validator
+   */
+  
+  public function validationDefault(Validator $validator): Validator {
+    $validator->add(
+      'co_id',
+      'content',
+      [ 'rule' => 'isInteger' ]
+    );
+    $validator->notEmpty('co_id');
+    
+    $validator->add(
+      'username',
+      'length',
+      [ 'rule' => [ 'maxLength', 64 ] ]
+    );
+    $validator->add(
+      'username',
+      'content',
+      [ 'rule'     => [ 'validateInput' ],
+        'provider' => 'table' ]
+    );
+    $validator->notEmpty('username');
+    
+    $validator->add(
+      'api_key',
+      'length',
+      [ 'rule' => [ 'maxLength', 256 ] ]
+    );
+    $validator->allowEmpty('api_key');
+    
+    $validator->add(
+      'status',
+      'content',
+      [ 'rule' => [ 'inList', [ 
+        SuspendableStatusEnum::Active,
+        SuspendableStatusEnum::Suspended
+      ] ] ]
+    );
+    $validator->notEmpty('status');
+    
+    $validator->add(
+      'privileged',
+      'content',
+      [ 'rule' => [ 'boolean' ] ]
+    );
+    $validator->allowEmpty('privileged');
+    
+    $validator->add(
+      'valid_from',
+      'content',
+      [ 'rule' => [ 'datetime' ] ]
+    );
+    $validator->allowEmpty('valid_from');
+    
+    $validator->add(
+      'valid_through',
+      'content',
+      [ 'rule' => [ 'datetime' ] ]
+    );
+    $validator->allowEmpty('valid_through');
+    
+    $validator->add(
+      'remote_ip',
+      'length',
+      [ 'rule' => [ 'maxLength', 80 ] ]
+    );
+    $validator->allowEmpty('remote_ip');
+    
+    return $validator; 
+  }
+}

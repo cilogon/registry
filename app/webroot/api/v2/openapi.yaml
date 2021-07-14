@@ -1,0 +1,70 @@
+openapi: 3.0.0
+info:
+  title: COmanage Registry API
+  description: [COmanage](https://www.internet2.edu/comanage) [Registry](https://spaces.at.internet2.edu/display/COmanage/COmanage+Registry+Technical+Manual) API
+  version: 2.0.0
+
+# XXX need to also document ApiSource
+#     pagination
+#     metadata
+
+externalDocs:
+  url: https://spaces.at.internet2.edu/display/COmanage/REST+API+v2
+  description: Full API v2 documentation
+
+servers:
+  - url: /
+#    - url: https://{server}/registry-pe/api/v2
+#      variables:
+#      server:
+#          default: https://registry.yourdomain.org
+
+paths:
+  /cous/{id}:
+    get:
+      summary: Retrieve a single COU.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: COU ID to retrieve
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      # XXX need to document response format
+  /cous:
+    get:
+      summary: Retrieve available COUs.
+      parameters:
+        - name: co_id
+          in: query
+          schema:
+            type: offset
+          description: Retrieve COUs available within the specified CO
+    post:
+      summary: Add a new COU.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # Could replace this with $ref
+              # XXX this doesn't correctly represent a list of objects, as permitted
+              type: object
+              properties:
+                co_id:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                name:
+                  type: string
+                description:
+                  type: string
+                parent_id: integer
+                  format: int64
+                  minimum: 1
+              required:
+                - co_id
+                - name
+    # XXX document put

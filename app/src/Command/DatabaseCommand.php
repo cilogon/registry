@@ -1,0 +1,312 @@
+<?php
+/**
+ * COmanage Database Command, shared between Match and Registry
+ *
+ * Portions licensed to the University Corporation for Advanced Internet
+ * Development, Inc. ("UCAID") under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * UCAID licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * @link          http://www.internet2.edu/comanage COmanage Project
+ * @package       common
+ * @since         COmanage Common v1.0.0
+ * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+/**
+ * THIS FILE IS MASTERED IN THE COMMON REPOSITORY.
+ */
+
+declare(strict_types = 1);
+
+namespace App\Command;
+
+use Cake\Console\Arguments;
+use Cake\Console\Command;
+use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleOptionParser;
+use Cake\Datasource\ConnectionInterface;
+use Cake\Datasource\ConnectionManager;
+
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Schema\Comparator;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaDiff;
+
+class DatabaseCommand extends Command {
+  /**
+   * Build an Option Parser.
+   *
+   * @since  COmanage Common v1.0.0
+   * @param  ConsoleOptionParser $parser ConsoleOptionParser
+   * @return ConsoleOptionParser         ConsoleOptionParser
+   */
+  
+  protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser {
+    $parser->addOption('not', [
+      'short' => 'n',
+      'boolean' => true,
+      'help'  => __(__('product.code').'.cmd.opt.not')
+    ]);
+
+    return $parser;
+  }
+  
+  /**
+   * Execute the Database Command.
+   *
+   * @since  COmanage Match v1.0.0, COmanage Registry v5.0.0
+   * @param  Arguments $args Command Arguments
+   * @param  ConsoleIo $io   Console IO
+   * @throws RuntimeException
+   */
+  
+  public function execute(Arguments $args, ConsoleIo $io) {
+    // Database schema management. We use Doctrine DBAL rather than Cake's migrations
+    // (phinx) because migrations make development annoying (want to add a field
+    // to a table after you've created it? that's a new migration!), and can't
+    // provide a single representation of a given table (since you're recording
+    // diffs, not desired end state). ADOdb (used in earlier versions) was hard to
+    // debug and poorly maintained. DBAL doesn't have a schema format (like axmls)
+    // but it does everything else, and specifying a schema format is easy.
+    
+    // What component are we?
+    $COmponent = __('product.code');
+    
+    // First try to parse our schema file
+
+    $schemaFile = ROOT . DS . 'config' . DS . 'schema' . DS . 'schema.json';
+
+    if(!is_readable($schemaFile)) {
+      throw new \RuntimeException(__($COmponent.'.er.file', [$schemaFile]));
+    }
+    
+    $io->out(__($COmponent.'.cmd.db.schema', [$schemaFile]));
+    
+    $json = file_get_contents($schemaFile);
+    
+    $schemaConfig = json_decode($json);
+    
+    if(!$schemaConfig) {
+      // json_last_error[_msg]() are pretty useless. If you are debugging here,
+      // it's most likely because of one of the following:
+      // - An unmatched brace { }
+      // - A trailing comma (permitted in PHP but not JSON)
+      // - Single quotes instead of double quotes
+      throw new \RuntimeException(__($COmponent.'.er.schema.parse', [$schemaFile]));
+    }
+    
+    // Use the ConnectionManager to get the database config to pass to adodb.
+    $db = ConnectionManager::get('default');
+    
+    // $db is a ConnectionInterface object
+    $cfg = $db->config();
+    
+    $config = new \Doctrine\DBAL\Configuration();
+    
+    $cfargs = [
+      'dbname'   => $cfg['database'],
+      'user'     => $cfg['username'],
+      'password' => $cfg['password'],
+      'host'     => $cfg['host'],
+      'driver'   => ($cfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "pdo_mysql")
+    ];
+    
+    $conn = DriverManager::getConnection($cfargs, $config);
+    
+    $schema = new Schema();
+    
+    // Walk through $schemaConfig and build our schema in DBAL format.
+    
+    foreach($schemaConfig->tables as $tName => $tCfg) {
+      $table = $schema->createTable($tName);
+      
+      foreach($tCfg->columns as $cName => $cCfg) {
+        // We allow "inherited" definitions from the fieldLibrary, so merge together
+        // the configurations (if appropriate)
+        
+        $colCfg = (object)array_merge((isset($schemaConfig->columnLibrary->columns->$cName)
+                                       ? (array)$schemaConfig->columnLibrary->columns->$cName
+                                       : []),
+                                      (array)$cCfg);
+        
+        if(!isset($colCfg->type)) {
+          throw new \RuntimeException(__('match.er.schema.column', [$tName, $cName]));
+        }
+        
+        // For type definitions see https://www.doctrine-project.org/projects/doctrine-dbal/en/2.12/reference/types.html#types
+        $options = [];
+        
+        if(isset($colCfg->autoincrement)) {
+          $options['autoincrement'] = $colCfg->autoincrement;
+        }
+        
+        if($colCfg->type == "string") {
+          $options['length'] = $colCfg->size;
+        }
+        
+        if(isset($colCfg->notnull)) {
+          $options['notnull'] = $colCfg->notnull;
+        } else {
+          $options['notnull'] = false;
+        }
+        
+        $table->addColumn($cName, $colCfg->type, $options);
+        
+        if(isset($colCfg->primarykey) && $colCfg->primarykey) {
+          $table->setPrimaryKey(["id"]);
+        }
+        
+        if(isset($colCfg->foreignkey)) {
+          $table->addForeignKeyConstraint($colCfg->foreignkey->table,
+                                          [$cName],
+                                          [$colCfg->foreignkey->column],
+                                          [],
+                                          // We name our foreign keys the same way they
+                                          // were previously named by adodb
+                                          $tName . "_" . $cName . "_fkey");
+        }
+      }
+      
+      // (For Registry) If MVEA models are specified, emit the appropriate
+      // columns and indexes. MVEA attributes must be added before indexes, in
+      // case the table has composite indexes referencing MVEA columns.
+      
+      if(!empty($tCfg->mvea)) {
+        $i = 1;
+        
+        foreach($tCfg->mvea as $m) {
+          $mColumn = $m . "_id";
+          $fkTable = \Cake\Utility\Inflector::tableize($m);
+          
+          // Insert a foreign key to this model and index it
+          $table->addColumn($mColumn, "integer", ['notnull' => false]);
+          $table->addForeignKeyConstraint($fkTable, [$mColumn], ['id'], [], $tName . "_" . $mColumn . "_fkey");
+          $table->addIndex([$mColumn], $tName . "_im" . $i++);
+        }
+      }
+      
+      if(isset($tCfg->indexes)) {
+        // We don't autogenerate names for indexes so if the definition of an index
+        // changes DBAL can just rebuild that index instead of recreating every index
+        // on the table. (This should speed up schema updates vs ADOdb.) This does
+        // require each index to be named in the schema file, but we had to do that
+        // in axmls too, even though it rebuilt every index every time through.
+        
+        foreach($tCfg->indexes as $iName => $iCfg) {
+          // $flags and $options as passed to Index(), but otherwise undocumented
+          $flags = [];
+          $options = [];
+          
+          $table->addIndex($iCfg->columns, $iName, $flags, $options);
+        }
+      }
+      
+      // (For Registry) If an attribute is "sourced" it is a CO Person attribute
+      // that is copied via a Pipeline from an Org Identity that was created from
+      // an Org Identity Source, so we need a foreign key into ourself.
+      
+      if(isset($tCfg->sourced) && $tCfg->sourced) {
+        $sColumn = "source_" . \Cake\Utility\Inflector::singularize($tName) . "_id";
+        
+        // Insert a foreign key to this model and index it
+        $table->addColumn($sColumn, "integer", ['notnull' => false]);
+        $table->addForeignKeyConstraint($table, [$sColumn], ['id'], [], $tName . "_" . $sColumn . "_fkey");
+        $table->addIndex([$sColumn], $tName . "_im" . $i++);
+      }
+      
+      // Default is to insert timestamp and changelog fields, unless disabled
+      
+      if(!isset($tCfg->timestamps) || $tCfg->timestamps) {
+        // Insert Cake metadata fields
+        $table->addColumn("created", "datetime");
+        $table->addColumn("modified", "datetime", ['notnull' => false]);
+      }
+      
+      if(!isset($tCfg->changelog) || $tCfg->changelog) {
+        // Insert ChangelogBehavior metadata fields
+        $clColumn = \Cake\Utility\Inflector::singularize($tName) . "_id";
+        $table->addColumn($clColumn, "integer", ['notnull' => false]);
+        $table->addColumn("revision", "integer", ['notnull' => false]);
+        $table->addColumn("deleted", "boolean", ['notnull' => false]);
+        $table->addColumn("actor_identifier", "string", ['length' => 256, 'notnull' => false]);
+        
+        $table->addForeignKeyConstraint($table, [$clColumn], ['id'], [], $tName . "_" . $clColumn . "_fkey");
+        $table->addIndex([$clColumn], $tName . "_icl", [], []);
+      }
+    }
+    
+    // This is the SQL that represents the desired state of the database
+    $toSql = $schema->toSql($conn->getDatabasePlatform());
+    
+    // SchemaManager provides info about the database
+    $sm = $conn->getSchemaManager();
+    
+    // The is the current database representation
+    $curSchema = $sm->createSchema();
+    
+    $fromSql = $curSchema->toSql($conn->getDatabasePlatform());
+    
+    // Really run the SQL?
+    $doSQL = !$args->getOption('not');
+
+    try {
+      // We manually call compare so we can get the SchemaDiff object. We need
+      // this for toSaveSql(), which we use to avoid dropping undocumented tables
+      // (like the matchgrids, which are dynamically created and so won't be in the
+      // schema file).
+//      $diffSql = $curSchema->getMigrateToSql($schema, $conn->getDatabasePlatform());
+      $comparator = new Comparator();
+      $schemaDiff = $comparator->compare($curSchema, $schema);
+      
+      $diffSql = $schemaDiff->toSaveSql($conn->getDatabasePlatform());
+      
+      // We don't start a transaction since in general we always want to move to
+      // the desired state, and if we fail in flight it's probably a bug that
+      // needs to be fixed.
+      
+      foreach($diffSql as $sql) {
+        // XXX At some point do this only if $verbose
+        $io->out($sql);
+        
+        if($cfg['driver'] == 'Cake\Database\Driver\Postgres'
+           && preg_match("/^DROP SEQUENCE [a-z]*_id_seq/", $sql)) {
+          // Remove the DROP SEQUENCE statements in $fromSql because they're Postgres automagic
+          // being misinterpreted. (Note toSaveSql might mask this now.)
+          // XXX Maybe debug and file a PR to not emit DROP SEQUENCE on PG for autoincrementesque fields?
+          $io->out("Skipping sequence drop");
+        } else {
+          if($doSQL) {
+            $stmt = $conn->query($sql);
+            // $stmt just returns the query string so we don't bother examining it
+          }
+        }
+      }
+      
+      if(!$doSQL) {
+        $io->out(__($COmponent.'.cmd.db.noop'));
+      } else {
+        $io->out(__($COmponent.'.cmd.db.ok'));
+      }
+    }
+    catch(\Exception $e) {
+      $io->out($e->getMessage());
+    }
+    
+    // We might run bin/cake schema_cache clear or
+    // bin/cake schema_cache build --connection default
+    // but so far we don't have an example indicating it's needed.
+  }
+}
