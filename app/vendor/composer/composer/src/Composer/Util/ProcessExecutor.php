@@ -31,19 +31,27 @@ class ProcessExecutor
     const STATUS_FAILED = 4;
     const STATUS_ABORTED = 5;
 
+    /** @var int */
     protected static $timeout = 300;
 
-    protected $captureOutput;
-    protected $errorOutput;
+    /** @var bool */
+    protected $captureOutput = false;
+    /** @var string */
+    protected $errorOutput = '';
+    /** @var ?IOInterface */
     protected $io;
 
     /**
      * @phpstan-var array<int, array<string, mixed>>
      */
     private $jobs = array();
+    /** @var int */
     private $runningJobs = 0;
+    /** @var int */
     private $maxJobs = 10;
+    /** @var int */
     private $idGen = 0;
+    /** @var bool */
     private $allowAsync = false;
 
     public function __construct(IOInterface $io = null)
@@ -54,11 +62,11 @@ class ProcessExecutor
     /**
      * runs a process on the commandline
      *
-     * @param  string $command the command to execute
-     * @param  mixed  $output  the output will be written into this var if passed by ref
-     *                         if a callable is passed it will be used as output handler
-     * @param  string $cwd     the working directory
-     * @return int    statuscode
+     * @param  string  $command the command to execute
+     * @param  mixed   $output  the output will be written into this var if passed by ref
+     *                          if a callable is passed it will be used as output handler
+     * @param  ?string $cwd     the working directory
+     * @return int     statuscode
      */
     public function execute($command, &$output = null, $cwd = null)
     {
@@ -72,9 +80,9 @@ class ProcessExecutor
     /**
      * runs a process on the commandline in TTY mode
      *
-     * @param  string $command the command to execute
-     * @param  string $cwd     the working directory
-     * @return int    statuscode
+     * @param  string  $command the command to execute
+     * @param  ?string $cwd     the working directory
+     * @return int     statuscode
      */
     public function executeTty($command, $cwd = null)
     {
@@ -85,6 +93,13 @@ class ProcessExecutor
         return $this->doExecute($command, $cwd, false);
     }
 
+    /**
+     * @param  string  $command
+     * @param  ?string $cwd
+     * @param  bool    $tty
+     * @param  mixed   $output
+     * @return int
+     */
     private function doExecute($command, $cwd, $tty, &$output = null)
     {
         if ($this->io && $this->io->isDebug()) {
@@ -111,12 +126,13 @@ class ProcessExecutor
         }
 
         $this->captureOutput = func_num_args() > 3;
-        $this->errorOutput = null;
+        $this->errorOutput = '';
 
         // TODO in v3, commands should be passed in as arrays of cmd + args
         if (method_exists('Symfony\Component\Process\Process', 'fromShellCommandline')) {
             $process = Process::fromShellCommandline($command, $cwd, null, null, static::getTimeout());
         } else {
+            /** @phpstan-ignore-next-line */
             $process = new Process($command, $cwd, null, null, static::getTimeout());
         }
         if (!Platform::isWindows() && $tty) {
@@ -215,6 +231,10 @@ class ProcessExecutor
         return $promise;
     }
 
+    /**
+     * @param  int  $id
+     * @return void
+     */
     private function startJob($id)
     {
         $job = &$this->jobs[$id];
@@ -283,6 +303,10 @@ class ProcessExecutor
         }
     }
 
+    /**
+     * @param  ?int $index job id
+     * @return void
+     */
     public function wait($index = null)
     {
         while (true) {
@@ -296,6 +320,8 @@ class ProcessExecutor
 
     /**
      * @internal
+     *
+     * @return void
      */
     public function enableAsync()
     {
@@ -305,7 +331,8 @@ class ProcessExecutor
     /**
      * @internal
      *
-     * @return int number of active (queued or started) jobs
+     * @param  ?int $index job id
+     * @return int         number of active (queued or started) jobs
      */
     public function countActiveJobs($index = null)
     {
@@ -342,6 +369,8 @@ class ProcessExecutor
 
     /**
      * @private
+     *
+     * @return void
      */
     public function markJobDone()
     {
@@ -349,13 +378,14 @@ class ProcessExecutor
     }
 
     /**
+     * @param  ?string  $output
      * @return string[]
      */
     public function splitLines($output)
     {
-        $output = trim($output);
+        $output = trim((string) $output);
 
-        return ((string) $output === '') ? array() : preg_split('{\r?\n}', $output);
+        return $output === '' ? array() : preg_split('{\r?\n}', $output);
     }
 
     /**
@@ -368,6 +398,14 @@ class ProcessExecutor
         return $this->errorOutput;
     }
 
+    /**
+     * @private
+     *
+     * @param Process::ERR|Process::OUT $type
+     * @param string                    $buffer
+     *
+     * @return void
+     */
     public function outputHandler($type, $buffer)
     {
         if ($this->captureOutput) {
@@ -396,7 +434,8 @@ class ProcessExecutor
     }
 
     /**
-     * @param int $timeout the timeout in seconds
+     * @param  int  $timeout the timeout in seconds
+     * @return void
      */
     public static function setTimeout($timeout)
     {
@@ -406,7 +445,7 @@ class ProcessExecutor
     /**
      * Escapes a string to be used as a shell argument.
      *
-     * @param string $argument The argument that will be escaped
+     * @param ?string $argument The argument that will be escaped
      *
      * @return string The escaped argument
      */
@@ -416,50 +455,36 @@ class ProcessExecutor
     }
 
     /**
-     * Copy of ProcessUtils::escapeArgument() that is deprecated in Symfony 3.3 and removed in Symfony 4.
+     * Copy of Symfony's Process::escapeArgument() which is private
      *
-     * @param string $argument
+     * @param ?string $argument
      *
      * @return string
      */
     private static function escapeArgument($argument)
     {
-        //Fix for PHP bug #43784 escapeshellarg removes % from given string
-        //Fix for PHP bug #49446 escapeshellarg doesn't work on Windows
-        //@see https://bugs.php.net/bug.php?id=43784
-        //@see https://bugs.php.net/bug.php?id=49446
-        if ('\\' === DIRECTORY_SEPARATOR) {
-            if ((string) $argument === '') {
-                return escapeshellarg($argument);
-            }
-
-            $escapedArgument = '';
-            $quote = false;
-            foreach (preg_split('/(")/', $argument, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE) as $part) {
-                if ('"' === $part) {
-                    $escapedArgument .= '\\"';
-                } elseif (self::isSurroundedBy($part, '%')) {
-                    // Avoid environment variable expansion
-                    $escapedArgument .= '^%"'.substr($part, 1, -1).'"^%';
-                } else {
-                    // escape trailing backslash
-                    if ('\\' === substr($part, -1)) {
-                        $part .= '\\';
-                    }
-                    $quote = true;
-                    $escapedArgument .= $part;
-                }
-            }
-            if ($quote) {
-                $escapedArgument = '"'.$escapedArgument.'"';
-            }
-
-            return $escapedArgument;
+        if ('' === $argument || null === $argument) {
+            return '""';
         }
+        if ('\\' !== \DIRECTORY_SEPARATOR) {
+            return "'".str_replace("'", "'\\''", $argument)."'";
+        }
+        if (false !== strpos($argument, "\0")) {
+            $argument = str_replace("\0", '?', $argument);
+        }
+        if (!preg_match('/[\/()%!^"<>&|\s]/', $argument)) {
+            return $argument;
+        }
+        $argument = preg_replace('/(\\\\+)$/', '$1$1', $argument);
 
-        return "'".str_replace("'", "'\\''", $argument)."'";
+        return '"'.str_replace(array('"', '^', '%', '!', "\n"), array('""', '"^^"', '"^%"', '"^!"', '!LF!'), $argument).'"';
     }
 
+    /**
+     * @param  string $arg
+     * @param  string $char
+     * @return bool
+     */
     private static function isSurroundedBy($arg, $char)
     {
         return 2 < strlen($arg) && $char === $arg[0] && $char === $arg[strlen($arg) - 1];

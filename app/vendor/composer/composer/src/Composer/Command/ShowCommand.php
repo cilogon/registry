@@ -27,6 +27,7 @@ use Composer\Plugin\PluginEvents;
 use Composer\Repository\InstalledArrayRepository;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\CompositeRepository;
+use Composer\Repository\FilterRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryFactory;
 use Composer\Repository\InstalledRepository;
@@ -52,9 +53,10 @@ class ShowCommand extends BaseCommand
 {
     /** @var VersionParser */
     protected $versionParser;
+    /** @var string[] */
     protected $colors;
 
-    /** @var RepositorySet */
+    /** @var ?RepositorySet */
     private $repositorySet;
 
     protected function configure()
@@ -183,7 +185,7 @@ EOT
             } else {
                 $installedRepo = new InstalledRepository(array($localRepo, $platformRepo));
             }
-            $repos = new CompositeRepository(array_merge(array($installedRepo), $composer->getRepositoryManager()->getRepositories()));
+            $repos = new CompositeRepository(array_merge(array(new FilterRepository($installedRepo, array('canonical' => false))), $composer->getRepositoryManager()->getRepositories()));
         } elseif ($input->getOption('all')) {
             $defaultRepos = RepositoryFactory::defaultRepos($io);
             $io->writeError('No composer.json found in the current directory, showing available packages from ' . implode(', ', array_keys($defaultRepos)));
@@ -311,12 +313,6 @@ EOT
             return 0;
         }
 
-        if ($repos instanceof CompositeRepository) {
-            $repos = $repos->getRepositories();
-        } elseif (!is_array($repos)) {
-            $repos = array($repos);
-        }
-
         // list packages
         $packages = array();
         $packageFilterRegex = null;
@@ -334,7 +330,7 @@ EOT
             $input->setOption('path', false);
         }
 
-        foreach ($repos as $repo) {
+        foreach ($repos->getRepositories() as $repo) {
             if ($repo === $platformRepo) {
                 $type = 'platform';
             } elseif ($lockedRepo !== null && $repo === $lockedRepo) {
@@ -1245,6 +1241,9 @@ EOT
         return $candidate;
     }
 
+    /**
+     * @return RepositorySet
+     */
     private function getRepositorySet(Composer $composer)
     {
         if (!$this->repositorySet) {
