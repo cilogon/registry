@@ -71,27 +71,35 @@ class TransmogrifyCommand extends Command {
       'displayField' => 'name'
     ],
     //'dashboards' => [ 'source' => 'cm_co_dashboards' ]
-    'co_people' => [
+    'people' => [
       'source' => 'cm_co_people',
       'displayField' => 'id',
-      'cache' => [ 'co_id' ]
+      'cache' => [ 'co_id' ],
+      'fieldMap' => [
+        // Rename the changelog key
+        'co_person_id' => 'person_id'
+      ]
     ],
-    'org_identities' => [
+    'external_identities' => [
       'source' => 'cm_org_identities',
       'displayField' => 'id',
       'fieldMap' => [
         'co_id' => null,
-        'co_person_id' => '&map_org_identity_co_person_id',
+        'person_id' => '&map_org_identity_co_person_id',
         'o' => 'organization',
-        'ou' => 'department'
+        'ou' => 'department',
+        // Rename the changelog key
+        'org_identity_id' => 'external_identity_id'
       ],
-      'cache' => [ 'co_person_id' ]
+      'cache' => [ 'person_id' ]
     ],
     'names' => [
       'source' => 'cm_names',
       'displayField' => 'id',
       'booleans' => [ 'primary_name' ],
       'fieldMap' => [
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id',
         // We need to map type_id before we null out type
         'type_id' => '&map_name_type',
         'type' => null
@@ -102,6 +110,8 @@ class TransmogrifyCommand extends Command {
       'displayField' => 'id',
       'booleans' => [ 'login' ],
       'fieldMap' => [
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id',
         'type_id' => '&map_identifier_type',
         'type' => null,
 // XXX temporary until tables are migrated
@@ -276,7 +286,7 @@ class TransmogrifyCommand extends Command {
         $io->out(floor(($tally * 100)/$count) . "% done");
       }
       
-      $max = $this->inconn->fetchColumn('SELECT MAX(id) FROM ' . $this->tables[$t]['source']);
+      $max = $this->inconn->fetchOne('SELECT MAX(id) FROM ' . $this->tables[$t]['source']);
       $max++;
       
       $io->out("= New max: " . $max);
@@ -302,17 +312,17 @@ class TransmogrifyCommand extends Command {
     // By the time we're called, we should have transmogrified the Org Identity
     // and CO Person data, so we can just walk the caches
     
-    if(!empty($row['co_person_id'])) {
-      if(isset($this->cache['co_people']['id'][ $row['co_person_id'] ]['co_id'])) {
-        return $this->cache['co_people']['id'][ $row['co_person_id'] ]['co_id'];
+    if(!empty($row['person_id'])) {
+      if(isset($this->cache['people']['id'][ $row['person_id'] ]['co_id'])) {
+        return $this->cache['people']['id'][ $row['person_id'] ]['co_id'];
       }
-    } elseif(!empty($row['org_identity_id'])) {
+    } elseif(!empty($row['external_identity_id'])) {
       // Map the OrgIdentity to a CO Person, then to the CO
-      if(!empty($this->cache['org_identities']['id'][ $row['org_identity_id'] ]['co_person_id'])) {
-        $coPersonId = $this->cache['org_identities']['id'][ $row['org_identity_id'] ]['co_person_id'];
+      if(!empty($this->cache['external_identities']['id'][ $row['external_identity_id'] ]['person_id'])) {
+        $personId = $this->cache['external_identities']['id'][ $row['external_identity_id'] ]['person_id'];
         
-        if(isset($this->cache['co_people']['id'][ $coPersonId ]['co_id'])) {
-          return $this->cache['co_people']['id'][ $coPersonId ]['co_id'];
+        if(isset($this->cache['people']['id'][ $personId ]['co_id'])) {
+          return $this->cache['people']['id'][ $personId ]['co_id'];
         }
       }
     }
@@ -463,7 +473,7 @@ class TransmogrifyCommand extends Command {
   
   protected function map_org_identity_co_person_id(array $row) {
     // PE eliminates OrgIdentityLink, so we need to map each Org Identity to
-    // a CO Person ID. This is a bit trickier than it sounds, since an Org Identity
+    // a Person ID. This is a bit trickier than it sounds, since an Org Identity
     // could have been relinked.
     
     // Before Transmogrification, we require that Org Identities are unpooled.
@@ -479,7 +489,7 @@ class TransmogrifyCommand extends Command {
     // do that.) Historical information remains available in history_records,
     // and if the deployer keeps an archive of the old database.
     
-    // To figure out which co_person_id to use, we pull the record with the
+    // To figure out which person_id to use, we pull the record with the
     // highest revision number. Note we might be transmogrifying a deleted row,
     // so we can't ignore deleted rows here.
     

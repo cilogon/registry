@@ -53,7 +53,7 @@ msgid "registry.cmd.opt.admin-username"
 msgstr "Username of initial platform administrator"
 
 msgid "registry.cmd.opt.force"
-msgstr "Force a rerun of setup (only if you know what you are doing)""
+msgstr "Force a rerun of setup (only if you know what you are doing)"
 
 msgid "registry.cmd.opt.not"
 msgstr "Calculate changes but do not apply"
@@ -74,9 +74,6 @@ msgstr "Generating salt file"
 msgid "registry.ct.ApiUsers"
 msgstr "{0,plural,=1{API User} other{API Users}}"
 
-msgid "registry.ct.CoPeople"
-msgstr "{0,plural,=1{CO Person} other{CO People}}"
-
 msgid "registry.ct.CoSettings"
 msgstr "{0,plural,=1{CO Setting} other{CO Settings}}"
 
@@ -88,6 +85,12 @@ msgstr "{0,plural,=1{COU} other{COUs}}"
 
 msgid "registry.ct.Dashboards"
 msgstr "{0,plural,=1{Dashboard} other{Dashboards}}"
+
+msgid "registry.ct.ExternalIdentities"
+msgstr "{0,plural,=1{External Identity} other{External Identities}}"
+
+msgid "registry.ct.People"
+msgstr "{0,plural,=1{Person} other{People}}"
 
 ### Enumerations
 msgid "registry.en.BooleanEnum.0"

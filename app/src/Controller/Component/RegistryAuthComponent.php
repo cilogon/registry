@@ -321,11 +321,11 @@ class RegistryAuthComponent extends Component
     $permissions = [];
     
 // XXX need to set permissions according to current user's roles
-    // Can manage CO People in the current CO
-    $permissions['co_people'] = true;
-    
     // Can access the Configuration Dashboard for the current CO
     $permissions['configuration'] = true;
+    
+    // Can manage People in the current CO
+    $permissions['people'] = true;
     
     return $permissions;
   }

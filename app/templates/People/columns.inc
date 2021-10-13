@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CO People Fields
+ * COmanage Registry People Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,20 +25,20 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add') {
-  // Adding a new CO Person is a bit non-standard vs most views. We need a
-  // Primary Name (which we'll collect here) along with possibly collecting
-  // other CO Person attributes.
-  
-  print $this->Field->control('names.0.given');
-  
-  print $this->Field->control('names.0.family');
-  
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->control('date_of_birth');
-} elseif($vv_action == 'edit') {
-  // XXX This is a placeholder for canvas... maybe it should become a separate page
-  //     rather than overload fields.inc?
-}
+// Which action to render as the main link for the row
+$linkActions = ['canvas'];
+
+$indexColumns = [
+  'name' => [
+    'type' => 'link',
+    'model' => 'primary_name',
+    'field' => 'common_name',
+// XXX see comments in the controller about sorting on given vs family
+    'sortable' => 'PrimaryName.family'
+  ],
+  'status' => [
+    'type' => 'enum',
+    'class' => 'StatusEnum',
+    'sortable' => true
+  ]
+];

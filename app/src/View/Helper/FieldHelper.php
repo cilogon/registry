@@ -195,7 +195,7 @@ class FieldHelper extends Helper {
         
         if(preg_match('/^(.*?)_id$/', $fn, $f)) {
           // Map foriegn keys (foo_id) to the controller label
-          $label = __("registry.ct.".Inflector::pluralize($f[1]), [1]);
+          $label = __("registry.ct.".Inflector::camelize(Inflector::pluralize($f[1])), [1]);
         } else {
           // Just look up the key
           $label = __("registry.fd.".$fn);

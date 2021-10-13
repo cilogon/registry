@@ -46,11 +46,11 @@
       
       $menuItems = [
         [
-          'permission' => 'co_people',
-          'controller' => 'co_people',
+          'permission' => 'people',
+          'controller' => 'people',
           'action'     => 'index',
           'icon'       => 'person',
-          'label'      => __('registry.me.co.co_people')
+          'label'      => __('registry.me.co.people')
         ],
         [
           'permission' => 'configuration',

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CoPeople Table
+ * COmanage Registry People Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -35,7 +35,7 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\StatusEnum;
 
-class CoPeopleTable extends Table {
+class PeopleTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
@@ -77,12 +77,18 @@ class CoPeopleTable extends Table {
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['canvas']);
     
+// XXX does some of this stuff really belong in the controller?
+    $this->setEditContains(['PrimaryName']);
     $this->setIndexContains(['PrimaryName']);
     
     $this->setAutoViewVars([
       'statuses' => [
         'type' => 'enum',
         'class' => 'StatusEnum'
+      ],
+      'types' => [
+        'type' => 'type',
+        'where' => ['attribute' => 'Name.type']
       ]
     ]);
   }
@@ -106,7 +112,6 @@ class CoPeopleTable extends Table {
     $validator->add(
       'status',
       'content',
-// XXX if this works, backport to other tables
       [ 'rule' => [ 'inList', StatusEnum::getConstValues() ]]
 /*      [ 'rule' => [ 'inList', [ 
         TemplateableStatusEnum::Active,

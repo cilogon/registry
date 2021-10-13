@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Database Command, shared between Match and Registry
+ * COmanage Database Command
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -19,14 +19,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @link          http://www.internet2.edu/comanage COmanage Project
- * @package       common
- * @since         COmanage Common v1.0.0
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
- */
-
-/**
- * THIS FILE IS MASTERED IN THE COMMON REPOSITORY.
  */
 
 declare(strict_types = 1);
@@ -49,7 +45,7 @@ class DatabaseCommand extends Command {
   /**
    * Build an Option Parser.
    *
-   * @since  COmanage Common v1.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  ConsoleOptionParser $parser ConsoleOptionParser
    * @return ConsoleOptionParser         ConsoleOptionParser
    */
@@ -58,7 +54,7 @@ class DatabaseCommand extends Command {
     $parser->addOption('not', [
       'short' => 'n',
       'boolean' => true,
-      'help'  => __(__('product.code').'.cmd.opt.not')
+      'help'  => __('registry.cmd.opt.not')
     ]);
 
     return $parser;
@@ -67,7 +63,7 @@ class DatabaseCommand extends Command {
   /**
    * Execute the Database Command.
    *
-   * @since  COmanage Match v1.0.0, COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  Arguments $args Command Arguments
    * @param  ConsoleIo $io   Console IO
    * @throws RuntimeException
@@ -82,18 +78,15 @@ class DatabaseCommand extends Command {
     // debug and poorly maintained. DBAL doesn't have a schema format (like axmls)
     // but it does everything else, and specifying a schema format is easy.
     
-    // What component are we?
-    $COmponent = __('product.code');
-    
     // First try to parse our schema file
 
     $schemaFile = ROOT . DS . 'config' . DS . 'schema' . DS . 'schema.json';
 
     if(!is_readable($schemaFile)) {
-      throw new \RuntimeException(__($COmponent.'.er.file', [$schemaFile]));
+      throw new \RuntimeException(__('registry.er.file', [$schemaFile]));
     }
     
-    $io->out(__($COmponent.'.cmd.db.schema', [$schemaFile]));
+    $io->out(__('registry.cmd.db.schema', [$schemaFile]));
     
     $json = file_get_contents($schemaFile);
     
@@ -105,7 +98,7 @@ class DatabaseCommand extends Command {
       // - An unmatched brace { }
       // - A trailing comma (permitted in PHP but not JSON)
       // - Single quotes instead of double quotes
-      throw new \RuntimeException(__($COmponent.'.er.schema.parse', [$schemaFile]));
+      throw new \RuntimeException(__('registry.er.schema.parse', [$schemaFile]));
     }
     
     // Use the ConnectionManager to get the database config to pass to adodb.
@@ -143,7 +136,7 @@ class DatabaseCommand extends Command {
                                       (array)$cCfg);
         
         if(!isset($colCfg->type)) {
-          throw new \RuntimeException(__('match.er.schema.column', [$tName, $cName]));
+          throw new \RuntimeException(__('registry.er.schema.column', [$tName, $cName]));
         }
         
         // For type definitions see https://www.doctrine-project.org/projects/doctrine-dbal/en/2.12/reference/types.html#types
@@ -296,9 +289,9 @@ class DatabaseCommand extends Command {
       }
       
       if(!$doSQL) {
-        $io->out(__($COmponent.'.cmd.db.noop'));
+        $io->out(__('registry.cmd.db.noop'));
       } else {
-        $io->out(__($COmponent.'.cmd.db.ok'));
+        $io->out(__('registry.cmd.db.ok'));
       }
     }
     catch(\Exception $e) {

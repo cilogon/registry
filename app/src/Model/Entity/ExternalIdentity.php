@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CoPeople Index Columns
+ * COmanage Registry ExternalIdentity Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,17 +25,16 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// Which action to render as the main link for the row
-$linkActions = ['canvas'];
+declare(strict_types = 1);
 
-$indexColumns = [
-  'name' => [
-    'type' => 'link',
-    'model' => 'primary_name',
-    'field' => 'common_name'
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'StatusEnum'
-  ]
-];
+namespace App\Model\Entity;
+
+use Cake\ORM\Entity;
+
+class ExternalIdentity extends Entity {
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false, 
+  ];
+}

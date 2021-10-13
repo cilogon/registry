@@ -10,11 +10,11 @@
     
     "columns": {
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
-      "co_person_id": { "type": "integer", "foreignkey": { "table": "co_people", "column": "id" } },
       "description": { "type": "string", "size": 128 },
+      "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
       "name": { "type": "string", "size": 128, "notnull": true },
-      "org_identity_id": { "type": "integer", "foreignkey": { "table": "org_identities", "column": "id" } },
+      "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
       "status": { "type": "string", "size": 2 },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "valid_from": { "type": "datetime" },
@@ -106,7 +106,7 @@
       }
     },
     
-    "co_people": {
+    "people": {
       "columns": {
         "id": {},
         "co_id": {},
@@ -115,14 +115,14 @@
         "date_of_birth": { "type": "date" }
       },
       "indexes": {
-        "co_people_i1": { "columns": [ "co_id" ] }
+        "people_i1": { "columns": [ "co_id" ] }
       }
     },
     
-    "org_identities": {
+    "external_identities": {
       "columns": {
         "id": {},
-        "co_person_id": { "notnull": true },
+        "person_id": { "notnull": true },
         "status": {},
         "affiliation": { "type": "string", "size": 32 },
         "date_of_birth": { "type": "date" },
@@ -133,7 +133,7 @@
         "valid_through": {}
       },
       "indexes": {
-        "org_identities_i1": { "columns": [ "co_person_id" ] }
+        "external_identities_i1": { "columns": [ "person_id" ] }
       }
     },
     
@@ -152,7 +152,7 @@
       "indexes": {
         "names_i1": { "columns": [ "type_id"] }
       },
-      "mvea": [ "co_person", "org_identity" ],
+      "mvea": [ "person", "external_identity" ],
       "sourced": true
     },
     
@@ -166,11 +166,11 @@
         "status": {}
       },
       "indexes": {
-        "identifiers_i1": { "columns": [ "identifier", "type_id", "co_person_id" ] },
-        "identifiers_i2": { "columns": [ "identifier", "type_id", "org_identity_id" ] },
+        "identifiers_i1": { "columns": [ "identifier", "type_id", "person_id" ] },
+        "identifiers_i2": { "columns": [ "identifier", "type_id", "external_identity_id" ] },
         "identifiers_i3": { "columns": [ "type_id"] }
       },
-      "mvea": [ "co_person", "org_identity" ],
+      "mvea": [ "person", "external_identity" ],
       "sourced": true
     }
   },

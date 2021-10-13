@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CoPeople Controller
+ * COmanage Registry People Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -33,11 +33,26 @@ namespace App\Controller;
 use Cake\Log\Log;
 //use \App\Lib\Enum\PermissionEnum;
 
-class CoPeopleController extends StandardController {
+class PeopleController extends StandardController {
 // XXX need to update for couadmin
   protected $permissions = [
     // Actions that operate over an entity (ie: require an $id)
     'entity' => [
+/*
+We should add a more configurable permissions setting that controls CO Person
+visibility, probably via CO Settings. eg:
+ CO Admin - Only CO Admins can see CO Person records
+ COU Admin - COU Admins can see CO Person records, plus CO Person Role records they manage
+ Any Admin - Any CO or COU Admin can see any CO Person and CO Person Role record
+ CO Group - (intended for helpdesk, maybe create a special helpdesk group instead?) Any Admin + members of the Group
+ 
+ We might also want to introduce a new "Permission" object to abstract this out here
+ and in other places (like Enrollment Flow Authz). Though Permissions would still be
+ managed in the relevant UI (eg: CO Settings), the model abstraction would handle
+ rendering a View Element and processing the Permission at run time
+ 
+ See also: CO-931, CO-1156, CO-1524
+ */
       'canvas' =>   ['platformAdmin', 'coAdmin'],
       'delete' =>   ['platformAdmin', 'coAdmin'],
       'edit' =>     ['platformAdmin', 'coAdmin'],
@@ -47,6 +62,23 @@ class CoPeopleController extends StandardController {
     'table' => [
       'add' =>      ['platformAdmin', 'coAdmin'],
       'index' =>    ['platformAdmin', 'coAdmin']
+    ]
+  ];
+  
+  public $pagination = [
+    'order' => [
+// XXX this will sort by family name, but it this universally correct?
+// so we need a configuration, or can we do something automagic?
+// (ie: what is CJK sort order?)
+// C=pinyin, so basically latin; J=KSTNHMYRW/AIUEO; K=hangugl
+// so basically a mess... let's just use family name for now and wait for
+// (and we haven't even gotten to other languages like Hindi)
+// someone to file an RFE
+      'PrimaryName.family' => 'asc'
+    ],
+    'sortableFields' => [
+      'PrimaryName.given',
+      'PrimaryName.family'
     ]
   ];
   

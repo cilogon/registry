@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry OrgIdentity Entity
+ * COmanage Registry Person Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -31,7 +31,7 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 
-class OrgIdentity extends Entity {
+class Person extends Entity {
   protected $_accessible = [
     '*' => true,
     'id' => false,
