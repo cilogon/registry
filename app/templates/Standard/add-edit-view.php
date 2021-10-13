@@ -101,6 +101,13 @@ if(!empty($vv_fields_inc)) {
 
 include(ROOT . DS . "templates" . DS . $modelsName . DS . $fieldsFile);
 
+if(!empty($hidden)) {
+  // Inject any hidden variables set by the include file
+  foreach($hidden as $attr => $v) {
+    print $this->Form->hidden($attr, ['value' => $v]);
+  }
+}
+
 if($vv_action == 'add' || $vv_action == 'edit') {
   // We don't want/need to output these for view actions
   

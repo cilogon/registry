@@ -54,6 +54,12 @@ class CosController extends StandardController {
     ]
   ];
   
+  public $pagination = [
+    'order' => [
+      'Cos.name' => 'asc'
+    ]
+  ];
+  
   /*
    * XXX implement, also REST API
    *

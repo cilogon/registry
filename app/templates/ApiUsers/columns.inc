@@ -34,11 +34,13 @@ if($vv_cur_co->id == 1) {
 
 $indexColumns = [
   'username' => [
-    'type' => 'link'
+    'type' => 'link',
+    'sortable' => true
   ],
   'status' => [
     'type' => 'enum',
-    'class' => 'SuspendableStatusEnum'
+    'class' => 'SuspendableStatusEnum',
+    'sortable' => true
   ],
   'api_key' => [
     'type' => 'boolean',

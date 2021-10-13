@@ -250,6 +250,12 @@ msgstr "{0} not found"
 msgid "registry.er.notprov"
 msgstr "{0} not provided"
 
+msgid "registry.er.pagenum.exceeded"
+msgstr "Page number may not be larger than {0}"
+
+msgid "registry.er.pagenum.nan"
+msgstr "Page number must be an integer"
+
 msgid "registry.er.perm"
 msgstr "Permission Denied"
 
@@ -347,15 +353,18 @@ msgstr "API Users created in the COmanage CO are given full privileges to all Re
 msgid "registry.in.api.key"
 msgstr "This newly generated API Key cannot be recovered. If it is lost a new key must be generated."
 
+msgid "registry.in.pagination.format"
+msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
+
 ### Menu Messages
-msgid "registry.me.co.switch"
-msgstr "Switch Collaboration"
-
-msgid "registry.me.co.co_people"
-msgstr "CO People"
-
 msgid "registry.me.co.configuration"
 msgstr "Configuration"
+
+msgid "registry.me.co.people"
+msgstr "People"
+
+msgid "registry.me.co.switch"
+msgstr "Switch Collaboration"
 
 ### Operations (Commands)
 msgid "registry.op.add.a"
@@ -385,11 +394,32 @@ msgstr "Edit"
 msgid "registry.op.edit.a"
 msgstr "Edit {0}"
 
+msgid "registry.op.first"
+msgstr "First"
+
+msgid "registry.op.go"
+msgstr "Go"
+
+msgid "registry.op.last"
+msgstr "Last"
+
 msgid "registry.op.login"
 msgstr "Login"
 
 msgid "registry.op.logout"
 msgstr "Logout"
+
+msgid "registry.op.next"
+msgstr "Next"
+
+msgid "registry.op.page.display"
+msgstr "Display"
+
+msgid "registry.op.page.goto"
+msgstr "Go To Page"
+
+msgid "registry.op.previous"
+msgstr "Previous"
 
 msgid "registry.op.save"
 msgstr "Save"

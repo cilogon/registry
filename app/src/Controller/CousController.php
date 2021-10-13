@@ -48,6 +48,12 @@ class CousController extends StandardController {
     ]
   ];
   
+  public $pagination = [
+    'order' => [
+      'Cous.name' => 'asc'
+    ]
+  ];
+  
   /**
    * Callback run prior to the request render.
    *

@@ -45,6 +45,12 @@ class ApiUsersController extends StandardController {
     ]
   ];
   
+  public $pagination = [
+    'order' => [
+      'ApiUsers.username' => 'asc'
+    ]
+  ];
+  
   /**
    * Generate a new API Key.
    *

@@ -30,8 +30,42 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 trait QueryModificationTrait {
+  // Array of associated models to copy during a duplicate
+  private $duplicateContains = false;
+  
+  // Array of associated models to pull during an edit
+  private $editContains = false;
+  
   // Containable models for index actions
   private $indexContains = null;
+  
+  // Array of associated models to save during a patch
+  private $patchAssociated = [];
+  
+  // Array of associated models to pull during a view
+  private $viewContains = false;
+  
+  /**
+   * Obtain the set of associated models to copy during a duplicate.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of associated models
+   */
+  
+  public function getDuplicateContains() {
+    return $this->duplicateContains;
+  }
+  
+  /**
+   * Obtain the set of associated models to pull during an edit.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of associated models
+   */
+  
+  public function getEditContains() {
+    return $this->editContains;
+  }
   
   /**
    * Containable models for index actions.
@@ -45,6 +79,50 @@ trait QueryModificationTrait {
   }
   
   /**
+   * Obtain the set of associated models to save during a patch.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of associated models
+   */
+  
+  public function getPatchAssociated() {
+    return $this->patchAssociated;
+  }
+  
+  /**
+   * Obtain the set of associated models to pull during a view.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of associated models
+   */
+  
+  public function getViewContains() {
+    return $this->viewContains;
+  }
+  
+  /**
+   * Set the associated models to copy during a duplicate.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $c Array of associated models
+   */
+  
+  public function setDuplicateContains(array $c) {
+    $this->duplicateContains = $c;
+  }
+  
+  /**
+   * Set the associated models to pull during an edit.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $c Array of associated models
+   */
+  
+  public function setEditContains(array $c) {
+    $this->editContains = $c;
+  }
+  
+  /**
    * Set containable models for index actions.
    * 
    * @since  COmanage Registry v5.0.0
@@ -53,5 +131,27 @@ trait QueryModificationTrait {
   
   public function setIndexContains(array $contains) {
     $this->indexContains = $contains;
+  }
+  
+  /**
+   * Set the associated models to save during a patch.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $a Array of associated models
+   */
+  
+  public function setPatchAssociated(array $a) {
+    $this->patchAssociated = $a;
+  }
+  
+  /**
+   * Set the associated models to pull during a view.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $c Array of associated models
+   */
+  
+  public function setViewContains(array $c) {
+    $this->viewContains = $c;
   }
 }

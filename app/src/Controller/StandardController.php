@@ -33,6 +33,9 @@ use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
 
 class StandardController extends AppController {
+  // Pagination defaults should be set in each controller
+  public $pagination = [];
+  
   /**
    * Handle an add action for a Standard object.
    *
@@ -298,11 +301,10 @@ class StandardController extends AppController {
     // query modifications via traits
     $query = $table->findById($id);
     
-    // AssociationTrait
-/*
-    if(method_exists($table, "getEditContains")) {
-      $query = $query->contain($table->getEditContains());
-    }*/
+    // QueryModificationTrait
+    if(method_exists($this->$modelsName, "getEditContains")) {
+      $query = $query->contain($this->$modelsName->getEditContains());
+    }
     
     try {
       // Pull the current record
@@ -478,7 +480,10 @@ class StandardController extends AppController {
       $query->contain($table->getIndexContains());
     }
     
-    $resultSet = $this->Paginator->paginate($query);
+    // The Cake documents describe $this->paginate (which worked in Cake 2),
+    // but it doesn't seem to work in Cake 4. So we just use $this->pagination
+    // ourselves here.
+    $resultSet = $this->Paginator->paginate($query, $this->pagination);
     
     $this->set($tableName, $resultSet);
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));
@@ -517,7 +522,12 @@ class StandardController extends AppController {
             break;
           // "auxiliary" and "select" do basically the same thing, but the former
           // returns the full object and the latter just returns a hash suitable
-          // for a select
+          // for a select. "type" is a shorthand for "select" for type_id.
+          case 'type':
+            // Inject configuration
+            $avv['model'] = 'Types';
+            // We assume the model using type_id has a primary link of co_id
+            $avv['find'] = 'filterPrimaryLink';
           case 'auxiliary':
 // XXX add list as in match?
           case 'select':
@@ -553,13 +563,18 @@ class StandardController extends AppController {
 //     to PrimaryLinkTrait and call it there?
                   
                   if($v) {
-                    $query = $query->find($avv['find'], [$linkFilter => $v]);
+                    $query = $query->where([$linkFilter => $v]);
                   }
                 }
               } else {
                 // Use the specified finder, if configured
                 $query = $query->find($avv['find']);
               }
+            }
+            
+            if(!empty($avv['where'])) {
+              // Filter on the specified clause (of the form [column=>value])
+              $query = $query->where($avv['where']);
             }
             
             $this->set($vvar, $query->toArray());

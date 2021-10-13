@@ -119,7 +119,21 @@ function _column_key($modelsName, $c, $tz=null) {
   <table id="<?= $tableName . '-table'; ?>">
     <tr>
       <?php foreach($indexColumns as $col => $cfg): ?>
-      <th><?= !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz); ?></th>
+      <th>
+        <?php
+        $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
+
+        if(isset($cfg['sortable']) && $cfg['sortable']) {
+          if(is_string($cfg['sortable'])) {
+            print $this->Paginator->sort($cfg['sortable'], $label);
+          } else {
+            print $this->Paginator->sort($col, $label);
+          }
+        } else {
+          print $label;
+        }
+        ?>
+      </th>
       <?php endforeach; ?>
       <th><?= __('registry.fd.action'); ?></th>
     </tr>
@@ -269,3 +283,6 @@ function _column_key($modelsName, $c, $tz=null) {
   <?php endforeach; // $$tablename ?>
   </table>
 </div>
+
+<?php
+  print $this->element("pagination");
