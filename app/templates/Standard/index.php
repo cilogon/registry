@@ -100,10 +100,35 @@ function _column_key($modelsName, $c, $tz=null) {
   <?php if($vv_permissions['add']): ?>
     <ul id="topLinks">
       <li>
-        <?= $this->Html->link(__('registry.op.add.a', __('registry.ct.'.$modelsName, [1])),
+        <?php print $this->Html->link(
+          '<em class="material-icons" aria-hidden="true">add_circle</em> ' .
+            __('registry.op.add.a', __('registry.ct.'.$modelsName, [1])),
           ['action' => 'add', '?' => $linkFilter],
-          ['class' => 'addbutton']); ?>
+          ['escape' => false]); ?>
       </li>
+      <?php
+        if(!empty($topLinks)) {
+          foreach($topLinks as $t) {
+            if($vv_permissions[ $t['link']['action'] ]) {
+              // We need to inject $linkFilter, but not overwrite any existing query params
+              if(!empty($t['link']['?'])) {
+                $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+              } else {
+                $t['link']['?'] = $linkFilter;
+              }
+              
+              print '
+              <li>' .
+                $this->Html->link(
+                  '<em class="material-icons" aria-hidden="true">' . $t['icon']. '</em> ' . $t['label'],
+                  $t['link'],
+                  ['escape' => false]
+                ) . '
+              </li>';
+            }
+          }
+        }
+      ?>
     </ul>
   <?php endif; ?>
 </div>

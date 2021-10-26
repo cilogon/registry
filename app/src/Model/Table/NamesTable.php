@@ -40,7 +40,20 @@ class NamesTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\RulesTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
+  
+  // Default "out of the box" types for this model. Entries here should be
+  // given a default localization in app/resources/locales/*/defaultType.po
+  protected $defaultTypes = [
+    'type' => [
+      'alternate',
+      'author',
+      'fka',
+      'official',
+      'preferred'
+    ]
+  ];
   
   /**
    * Perform Cake Model initialization.
@@ -79,9 +92,9 @@ class NamesTable extends Table {
   
   public function validationDefault(Validator $validator): Validator {
     // One of CO Person ID or Org Identity ID is required
-// XXX Test this via the API?
+// XXX Test this via the API? XXX we don't want to allow these to be reassigned
     $validator->add(
-      'co_person_id',
+      'person_id',
       'content',
       [ 'rule' => 'isInteger' ]
     );
@@ -90,7 +103,7 @@ class NamesTable extends Table {
     });
     
     $validator->add(
-      'org_identity_id',
+      'external_identity_id',
       'content',
       [ 'rule' => 'isInteger' ]
     );
@@ -163,7 +176,19 @@ class NamesTable extends Table {
     );
     $validator->allowEmpty('suffix');
     
-// XXX need to do something to validate type (test via API)
+    $validator->add(
+      'type_id',
+      'content',
+      [ 'rule' => 'isInteger' ]
+    );
+    $validator->add(
+      'type_id',
+      'content',
+// XXX maybe this should be more generic? validateCO?
+      [ 'rule'     => [ 'validateType' ],
+        'provider' => 'table' ]
+    );
+    $validator->notEmpty('type_id');
     
     $validator->add(
       'language',

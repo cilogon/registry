@@ -80,6 +80,11 @@ class DashboardsController extends StandardController {
         'icon'          => 'people_outline',
         'controller'    => 'cous',
         'action'        => 'index'
+      ],
+      __('registry.ct.Types', [99]) => [
+        'icon'          => 'widgets',
+        'controller'    => 'types',
+        'action'        => 'index'
       ]
     ];
     

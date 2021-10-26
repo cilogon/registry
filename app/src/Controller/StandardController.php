@@ -59,7 +59,7 @@ class StandardController extends AppController {
       if($table->save($obj)) {
         $this->Flash->success(__('registry.rs.saved'));
         
-        return $this->generateRedirect($obj->id);
+        return $this->generateRedirect(null);
       }
       
       $errors = $obj->getErrors();
@@ -256,7 +256,11 @@ class StandardController extends AppController {
       }
       
       // Return to index since there is no delete view
-      return $this->generateRedirect();
+      return $this->generateRedirect(null);
+    }
+    catch(\Cake\ORM\Exception\PersistenceFailedException $e) {
+      // deleteOrFail throws Cake\ORM\Exception\PersistenceFailedException
+      $this->Flash->error($e->getMessage());
     }
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
@@ -276,10 +280,10 @@ class StandardController extends AppController {
       } else {
         $this->Flash->error($e->getMessage());
       }
-      
-      // The record is still valid, so redirect back to it
-      return $this->redirect(['action' => 'edit', $id]);
     }
+    
+    // The record is still valid, so redirect back to it
+    return $this->redirect(['action' => 'edit', $id]);
   }
   
   /**
@@ -340,7 +344,7 @@ class StandardController extends AppController {
         if($table->save($obj)) {
           $this->Flash->success(__('registry.rs.saved'));
           
-          return $this->generateRedirect(); 
+          return $this->generateRedirect($obj->id); 
         }
         
         $errors = $obj->getErrors();
@@ -358,7 +362,7 @@ class StandardController extends AppController {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
       
       $this->Flash->error($e->getMessage());
-      return $this->generateRedirect();
+      return $this->generateRedirect(null);
     }
     
     $this->set('vv_obj', $obj);
@@ -395,7 +399,7 @@ class StandardController extends AppController {
   public function generateRedirect(?int $id) {
     $redirect = [];
     
-    if($this->request->getParam('action') == 'add' && $id) {
+    if(in_array($this->request->getParam('action'), ['add', 'edit']) && $id) {
       // Redirect to the edit view of the record just added
       // (if the user has add permission, they probably have edit permission)
       
@@ -515,6 +519,12 @@ class StandardController extends AppController {
        && $table->getAutoViewVars()) {
       foreach($table->getAutoViewVars() as $vvar => $avv) {
         switch($avv['type']) {
+          case 'array':
+            // Use the provided array of values. By default, we use the values
+            // for the keys as well, to generate HTML along the lines of
+            // <option value="Foo">"Foo"</option>
+            $this->set($vvar, array_combine($avv['array'], $avv['array']));
+            break;
           case 'enum':
             // We just want the localized text strings for the defined constants
             $class = '\\App\\Lib\\Enum\\'.$avv['class'];

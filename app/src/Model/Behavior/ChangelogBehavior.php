@@ -76,6 +76,12 @@ class ChangelogBehavior extends Behavior
     $alias = $subject->getAlias();
     $parentfk = Inflector::singularize($table) . "_id";
     
+    if(isset($options['archived']) && $options['archived']) {
+      // XXX need to the same check for expunge
+      
+      return true;
+    }
+    
     LogBehavior::strace($alias, 'Changelog altering find conditions');
     
     // XXX add support for archived, revision, etc

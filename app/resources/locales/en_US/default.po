@@ -92,12 +92,39 @@ msgstr "{0,plural,=1{External Identity} other{External Identities}}"
 msgid "registry.ct.People"
 msgstr "{0,plural,=1{Person} other{People}}"
 
+msgid "registry.ct.Types"
+msgstr "{0,plural,=1{Type} other{Types}}"
+
 ### Enumerations
 msgid "registry.en.BooleanEnum.0"
 msgstr "False"
 
 msgid "registry.en.BooleanEnum.1"
 msgstr "True"
+
+msgid "registry.en.EduPersonAffiliationEnum.affiliate"
+msgstr "Affiliate"
+
+msgid "registry.en.EduPersonAffiliationEnum.alum"
+msgstr "Alum"
+
+msgid "registry.en.EduPersonAffiliationEnum.employee"
+msgstr "Employee"
+
+msgid "registry.en.EduPersonAffiliationEnum.faculty"
+msgstr "Faculty"
+
+msgid "registry.en.EduPersonAffiliationEnum.librarywalkin"
+msgstr "Library Walk-In"
+
+msgid "registry.en.EduPersonAffiliationEnum.member"
+msgstr "Member"
+
+msgid "registry.en.EduPersonAffiliationEnum.staff"
+msgstr "Staff"
+
+msgid "registry.en.EduPersonAffiliationEnum.student"
+msgstr "Student"
 
 msgid "registry.en.SetBooleanEnum.0"
 msgstr "Not Set"
@@ -244,6 +271,9 @@ msgstr "When this value is selected, {0} cannot be empty"
 msgid "registry.er.input.invalid"
 msgstr "Invalid character found"
 
+msgid "registry.er.invalid"
+msgstr "Invalid value \"{0}\""
+
 msgid "registry.er.notfound"
 msgstr "{0} not found"
 
@@ -271,6 +301,12 @@ msgstr "No type defined for table {0} column {1}"
 msgid "registry.er.schema.parse"
 msgstr "Failed to parse file {0}"
 
+msgid "registry.er.Types.inuse"
+msgstr "Type {0} is in use and cannot be deleted"
+
+msgid "registry.er.unknown"
+msgstr "Unknown value \"{0}\""
+
 ### Fields
 ### Keys of the form registry.fd.MyModels.field_name[.desc] will apply only to MyModels.field_name
 ### Keys of the form registry.fd.field_name[.desc] will apply if no model specific key is found
@@ -280,11 +316,24 @@ msgstr "Action"
 msgid "registry.fd.api_key"
 msgstr "API Key"
 
+msgid "registry.fd.attribute"
+msgstr "Attribute"
+
 msgid "registry.fd.date_of_birth"
 msgstr "Date of Birth"
 
 msgid "registry.fd.description"
 msgstr "Description"
+
+msgid "registry.fd.display_name"
+msgstr "Display Name"
+
+msgid "registry.fd.edupersonaffiliation"
+msgstr "eduPersonAffiliation"
+
+msgid "registry.fd.Types.edupersonaffiliation.desc"
+# XXX update link to PE wiki?
+msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations">eduPersonAffiliation and Extended Affiliations</a>"
 
 msgid "registry.fd.family"
 msgstr "Family Name"
@@ -316,6 +365,9 @@ msgstr "Required"
 msgid "registry.fd.status"
 msgstr "Status"
 
+msgid "registry.fd.Type.status"
+msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"
+
 msgid "registry.fd.username"
 msgstr "Username"
 
@@ -339,6 +391,15 @@ msgstr "Leave blank for indefinite validity"
 
 msgid "registry.fd.valid_through.tz"
 msgstr "Valid Through ({0})"
+
+msgid "registry.fd.value"
+msgstr "Value"
+
+msgid "registry.fd.Types.value"
+msgstr "Database Value"
+
+msgid "registry.fd.Types.value.desc"
+msgstr "Database value for this type, characters must be alphanumeric, dot, or dash"
 
 msgid "registry.home.collab"
 msgstr "Available Collaborations"
@@ -420,6 +481,9 @@ msgstr "Go To Page"
 
 msgid "registry.op.previous"
 msgstr "Previous"
+
+msgid "registry.op.Types.restore"
+msgstr "Add/Restore Default Types"
 
 msgid "registry.op.save"
 msgstr "Save"

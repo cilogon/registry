@@ -52,11 +52,13 @@ class TransmogrifyCommand extends Command {
       'source' => 'cm_co_extended_types',
       'displayField' => 'display_name',
       'fieldMap' => [
+        'attribute' => '&map_extended_type',
+        'name' => 'value',
         // For some reason, cm_co_extended_types never had created/modified metadata
         'created' => '&map_now',
         'modified' => '&map_now'
       ],
-      'cache' => [ [ 'co_id', 'attribute', 'name' ] ]
+      'cache' => [ [ 'co_id', 'attribute', 'value' ] ]
     ],
     'api_users' => [
       'source' => 'cm_api_users',
@@ -162,7 +164,7 @@ class TransmogrifyCommand extends Command {
           $key = "";
           
           foreach($field as $subfield) {
-            // eg: co_id+attribute+name+
+            // eg: co_id+attribute+value+
             $label .= $subfield . "+";
             
             // eg: 2+Identifier.type+eppn+
@@ -423,6 +425,25 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
+   * Map an Extended Type attribute name for model name changes.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array  $row Row of table data
+   * @return string      Updated attribute name
+   */
+  
+  protected function map_extended_type(array $row) {
+    switch($row['attribute']) {
+      case 'CoDepartment.type':
+        return 'Department.type';
+      case 'CoPersonRole.affiliation':
+        return 'PersonRole.affiliation';
+    }
+    
+    return $row['attribute'];
+  }
+  
+  /**
    * Map an identifier type string to a foreign key.
    *
    * @since  COmanage Registry v5.0.0
@@ -535,10 +556,10 @@ class TransmogrifyCommand extends Command {
     
     $key = $coId . "+" . $type . "+" . $row['type'] . "+";
     
-    if(empty($this->cache['types']['co_id+attribute+name+'][$key])) {
+    if(empty($this->cache['types']['co_id+attribute+value+'][$key])) {
       throw new \InvalidArgumentException("Type not found for " . $key);
     }
     
-    return $this->cache['types']['co_id+attribute+name+'][$key];
+    return $this->cache['types']['co_id+attribute+value+'][$key];
   }
 }

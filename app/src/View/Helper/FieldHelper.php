@@ -78,7 +78,7 @@ class FieldHelper extends Helper {
                           string $labelText=null) {
     $coptions = $options;
     $coptions['label'] = false;
-    $coptions['readonly'] = !$this->editable;
+    $coptions['readonly'] = !$this->editable || (isset($options['readonly']) && $options['readonly']);
     // Selects, Checkboxes, and Radio Buttons use "disabled"
     $coptions['disabled'] = $coptions['readonly'];
     
@@ -103,6 +103,13 @@ class FieldHelper extends Helper {
       $controlCode = $this->Form->text($fieldName, $coptions);
       $liClass = " modelbox-data";
     } else {
+      if($fieldName != 'status' && !isset($options['empty'])) {
+        // Cause any select (except status) to render with a blank option, even
+        // if the field is required. This makes it clear when a value need to be set.
+        // Note this will be ignore for non-select controls.
+        $coptions['empty'] = true;
+      }
+      
       $controlCode = $this->Form->control($fieldName, $coptions);
     }
     

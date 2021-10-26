@@ -32,6 +32,7 @@ namespace App\Model\Table;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\TemplateableStatusEnum;
 
@@ -68,6 +69,8 @@ class CosTable extends Table {
          ->setDependent(true);
     $this->hasMany('Dashboards')
          ->setDependent(true);
+    $this->hasMany('Types')
+         ->setDependent(true);
     
     $this->setDisplayField('name');
     
@@ -77,6 +80,26 @@ class CosTable extends Table {
         'class' => 'TemplateableStatusEnum'
       ]
     ]);
+  }
+  
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+
+  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
+    if($entity->isNew() && !empty($entity->id)) {
+      // Run setup for new CO
+      
+      $this->setup($entity->id);
+    }
+
+    return true;
   }
   
   /**
@@ -166,6 +189,26 @@ class CosTable extends Table {
       return __('registry.er.delete.active');
     }
     
+    return true;
+  }
+  
+  /**
+   * Perform initial setup for a CO.
+   *
+   * @since  COmanage Registry v0.9.2
+   * @param  int  $id CO ID
+   * @return bool     True on success
+   */
+  
+  public function setup(int $id) {
+    $Type = TableRegistry::getTableLocator()->get('Types');
+    
+    // AR-Type-1 Set up the default values for extended types
+    $Type->addDefaults($id);
+
+    // Create the default groups
+//    $this->CoGroup->addDefaults($coId);
+
     return true;
   }
   

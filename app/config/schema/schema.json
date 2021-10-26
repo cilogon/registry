@@ -43,15 +43,16 @@
       "columns": {
         "id": {},
         "co_id": {},
-        "attribute": { "type": "string", "size": 32 },
-        "name": { "type": "string", "size": 32 },
-        "display_name": { "type": "string", "size": 64 },
+        "attribute": { "type": "string", "size": 32, "notnull": true },
+        "display_name": { "type": "string", "size": 64, "notnull": true },
+        "value": { "type": "string", "size": 32, "notnull": true },
         "edupersonaffiliation": { "type": "string", "size": 32 },
         "status": {}
       },
       "indexes": {
-        "types_i1": { "columns": [ "co_id", "attribute" ] },
-        "types_i2": { "columns": [ "co_id", "attribute", "name" ] }
+        "types_i1": { "columns": [ "co_id" ] },
+        "types_i2": { "columns": [ "co_id", "attribute" ] },
+        "types_i3": { "columns": [ "co_id", "attribute", "value" ] }
       }
     },
     
