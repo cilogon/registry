@@ -281,7 +281,7 @@ class AppController extends Controller {
         }
         
         if(empty($this->cur_pl->value) && !$this->$modelsName->allowEmptyPrimaryLink()) {
-          throw new \RuntimeException(__('registry.er.primary_link', [ $this->cur_pl->attr ]));
+          throw new \RuntimeException(__d('error', 'primary_link', [ $this->cur_pl->attr ]));
         }
       }
       
@@ -299,7 +299,7 @@ class AppController extends Controller {
         catch(RecordNotFoundException $e) {
           $this->llog('error', "Could not find value '" . $this->cur_pl->value . "' for primary link object " . $linkModelName);
           // Mask this with a generic UnauthorizedException
-          throw new UnauthorizedException(__('registry.er.perm'));
+          throw new UnauthorizedException(__d('error', 'perm'));
         }
       }
     }
@@ -362,7 +362,7 @@ class AppController extends Controller {
        && !$this->$modelsName->allowEmptyCO()
        && !$this->request->is('restful')) {
       // If we get this far without a CO ID, something went wrong.
-      throw new \RuntimeException(__('registry.er.coid'));
+      throw new \RuntimeException(__d('error', 'coid'));
     }
     
     if($coid) {

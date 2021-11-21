@@ -58,27 +58,27 @@ function _column_key($modelsName, $c, $tz=null) {
     // Key is of the form field_id, use .ct label instead
     $k = \Cake\Utility\Inflector::classify(\Cake\Utility\Inflector::pluralize(substr($c, 0, strlen($c)-3)));
     
-    return __('registry.ct.'.$k, [1]);
+    return __d('controller' ,$k, [1]);
   }
   
   // Look for a model specific key first
-  $label = __('registry.fd.'.$modelsName.'.'.$c);
+  $label = __d('field', $modelsName.'.'.$c);
   
-  if($label != 'registry.fd.'.$modelsName.'.'.$c) {
+  if($label != $modelsName.'.'.$c) {
     return $label;
   }
   
   if($tz) {
     // If there is a timezone aware label, use that
-    $label = __('registry.fd.'.$c.'.tz', [$tz]);
+    $label = __d('field', $c.'.tz', [$tz]);
     
-    if($label != 'registry.fd.'.$c.'.tz') {
+    if($label != $c.'.tz') {
       return $label;
     }
   }
   
   // Otherwise look for the general key
-  return __('registry.fd.'.$c);
+  return __d('field', $c);
 }
 ?>
 <div class="titleNavContainer">
@@ -102,7 +102,7 @@ function _column_key($modelsName, $c, $tz=null) {
       <li>
         <?php print $this->Html->link(
           '<em class="material-icons" aria-hidden="true">add_circle</em> ' .
-            __('registry.op.add.a', __('registry.ct.'.$modelsName, [1])),
+            __d('operation', 'add.a', __d('controller', $modelsName, [1])),
           ['action' => 'add', '?' => $linkFilter],
           ['escape' => false]); ?>
       </li>
@@ -160,7 +160,7 @@ function _column_key($modelsName, $c, $tz=null) {
         ?>
       </th>
       <?php endforeach; ?>
-      <th><?= __('registry.fd.action'); ?></th>
+      <th><?= __d('field', 'action'); ?></th>
     </tr>
   <?php foreach($$tableName as $entity): ?>
     <tr>
@@ -170,9 +170,9 @@ function _column_key($modelsName, $c, $tz=null) {
           switch($cfg['type']) {
             case 'boolean':
               if(!empty($entity->$col) && $entity->$col) {
-                print __('registry.en.'.$cfg['class'].'.1');
+                print __d('enumeration', $cfg['class'].'.1');
               } else {
-                print __('registry.en.'.$cfg['class'].'.0');
+                print __d('enumeration', $cfg['class'].'.0');
               }
               break;
             case 'datetime':
@@ -180,7 +180,7 @@ function _column_key($modelsName, $c, $tz=null) {
               break;
             case 'enum':
               if($entity->$col) {
-                print __('registry.en.'.$cfg['class'].'.'.$entity->$col);
+                print __d('enumeration', $cfg['class'].'.'.$entity->$col);
               }
               break;
             case 'fk':
@@ -245,13 +245,13 @@ function _column_key($modelsName, $c, $tz=null) {
         <?php
           if($vv_permission_set[$entity->id]['edit']) {
             print $this->Html->link(
-              __('registry.op.edit'),
+              __d('operation', 'edit'),
               ['action' => 'edit', $entity->id],
               ['class' => 'editbutton']
             );
           } elseif($vv_permission_set[$entity->id]['view']) {
             print $this->Html->link(
-              __('registry.op.view'),
+              __d('operation', 'view'),
               ['action' => 'view', $entity->id],
               ['class' => 'viewbutton']
             );
@@ -261,10 +261,10 @@ function _column_key($modelsName, $c, $tz=null) {
 // XXX this is throwing CSRF error even though delete button on edit-record page is working?
 //     probably because this is using Form helper, but we're outside of a form?
             print $this->Form->postLink(
-              __('registry.op.delete'),
+              __d('operation', 'delete'),
               ['action' => 'delete', $entity->id],
   // XXX should be configurable which field we put in, maybe displayField?
-              ['confirm' => __('registry.op.delete.confirm', [$entity->id]),
+              ['confirm' => __d('operation', 'delete.confirm', [$entity->id]),
                'class'   => 'deletebutton']
             );
           }
@@ -278,22 +278,22 @@ function _column_key($modelsName, $c, $tz=null) {
                 if($vv_permission_set[$entity->id][ $a['action'] ]) {
                   // If we have a .confirm text, use postLink instead
 
-                  $confirmKey = 'registry.op.'.$a['action'].'.confirm';
-                  $confirmTxt = __($confirmKey);
+                  $confirmKey = $a['action'].'.confirm';
+                  $confirmTxt = __d('operation', $confirmKey);
 
                   if($confirmTxt != $confirmKey) {
                     // We found the localized string
 
                     print $this->Form->postLink(
-                      __('registry.op.' . $a['action']),
+                      __d('operation', $a['action']),
                       ['action' => $a['action'], $entity->id],
           // XXX should be configurable which field we put in, maybe displayField?
-                      ['confirm' => __($confirmKey, [$entity->id]),
+                      ['confirm' => __d('operation', $confirmKey, [$entity->id]),
                        'class'   => $a['class']]
                     );
                   } else {
                     print $this->Html->link(
-                      __('registry.op.' . $a['action']),
+                      __d('operation', $a['action']),
                       ['action' => $a['action'], $entity->id],
                       ['class' => $a['class']]
                     );

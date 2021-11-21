@@ -1,0 +1,133 @@
+# COmanage Registry Localizations (error domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.0.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+# Error Messages
+
+msgid "api.object"
+msgstr "Did not find \"{0}\" object in request"
+
+msgid "api.username.prefix"
+msgstr "API username must begin with \"{0}\""
+
+msgid "api.username.suffix"
+msgstr "API username requires a suffix"
+
+msgid "auth.api.expired"
+msgstr "API User \"{0}\" has expired"
+
+msgid "auth.api.failed"
+msgstr "Authentication Failed"
+
+msgid "auth.api.invalid"
+msgstr "Authentication request did not include Username and/or API Key"
+
+msgid "auth.api.ip"
+msgstr "Invalid IP Addres \"{0}\" for API User \"{1}\""
+
+msgid "auth.api.key"
+msgstr "Invalid API Key provided for \"{0}\""
+
+msgid "auth.api.status"
+msgstr "API User \"{0}\" is not Active"
+
+msgid "auth.api.toosoon"
+msgstr "API User \"{0}\" is not yet valid"
+
+msgid "auth.api.unknown"
+msgstr "Username \"{0}\" not found in api_users table"
+
+msgid "coid"
+msgstr "CO ID not found"
+
+msgid "cou.parent"
+msgstr "COU Parent ID not valid"
+
+msgid "db.config"
+msgstr "Invalid database configuration \"{0}\""
+
+msgid "delete.active"
+msgstr "This record is in Active status and cannot be deleted"
+
+msgid "edit.comanage"
+msgstr "Cannot edit or delete the COmanage CO"
+
+msgid "edit.readonly"
+msgstr "This record is read only and cannot be edited"
+
+msgid "exists"
+msgstr "{0} already exists with this name"
+
+msgid "fields"
+msgstr "Please recheck these fields: {0}"
+
+msgid "fields.primary_link"
+msgstr "The Primary Link {0} is frozen and cannot be changed"
+
+msgid "file"
+msgstr "Cannot read file {0}"
+
+msgid "input.blank"
+msgstr "Value cannot consist of only blank characters"
+
+msgid "input.condreq"
+msgstr "When this value is selected, {0} cannot be empty"
+
+msgid "input.invalid"
+msgstr "Invalid character found"
+
+msgid "invalid"
+msgstr "Invalid value \"{0}\""
+
+msgid "notfound"
+msgstr "{0} not found"
+
+msgid "notprov"
+msgstr "{0} not provided"
+
+msgid "pagenum.exceeded"
+msgstr "Page number may not be larger than {0}"
+
+msgid "pagenum.nan"
+msgstr "Page number must be an integer"
+
+msgid "perm"
+msgstr "Permission Denied"
+
+msgid "primary_link"
+msgstr "Could not find value for Primary Link {0}"
+
+msgid "save"
+msgstr "Save Failed ({0})"
+
+msgid "schema.column"
+msgstr "No type defined for table {0} column {1}"
+
+msgid "schema.parse"
+msgstr "Failed to parse file {0}"
+
+msgid "Types.inuse"
+msgstr "Type {0} is in use and cannot be deleted"
+
+msgid "unknown"
+msgstr "Unknown value \"{0}\""

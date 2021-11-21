@@ -33,7 +33,7 @@ declare(strict_types = 1);
     // Print the login button
     $buttonClasses = "btn btn-primary btn-large";
     print '<div id="welcome-login">';
-    print $this->Html->link(__('registry.op.login'),
+    print $this->Html->link(__d('operation', 'login'),
                             ['controller' => 'cos',
                              'action'     => 'select',
                              'plugin'     => false],

@@ -208,10 +208,10 @@
       resizable: false,
       modal: true,
       buttons: {
-        '<?php print __('op.cancel'); ?>': function() {
+        '<?php print __d('operation', 'cancel'); ?>': function() {
           $(this).dialog('close');
         },
-        '<?php print __('op.ok'); ?>': function() {
+        '<?php print __d('operation', 'ok'); ?>': function() {
           $(this).dialog('close');
         }
       }
@@ -243,8 +243,8 @@
   });
 
   // Define default text for confirm dialog
-  var defaultConfirmOk = "<?php print __('op.ok'); ?>";
-  var defaultConfirmCancel = "<?php print __('op.cancel'); ?>";
-  var defaultConfirmTitle = "<?php print __('op.confirm'); ?>";
+  var defaultConfirmOk = "<?php print __d('operation', 'ok'); ?>";
+  var defaultConfirmCancel = "<?php print __d('operation', 'cancel'); ?>";
+  var defaultConfirmTitle = "<?php print __d('operation', 'confirm'); ?>";
 
 </script>

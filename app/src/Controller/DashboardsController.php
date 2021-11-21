@@ -61,7 +61,7 @@ class DashboardsController extends StandardController {
   public function configuration() {
     $cur_co = $this->getCO();
     
-    $this->set('vv_title', __('registry.op.dashboard.configuration', $cur_co->name));
+    $this->set('vv_title', __d('operation', 'dashboard.configuration', $cur_co->name));
     
     // Construct the set of configuration items. For everything except CO Settings
     // we want to order by the localized text string.
@@ -71,17 +71,17 @@ class DashboardsController extends StandardController {
     // could be delegated to (eg) a COU Admin at some point...
     
     $configMenuItems = [
-      __('registry.ct.ApiUsers', [99]) => [
+      __d('controller', 'ApiUsers', [99]) => [
         'icon'          => 'vpn_key',
         'controller'    => 'api_users',
         'action'        => 'index'
       ],
-      __('registry.ct.Cous', [99]) => [
+      __d('controller', 'Cous', [99]) => [
         'icon'          => 'people_outline',
         'controller'    => 'cous',
         'action'        => 'index'
       ],
-      __('registry.ct.Types', [99]) => [
+      __d('controller', 'Types', [99]) => [
         'icon'          => 'widgets',
         'controller'    => 'types',
         'action'        => 'index'
@@ -93,7 +93,7 @@ class DashboardsController extends StandardController {
     // Insert CO Settings to the front of the list
 
     $configMenuItems = array_merge([
-      __('registry.ct.CoSettings', [99]) => [
+      __d('controller', 'CoSettings', [99]) => [
         'icon'          => 'settings',
         'controller'    => 'co_settings',
         'action'        => 'add'
@@ -109,7 +109,7 @@ class DashboardsController extends StandardController {
       // Also pass the platform menu items
       
       $platformMenuItems = [
-        __('registry.ct.Cos', [99]) => [
+        __d('controller', 'Cos', [99]) => [
           'icon'          => 'build',  // XXX kind of want house here, but maybe need newer material icons?
           'controller'    => 'cos',
           'action'        => 'index'

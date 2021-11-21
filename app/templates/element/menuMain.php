@@ -50,14 +50,14 @@
           'controller' => 'people',
           'action'     => 'index',
           'icon'       => 'person',
-          'label'      => __('registry.me.co.people')
+          'label'      => __d('menu', 'co.people')
         ],
         [
           'permission' => 'configuration',
           'controller' => 'dashboards',
           'action'     => 'configuration',
           'icon'       => 'settings',
-          'label' => __('registry.me.co.configuration')
+          'label' => __d('menu', 'co.configuration')
         ]
       ];
       
@@ -68,7 +68,7 @@
           'action'     => 'select',
           'permission' => null,
           'icon'       => 'transfer_within_a_station',
-          'label'      => __('registry.me.co.switch')
+          'label'      => __d('menu', 'co.switch')
         ];
       }
       

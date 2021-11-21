@@ -92,7 +92,7 @@ trait RulesTrait {
     // might be on add).
     
     if($want !== $have) {
-      return __('registry.er.fields.primary_link', [$this->getPrimaryLink()]);
+      return __d('error', 'fields.primary_link', [$this->getPrimaryLink()]);
     }
     
     return true;

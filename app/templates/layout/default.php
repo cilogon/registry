@@ -92,7 +92,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
   ?>
   <body class="<?= $bodyClasses ?>" onload="js_onload_call_hooks()">
     <div id="skip-to-content-box">
-      <a href="#content-start" id="skip-to-content"><?= __('registry.op.skip_to_content') ?></a>
+      <a href="#content-start" id="skip-to-content"><?= __d('operation', 'skip_to_content') ?></a>
     </div>
     
     <!-- Primary layout -->

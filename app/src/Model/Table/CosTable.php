@@ -125,7 +125,7 @@ class CosTable extends Table {
 // XXX CO-1736 In general, these checks should be case insensitive
 // (ie: I shouldn't be able to create a CO called "comanage", similarly COUs etc)
 // Also, with CO-1845 maybe unique ignores non-alphanumeric
-    $rules->add($rules->isUnique(['name'], __('registry.er.exists', [__('registry.ct.Cos', [1])])));
+    $rules->add($rules->isUnique(['name'], __d('error', 'exists', [__d('controller', 'Cos', [1])])));
     
     // AR-CO-5 A CO cannot be deleted if it is in Active status
     // This basically requires two steps to delete a CO (set to Suspended),
@@ -168,7 +168,7 @@ class CosTable extends Table {
   public function ruleIsCOmanageCO($entity, $options) {
     // We want negative logic since we want to fail if we're editing the COmanage CO
     if($entity->name == 'COmanage') {
-      return __('registry.er.edit.comanage');
+      return __d('error', 'edit.comanage');
     }
     
     return true;
@@ -186,7 +186,7 @@ class CosTable extends Table {
   public function ruleIsActive($entity, $options) {
     // We want negative logic since we want to fail if the record is Active
     if($entity->status == TemplateableStatusEnum::Active) {
-      return __('registry.er.delete.active');
+      return __d('error', 'delete.active');
     }
     
     return true;

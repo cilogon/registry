@@ -66,7 +66,7 @@ class FieldHelper extends Helper {
   /**
    * Emit a form control.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string  $fieldName Form field
    * @param  array   $options   FormHelper control options
    * @param  string  $labelText Label text (fieldName language key used by default)
@@ -88,7 +88,7 @@ class FieldHelper extends Helper {
     // Handle datetime controls specially
     if($fieldName == 'valid_from' || $fieldName == 'valid_through') {
       // Append the timezone to the label
-      $label = __("registry.fd.".$fieldName.".tz", [$this->_View->get('vv_tz')]);
+      $label = __d('field', $fieldName.".tz", [$this->_View->get('vv_tz')]);
       
       // Render these fields as datepickers instead of plain text boxes
       $coptions['class'] = 'datepicker-' . ($fieldName == 'valid_from' ? "f" : "u");
@@ -122,7 +122,7 @@ class FieldHelper extends Helper {
   /**
    * End a set of form controls.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @return string Control Set end HTML
    */
   
@@ -135,7 +135,7 @@ class FieldHelper extends Helper {
   /**
    * End a form line.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @return string Line end HTML
    */
   
@@ -146,7 +146,7 @@ class FieldHelper extends Helper {
   /**
    * Generate a form info (control, value) box.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string  $content Content HTML
    * @return string           Form Info HTML
    */
@@ -160,7 +160,7 @@ class FieldHelper extends Helper {
   /**
    * Generate a form name (label, description) box.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string  $fieldName Form field
    * @param  string  $labelText Label text (fieldName language key used by default)
    * @return string             Form Name HTML
@@ -193,19 +193,19 @@ class FieldHelper extends Helper {
       // All others map first to registry.fd.Model.foo, then to registry.fd.foo
       // if no Model specific key is found.
       
-      $label = __("registry.fd.".$mn.".".$fn);
+      $label = __d('field', $mn.".".$fn);
       
-      if($label == "registry.fd.".$mn.".".$fn) {
+      if($label == $mn.".".$fn) {
         // Model specific label not found, try again
         
         $f = null;
         
         if(preg_match('/^(.*?)_id$/', $fn, $f)) {
           // Map foriegn keys (foo_id) to the controller label
-          $label = __("registry.ct.".Inflector::camelize(Inflector::pluralize($f[1])), [1]);
+          $label = __d('controller', Inflector::camelize(Inflector::pluralize($f[1])), [1]);
         } else {
           // Just look up the key
-          $label = __("registry.fd.".$fn);
+          $label = __d('field', $fn);
         }
       }
     }
@@ -213,14 +213,14 @@ class FieldHelper extends Helper {
     // We try to automagically determine if a description for the field exists by
     // looking for the corresponding .desc language translation.
     
-    $desc = __("registry.fd.".$mn.".".$fn.".desc");
+    $desc = __d('field', $mn.".".$fn.".desc");
     
-    if($desc == "registry.fd.".$mn.".".$fn.".desc") {
-      $desc = __("registry.fd.".$fn.".desc");
+    if($desc == $mn.".".$fn.".desc") {
+      $desc = __d('field', $fn.".desc");
     }
     
     // If the description is the literal key we just generated, there is no description
-    if($desc == "registry.fd.".$fn.".desc") {
+    if($desc == $mn.".".$fn.".desc") {
       $desc = null;
     }
     
@@ -241,7 +241,7 @@ class FieldHelper extends Helper {
   /**
    * Emit a status control (a read only status with an optional link button).
    * 
-   * @since  Registry Registry v6.0.0
+   * @since  Registry Registry v5.0.0
    * @param  string  $fieldName Form field
    * @param  string  $status    Status text
    * @param  array   $link      Link information, including 'url', 'label', 'class', 'confirm'
@@ -271,7 +271,7 @@ class FieldHelper extends Helper {
   /**
    * Start a set of form controls.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string  $modelName Model name for form
    * @param  string  $action    Current action
    * @param  boolean $editable  True if controls are read/write, false for read only
@@ -292,7 +292,7 @@ class FieldHelper extends Helper {
   /**
    * Start a form line.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string  $class Optional class to apply to the line
    * @return string
    */
@@ -320,7 +320,7 @@ class FieldHelper extends Helper {
   public function submit(string $label) {
     return '<li class="fields-submit">
       <div class="field-name">
-        <span class="required">* ' . __('registry.fd.required') . '</span>
+        <span class="required">* ' . __d('field', required') . '</span>
       </div>
       <div class="field-info">
         ' . $this->Form->submit($label) . '

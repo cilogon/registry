@@ -103,7 +103,7 @@ class ApiUsersTable extends Table {
       }
       
       // AR-ApiUser-3 API usernames must be unique across the entire platform.
-      $rule = $rules->isUnique(['username'], __('registry.er.exists', [__('registry.ct.ApiUsers', [1])]));
+      $rule = $rules->isUnique(['username'], __d('error', 'exists', [__d('controller', 'ApiUsers', [1])]));
       
       return $rule($entity, $options);
     },
@@ -148,7 +148,7 @@ class ApiUsersTable extends Table {
     $apiUser = $this->find()->where(['username' => $username])->first();
     
     if(empty($apiUser)) {
-      throw new \InvalidArgumentException(__('registry.er.auth.api.unknown', [$username]));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.unknown', [$username]));
     }
     
     return $apiUser->privileged;
@@ -167,7 +167,7 @@ class ApiUsersTable extends Table {
     // We need to pull the CO data to check the name
     
     if(!$entity->co_id) {
-      return __('registry.er.coid');
+      return __d('error', 'coid');
     }
     
     $Cos = TableRegistry::getTableLocator()->get('Cos');
@@ -175,19 +175,19 @@ class ApiUsersTable extends Table {
     $co = $Cos->get($entity->co_id);
 
     if(!$co) {
-      return __('registry.er.notfound', [__('registry.ct.cos', [1])]);
+      return __d('error', 'notfound', [__d('controller', 'cos', [1])]);
     }
     
     $prefix = "co_" . $co->id . ".";
     
     // Return false if the prefix doesn't match the CO ID
     if(strncmp($entity->username, $prefix, strlen($prefix))) {
-      return __('registry.er.api.username.prefix', [$prefix]);
+      return __d('error', 'api.username.prefix', [$prefix]);
     }
     
     // Or if there's nothing after the dot
     if(strlen($entity->username) == strlen($prefix)) {
-      return __('registry.er.api.username.suffix');
+      return __d('error', 'api.username.suffix');
     }
     
     return true;
@@ -215,7 +215,7 @@ class ApiUsersTable extends Table {
     $apiUser = $this->find()->where(['username' => $username])->first();
     
     if(empty($apiUser)) {
-      throw new \InvalidArgumentException(__('registry.er.auth.api.unknown', [$username]));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.unknown', [$username]));
     }
     
     // First validate the key. We use the FallbackPasswordHasher because API Users
@@ -246,7 +246,7 @@ class ApiUsersTable extends Table {
     
     // Is the ApiUser active?
     if($apiUser->status != SuspendableStatusEnum::Active) {
-      throw new \InvalidArgumentException(__('registry.er.auth.api.status', [$username]));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.status', [$username]));
     }
     
     // Are we within the validity window, if applicable?
@@ -254,18 +254,18 @@ class ApiUsersTable extends Table {
     
     if($apiUser->valid_from
        && $now->lt($apiUser->valid_from)) {
-      throw new \InvalidArgumentException(__('registry.er.auth.api.toosoon', [$username]));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.toosoon', [$username]));
     }
     
     if($apiUser->valid_through
        && $now->gt($apiUser->valid_through)) {
-      throw new \InvalidArgumentException(__('registry.er.auth.api.expired', [$username]));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.expired', [$username]));
     }
     
     // Perform the IP Address check
     if($apiUser->remote_ip
        && !preg_match($apiUser->remote_ip, $remoteIp)) {
-      throw new \InvalidArgumentException(__('registry.er.auth.api.ip', [$remoteIp, $username]));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.ip', [$remoteIp, $username]));
     }
     
     return true;

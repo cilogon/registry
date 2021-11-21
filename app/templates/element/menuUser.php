@@ -39,7 +39,7 @@ s<?php
       <li id="user-links-cn">XXX Put something here</li>
       <li id="logout-in-menu" class="co-menu-button">
         <?php
-          print $this->Html->link(__('registry.op.logout') . ' <span class="fa fa-sign-out"></span>',
+          print $this->Html->link(__d('operation', 'logout') . ' <span class="fa fa-sign-out"></span>',
                                   '/auth/logout/logout.php',
                                   ['escape'     => false,
                                    'class'      => 'mdl-button mdl-js-button mdl-js-ripple-effect']);
@@ -52,7 +52,7 @@ s<?php
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
   <?php
     if(empty($vv_user)) {
-      print $this->Html->link(__('registry.op.login') . ' <span class="fa fa-sign-in"></span>',
+      print $this->Html->link(__d('operation', 'login') . ' <span class="fa fa-sign-in"></span>',
                               ['controller' => 'cos',
                                'action'     => 'select',
                                'plugin'     => false],

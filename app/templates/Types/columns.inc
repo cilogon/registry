@@ -44,7 +44,7 @@ $indexColumns = [
 $topLinks = [
   [
     'icon'  => 'settings_backup_restore',
-    'label' => __('registry.op.Types.restore'),
+    'label' => __d('operation', 'Types.restore'),
     'link'  => [
       'action' => 'restore'
     ]

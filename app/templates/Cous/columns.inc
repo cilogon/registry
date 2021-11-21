@@ -31,7 +31,7 @@ $indexColumns = [
   ],
   'parent_id' => [
     'type' => 'fk',
-    'label' => __('registry.fd.parent_id')
+    'label' => __d('field', 'parent_id')
   ],
   'description' => [
     'type' => 'echo'

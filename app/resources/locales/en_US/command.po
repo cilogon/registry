@@ -1,4 +1,4 @@
-# COmanage Registry Localizations
+# COmanage Registry Localizations (command domain)
 #
 # Portions licensed to the University Corporation for Advanced Internet
 # Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -22,25 +22,34 @@
 # @since         COmanage Registry v5.0.0
 # @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
-# For common code to know which component it is
-msgid "product.code"
-msgstr "registry"
+# Command Line text
 
-# This should match the ISO 639-1 two letter language code for the translation
-msgid "registry.meta.lang"
-msgstr "en"
+msgid "db.noop"
+msgstr "SQL NOT EXECUTED"
 
-msgid "registry.meta.logo"
-msgstr "COmanage Logo"
+msgid "db.ok"
+msgstr "Database schema update successful"
 
-msgid "registry.meta.powered"
-msgstr "Powered by"
+msgid "db.schema"
+msgstr "Loading database schema from {0}"
 
-msgid "registry.meta.registry"
-msgstr "COmanage Registry"
+msgid "opt.admin-username"
+msgstr "Username of initial platform administrator"
 
-msgid "registry.home.collab"
-msgstr "Available Collaborations"
+msgid "opt.force"
+msgstr "Force a rerun of setup (only if you know what you are doing)"
 
-msgid "registry.home.welcome"
-msgstr "Welcome to {0}."
+msgid "opt.not"
+msgstr "Calculate changes but do not apply"
+
+# msgid "se.admin"
+# msgstr "Creating initial administrator permission"
+
+# msgid "se.admin.user"
+# msgstr "Enter administrator's login username"
+
+msgid "se.already"
+msgstr "Setup appears to have already run"
+
+msgid "se.salt"
+msgstr "Generating salt file"

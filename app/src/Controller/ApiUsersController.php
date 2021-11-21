@@ -71,7 +71,7 @@ class ApiUsersController extends StandardController {
     
     // Let the view render, but tell it to use a different fields file
     $this->set('vv_fields_inc', 'fields-generate.inc');
-    $this->set('vv_title', __('registry.op.api.key.generate'));
+    $this->set('vv_title', __d('operation', 'api.key.generate'));
     
     $this->render('/Standard/add-edit-view');
   }

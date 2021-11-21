@@ -62,7 +62,7 @@ if($this->request->getRequestTarget(false) != '/') {
     // Insert a link back to the configuration menu
     
     $this->Breadcrumbs->add(
-      __('registry.me.co.configuration'),
+      __d('menu', 'co.configuration'),
       ['controller'   => 'dashboards',
        'action'       => 'configuration',
        '?'            => [
@@ -85,7 +85,7 @@ if($this->request->getRequestTarget(false) != '/') {
     }
     
     $this->Breadcrumbs->add(
-      __('registry.ct.'.$modelsName, [99]),
+      __d('controller', $modelsName, [99]),
       $target
     );
   }

@@ -61,10 +61,10 @@ if(!empty($banners)) {
 if(!empty($vv_obj->id) && $vv_permissions['delete']) {
   print '<ul id="topLinks">';
   print "<li>" . $this->Form->postLink(
-    __('registry.op.delete'),
+    __d('operation', 'delete'),
     ['action' => 'delete', $vv_obj->id],
 // XXX should be configurable which field we put in, maybe displayField?
-    ['confirm' => __('registry.op.delete.confirm', [$vv_obj->id]),
+    ['confirm' => __d('operation', 'confirm', [$vv_obj->id]),
      'class'   => 'deletebutton']
   ) . "</li>";
   print "</ul>\n";
@@ -116,7 +116,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
     print $this->Form->hidden($vv_primary_link, ['value' => $linkId]);
   }
   
-  print $this->Field->submit(__('registry.op.save'));
+  print $this->Field->submit(__d('operation', 'save'));
 }
 
 print $this->Form->end();

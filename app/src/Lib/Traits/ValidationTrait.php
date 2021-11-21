@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Validation Trait, shared between Match and Registry
+ * COmanage Validation Trait
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,8 +20,8 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       common
- * @since         COmanage Common v1.0.0
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -64,7 +64,7 @@ trait ValidationTrait {
     if(!empty($value)
        && in_array($value, $context['providers']['conditionalRequire']['inArray'])
        && empty($context['data'][ $context['providers']['conditionalRequire']['require'] ])) {
-      return __($COmponent.'.er.input.condreq', [$context['providers']['conditionalRequire']['label']]);
+      return __d('error', 'input.condreq', [$context['providers']['conditionalRequire']['label']]);
     }
     
     return true;
@@ -96,12 +96,12 @@ trait ValidationTrait {
     
     if(strlen($value) != strcspn($value, $invalid)) {
       // Mismatch, implying bad input
-      return __($COmponent.'.er.input.invalid');
+      return __d('error', 'input.invalid');
     }
     
     // We require at least one non-whitespace character (CO-1551)
     if(!preg_match('/\S/', $value)) {
-      return __($COmponent.'.er.input.blank');
+      return __d('error', 'input.blank');
     }
 
     return true;
@@ -146,7 +146,7 @@ trait ValidationTrait {
     // additional characters (like á) are also acceptable.
     
     if(!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $value)) {
-      return __($COmponent.'.er.input.invalid');
+      return __d('error', 'input.invalid');
     }
     
     return true;
@@ -163,7 +163,7 @@ trait ValidationTrait {
   
   public function validateTimeZone($value, array $context) {
     if(!in_array($value, array_values(timezone_identifiers_list()))) {
-      return __($COmponent.'.er.input.invalid');
+      return __d('error', 'input.invalid');
     }
     
     return true;

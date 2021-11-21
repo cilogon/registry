@@ -25,7 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-print $this->Field->banner(__('registry.in.api.key'));
+print $this->Field->banner(__d('information', 'api.key'));
 
 print $this->Field->statusControl('username', $vv_obj->username);
 

@@ -1,4 +1,4 @@
-# COmanage Registry Localizations
+# COmanage Registry Localizations (result domain)
 #
 # Portions licensed to the University Corporation for Advanced Internet
 # Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -22,25 +22,13 @@
 # @since         COmanage Registry v5.0.0
 # @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
-# For common code to know which component it is
-msgid "product.code"
-msgstr "registry"
+# Results
 
-# This should match the ISO 639-1 two letter language code for the translation
-msgid "registry.meta.lang"
-msgstr "en"
+msgid "deleted"
+msgstr "Deleted"
 
-msgid "registry.meta.logo"
-msgstr "COmanage Logo"
+msgid "deleted.a"
+msgstr "{0} Deleted"
 
-msgid "registry.meta.powered"
-msgstr "Powered by"
-
-msgid "registry.meta.registry"
-msgstr "COmanage Registry"
-
-msgid "registry.home.collab"
-msgstr "Available Collaborations"
-
-msgid "registry.home.welcome"
-msgstr "Welcome to {0}."
+msgid "saved"
+msgstr "Saved"

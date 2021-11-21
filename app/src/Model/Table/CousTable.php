@@ -79,7 +79,7 @@ class CousTable extends Table {
   
   public function buildTableRules(RulesChecker $rules): RulesChecker {
     // AR-CO-3 Two COUs within the same CO cannot share the same name
-    $rules->add($rules->isUnique(['name', 'co_id'], __('registry.er.exists', [__('registry.ct.Cous', [1])])));
+    $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Cous', [1])])));
     
     // This is not an Application Rule per se, but the parent_id must be a valid
     // potential parent
@@ -139,7 +139,7 @@ class CousTable extends Table {
       $potentialParents = $this->potentialParents($entity->co_id, (!empty($entity->id) ? $entity->id : null));
       
       if(!isset($potentialParents[$entity->parent_id])) {
-        return __('registry.er.cou.parent');
+        return __d('error', 'cou.parent');
       }
     }
     

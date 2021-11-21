@@ -65,7 +65,7 @@ class TypesController extends StandardController {
     try {
       $this->Types->addDefaults($this->getCOID());
       
-      $this->Flash->success(__('registry.rs.saved'));
+      $this->Flash->success(__d('result', 'saved'));
     }
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException

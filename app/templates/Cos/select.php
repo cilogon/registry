@@ -36,8 +36,8 @@
 <!-- XXX color of div has switched from blue to gray, do we care? -->
   <div id="fpCoList" class="co-grid co-grid-with-header mdl-shadow--2dp">
     <div class="mdl-grid co-grid-header">
-      <div class="mdl-cell mdl-cell--6-col"><?= __('registry.fd.name'); ?></div>
-      <div class="mdl-cell mdl-cell--6-col"><?= __('registry.fd.description'); ?></div>
+      <div class="mdl-cell mdl-cell--6-col"><?= __d('field', 'name'); ?></div>
+      <div class="mdl-cell mdl-cell--6-col"><?= __d('field', 'description'); ?></div>
     </div>
     
     <?php foreach($vv_available_cos as $co): ?>

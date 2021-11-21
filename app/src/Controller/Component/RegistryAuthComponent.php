@@ -78,7 +78,7 @@ class RegistryAuthComponent extends Component
   protected function authenticateApiUser(): bool {
     if(empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
       $this->llog('error', "Empty value(s) received for PHP_AUTH_USER and/or PHP_AUTH_PW");
-      throw new \InvalidArgumentException(__('registry.er.auth.api.invalid'));
+      throw new \InvalidArgumentException(__d('error', 'auth.api.invalid'));
     }
     
     $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
@@ -174,13 +174,13 @@ class RegistryAuthComponent extends Component
         if($ApiUsers->getUserPrivilege($this->authenticatedUser, 1)) {
           throw $e;
         } else {
-          throw new UnauthorizedException(__('registry.er.auth.api.failed'));
+          throw new UnauthorizedException(__d('error', 'auth.api.failed'));
         }
       }
       catch(\Exception $e) {
         $this->llog('debug', $e->getMessage());
         // Obfuscate the error message, which is available in the logs
-        throw new UnauthorizedException(__('registry.er.auth.api.failed'));
+        throw new UnauthorizedException(__d('error', 'auth.api.failed'));
       }
     } else {
       // Certain requests do not require authentication

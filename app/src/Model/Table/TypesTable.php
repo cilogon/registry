@@ -122,7 +122,7 @@ class TypesTable extends Table {
     // Make sure $attribute is valid
     
     if(!in_array($attribute, $this->supportedAttributes)) {
-      throw new \InvalidArgumentException(__('registry.er.unknown', [$attribute]));
+      throw new \InvalidArgumentException(__d('error', 'unknown', [$attribute]));
     }
 
     // Split $attribute
@@ -239,7 +239,7 @@ class TypesTable extends Table {
   
   public function ruleTypeInUse($entity, $options) {
     if($this->typeInUse($entity)) {
-      return __('registry.er.Types.inuse', [$entity->value]);
+      return __d('error', 'Types.inuse', [$entity->value]);
     }
     
     return true;

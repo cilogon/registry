@@ -199,14 +199,14 @@ class TransmogrifyCommand extends Command {
     $incfg = $indb->config();
     
     if(empty($incfg)) {
-      throw new \InvalidArgumentException(__("registry.er.db.config", ["transmogrify"]));
+      throw new \InvalidArgumentException(__d('error', 'db.config', ["transmogrify"]));
     }
     
     $outdb = ConnectionManager::get('default');
     $outcfg = $outdb->config();
     
     if(empty($incfg)) {
-      throw new \InvalidArgumentException(__("registry.er.db.config", ["default"]));
+      throw new \InvalidArgumentException(__d('error', 'db.config', ["default"]));
     }
     
     $inconfig = new \Doctrine\DBAL\Configuration();

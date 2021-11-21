@@ -28,7 +28,7 @@
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {  
   if($vv_cur_co->id == 1) {
-    print $this->Field->banner(__('registry.in.api.cmp'));
+    print $this->Field->banner(__d('information', 'api.cmp'));
   }
   
   // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
@@ -44,14 +44,14 @@ if($vv_action == 'add' || $vv_action == 'edit') {
         'action'     => 'generate',
         $vv_obj->id
       ],
-     'label' => __('registry.op.api.key.generate'),
+     'label' => __d('operation', 'api.key.generate'),
      'class' => 'provisionbutton',
-     'confirm' => __('registry.op.api.key.generate.confirm')
+     'confirm' => __d('operation', 'api.key.generate.confirm')
     ];
   }
   
   print $this->Field->statusControl('api_key',
-                                    !empty($vv_obj->api_key) ? __('registry.en.SetBooleanEnum.1') : __('registry.en.SetBooleanEnum.0'),
+                                    !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
                                     $generateLink);
   
   print $this->Field->control('status', ['empty' => false]);

@@ -32,24 +32,24 @@
 ?>
 <div id="pagination" class="<?php print $paginationClass; ?>">
   <span class="paginationCounter">
-    <?= $this->Paginator->counter(__('registry.in.pagination.format')); ?>
+    <?= $this->Paginator->counter(__d('information', 'pagination.format')); ?>
   </span>
   <?php if($this->Paginator->hasPage(2)): ?>
     <!-- show the pagination elements if there is more than 1 page -->
     <ul class="paginationFirst">
-      <?= $this->Paginator->first(__('registry.op.first')); ?>
+      <?= $this->Paginator->first(__d('operation', 'first')); ?>
     </ul>
     <ul class="paginationPrev">
-      <?= $this->Paginator->prev(__('registry.op.previous'), ['class' => 'disabled']); ?>
+      <?= $this->Paginator->prev(__d('operation', 'previous'), ['class' => 'disabled']); ?>
     </ul>
     <ul class="paginationNumbers">
       <?= $this->Paginator->numbers(); ?>
     </ul>
     <ul class="paginationNext">
-      <?= $this->Paginator->next(__('registry.op.next'), ['class' => 'disabled']); ?>
+      <?= $this->Paginator->next(__d('operation', 'next'), ['class' => 'disabled']); ?>
     </ul>
     <ul class="paginationLast">
-      <?= $this->Paginator->last(__('registry.op.last')); ?>
+      <?= $this->Paginator->last(__d('operation', 'last')); ?>
     </ul>
 
     <form id="goto-page"
@@ -57,13 +57,13 @@
           method="get"
           onsubmit="gotoPage(this.pageNum.value,
             <?= $this->Paginator->counter('{{pages}}');?>,
-            '<?= __('registry.er.pagenum.nan');?>',
-            '<?= __('registry.er.pagenum.exceeded', [$this->Paginator->counter('{{pages}}')]);?>',
+            '<?= __d('error', 'pagenum.nan');?>',
+            '<?= __d('error', 'pagenum.exceeded', [$this->Paginator->counter('{{pages}}')]);?>',
             '<?= $this->Paginator->generateUrl(); ?>');
             return false;">
-      <label for="pageNum"><?= __('registry.op.page.goto'); ?></label>
+      <label for="pageNum"><?= __d('operation', 'page.goto'); ?></label>
       <input type="text" size="3" name="pageNum" id="pageNum"/>
-      <input type="submit" value="<?= __('registry.op.go'); ?>"/>
+      <input type="submit" value="<?= __d('operation', 'op.go'); ?>"/>
     </form>
   <?php endif; ?>
 
@@ -94,7 +94,7 @@
       
       print $this->Form->control('limit', [
         'type' => 'select',
-        'label' => __('registry.op.page.display'),
+        'label' => __d('operation', 'page.display'),
         'value' => $this->request->getQuery('limit'),
         'options' => [25 => 25, 50 => 50, 100 => 100],
         'onChange' => 'this.form.submit()'

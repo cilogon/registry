@@ -1,0 +1,118 @@
+# COmanage Registry Localizations (field domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.0.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+# Fields
+# Keys of the form MyModels.field_name[.desc] will apply only to MyModels.field_name
+# Keys of the form field_name[.desc] will apply if no model specific key is found
+
+msgid "action"
+msgstr "Action"
+
+msgid "api_key"
+msgstr "API Key"
+
+msgid "attribute"
+msgstr "Attribute"
+
+msgid "date_of_birth"
+msgstr "Date of Birth"
+
+msgid "description"
+msgstr "Description"
+
+msgid "display_name"
+msgstr "Display Name"
+
+msgid "edupersonaffiliation"
+msgstr "eduPersonAffiliation"
+
+msgid "Types.edupersonaffiliation.desc"
+# XXX update link to PE wiki?
+msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations">eduPersonAffiliation and Extended Affiliations</a>"
+
+msgid "family"
+msgstr "Family Name"
+
+msgid "given"
+msgstr "Given Name"
+
+msgid "name"
+msgstr "Name"
+
+msgid "parent_id"
+msgstr "Parent"
+
+msgid "privileged"
+msgstr "Privileged"
+
+msgid "ApiUsers.privileged.desc"
+msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."
+
+msgid "remote_ip"
+msgstr "IP Address"
+
+msgid "ApiUsers.remote_ip.desc"
+msgstr "If specified, a <a href="https://www.php.net/manual/en/reference.pcre.pattern.syntax.php">regular expression</a> describing the IP address(es) from which this API User may connect. Be sure to escape dots (eg: "/10\\.0\\.1\\.150/")."
+
+msgid "required"
+msgstr "Required"
+
+msgid "status"
+msgstr "Status"
+
+msgid "Type.status"
+msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"
+
+msgid "username"
+msgstr "Username"
+
+msgid "ApiUsers.username.desc"
+msgstr "The API User Name must be prefixed with the string \"co_#.\""
+
+msgid "valid_from"
+msgstr "Valid From"
+
+msgid "valid_from.desc"
+msgstr "Leave blank for immediate validity"
+
+msgid "valid_from.tz"
+msgstr "Valid From ({0})"
+
+msgid "valid_through"
+msgstr "Valid Through"
+
+msgid "valid_through.desc"
+msgstr "Leave blank for indefinite validity"
+
+msgid "valid_through.tz"
+msgstr "Valid Through ({0})"
+
+msgid "value"
+msgstr "Value"
+
+msgid "Types.value"
+msgstr "Database Value"
+
+msgid "Types.value.desc"
+msgstr "Database value for this type, characters must be alphanumeric, dot, or dash"

@@ -50,7 +50,7 @@ class StandardEnum {
     $className = substr(strrchr(get_called_class(), '\\'), 1);
     
     foreach(array_values($consts) as $key) {
-      $ret[$key] = __('registry.en.'.$className.'.'.$key);
+      $ret[$key] = __('enumeration', $className.'.'.$key);
     }
     
     return $ret;

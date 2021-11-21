@@ -72,7 +72,7 @@ trait TypeTrait {
     $ret = [];
     
     if(!isset($this->defaultTypes[$attribute])) {
-      throw new \InvalidArgumentException(__('registry.er.invalid', [$attribute]));
+      throw new \InvalidArgumentException(__d('error', 'invalid', [$attribute]));
     }
     
     // eg: "Name"

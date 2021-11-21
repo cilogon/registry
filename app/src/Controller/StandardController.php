@@ -57,7 +57,7 @@ class StandardController extends AppController {
       // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
       // in afterSave
       if($table->save($obj)) {
-        $this->Flash->success(__('registry.rs.saved'));
+        $this->Flash->success(__d('result', 'saved'));
         
         return $this->generateRedirect(null);
       }
@@ -65,11 +65,11 @@ class StandardController extends AppController {
       $errors = $obj->getErrors();
       
       if(!empty($errors)) {
-        $this->Flash->error(__('registry.er.fields', [ implode(',', 
-                                                               array_map(function($v) { return __('registry.fd.'.$v); },
+        $this->Flash->error(__d('error', 'fields', [ implode(',', 
+                                                               array_map(function($v) { return __d('field', $v); },
                                                                          array_keys($errors))) ]));
       } else {
-        $this->Flash->error(__('registry.er.save', [$modelsName]));
+        $this->Flash->error(__d('error', 'save', [$modelsName]));
       }
       
       // Pass $obj as context so the view can render validation errors
@@ -87,7 +87,7 @@ class StandardController extends AppController {
     $this->populateAutoViewVars();
     
     // Default title is add new object
-    $this->set('vv_title', __('registry.op.add.a', __('registry.ct.'.$modelsName, [1])));
+    $this->set('vv_title', __d('operation', 'add.a', __d('controller', $modelsName, [1])));
 
     // Let the view render
     $this->render('/Standard/add-edit-view');
@@ -250,9 +250,9 @@ class StandardController extends AppController {
       $field = $table->getDisplayField();
       
       if(!empty($obj->$field)) {
-        $this->Flash->success(__('registry.rs.deleted.a', [$obj->$field]));
+        $this->Flash->success(__d('result', 'deleted.a', [$obj->$field]));
       } else {
-        $this->Flash->success(__('registry.rs.deleted'));
+        $this->Flash->success(__d('result', 'deleted'));
       }
       
       // Return to index since there is no delete view
@@ -342,7 +342,7 @@ class StandardController extends AppController {
         // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
         // in afterSave
         if($table->save($obj)) {
-          $this->Flash->success(__('registry.rs.saved'));
+          $this->Flash->success(__d('result', 'saved'));
           
           return $this->generateRedirect($obj->id); 
         }
@@ -350,11 +350,11 @@ class StandardController extends AppController {
         $errors = $obj->getErrors();
         
         if(!empty($errors)) {
-          $this->Flash->error(__('registry.er.fields', [ implode(',', 
-                                                                 array_map(function($v) { return __('registry.fd.'.$v); },
+          $this->Flash->error(__d('error', 'fields', [ implode(',', 
+                                                                 array_map(function($v) { return __d('field', $v); },
                                                                            array_keys($errors))) ]));
         } else {
-          $this->Flash->error(__('registry.er.save', [$modelsName]));
+          $this->Flash->error(__d('error', 'save', [$modelsName]));
         }
       }
     }
@@ -379,9 +379,9 @@ class StandardController extends AppController {
     $field = $table->getDisplayField();
     
     if(!empty($obj->$field)) {
-      $this->set('vv_title', __('registry.op.edit.a', $obj->$field));
+      $this->set('vv_title', __d('operation', 'edit.a', $obj->$field));
     } else {
-      $this->set('vv_title', __('registry.op.edit.a', __('registry.ct.'.$modelsName, [1])));
+      $this->set('vv_title', __d('operation', 'edit.a', __d('controller', $modelsName, [1])));
     }
     
     // Let the view render
@@ -493,7 +493,7 @@ class StandardController extends AppController {
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));
     
     // Default index view title is model name
-    $this->set('vv_title', __('registry.ct.'.$modelsName, [99]));
+    $this->set('vv_title', __d('controller', $modelsName, [99]));
     
     // Let the view render
     $this->render('/Standard/index');
@@ -647,9 +647,9 @@ class StandardController extends AppController {
     $field = $table->getDisplayField();
     
     if(!empty($obj->$field)) {
-      $this->set('vv_title', __('registry.op.view.a', $obj->$field));
+      $this->set('vv_title', __d('operation', 'view.a', $obj->$field));
     } else {
-      $this->set('vv_title', __('registry.op.view.a', __('registry.ct.'.$modelsName, [1])));
+      $this->set('vv_title', __d('operation', 'view.a', __d('controller', $modelsName, [1])));
     }
     
     // Let the view render

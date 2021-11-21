@@ -83,7 +83,7 @@ class ApiV2Controller extends AppController {
     
     if(empty($json[$modelsName])) {
       $this->llog('debug', $modelsName . " object not found in request");
-      throw new BadRequestException(__('registry.er.api.object', [$modelsName]));
+      throw new BadRequestException(__d('error', 'api.object', [$modelsName]));
     }
     
     $results = [];
@@ -177,13 +177,13 @@ class ApiV2Controller extends AppController {
       $obj = $query->firstOrFail();
 
       if(method_exists($this->$modelsName, "isReadOnly") && $this->$modelsName->isReadOnly($obj)) {
-        throw new BadRequestException(__('registry.er.edit.readonly'));
+        throw new BadRequestException(__d('error', 'edit.readonly'));
       }
       
       $json = $this->request->getData(); // Parsed by BodyParserMiddleware
 
       if(empty($json[$modelsName])) {
-        throw new BadRequestException(__('registry.er.api.object', [$modelsName]));
+        throw new BadRequestException(__d('error', 'api.object', [$modelsName]));
       }
       
       $obj = $this->$modelsName->patchEntity($obj, $json[$modelsName]);
@@ -302,7 +302,7 @@ class ApiV2Controller extends AppController {
     $tableName = $this->$modelsName->getTable();
     
     if(empty($id)) {
-      throw new InvalidArgumentException(__('registry.er.notprov', ['id']));
+      throw new InvalidArgumentException(__d('error', 'notprov', ['id']));
     }
     
     $obj = $this->$modelsName->findById($id)->firstOrFail();

@@ -54,7 +54,7 @@ class DatabaseCommand extends Command {
     $parser->addOption('not', [
       'short' => 'n',
       'boolean' => true,
-      'help'  => __('registry.cmd.opt.not')
+      'help'  => __d('command', 'opt.not')
     ]);
 
     return $parser;
@@ -83,10 +83,10 @@ class DatabaseCommand extends Command {
     $schemaFile = ROOT . DS . 'config' . DS . 'schema' . DS . 'schema.json';
 
     if(!is_readable($schemaFile)) {
-      throw new \RuntimeException(__('registry.er.file', [$schemaFile]));
+      throw new \RuntimeException(__d('error', 'file', [$schemaFile]));
     }
     
-    $io->out(__('registry.cmd.db.schema', [$schemaFile]));
+    $io->out(__d('command', 'db.schema', [$schemaFile]));
     
     $json = file_get_contents($schemaFile);
     
@@ -98,7 +98,7 @@ class DatabaseCommand extends Command {
       // - An unmatched brace { }
       // - A trailing comma (permitted in PHP but not JSON)
       // - Single quotes instead of double quotes
-      throw new \RuntimeException(__('registry.er.schema.parse', [$schemaFile]));
+      throw new \RuntimeException(__d('error', 'schema.parse', [$schemaFile]));
     }
     
     // Use the ConnectionManager to get the database config to pass to adodb.
@@ -136,7 +136,7 @@ class DatabaseCommand extends Command {
                                       (array)$cCfg);
         
         if(!isset($colCfg->type)) {
-          throw new \RuntimeException(__('registry.er.schema.column', [$tName, $cName]));
+          throw new \RuntimeException(__d('error', 'schema.column', [$tName, $cName]));
         }
         
         // For type definitions see https://www.doctrine-project.org/projects/doctrine-dbal/en/2.12/reference/types.html#types
@@ -289,9 +289,9 @@ class DatabaseCommand extends Command {
       }
       
       if(!$doSQL) {
-        $io->out(__('registry.cmd.db.noop'));
+        $io->out(__d('registry', 'db.noop'));
       } else {
-        $io->out(__('registry.cmd.db.ok'));
+        $io->out(__d('command', 'db.ok'));
       }
     }
     catch(\Exception $e) {

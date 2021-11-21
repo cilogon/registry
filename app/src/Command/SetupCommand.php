@@ -50,9 +50,9 @@ class SetupCommand extends Command {
   
   public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser {
     $parser->addOption('admin-username', [
-                        'help' => __('registry.cmd.opt.admin-username')
+                        'help' => __d('command', 'opt.admin-username')
                       ])->addOption('force', [
-                        'help' => __('registry.cmd.opt.force'),
+                        'help' => __d('command', 'opt.force'),
                         'boolean' => true
                       ]);
 
@@ -75,7 +75,7 @@ class SetupCommand extends Command {
     $securitySaltFile = LOCAL . DS . "Config" . DS . "security.salt";
     
     if(file_exists($securitySaltFile)) {
-      $io->out(__('registry.cmd.se.already'));
+      $io->out(__d('command', 'se.already'));
       
       if(!$args->getOption('force')) {
         exit;
@@ -126,7 +126,7 @@ class SetupCommand extends Command {
     $metaTable->setUpgradeVersion($targetVersion, true);
   */  
     // Write out the salt file
-    $io->out(__('registry.cmd.se.salt'));
+    $io->out(__d('command', 'se.salt'));
     
     if(file_put_contents($securitySaltFile, $salt)===false) {
       $err = error_get_last();
