@@ -320,7 +320,7 @@ class FieldHelper extends Helper {
   public function submit(string $label) {
     return '<li class="fields-submit">
       <div class="field-name">
-        <span class="required">* ' . __d('field', required') . '</span>
+        <span class="required">* ' . __d('field', 'required') . '</span>
       </div>
       <div class="field-info">
         ' . $this->Form->submit($label) . '
