@@ -28,23 +28,29 @@
 // XXX See registry/app/View/Pages/home.ctp for various error messages we should
 //     render based on the user's state, include op.home.no.collabs if empty
 ?>
+<div class="titleNavContainer">
+  <div class="pageTitle">
+    <h1><?= __('registry.home.collab'); ?></h1>
+  </div>
+</div>
 
-<div id="fpDashboard">
-  <!-- XXX add lastlogin from registry/app/View/Pages/home.ctp -->
-  
-  <h2><?= __('registry.home.collab'); ?></h2>
-<!-- XXX color of div has switched from blue to gray, do we care? -->
-  <div id="fpCoList" class="co-grid co-grid-with-header mdl-shadow--2dp">
-    <div class="mdl-grid co-grid-header">
-      <div class="mdl-cell mdl-cell--6-col"><?= __d('field', 'name'); ?></div>
-      <div class="mdl-cell mdl-cell--6-col"><?= __d('field', 'description'); ?></div>
+<?php if(count($vv_available_cos) == 0): ?>
+  <div class="co-info-topbox">
+    <em class="material-icons">info</em>
+    <?= __d('information','cos.none'); ?>
+  </div>
+<?php else: // vv_available_cos ?>
+  <p><?= __d('information', 'cos.select'); ?></p>
+  <div id="fpList" class="co-grid co-grid-with-header container">
+    <div class="co-grid-header row">
+      <div class="col"><?= __d('field', 'name'); ?></div>
+      <div class="col"><?= __d('field', 'description'); ?></div>
     </div>
-    
+
     <?php foreach($vv_available_cos as $co): ?>
-    <div class="mdl-grid co-row spin">
-      <div class="mdl-cell mdl-cell--6-col collab-name">
+    <div class="row co-row linked-row spin">
+      <div class=col collab-name">
         <?= $this->Html->link(
-// XXX do we need filter_var?
               $co->name,
               ['plugin'     => null,
                'controller' => 'dashboards',
@@ -52,22 +58,14 @@
                '?'          => [
                  'co_id'      => $co->id
                ]],
-              ['class' => 'co-link']
+              ['class' => 'row-link']
             ); ?>
       </div>
-      <div class="mdl-cell mdl-cell--6-col collab-desc">
-<!-- XXX need to add "Not a Member" tag, maybe as a separate column instead of part of the link -->
+      <div class="col collab-desc">
+  <!-- XXX need to add "Not a Member" tag, maybe as a separate column instead of part of the link -->
         <?= filter_var($co->description, FILTER_SANITIZE_SPECIAL_CHARS); ?>
       </div>
     </div>
     <?php endforeach; // vv_available_cos ?>
   </div>
-</div>
-<!-- Allow the whole div to be clicked: -->
-<script type="text/javascript">
-  $(function() {
-    $("#fpCoList .co-row").click(function () {
-      location.href = $(this).find(".collab-name > a.co-link").attr('href');
-    });
-  });
-</script>
+<?php endif; ?>

@@ -1,5 +1,5 @@
 /**
- * COmanage Match Default JavaScript
+ * COmanage Registry Default JavaScript
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -17,10 +17,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
- * @link          http://www.internet2.edu/comanage COmanage Project
- * @package       match
- * @since         COmanage Match v1.0.0
+ *
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -51,44 +51,20 @@ function generateFlash(text, type) {
   });
 }
 
-// Explicitly generate a spinner. This can normally be done by
-// setting the "spin" class on an element.  (See View/Elements/javascript.ctp)
-// For dynamically created elements, we can generate the spinner
-// dynamically by calling this function.
+// Generate a loading animation by revealing a persistent hidden div with CSS animation.
+// An element's onclick action will trigger this to appear if it has the class "spin" class on an element.
+// (See Template/Elements/javascript.ctp)
+// For dynamically created elements, we can generate the loading animation by calling this function.
 
-// Set defaults - this is used by all spinners.
-var coSpinnerOpts = {
-  lines: 13, // The number of lines to draw
-  length: 20, // The length of each line
-  width: 8, // The line thickness
-  radius: 20, // The radius of the inner circle
-  corners: 0.4, // Corner roundness (0..1)
-  rotate: 0, // The rotation offset
-  direction: 1, // 1: clockwise, -1: counterclockwise
-  color: '#9FC6E2', // #rgb or #rrggbb or array of colors ... green is #2bb673
-  speed: 1.2, // Rounds per second
-  trail: 60, // Afterglow percentage
-  shadow: false, // Whether to render a shadow
-  hwaccel: false, // Whether to use hardware acceleration
-  className: 'spinner', // The CSS class to assign to the spinner
-  zIndex: 100 // The z-index (defaults to 2000000000)
-};
-
-// show a spinner
+// show loading animation
 function displaySpinner() {
-  var spinnerDiv = '<div id="coSpinner"></div>';
-  $("body").append(spinnerDiv);
-
-  var coSpinnerTarget = document.getElementById('coSpinner');
-  var coSpinner = new Spinner(coSpinnerOpts).spin(coSpinnerTarget);
+  $("#co-loading").show();
 }
 
 // stop a spinner explicitly
-// assumes spinner is in a div with ID "coSpinner"
 function stopSpinner() {
-  $("#coSpinner").remove();
+  $("#co-loading").hide();
 }
-
 
 // Returns an i18n string with tokens replaced.
 // For use in JavaScript dialogs.
@@ -102,17 +78,18 @@ function replaceTokens(text,replacements) {
   return processedString;
 }
 
-// Generate a dialog box confirming <txt>.  On confirmation, forward to <url>.
+// Generate a dialog box confirming <txt>.  On confirmation, click a DOM element referenced by <clickId>.
+// The clickId DOM element is intended to be a CakePHP postButton or postLink (which may be visually hidden).
 // txt                - body text           (string, required)
-// url                - forward url         (string, required)
+// clickId            - id of DOM element   (string, required)
 // confirmbtxt        - confirm button text (string, optional)
 // cancelbtxt         - cancel button text  (string, optional)
 // titletxt           - dialog title text   (string, optional)
 // tokenReplacements  - strings to replace tokens in dialog body text (array, optional)
-function js_confirm_generic(txt, url, confirmbtxt, cancelbtxt, titletxt, tokenReplacements) {
+function js_confirm_generic(txt, clickId, confirmbtxt, cancelbtxt, titletxt, tokenReplacements) {
 
   var bodyText = txt;
-  var forwardUrl = url;
+  var clickId = clickId;
   var confbutton = confirmbtxt;
   var cxlbutton = cancelbtxt;
   var title = titletxt;
@@ -136,19 +113,27 @@ function js_confirm_generic(txt, url, confirmbtxt, cancelbtxt, titletxt, tokenRe
   }
 
   // Set the title of the dialog
-  $("#dialog").dialog("option", "title", title);
+  $("#dialog-title").text(title);
 
   // Set the body text of the dialog
   $("#dialog-text").text(bodyText);
 
-  // Set the dialog buttons
-  var dbuttons = {};
-  dbuttons[cxlbutton] = function() { $(this).dialog("close"); };
-  dbuttons[confbutton] = function() { window.location = forwardUrl; };
-  $("#dialog").dialog("option", "buttons", dbuttons);
+  // Set the dialog confirmation button to click the DOM
+  // element referenced by the clickId
+  $("#dialog-confirm-button").click(function() {
+    $("#" + clickId).click();
+  });
+
+  // Override the button texts if set
+  if(confbutton != '') {
+    $("#dialog-confirm-button").text(confbutton);
+  }
+  if(cxlbutton != '') {
+    $("#dialog-cancel-button").text(cxlbutton);
+  }
 
   // Open the dialog
-  $('#dialog').dialog('open');
+  $("#dialog").modal('show');
 }
 
 // Generic goto page form handling for multi-page listings.
@@ -157,7 +142,8 @@ function js_confirm_generic(txt, url, confirmbtxt, cancelbtxt, titletxt, tokenRe
 // maxPage            - largest page number allowed (int, required)
 // intErrMsg          - error message for entering a non-integer value (string, required)
 // maxErrMsg          - error message for entering a page number greater than last page (string, required)
-function gotoPage(pageNumber,maxPage,intErrMsg,maxErrMsg) {
+// paginationUrl      - pagination URL used to build request  (string, required)
+function gotoPage(pageNumber,maxPage,intErrMsg,maxErrMsg,paginationUrl) {
   // Just return if no value
   if (pageNumber == "") {
     stopSpinner();
@@ -186,8 +172,11 @@ function gotoPage(pageNumber,maxPage,intErrMsg,maxErrMsg) {
     pageNum = 1;
   }
 
+  // Build pagination URL (this assumes the URL will always contain an existing ? in the path)
+  var url = paginationUrl.replace(new RegExp('&page=[0-9]*', 'g'), '')+'&page=' + pageNum;
+
   // Redirect to the new page:
-  window.location = window.location.pathname.replace(new RegExp('\/page:[0-9]*', 'g'), '')+'/page:' + pageNum;
+  window.location = url
 }
 
 // Generic limit page form handling for setting the page size (records shown on a page).
@@ -221,4 +210,15 @@ function limitPage(pageLimit,recordCount,currentPage) {
 
   // Redirect to the new page:
   window.location = currentUrl;
+}
+
+// Clear the top search form for index views
+// formObj         - form object (DOM form obj, required)
+function clearTopSearch(formObj) {
+  for (var i=0; i<formObj.elements.length; i++) {
+    if(formObj.elements[i].type != 'hidden') {
+      formObj.elements[i].disabled = true;
+    }
+  }
+  formObj.submit();
 }

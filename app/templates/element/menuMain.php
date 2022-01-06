@@ -18,32 +18,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// The following menu will only render if we have a user and CO (see default.ctp)
 ?>
-<ul id="main-menu" class="metismenu">
+<ul id="main-menu">
   <?php
-      print '<li class="nullMenu">'.
-      $this->Html->link(
-        '<em class="material-icons" aria-hidden="true">settings</em><span class="menuTitle">null</span><span class="mdl-ripple"></span>',
-        ['plugin'       => null,
-         'controller'   => 'dashboards',
-         'action'       => 'deletethislink'],
-        ['class' => 'mdl-js-ripple-effect',
-         'escape' => false]
-      )
-      .'</li>';
-
     if(!empty($vv_cur_co)) {
       // In Registry PE, there is no more Platform Administration menu, so there
       // is no menu context without a current CO. (The Platform Administration
       // menu is now part of the COmanage CO configuration.)
-      
+
       $menuItems = [
         [
           'permission' => 'people',
@@ -60,7 +50,7 @@
           'label' => __d('menu', 'co.configuration')
         ]
       ];
-      
+
       if(count($vv_available_cos) > 1) {
         // More than one CO is available, so present the switcher
         $menuItems[] = [
@@ -71,13 +61,13 @@
           'label'      => __d('menu', 'co.switch')
         ];
       }
-      
+
       foreach($menuItems as $m) {
         if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
           $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em><span class="menuTitle">'
             . $m['label']
             . '</span><span class="mdl-ripple"></span>';
-          
+
           print '<li class="configMenu">'
             . $this->Html->link(
                 $linkContent,

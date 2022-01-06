@@ -1,4 +1,4 @@
-s<?php
+<?php
 /*
  * COmanage Registry Secondary Menu Bar
  * Displayed above all pages when logged in
@@ -19,7 +19,7 @@ s<?php
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
  * @since         COmanage Registry v5.0.0
@@ -27,26 +27,31 @@ s<?php
  */
 ?>
 <?php if(!empty($vv_user)): ?>
-  <div id="user">
-    <a href="#" class="topMenu" id="user-links">
-      <span id="user-common-name">
-        <?= $vv_user['username']; ?>
-      </span>
-      <em class="material-icons icon-adjust">person</em>
-      <em class="material-icons drop-arrow">arrow_drop_down</em>
-    </a>
-    <ul id="user-links-menu" class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="user-links">
-      <li id="user-links-cn">XXX Put something here</li>
-      <li id="logout-in-menu" class="co-menu-button">
-        <?php
-          print $this->Html->link(__d('operation', 'logout') . ' <span class="fa fa-sign-out"></span>',
-                                  '/auth/logout/logout.php',
-                                  ['escape'     => false,
-                                   'class'      => 'mdl-button mdl-js-button mdl-js-ripple-effect']);
-        ?>
-      </li>
-    </ul>
-  </div>
+  <ul>
+    <li id="top-menu-user">
+      <a class="dropdown-toggle nospin" href="#" role="button" id="user-panel-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="top-menu-link-text">
+          <?= $vv_user['username']; ?>
+        </span>
+        <em class="material-icons icon-adjust">person</em>
+      </a>
+      <!-- Account Dropdown -->
+      <div id="user-panel"  class="dropdown-menu" aria-labelledby="user-panel-toggle">
+        <div id="logout-in-panel">
+          <?= $this->Html->link(__d('operation','logout') . ' <span class="fa fa-sign-out"></span>',
+            '/auth/logout/logout.php',
+            ['escape'     => false,
+             'class'      => 'btn']);
+          ?>
+        </div>
+        <div id="user-panel-user-info">
+          <em class="material-icons">person</em>
+          <div id="user-panel-cn"><?= $vv_user['username']; ?></div>
+          <div id="user-panel-id"><!-- XXX identifier goes here --></div>
+        </div>
+      </div>
+    </li>
+  </ul>
 <?php endif; ?>
 
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
@@ -56,7 +61,7 @@ s<?php
                               ['controller' => 'cos',
                                'action'     => 'select',
                                'plugin'     => false],
-                              ['escape'     => false, 
+                              ['escape'     => false,
                                'id'         => 'login',
                                'class'      => '']);
     }

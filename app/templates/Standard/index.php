@@ -40,6 +40,10 @@ $modelsName = $this->name;
 // XXX backport to match?
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
 
+// Do we have records for this index? This will be set to true during render if we do.
+// Otherwise, we'll print out a "no records" message.
+$recordsExist = false;
+
 // Our default link actions, in order of preference, unless the column config overrides it
 $linkActions = ['edit', 'view'];
 
@@ -85,23 +89,11 @@ function _column_key($modelsName, $c, $tz=null) {
   <div class="pageTitle">
     <h1><?= $vv_title; ?></h1>
   </div>
-  
-  <?php
-  if(!empty($banners)) {
-    foreach($banners as $b): ?>  
-  <div class="co-info-topbox">
-    <em class="material-icons">info</em>
-    <?php print $b; ?>
-  </div>
-  <?php endforeach; // $banners
-  }
-  ?>
 
   <?php if($vv_permissions['add']): ?>
     <ul id="topLinks">
       <li>
-        <?php print $this->Html->link(
-          '<em class="material-icons" aria-hidden="true">add_circle</em> ' .
+        <?= $this->Html->link('<em class="material-icons" aria-hidden="true">add_circle</em> ' .
             __d('operation', 'add.a', __d('controller', $modelsName, [1])),
           ['action' => 'add', '?' => $linkFilter],
           ['escape' => false]); ?>
@@ -117,12 +109,11 @@ function _column_key($modelsName, $c, $tz=null) {
                 $t['link']['?'] = $linkFilter;
               }
               
-              print '
-              <li>' .
+              print '<li>' .
                 $this->Html->link(
                   '<em class="material-icons" aria-hidden="true">' . $t['icon']. '</em> ' . $t['label'],
                   $t['link'],
-                  ['escape' => false]
+                  ['escape' => false, 'class' => $t['class']]
                 ) . '
               </li>';
             }
@@ -133,18 +124,34 @@ function _column_key($modelsName, $c, $tz=null) {
   <?php endif; ?>
 </div>
 <?php if(!empty($indexBanners)): ?>
-<?php foreach($indexBanners as $b): ?>
-<div class="co-info-topbox">
-  <em class="material-icons">info</em>
-  <?php print $b; ?>
-</div>
-<?php endforeach; // $indexBanners ?>
+  <?php foreach($indexBanners as $b): ?>
+    <div class="co-info-topbox">
+      <em class="material-icons">info</em>
+      <?= $b; ?>
+    </div>
+  <?php endforeach; // $indexBanners ?>
 <?php endif; // $indexBanners ?>
+
+<?php if(!empty($banners)): ?>
+  <?php foreach($banners as $b): ?>
+    <div class="co-info-topbox">
+      <em class="material-icons">info</em>
+      <?= $b; ?>
+    </div>
+  <?php endforeach; // $banners ?>
+<?php endif; // $banners ?>
+
+<!-- Search block -->
+<?php if(!empty($enableSearch)): ?>
+  <?= $this->element('search'); ?>
+<?php endif; // $enableSearch ?>
+
+<!-- Index table -->
 <div class="table-container">
   <table id="<?= $tableName . '-table'; ?>">
     <tr>
       <?php foreach($indexColumns as $col => $cfg): ?>
-      <th>
+      <th<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
         <?php
         $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
 
@@ -165,7 +172,7 @@ function _column_key($modelsName, $c, $tz=null) {
   <?php foreach($$tableName as $entity): ?>
     <tr>
       <?php foreach($indexColumns as $col => $cfg): ?>
-      <td>
+      <td<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
         <?php
           switch($cfg['type']) {
             case 'boolean':
@@ -180,6 +187,7 @@ function _column_key($modelsName, $c, $tz=null) {
               break;
             case 'enum':
               if($entity->$col) {
+                // XXX Need to add badging - see index.php in Match
                 print __d('enumeration', $cfg['class'].'.'.$entity->$col);
               }
               break;
@@ -203,6 +211,38 @@ function _column_key($modelsName, $c, $tz=null) {
                 print $entity->$col;
               }
               break;
+            case 'button':
+              if(!empty($entity->$col)) {
+                $buttonAttrs = [];
+                $buttonText = $entity->$col;
+                if(!empty($cfg['button']['attrs'])) {
+                  $buttonAttrs = $cfg['button']['attrs'];
+                }
+                $buttonAttrs['type'] = 'button';
+                if(!empty($cfg['button']['text']) && $cfg['button']['text'] != 'fieldVal') {
+                  $buttonText = $cfg['button']['text'];
+                }
+                if(!empty($cfg['truncate']) && is_int($cfg['truncate'])) {
+                  // We check for $truncate + 1 because there's no point trimming
+                  // the last character if we're just going to replace it with ...
+                  $buttonText = (strlen($buttonText) > $cfg['truncate'] + 1) ? substr($buttonText,0,$cfg['truncate']).'...' : $buttonText;
+                }
+                if(!empty($cfg['button']['popover'])) {
+                  if($cfg['button']['popover'] == 'fieldVal') {
+                    $buttonAttrs['data-bs-content'] = $entity->$col;
+                  } else {
+                    $buttonAttrs['data-bs-content'] = $cfg['button']['popover'];
+                  }
+                  $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
+                  $buttonAttrs['title'] = $label;
+                  $buttonAttrs['data-bs-toggle'] = 'popover';
+                  $buttonAttrs['data-bs-container'] = 'body';
+                  $buttonAttrs['data-bs-placement'] = 'top';
+                  $buttonAttrs['data-bs-animation'] = 'false';
+                }
+                print $this->Form->button($buttonText, $buttonAttrs);
+              }
+              break;
             case 'link':
             case 'echo':
             default:
@@ -224,6 +264,7 @@ function _column_key($modelsName, $c, $tz=null) {
                 foreach($linkActions as $a) {
                   // Does this user have permission for this action?
                   if($vv_permission_set[$entity->id][$a]) {
+                    // XXX Check this against Match
                     print $this->Html->link($label, ['action' => $a, $entity->id]);
                     $linked = true;
                     break 2;
@@ -241,8 +282,10 @@ function _column_key($modelsName, $c, $tz=null) {
         ?>
       </td>
       <?php endforeach; // $indexColumns ?>
-      <td>
+      <td class="actions">
         <?php
+
+          // XXX Convert this to use the actionMenu element as in Match 1.0
           if($vv_permission_set[$entity->id]['edit']) {
             print $this->Html->link(
               __d('operation', 'edit'),
@@ -269,8 +312,9 @@ function _column_key($modelsName, $c, $tz=null) {
             );
           }
 
+          // Insert additional actions as per the .inc file
+          // XXX Check all this against Match 1.0 (which should be newer)
           if(!empty($indexActions)) {
-            // Insert additional actions as per the .inc file
 
 // XXX this isn't quite the right test
 //            if(isset($entity->status) && $entity->status == StatusEnum::Active) {
@@ -305,7 +349,11 @@ function _column_key($modelsName, $c, $tz=null) {
         ?>
       </td>
     </tr>
+    <?php $recordsExist = true; ?>
   <?php endforeach; // $$tablename ?>
+  <?php if(!$recordsExist): ?>
+    <tr><td colspan="<?= count($indexColumns); ?>"><?= __d('information','global.records.none') ?></td></tr>
+  <?php endif; ?>
   </table>
 </div>
 

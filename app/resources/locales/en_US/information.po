@@ -30,5 +30,14 @@ msgstr "API Users created in the COmanage CO are given full privileges to all Re
 msgid "api.key"
 msgstr "This newly generated API Key cannot be recovered. If it is lost a new key must be generated."
 
+msgid "cos.none"
+msgstr "No collaborations (COs) yet exist. Please have an administrator create one."
+
+msgid "cos.select"
+msgstr "Please select the collaboration (CO) you wish to manage."
+
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
+
+msgid "global.records.none"
+msgstr "There are no records to display."

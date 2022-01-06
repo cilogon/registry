@@ -33,6 +33,21 @@ msgstr "Generate API Key"
 msgid "api.key.generate.confirm"
 msgstr "Are you sure you wish to generate a new API Key?"
 
+msgid "cancel"
+msgstr "Cancel"
+
+msgid "clear"
+msgstr "Clear"
+
+msgid "clear.filters"
+msgstr "{0,plural,=1{Clear Filter} other{Clear Filters}}"
+
+msgid "close"
+msgstr "Close"
+
+msgid "confirm"
+msgstr "Confirm"
+
 msgid "dashboard.configuration"
 msgstr "Manage {0} Configuration"
 
@@ -50,6 +65,9 @@ msgstr "Edit"
 
 msgid "edit.a"
 msgstr "Edit {0}"
+
+msgid "filter"
+msgstr "Filter"
 
 msgid "first"
 msgstr "First"
