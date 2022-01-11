@@ -56,10 +56,6 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Load CSS -->
     <?= $this->Html->css([
-      // XXX Keep these deprecated libraries commented here for the time being
-      //'jquery/jquery-ui-1.12.1.custom/jquery-ui.min',
-      //'mdl/mdl-1.3.0/material.min.css',
-      //'jquery/metisMenu/metisMenu.min.css',
       'fonts/Font-Awesome-4.6.3/css/font-awesome.min',
       'bootstrap/bootstrap.min',
       'co-color',
@@ -69,8 +65,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Load JavaScript (only JQuery here - other scripts at bottom) -->
     <?= $this->Html->script([
-      'jquery/jquery.min.js',
-      'jquery/jquery-ui-1.12.1.custom/jquery-ui.min.js'
+      'jquery/jquery.min.js'
     ]) . "\n"; ?>
 
     <!-- Include external files and scripts -->
@@ -196,7 +191,6 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     <!-- XXX Noty, js-cookie, and metisMenu should be deprecated -->
     <?= $this->Html->script([
       'bootstrap/bootstrap.bundle.min.js',
-      'jquery/metisMenu/metisMenu.min.js',
       'js-cookie/js.cookie-2.1.3.min.js',
       'jquery/noty/jquery.noty.js',
       'jquery/noty/layouts/topCenter.js',
