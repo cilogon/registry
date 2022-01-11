@@ -198,8 +198,8 @@
     margin-top: -3.5em;
     position: relative;
   }
-  /* MATCHGRID MANAGEMENT */
-  #matchgrid-config-menu {
+  /* CO CONFIGURATION DASHBOARD */
+  #configuration-menu {
     column-count: 3;
     column-gap: 1em;
     margin-bottom: 4em;

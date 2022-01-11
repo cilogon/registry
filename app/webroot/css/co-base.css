@@ -746,18 +746,18 @@ instead, reveal in user menu */
   margin-bottom: 2em;
   font-style: italic;
 }
-/* MATCHGRID CONFIGURATION */
-#matchgrid-config-menu {
+/* CO CONFIGURATION DASHBOARD */
+#configuration-menu {
   list-style: none;
   padding: 0;
 }
-#matchgrid-config-menu a {
+#configuration-menu a {
   display: inline-block;
   padding: 0.5em;
   text-indent: -0.9em;
   padding-left: 2em;
 }
-#matchgrid-config-menu a .material-icons {
+#configuration-menu a .material-icons {
   color: var(--cmg-color-gray-001);
   margin-right: 0.5em;
 }

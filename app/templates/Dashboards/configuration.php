@@ -32,29 +32,35 @@
     <?php if(!empty($vv_platform_menu_items)): ?>
       <?php foreach($vv_platform_menu_items as $label => $cfg): ?>
         <li>
-          <em class="material-icons" aria-hidden="true"><?= $cfg['icon']; ?></em>
-          <?= $this->Html->link(
-            $label,
-            ['plugin'     => null,
-             'controller' => $cfg['controller'],
-             'action'     => $cfg['action']]
-          ); ?>
+          <?php 
+            $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+              . '<span class="menu-title">' . $label . '</span>';
+            print $this->Html->link(
+              $label,
+              ['plugin'     => null,
+               'controller' => $cfg['controller'],
+               'action'     => $cfg['action']],
+              ['escape' => false]
+            ); 
+          ?>
         </li>
       <?php endforeach; // $vv_configuration_menu_items ?>
     <?php endif; // $vv_platform_menu_items ?>
     
     <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
       <li>
-        <em class="material-icons" aria-hidden="true"><?= $cfg['icon']; ?></em>
-        <?= $this->Html->link(
-          $label,
-          ['plugin'     => null,
-           'controller' => $cfg['controller'],
-           'action'     => $cfg['action'],
-           '?'          => [
-             'co_id' => $vv_cur_co->id
-           ]]
-        ); ?>
+        <?php 
+          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+            . '<span class="menu-title">' . $label . '</span>';
+          print $this->Html->link(
+            $linkContent,
+            ['plugin'     => null,
+             'controller' => $cfg['controller'],
+             'action'     => $cfg['action'],
+             '?'          => ['co_id' => $vv_cur_co->id]],
+             ['escape' => false]
+            ); 
+        ?>
       </li>
     <?php endforeach; // $vv_configuration_menu_items ?>
   </ul>

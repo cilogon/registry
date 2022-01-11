@@ -64,9 +64,8 @@
 
       foreach($menuItems as $m) {
         if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
-          $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em><span class="menuTitle">'
-            . $m['label']
-            . '</span><span class="mdl-ripple"></span>';
+          $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em>'
+            . '<span class="menu-title">' . $m['label'] . '</span>';
 
           print '<li class="configMenu">'
             . $this->Html->link(
