@@ -63,14 +63,15 @@
             return false;">
       <label for="pageNum"><?= __d('operation', 'page.goto'); ?></label>
       <input type="text" size="3" name="pageNum" id="pageNum"/>
-      <input type="submit" value="<?= __d('operation', 'op.go'); ?>"/>
+      <input type="submit" value="<?= __d('operation', 'go'); ?>"/>
     </form>
   <?php endif; ?>
 
   <?php
-    if($this->Paginator->counter('{{pages}}') > 25) {
+  // XXX Change this test to 25 when the default is 25
+  if($this->Paginator->counter('{{count}}') > 20) {
       // Provide a form for setting the page limit.
-      // Default is 25 records, current maximum is 100.
+      // Default is 20 records (XXX but will be 25), maximum is 100.
       // For now we will simply hard-code the options from 25 - 100.
       
       print $this->Form->create(null, [ 'type' => 'get', 'class' => 'pagination-form' ]);
@@ -96,10 +97,10 @@
         'type' => 'select',
         'label' => __d('operation', 'page.display'),
         'value' => $this->request->getQuery('limit'),
-        'options' => [25 => 25, 50 => 50, 100 => 100],
-        'onChange' => 'this.form.submit()'
+        'options' => [25 => 25, 50 => 50, 75 => 75, 100 => 100]
       ]);
       
+      print $this->Form->submit(__d('operation', 'go'));
       print $this->Form->end();
     }
   ?>

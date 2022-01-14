@@ -828,7 +828,9 @@ th.actions {
 }
 #pagination .pagination-form {
   display: inline-block;
-  margin-left: 2em;
+}
+#pagination #goto-page {
+  margin: 0 2em;
 }
 #pagination .pagination-form label {
   margin-bottom: 0;
@@ -840,24 +842,27 @@ th.actions {
   padding: 2px;
   font-size: 0.9em;
   background-color: var(--cmg-color-lightgray-004);
-  border: 1px solid var(--cmg-color-green-005);
+  border: 1px solid var(--cmg-color-lightgray-004);
+  border-radius: 0.25rem;
   text-align: center;
 }
 #pagination .pagination-form select {
-  margin: 0 0.5rem;
-  padding: 0 0.25rem;
+  margin: 0 0.25rem 0 0.5rem;
+  padding: 0 2rem 0 0.25rem;
   font-size: 0.9em;
   display: inline-block;
   line-height: unset;
   width: unset;
   height: unset;
+  border: 1px solid var(--cmg-color-lightgray-001);
+  background-color: var(--cmg-color-lightgray-001);
 }
 #pagination .pagination-form option {
   padding: 0;
 }
 #pagination .pagination-form input[type="submit"] {
   width: auto;
-  margin: 0 0 0 2px;
+  margin: -3px 0 0 2px;
   padding: 0 4px;
   min-width: 0;
   min-height: 0;
@@ -871,12 +876,18 @@ th.actions {
   top: 1px;
 }
 #pagination .btn-primary {
-  background-color: var(--cmg-color-green-006);
-  border-color: var(--cmg-color-green-005);
+  background-color: var(--cmg-color-blue-003);
+  border-color: var(--cmg-color-blue-002);
 }
-#pagination .btn-primary:hover {
+#pagination .btn-primary:hover,
+#pagination .btn-primary:focus,
+#pagination .btn-primary:active {
   background-color: var(--cmg-color-gray-001) !important;
   border-color: var(--cmg-color-black);
+}
+#pagination div.submit,
+#pagination div.select {
+  display: inline-block;
 }
 ::-webkit-input-placeholder,
 ::-moz-placeholder,

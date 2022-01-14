@@ -88,10 +88,10 @@ msgid "next"
 msgstr "Next"
 
 msgid "page.display"
-msgstr "Display"
+msgstr "Display records"
 
 msgid "page.goto"
-msgstr "Go To Page"
+msgstr "Go to page"
 
 msgid "previous"
 msgstr "Previous"
