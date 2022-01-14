@@ -177,7 +177,8 @@
       that approach doesn't work well with Material Design Light (MDL). If you do not
       do this, the datepicker will float up to the top of the browser window. See
       app/View/CoGroupMembers for an example. */ ?>
-
+     
+/* XXX CFM-107 Hide datepickers until replaced with new approach
     $(".datepicker-f").datepicker({
       changeMonth: true,
       changeYear: true,
@@ -207,22 +208,7 @@
     }).bind('click',function () {
       $("#ui-datepicker-div").appendTo($(this).closest('.modelbox-data'));
     });
-
-    // Dialog
-    // This generic dialog gets modified by the calling function
-    $("#dialog").dialog({
-      autoOpen: false,
-      resizable: false,
-      modal: true,
-      buttons: {
-        '<?php print __d('operation', 'cancel'); ?>': function() {
-          $(this).dialog('close');
-        },
-        '<?php print __d('operation', 'ok'); ?>': function() {
-          $(this).dialog('close');
-        }
-      }
-    });
+*/
 
     // Add loading animation when a form is submitted, when any item with a "spin" class is clicked,
     // or on any button or anchor tag lacking the .nospin class.
@@ -236,13 +222,7 @@
       }
 
     });
-
-    // Flash Messages
-    <?php
-      print $this->Flash->render('error');
-      print $this->Flash->render('success');
-      print $this->Flash->render('information');
-    ?>
+    
   });
 
   // Define default text for confirm dialog
@@ -251,3 +231,5 @@
   var defaultConfirmTitle = "<?php print __d('operation', 'confirm'); ?>";
 
 </script>
+
+<?= $this->Flash->render() ?>
