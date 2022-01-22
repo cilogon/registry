@@ -31,4 +31,4 @@ msgid "co.people"
 msgstr "People"
 
 msgid "co.switch"
-msgstr "Switch Collaboration"
+msgstr "Switch CO"

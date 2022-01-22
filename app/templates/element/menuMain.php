@@ -67,7 +67,7 @@
           $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em>'
             . '<span class="menu-title">' . $m['label'] . '</span>';
 
-          print '<li class="configMenu">'
+          print '<li>'
             . $this->Html->link(
                 $linkContent,
                 ['plugin'       => null,
@@ -76,8 +76,7 @@
                  '?'            => [
                    'co_id' => $vv_cur_co->id
                  ]],
-                ['class' => 'mdl-js-ripple-effect',
-                 'escape' => false]
+                ['escape' => false]
               )
             . '</li>';
         }

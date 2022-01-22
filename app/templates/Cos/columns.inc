@@ -39,9 +39,9 @@ $indexColumns = [
 ];
 
 $indexActions = [
-// XXX Should these buttons move to or also be present in object view?
   [
     'action' => 'duplicate',
-    'class'  => 'copybutton'
+    'class'  => 'duplicate',
+    'icon'   => 'content_copy'
   ]
 ];

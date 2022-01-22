@@ -167,7 +167,7 @@ function _column_key($modelsName, $c, $tz=null) {
         ?>
       </th>
       <?php endforeach; ?>
-      <th><?= __d('field', 'action'); ?></th>
+      <th class="actions"><?= __d('field', 'action'); ?></th>
     </tr>
   <?php foreach($$tableName as $entity): ?>
     <tr>
@@ -279,7 +279,6 @@ function _column_key($modelsName, $c, $tz=null) {
                 foreach($linkActions as $a) {
                   // Does this user have permission for this action?
                   if($vv_permission_set[$entity->id][$a]) {
-                    // XXX Check this against Match
                     print $this->Html->link($label, ['action' => $a, $entity->id]);
                     $linked = true;
                     break 2;
@@ -300,39 +299,34 @@ function _column_key($modelsName, $c, $tz=null) {
       <td class="actions">
         <?php
 
-          // XXX Convert this to use the actionMenu element as in Match 1.0
+          // Action list for command menu dropdown / button listing
+          $action_args = array();
+          $action_args['vv_attr_mdl'] = "Index";
+          $action_args['vv_attr_id'] =  $entity->id;
+          
+          // Edit
           if($vv_permission_set[$entity->id]['edit']) {
-            print $this->Html->link(
-              __d('operation', 'edit'),
-              ['action' => 'edit', $entity->id],
-              ['class' => 'editbutton']
+            $action_args['vv_actions'][] = array(
+              'order' => $this->Menu->getMenuOrder('Edit'),
+              'icon' => $this->Menu->getMenuIcon('Edit'),
+              'url' => $this->Url->build(['action' => 'edit', $entity->id]),
+              'label' => __d('operation', 'edit')
             );
           } elseif($vv_permission_set[$entity->id]['view']) {
-            print $this->Html->link(
-              __d('operation', 'view'),
-              ['action' => 'view', $entity->id],
-              ['class' => 'viewbutton']
-            );
-          }
-
-          if($vv_permission_set[$entity->id]['delete']) {
-// XXX this is throwing CSRF error even though delete button on edit-record page is working?
-//     probably because this is using Form helper, but we're outside of a form?
-            print $this->Form->postLink(
-              __d('operation', 'delete'),
-              ['action' => 'delete', $entity->id],
-  // XXX should be configurable which field we put in, maybe displayField?
-              ['confirm' => __d('operation', 'delete.confirm', [$entity->id]),
-               'class'   => 'deletebutton']
+            $action_args['vv_actions'][] = array(
+              'order' => $this->Menu->getMenuOrder('View'),
+              'icon' => $this->Menu->getMenuIcon('View'),
+              'url' => $this->Url->build(['action' => 'view', $entity->id]),
+              'label' => __d('operation', 'view')
             );
           }
 
           // Insert additional actions as per the .inc file
-          // XXX Check all this against Match 1.0 (which should be newer)
           if(!empty($indexActions)) {
 
 // XXX this isn't quite the right test
-//            if(isset($entity->status) && $entity->status == StatusEnum::Active) {
+//          if(isset($entity->status) && $entity->status == StatusEnum::Active) {
+              $actionOrderDefault = $this->Menu->getMenuOrder('Default');
               foreach($indexActions as $a) {
                 if($vv_permission_set[$entity->id][ $a['action'] ]) {
                   // If there's a conditional on the field, test the entity
@@ -344,32 +338,104 @@ function _column_key($modelsName, $c, $tz=null) {
                     }
                   }
                   
-                  // If we have a .confirm text, use postLink instead
+                  $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
+                  $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
+                  $actionClass = !empty($a['class']) ? $a['class'] : '';
+                  $actionUrl = ''; 
+                  $actionLabel = '';
+                  $actionOnClick = []; // used for confirmation dialog 
 
+                  // Generate the link text and urls:
+
+                  // If we have a .confirm text, we need to generate a confirm dialog box
                   $confirmKey = $a['action'].'.confirm';
                   $confirmTxt = __d('operation', $confirmKey);
 
                   if($confirmTxt != $confirmKey) {
                     // We found the localized string
-
-                    print $this->Form->postLink(
-                      __d('operation', $a['action']),
-                      ['action' => $a['action'], $entity->id],
-          // XXX should be configurable which field we put in, maybe displayField?
-                      ['confirm' => __d('operation', $confirmKey, [$entity->id]),
-                       'class'   => $a['class']]
+                    $actionPostBtnArray = ['action' => $a['action'], $entity->id];
+                    $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
+                    // XXX should be configurable which field we put in, maybe displayField?
+                    $action_args['vv_actions'][] = array(
+                      'order' => $actionOrder,
+                      'icon' =>  $actionIcon,
+                      'url' => 'javascript:void(0);',
+                      'label' => __d('operation', $a['action']),
+                      'class' => !empty($actionClass) ? $actionClass . ' nospin' : 'nospin',
+                      'onclick' => array(
+                        'dg_bd_txt' => __d('operation', $confirmKey, [$entity->id]), // dialog body text
+                        'dg_post_btn_array' => $actionPostBtnArray,                 // postButton array for building the postButton
+                        'dg_url' => $actionUrl,                                     // action url for building a unique ID
+                        'dg_conf_btn' => __d('operation', 'confirm'),  // dialog confirm button text
+                        'dg_cancel_btn' => __d('operation', 'cancel'), // dialog cancel button text
+                        'dg_title' => __d('operation', 'confirm'),     // dialog box title
+                        'dg_bd_txt_repl_str' => ''                                  // dialog body text replacement strings 
+                      ),
                     );
+                    
+                  } elseif(!empty($a['controller'])) {
+                    // We're linking into a related controller
+                    /* XXX Modify the following for links to related controllers set in $indexActions. 
+                       This is the example from Match:
+                    $actionLabel = __('match.ct.' . Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
+                    $actionUrl = $this->Url->build(
+                      ['controller' => $a['controller'],
+                        'action'     => $a['action'],
+                        '?' => [ $tableFK => $entity->id] ]
+                    ); */
                   } else {
-                    print $this->Html->link(
-                      __d('operation', $a['action']),
-                      ['action' => $a['action'], $entity->id],
-                      ['class' => $a['class']]
-                    );
+                    $actionLabel = __d('operation', $a['action']); 
+                    $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
                   }
+
+                  // If a specific label is sent in the config, use it instead
+                  if(!empty($a['label'])) {
+                    $actionLabel = $a['label'];
+                  }
+
+                  // Set the action link configuration
+                  $action_args['vv_actions'][] = array(
+                    'order' => $actionOrder,
+                    'icon' => $actionIcon,
+                    'url' => $actionUrl,
+                    'label' => $actionLabel,
+                    'class' => $actionClass,
+                    'onclick' => $actionOnClick
+                  );    
                 }
               }
+              
 //            }
           }
+
+          // Delete
+          if($vv_permission_set[$entity->id]['delete']) {
+            $actionPostBtnArray = ['action' => 'delete', $entity->id];
+            $actionUrl = $this->Url->build(['action' => 'delete', $entity->id]);
+            $action_args['vv_actions'][] = array(
+              'order' => $this->Menu->getMenuOrder('Delete'),
+              'icon' =>  $this->Menu->getMenuIcon('Delete'),
+              'url' => 'javascript:void(0);',
+              'label' => __d('operation', 'delete'),
+              'class' => 'deletebutton nospin',
+              'onclick' => array(
+                'dg_bd_txt' => __d('operation', 'delete.confirm', [$entity->id]),
+                'dg_post_btn_array' => $actionPostBtnArray,
+                'dg_url' => $actionUrl,
+                'dg_conf_btn' => __d('operation', 'remove'),
+                'dg_cancel_btn' => __d('operation', 'cancel'),
+                'dg_title' => __d('operation', 'remove'),
+                'dg_bd_txt_repl_str' => ''
+              ),
+            );
+          }
+
+          if(!empty($action_args['vv_actions'])) {
+            print '<div class="field-actions">';
+            print $this->element('menuAction', $action_args);
+            print '</div>';
+          }
+          
         ?>
       </td>
     </tr>
