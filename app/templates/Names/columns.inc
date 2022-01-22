@@ -42,7 +42,7 @@ $indexColumns = [
 $indexActions = [
   [
     'action' => 'primary',
-    'class' => 'linkbutton',
+    'icon' => 'publish',
     'if' => 'notPrimary'
   ]
 ];

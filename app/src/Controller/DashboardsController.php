@@ -92,7 +92,7 @@ class DashboardsController extends StandardController {
       
       $platformMenuItems = [
         __d('controller', 'Cos', [99]) => [
-          'icon'          => 'build',  // XXX kind of want house here, but maybe need newer material icons?
+          'icon'          => 'home',
           'controller'    => 'cos',
           'action'        => 'index'
         ]

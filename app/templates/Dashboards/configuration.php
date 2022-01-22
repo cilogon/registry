@@ -36,7 +36,7 @@
             $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
               . '<span class="menu-title">' . $label . '</span>';
             print $this->Html->link(
-              $label,
+              $linkContent,
               ['plugin'     => null,
                'controller' => $cfg['controller'],
                'action'     => $cfg['action']],

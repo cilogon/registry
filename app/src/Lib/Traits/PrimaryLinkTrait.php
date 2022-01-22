@@ -49,7 +49,7 @@ trait PrimaryLinkTrait {
   private $lookupActions = ['delete', 'edit', 'view'];
   
   // Where to redirect on add or edit, can be 'self', 'index', or 'primaryLink'
-  private $redirectGoal = ['index'];
+  private $redirectGoal = 'index';
   
   // Accept the current CO ID?
   private $acceptCoId = false;
@@ -253,6 +253,18 @@ trait PrimaryLinkTrait {
   }
   
   /**
+   * Set which actions permit a primary link to be passed as a request parameter.
+   * Defaults to [add, index].
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  array $actions Array of actions that permit unkeyed primary links.
+   */
+  
+  public function setAllowUnkeyedPrimaryLink(array $actions) {
+    $this->unkeyedActions = array_merge($this->unkeyedActions, $actions);
+  }
+  
+  /**
    * Set the current CO ID. Intended for use with AppController.
    *
    * @since  COmanage Registry v5.0.0
@@ -278,18 +290,6 @@ trait PrimaryLinkTrait {
     if(preg_match('/^(.*?)_id$/', $field, $f)) {
       $this->primaryLinkTable = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
     }
-  }
-  
-  /**
-   * Set which actions permit a primary link to be passed as a request parameter.
-   * Defaults to [add, index].
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  array $actions Array of actions that permit unkeyed primary links.
-   */
-  
-  public function setAllowUnkeyedPrimaryLink(array $actions) {
-    $this->unkeyedActions = array_merge($this->unkeyedActions, $actions);
   }
   
   /**
