@@ -54,6 +54,162 @@ msgstr "Staff"
 msgid "EduPersonAffiliationEnum.student"
 msgstr "Student"
 
+msgid "LanguageEnum.af"
+msgstr "Afrikaans"
+
+msgid "LanguageEnum.ar"
+msgstr "Arabic (العربية)"
+
+msgid "LanguageEnum.bn"
+msgstr "Bengali"
+
+msgid "LanguageEnum.zh-Hans"
+msgstr "Chinese - Simplified (简体中文)"
+
+msgid "LanguageEnum.zh-Hant"
+msgstr "Chinese - Traditional (繁體中文)"
+
+msgid "LanguageEnum.hr"
+msgstr "Croatian (Hrvatski)"
+
+msgid "LanguageEnum.cs"
+msgstr "Czech (čeština)"
+
+msgid "LanguageEnum.da"
+msgstr "Danish (Dansk)"
+
+msgid "LanguageEnum.nl"
+msgstr "Dutch (Nederlands) / Flemish"
+
+msgid "LanguageEnum.en"
+msgstr "English"
+
+msgid "LanguageEnum.et"
+msgstr "Estonian (Eesti Keel)"
+
+msgid "LanguageEnum.fi"
+msgstr "Finnish (Suomi)"
+
+msgid "LanguageEnum.fr"
+msgstr "French (Français)"
+
+msgid "LanguageEnum.de"
+msgstr "German (Deutsch)"
+
+msgid "LanguageEnum.el"
+msgstr "Greek (ελληνικά)"
+
+msgid "LanguageEnum.he"
+msgstr "Hebrew (עִבְרִית)"
+
+msgid "LanguageEnum.hi"
+msgstr "Hindi (हिंदी)"
+
+msgid "LanguageEnum.hu"
+msgstr "Hungarian (Magyar)"
+
+msgid "LanguageEnum.id"
+msgstr "Indonesian (Bahasa Indonesia)"
+
+msgid "LanguageEnum.it"
+msgstr "Italian (Italiano)"
+
+msgid "LanguageEnum.ja"
+msgstr "Japanese (日本語)"
+
+msgid "LanguageEnum.ko"
+msgstr "Korean (한국어)"
+
+msgid "LanguageEnum.lv"
+msgstr "Latvian (Latviešu Valoda)"
+
+msgid "LanguageEnum.lt"
+msgstr "Lithuanian (Lietuvių Kalba)"
+
+msgid "LanguageEnum.ms"
+msgstr "Malaysian (Bahasa Malaysia)"
+
+msgid "LanguageEnum.no"
+msgstr "Norwegian (Norsk)"
+
+msgid "LanguageEnum.pl"
+msgstr "Polish (Język Polski)"
+
+msgid "LanguageEnum.pt"
+msgstr "Portuguese (Português)"
+
+msgid "LanguageEnum.ro"
+msgstr "Romanian (Limba Română)"
+
+msgid "LanguageEnum.ru"
+msgstr "Russian (Pyccĸий)"
+
+msgid "LanguageEnum.sr"
+msgstr "Serbian (српски / Srpski)"
+
+msgid "LanguageEnum.sl"
+msgstr "Slovene (Slovenski Jezik)"
+
+msgid "LanguageEnum.es"
+msgstr "Spanish (Español)"
+
+msgid "LanguageEnum.sv"
+msgstr "Swedish (Svenska)"
+
+msgid "LanguageEnum.tr"
+msgstr "Turkish (Türkçe)"
+
+msgid "LanguageEnum.ur"
+msgstr "Urdu (اُردُو)"
+
+msgid "PermittedNameFieldsEnum.given,family"
+msgstr "Given, Family"
+
+msgid "PermittedNameFieldsEnum.given,middle,family"
+msgstr "Given, Middle, Family"
+
+msgid "PermittedNameFieldsEnum.given,family,suffix"
+msgstr "Given, Family, Suffix"
+
+msgid "PermittedNameFieldsEnum.given,middle,family,suffix"
+msgstr "Given, Middle, Family, Suffix"
+
+msgid "PermittedNameFieldsEnum.honorific,given,family"
+msgstr "Honorific, Given, Family"
+
+msgid "PermittedNameFieldsEnum.honorific,given,middle,family"
+msgstr "Honorific, Given, Middle, Family"
+
+msgid "PermittedNameFieldsEnum.honorific,given,family,suffix"
+msgstr "Honorific, Given, Family, Suffix"
+
+msgid "PermittedNameFieldsEnum.honorific,given,middle,family,suffix"
+msgstr "Honorific, Given, Middle, Family, Suffix"
+
+msgid "RequiredAddressFieldsEnum.country"
+msgstr "Country"
+
+msgid "RequiredAddressFieldsEnum.locality,state"
+msgstr "City, State"
+
+msgid "RequiredAddressFieldsEnum.postal_code"
+msgstr "Postal Code"
+
+msgid "RequiredAddressFieldsEnum.street"
+msgstr "Street"
+
+msgid "RequiredAddressFieldsEnum.street,locality,state,postal_code"
+msgstr "Street, City, State, Postal Code"
+
+msgid "RequiredAddressFieldsEnum.street,locality,state,postal_code,country"
+msgstr "Street, City, State, Postal Code, Country"
+
+msgid "RequiredNameFieldsEnum.given"
+msgstr "Given"
+
+msgid "RequiredNameFieldsEnum.given,family"
+msgstr "Given, Family"
+
 msgid "SetBooleanEnum.0"
 msgstr "Not Set"
 

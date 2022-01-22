@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry Multi-Value Entity Utilities Trait
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,37 +27,23 @@
 
 declare(strict_types = 1);
 
-namespace App\Controller;
+namespace App\Lib\Traits;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
-  
+trait MVETrait {
   /**
-   * Restore default types for the requested CO.
+   * Generate a where clause suitable for the current entity.
    *
    * @since  COmanage Registry v5.0.0
+   * @return array Array suitable for a query's where clause
    */
   
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
+  public function whereClause(): array {
+    if(!empty($this->person_id)) {
+      return ['person_id' => $this->person_id];
+    } elseif(!empty($this->external_identity_id)) {
+      return ['external_identity_id' => $entity->external_identity_id];
+    } else {
+      throw new \InvalidArgumentException(__d('error', 'notfound.person'));
     }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
   }
 }

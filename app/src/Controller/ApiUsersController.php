@@ -30,21 +30,6 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 class ApiUsersController extends StandardController {
-  protected $permissions = [
-    // Actions that operate over an entity (ie: require an $id)
-    'entity' => [
-      'delete' =>   ['platformAdmin', 'coAdmin'],
-      'edit' =>     ['platformAdmin', 'coAdmin'],
-      'generate' => ['platformAdmin', 'coAdmin'],
-      'view' =>     ['platformAdmin', 'coAdmin']
-    ],
-    // Actions that operate over a table (ie: do not require an $id)
-    'table' => [
-      'add' =>      ['platformAdmin', 'coAdmin'],
-      'index' =>    ['platformAdmin', 'coAdmin']
-    ]
-  ];
-  
   public $pagination = [
     'order' => [
       'ApiUsers.username' => 'asc'

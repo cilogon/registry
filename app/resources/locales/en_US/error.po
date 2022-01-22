@@ -60,6 +60,12 @@ msgstr "Username \"{0}\" not found in api_users table"
 msgid "coid"
 msgstr "CO ID not found"
 
+msgid "coid.frozen"
+msgstr "Cannot change co_id of an existing object"
+
+msgid "coid.mismatch"
+msgstr "Requested CO does not match CO of {0} {1}"
+
 msgid "cou.parent"
 msgstr "COU Parent ID not valid"
 
@@ -99,8 +105,17 @@ msgstr "Invalid character found"
 msgid "invalid"
 msgstr "Invalid value \"{0}\""
 
+msgid "Names.minimum"
+msgstr "At least one name is required"
+
+msgid "Names.primary_name"
+msgstr "Primary Name not found"
+
 msgid "notfound"
 msgstr "{0} not found"
+
+msgid "notfound.person"
+msgstr "No Person or External Identity found"
 
 msgid "notprov"
 msgstr "{0} not provided"
@@ -117,6 +132,12 @@ msgstr "Permission Denied"
 msgid "primary_link"
 msgstr "Could not find value for Primary Link {0}"
 
+msgid "rule.ValidateCo.errorField"
+msgstr "errorField not set in ruleValidateCO"
+
+msgid "rule.ValidateCo.mismatch"
+msgstr "Foreign key $targetField CO ID {0} does not match primary object CO ID {1}"
+
 msgid "save"
 msgstr "Save Failed ({0})"
 
@@ -128,6 +149,9 @@ msgstr "Failed to parse file {0}"
 
 msgid "Types.inuse"
 msgstr "Type {0} is in use and cannot be deleted"
+
+msgid "Types.isdefault"
+msgstr "Type {0} is in use as a default (via CO Settings)"
 
 msgid "unknown"
 msgstr "Unknown value \"{0}\""

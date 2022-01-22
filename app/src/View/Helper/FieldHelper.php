@@ -103,14 +103,29 @@ class FieldHelper extends Helper {
       $controlCode = $this->Form->text($fieldName, $coptions);
       $liClass = " modelbox-data";
     } else {
-      if($fieldName != 'status' && !isset($options['empty'])) {
+      if($fieldName != 'status' 
+         && !isset($options['empty'])
+         && (!isset($options['suppressBlank']) || !$options['suppressBlank'])) {
         // Cause any select (except status) to render with a blank option, even
         // if the field is required. This makes it clear when a value need to be set.
-        // Note this will be ignore for non-select controls.
+        // Note this will be ignored for non-select controls.
         $coptions['empty'] = true;
       }
       
       $controlCode = $this->Form->control($fieldName, $coptions);
+    }
+    
+    // Required fields are usually determined by the model validator, but for
+    // related models the view (currently) has to pass the field as required in
+    // $options. For fields of the form model.0.field, if $options['required']
+    // is true we'll update the set of required fields so the * renders correctly.
+    
+    if(isset($options['required'])
+       && $options['required']
+       && preg_match('/(\w+).(\d+).(\w+)/', $fieldName, $matches)) {
+      if(!in_array($matches[3], $this->reqFields)) {
+        $this->reqFields[] = $matches[3];
+      }
     }
     
     return $this->startLine($liClass)
@@ -201,7 +216,7 @@ class FieldHelper extends Helper {
         $f = null;
         
         if(preg_match('/^(.*?)_id$/', $fn, $f)) {
-          // Map foriegn keys (foo_id) to the controller label
+          // Map foreign keys (foo_id) to the controller label
           $label = __d('controller', Inflector::camelize(Inflector::pluralize($f[1])), [1]);
         } else {
           // Just look up the key
@@ -220,7 +235,7 @@ class FieldHelper extends Helper {
     }
     
     // If the description is the literal key we just generated, there is no description
-    if($desc == $mn.".".$fn.".desc") {
+    if($desc == $fn.".desc") {
       $desc = null;
     }
     

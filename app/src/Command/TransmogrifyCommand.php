@@ -36,6 +36,7 @@ use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionInterface;
 use Cake\Datasource\ConnectionManager;
 use Cake\I18n\FrozenTime;
+use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
 use Doctrine\DBAL\DriverManager;
@@ -46,7 +47,10 @@ class TransmogrifyCommand extends Command {
   protected $tables = [
     'cos' => [
       'source' => 'cm_cos',
-      'displayField' => 'name'
+      'displayField' => 'name',
+      'addChangelog' => true,
+      // We don't really need status, but we need something cached for co_settings
+      'cache' => [ 'status' ]
     ],
     'types' => [
       'source' => 'cm_co_extended_types',
@@ -59,6 +63,38 @@ class TransmogrifyCommand extends Command {
         'modified' => '&map_now'
       ],
       'cache' => [ [ 'co_id', 'attribute', 'value' ] ]
+    ],
+    'co_settings' => [
+      'source' => 'cm_co_settings',
+      'displayField' => 'co_id',
+      'addChangelog' => true,
+      'booleans' => [],
+      'post' => 'insertDefaultSettings',
+      'cache' => [ 'co_id' ],
+      'fieldMap' => [
+        'permitted_fields_name' => 'name_permitted_fields',
+        'required_fields_addr' => 'address_required_fields',
+        'required_fields_name' => 'name_required_fields',
+        // XXX CFM-80 these fields are not yet migrated
+        //     be sure to add appropriate fields to 'booleans'
+        'enable_nsf_demo' => null, // CFM-123
+        'disable_expiration' => null,
+        'disable_ois_sync' => null,
+        'group_validity_sync_window' => null,
+        'garbage_collection_interval' => null,
+        'enable_normalization' => null,
+        'enable_empty_cou' => null,
+        'invitation_validity' => null,
+        't_and_c_login_mode' => null,
+        'sponsor_eligibility' => null,
+        'sponsor_co_group_id' => null,
+        'theme_stacking' => null,
+        'default_co_pipeline_id' => null, // XXX was this ever used?
+        'elect_strategy_primary_name' => null,
+        'co_dashboard_id' => null,
+        'co_theme_id' => null,
+        'global_search_limit' => null
+      ]
     ],
     'api_users' => [
       'source' => 'cm_api_users',
@@ -130,6 +166,7 @@ class TransmogrifyCommand extends Command {
   
   // Make some objects more easily accessible
   protected $inconn = null;
+  protected $outconn = null;
   
   /**
    * Build an Option Parser.
@@ -231,7 +268,7 @@ class TransmogrifyCommand extends Command {
       'driver'   => ($outcfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "pdo_mysql")
     ];
     
-    $outconn = DriverManager::getConnection($cargs, $outconfig);
+    $this->outconn = DriverManager::getConnection($cargs, $outconfig);
     
     // We accept a list of table names, mostly for testing purposes
     $atables = $args->getArguments();
@@ -259,13 +296,13 @@ class TransmogrifyCommand extends Command {
         
         try {
           // Do this before fixBooleans since we'll insert some
-          $this->fixChangelog($t, $row);
+          $this->fixChangelog($t, $row, isset($this->tables[$t]['addChangelog']) && $this->tables[$t]['addChangelog']);
           
           $this->fixBooleans($t, $row);
           
           $this->mapFields($t, $row);
           
-          $outconn->insert($t, $row);
+          $this->outconn->insert($t, $row);
           
           $this->cacheResults($t, $row);
         }
@@ -297,7 +334,15 @@ class TransmogrifyCommand extends Command {
       // data here, and also we're executing a maintenance operation (so query
       // optimization is less important)
       $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
-      $outconn->query($outsql);
+      $this->outconn->query($outsql);
+      
+      // Run any post processing functions for the table.
+      
+      if(!empty($this->tables[$t]['post'])) {
+        $p = $this->tables[$t]['post'];
+        
+        $this->$p();
+      }
     }
   }
   
@@ -365,22 +410,51 @@ class TransmogrifyCommand extends Command {
    * @since  COmanage Registry v5.0.0
    * @param  string $table Table Name
    * @param  array  $row   Row of attributes, fixed in place
+   * @param  bool   $force If true, always create keys
    */
   
-  protected function fixChangelog(string $table, array &$row) {
-    if(array_key_exists('deleted', $row) && is_null($row['deleted'])) {
+  protected function fixChangelog(string $table, array &$row, bool $force=false) {
+    if($force || (array_key_exists('deleted', $row) && is_null($row['deleted']))) {
       $row['deleted'] = false;
     }
     
-    if(array_key_exists('revision', $row) && is_null($row['revision'])) {
+    if($force || (array_key_exists('revision', $row) && is_null($row['revision']))) {
       $row['revision'] = 0;
     }
     
-    if(array_key_exists('actor_identifier', $row) && is_null($row['actor_identifier'])) {
+    if($force || (array_key_exists('actor_identifier', $row) && is_null($row['actor_identifier']))) {
       $row['actor_identifier'] = 'Transmogrification';
     }
     
     // The parent FK should remain NULL since this is the original record.
+  }
+  
+  /**
+   * Insert default CO Settings.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  protected function insertDefaultSettings() {
+    // Create a CoSetting for any CO that didn't previously have one.
+    
+    $createdSettings = [];
+    $createdCos = array_keys($this->cache['cos']['id']);
+    
+    foreach($this->cache['co_settings']['id'] as $co_setting_id => $cached) {
+      $createdSettings[] = $cached['co_id'];
+    }
+    
+    $emptySettings = array_values(array_diff($createdCos, $createdSettings));
+    
+    if(!empty($emptySettings)) {
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+      
+      foreach($emptySettings as $coId) {
+        // Insert a default row into CoSettings for this CO ID
+        
+        $CoSettings->addDefaults($coId);
+      }
+    }
   }
   
   /**
@@ -435,12 +509,15 @@ class TransmogrifyCommand extends Command {
   protected function map_extended_type(array $row) {
     switch($row['attribute']) {
       case 'CoDepartment.type':
-        return 'Department.type';
+        return 'Departments.type';
       case 'CoPersonRole.affiliation':
-        return 'PersonRole.affiliation';
+        return 'PersonRoles.affiliation';
     }
     
-    return $row['attribute'];
+    // For everything else, we need to pluralize the model name
+    $bits = explode('.', $row['attribute'], 2);
+    
+    return \Cake\Utility\Inflector::pluralize($bits[0]) . "." . $bits[1];
   }
   
   /**
@@ -452,7 +529,7 @@ class TransmogrifyCommand extends Command {
    */
   
   protected function map_identifier_type(array $row) {
-    return $this->map_type($row, 'Identifier.type', $this->findCoId($row));
+    return $this->map_type($row, 'Identifiers.type', $this->findCoId($row));
   }
   
   /**
@@ -464,7 +541,7 @@ class TransmogrifyCommand extends Command {
    */
   
   protected function map_name_type(array $row) {
-    return $this->map_type($row, 'Name.type', $this->findCoId($row));
+    return $this->map_type($row, 'Names.type', $this->findCoId($row));
   }
   
   /**

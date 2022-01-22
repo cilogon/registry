@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry Permitted Name Fields Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,37 +27,16 @@
 
 declare(strict_types = 1);
 
-namespace App\Controller;
+namespace App\Lib\Enum;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
-  
-  /**
-   * Restore default types for the requested CO.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+class PermittedNameFieldsEnum extends StandardEnum {
+//  const Given       = "given";  Not currently allowed due to potential conflict with RequiredNameFieldsEnum
+  const GF    = "given,family";
+  const GMF   = "given,middle,family";
+  const GFS   = "given,family,suffix";
+  const GMFS  = "given,middle,family,suffix";
+  const HGF   = "honorific,given,family";
+  const HGMF  = "honorific,given,middle,family";
+  const HGFS  = "honorific,given,family,suffix";
+  const HGMFS = "honorific,given,middle,family,suffix";
 }

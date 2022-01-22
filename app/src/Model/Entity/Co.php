@@ -37,4 +37,15 @@ class Co extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+  
+  /**
+   * Determine if this entity is the COmanage CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool true if this entity is the COmanage CO, false otherwise
+   */
+  
+  public function isCOmanageCO(): bool {
+    return (strtolower($this->name) == 'comanage');
+  }
 }

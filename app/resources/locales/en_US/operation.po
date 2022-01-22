@@ -66,6 +66,9 @@ msgstr "Edit"
 msgid "edit.a"
 msgstr "Edit {0}"
 
+msgid "edit.ai"
+msgstr "Edit {0} ({1})"
+
 msgid "filter"
 msgstr "Filter"
 
@@ -96,6 +99,9 @@ msgstr "Go to page"
 msgid "previous"
 msgstr "Previous"
 
+msgid "primary"
+msgstr "Make Primary"
+
 msgid "Types.restore"
 msgstr "Add/Restore Default Types"
 
@@ -110,3 +116,7 @@ msgstr "View"
 
 msgid "view.a"
 msgstr "View {0}"
+
+msgid "view.ai"
+msgstr "View {0} ({1})"
+

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry Names Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,39 +25,24 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+$indexColumns = [
+  'full_name' => [
+    'type' => 'link'
+  ],
+  'type_id' => [
+    'type' => 'fk',
+    'append' => 'primaryLabel'
+  ],
+  'language' => [
+    'type' => 'enum',
+    'class' => 'LanguageEnum'
+  ]
+];
 
-namespace App\Controller;
-
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
-  
-  /**
-   * Restore default types for the requested CO.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
-}
+$indexActions = [
+  [
+    'action' => 'primary',
+    'class' => 'linkbutton',
+    'if' => 'notPrimary'
+  ]
+];

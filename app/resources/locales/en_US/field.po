@@ -35,6 +35,18 @@ msgstr "API Key"
 msgid "attribute"
 msgstr "Attribute"
 
+msgid "CoSettings.address_required_fields"
+msgstr "Address Required Fields"
+
+msgid "CoSettings.name_default_type_id"
+msgstr "Default Name Type"
+
+msgid "CoSettings.name_permitted_fields"
+msgstr "Name Permitted Fields"
+
+msgid "CoSettings.name_required_fields"
+msgstr "Name Required Fields"
+
 msgid "date_of_birth"
 msgstr "Date of Birth"
 
@@ -57,11 +69,29 @@ msgstr "Family Name"
 msgid "given"
 msgstr "Given Name"
 
+msgid "honorific"
+msgstr "Honorific"
+
+msgid "honorific.desc"
+msgstr "(Dr, Hon, etc)"
+
+msgid "full_name"
+msgstr "Full Name"
+
+msgid "language"
+msgstr "Language"
+
+msgid "middle"
+msgstr "Middle"
+
 msgid "name"
 msgstr "Name"
 
 msgid "parent_id"
 msgstr "Parent"
+
+msgid "primary_name"
+msgstr "Primary Name"
 
 msgid "privileged"
 msgstr "Privileged"
@@ -83,6 +113,12 @@ msgstr "Status"
 
 msgid "Type.status"
 msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"
+
+msgid "suffix"
+msgstr "Suffix"
+
+msgid "suffix.desc"
+msgstr "(Jr, III, etc)"
 
 msgid "username"
 msgstr "Username"

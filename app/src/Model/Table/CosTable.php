@@ -39,6 +39,7 @@ use \App\Lib\Enum\TemplateableStatusEnum;
 class CosTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -50,9 +51,9 @@ class CosTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Timestamp');
  
     // COs are configuration
@@ -62,14 +63,17 @@ class CosTable extends Table {
     
     $this->hasMany('ApiUsers')
          ->setDependent(true);
-    $this->hasMany('CoPeople')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
     $this->hasMany('Cous')
          ->setDependent(true);
     $this->hasMany('Dashboards')
          ->setDependent(true);
+    $this->hasMany('People')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Types')
+         ->setDependent(true);
+    
+    $this->hasOne('CoSettings')
          ->setDependent(true);
     
     $this->setDisplayField('name');
@@ -78,6 +82,24 @@ class CosTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'TemplateableStatusEnum'
+      ]
+    ]);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>    ['platformAdmin'],
+        'duplicate' => ['platformAdmin'],
+        'edit' =>      ['platformAdmin'],
+        'view' =>      ['platformAdmin']
+      ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>    ['duplicate'],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>       ['platformAdmin'],
+        'index' =>     ['platformAdmin'],
+        'select' =>    ['authenticatedUser']
       ]
     ]);
   }
@@ -153,13 +175,13 @@ class CosTable extends Table {
   public function isReadOnly($entity) {
     // The COmanage CO is read only
     
-    return ($entity->name == 'COmanage');
+    return $entity->isCOmanageCO();
   }
 
   /**
    * Application Rule to determine if the current entity is the COmanage CO.
    *
-   * @since  COmanage Registyr v5.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  Entity  $entity  Entity to be validated
    * @param  array   $options Application rule options
    * @return boolean          true if the Rule check passes, false otherwise
@@ -167,7 +189,7 @@ class CosTable extends Table {
   
   public function ruleIsCOmanageCO($entity, $options) {
     // We want negative logic since we want to fail if we're editing the COmanage CO
-    if($entity->name == 'COmanage') {
+    if($entity->isCOmanageCO()) {
       return __d('error', 'edit.comanage');
     }
     
@@ -195,20 +217,25 @@ class CosTable extends Table {
   /**
    * Perform initial setup for a CO.
    *
-   * @since  COmanage Registry v0.9.2
+   * @since  COmanage Registry v5.0.0
    * @param  int  $id CO ID
    * @return bool     True on success
    */
   
   public function setup(int $id) {
-    $Type = TableRegistry::getTableLocator()->get('Types');
+    $Types = TableRegistry::getTableLocator()->get('Types');
     
     // AR-Type-1 Set up the default values for extended types
-    $Type->addDefaults($id);
+    $Types->addDefaults($id);
 
     // Create the default groups
 //    $this->CoGroup->addDefaults($coId);
 
+    // Set up the default settings
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+    
+    $CoSettings->addDefaults($id);
+    
     return true;
   }
   
@@ -232,7 +259,7 @@ class CosTable extends Table {
       [ 'rule'     => [ 'validateInput' ],
         'provider' => 'table' ]
     );
-    $validator->notEmpty('name');
+    $validator->notEmptyString('name');
     
     $validator->add(
       'description',
@@ -245,18 +272,14 @@ class CosTable extends Table {
       [ 'rule'     => [ 'validateInput' ],
         'provider' => 'table' ]
     );
-    $validator->allowEmpty('description');
+    $validator->allowEmptyString('description');
     
     $validator->add(
       'status',
       'content',
-      [ 'rule' => [ 'inList', [ 
-        TemplateableStatusEnum::Active,
-        TemplateableStatusEnum::Suspended,
-        TemplateableStatusEnum::Template
-      ] ] ]
+      [ 'rule' => [ 'inList', TemplateableStatusEnum::getConstValues() ] ]
     );
-    $validator->notEmpty('status');
+    $validator->notEmptyString('status');
     
     return $validator; 
   }

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry Permissions Trait
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,37 +27,31 @@
 
 declare(strict_types = 1);
 
-namespace App\Controller;
+namespace App\Lib\Traits;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
+trait PermissionsTrait {
+  // Array of permissions
+  private ?array $permissions = null;
   
   /**
-   * Restore default types for the requested CO.
+   * Get the permissions for this model.
    *
    * @since  COmanage Registry v5.0.0
+   * @return array $vars Array of permissions
    */
   
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
+  public function getPermissions() {
+    return $this->permissions;
+  }
     
-    return $this->generateRedirect(null);
+  /**
+   * Set the permissions for this model.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $vars Array of permissions
+   */
+  
+  public function setPermissions(array $perms) {
+    $this->permissions = $perms;
   }
 }

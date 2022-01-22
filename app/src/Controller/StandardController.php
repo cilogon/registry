@@ -31,6 +31,7 @@ namespace App\Controller;
 
 use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
+use \App\Lib\Enum\SuspendableStatusEnum;
 
 class StandardController extends AppController {
   // Pagination defaults should be set in each controller
@@ -51,25 +52,31 @@ class StandardController extends AppController {
     $tableName = $table->getTable();
     
     if($this->request->is('post')) {
-      // Try to save
-      $obj = $table->newEntity($this->request->getData());
-      
-      // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
-      // in afterSave
-      if($table->save($obj)) {
-        $this->Flash->success(__d('result', 'saved'));
+      try {
+        // Try to save
+        $obj = $table->newEntity($this->request->getData());
         
-        return $this->generateRedirect(null);
+        if($table->save($obj)) {
+          $this->Flash->success(__d('result', 'saved'));
+          
+          return $this->generateRedirect($obj->id);
+        }
+        
+        $errors = $obj->getErrors();
+        
+        if(!empty($errors)) {
+          $this->Flash->error(__d('error', 'fields', [ implode(',', 
+                                                                 array_map(function($v) { return __d('field', $v); },
+                                                                           array_keys($errors))) ]));
+        } else {
+          $this->Flash->error(__d('error', 'save', [$modelsName]));
+        }
       }
-      
-      $errors = $obj->getErrors();
-      
-      if(!empty($errors)) {
-        $this->Flash->error(__d('error', 'fields', [ implode(',', 
-                                                               array_map(function($v) { return __d('field', $v); },
-                                                                         array_keys($errors))) ]));
-      } else {
-        $this->Flash->error(__d('error', 'save', [$modelsName]));
+      catch(\Exception $e) {
+        // This throws \Cake\ORM\Exception\RolledbackTransactionException if
+        // aborted in afterSave
+        
+        $this->Flash->error($e->getMessage());
       }
       
       // Pass $obj as context so the view can render validation errors
@@ -80,10 +87,10 @@ class StandardController extends AppController {
       $this->set('vv_obj', $table->newEmptyEntity());
     }
     
-    // PrimaryLinkTrait
+    // PrimaryLinkTrait, via AppController
     $this->getPrimaryLink();
     
-    // AutoViewVarsTrait
+    // AutoViewVarsTrait, via AppController
     $this->populateAutoViewVars();
     
     // Default title is add new object
@@ -137,91 +144,6 @@ class StandardController extends AppController {
   }
   
   /**
-   * Default implementation for calculating permissions for standard controllers,
-   * intended to be overridden by controllers with more speciific requirements.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  int   $id Record ID if relevant, or null
-   * @return array     Array of permissions
-   */
-  
-  public function calculatePermissions(?int $id): array {
-    $ret = [];
-    
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
-    
-    // Do we have an authenticated user?
-    $authenticatedUser = (bool)$this->RegistryAuth->getAuthenticatedUser();
-
-    // Is this user a Platform Administrator?
-    $platformAdmin = $this->RegistryAuth->isPlatformAdmin();
-    
-    // Is this user a CO Administrator?
-    $coAdmin = $this->RegistryAuth->isCoAdmin($this->getCOID());
-    
-    // Is this record read only?
-    $readOnly = false;
-
-    if($id) {
-      $readOnlyActions = ['view'];
-      
-      // Does this table have an isReadOnly call?
-      
-      if(method_exists($table, "isReadOnly")) {
-        // Pull the record so we can interrogate it
-        
-        $obj = $table->get($id);
-        
-        $readOnly = $table->isReadOnly($obj);
-        
-        if(!empty($this->permissions['readOnly'])) {
-          // Merge in controller specific actions permitted on read only entities
-          $readOnlyActions = array_merge($readOnlyActions, $this->permissions['readOnly']);
-        }
-      }
-      
-      // Permissions for actions that operate over individual entities
-      
-      foreach($this->permissions['entity'] as $action => $roles) {
-        $ok = false;
-        
-        if(!$readOnly || in_array($action, $readOnlyActions)) {
-          foreach($roles as $role) {
-            // eg: $role = "platformAdmin", which corresponds to the variables set, above
-            if($$role) {
-              $ok = true;
-              break;
-            }
-          }
-        }
-
-        $ret[$action] = $ok;
-      }
-    } else {
-      // Permissions for actions that operate over tables
-      
-      foreach($this->permissions['table'] as $action => $roles) {
-        $ok = false;
-        
-        foreach($roles as $role) {
-          // eg: $role = "platformAdmin", which corresponds to the variables set, above
-          if($$role) {
-            $ok = true;
-            break;
-          }
-        }
-        
-        $ret[$action] = $ok;
-      }
-    }
-    
-    return $ret;
-  }
-  
-  /**
    * Handle a delete action for a Standard object.
    *
    * @since  COmanage Registry v5.0.0
@@ -260,7 +182,17 @@ class StandardController extends AppController {
     }
     catch(\Cake\ORM\Exception\PersistenceFailedException $e) {
       // deleteOrFail throws Cake\ORM\Exception\PersistenceFailedException
-      $this->Flash->error($e->getMessage());
+      
+      // Application Rules that apply to the entity as a whole (or more than
+      // one field) can use "id" as their errorField, and we'll catch that here.
+      
+      $errors = $obj->getErrors();
+      
+      if(!empty($errors['id'])) {
+        $this->Flash->error(implode(',', array_values($errors['id'])));
+      } else {
+        $this->Flash->error($e->getMessage());
+      }
     }
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
@@ -290,10 +222,10 @@ class StandardController extends AppController {
    * Handle an edit action for a Standard object.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  Integer $id Object ID
+   * @param  string $id Object ID
    */
   
-  public function edit($id) {
+  public function edit(string $id) {
     // $this->name = Models (ie: from ModelsTable)
     $modelsName = $this->name;
     // $table = the actual table object
@@ -344,7 +276,7 @@ class StandardController extends AppController {
         if($table->save($obj)) {
           $this->Flash->success(__d('result', 'saved'));
           
-          return $this->generateRedirect($obj->id); 
+          return $this->generateRedirect((int)$id); 
         }
         
         $errors = $obj->getErrors();
@@ -362,7 +294,7 @@ class StandardController extends AppController {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
       
       $this->Flash->error($e->getMessage());
-      return $this->generateRedirect(null);
+      return $this->generateRedirect((int)$id);
     }
     
     $this->set('vv_obj', $obj);
@@ -375,13 +307,19 @@ class StandardController extends AppController {
     // AutoViewVarsTrait
     $this->populateAutoViewVars($obj);
     
-    // Default view title is edit object display field
-    $field = $table->getDisplayField();
-    
-    if(!empty($obj->$field)) {
-      $this->set('vv_title', __d('operation', 'edit.a', $obj->$field));
+    if(method_exists($table, 'generateDisplayField')) {
+      // We don't use a trait for this since each table will implement different logic
+      
+      $this->set('vv_title', __d('operation', 'edit.ai', $table->generateDisplayField($obj), $id));
     } else {
-      $this->set('vv_title', __d('operation', 'edit.a', __d('controller', $modelsName, [1])));
+      // Default view title is edit object display field
+      $field = $table->getDisplayField();
+      
+      if(!empty($obj->$field)) {
+        $this->set('vv_title', __d('operation', 'edit.ai', $obj->$field, $id));
+      } else {
+        $this->set('vv_title', __d('operation', 'edit.ai', __d('controller', $modelsName, [1]), $id));
+      }
     }
     
     // Let the view render
@@ -399,7 +337,12 @@ class StandardController extends AppController {
   public function generateRedirect(?int $id) {
     $redirect = [];
     
-    if(in_array($this->request->getParam('action'), ['add', 'edit']) && $id) {
+    // By default we return to the index, but we'll also accept "self" or "primaryLink".
+    $redirectGoal = $this->getRedirectGoal();
+    
+    if($redirectGoal == 'self'
+       && $id
+       && in_array($this->request->getParam('action'), ['add', 'edit'])) {
       // Redirect to the edit view of the record just added
       // (if the user has add permission, they probably have edit permission)
       
@@ -407,6 +350,9 @@ class StandardController extends AppController {
         'action' => 'edit',
         $id
       ];
+    } elseif($redirectGoal == 'primaryLink') {
+      // XXX implement me
+      throw new \RuntimeException('generateRedirect NOT IMPLEMENTED');
     } else {
       // Default is to redirect to the index view
       $redirect = ['action' => 'index'];
@@ -534,10 +480,14 @@ class StandardController extends AppController {
           // returns the full object and the latter just returns a hash suitable
           // for a select. "type" is a shorthand for "select" for type_id.
           case 'type':
-            // Inject configuration
+            // Inject configuration. Since we're only ever looking at the types
+            // table, inject the current CO along with the requested attribute
             $avv['model'] = 'Types';
-            // We assume the model using type_id has a primary link of co_id
-            $avv['find'] = 'filterPrimaryLink';
+            $avv['where'] = [
+              'co_id'     => $this->getCOID(),
+              'attribute' => $avv['attribute'],
+              'status'    => SuspendableStatusEnum::Active
+            ];
           case 'auxiliary':
 // XXX add list as in match?
           case 'select':
@@ -601,7 +551,7 @@ class StandardController extends AppController {
   /**
    * Handle a view action for a Standard object.
    *
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  Integer $id Object ID
    */
   
@@ -647,9 +597,9 @@ class StandardController extends AppController {
     $field = $table->getDisplayField();
     
     if(!empty($obj->$field)) {
-      $this->set('vv_title', __d('operation', 'view.a', $obj->$field));
+      $this->set('vv_title', __d('operation', 'view.ai', $obj->$field, $id));
     } else {
-      $this->set('vv_title', __d('operation', 'view.a', __d('controller', $modelsName, [1])));
+      $this->set('vv_title', __d('operation', 'view.ai', __d('controller', $modelsName, [1]), $id));
     }
     
     // Let the view render

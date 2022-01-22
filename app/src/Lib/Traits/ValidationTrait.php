@@ -25,15 +25,83 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-/**
- * THIS FILE IS MASTERED IN THE COMMON REPOSITORY.
- */
-
 declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use Cake\Core\Configure;
+use Cake\ORM\TableRegistry;
+
 trait ValidationTrait {
+  /**
+   * Verify that $value is a valid 
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $value   Value to validate
+   * @param  array  $context Validation context
+   * @return mixed  True if $value validates, or an error string otherwise
+   */
+
+  public function validateCO($value, array $context) {
+    // Verify that $value is a valid record in the current CO
+    
+    // We read the CO ID as set in Configure via AppController. Alternately, we
+    // could create an event listener (like ChangelogEventListener) that listens
+    // for buildValidator and injects the CO ID into the Validator object, but
+    // then every Table's validationDefault() would need to parse the CO ID and
+    // inject it into the validation configuration, which seems like a lot of
+    // extra work.
+    
+    // The CO of the record we are validating
+    $thisCoId = null;
+    
+    // The CO of the record we are pointing to, via the field being validated
+    $targetCoId = null;
+    
+    if(!empty($context['data']['co_id'])) {
+      // Accept the co_id in the request data
+      $thisCoId = $context['data']['co_id'];
+    } elseif(!empty($context['data']['id'])) {
+      // We can use findCoForRecord to get the CO in context
+      $thisCoId = $this->findCoForRecord($context['data']['id']);
+    } elseif(method_exists($this, 'getPrimaryLink')
+             && $this->getPrimaryLink() != null
+             && !empty($context['data'][$this->getPrimaryLink()])) {
+      // This is probably a new record being added (which we could verify via
+      // $context['newRecord']). We can't directly use findCoForRecord, but
+      // we can use the primary link to get the CO.
+      
+      $LinkTable = $this->getPrimaryLinkTable();
+      
+      $thisCoId = $LinkTable->findCoForRecord((int)$context['data'][$this->getPrimaryLink()]);
+    } else {
+      return __d('error', 'coid');
+    }
+    
+    if(!$thisCoId) {
+      return __d('error', 'coid');
+    }
+    
+    // Calculate the table name for the requested field
+    if(preg_match('/^(.*?)_id$/', $context['field'], $f)) {
+      $tableName = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
+      
+      $Table = TableRegistry::getTableLocator()->get($tableName);
+      
+      $targetCoId = $Table->findCoForRecord((int)$value);
+    }
+    
+    if(!$targetCoId) {
+      return __d('error', 'coid');
+    }
+
+    if($thisCoId != $targetCoId) {
+      return __d('error', 'coid.mismatch', [$this->name, $value]);
+    }
+    
+    return true;
+  }
+  
   /**
    * Perform a conditional validation check, where if a select value matches an
    * array of values, then another field must not be empty. In theory we should be
@@ -51,7 +119,7 @@ trait ValidationTrait {
    * which will result in the validation error being unintuitively placed on the
    * "wrong" attribute.
    *
-   * @since  COmanage Common v1.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string $value   Value to validate
    * @param  array  $context Validation context
    * @return mixed  True if $value validates, or an error string otherwise
@@ -73,7 +141,7 @@ trait ValidationTrait {
   /**
    * Determine if a string submitted from a form is valid input.
    *
-   * @since  COmanage Common v1.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string $value   Value to validate
    * @param  array  $context Validation context
    * @return mixed  True if $value validates, or an error string otherwise
@@ -108,29 +176,9 @@ trait ValidationTrait {
   }
   
   /**
-   * Determine if a string submitted from a form is a valid language.
-   *
-   * @since  COmanage Common v1.0.0
-   * @param  string $value   Value to validate
-   * @param  array  $context Validation context
-   * @return mixed  True if $value validates, or an error string otherwise
-   */
-  
-  public function validateLanguage($value, array $context) {
-// XXX this was previously done by examining $cm_texts[$cm_lang]['en.language']
-//     we need a new way to enumerate permitted language codes
-    /*
-    if(!in_array($value, array_values(timezone_identifiers_list()))) {
-      return __($COmponent.'.er.input.invalid');
-    }*/
-    
-    return true;
-  }
-  
-  /**
    * Determine if a string submitted from a form is valid SQL identifier.
    *
-   * @since  COmanage Common v1.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string $value   Value to validate
    * @param  array  $context Validation context
    * @return mixed  True if $value validates, or an error string otherwise
@@ -155,7 +203,7 @@ trait ValidationTrait {
   /**
    * Determine if a string submitted from a form is a valid timezone.
    *
-   * @since  COmanage Common v1.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string $value   Value to validate
    * @param  array  $context Validation context
    * @return mixed  True if $value validates, or an error string otherwise

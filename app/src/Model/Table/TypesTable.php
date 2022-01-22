@@ -40,15 +40,16 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 class TypesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  // use \App\Lib\Traits\RulesTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
 // XXX note not all models are implemented yet...
-//     add note to JIRA for commented out models
 //     - uncomment attribute here
+//     - add relation to initialize()
 //     - implement Table::defaultTypes
+//     - update CFM-56 (Types)
   protected $testVar = "123";
 
   protected $supportedAttributes = [
@@ -81,7 +82,9 @@ class TypesTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
-    $this->hasMany('identifiers');
+    $this->hasMany('CoSettings')
+         ->setForeignKey('name_default_type_id');
+    $this->hasMany('Identifiers');
     $this->hasMany('Names');
 // XXX add other MVEA models
     
@@ -103,6 +106,21 @@ class TypesTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'SuspendableStatusEnum'
+      ]
+    ]);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'restore' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
   }
@@ -229,6 +247,22 @@ class TypesTable extends Table {
   }
   
   /**
+   * Determine if the provided Type is in use as a default.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Type $entity Type
+   * @return bool         true if the Type is in use as a default, false otherwise
+   */
+  
+  public function typeIsDefault(\App\Model\Entity\Type $entity): bool {
+    $attr = explode('.', $entity->attribute, 2);
+    
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+    
+    return $CoSettings->typeIsDefault($entity->id);
+  }
+  
+  /**
    * Application Rule to determine if the requested type is in use.
    *
    * @since  COmanage Registyr v5.0.0
@@ -238,8 +272,14 @@ class TypesTable extends Table {
    */
   
   public function ruleTypeInUse($entity, $options) {
+    // First check that there are no operational references to the type 
     if($this->typeInUse($entity)) {
       return __d('error', 'Types.inuse', [$entity->value]);
+    }
+    
+    // Also check that the type is not a default type in the CO Setting.
+    if($this->typeIsDefault($entity)) {
+      return __d('error', 'Types.isdefault', [$entity->value]);
     }
     
     return true;
@@ -259,14 +299,14 @@ class TypesTable extends Table {
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->notEmpty('co_id');
+    $validator->notEmptyString('co_id');
     
     $validator->add(
       'attribute',
       'content',
       [ 'rule' => [ 'inList', $this->supportedAttributes ] ]
     );
-    $validator->notEmpty('attribute');
+    $validator->notEmptyString('attribute');
     
     $validator->add(
       'value',
@@ -278,7 +318,7 @@ class TypesTable extends Table {
       'content',
       [ 'rule' => [ 'custom', '/^[a-zA-Z0-9\-\.]+$/' ] ]
     );
-    $validator->notEmpty('value');
+    $validator->notEmptyString('value');
     
     $validator->add(
       'display_name',
@@ -291,33 +331,21 @@ class TypesTable extends Table {
       [ 'rule'     => [ 'validateInput' ],
         'provider' => 'table' ]
     );
-    $validator->notEmpty('display_name');
+    $validator->notEmptyString('display_name');
     
     $validator->add(
       'edupersonaffiliation',
       'content',
-      [ 'rule' => [ 'inList', [ 
-        EduPersonAffiliationEnum::Affiliate,
-        EduPersonAffiliationEnum::Alum,
-        EduPersonAffiliationEnum::Employee,
-        EduPersonAffiliationEnum::Faculty,
-        EduPersonAffiliationEnum::LibraryWalkIn,
-        EduPersonAffiliationEnum::Member,
-        EduPersonAffiliationEnum::Staff,
-        EduPersonAffiliationEnum::Student
-      ] ] ]
+      [ 'rule' => [ 'inList', EduPersonAffiliationEnum::getConstValues() ] ]
     );
-    $validator->allowEmpty('edupersonaffiliation');
+    $validator->allowEmptyString('edupersonaffiliation');
     
     $validator->add(
       'status',
       'content',
-      [ 'rule' => [ 'inList', [ 
-        SuspendableStatusEnum::Active,
-        SuspendableStatusEnum::Suspended
-      ] ] ]
+      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
     );
-    $validator->notEmpty('status');
+    $validator->notEmptyString('status');
     
     return $validator; 
   }

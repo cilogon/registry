@@ -31,8 +31,10 @@ namespace App\Controller;
 
 use \App\Lib\Enum\TemplateableStatusEnum;
 use App\Lib\Events\ChangelogEventListener;
+use App\Lib\Events\CoIdEventListener;
 use App\Lib\Events\RuleBuilderEventListener;
 use Cake\Controller\Controller;
+use Cake\Core\Configure;
 use Cake\Datasource\Exception;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Http\Exception\UnauthorizedException;
@@ -79,6 +81,9 @@ class AppController extends Controller {
     
     $ChangelogEventListener = new ChangelogEventListener($this->RegistryAuth);
     EventManager::instance()->on($ChangelogEventListener);
+    
+    $RuleBuilderEventListener = new RuleBuilderEventListener();
+    EventManager::instance()->on($RuleBuilderEventListener);
     
     // We use Paginator in the REST API as well
     $this->loadComponent('Paginator');
@@ -155,6 +160,98 @@ class AppController extends Controller {
   }
   
   /**
+   * Default implementation for calculating permissions for standard controllers,
+   * intended to be overridden by controllers with more speciific requirements.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int   $id Record ID if relevant, or null
+   * @return array     Array of permissions
+   */
+  
+  public function calculatePermissions(?int $id): array {
+    $ret = [];
+    
+    // $this->name = Models (ie: from ModelsTable)
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+    
+    // Do we have an authenticated user?
+    $authenticatedUser = (bool)$this->RegistryAuth->getAuthenticatedUser();
+
+    // Is this user a Platform Administrator?
+    $platformAdmin = $this->RegistryAuth->isPlatformAdmin();
+    
+    // Is this user a CO Administrator?
+    $coAdmin = $this->RegistryAuth->isCoAdmin($this->getCOID());
+    
+    // Is this record read only?
+    $readOnly = false;
+    
+    // Pull the table permissions
+    $permissions = $table->getPermissions();
+
+    if($id) {
+      $readOnlyActions = ['view'];
+      
+      // Does this table have an isReadOnly call?
+      
+      if(method_exists($table, "isReadOnly")) {
+        // Pull the record so we can interrogate it
+        
+        $obj = $table->get($id);
+        
+        $readOnly = $table->isReadOnly($obj);
+        
+        if(!empty($permissions['readOnly'])) {
+          // Merge in controller specific actions permitted on read only entities
+          $readOnlyActions = array_merge($readOnlyActions, $permissions['readOnly']);
+        }
+      }
+      
+      // Permissions for actions that operate over individual entities
+      
+      foreach($permissions['entity'] as $action => $roles) {
+        $ok = false;
+        
+        if(!$readOnly || in_array($action, $readOnlyActions)) {
+          if(is_array($roles)) {
+            foreach($roles as $role) {
+              // eg: $role = "platformAdmin", which corresponds to the variables set, above
+              if($$role) {
+                $ok = true;
+                break;
+              }
+            }
+          }
+        }
+
+        $ret[$action] = $ok;
+      }
+    } else {
+      // Permissions for actions that operate over tables
+      
+      foreach($permissions['table'] as $action => $roles) {
+        $ok = false;
+        
+        if(is_array($roles)) {
+          foreach($roles as $role) {
+            // eg: $role = "platformAdmin", which corresponds to the variables set, above
+            if($$role) {
+              $ok = true;
+              break;
+            }
+          }
+        }
+        
+        $ret[$action] = $ok;
+      }
+    }
+    
+    return $ret;
+  }
+  
+  /**
    * Get the current CO.
    *
    * @since  COmanage Registry v5.0.0
@@ -226,7 +323,7 @@ class AppController extends Controller {
             $param = (int)$this->request->getParam('pass.0');
             
             if(!empty($param)) {
-              $this->cur_pl->value = $this->$modelsName->calculatePrimaryLinkId($param);
+              $this->cur_pl->value = $this->$modelsName->findPrimaryLinkId($param);
             }
           }
         } elseif($this->request->is('post') && $this->request->getParam('action') != 'delete') {
@@ -265,7 +362,7 @@ class AppController extends Controller {
             $param = (int)$this->request->getParam('pass.0');
             
             if(!empty($param)) {
-              $this->cur_pl->value = $this->$modelsName->calculatePrimaryLinkId($param);
+              $this->cur_pl->value = $this->$modelsName->findPrimaryLinkId($param);
             }
           }
         } elseif($this->request->is('put') || $this->request->getParam('action') == 'delete') {
@@ -275,7 +372,7 @@ class AppController extends Controller {
             $param = (int)$this->request->getParam('pass.0');
             
             if(!empty($param)) {
-              $this->cur_pl->value = $this->$modelsName->calculatePrimaryLinkId($param);
+              $this->cur_pl->value = $this->$modelsName->findPrimaryLinkId($param);
             }
           }
         }
@@ -294,7 +391,14 @@ class AppController extends Controller {
         $this->set('vv_primary_link_model', $linkModelName);
         
         try {
-          $this->set('vv_primary_link_obj', $linkModel->findById($this->cur_pl->value)->firstOrFail());
+          $plObj = $linkModel->findById($this->cur_pl->value)->firstOrFail();
+          
+          $this->set('vv_primary_link_obj', $plObj);
+          
+          // While we're here, note the CO since we'll probably need it soon
+          if(!empty($plObj->co_id)) {
+            $this->cur_pl->co_id = $plObj->co_id;
+          }
         }
         catch(RecordNotFoundException $e) {
           $this->llog('error', "Could not find value '" . $this->cur_pl->value . "' for primary link object " . $linkModelName);
@@ -308,6 +412,25 @@ class AppController extends Controller {
   }
   
   /**
+   * Get the redirect goal for this table.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string Redirect goal
+   */
+  
+  protected function getRedirectGoal(): string {
+    // $this->name = Models
+    $modelsName = $this->name;
+    
+    // PrimaryLinkTrait
+    if(method_exists($this->$modelsName, "getRedirectGoal")) {
+      return $this->$modelsName->getRedirectGoal();
+    }
+    
+    return 'index';
+  }
+  
+  /**
    * Determine the (requested) current CO and make it available to the
    * rest of the application.
    *
@@ -316,8 +439,6 @@ class AppController extends Controller {
    * @throws \InvalidArgumentException
    */
   
-// XXX rewrite this and getPrimaryLink based on Match AppController when we
-// have an indirect model (eg: co_person_role) that has a parent other than CO
   protected function setCO() {
     if($this->cur_co) {
       // Nothing to do...
@@ -351,11 +472,13 @@ class AppController extends Controller {
     // Try to find the requested CO
     $coid = null;
     
-    // If the parent model is CO, then getPrimaryLink has already done our work
+    // getPrimaryLink has already done our work
     if($link->attr == 'co_id') {
       $coid = $link->value;
     } else {
-      // XXX map (see Match)
+      if(!empty($link->co_id)) {
+        $coid = $link->co_id;
+      }
     }
     
     if(!$coid 
@@ -377,6 +500,40 @@ class AppController extends Controller {
       
       if($this->cur_co->status == TemplateableStatusEnum::Active) {
         $this->set('vv_cur_co', $this->cur_co);
+      }
+      
+      // We store the CO ID in Configuration to facilitate its access from
+      // model contexts such as validation where passing the value via the
+      // Controller is not particularly feasible.
+
+      // This only works for the current model, not related models. If/when we
+      // need to support relatedmodels, we could have setCurCoId() cascade the
+      // CO to any of its related models that require it, or use the event
+      // listener approach commented out below.
+      if(method_exists($this->$modelsName, "acceptsCoId") 
+         && $this->$modelsName->acceptsCoId()) {
+        $this->$modelsName->setCurCoId((int)$coid);
+        
+        /* This doesn't work for the current model since it has already been
+           initialized, but it could be an option for related models later...
+           (eg when we try to save a name via EIS or EF). But see also the new
+           approach below.
+        $CoIdEventListener = new CoIdEventListener($coid);
+        EventManager::instance()->on($CoIdEventListener);*/
+      }
+      
+      // Walk through the first level associations and pass the CO ID to them,
+      // as well. We could ultimately cascade this via the table once we have
+      // a use case to do so, though note it's possible a child associations
+      // wants the CO ID even though the parent doesn't.
+      
+      foreach($this->$modelsName->associations()->getIterator() as $a) {
+        $aTable = $a->getTarget();
+        
+        if(method_exists($aTable, "acceptsCoId") 
+           && $aTable->acceptsCoId()) {
+          $aTable->setCurCoId((int)$coid);
+        }
       }
     }
   }

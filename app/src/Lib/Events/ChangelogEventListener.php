@@ -36,7 +36,7 @@ use Cake\Event\Event;
 use Cake\Event\EventListenerInterface;
 
 class ChangelogEventListener Implements EventListenerInterface {
-  // RegsitryAuth Component
+  // RegistryAuth Component
   protected $RegistryAuth;
   
   /**

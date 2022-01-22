@@ -53,8 +53,7 @@ if($this->request->getRequestTarget(false) != '/') {
     ['controller'   => 'dashboards',
      'action'       => 'dashboard',
      '?'            => [
-      'co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1
-    ]]
+      'co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
   );
   
   if(isset($vv_is_configuration_model) && $vv_is_configuration_model
@@ -65,10 +64,26 @@ if($this->request->getRequestTarget(false) != '/') {
       __d('menu', 'co.configuration'),
       ['controller'   => 'dashboards',
        'action'       => 'configuration',
-       '?'            => [
-        'co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1
-      ]]
+       '?'            => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
     );
+  }
+  
+  // If we're rendering an MVEA, insert a link to the parent entity
+  if(!empty($vv_primary_link_id)) {
+    if(!empty($vv_person_name)) {
+      $this->Breadcrumbs->add(
+        __d('controller', 'People', [99]),
+        ['controller' => 'people',
+         '?'          => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
+      );
+      
+      $this->Breadcrumbs->add(
+        $vv_person_name->full_name,
+        ['controller' => 'people',
+         'action'     => 'canvas',
+         $vv_primary_link_id]
+      );
+    }
   }
   
   if($vv_action != 'index'
@@ -93,8 +108,9 @@ if($this->request->getRequestTarget(false) != '/') {
   // If we have an object id and are not one of the "standard" actions,
   // insert a breadcrumb back to the main object view.
 // XXX This is initially for api_users:generate, not clear how much this does
-// or does not generalize  
-  if(!in_array($vv_action, ['add', 'edit', 'index', 'view'])
+// or does not generalize. If we start adding more exceptions here, we should
+// flip the logic and let api_users:generate declare that it wants a link back.
+  if(!in_array($vv_action, ['add', 'canvas', 'edit', 'index', 'view'])
      && !empty($vv_obj->id)
      && !empty($vv_obj->$vv_display_field)) {
     $oaction = ($vv_permissions['edit'] 

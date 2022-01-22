@@ -38,9 +38,9 @@ use \App\Lib\Enum\StatusEnum;
 class PeopleTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
-  use \App\Lib\Traits\RulesTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -76,6 +76,7 @@ class PeopleTable extends Table {
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['canvas']);
+    $this->setRedirectGoal('self');
     
 // XXX does some of this stuff really belong in the controller?
     $this->setEditContains(['PrimaryName']);
@@ -88,9 +89,41 @@ class PeopleTable extends Table {
       ],
       'types' => [
         'type' => 'type',
-        'where' => ['attribute' => 'Name.type']
+        'attribute' => 'Names.type'
       ]
     ]);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+// See also CFM-126
+      'entity' => [
+        'canvas' =>   ['platformAdmin', 'coAdmin'],
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
+  }
+  
+  /**
+   * Table specific logic to generate a display field.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Person $entity Entity to generate display field for
+   * @return string         Display field
+   */
+  
+  public function generateDisplayField(\App\Model\Entity\Person $entity): string {
+    if(empty($entity->primary_name)) {
+      throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
+    }
+    
+    return $entity->primary_name->full_name;
   }
   
   /**
@@ -107,19 +140,14 @@ class PeopleTable extends Table {
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->notEmpty('co_id');
+    $validator->notEmptyString('co_id');
     
     $validator->add(
       'status',
       'content',
       [ 'rule' => [ 'inList', StatusEnum::getConstValues() ]]
-/*      [ 'rule' => [ 'inList', [ 
-        TemplateableStatusEnum::Active,
-        TemplateableStatusEnum::Suspended,
-        TemplateableStatusEnum::Template
-      ] ] ]*/
     );
-    $validator->notEmpty('status');
+    $validator->notEmptyString('status');
     
     $validator->add(
       'timezone',
@@ -127,14 +155,14 @@ class PeopleTable extends Table {
       [ 'rule' => [ 'validateTimeZone' ],
         'provider' => 'table' ]
     );
-    $validator->allowEmpty('timezone');
+    $validator->allowEmptyString('timezone');
     
     $validator->add(
       'date_of_birth',
       'content',
       [ 'rule' => 'date' ]
     );
-    $validator->allowEmpty('date_of_birth');
+    $validator->allowEmptyString('date_of_birth');
     
     return $validator; 
   }

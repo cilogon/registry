@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry People Controller
+ * COmanage Registry Names Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -33,21 +33,11 @@ namespace App\Controller;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
-class PeopleController extends StandardController {
+class NamesController extends MVEAController {
   public $pagination = [
     'order' => [
-// XXX this will sort by family name, but it this universally correct?
-// so we need a configuration, or can we do something automagic?
-// (ie: what is CJK sort order?)
-// C=pinyin, so basically latin; J=KSTNHMYRW/AIUEO; K=hangugl
-// so basically a mess... let's just use family name for now and wait for
-// (and we haven't even gotten to other languages like Hindi)
-// someone to file an RFE
-      'PrimaryName.family' => 'asc'
-    ],
-    'sortableFields' => [
-      'PrimaryName.given',
-      'PrimaryName.family'
+      'Names.family' => 'asc',
+      'Names.given' => 'asc'
     ]
   ];
   
@@ -56,52 +46,53 @@ class PeopleController extends StandardController {
    *
    * @since  COmanage Registry v5.0.0
    * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
    */
   
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    if(!$this->request->is('restful') && $this->request->getParam('action') == 'add') {
-      // Get the set of permitted and required name fields to pass to the view.
+    if(!$this->request->is('restful')) {
+      // Get the set of permitted name fields to pass to the view.
+      // (We don't need required name fields since FormHelper will handle that.)
       
-      // We need to pull a few settings for default enrollment.
 // XXX maybe $CoSettings should be available via AppController, like $this->getCOID()?
       $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
       
       $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
       
-      $this->set('vv_permitted_name_fields', $settings->name_permitted_fields_array());
-      $this->set('vv_required_name_fields', $settings->name_required_fields_array());
-      $this->set('vv_default_name_type', $settings->name_default_type_id);
+      $this->set('vv_permitted_fields', $settings->name_permitted_fields_array());
+      $this->set('vv_default_type', $settings->name_default_type_id);
     }
     
     return parent::beforeRender($event);
   }
   
   /**
-   * Render the Person Canvas.
+   * Set a Name as primary.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string $id CO Person ID
+   * @param  string $id          Name ID
+   * @return \Cake\Http\Response HTTP Response
    */
   
-  public function canvas(string $id) {
-    // use StandardController::edit to render (and not conflict with edit(), below)
+  public function primary(string $id) {
+    // All we need to do is set this name to be primary, the model code will
+    // handle the various Application Rules.
     
-    parent::edit($id);
-  }
-  
-  /**
-   * Stub function to redirect to canvas.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $id CO Person ID
-   */
-  
-  public function edit(string $id) {
-    // Redirect to /canvas
+    try {
+      $query = $this->Names->findById($id);
+      
+      // Pull the current record
+      $obj = $query->firstOrFail();
+      
+      $obj->primary_name = true;
+      $this->Names->save($obj);
+      
+      $this->Flash->success(__d('result', 'Names.primary_name'));
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
     
-    return $this->redirect([
-      'action' => 'canvas',
-      $id
-    ]);
+    return $this->generateRedirect((int)$id);
   }
 }

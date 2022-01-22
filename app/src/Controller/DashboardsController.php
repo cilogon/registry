@@ -34,24 +34,6 @@ use Cake\Log\Log;
 //use \App\Lib\Enum\PermissionEnum;
 
 class DashboardsController extends StandardController {
-  protected $permissions = [
-    // Actions that operate over an entity (ie: require an $id)
-    'entity' => [
-/*
-      'delete' =>   ['platformAdmin', 'coAdmin'],
-      'edit' =>     ['platformAdmin', 'coAdmin'],
-      'view' =>     ['platformAdmin', 'coAdmin']*/
-    ],
-    // Actions that operate over a table (ie: do not require an $id)
-    'table' => [
-      'configuration' => ['platformAdmin', 'coAdmin'],
-      'dashboard'     => ['platformAdmin', 'coAdmin']   // XXX this is not the correct long term permission
-/*      'add' =>      ['platformAdmin', 'coAdmin'],
-      'index' =>    ['platformAdmin', 'coAdmin']
-      */
-    ]
-  ];
-  
   /**
    * Render the CO Configuration Dashboard.
    *
@@ -96,7 +78,7 @@ class DashboardsController extends StandardController {
       __d('controller', 'CoSettings', [99]) => [
         'icon'          => 'settings',
         'controller'    => 'co_settings',
-        'action'        => 'add'
+        'action'        => 'manage'
       ]],
       $configMenuItems
     );

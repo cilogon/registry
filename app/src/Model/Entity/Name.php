@@ -32,6 +32,8 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class Name extends Entity {
+  use \App\Lib\Traits\MVETrait;
+  
   protected $_accessible = [
     '*' => true,
     'id' => false,
@@ -39,18 +41,23 @@ class Name extends Entity {
   ];
   
   /**
-   * Generate a common (full) name.
+   * Generate a full (common) name.
    *
    * @since  COmanage Registry v5.0.0
    * @param  bool   $showHonorific If true, return honorific as part of name
    * @return string                Formatted name
    */
   
-  protected function _getCommonName($showHonorific = false) {
-    // Name order is a bit tricky. We'll use the language encoding as our hint,
-    // although it isn't perfect. This could be replaced with a more sophisticated
-    // test as requirements evolve.
-
+  protected function _getFullName($showHonorific = false) {
+    // AR-Name-2 If there is a display name set, use it as the full name.
+    if(!empty($this->display_name)) {
+      return $this->display_name;
+    }
+    
+    // AR-Name-3 Name order is a bit tricky. We'll use the language encoding as
+    // our hint, although it isn't perfect. This could be replaced with a more
+    // sophisticatedtest as requirements evolve.
+    
     $cn = "";
 
     if(empty($this->language)
@@ -89,5 +96,27 @@ class Name extends Entity {
     }
 
     return $cn;
+  }
+  
+  /**
+   * Determine if this is not a Primary Name.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool true if this is not a Primary Name, false otherwise.
+   */
+  
+  public function notPrimary(): bool {
+    return !$this->primary_name;
+  }
+  
+  /**
+   * Generate a suitable label for rendering if this is a Primary Name.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string Display label
+   */
+  
+  public function primaryLabel(): string {
+    return ($this->primary_name ? __d('field', 'primary_name') : "");
   }
 }

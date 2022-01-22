@@ -31,22 +31,20 @@ if($vv_action == 'add') {
   // Primary Name (which we'll collect here) along with possibly collecting
   // other CO Person attributes.
   
-// XXX this should be subject to the CO Setting for name fields
-// XXX how do we flag the name fields as required? need to update auto-introspection
-//     in whatever calls startControlSet()
-  print $this->Field->control('names.0.given');
-  
-  print $this->Field->control('names.0.family');
-  
-// XXX should cluster name fields together so it's obvious type relates to name
-// XXX how do we set a default value here? ['default' => X], but what is X? it's
-//     an integer that varies according to the CO, we'd need a find where co=x and attribute=Name.type and name=official
-  print $this->Field->control('names.0.type_id', ['empty' => false]);
+  foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
+    if(in_array($f, $vv_permitted_name_fields)) {
+      print $this->Field->control('names.0.'.$f, ['required' => in_array($f, $vv_required_name_fields)]);
+    }
+  }
+
+  print $this->Field->control('names.0.type_id', ['empty' => false, 'default' => $vv_default_name_type]);
   
   print $this->Field->control('status', ['empty' => false]);
   
   print $this->Field->control('date_of_birth');
   
+  // AR-Name-1 Since this is the first name for this Person, it must be
+  // designated primary
   $hidden = [
     // The initial name must be primary
     'names.0.primary_name' => true
@@ -55,5 +53,16 @@ if($vv_action == 'add') {
   // XXX This is a placeholder for canvas... maybe it should become a separate page
   //     rather than overload fields.inc?
   
-  print $vv_obj->primary_name->common_name;
+  print $this->Html->link(
+    __d('controller', 'Names', [99]),
+    [ 'controller' => 'names',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+  
+  // XXX add other MVEAs here
 }

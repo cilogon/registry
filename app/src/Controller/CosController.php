@@ -36,24 +36,6 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class CosController extends StandardController {
-  protected $permissions = [
-    // Actions that operate over an entity (ie: require an $id)
-    'entity' => [
-      'delete' =>    ['platformAdmin'],
-      'duplicate' => ['platformAdmin'],
-      'edit' =>      ['platformAdmin'],
-      'view' =>      ['platformAdmin']
-    ],
-    // Actions that are permitted on readonly entities (besides view)
-    'readOnly' =>    ['duplicate'],
-    // Actions that operate over a table (ie: do not require an $id)
-    'table' => [
-      'add' =>       ['platformAdmin'],
-      'index' =>     ['platformAdmin'],
-      'select' =>    ['authenticatedUser']
-    ]
-  ];
-  
   public $pagination = [
     'order' => [
       'Cos.name' => 'asc'

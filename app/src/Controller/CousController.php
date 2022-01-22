@@ -34,20 +34,6 @@ use Cake\Log\Log;
 //use \App\Lib\Enum\PermissionEnum;
 
 class CousController extends StandardController {
-  protected $permissions = [
-    // Actions that operate over an entity (ie: require an $id)
-    'entity' => [
-      'delete' =>   ['platformAdmin', 'coAdmin'],
-      'edit' =>     ['platformAdmin', 'coAdmin'],
-      'view' =>     ['platformAdmin', 'coAdmin']
-    ],
-    // Actions that operate over a table (ie: do not require an $id)
-    'table' => [
-      'add' =>      ['platformAdmin', 'coAdmin'],
-      'index' =>    ['platformAdmin', 'coAdmin']
-    ]
-  ];
-  
   public $pagination = [
     'order' => [
       'Cous.name' => 'asc'

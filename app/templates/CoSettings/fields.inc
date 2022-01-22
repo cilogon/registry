@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry CO Settings Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,40 +24,15 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-
-declare(strict_types = 1);
-
-namespace App\Controller;
-
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
+?>
+<?php
+// This view does not support add or read-only
+if($vv_action == 'edit') {
+  print $this->Field->control('address_required_fields', ['suppressBlank' => true]);
   
-  /**
-   * Restore default types for the requested CO.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
+  print $this->Field->control('name_default_type_id');
+
+  print $this->Field->control('name_permitted_fields', ['suppressBlank' => true]);
   
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+  print $this->Field->control('name_required_fields', ['suppressBlank' => true]);
 }

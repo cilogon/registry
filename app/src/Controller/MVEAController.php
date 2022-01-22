@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry Multi Valued Entity Attributes (VMEA) Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -31,33 +31,39 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
 
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
-  
+class MVEAController extends StandardController {
   /**
-   * Restore default types for the requested CO.
+   * Callback run prior to the request render.
    *
    * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
    */
   
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    // $this->name = Models
+    $modelsName = $this->name;
+    
+    if(!$this->request->is('restful')) {
+      // Use the PrimaryLink to set information for breadcrumbs
       
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
+      $link = $this->getPrimaryLink(true);
       
-      $this->Flash->error($e->getMessage());
+      if(!empty($link->value)) {
+        $this->set('vv_primary_link_id', $link->value);
+        
+        switch($link->attr) {
+          case 'person_id':
+            $Names = TableRegistry::get('Names');
+            $this->set('vv_person_name', $Names->primaryName((int)$link->value));
+            break;
+          default;
+            break;
+        }
+      }
     }
     
-    return $this->generateRedirect(null);
+    return parent::beforeRender($event);
   }
 }

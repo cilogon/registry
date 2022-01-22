@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry CO Setting Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,37 +27,39 @@
 
 declare(strict_types = 1);
 
-namespace App\Controller;
+namespace App\Model\Entity;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
+use Cake\ORM\Entity;
 
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
+// This class should probably be called "CoSettings" since it reflects a
+// collection of settings for a given CO, but it's easier not to fight
+// Cake's inflection.
+class CoSetting extends Entity {
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false, 
   ];
   
   /**
-   * Restore default types for the requested CO.
+   * Obtain the set of fields permitted for names, as an array.
    *
    * @since  COmanage Registry v5.0.0
+   * @return array Arroy of permitted name fields
    */
   
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
+  public function name_permitted_fields_array(): array {
+    return explode(",", $this->name_permitted_fields);
+  }
+  
+  /**
+   * Obtain the set of fields required for names, as an array.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Arroy of required name fields
+   */
+  
+  public function name_required_fields_array(): array {
+    return explode(",", $this->name_required_fields);
   }
 }

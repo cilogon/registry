@@ -174,21 +174,36 @@ function _column_key($modelsName, $c, $tz=null) {
       <?php foreach($indexColumns as $col => $cfg): ?>
       <td<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
         <?php
+          $suffix = "";
+          
+          if(!empty($cfg['append'])) {
+            // The value is a method on the entity that returns a string to
+            // append to the label
+            $f = $cfg['append'];
+            
+            $str = $entity->$f();
+            
+            if(!empty($str)) {
+              // For our first pass, we insert a comma, but this might not generalize
+              $suffix = ", " . $str;
+            }
+          }
+          
           switch($cfg['type']) {
             case 'boolean':
               if(!empty($entity->$col) && $entity->$col) {
-                print __d('enumeration', $cfg['class'].'.1');
+                print __d('enumeration', $cfg['class'].'.1') . $suffix;
               } else {
-                print __d('enumeration', $cfg['class'].'.0');
+                print __d('enumeration', $cfg['class'].'.0') . $suffix;
               }
               break;
             case 'datetime':
-              print $this->Time->nice($entity->$col, $vv_tz);
+              print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
               break;
             case 'enum':
               if($entity->$col) {
                 // XXX Need to add badging - see index.php in Match
-                print __d('enumeration', $cfg['class'].'.'.$entity->$col);
+                print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
               }
               break;
             case 'fk':
@@ -201,14 +216,14 @@ function _column_key($modelsName, $c, $tz=null) {
                 if(!empty(${$avv}[$entity->$col])) {
                   // We found the viewvar (eg: $foos), and it has a corresponding value
                   // (eg: $foos[3]), so render it
-                  print ${$avv}[$entity->$col];  // XXX filter_var?
+                  print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
                 } else {
                   // No match, just render the value
-                  print $entity->$col;
+                  print $entity->$col. $suffix;
                 }
               } else {
                 // Just print the value
-                print $entity->$col;
+                print $entity->$col. $suffix;
               }
               break;
             case 'button':
@@ -247,14 +262,14 @@ function _column_key($modelsName, $c, $tz=null) {
             case 'echo':
             default:
               // By default our label is the column value, but it might be overridden
-              $label = $entity->$col;
+              $label = $entity->$col . $suffix;
               
               if(!empty($cfg['model']) && !empty($cfg['field'])) {
                 $m = $cfg['model'];
                 $f = $cfg['field'];
                 
                 if(!empty($entity->$m->$f)) {
-                  $label = $entity->$m->$f;
+                  $label = $entity->$m->$f . $suffix;
                 }
               }
               
@@ -320,6 +335,15 @@ function _column_key($modelsName, $c, $tz=null) {
 //            if(isset($entity->status) && $entity->status == StatusEnum::Active) {
               foreach($indexActions as $a) {
                 if($vv_permission_set[$entity->id][ $a['action'] ]) {
+                  // If there's a conditional on the field, test the entity
+                  if(!empty($a['if'])) {
+                    $f = $a['if'];
+                    
+                    if(!$entity->$f()) {
+                      continue;
+                    }
+                  }
+                  
                   // If we have a .confirm text, use postLink instead
 
                   $confirmKey = $a['action'].'.confirm';

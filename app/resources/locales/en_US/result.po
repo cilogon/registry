@@ -32,3 +32,6 @@ msgstr "{0} Deleted"
 
 msgid "saved"
 msgstr "Saved"
+
+msgid "Names.primary_name"
+msgstr "Primary Name Updated"

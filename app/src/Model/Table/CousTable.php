@@ -38,8 +38,8 @@ use \App\Lib\Enum\TemplateableStatusEnum;
 class CousTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\RulesTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -62,11 +62,30 @@ class CousTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
+    $this->belongsTo('Cous')
+         ->setForeignKey('parent_id')
+         // Property is set so ruleValidateCO can find it. We don't use the
+         // _id suffix to match Cake's default pattern.
+         ->setProperty('parent');
     
     $this->setDisplayField('name');
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
   }
   
   /**
@@ -160,7 +179,7 @@ class CousTable extends Table {
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->notEmpty('co_id');
+    $validator->notEmptyString('co_id');
     
     $validator->add(
       'name',
@@ -173,7 +192,7 @@ class CousTable extends Table {
       [ 'rule'     => [ 'validateInput' ],
         'provider' => 'table' ]
     );
-    $validator->notEmpty('name');
+    $validator->notEmptyString('name');
     
     $validator->add(
       'description',
@@ -186,28 +205,28 @@ class CousTable extends Table {
       [ 'rule'     => [ 'validateInput' ],
         'provider' => 'table' ]
     );
-    $validator->allowEmpty('description');
+    $validator->allowEmptyString('description');
     
     $validator->add(
       'parent_id',
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->allowEmpty('parent_id');
+    $validator->allowEmptyString('parent_id');
     
     $validator->add(
       'lft',
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->allowEmpty('lft');
+    $validator->allowEmptyString('lft');
     
     $validator->add(
       'rght',
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->allowEmpty('rght');
+    $validator->allowEmptyString('rght');
     
     return $validator; 
   }

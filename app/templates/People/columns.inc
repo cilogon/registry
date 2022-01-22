@@ -32,7 +32,7 @@ $indexColumns = [
   'name' => [
     'type' => 'link',
     'model' => 'primary_name',
-    'field' => 'common_name',
+    'field' => 'full_name',
 // XXX see comments in the controller about sorting on given vs family
     'sortable' => 'PrimaryName.family'
   ],

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry Required Name Fields Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,37 +27,9 @@
 
 declare(strict_types = 1);
 
-namespace App\Controller;
+namespace App\Lib\Enum;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
-  
-  /**
-   * Restore default types for the requested CO.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+class RequiredNameFieldsEnum extends StandardEnum {
+  const Given       = "given";
+  const GivenFamily = "given,family";
 }

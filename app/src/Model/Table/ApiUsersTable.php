@@ -42,8 +42,8 @@ use \App\Lib\Random\RandomString;
 class ApiUsersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\RulesTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -76,6 +76,21 @@ class ApiUsersTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'SuspendableStatusEnum'
+      ]
+    ]);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'generate' => ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
   }
@@ -139,19 +154,26 @@ class ApiUsersTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  string $username API Username
-   * @param  int    $coId     CO ID
-   * @return boolean          True if $username is a privileged API user, false otherwise
+   * @return mixed            true if $username is a platform API user, an integer (the CO ID) if the user is a privileged API user within that CO, or false otherwise
    * @throws InvalidArgumentException
    */
   
-  public function getUserPrivilege(string $username, int $coId) {
-    $apiUser = $this->find()->where(['username' => $username])->first();
+// public function getUserPrivilege(string $username): mixed {
+// mixed requires PHP 8
+  public function getUserPrivilege(string $username) {
+    $apiUser = $this->find()->where(['username' => $username])->contain('Cos')->first();
     
     if(empty($apiUser)) {
       throw new \InvalidArgumentException(__d('error', 'auth.api.unknown', [$username]));
     }
     
-    return $apiUser->privileged;
+    if($apiUser->co->isCOmanageCO()) {
+      return true;
+    } elseif($apiUser->privileged) {
+      return $apiUser->co_id;
+    }
+    
+    return false;
   }
 
   /**
@@ -310,10 +332,7 @@ class ApiUsersTable extends Table {
     $validator->add(
       'status',
       'content',
-      [ 'rule' => [ 'inList', [ 
-        SuspendableStatusEnum::Active,
-        SuspendableStatusEnum::Suspended
-      ] ] ]
+      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
     );
     $validator->notEmpty('status');
     

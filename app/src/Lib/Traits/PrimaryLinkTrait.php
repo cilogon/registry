@@ -29,6 +29,9 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use \Cake\Datasource\EntityInterface;
+use \Cake\ORM\TableRegistry;
+
 trait PrimaryLinkTrait {
   // Primary Link field (eg: model:co_id)
   private $primaryLink = null;
@@ -44,6 +47,24 @@ trait PrimaryLinkTrait {
   
   // Actions where the primary link can be obtained by looking up the record ID
   private $lookupActions = ['delete', 'edit', 'view'];
+  
+  // Where to redirect on add or edit, can be 'self', 'index', or 'primaryLink'
+  private $redirectGoal = ['index'];
+  
+  // Accept the current CO ID?
+  private $acceptCoId = false;
+  protected $curCoId = null;
+  
+  /**
+   * Determine if this table accepts the CO ID via AppController.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool true if this table accepts the CO ID, false otherwise
+   */
+  
+  public function acceptsCoId(): bool {
+    return $this->acceptCoId;
+  }
   
   /**
    * Whether the primary link is permitted to be empty.
@@ -83,18 +104,42 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Calculate the Primary Link ID associated with the requested object ID.
+   * Determine the CO for an entity.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int $id Object ID
-   * @return int     Primary Link ID
-   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   * @param  EntityInterface $entity Entity
+   * @return int|null                CO ID or null if not found
    */
   
-  public function calculatePrimaryLinkId(int $id) {
-    $obj = $this->findById($id)->firstOrFail();
+  public function calculateCoForRecord(EntityInterface $entity): ?int {
+    if($this->primaryLink == 'co_id') {
+      if(!empty($entity->co_id)) {
+        return $entity->co_id;
+      }
+      
+      return null;
+    } else {
+      // Recursively ask the primaryLink until we get an answer
+      $LinkTable = $this->getPrimaryLinkTable();
+      
+      return $LinkTable->findCoForRecord($entity->{$this->primaryLink});
+    }
+  }
+  
+  /**
+   * Determine the CO for a record based on its ID.
+   *
+   * #since  COmanage Registry v5.0.0
+   * @param  int      $id Record ID
+   * @return int|null     CO ID or null if not found
+   */
+  
+  public function findCoForRecord(int $id): ?int {
+    // Pull tho object to examine the primary links
+    $query = $this->findById($id);
     
-    return $obj->{$this->primaryLink};
+    // This will throw an error on failure
+    return $this->calculateCoForRecord($query->firstOrFail());
   }
   
   /**
@@ -111,7 +156,22 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Obtain the primary link.
+   * Calculate the Primary Link ID associated with the requested object ID.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id Object ID
+   * @return int     Primary Link ID
+   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   */
+  
+  public function findPrimaryLinkId(int $id) {
+    $obj = $this->findById($id)->firstOrFail();
+    
+    return $obj->{$this->primaryLink};
+  }
+  
+  /**
+   * Obtain the primary link field.
    *
    * @since  COmanage Registry v5.0.0
    * @return string Primary link attribute
@@ -122,14 +182,52 @@ trait PrimaryLinkTrait {
   }
   
   /**
+   * Obtain the primary link's table.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return Table Cake Table object
+   */
+  
+  public function getPrimaryLinkTable() {
+    return TableRegistry::getTableLocator()->get($this->primaryLinkTable);
+  }
+  
+  /**
    * Obtain the primary link's table name.
    *
    * @since  COmanage Registry v5.0.0
    * @return string Primary link table name
    */
   
-  public function getPrimaryLinkTableName() {
+  public function getPrimaryLinkTableName(): string {
     return $this->primaryLinkTable;
+  }
+  
+  /**
+   * Obtain this table's redirect goal.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string Redirect goal
+   */
+  
+  public function getRedirectGoal(): string {
+    return $this->redirectGoal;
+  }
+  
+  /**
+   * Set whether this table accepts a CO ID, set by AppController. In general,
+   * tables should NOT use this unless there is no other way to get the CO ID.
+   * In general, it is preferable to accept the CO ID as a function argument,
+   * or by calling findCoForRecord or calculateCoForRecord. This functionality
+   * is for contexts like setting validation rules, where passing in the CO ID
+   * normally is not possible.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  bool $accepts true if this table accepts the CO ID, false otherwise
+   */
+  
+  public function setAcceptsCoId(bool $accepts) {
+    $this->acceptCoId = $accepts;
   }
   
   /**
@@ -155,6 +253,18 @@ trait PrimaryLinkTrait {
   }
   
   /**
+   * Set the current CO ID. Intended for use with AppController.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int $coId  CO ID
+   */
+  
+  
+  public function setCurCoId(int $coId) {
+    $this->curCoId = $coId;
+  }
+  
+  /**
    * Set the primary link attribute.
    *
    * @since  COmanage Registry v5.0.0
@@ -171,13 +281,30 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Set whether the primary link can be asserted directly.
+   * Set which actions permit a primary link to be passed as a request parameter.
+   * Defaults to [add, index].
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  boolean $allowEmpty true if the primary link can be asserted directly
+   * @param  array $actions Array of actions that permit unkeyed primary links.
    */
   
   public function setAllowUnkeyedPrimaryLink(array $actions) {
     $this->unkeyedActions = array_merge($this->unkeyedActions, $actions);
+  }
+  
+  /**
+   * Set the redirect goal for this table. 
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $goal  Redirect goal ('index', 'primaryLink', 'self')
+   * @throws InvalidArgumentException
+   */
+  
+  public function setRedirectGoal(string $goal) {
+    if(!in_array($goal, ['index', 'primaryLink', 'self'])) {
+      throw new \InvalidArgumentException(__d('error', 'invalid', [$goal]));
+    }
+    
+    $this->redirectGoal = $goal;
   }
 }

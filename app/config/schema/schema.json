@@ -32,8 +32,7 @@
       },
       "indexes": {
         "cos_i1": {
-          "columns": [ "name" ],
-          "unique": true
+          "columns": [ "name" ]
         }
       },
       "changelog": true
@@ -53,6 +52,29 @@
         "types_i1": { "columns": [ "co_id" ] },
         "types_i2": { "columns": [ "co_id", "attribute" ] },
         "types_i3": { "columns": [ "co_id", "attribute", "value" ] }
+      }
+    },
+    
+    "co_settings": {
+      "comment": "Table definition not yet complete (CFM-80)",
+      
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "address_required_fields": { "type": "string", "size": 160 },
+        "name_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "name_permitted_fields": { "type": "string", "size": 160 },
+        "name_required_fields": { "type": "string", "size": 160 }
+      },
+      "indexes": {
+        "co_settings_i1": { "columns": [ "co_id" ]},
+        "co_settings_i2": {
+          "comment": [
+            "We don't really need an index, but DBAL will create one for all foreign keys if none exists",
+            "typeIsDefault will make queries using these columns, but rarely and won't usually have enough rows to need the index"
+          ],
+          "columns": [ "name_default_type_id" ]
+        }
       }
     },
     
@@ -121,6 +143,8 @@
     },
     
     "external_identities": {
+      "comment": "XXX most of these fields are going to move to person_roles instead",
+      
       "columns": {
         "id": {},
         "person_id": { "notnull": true },
@@ -148,7 +172,8 @@
         "suffix": { "type": "string", "size": 32 },
         "type_id": {},
         "language": { "type": "string", "size": 16 },
-        "primary_name": { "type": "boolean" }
+        "primary_name": { "type": "boolean" },
+        "display_name": { "type": "string", "size": 256 }
       },
       "indexes": {
         "names_i1": { "columns": [ "type_id"] }

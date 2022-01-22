@@ -53,6 +53,7 @@ use \Cake\Controller\Component;
 use \Cake\Core\Configure;
 use \Cake\Datasource\Exception\RecordNotFoundException;
 use \Cake\Event\EventInterface;
+use \Cake\Http\Exception\ForbiddenException;
 use \Cake\Http\Exception\UnauthorizedException;
 use \Cake\ORM\ResultSet;
 use \Cake\ORM\TableRegistry;
@@ -62,10 +63,10 @@ class RegistryAuthComponent extends Component
   use \App\Lib\Traits\LabeledLogTrait;
   
   // The successfully authenticated user
-  protected $authenticatedUser = false;
+  protected ?string $authenticatedUser = null;
   
   // Was this an API user?
-  protected $authenticatedApiUser = false;
+  protected bool $authenticatedApiUser = false;
   
   /**
    * Authenticate an API User.
@@ -102,49 +103,6 @@ class RegistryAuthComponent extends Component
   }
   
   /**
-   * Authorize an API User.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return bool True if authorization was successful.
-   * @throws InvalidArgumentException
-   */
-  
-  protected function authorizeApiUser(EventInterface $event) {
-    $controller = $event->getSubject();
-
-    // API authorization works a bit different from UI authorization, in that
-    // access is generally not Controller specific.
-    
-    $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
-    
-    try {
-      // The CO might be NULL if there is no CO ID in the current context
-      // (eg: /index/cos). In that case, we use CO ID 1 (COmanage CO), which is
-      // the proxy for "root" access.
-      
-      $CO = $controller->getCO();
-      
-      $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser, ($CO ? $CO->id : 1));
-    }
-    catch(\InvalidArgumentException $e) {
-      // User unknown or similar, probably should have been caught in authenticateApiUser
-      $this->llog('debug', "User authorization failed: " . $e->getMessage());
-      throw $e;
-    }
-    
-    if(!$priv) {
-      // XXX to deal with unprivileged API users we'll need some mechanism to call
-      // into the controller (or plugin controller) to allow it to determine if
-      // we're authorized
-      
-      $this->llog('error', "Unprivileged User NOT IMPLEMENTED");
-      throw new \InvalidArgumentException("NOT IMPLEMENTED");
-    }
-    
-    return true;
-  }
-  
-  /**
    * Callback run prior to the request action.
    *
    * @since  COmanage Registry v5.0.0
@@ -156,22 +114,37 @@ class RegistryAuthComponent extends Component
     $request = $controller->getRequest();
     $session = $request->getSession();
     
+    $id = null;
+    $passed = $request->getParam('pass');
+    
+    if(!empty($passed[0])) {
+      $id = (int)$passed[0];
+    }
+    
+    // Perform authorization check
+    
     if($this->getConfig('apiUser')) {
       // There are no unauthenticated API calls, so always require a valid user
       
       try {
         if($this->authenticateApiUser()) {
-          $this->authorizeApiUser($event);
+          if($this->calculatePermission($request->getParam('action'), $id)) {
+            // Authorization successful
+            return true;
+          }
         }
+        
+        // Permission denied
+        throw new ForbiddenException(__d('error', 'perm'));
       }
       catch(RecordNotFoundException $e) {
-        // Requested record does not exist. For privileged API users, we can return
+        // Requested record does not exist. For platform API users, we can return
         // a RecordNotFoundException, otherwise we recast to generate permission denied.
         $this->llog('debug', "User authorization failed: " . $e->getMessage());
         
         $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
         
-        if($ApiUsers->getUserPrivilege($this->authenticatedUser, 1)) {
+        if($ApiUsers->getUserPrivilege($this->authenticatedUser) === true) {
           throw $e;
         } else {
           throw new UnauthorizedException(__d('error', 'auth.api.failed'));
@@ -204,13 +177,6 @@ class RegistryAuthComponent extends Component
         // checks can get the authenticated username.
         $controller->set('vv_user', ['username' => $auth['external']['user']]);
         $this->authenticatedUser = $auth['external']['user'];
-        
-        $id = null;
-        $passed = $request->getParam('pass');
-        
-        if(!empty($passed[0])) {
-          $id = (int)$passed[0];
-        }
         
         if($this->calculatePermission($request->getParam('action'), $id)) {
           // Authorization successful
@@ -270,6 +236,8 @@ class RegistryAuthComponent extends Component
     // We return an array since this is intended to be passed to a view
     $ret = [];
     
+    // Note these are Cake ORM functions (rewind, current, etc), and not array
+    // functions that PHP deprecated in 8.1.0.
     $rs->rewind();
     
     while($rs->valid()) {
@@ -305,7 +273,7 @@ class RegistryAuthComponent extends Component
    * @return string The authenticated user identifier or false if no authenticated user
    */
   
-  public function getAuthenticatedUser() {
+  public function getAuthenticatedUser(): string {
     return $this->authenticatedUser;
   }
   
@@ -339,7 +307,7 @@ class RegistryAuthComponent extends Component
    * @return bool True if the current user is an API user
    */
   
-  public function isApiUser() {
+  public function isApiUser(): bool {
     return $this->authenticatedApiUser;
   }
   
@@ -350,10 +318,18 @@ class RegistryAuthComponent extends Component
    * @return bool True if the current user is a CO Administrator
    */
   
-  public function isCoAdmin(?int $coId) {
+  public function isCoAdmin(?int $coId): bool {
+    if($this->authenticatedApiUser) {
+      $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+      
+      $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
+      
+      return ($priv === true || $priv === $coId);
+    } else {
 // XXX hardcoded for now until we've bootstrapped the COmanage CO
 // XXX we should cache the lookup when we actually do a db query
-    return ($this->authenticatedUser == 'admin');
+      return ($this->authenticatedUser == 'admin');
+    }
   }
   
   /**
@@ -363,9 +339,15 @@ class RegistryAuthComponent extends Component
    * @return bool True if the current user is a Platform Administrator
    */
   
-  public function isPlatformAdmin() {
+  public function isPlatformAdmin(): bool {
+    if($this->authenticatedApiUser) {
+      $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+      
+      return ($ApiUsers->getUserPrivilege($this->authenticatedUser) === true);
+    } else {
 // XXX hardcoded for now until we've bootstrapped the COmanage CO
 // XXX we should cache the lookup when we actually do a db query
-    return ($this->authenticatedUser == 'admin');
+      return ($this->authenticatedUser == 'admin');
+    }
   }
 }

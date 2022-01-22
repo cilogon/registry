@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Types Controller
+ * COmanage Registry CoSettings Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -32,32 +32,21 @@ namespace App\Controller;
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
 
-class TypesController extends StandardController {
-  public $pagination = [
-    'order' => [
-      'Types.attribute' => 'asc',
-      'Types.display_name' => 'asc'
-    ]
-  ];
-  
+class CoSettingsController extends StandardController {
+
   /**
-   * Restore default types for the requested CO.
+   * Manage CO Settings.
    *
    * @since  COmanage Registry v5.0.0
+   * @return \Cake\Http\Response
    */
   
-  public function restore() {
-    try {
-      $this->Types->addDefaults($this->getCOID());
-      
-      $this->Flash->success(__d('result', 'saved'));
-    }
-    catch(\Exception $e) {
-      // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
-      $this->Flash->error($e->getMessage());
-    }
+  public function manage() {
+    // We basically use this as a switch into the correct settings entry and
+    // then redirect to the edit view
     
-    return $this->generateRedirect(null);
+    $settings = $this->CoSettings->find('all', ['conditions' => ['CoSettings.co_id' => $this->getCOID()]])->first();
+    
+    return $this->redirect(['action' => 'edit', $settings->id]);
   }
 }

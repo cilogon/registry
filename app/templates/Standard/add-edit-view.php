@@ -34,6 +34,8 @@ $modelsName = $this->name;
 // XXX backport to match?
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
 
+// If you're looking to set a custom $vv_title, you might be able to use
+// generateDisplayField() on the Table instead
 ?>
 <div class="titleNavContainer">
   <div class="pageTitle">
@@ -58,7 +60,7 @@ if(!empty($banners)) {
 // XXX move delete to some form of buttons.inc?
 // XXX duplicates index.ctp though strangely this is working whereas index delete throws csrf error
 // This is a bit overlap with Elements/pageTitleAndButtons
-if(!empty($vv_obj->id) && $vv_permissions['delete']) {
+if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
   print '<ul id="topLinks">';
   print "<li>" . $this->Form->postLink(
     __d('operation', 'delete'),
