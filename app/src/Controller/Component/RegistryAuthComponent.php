@@ -273,7 +273,7 @@ class RegistryAuthComponent extends Component
    * @return string The authenticated user identifier or false if no authenticated user
    */
   
-  public function getAuthenticatedUser(): string {
+  public function getAuthenticatedUser(): ?string {
     return $this->authenticatedUser;
   }
   

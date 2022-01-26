@@ -47,6 +47,7 @@ $topLinks = [
     'label' => __d('operation', 'Types.restore'),
     'link'  => [
       'action' => 'restore'
-    ]
+    ],
+    'class' => ''
   ]
 ];

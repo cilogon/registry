@@ -93,7 +93,10 @@ class TransmogrifyCommand extends Command {
         'elect_strategy_primary_name' => null,
         'co_dashboard_id' => null,
         'co_theme_id' => null,
-        'global_search_limit' => null
+        'global_search_limit' => null,
+        'person_picker_email_type' => null,
+        'person_picker_identifier_type' => null,
+        'person_picker_display_types' => null
       ]
     ],
     'api_users' => [
@@ -156,6 +159,20 @@ class TransmogrifyCommand extends Command {
         'co_department_id' => null,
         'co_group_id' => null,
         'co_provisioning_target_id' => null,
+        'organization_id' => null
+      ]
+    ],
+    'email_addresses' => [
+      'source' => 'cm_email_addresses',
+      'displayField' => 'id',
+      'booleans' => [ 'verified' ],
+      'fieldMap' => [
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id',
+        'type_id' => '&map_email_type',
+        'type' => null,
+// XXX temporary until tables are migrated
+        'co_department_id' => null,
         'organization_id' => null
       ]
     ]
@@ -496,6 +513,18 @@ class TransmogrifyCommand extends Command {
         unset($row[$oldname]);
       }
     }
+  }
+  
+  /**
+   * Map an email type string to a foreign key.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $row Row of table data (ignored)
+   * @return int        type_id
+   */
+  
+  protected function map_email_type(array $row) {
+    return $this->map_type($row, 'EmailAddresses.type', $this->findCoId($row));
   }
   
   /**

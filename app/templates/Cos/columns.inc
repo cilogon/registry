@@ -41,7 +41,7 @@ $indexColumns = [
 $indexActions = [
   [
     'action' => 'duplicate',
-    'class'  => 'duplicate',
+    'class'  => '',
     'icon'   => 'content_copy'
   ]
 ];

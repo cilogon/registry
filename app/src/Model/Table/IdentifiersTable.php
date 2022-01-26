@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry People Table
+ * COmanage Registry Identifiers Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -29,20 +29,43 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\SuspendableStatusEnum;
 
-class PeopleTable extends Table {
+class IdentifiersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
+  
+  // Default "out of the box" types for this model. Entries here should be
+  // given a default localization in app/resources/locales/*/defaultType.po
+  protected $defaultTypes = [
+    'type' => [
+      'badge',
+      'enterprise',
+      'eppn',
+      'eptid',
+      'epuid',
+      'gid',
+      'mail',
+      'national',
+      'network',
+      'oidcsub',
+      'openid',
+      'orcid',
+      'provisioningtarget',
+      'reference',
+      'pairwiseid',
+      'subjectid',
+      'sorid',
+      'uid'
+    ]
+  ];
   
   /**
    * Perform Cake Model initialization.
@@ -57,53 +80,38 @@ class PeopleTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // CO People are not configuration
+    // Identifiers are not configuration
     $this->setIsConfigurationTable(false);
     
     // Define associations
-    $this->belongsTo('Cos');
+    $this->belongsTo('People');
+    $this->belongsTo('ExternalIdentity');
+    $this->belongsTo('Types');
     
-    $this->hasOne('PrimaryName', [
-           'className' => 'Names'
-         ])
-         ->setConditions(['PrimaryName.primary_name' => true]);
-    $this->hasMany('Names')
-         ->setDependent(true);
-    $this->hasMany('EmailAddresses')
-         ->setDependent(true);
-    $this->hasMany('Identifiers')
-         ->setDependent(true);
+    $this->setDisplayField('identifier');
     
-// XXX can we change this to Name?
-    $this->setDisplayField('id');
-    
-    $this->setPrimaryLink('co_id');
+// XXX note primary link is external_identity_id when set...
+    $this->setPrimaryLink('person_id');
+    $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['canvas']);
-    $this->setRedirectGoal('self');
-    
-// XXX does some of this stuff really belong in the controller?
-    $this->setEditContains(['PrimaryName']);
-    $this->setIndexContains(['PrimaryName']);
     
     $this->setAutoViewVars([
-      'statuses' => [
-        'type' => 'enum',
-        'class' => 'StatusEnum'
-      ],
       'types' => [
         'type' => 'type',
-        'attribute' => 'Names.type'
+        'attribute' => 'Identifiers.type'
+      ],
+      'statuses' => [
+        'type' => 'enum',
+        'class' => 'TemplateableStatusEnum'
       ]
     ]);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
-// See also CFM-126
       'entity' => [
-        'canvas' =>   ['platformAdmin', 'coAdmin'],
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'primary' =>  ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
@@ -115,58 +123,76 @@ class PeopleTable extends Table {
   }
   
   /**
-   * Table specific logic to generate a display field.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Person $entity Entity to generate display field for
-   * @return string         Display field
-   */
-  
-  public function generateDisplayField(\App\Model\Entity\Person $entity): string {
-    if(empty($entity->primary_name)) {
-      throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
-    }
-    
-    return $entity->primary_name->full_name;
-  }
-  
-  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0
    * @param  Validator $validator Validator
    * @return Validator            Validator
+   * @throws InvalidArgumentException
+   * @throws RecordNotFoundException
    */
   
   public function validationDefault(Validator $validator): Validator {
+    // One of Person ID or External Identity ID is required
     $validator->add(
-      'co_id',
+      'person_id',
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->notEmptyString('co_id');
+    $validator->notEmptyString('person_id', null, function($context) {
+      return empty($context['data']['external_identity_id']);
+    });
+    
+    $validator->add(
+      'external_identity_id',
+      'content',
+      [ 'rule' => 'isInteger' ]
+    );
+    $validator->notEmptyString('external_identity_id', null, function($context) {
+      return empty($context['data']['person_id']);
+    });
+    
+    $validator->add(
+      'identifier',
+      'length',
+      [ 'rule' => [ 'maxLength', 512 ] ]
+    );
+    $validator->add(
+      'identifier',
+      'content',
+      // Identifier must have at least one non-space character in order to avoid
+      // errors (eg: with provisioning ldap)
+      [ 'rule' => [ 'notBlank' ] ]
+    );
+    $validator->notEmptyString('identifier');
+    
+    $validator->add(
+      'type_id',
+      'content',
+      [ 'rule' => 'isInteger' ]
+    );
+    $validator->notEmptyString('type_id');
+    
+    $validator->add(
+      'login',
+      'content',
+      [ 'rule' => [ 'boolean' ] ]
+    );
+    $validator->allowEmptyString('login');
     
     $validator->add(
       'status',
       'content',
-      [ 'rule' => [ 'inList', StatusEnum::getConstValues() ]]
+      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
     );
     $validator->notEmptyString('status');
     
     $validator->add(
-      'timezone',
+      'source_identifier_id',
       'content',
-      [ 'rule' => [ 'validateTimeZone' ],
-        'provider' => 'table' ]
+      [ 'rule' => 'isInteger' ]
     );
-    $validator->allowEmptyString('timezone');
-    
-    $validator->add(
-      'date_of_birth',
-      'content',
-      [ 'rule' => 'date' ]
-    );
-    $validator->allowEmptyString('date_of_birth');
+    $validator->allowEmptyString('source_identifier_id');
     
     return $validator; 
   }

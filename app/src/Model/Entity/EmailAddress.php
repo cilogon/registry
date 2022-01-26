@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CO Settings Fields
+ * COmanage Registry Email Address Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,19 +24,19 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support add or read-only
-if($vv_action == 'edit') {
-  print $this->Field->control('address_required_fields', ['suppressBlank' => true]);
-  
-  print $this->Field->control('email_address_default_type_id');
-  
-  print $this->Field->control('identifier_default_type_id');
-  
-  print $this->Field->control('name_default_type_id');
 
-  print $this->Field->control('name_permitted_fields', ['suppressBlank' => true]);
+declare(strict_types = 1);
+
+namespace App\Model\Entity;
+
+use Cake\ORM\Entity;
+
+class EmailAddress extends Entity {
+  use \App\Lib\Traits\MVETrait;
   
-  print $this->Field->control('name_required_fields', ['suppressBlank' => true]);
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false, 
+  ];
 }

@@ -62,6 +62,8 @@
         "id": {},
         "co_id": {},
         "address_required_fields": { "type": "string", "size": 160 },
+        "email_address_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "identifier_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "name_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "name_permitted_fields": { "type": "string", "size": 160 },
         "name_required_fields": { "type": "string", "size": 160 }
@@ -74,7 +76,9 @@
             "typeIsDefault will make queries using these columns, but rarely and won't usually have enough rows to need the index"
           ],
           "columns": [ "name_default_type_id" ]
-        }
+        },
+        "co_settings_i3": { "columns": [ "email_address_default_type_id" ] },
+        "co_settings_i4": { "columns": [ "identifier_default_type_id" ] }
       }
     },
     
@@ -176,14 +180,13 @@
         "display_name": { "type": "string", "size": 256 }
       },
       "indexes": {
-        "names_i1": { "columns": [ "type_id"] }
+        "names_i1": { "columns": [ "type_id" ] }
       },
       "mvea": [ "person", "external_identity" ],
       "sourced": true
     },
     
     "identifiers": {
-      "XXX": [ "add index for co_provision_target_id+co_person_id" ],
       "columns": {
         "id": {},
         "identifier": { "type": "string", "size": 512 },
@@ -194,7 +197,24 @@
       "indexes": {
         "identifiers_i1": { "columns": [ "identifier", "type_id", "person_id" ] },
         "identifiers_i2": { "columns": [ "identifier", "type_id", "external_identity_id" ] },
-        "identifiers_i3": { "columns": [ "type_id"] }
+        "identifiers_i3": { "columns": [ "type_id" ] }
+      },
+      "mvea": [ "person", "external_identity" ],
+      "sourced": true
+    },
+    
+    "email_addresses": {
+      "columns": {
+        "id": {},
+        "mail": { "type": "string", "size": 256 },
+        "description": {},
+        "type_id": {},
+        "verified": { "type": "boolean" }
+      },
+      "indexes": {
+        "email_addresses_i1": { "columns": [ "mail", "type_id", "person_id" ] },
+        "email_addresses_i2": { "columns": [ "mail", "type_id", "external_identity_id" ] },
+        "email_addresses_i3": { "columns": [ "type_id" ] }
       },
       "mvea": [ "person", "external_identity" ],
       "sourced": true

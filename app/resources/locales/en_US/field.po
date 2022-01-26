@@ -38,6 +38,12 @@ msgstr "Attribute"
 msgid "CoSettings.address_required_fields"
 msgstr "Address Required Fields"
 
+msgid "CoSettings.email_address_default_type_id"
+msgstr "Default Email Address Type"
+
+msgid "CoSettings.identifier_default_type_id"
+msgstr "Default Identifier Type"
+
 msgid "CoSettings.name_default_type_id"
 msgstr "Default Name Type"
 
@@ -75,11 +81,20 @@ msgstr "Honorific"
 msgid "honorific.desc"
 msgstr "(Dr, Hon, etc)"
 
+msgid "identifier"
+msgstr "Identifier"
+
 msgid "full_name"
 msgstr "Full Name"
 
 msgid "language"
 msgstr "Language"
+
+msgid "login"
+msgstr "Login"
+
+msgid "mail"
+msgstr "Email Address"
 
 msgid "middle"
 msgstr "Middle"
@@ -152,3 +167,6 @@ msgstr "Database Value"
 
 msgid "Types.value.desc"
 msgstr "Database value for this type, characters must be alphanumeric, dot, or dash"
+
+msgid "verified"
+msgstr "Verified"

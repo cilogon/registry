@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CO Settings Fields
+ * COmanage Registry Email Addresses Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,19 +24,41 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support add or read-only
-if($vv_action == 'edit') {
-  print $this->Field->control('address_required_fields', ['suppressBlank' => true]);
-  
-  print $this->Field->control('email_address_default_type_id');
-  
-  print $this->Field->control('identifier_default_type_id');
-  
-  print $this->Field->control('name_default_type_id');
 
-  print $this->Field->control('name_permitted_fields', ['suppressBlank' => true]);
+declare(strict_types = 1);
+
+namespace App\Controller;
+
+// XXX not doing anything with Log yet
+use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
+
+class EmailAddressesController extends MVEAController {
+  public $pagination = [
+    'order' => [
+      'EmailAddresses.mail' => 'asc'
+    ]
+  ];
   
-  print $this->Field->control('name_required_fields', ['suppressBlank' => true]);
+  /**
+   * Callback run prior to the request render.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
+   */
+  
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    if(!$this->request->is('restful')) {
+// XXX maybe $CoSettings should be available via AppController, like $this->getCOID()?
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+      
+      $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
+      
+// XXX move this into MVEAController or a trait
+      $this->set('vv_default_type', $settings->email_address_default_type_id);
+    }
+    
+    return parent::beforeRender($event);
+  }
 }

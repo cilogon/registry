@@ -24,6 +24,81 @@
 
 # Labels for default types when a new CO is created
 
+msgid "EmailAddresses.delivery"
+msgstr "Delivery"
+
+msgid "EmailAddresses.forwarding"
+msgstr "Forwarding"
+
+msgid "EmailAddresses.list"
+msgstr "Mailing List"
+
+msgid "EmailAddresses.official"
+msgstr "Official"
+
+msgid "EmailAddresses.personal"
+msgstr "Personal"
+
+msgid "EmailAddresses.preferred"
+msgstr "Preferred"
+
+msgid "EmailAddresses.recovery"
+msgstr "Recovery"
+
+msgid "Identifiers.badge"
+msgstr "Badge"
+
+msgid "Identifiers.enterprise"
+msgstr "Enterprise"
+
+msgid "Identifiers.eppn"
+msgstr "ePPN"
+
+msgid "Identifiers.eptid"
+msgstr "ePTID"
+
+msgid "Identifiers.epuid"
+msgstr "ePUID"
+
+msgid "Identifiers.gid"
+msgstr "GID"
+
+msgid "Identifiers.mail"
+msgstr "Mail"
+
+msgid "Identifiers.national"
+msgstr "National"
+
+msgid "Identifiers.network"
+msgstr "Network"
+
+msgid "Identifiers.oidcsub"
+msgstr "OIDC Sub"
+
+msgid "Identifiers.openid"
+msgstr "OpenID"
+
+msgid "Identifiers.orcid"
+msgstr "ORCiD"
+
+msgid "Identifiers.provisioningtarget"
+msgstr "Provisioning Target"
+
+msgid "Identifiers.reference"
+msgstr "Match Reference"
+
+msgid "Identifiers.pairwiseid"
+msgstr "SAML Pairwise"
+
+msgid "Identifiers.subjectid"
+msgstr "SAML Subject"
+
+msgid "Identifiers.sorid"
+msgstr "System of Record"
+
+msgid "Identifiers.uid"
+msgstr "UID"
+
 msgid "Names.alternate"
 msgstr "Alternate"
 

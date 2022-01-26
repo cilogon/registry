@@ -256,7 +256,7 @@ class NamesTable extends Table {
     $permittedFields = $settings->name_permitted_fields_array();
     $requiredFields = $settings->name_required_fields_array();
     
-    // One of CO Person ID or Org Identity ID is required
+    // One of Person ID or External Identity ID is required
     $validator->add(
       'person_id',
       'content',

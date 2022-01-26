@@ -39,8 +39,14 @@ msgstr "{0,plural,=1{COU} other{COUs}}"
 msgid "Dashboards"
 msgstr "{0,plural,=1{Dashboard} other{Dashboards}}"
 
+msgid "EmailAddresses"
+msgstr "{0,plural,=1{Email Address} other{Email Addresses}}"
+
 msgid "ExternalIdentities"
 msgstr "{0,plural,=1{External Identity} other{External Identities}}"
+
+msgid "Identifiers"
+msgstr "{0,plural,=1{Identifier} other{Identifiers}}"
 
 msgid "Names"
 msgstr "{0,plural,=1{Name} other{Names}}"

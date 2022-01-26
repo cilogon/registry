@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry People Table
+ * COmanage Registry Email Addresses Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -29,20 +29,31 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \App\Lib\Enum\StatusEnum;
 
-class PeopleTable extends Table {
+class EmailAddressesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
+  
+  // Default "out of the box" types for this model. Entries here should be
+  // given a default localization in app/resources/locales/*/defaultType.po
+  protected $defaultTypes = [
+    'type' => [
+      'delivery',
+      'forwarding',
+      'list',
+      'official',
+      'personal',
+      'preferred',
+      'recovery'
+    ]
+  ];
   
   /**
    * Perform Cake Model initialization.
@@ -57,53 +68,34 @@ class PeopleTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // CO People are not configuration
+    // Identifiers are not configuration
     $this->setIsConfigurationTable(false);
     
     // Define associations
-    $this->belongsTo('Cos');
+    $this->belongsTo('People');
+    $this->belongsTo('ExternalIdentity');
+    $this->belongsTo('Types');
     
-    $this->hasOne('PrimaryName', [
-           'className' => 'Names'
-         ])
-         ->setConditions(['PrimaryName.primary_name' => true]);
-    $this->hasMany('Names')
-         ->setDependent(true);
-    $this->hasMany('EmailAddresses')
-         ->setDependent(true);
-    $this->hasMany('Identifiers')
-         ->setDependent(true);
+    $this->setDisplayField('mail');
     
-// XXX can we change this to Name?
-    $this->setDisplayField('id');
-    
-    $this->setPrimaryLink('co_id');
+// XXX note primary link is external_identity_id when set...
+    $this->setPrimaryLink('person_id');
+    $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['canvas']);
-    $this->setRedirectGoal('self');
-    
-// XXX does some of this stuff really belong in the controller?
-    $this->setEditContains(['PrimaryName']);
-    $this->setIndexContains(['PrimaryName']);
     
     $this->setAutoViewVars([
-      'statuses' => [
-        'type' => 'enum',
-        'class' => 'StatusEnum'
-      ],
       'types' => [
         'type' => 'type',
-        'attribute' => 'Names.type'
+        'attribute' => 'EmailAddresses.type'
       ]
     ]);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
-// See also CFM-126
       'entity' => [
-        'canvas' =>   ['platformAdmin', 'coAdmin'],
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'primary' =>  ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
@@ -115,58 +107,80 @@ class PeopleTable extends Table {
   }
   
   /**
-   * Table specific logic to generate a display field.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Person $entity Entity to generate display field for
-   * @return string         Display field
-   */
-  
-  public function generateDisplayField(\App\Model\Entity\Person $entity): string {
-    if(empty($entity->primary_name)) {
-      throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
-    }
-    
-    return $entity->primary_name->full_name;
-  }
-  
-  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0
    * @param  Validator $validator Validator
    * @return Validator            Validator
+   * @throws InvalidArgumentException
+   * @throws RecordNotFoundException
    */
   
   public function validationDefault(Validator $validator): Validator {
+    // One of Person ID or External Identity ID is required
     $validator->add(
-      'co_id',
+      'person_id',
       'content',
       [ 'rule' => 'isInteger' ]
     );
-    $validator->notEmptyString('co_id');
+    $validator->notEmptyString('person_id', null, function($context) {
+      return empty($context['data']['external_identity_id']);
+    });
     
     $validator->add(
-      'status',
+      'external_identity_id',
       'content',
-      [ 'rule' => [ 'inList', StatusEnum::getConstValues() ]]
+      [ 'rule' => 'isInteger' ]
     );
-    $validator->notEmptyString('status');
+    $validator->notEmptyString('external_identity_id', null, function($context) {
+      return empty($context['data']['person_id']);
+    });
     
     $validator->add(
-      'timezone',
+      'mail',
+      'length',
+      [ 'rule' => [ 'maxLength', 256 ] ]
+    );
+    $validator->add(
+      'mail',
       'content',
-      [ 'rule' => [ 'validateTimeZone' ],
+      [ 'rule' => [ 'email' ] ]
+    );
+    $validator->notEmptyString('mail');
+    
+    $validator->add(
+      'type_id',
+      'content',
+      [ 'rule' => 'isInteger' ]
+    );
+    $validator->notEmptyString('type_id');
+    
+    $validator->add(
+      'verified',
+      'content',
+      [ 'rule' => [ 'boolean' ] ]
+    );
+    $validator->allowEmptyString('verified');
+    
+    $validator->add(
+      'description',
+      'content',
+      [ 'rule' => [ 'maxLength', 128 ] ]
+    );
+    $validator->add(
+      'description',
+      'content',
+      [ 'rule'     => [ 'validateInput' ],
         'provider' => 'table' ]
     );
-    $validator->allowEmptyString('timezone');
+    $validator->allowEmptyString('description');
     
     $validator->add(
-      'date_of_birth',
+      'source_email_address_id',
       'content',
-      [ 'rule' => 'date' ]
+      [ 'rule' => 'isInteger' ]
     );
-    $validator->allowEmptyString('date_of_birth');
+    $validator->allowEmptyString('source_email_address_id');
     
     return $validator; 
   }

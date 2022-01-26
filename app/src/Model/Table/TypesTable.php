@@ -53,15 +53,15 @@ class TypesTable extends Table {
   protected $testVar = "123";
 
   protected $supportedAttributes = [
-//    'Address.type',
-//    'Department.type',
-//    'PersonRole.affiliation',
-//    'EmailAddress.type',
-//    'Identifier.type',
+//    'Addresses.type',
+//    'Departments.type',
+//    'PersonRoles.affiliation',
+    'EmailAddresses.type',
+    'Identifiers.type',
     'Names.type',
-//    'Organization.type',
-//    'TelephoneNumber.type',
-//    'Url.type'
+//    'Organizations.type',
+//    'TelephoneNumbers.type',
+//    'Urls.type'
   ];
   
   /**
@@ -84,6 +84,7 @@ class TypesTable extends Table {
     $this->belongsTo('Cos');
     $this->hasMany('CoSettings')
          ->setForeignKey('name_default_type_id');
+    $this->hasMany('EmailAddresses');
     $this->hasMany('Identifiers');
     $this->hasMany('Names');
 // XXX add other MVEA models

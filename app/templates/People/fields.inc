@@ -64,5 +64,27 @@ if($vv_action == 'add') {
     ['class' => 'linkbutton']
   );
   
+  print $this->Html->link(
+    __d('controller', 'EmailAddresses', [99]),
+    [ 'controller' => 'email_addresses',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+  
+  print $this->Html->link(
+    __d('controller', 'Identifiers', [99]),
+    [ 'controller' => 'identifiers',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+  
   // XXX add other MVEAs here
 }

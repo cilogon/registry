@@ -72,10 +72,19 @@ class CoSettingsTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
-    $this->belongsTo('Types')
-         ->setForeignKey('name_default_type_id')
+    $this->belongsTo('EmailAddressDefaultTypes')
+         ->setClassName('Types')
+         ->setForeignKey('email_address_default_type_id')
          // Property is set so ruleValidateCO can find it. We don't use the
          // _id suffix to match Cake's default pattern.
+         ->setProperty('email_address_default_type');
+    $this->belongsTo('IdentifierDefaultTypes')
+         ->setClassName('Types')
+         ->setForeignKey('identifier_default_type_id')
+         ->setProperty('identifier_default_type');
+    $this->belongsTo('NameDefaultTypes')
+         ->setClassName('Types')
+         ->setForeignKey('name_default_type_id')
          ->setProperty('name_default_type');
     
     $this->setDisplayField('co_id');
@@ -89,6 +98,14 @@ class CoSettingsTable extends Table {
       'addressRequiredFields' => [
         'type' => 'enum',
         'class' => 'RequiredAddressFieldsEnum'
+      ],
+      'emailAddressDefaultTypes' => [
+        'type' => 'type',
+        'attribute' => 'EmailAddresses.type'
+      ],
+      'identifierDefaultTypes' => [
+        'type' => 'type',
+        'attribute' => 'Identifiers.type'
       ],
       'nameDefaultTypes' => [
         'type' => 'type',

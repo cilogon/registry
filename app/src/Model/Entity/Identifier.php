@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry identifier Entity
+ * COmanage Registry Identifier Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -32,6 +32,8 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class identifier extends Entity {
+  use \App\Lib\Traits\MVETrait;
+  
   protected $_accessible = [
     '*' => true,
     'id' => false,
