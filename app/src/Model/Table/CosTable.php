@@ -165,6 +165,18 @@ class CosTable extends Table {
   }*/
   
   /**
+   * Find the COmanage CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  \Cake\ORM\Query $query Query
+   * @return \Cake\ORM\Query        Query
+   */
+  
+  public function findCOmanageCO(Query $query): Query {
+    return $query->where(['lower(name)' => 'comanage']);
+  }
+  
+  /**
    * Determine if this is a Read Only record.
    *
    * @since  COmanage Registry v5.0.0
@@ -172,7 +184,7 @@ class CosTable extends Table {
    * @return boolean         true if the entity is read only, false otherwise
    */
   
-  public function isReadOnly($entity) {
+  public function isReadOnly($entity): bool {
     // The COmanage CO is read only
     
     return $entity->isCOmanageCO();
@@ -187,7 +199,7 @@ class CosTable extends Table {
    * @return boolean          true if the Rule check passes, false otherwise
    */
   
-  public function ruleIsCOmanageCO($entity, $options) {
+  public function ruleIsCOmanageCO($entity, $options): bool {
     // We want negative logic since we want to fail if we're editing the COmanage CO
     if($entity->isCOmanageCO()) {
       return __d('error', 'edit.comanage');
@@ -205,7 +217,7 @@ class CosTable extends Table {
    * @return boolean          true if the Rule check passes, false otherwise
    */
   
-  public function ruleIsActive($entity, $options) {
+  public function ruleIsActive($entity, $options): bool {
     // We want negative logic since we want to fail if the record is Active
     if($entity->status == TemplateableStatusEnum::Active) {
       return __d('error', 'delete.active');
@@ -222,7 +234,7 @@ class CosTable extends Table {
    * @return bool     True on success
    */
   
-  public function setup(int $id) {
+  public function setup(int $id): bool {
     $Types = TableRegistry::getTableLocator()->get('Types');
     
     // AR-Type-1 Set up the default values for extended types

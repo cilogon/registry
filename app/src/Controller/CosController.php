@@ -42,6 +42,21 @@ class CosController extends StandardController {
     ]
   ];
   
+  /**
+   * Callback run prior to the view rendering.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   */
+    
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    // In order to get the sidebar to render we need to set the current CO,
+    // which for cos is the COmanage CO.
+    $this->set('vv_cur_co', $this->Cos->find('COmanageCO')->firstOrFail());
+    
+    return parent::beforeRender($event);
+  }
+  
   /*
    * XXX implement, also REST API
    *
