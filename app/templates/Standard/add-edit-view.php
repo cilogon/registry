@@ -41,6 +41,41 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
   <div class="pageTitle">
     <h1><?= $vv_title; ?></h1>
   </div>
+  <?php
+    // Action list for top menu dropdown / button listing
+    $action_args = array();
+    $action_args['vv_attr_id'] =  $vv_obj->id;
+    
+    // TODO: More actions in the config? Add them to $action_args['vv_actions'][] here.
+  
+    // Delete
+    if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
+      $actionPostBtnArray = ['action' => 'delete', $vv_obj->id];
+      $actionUrl = $this->Url->build(['action' => 'delete', $vv_obj->id]);
+      $action_args['vv_actions'][] = array(
+        'order' => $this->Menu->getMenuOrder('Delete'),
+        'icon' =>  $this->Menu->getMenuIcon('Delete'),
+        'url' => 'javascript:void(0);',
+        'label' => __d('operation', 'delete'),
+        'class' => 'deletebutton nospin',
+        'onclick' => array(
+          'dg_bd_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
+          'dg_post_btn_array' => $actionPostBtnArray,
+          'dg_url' => $actionUrl,
+          'dg_conf_btn' => __d('operation', 'remove'),
+          'dg_cancel_btn' => __d('operation', 'cancel'),
+          'dg_title' => __d('operation', 'remove'),
+          'dg_bd_txt_repl_str' => ''
+        )
+      );
+    }
+  
+    if(!empty($action_args['vv_actions'])) {
+      print '<div class="field-actions top-links">';
+      print $this->element('menuAction', $action_args);
+      print '</div>';
+    }
+  ?>
 </div>
 <?php
 // XXX this doesn't work yet because we don't include fields.inc until later
@@ -53,23 +88,6 @@ if(!empty($banners)) {
   <?php print $b; ?>
 </div>
 <?php endforeach; // $banners
-}
-?>
-<?php
-// XXX CO-647
-// XXX move delete to some form of buttons.inc?
-// XXX duplicates index.ctp though strangely this is working whereas index delete throws csrf error
-// This is a bit overlap with Elements/pageTitleAndButtons
-if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
-  print '<ul id="topLinks">';
-  print "<li>" . $this->Form->postLink(
-    __d('operation', 'delete'),
-    ['action' => 'delete', $vv_obj->id],
-// XXX should be configurable which field we put in, maybe displayField?
-    ['confirm' => __d('operation', 'confirm', [$vv_obj->id]),
-     'class'   => 'deletebutton']
-  ) . "</li>";
-  print "</ul>\n";
 }
 
 // By default, the form will POST to the current controller

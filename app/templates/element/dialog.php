@@ -35,7 +35,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2 class="modal-title" id="dialog-title"><?= __d('operation', 'confirm'); ?></h2>
-        <button type="button" class="btn-close nospin" data-bs-dismiss="modal" aria-label="<?= __d('operation', 'close'); ?>"/>
+        <button type="button" class="btn-close nospin" data-bs-dismiss="modal" aria-label="<?= __d('operation', 'close'); ?>"></button>
       </div>
       <div id="dialog-text" class="modal-body">
       </div>

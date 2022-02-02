@@ -49,6 +49,7 @@ class MenuHelper extends Helper {
     }
 
     $order = array(
+      'Add'           => 3,    // add_circle
       'View'          => 5,    // visibility
       'Edit'          => 10,   // edit
       'Default'       => 20,   // link - default starting order for arbitrary action menu items 
@@ -72,6 +73,7 @@ class MenuHelper extends Helper {
     }
 
     $icon = array(
+      'Add'           =>  'add_circle',
       'View'          =>  'visibility',
       'Edit'          =>  'edit',
       'Default'       =>  'link',  // default icon for arbitrary menu items

@@ -28,7 +28,7 @@
 $actionsCount = count($vv_actions);
 $actionsCountClass = $actionsCount > 0 ? ' actions-count-' . $actionsCount : '';
 $actionsMenuClass = 'field-actions-menu dropdown dropleft' . $actionsCountClass;
-$actionsMenuUid = md5($vv_attr_mdl . $vv_attr_id);
+$actionsMenuUid = md5($vv_attr_id);
 ?>
 
 <div id="action-menu_<?= $actionsMenuUid; ?>"
@@ -39,8 +39,8 @@ $actionsMenuUid = md5($vv_attr_mdl . $vv_attr_id);
     'class' => 'nospin action-menu-toggle',
     'escape' => false,
     'data-bs-toggle' => 'dropdown',
-    'aria-haspopup' => true,
-    'aria-expanded' => false,
+    'aria-haspopup' => 'true',
+    'aria-expanded' => 'false',
     'title' => __d('field', 'action')
   );
   print $this->Html->link(

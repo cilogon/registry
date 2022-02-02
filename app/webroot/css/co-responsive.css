@@ -242,6 +242,13 @@
   td.actions {
     text-align: left;
   }
+  /* EDIT / VIEW ACTION TOP MENU */
+  .field-actions.top-links {
+    align-self: end;
+  }
+  .field-actions.top-links .dropdown-menu {
+    min-width: 0;
+  }
   /* FOOTER */
   #co-footer {
     position: static;

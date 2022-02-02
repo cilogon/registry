@@ -301,7 +301,6 @@ function _column_key($modelsName, $c, $tz=null) {
 
           // Action list for command menu dropdown / button listing
           $action_args = array();
-          $action_args['vv_attr_mdl'] = "Index";
           $action_args['vv_attr_id'] =  $entity->id;
           
           // Edit
@@ -323,7 +322,7 @@ function _column_key($modelsName, $c, $tz=null) {
 
           // Insert additional actions as per the .inc file
           if(!empty($indexActions)) {
-
+// TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as indexActions 
 // XXX this isn't quite the right test
 //          if(isset($entity->status) && $entity->status == StatusEnum::Active) {
               $actionOrderDefault = $this->Menu->getMenuOrder('Default');

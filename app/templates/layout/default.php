@@ -179,7 +179,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Get timezone detection -->
     <?php print $this->Html->script('jstimezonedetect/jstz.min.js'); ?>
-    <script type="text/javascript">
+    <script>
       // Determines the time zone of the browser client
       var tz = jstz.determine();
       // This won't be available for the first delivered page, but after that the
