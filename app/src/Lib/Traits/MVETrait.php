@@ -39,9 +39,9 @@ trait MVETrait {
   
   public function whereClause(): array {
     if(!empty($this->person_id)) {
-      return ['person_id' => $this->person_id];
+      return [$this->getSource().'.person_id' => $this->person_id];
     } elseif(!empty($this->external_identity_id)) {
-      return ['external_identity_id' => $entity->external_identity_id];
+      return [$this->getSource().'.external_identity_id' => $entity->external_identity_id];
     } else {
       throw new \InvalidArgumentException(__d('error', 'notfound.person'));
     }

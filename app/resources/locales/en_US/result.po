@@ -24,11 +24,20 @@
 
 # Results
 
+msgid "added.mvea"
+msgstr "{0} {1} Added: {2}"
+
 msgid "deleted"
 msgstr "Deleted"
 
 msgid "deleted.a"
 msgstr "{0} Deleted"
+
+msgid "deleted.mvea"
+msgstr "{0} {1} Deleted: {2}"
+
+msgid "edited.mvea"
+msgstr "{0} {1} Edited: {2}"
 
 msgid "saved"
 msgstr "Saved"

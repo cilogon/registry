@@ -25,7 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only
+// This view does not currently support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('identifier');
 

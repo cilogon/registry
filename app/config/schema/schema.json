@@ -218,6 +218,24 @@
       },
       "mvea": [ "person", "external_identity" ],
       "sourced": true
+    },
+    
+    "history_records": {
+      "comment": "XXX not all foreign keys are defined yet",
+      
+      "columns": {
+        "id": {},
+        "action": { "type": "string", "size": 4 },
+        "comment": { "type": "string", "size": 256 },
+        "person_id": {},
+        "external_identity_id": {},
+        "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } }
+      },
+      "indexes": {
+        "history_records_i1": { "columns": [ "person_id" ] },
+        "history_records_i2": { "columns": [ "external_identity_id" ] },
+        "history_records_i3": { "columns": [ "actor_person_id" ] }
+      }
     }
   },
   

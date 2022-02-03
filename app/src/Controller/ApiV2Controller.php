@@ -278,7 +278,7 @@ class ApiV2Controller extends AppController {
     
     // We automatically allow API calls to be filtered on primary link
     if(!empty($link->attr) && !empty($link->value)) {
-      $query = $query->where([$link->attr => $link->value]);
+      $query = $query->where([$table->getAlias().'.'.$link->attr => $link->value]);
     }
     
     // This magically makes REST calls paginated... can use eg direction=,

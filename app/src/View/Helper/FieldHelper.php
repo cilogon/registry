@@ -254,32 +254,45 @@ class FieldHelper extends Helper {
   }
   
   /**
-   * Emit a status control (a read only status with an optional link button).
+   * Generate a status control (a read only status with an optional link button).
    * 
    * @since  Registry Registry v5.0.0
    * @param  string  $fieldName Form field
    * @param  string  $status    Status text
    * @param  array   $link      Link information, including 'url', 'label', 'class', 'confirm'
+   * @param  string  $labelText Label text (fieldName language key used by default)
    * @return string
    */
   
-  public function statusControl(string $fieldName, string $status, array $link=[]) {
-    $linkHtml = "";
+  public function statusControl(string $fieldName, string $status, array $link=[], string $labelText=null): string {
+    $linkHtml = $status;
     
     if($link) {
       // Construct HTML for the requested link
       
-// XXX use jquery instead?
-      $linkHtml = " " . $this->Html->link(
-        $link['label'],
-        $link['url'],
-        ['class' => $link['class'], 'confirm' => $link['confirm']]
-      );
+      if(!empty($link['label'])) {
+        // Create a separate link after $status
+        
+        $linkHtml .= " " . $this->Html->link(
+          $link['label'],
+          $link['url'],
+          $link
+        );
+      } else {
+        // Make $status the link
+        
+        $linkHtml = $this->Html->link(
+          $status,
+          $link['url'],
+          // Just pass whatever other args are specified
+          $link
+        );
+      }
     }
      
     return $this->startLine()
-           . $this->formNameDiv($fieldName)
-           . $status . $linkHtml
+           . $this->formNameDiv($fieldName, $labelText)
+           . $linkHtml
            . $this->endLine();
   }
   

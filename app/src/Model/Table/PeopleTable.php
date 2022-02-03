@@ -63,9 +63,8 @@ class PeopleTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
     
-    $this->hasOne('PrimaryName', [
-           'className' => 'Names'
-         ])
+    $this->hasOne('PrimaryName')
+         ->setClassName('Names')
          ->setConditions(['PrimaryName.primary_name' => true]);
     $this->hasMany('Names')
          ->setDependent(true);
@@ -83,7 +82,12 @@ class PeopleTable extends Table {
     $this->setRedirectGoal('self');
     
 // XXX does some of this stuff really belong in the controller?
-    $this->setEditContains(['PrimaryName']);
+    $this->setEditContains([
+      'PrimaryName',
+      'EmailAddresses',
+      'Identifiers',
+      'Names'
+    ]);
     $this->setIndexContains(['PrimaryName']);
     
     $this->setAutoViewVars([

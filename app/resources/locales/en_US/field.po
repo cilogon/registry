@@ -29,11 +29,17 @@
 msgid "action"
 msgstr "Action"
 
+msgid "actor"
+msgstr "Actor"
+
 msgid "api_key"
 msgstr "API Key"
 
 msgid "attribute"
 msgstr "Attribute"
+
+msgid "comment"
+msgstr "Comment"
 
 msgid "CoSettings.address_required_fields"
 msgstr "Address Required Fields"
@@ -53,6 +59,9 @@ msgstr "Name Permitted Fields"
 msgid "CoSettings.name_required_fields"
 msgstr "Name Required Fields"
 
+msgid "created"
+msgstr "Created"
+
 msgid "date_of_birth"
 msgstr "Date of Birth"
 
@@ -64,6 +73,9 @@ msgstr "Display Name"
 
 msgid "edupersonaffiliation"
 msgstr "eduPersonAffiliation"
+
+msgid "id"
+msgstr "ID"
 
 msgid "Types.edupersonaffiliation.desc"
 # XXX update link to PE wiki?

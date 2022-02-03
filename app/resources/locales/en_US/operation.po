@@ -25,7 +25,7 @@
 # Operations (Commands)
 
 msgid "add.a"
-msgstr "Add New {0}"
+msgstr "Add a New {0}"
 
 msgid "api.key.generate"
 msgstr "Generate API Key"

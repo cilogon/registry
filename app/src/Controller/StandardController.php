@@ -419,7 +419,7 @@ class StandardController extends AppController {
     if(!empty($link->attr)) {
       // If a link attribute is defined but no value is provided, then query
       // where the link attribute is NULL
-      $query = $table->find()->where([$link->attr => $link->value]);
+      $query = $table->find()->where([$table->getAlias().'.'.$link->attr => $link->value]);
     } else {
       $query = $table->find();
     }
@@ -523,7 +523,7 @@ class StandardController extends AppController {
 //     to PrimaryLinkTrait and call it there?
                   
                   if($v) {
-                    $query = $query->where([$linkFilter => $v]);
+                    $query = $query->where([$table->getAlias().'.'.$linkFilter => $v]);
                   }
                 }
               } else {
@@ -567,11 +567,10 @@ class StandardController extends AppController {
     // query modifications via traits
     $query = $table->findById($id);
     
-    // AssociationTrait
-/*
+    // QueryModificationTrait
     if(method_exists($table, "getViewContains")) {
       $query = $query->contain($table->getViewContains());
-    }*/
+    }
     
     try {
       // Pull the current record
@@ -581,7 +580,7 @@ class StandardController extends AppController {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
       
       $this->Flash->error($e->getMessage());
-      return $this->generateRedirect();
+      return $this->generateRedirect((int)$id);
     }
     
     $this->set('vv_obj', $obj);
@@ -593,13 +592,19 @@ class StandardController extends AppController {
     // We still used this in view() to map select values
     $this->populateAutoViewVars($obj);
     
-    // Default view title is view object display field
-    $field = $table->getDisplayField();
-    
-    if(!empty($obj->$field)) {
-      $this->set('vv_title', __d('operation', 'view.ai', $obj->$field, $id));
+    if(method_exists($table, 'generateDisplayField')) {
+      // We don't use a trait for this since each table will implement different logic
+      
+      $this->set('vv_title', __d('operation', 'view.ai', $table->generateDisplayField($obj), $id));
     } else {
-      $this->set('vv_title', __d('operation', 'view.ai', __d('controller', $modelsName, [1]), $id));
+      // Default view title is the object display field
+      $field = $table->getDisplayField();
+      
+      if(!empty($obj->$field)) {
+        $this->set('vv_title', __d('operation', 'view.ai', $obj->$field, $id));
+      } else {
+        $this->set('vv_title', __d('operation', 'view.ai', __d('controller', $modelsName, [1]), $id));
+      }
     }
     
     // Let the view render

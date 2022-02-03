@@ -29,16 +29,18 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
-use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
-use Cake\Validation\Validator;
+use \Cake\ORM\Query;
+use \Cake\ORM\RulesChecker;
+use \Cake\ORM\Table;
+use \Cake\ORM\TableRegistry;
+use \Cake\Validation\Validator;
+use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\LanguageEnum;
 
 class NamesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -65,9 +67,9 @@ class NamesTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Timestamp');
     
     // Names are not configuration
@@ -75,7 +77,7 @@ class NamesTable extends Table {
     
     // Define associations
     $this->belongsTo('People');
-    $this->belongsTo('ExternalIdentity');
+    $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
     
     $this->setDisplayField('full_name');
@@ -124,15 +126,20 @@ class NamesTable extends Table {
    */
     
   public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    // If we have a parent, we're creating a changelog archive, which we don't want to modify
+    if($entity->name_id) {
+      return true;
+    }
+    
+    $this->recordHistory($entity);
+    
     // AR-Name-1 A Person must have exactly one Primary Name at all times.
     // To enforce this, if the current $entity is flagged Primary Name, AND
     // the current entity is new or was not previously the Primary Name, we look
     // for any other names on the same Person or External Identity that are
     // flagged Primary and unset them.
     
-    if($entity->primary_name
-       // If we have a parent, we're creating a changelog archive, which we don't want to modify
-       && !$entity->name_id) {
+    if($entity->primary_name) {
       if($entity->isNew() || !$entity->getOriginal('primary_name')) {
         // We either have a brand new name flagged as primary, or a previously
         // existing name that has been updated to be primary. Unset any other primary_name.
@@ -156,6 +163,8 @@ class NamesTable extends Table {
           $this->save($obj);
         }
       }
+      
+      $this->recordHistory($entity, ActionEnum::NamePrimary, __d('result', 'Names.primary_name'));
     }
     
     return true;

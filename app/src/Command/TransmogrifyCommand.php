@@ -175,6 +175,20 @@ class TransmogrifyCommand extends Command {
         'co_department_id' => null,
         'organization_id' => null
       ]
+    ],
+    'history_records' => [
+      'source' => 'cm_history_records',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id',
+        'actor_co_person_id' => 'actor_person_id',
+// XXX temporary until tables are migrated
+        'co_person_role_id' => null,
+        'co_group_id' => null,
+        'co_email_list_id' => null,
+        'co_service_id' => null
+      ]
     ]
   ];
   

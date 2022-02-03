@@ -86,5 +86,18 @@ if($vv_action == 'add') {
     ['class' => 'linkbutton']
   );
   
+  print $this->Html->link(
+    __d('controller', 'HistoryRecords', [99]),
+    [ 'controller' => 'history_records',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+  
   // XXX add other MVEAs here
+  
+  debug($vv_obj);
 }

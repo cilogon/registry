@@ -35,6 +35,7 @@ use Cake\Validation\Validator;
 class EmailAddressesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -73,7 +74,7 @@ class EmailAddressesTable extends Table {
     
     // Define associations
     $this->belongsTo('People');
-    $this->belongsTo('ExternalIdentity');
+    $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
     
     $this->setDisplayField('mail');
@@ -104,6 +105,22 @@ class EmailAddressesTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+  }
+  
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    $this->recordHistory($entity);
+    
+    return true;
   }
   
   /**

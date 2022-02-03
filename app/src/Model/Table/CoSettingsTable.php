@@ -149,7 +149,7 @@ class CoSettingsTable extends Table {
   public function addDefaults(int $coId): int {
     // Default values for each setting
     
-    $defaultSettings = array(
+    $defaultSettings = [
       'co_id'                   => $coId,
       'address_required_fields' => RequiredAddressFieldsEnum::Street,
       'name_default_type_id'    => null,
@@ -174,7 +174,7 @@ class CoSettingsTable extends Table {
       // 'theme_stacking'             => SuspendableStatusEnum::Suspended,
       // 'co_theme_id'                => null,
       // 'global_search_limit'        => DEF_GLOBAL_SEARCH_LIMIT
-    );
+    ];
     
     $obj = $this->newEntity($defaultSettings);
     

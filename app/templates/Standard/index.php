@@ -33,12 +33,13 @@
 declare(strict_types = 1);
 
 //use \App\Lib\Enum\StatusEnum;
+use \Cake\Utility\Inflector;
 
 // $this->name = Models
 $modelsName = $this->name;
 // $tablename = models
 // XXX backport to match?
-$tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
+$tableName = Inflector::tableize(Inflector::singularize($this->name));
 
 // Do we have records for this index? This will be set to true during render if we do.
 // Otherwise, we'll print out a "no records" message.
@@ -60,7 +61,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
 function _column_key($modelsName, $c, $tz=null) {
   if(strpos($c, "_id", strlen($c)-3)) {
     // Key is of the form field_id, use .ct label instead
-    $k = \Cake\Utility\Inflector::classify(\Cake\Utility\Inflector::pluralize(substr($c, 0, strlen($c)-3)));
+    $k = Inflector::classify(Inflector::pluralize(substr($c, 0, strlen($c)-3)));
     
     return __d('controller' ,$k, [1]);
   }
@@ -198,6 +199,7 @@ function _column_key($modelsName, $c, $tz=null) {
               }
               break;
             case 'datetime':
+  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
               print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
               break;
             case 'enum':
@@ -211,7 +213,7 @@ function _column_key($modelsName, $c, $tz=null) {
               // AutoViewVar $foos is set, and if so render the lookup value instead
               $f = null;
               if(preg_match('/^(.*?)_id$/', $col, $f)) {
-                $avv = \Cake\Utility\Inflector::variable(\Cake\Utility\Inflector::pluralize($f[1]));
+                $avv = Inflector::variable(Inflector::pluralize($f[1]));
                 
                 if(!empty(${$avv}[$entity->$col])) {
                   // We found the viewvar (eg: $foos), and it has a corresponding value
@@ -259,6 +261,7 @@ function _column_key($modelsName, $c, $tz=null) {
               }
               break;
             case 'link':
+            case 'relatedLink':
             case 'echo':
             default:
               // By default our label is the column value, but it might be overridden
@@ -268,20 +271,54 @@ function _column_key($modelsName, $c, $tz=null) {
                 $m = $cfg['model'];
                 $f = $cfg['field'];
                 
-                if(!empty($entity->$m->$f)) {
-                  $label = $entity->$m->$f . $suffix;
+                if(!empty($cfg['submodel'])) {
+                  // We have a related model, eg actor_person.primary_name
+                  $sm = $cfg['submodel'];
+                  
+                  if(!empty($entity->$m->$sm->$f)) {
+                    $label = $entity->$m->$sm->$f . $suffix;
+                  }
+                } else {
+                  if(!empty($entity->$m->$f)) {
+                    $label = $entity->$m->$f . $suffix;
+                  }
                 }
               }
               
               $linked = false;
               
+              // $linkActions can be overridden in columns.inc to apply to all
+              // generated links, or $cfg['action'] can be set to apply only to
+              // a specific field (column).
+              $tryActions = (!empty($cfg['action']) ? [ $cfg['action'] ] : $linkActions);
+              
               if($cfg['type'] == 'link') {
-                foreach($linkActions as $a) {
+                foreach($tryActions as $a) {
                   // Does this user have permission for this action?
                   if($vv_permission_set[$entity->id][$a]) {
                     print $this->Html->link($label, ['action' => $a, $entity->id]);
                     $linked = true;
                     break 2;
+                  }
+                }
+              } elseif($cfg['type'] == 'relatedLink') {
+                $m = $cfg['model'];
+                
+                if(!empty($entity->$m->id)) {
+                  // We need the controller for the related entity, however $m
+                  // might be an alias and $entity->getSource() returns the
+                  // aliased class name. So we use PHP's get_class instead.
+                  $c = Inflector::tableize(substr(get_class($entity->$m), strrpos(get_class($entity->$m), '\\')+1));
+                  
+                  foreach($tryActions as $a) {
+                    // Does this user have permission for this action?
+// XXX we actually need to know the permissions on the target (ie: actor person)
+                    if(true ||
+                       $vv_permission_set[$entity->id][$a]) {
+                      print $this->Html->link($label, ['controller' => $c, 'action' => $a, $entity->$m->id]);
+                      $linked = true;
+                      break 2;
+                    }
                   }
                 }
               }
@@ -291,7 +328,6 @@ function _column_key($modelsName, $c, $tz=null) {
                 print $label;
               }
               break;
-  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
           }
         ?>
       </td>

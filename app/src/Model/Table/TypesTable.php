@@ -221,6 +221,20 @@ class TypesTable extends Table {
   }
   
   /**
+   * Obtain the type label for a given type entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int     $id Type ID
+   * @return string      Type value (label)
+   */
+  
+  public function getTypeLabel(int $id): string {
+    $type = $this->get($id);
+    
+    return $type->value;
+  }
+  
+  /**
    * Determine if this type is in use.
    *
    * @since  COmanage Registry v5.0.0

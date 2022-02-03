@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Identifiers Table
+ * COmanage Registry History Records Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -31,42 +31,14 @@ namespace App\Model\Table;
 
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \App\Lib\Enum\SuspendableStatusEnum;
 
-class IdentifiersTable extends Table {
-  use \App\Lib\Traits\AutoViewVarsTrait;
+class HistoryRecordsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
-  use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
-  use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
-  
-  // Default "out of the box" types for this model. Entries here should be
-  // given a default localization in app/resources/locales/*/defaultType.po
-  protected $defaultTypes = [
-    'type' => [
-      'badge',
-      'enterprise',
-      'eppn',
-      'eptid',
-      'epuid',
-      'gid',
-      'mail',
-      'national',
-      'network',
-      'oidcsub',
-      'openid',
-      'orcid',
-      'provisioningtarget',
-      'reference',
-      'pairwiseid',
-      'subjectid',
-      'sorid',
-      'uid'
-    ]
-  ];
   
   /**
    * Perform Cake Model initialization.
@@ -81,38 +53,49 @@ class IdentifiersTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Identifiers are not configuration
+    // History Records are not configuration
     $this->setIsConfigurationTable(false);
     
     // Define associations
+    $this->belongsTo('ActorPeople')
+         ->setClassName('People')
+         ->setForeignKey('actor_person_id')
+         // Property is set so ruleValidateCO can find it. We don't use the
+         // _id suffix to match Cake's default pattern.
+         ->setProperty('actor_person');
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
-    $this->belongsTo('Types');
     
-    $this->setDisplayField('identifier');
+    $this->setDisplayField('comment');
     
 // XXX note primary link is external_identity_id when set...
+// or the other fields as we add them
     $this->setPrimaryLink('person_id');
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     
-    $this->setAutoViewVars([
-      'types' => [
-        'type' => 'type',
-        'attribute' => 'Identifiers.type'
-      ],
-      'statuses' => [
-        'type' => 'enum',
-        'class' => 'TemplateableStatusEnum'
-      ]
+// XXX does some of this stuff really belong in the controller?
+    // Cake appears to incorrectly use the ActorPeople foreign key definition
+    // even though the relation to PrimaryName is for People. There's probably
+    // a patch that needs to be made, but for now we'll just force the foreign
+    // key back.
+    $this->setEditContains(['ActorPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']]]);
+    $this->setIndexContains(['ActorPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']]]);
+    $this->setViewContains([
+      'People' => ['PrimaryName'],
+      // contain results in a join when the relation is belongsTo (or hasOne),
+      // and joining the same table twice makes the database unhappy, so we
+      // force ActorPeople to use multiple queries.
+      'ActorPeople' => ['Names' => ['queryBuilder' => function ($q) {
+        return $q->where(['primary_name' => true]);
+      }]]
     ]);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'primary' =>  ['platformAdmin', 'coAdmin'],
+        'delete' =>   false,
+        'edit' =>     false,
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
@@ -124,19 +107,42 @@ class IdentifiersTable extends Table {
   }
   
   /**
-   * Callback after model save.
+   * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  EventInterface  $event   Event
-   * @param  EntityInterface $entity  Entity (ie: Co)
-   * @param  ArrayObject     $options Save options
-   * @return bool                     True on success
+   * @param  HistoryRecord $entity Entity to generate display field for
+   * @return string                Display field
    */
+
+  public function generateDisplayField(\App\Model\Entity\HistoryRecord $entity): string {
+    // Comments may be too long to render, so we just use the model name
+    // (which will get appended with the record ID)
+
+    return __d('controller', 'HistoryRecords', [1]);
+  }
+  
+  /**
+   * Record a History Record entry for a Person.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $personId Person ID
+   * @param  string $action   Action
+   * @param  string $comment  Comment
+   * @return int              History Record ID
+   */
+  
+  public function recordForPerson(int $personId, string $action, string $comment): int {
+    $record = [
+      'person_id' => $personId,
+      'action'    => $action,
+      'comment'   => $comment
+    ];
     
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    $this->recordHistory($entity);
+    $obj = $this->newEntity($record);
     
-    return true;
+    $this->save($obj);
+    
+    return $obj->id;
   }
   
   /**
@@ -151,6 +157,7 @@ class IdentifiersTable extends Table {
   
   public function validationDefault(Validator $validator): Validator {
     // One of Person ID or External Identity ID is required
+// XXX or the other fields as we add them
     $validator->add(
       'person_id',
       'content',
@@ -170,46 +177,18 @@ class IdentifiersTable extends Table {
     });
     
     $validator->add(
-      'identifier',
+      'action',
       'length',
-      [ 'rule' => [ 'maxLength', 512 ] ]
+      [ 'rule' => [ 'maxLength', 4 ] ]
     );
-    $validator->add(
-      'identifier',
-      'content',
-      // Identifier must have at least one non-space character in order to avoid
-      // errors (eg: with provisioning ldap)
-      [ 'rule' => [ 'notBlank' ] ]
-    );
-    $validator->notEmptyString('identifier');
+    $validator->notEmptyString('action');
     
     $validator->add(
-      'type_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
+      'comment',
+      'length',
+      [ 'rule' => [ 'maxLength', 256 ] ]
     );
-    $validator->notEmptyString('type_id');
-    
-    $validator->add(
-      'login',
-      'content',
-      [ 'rule' => [ 'boolean' ] ]
-    );
-    $validator->allowEmptyString('login');
-    
-    $validator->add(
-      'status',
-      'content',
-      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
-    );
-    $validator->notEmptyString('status');
-    
-    $validator->add(
-      'source_identifier_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->allowEmptyString('source_identifier_id');
+    $validator->notEmptyString('comment');
     
     return $validator; 
   }

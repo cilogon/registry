@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Name Fields
+ * COmanage Registry Action Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,25 +25,16 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  // Dynamic required fields is automatically handled by FormHelper via the
-  // validation rules, but we need to manually check permitted fields.
+declare(strict_types = 1);
 
-  foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
-    if(in_array($f, $vv_permitted_fields)) {
-      print $this->Field->control($f);
-    }
-  }
+namespace App\Lib\Enum;
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
-
-  print $this->Field->control('language');
-
-  print $this->Field->control('display_name');
-  
-  // We don't allow unsetting of primary_name here because we need to know what
-  // the new primary_name is, but we do allow this name to become primary
-  // because afterSave will unset the old one.
-  print $this->Field->control('primary_name', ['readonly' => $vv_obj->primary_name]);
+class ActionEnum extends StandardEnum {
+  // Codes beginning with 'X' (eg: 'XABC') are reserved for local use
+  // Codes beginning with a lowercase 'p' (eg: 'pABC') are reserved for plugin use
+  const CommentAdded      = 'CMNT';
+  const MVEAAdded         = 'AMVE';
+  const MVEADeleted       = 'DMVE';
+  const MVEAEdited        = 'EMVE';
+  const NamePrimary       = 'PNAM';
 }
