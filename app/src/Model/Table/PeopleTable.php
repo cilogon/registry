@@ -68,9 +68,19 @@ class PeopleTable extends Table {
          ->setConditions(['PrimaryName.primary_name' => true]);
     $this->hasMany('Names')
          ->setDependent(true);
+    $this->hasMany('Addresses')
+         ->setDependent(true);
+    $this->hasMany('AdHocAttributes')
+         ->setDependent(true);
     $this->hasMany('EmailAddresses')
          ->setDependent(true);
     $this->hasMany('Identifiers')
+         ->setDependent(true);
+    $this->hasMany('PersonRoles')
+         ->setDependent(true);
+    $this->hasMany('TelephoneNumbers')
+         ->setDependent(true);
+    $this->hasMany('Urls')
          ->setDependent(true);
     
 // XXX can we change this to Name?
@@ -84,9 +94,14 @@ class PeopleTable extends Table {
 // XXX does some of this stuff really belong in the controller?
     $this->setEditContains([
       'PrimaryName',
+      'Addresses',
+      'AdHocAttributes',
       'EmailAddresses',
       'Identifiers',
-      'Names'
+      'Names',
+      'PersonRoles',
+      'TelephoneNumbers',
+      'Urls'
     ]);
     $this->setIndexContains(['PrimaryName']);
     
@@ -143,33 +158,25 @@ class PeopleTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add(
-      'co_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('co_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmptyString('co_id');
     
-    $validator->add(
-      'status',
-      'content',
-      [ 'rule' => [ 'inList', StatusEnum::getConstValues() ]]
-    );
+    $validator->add('status', [
+      'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('status');
     
-    $validator->add(
-      'timezone',
-      'content',
-      [ 'rule' => [ 'validateTimeZone' ],
-        'provider' => 'table' ]
-    );
+    $validator->add('timezone', [
+      'content' => ['rule' => ['validateTimeZone'],
+                    'provider' => 'table' ]
+    ]);
     $validator->allowEmptyString('timezone');
     
-    $validator->add(
-      'date_of_birth',
-      'content',
-      [ 'rule' => 'date' ]
-    );
+    $validator->add('date_of_birth', [
+      'content' => ['rule' => 'date']
+    ]);
     $validator->allowEmptyString('date_of_birth');
     
     return $validator; 

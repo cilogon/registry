@@ -53,15 +53,15 @@ class TypesTable extends Table {
   protected $testVar = "123";
 
   protected $supportedAttributes = [
-//    'Addresses.type',
+    'Addresses.type',
 //    'Departments.type',
-//    'PersonRoles.affiliation',
+    'PersonRoles.affiliation',
     'EmailAddresses.type',
     'Identifiers.type',
     'Names.type',
 //    'Organizations.type',
-//    'TelephoneNumbers.type',
-//    'Urls.type'
+    'TelephoneNumbers.type',
+    'Urls.type'
   ];
   
   /**
@@ -84,9 +84,12 @@ class TypesTable extends Table {
     $this->belongsTo('Cos');
     $this->hasMany('CoSettings')
          ->setForeignKey('name_default_type_id');
+    $this->hasMany('Addresses');
     $this->hasMany('EmailAddresses');
     $this->hasMany('Identifiers');
     $this->hasMany('Names');
+    $this->hasMany('TelephoneNumbers');
+    $this->hasMany('Urls');
 // XXX add other MVEA models
     
     $this->setDisplayField('display_name');
@@ -309,57 +312,36 @@ class TypesTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add(
-      'co_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $schema = $this->getSchema();
+    
+    $validator->add('co_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmptyString('co_id');
     
-    $validator->add(
-      'attribute',
-      'content',
-      [ 'rule' => [ 'inList', $this->supportedAttributes ] ]
-    );
+    $validator->add('attribute', [
+      'content' => ['rule' => ['inList', $this->supportedAttributes]]
+    ]);
     $validator->notEmptyString('attribute');
     
-    $validator->add(
-      'value',
-      'length',
-      [ 'rule' => [ 'maxLength', 32 ] ]
-    );
-    $validator->add(
-      'value',
-      'content',
-      [ 'rule' => [ 'custom', '/^[a-zA-Z0-9\-\.]+$/' ] ]
-    );
+    $validator->add('value', [
+      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('value')]],
+                   'provider' => 'table'],
+      'value'  => ['rule'    => ['custom', '/^[a-zA-Z0-9\-\.]+$/'],
+                   'message' => __d('error', 'input.invalid.url')]
+    ]);
     $validator->notEmptyString('value');
     
-    $validator->add(
-      'display_name',
-      'length',
-      [ 'rule' => [ 'maxLength', 64 ] ]
-    );
-    $validator->add(
-      'display_name',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->notEmptyString('display_name');
+    $this->registerStringValidation($validator, $schema, 'display_name', true);
     
-    $validator->add(
-      'edupersonaffiliation',
-      'content',
-      [ 'rule' => [ 'inList', EduPersonAffiliationEnum::getConstValues() ] ]
-    );
+    $validator->add('edupersonaffiliation', [
+      'content' => ['rule' => ['inList', EduPersonAffiliationEnum::getConstValues()]]
+    ]);
     $validator->allowEmptyString('edupersonaffiliation');
     
-    $validator->add(
-      'status',
-      'content',
-      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
-    );
+    $validator->add('status', [
+      'content' => ['rule' => ['inList', SuspendableStatusEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('status');
     
     return $validator; 

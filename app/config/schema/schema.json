@@ -10,11 +10,14 @@
     
     "columns": {
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
+      "cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
       "description": { "type": "string", "size": 128 },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
+      "language": { "type": "string", "size": 16 },
       "name": { "type": "string", "size": 128, "notnull": true },
       "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+      "person_role_id": { "type": "integer", "foreignkey": { "table": "person_roles", "column": "id" } },
       "status": { "type": "string", "size": 2 },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "valid_from": { "type": "datetime" },
@@ -62,11 +65,15 @@
         "id": {},
         "co_id": {},
         "address_required_fields": { "type": "string", "size": 160 },
+        "address_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "email_address_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "identifier_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "name_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "name_permitted_fields": { "type": "string", "size": 160 },
-        "name_required_fields": { "type": "string", "size": 160 }
+        "name_required_fields": { "type": "string", "size": 160 },
+        "telephone_number_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "telephone_number_permitted_fields": { "type": "string", "size": 160 },
+        "url_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } }
       },
       "indexes": {
         "co_settings_i1": { "columns": [ "co_id" ]},
@@ -78,7 +85,10 @@
           "columns": [ "name_default_type_id" ]
         },
         "co_settings_i3": { "columns": [ "email_address_default_type_id" ] },
-        "co_settings_i4": { "columns": [ "identifier_default_type_id" ] }
+        "co_settings_i4": { "columns": [ "identifier_default_type_id" ] },
+        "co_settings_i5": { "columns": [ "address_default_type_id" ] },
+        "co_settings_i6": { "columns": [ "telephone_number_default_type_id" ] },
+        "co_settings_i7": { "columns": [ "url_default_type_id" ] }
       }
     },
     
@@ -146,8 +156,37 @@
       }
     },
     
+    "person_roles": {
+      "columns": {
+        "id": {},
+        "person_id": { "notnull": true },
+        "status": {},
+        "ordr": { "type": "integer" },
+        "cou_id": {},
+        "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "title": { "type": "string", "size": 128 },
+        "organization": { "type": "string", "size": 128 },
+        "department": { "type": "string", "size": 128 },
+        "manager_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "sponsor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "valid_from": {},
+        "valid_through": {}
+      },
+      "indexes": {
+        "person_roles_i1": { "columns": [ "person_id" ] },
+        "person_roles_i2": { "columns": [ "sponsor_person_id" ] },
+        "person_roles_i3": { "columns": [ "cou_id" ] },
+        "person_roles_i4": { "columns": [ "affiliation_type_id" ] },
+        "person_roles_i5": { "columns": [ "manager_person_id" ] }
+      }
+    },
+    
     "external_identities": {
-      "comment": "XXX most of these fields are going to move to person_roles instead",
+      "comment": [
+        "XXX most of these fields are going to move to person_roles instead",
+        "XXX how is manager_identifier and sponsor_identifier going to work? we can fk from people but not external_identities",
+        "XXX affiliation should become affiliation_type_id"
+      ],
       
       "columns": {
         "id": {},
@@ -158,6 +197,8 @@
         "title": { "type": "string", "size": 128 },
         "organization": { "type": "string", "size": 128 },
         "department": { "type": "string", "size": 128 },
+        "manager_identifier": { "type": "string", "size": 512 },
+        "sponsor_identifier": { "type": "string", "size": 512 },
         "valid_from": {},
         "valid_through": {}
       },
@@ -175,12 +216,64 @@
         "family": { "type": "string", "size": 128 },
         "suffix": { "type": "string", "size": 32 },
         "type_id": {},
-        "language": { "type": "string", "size": 16 },
+        "language": {},
         "primary_name": { "type": "boolean" },
         "display_name": { "type": "string", "size": 256 }
       },
       "indexes": {
         "names_i1": { "columns": [ "type_id" ] }
+      },
+      "mvea": [ "person", "external_identity" ],
+      "sourced": true
+    },
+    
+    "ad_hoc_attributes": {
+      "comment": "we use 'tag' instead of 'key' since the latter is reserved by mysql",
+      
+      "columns": {
+        "id": {},
+        "tag": { "type": "string", "size": 128 },
+        "value": { "type": "string", "size": 256 }
+      },
+      "indexes": {
+        "ad_hoc_attributes_i1": { "columns": [ "tag" ] }
+      },
+      "mvea": [ "person", "person_role", "external_identity" ],
+      "sourced": true
+    },
+    
+    "addresses": {
+      "columns": {
+        "id": {},
+        "street": { "type": "text" },
+        "room": { "type": "string", "size": 64 },
+        "locality": { "type": "string", "size": 128 },
+        "state": { "type": "string", "size": 128 },
+        "postal_code": { "type": "string", "size": 16 },
+        "country": { "type": "string", "size": 128 },
+        "description": {},
+        "type_id": {},
+        "language": {}
+      },
+      "indexes": {
+        "addresses_i1": { "columns": [ "type_id" ] }
+      },
+      "mvea": [ "person", "person_role", "external_identity" ],
+      "sourced": true
+    },
+    
+    "email_addresses": {
+      "columns": {
+        "id": {},
+        "mail": { "type": "string", "size": 256 },
+        "description": {},
+        "type_id": {},
+        "verified": { "type": "boolean" }
+      },
+      "indexes": {
+        "email_addresses_i1": { "columns": [ "mail", "type_id", "person_id" ] },
+        "email_addresses_i2": { "columns": [ "mail", "type_id", "external_identity_id" ] },
+        "email_addresses_i3": { "columns": [ "type_id" ] }
       },
       "mvea": [ "person", "external_identity" ],
       "sourced": true
@@ -203,18 +296,32 @@
       "sourced": true
     },
     
-    "email_addresses": {
+    "telephone_numbers": {
       "columns": {
         "id": {},
-        "mail": { "type": "string", "size": 256 },
+        "country_code": { "type": "string", "size": 3 },
+        "area_code": { "type": "string", "size": 8 },
+        "number": { "type": "string", "size": 64 },
+        "extension": { "type": "string", "size": 16 },
         "description": {},
-        "type_id": {},
-        "verified": { "type": "boolean" }
+        "type_id": {}
       },
       "indexes": {
-        "email_addresses_i1": { "columns": [ "mail", "type_id", "person_id" ] },
-        "email_addresses_i2": { "columns": [ "mail", "type_id", "external_identity_id" ] },
-        "email_addresses_i3": { "columns": [ "type_id" ] }
+        "telephone_numbers_i1": { "columns": [ "type_id" ] }
+      },
+      "mvea": [ "person", "person_role", "external_identity" ],
+      "sourced": true
+    },
+    
+    "urls": {
+      "columns": {
+        "id": {},
+        "url": { "type": "string", "size": 256 },
+        "description": {},
+        "type_id": {}
+      },
+      "indexes": {
+        "urls_i1": { "columns": [ "type_id" ] }
       },
       "mvea": [ "person", "external_identity" ],
       "sourced": true
@@ -228,6 +335,7 @@
         "action": { "type": "string", "size": 4 },
         "comment": { "type": "string", "size": 256 },
         "person_id": {},
+        "person_role_id": {},
         "external_identity_id": {},
         "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } }
       },

@@ -36,12 +36,8 @@ if($vv_action == 'add') {
       print $this->Field->control('names.0.'.$f, ['required' => in_array($f, $vv_required_name_fields)]);
     }
   }
-
+  
   print $this->Field->control('names.0.type_id', ['empty' => false, 'default' => $vv_default_name_type]);
-  
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->control('date_of_birth');
   
   // AR-Name-1 Since this is the first name for this Person, it must be
   // designated primary
@@ -87,6 +83,17 @@ if($vv_action == 'add') {
   );
   
   print $this->Html->link(
+    __d('controller', 'PersonRoles', [99]),
+    [ 'controller' => 'person_roles',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+  
+  print $this->Html->link(
     __d('controller', 'HistoryRecords', [99]),
     [ 'controller' => 'history_records',
       'action' => 'index', 
@@ -97,7 +104,55 @@ if($vv_action == 'add') {
     ['class' => 'linkbutton']
   );
   
-  // XXX add other MVEAs here
+  print $this->Html->link(
+    __d('controller', 'AdHocAttributes', [99]),
+    [ 'controller' => 'ad_hoc_attributes',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+
+  print $this->Html->link(
+    __d('controller', 'Addresses', [99]),
+    [ 'controller' => 'addresses',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+
+  print $this->Html->link(
+    __d('controller', 'TelephoneNumbers', [99]),
+    [ 'controller' => 'telephone_numbers',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+
+  print $this->Html->link(
+    __d('controller', 'Urls', [99]),
+    [ 'controller' => 'urls',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
   
   debug($vv_obj);
+}
+
+if($vv_action == 'add' || $vv_action == 'canvas') {
+  print $this->Field->control('status', ['empty' => false]);
+  
+  print $this->Field->control('date_of_birth');
 }

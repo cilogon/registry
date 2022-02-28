@@ -35,6 +35,8 @@ use Cake\ORM\Entity;
 // collection of settings for a given CO, but it's easier not to fight
 // Cake's inflection.
 class CoSetting extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  
   protected $_accessible = [
     '*' => true,
     'id' => false,
@@ -42,10 +44,21 @@ class CoSetting extends Entity {
   ];
   
   /**
+   * Obtain the set of fields required for addresses, as an array.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of required addresses fields
+   */
+  
+  public function address_required_fields_array(): array {
+    return explode(",", $this->address_required_fields);
+  }
+    
+  /**
    * Obtain the set of fields permitted for names, as an array.
    *
    * @since  COmanage Registry v5.0.0
-   * @return array Arroy of permitted name fields
+   * @return array Array of permitted name fields
    */
   
   public function name_permitted_fields_array(): array {
@@ -56,10 +69,21 @@ class CoSetting extends Entity {
    * Obtain the set of fields required for names, as an array.
    *
    * @since  COmanage Registry v5.0.0
-   * @return array Arroy of required name fields
+   * @return array Array of required name fields
    */
   
   public function name_required_fields_array(): array {
     return explode(",", $this->name_required_fields);
+  }
+  
+  /**
+   * Obtain the set of fields permitted for telephone numbers, as an array.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of permitted telephone number fields
+   */
+  
+  public function telephone_number_permitted_fields_array(): array {
+    return explode(",", $this->telephone_number_permitted_fields);
   }
 }

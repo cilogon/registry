@@ -33,7 +33,6 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \App\Lib\Enum\TemplateableStatusEnum;
 
 class CousTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -174,58 +173,30 @@ class CousTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add(
-      'co_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $schema = $this->getSchema();
+    
+    $validator->add('co_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmptyString('co_id');
     
-    $validator->add(
-      'name',
-      'length',
-      [ 'rule' => [ 'maxLength', 128 ] ]
-    );
-    $validator->add(
-      'name',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->notEmptyString('name');
+    $this->registerStringValidation($validator, $schema, 'name', true);
     
-    $validator->add(
-      'description',
-      'length',
-      [ 'rule' => [ 'maxLength', 128 ] ]
-    );
-    $validator->add(
-      'description',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->allowEmptyString('description');
+    $this->registerStringValidation($validator, $schema, 'description', false);
     
-    $validator->add(
-      'parent_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('parent_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('parent_id');
     
-    $validator->add(
-      'lft',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('lft', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('lft');
     
-    $validator->add(
-      'rght',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('rght', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('rght');
     
     return $validator; 

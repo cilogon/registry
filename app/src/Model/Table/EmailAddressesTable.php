@@ -69,7 +69,7 @@ class EmailAddressesTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Identifiers are not configuration
+    // Email Addresses are not configuration
     $this->setIsConfigurationTable(false);
     
     // Define associations
@@ -134,69 +134,32 @@ class EmailAddressesTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    // One of Person ID or External Identity ID is required
-    $validator->add(
-      'person_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('person_id', null, function($context) {
-      return empty($context['data']['external_identity_id']);
-    });
+    $schema = $this->getSchema();
     
-    $validator->add(
-      'external_identity_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('external_identity_id', null, function($context) {
-      return empty($context['data']['person_id']);
-    });
+    $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
-    $validator->add(
-      'mail',
-      'length',
-      [ 'rule' => [ 'maxLength', 256 ] ]
-    );
-    $validator->add(
-      'mail',
-      'content',
-      [ 'rule' => [ 'email' ] ]
-    );
+    $this->registerStringValidation($validator, $schema, 'mail', true);
+    $validator->add('mail', [
+      'content' => ['rule'    => ['email'],
+                    'message' => __d('error', 'input.invalid.email')]
+    ]);
     $validator->notEmptyString('mail');
     
-    $validator->add(
-      'type_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmptyString('type_id');
     
-    $validator->add(
-      'verified',
-      'content',
-      [ 'rule' => [ 'boolean' ] ]
-    );
+    $validator->add('verified', [
+      'content' => ['rule' => ['boolean']]
+    ]);
     $validator->allowEmptyString('verified');
     
-    $validator->add(
-      'description',
-      'content',
-      [ 'rule' => [ 'maxLength', 128 ] ]
-    );
-    $validator->add(
-      'description',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->allowEmptyString('description');
+    $this->registerStringValidation($validator, $schema, 'description', false);
     
-    $validator->add(
-      'source_email_address_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('source_email_address_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('source_email_address_id');
     
     return $validator; 

@@ -31,6 +31,28 @@ namespace App\Lib\Traits;
 
 trait MVETrait {
   /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return boolean  True if the entity is read only, false otherwise
+   */
+  
+  public function isMVEReadOnly(): bool {
+    // Records pipelined from an EIS are read only
+    
+    // The class name is something like `\App\Model\Entity\Name', but we just
+    // want name (lowercased).
+    $entityName = \Cake\Utility\Inflector::underscore(substr(strrchr(get_class($this), '\\'),1));
+    $sourcefk = "source_" . $entityName . "_id";
+    
+    if(isset($entity->$sourcefk)) {
+      return !empty($entity->$sourcefk);
+    }
+    
+    return false;
+  }
+  
+  /**
    * Generate a where clause suitable for the current entity.
    *
    * @since  COmanage Registry v5.0.0

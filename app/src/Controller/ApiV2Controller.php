@@ -176,7 +176,7 @@ class ApiV2Controller extends AppController {
       // Pull the current record
       $obj = $query->firstOrFail();
 
-      if(method_exists($this->$modelsName, "isReadOnly") && $this->$modelsName->isReadOnly($obj)) {
+      if(method_exists($obj, "isReadOnly") && $obj->isReadOnly()) {
         throw new BadRequestException(__d('error', 'edit.readonly'));
       }
       
@@ -278,7 +278,7 @@ class ApiV2Controller extends AppController {
     
     // We automatically allow API calls to be filtered on primary link
     if(!empty($link->attr) && !empty($link->value)) {
-      $query = $query->where([$table->getAlias().'.'.$link->attr => $link->value]);
+      $query = $query->where([$this->$modelsName->getAlias().'.'.$link->attr => $link->value]);
     }
     
     // This magically makes REST calls paginated... can use eg direction=,

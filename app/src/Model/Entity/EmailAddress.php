@@ -32,6 +32,7 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class EmailAddress extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   
   protected $_accessible = [

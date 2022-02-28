@@ -33,11 +33,11 @@ use \Cake\Datasource\EntityInterface;
 use \Cake\ORM\TableRegistry;
 
 trait PrimaryLinkTrait {
-  // Primary Link field (eg: model:co_id)
-  private $primaryLink = null;
-  
-  // Primary Link table name (eg: Cos)
-  private $primaryLinkTable = null;
+  // Primary Link field (eg: model:co_id). Note some models, in particular
+  // MVEAs, can have multiple Primary Links. $primaryLinks will be key/value
+  // pairs, where the key is the field (eg: co_id) and the value is the table
+  // (eg: Cos).
+  private $primaryLinks = [];
   
   // Allow empty primary link?
   private $allowEmpty = false;
@@ -112,18 +112,22 @@ trait PrimaryLinkTrait {
    */
   
   public function calculateCoForRecord(EntityInterface $entity): ?int {
-    if($this->primaryLink == 'co_id') {
+    if(isset($this->primaryLinks['co_id'])) {
       if(!empty($entity->co_id)) {
         return $entity->co_id;
       }
-      
-      return null;
     } else {
-      // Recursively ask the primaryLink until we get an answer
-      $LinkTable = $this->getPrimaryLinkTable();
-      
-      return $LinkTable->findCoForRecord($entity->{$this->primaryLink});
+      foreach($this->primaryLinks as $linkField => $linkTable) {
+        if(!empty($entity->$linkField)) {
+          // Use this field. Recursively ask the primaryLink until we get an answer.
+          $LinkTable = TableRegistry::getTableLocator()->get($linkTable);
+          
+          return $LinkTable->findCoForRecord($entity->$linkField);
+        }
+      }
     }
+    
+    return null;
   }
   
   /**
@@ -135,7 +139,7 @@ trait PrimaryLinkTrait {
    */
   
   public function findCoForRecord(int $id): ?int {
-    // Pull tho object to examine the primary links
+    // Pull the object to examine the primary links
     $query = $this->findById($id);
     
     // This will throw an error on failure
@@ -156,51 +160,70 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Calculate the Primary Link ID associated with the requested object ID.
+   * Find the Primary Link for an entity.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int $id Object ID
-   * @return int     Primary Link ID
-   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   * @param  Entity $entity Entity
+   * @return Entity         Primary Link (as an Entity)
+   * @throws \InvalidArgumentException
    */
   
-  public function findPrimaryLinkId(int $id) {
+  public function findPrimaryLinkEntity($entity) {
+    foreach(array_keys($this->primaryLinks) as $plKey) {
+      if(!empty($entity->$plKey)) {
+        $LinkTable = TableRegistry::getTableLocator()->get($this->primaryLinks[$plKey]);
+        
+        return $LinkTable->findById($entity->$plKey)->firstOrFail();
+      }
+    }
+    
+    throw new \InvalidArgumentException(__d('error', 'primary_link'));
+  }
+  
+  /**
+   * Find the Primary Link associated with the requested object ID.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id Object ID
+   * @return Entity     Primary Link (as an Entity)
+   * @throws \InvalidArgumentException
+   */
+  
+  public function findPrimaryLink(int $id) {
     $obj = $this->findById($id)->firstOrFail();
     
-    return $obj->{$this->primaryLink};
+    // We might have multiple primary link keys (eg for MVEAs), but only one
+    // should be set. Return the first one we find.
+    foreach(array_keys($this->primaryLinks) as $plKey) {
+      if(!empty($obj->$plKey)) {
+        return (object)['attr' => $plKey, 'value' => $obj->$plKey];
+      }
+    }
+    
+    throw new \InvalidArgumentException(__d('error', 'primary_link'));
   }
   
   /**
-   * Obtain the primary link field.
+   * Obtain the primary link fields.
    *
    * @since  COmanage Registry v5.0.0
-   * @return string Primary link attribute
+   * @return array Primary link attributes
    */
   
-  public function getPrimaryLink() {
-    return $this->primaryLink;
-  }
-  
-  /**
-   * Obtain the primary link's table.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return Table Cake Table object
-   */
-  
-  public function getPrimaryLinkTable() {
-    return TableRegistry::getTableLocator()->get($this->primaryLinkTable);
+  public function getPrimaryLinks(): array {
+    return array_keys($this->primaryLinks);
   }
   
   /**
    * Obtain the primary link's table name.
    *
    * @since  COmanage Registry v5.0.0
-   * @return string Primary link table name
+   * @param  string $primaryLink Primary Link field
+   * @return string              Primary link table name
    */
   
-  public function getPrimaryLinkTableName(): string {
-    return $this->primaryLinkTable;
+  public function getPrimaryLinkTableName(string $primaryLink): string {
+    return $this->primaryLinks[$primaryLink];
   }
   
   /**
@@ -212,6 +235,48 @@ trait PrimaryLinkTrait {
   
   public function getRedirectGoal(): string {
     return $this->redirectGoal;
+  }
+  
+  /**
+   * Determine the Person ID associated with an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return ?int           Person ID
+   */
+  
+  public function lookupPersonId($entity): ?int {
+    if(!empty($entity->person_id)) {
+      return $entity->person_id;
+    } elseif($entity->getSource() == 'People') {
+      return $entity->id;
+    } else {
+      $linkEntity = $this->findPrimaryLinkEntity($entity);
+      
+      if(!empty($linkEntity->person_id)) {
+        return $linkEntity->person_id;
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Determine the Person Role ID associated with an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return int            Person Role ID
+   */
+  
+  public function lookupPersonRoleId($entity): ?int {
+    if(!empty($entity->person_role_id)) {
+      return $entity->person_role_id;
+    } elseif($entity->getSource() == 'PersonRoles') {
+      return $entity->id;
+    }
+    
+    return null;
   }
   
   /**
@@ -280,15 +345,23 @@ trait PrimaryLinkTrait {
    * Set the primary link attribute.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string $field Primary link attribute
+   * @param  mixed $field Primary link attribute, or an array of primary links
    */ 
   
-  public function setPrimaryLink($field) {
-    $this->primaryLink = $field;
+  public function setPrimaryLink($fields) {
+    if(is_string($fields)) {
+      $fields = [$fields];
+    }
     
-    // Calculate the table name for future reference
-    if(preg_match('/^(.*?)_id$/', $field, $f)) {
-      $this->primaryLinkTable = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
+    foreach($fields as $field) {
+      $t = null;
+      
+      // Calculate the table name for future reference
+      if(preg_match('/^(.*?)_id$/', $field, $f)) {
+        $t = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
+      }
+      
+      $this->primaryLinks[$field] = $t;
     }
   }
   

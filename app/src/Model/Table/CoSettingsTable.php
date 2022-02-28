@@ -45,6 +45,7 @@ namespace App\Model\Table;
 use \Cake\ORM\Table;
 use \Cake\Validation\Validator;
 use \App\Lib\Enum\PermittedNameFieldsEnum;
+use \App\Lib\Enum\PermittedTelephoneNumberFieldsEnum;
 use \App\Lib\Enum\RequiredAddressFieldsEnum;
 use \App\Lib\Enum\RequiredNameFieldsEnum;
 
@@ -72,11 +73,15 @@ class CoSettingsTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
+    $this->belongsTo('AddressDefaultTypes')
+         ->setClassName('Types')
+         ->setForeignKey('address_default_type_id')
+         // Property is set so ruleValidateCO can find it. We don't use the
+         // _id suffix to match Cake's default pattern.
+         ->setProperty('address_default_type');
     $this->belongsTo('EmailAddressDefaultTypes')
          ->setClassName('Types')
          ->setForeignKey('email_address_default_type_id')
-         // Property is set so ruleValidateCO can find it. We don't use the
-         // _id suffix to match Cake's default pattern.
          ->setProperty('email_address_default_type');
     $this->belongsTo('IdentifierDefaultTypes')
          ->setClassName('Types')
@@ -86,6 +91,14 @@ class CoSettingsTable extends Table {
          ->setClassName('Types')
          ->setForeignKey('name_default_type_id')
          ->setProperty('name_default_type');
+    $this->belongsTo('TelephoneNumberDefaultTypes')
+         ->setClassName('Types')
+         ->setForeignKey('telephone_number_default_type_id')
+         ->setProperty('telephone_number_default_type');
+    $this->belongsTo('UrlDefaultTypes')
+         ->setClassName('Types')
+         ->setForeignKey('url_default_type_id')
+         ->setProperty('url_default_type');
     
     $this->setDisplayField('co_id');
     
@@ -95,6 +108,10 @@ class CoSettingsTable extends Table {
     $this->setRedirectGoal('self');
     
     $this->setAutoViewVars([
+      'addressDefaultTypes' => [
+        'type' => 'type',
+        'attribute' => 'Addresses.type'
+      ],
       'addressRequiredFields' => [
         'type' => 'enum',
         'class' => 'RequiredAddressFieldsEnum'
@@ -118,6 +135,18 @@ class CoSettingsTable extends Table {
       'nameRequiredFields' => [
         'type' => 'enum',
         'class' => 'RequiredNameFieldsEnum'
+      ],
+      'telephoneNumberDefaultTypes' => [
+        'type' => 'type',
+        'attribute' => 'TelephoneNumbers.type'
+      ],
+      'telephoneNumberPermittedFields' => [
+        'type' => 'enum',
+        'class' => 'PermittedTelephoneNumberFieldsEnum'
+      ],
+      'urlDefaultTypes' => [
+        'type' => 'type',
+        'attribute' => 'Urls.type'
       ]
     ]);
     
@@ -150,11 +179,17 @@ class CoSettingsTable extends Table {
     // Default values for each setting
     
     $defaultSettings = [
-      'co_id'                   => $coId,
-      'address_required_fields' => RequiredAddressFieldsEnum::Street,
-      'name_default_type_id'    => null,
-      'name_permitted_fields'   => PermittedNameFieldsEnum::HGMFS,
-      'name_required_fields'    => RequiredNameFieldsEnum::Given
+      'co_id'                             => $coId,
+      'address_default_type_id'           => null,
+      'address_required_fields'           => RequiredAddressFieldsEnum::Street,
+      'email_address_default_type_id'     => null,
+      'identifier_default_type_id'        => null,
+      'name_default_type_id'              => null,
+      'name_permitted_fields'             => PermittedNameFieldsEnum::HGMFS,
+      'name_required_fields'              => RequiredNameFieldsEnum::Given,
+      'telephone_number_default_type_id'  => null,
+      'telephone_number_permitted_fields' => PermittedTelephoneNumberFieldsEnum::CANE,
+      'url_default_type_id'               => null
 // XXX to add new settings, set a default here, then add a validation rule below
 //     also update data model documentation
       // 'disable_expiration'         => false,
@@ -230,33 +265,55 @@ class CoSettingsTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add(
-      'address_required_fields',
-      'content',
-      [ 'rule' => [ 'inList', RequiredAddressFieldsEnum::getConstValues() ] ]
-    );
+    $validator->add('address_default_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('address_default_type_id');
+    
+    $validator->add('address_required_fields', [
+      'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('address_required_fields');
     
-    $validator->add(
-      'name_default_type_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('email_address_default_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('email_address_default_type_id');
+    
+    $validator->add('identifier_default_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('identifier_default_type_id');
+    
+    $validator->add('name_default_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('name_default_type_id');
     
-    $validator->add(
-      'name_permitted_fields',
-      'content',
-      [ 'rule' => [ 'inList', PermittedNameFieldsEnum::getConstValues() ] ]
-    );
+    $validator->add('name_permitted_fields', [
+      'content' => ['rule' => ['inList', PermittedNameFieldsEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('name_permitted_fields');
     
-    $validator->add(
-      'name_required_fields',
-      'content',
-      [ 'rule' => [ 'inList', RequiredNameFieldsEnum::getConstValues() ] ]
-    );
+    $validator->add('name_required_fields', [
+      'content' => ['rule' => ['inList', RequiredNameFieldsEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('name_required_fields');
+    
+    $validator->add('telephone_number_default_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('telephone_number_default_type_id');
+    
+    $validator->add('telephone_number_permitted_fields', [
+      'content' => ['rule' => ['inList', PermittedTelephoneNumberFieldsEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('telephone_number_permitted_fields');
+    
+    $validator->add('url_default_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('url_default_type_id');
     
     return $validator; 
   }

@@ -39,26 +39,4 @@ class EmailAddressesController extends MVEAController {
       'EmailAddresses.mail' => 'asc'
     ]
   ];
-  
-  /**
-   * Callback run prior to the request render.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface $event Cake Event
-   * @return \Cake\Http\Response   HTTP Response
-   */
-  
-  public function beforeRender(\Cake\Event\EventInterface $event) {
-    if(!$this->request->is('restful')) {
-// XXX maybe $CoSettings should be available via AppController, like $this->getCOID()?
-      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
-      
-      $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
-      
-// XXX move this into MVEAController or a trait
-      $this->set('vv_default_type', $settings->email_address_default_type_id);
-    }
-    
-    return parent::beforeRender($event);
-  }
 }

@@ -150,65 +150,36 @@ class IdentifiersTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    // One of Person ID or External Identity ID is required
-    $validator->add(
-      'person_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('person_id', null, function($context) {
-      return empty($context['data']['external_identity_id']);
-    });
+    $schema = $this->getSchema();
     
-    $validator->add(
-      'external_identity_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('external_identity_id', null, function($context) {
-      return empty($context['data']['person_id']);
-    });
+    $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
-    $validator->add(
-      'identifier',
-      'length',
-      [ 'rule' => [ 'maxLength', 512 ] ]
-    );
-    $validator->add(
-      'identifier',
-      'content',
+    $this->registerStringValidation($validator, $schema, 'identifier', true);
+    $validator->add('identifier', [
       // Identifier must have at least one non-space character in order to avoid
       // errors (eg: with provisioning ldap)
-      [ 'rule' => [ 'notBlank' ] ]
-    );
-    $validator->notEmptyString('identifier');
+      'content' => ['rule'    => ['notBlank'],
+                    'message' => __d('error', 'input.blank')]
+    ]);
     
-    $validator->add(
-      'type_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmptyString('type_id');
     
-    $validator->add(
-      'login',
-      'content',
-      [ 'rule' => [ 'boolean' ] ]
-    );
+    $validator->add('login', [
+      'content' => ['rule' => ['boolean']]
+    ]);
     $validator->allowEmptyString('login');
     
-    $validator->add(
-      'status',
-      'content',
-      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
-    );
+    $validator->add('status', [
+      'content' => ['rule' => ['inList', SuspendableStatusEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('status');
     
-    $validator->add(
-      'source_identifier_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('source_identifier_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('source_identifier_id');
     
     return $validator; 

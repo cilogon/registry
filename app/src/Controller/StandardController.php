@@ -130,7 +130,7 @@ class StandardController extends AppController {
     $params = $this->request->getParam('pass');
     
     if(!empty($params[0])) {
-      if((method_exists($table, "getPrimaryLink")
+      if((method_exists($table, "allowLookupPrimaryLink")
           && $table->allowLookupPrimaryLink($this->request->getParam('action')))
          ||
          $modelsName == 'Cos') {
@@ -246,9 +246,9 @@ class StandardController extends AppController {
       // Pull the current record
       $obj = $query->firstOrFail();
       
-      if(method_exists($table, "isReadOnly")) {
+      if(method_exists($obj, "isReadOnly")) {
         // If this is a read only record, redirect to view
-        if($table->isReadOnly($obj)) {
+        if($obj->isReadOnly()) {
           $redirect = [
             'action' => 'view',
             $obj->id
@@ -484,7 +484,6 @@ class StandardController extends AppController {
             // table, inject the current CO along with the requested attribute
             $avv['model'] = 'Types';
             $avv['where'] = [
-              'co_id'     => $this->getCOID(),
               'attribute' => $avv['attribute'],
               'status'    => SuspendableStatusEnum::Active
             ];
@@ -523,18 +522,32 @@ class StandardController extends AppController {
 //     to PrimaryLinkTrait and call it there?
                   
                   if($v) {
-                    $query = $query->where([$table->getAlias().'.'.$linkFilter => $v]);
+                    $avv['where'][$table->getAlias().'.'.$linkFilter] = $v;
+                    //$query = $query->where([$table->getAlias().'.'.$linkFilter => $v]);
                   }
                 }
               } else {
                 // Use the specified finder, if configured
                 $query = $query->find($avv['find']);
               }
+            } else {
+// XXX is this the best logic? maybe some relation to filterPrimaryLink?
+              // By default, filter everything on CO ID
+              
+              $avv['where']['co_id'] = $this->getCOID();
+              //$query = $query->where([$table->getAlias().'.co_id' => $this->getCOID()]);
             }
             
             if(!empty($avv['where'])) {
               // Filter on the specified clause (of the form [column=>value])
               $query = $query->where($avv['where']);
+            }
+            
+            // Sort the list by display field
+            if(!empty($avv['model']) && method_exists($this->$avvmodel, "getDisplayField")) {
+              $query->order([$this->$avvmodel->getDisplayField() => 'ASC']);
+            } elseif(method_exists($table, "getDisplayField")) {
+              $query->order([$table->getDisplayField() => 'ASC']);
             }
             
             $this->set($vvar, $query->toArray());

@@ -102,6 +102,15 @@ msgstr "When this value is selected, {0} cannot be empty"
 msgid "input.invalid"
 msgstr "Invalid character found"
 
+msgid "input.invalid.email"
+msgstr "The provided value is not a valid email address"
+
+msgid "input.invalid.url"
+msgstr "The provided value is not a valid URL"
+
+msgid "input.length"
+msgstr "The provided value cannot be longer than {0} characters"
+
 msgid "invalid"
 msgstr "Invalid value \"{0}\""
 
@@ -130,7 +139,10 @@ msgid "perm"
 msgstr "Permission Denied"
 
 msgid "primary_link"
-msgstr "Could not find value for Primary Link {0}"
+msgstr "Could not find value for Primary Link"
+
+msgid "primary_link.mismatch"
+msgstr "All records must have the same Primary Link"
 
 msgid "rule.ValidateCo.errorField"
 msgstr "errorField not set in ruleValidateCO"

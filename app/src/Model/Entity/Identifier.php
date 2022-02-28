@@ -31,7 +31,8 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 
-class identifier extends Entity {
+class Identifier extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   
   protected $_accessible = [

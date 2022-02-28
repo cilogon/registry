@@ -32,6 +32,8 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class HistoryRecord extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  
   protected $_accessible = [
     '*' => true,
     'id' => false,

@@ -35,11 +35,20 @@ msgstr "Actor"
 msgid "api_key"
 msgstr "API Key"
 
+msgid "affiliation"
+msgstr "Affiliation"
+
+msgid "area_code"
+msgstr "Area Code"
+
 msgid "attribute"
 msgstr "Attribute"
 
 msgid "comment"
 msgstr "Comment"
+
+msgid "CoSettings.address_default_type_id"
+msgstr "Default Address Type"
 
 msgid "CoSettings.address_required_fields"
 msgstr "Address Required Fields"
@@ -59,11 +68,29 @@ msgstr "Name Permitted Fields"
 msgid "CoSettings.name_required_fields"
 msgstr "Name Required Fields"
 
+msgid "CoSettings.telephone_number_default_type_id"
+msgstr "Default Telephone Number Type"
+
+msgid "CoSettings.telephone_number_permitted_fields"
+msgstr "Telephone Number Permitted Fields"
+
+msgid "CoSettings.url_default_type_id"
+msgstr "Default URL Type"
+
+msgid "country"
+msgstr "Country"
+
+msgid "country_code"
+msgstr "Country Code"
+
 msgid "created"
 msgstr "Created"
 
 msgid "date_of_birth"
 msgstr "Date of Birth"
+
+msgid "department"
+msgstr "Department"
 
 msgid "description"
 msgstr "Description"
@@ -73,6 +100,9 @@ msgstr "Display Name"
 
 msgid "edupersonaffiliation"
 msgstr "eduPersonAffiliation"
+
+msgid "extension"
+msgstr "Extension"
 
 msgid "id"
 msgstr "ID"
@@ -102,11 +132,17 @@ msgstr "Full Name"
 msgid "language"
 msgstr "Language"
 
+msgid "locality"
+msgstr "Locality"
+
 msgid "login"
 msgstr "Login"
 
 msgid "mail"
 msgstr "Email Address"
+
+msgid "manager"
+msgstr "Manager"
 
 msgid "middle"
 msgstr "Middle"
@@ -114,8 +150,28 @@ msgstr "Middle"
 msgid "name"
 msgstr "Name"
 
+msgid "TelephoneNumbers.formatted_number"
+msgstr "Telephone Number"
+
+msgid "TelephoneNumbers.number"
+msgstr "Telephone Number"
+
+# This field is for rendering the telephone number into a string (eg: 555 1212 x279)
+msgid "TelephoneNumbers.number.ext"
+msgstr "x"
+
+# This field is called "ordr" to avoid conflicts with MySQL
+msgid "ordr"
+msgstr "Order"
+
+msgid "organization"
+msgstr "Organization"
+
 msgid "parent_id"
 msgstr "Parent"
+
+msgid "postal_code"
+msgstr "Postal Code"
 
 msgid "primary_name"
 msgstr "Primary Name"
@@ -135,17 +191,38 @@ msgstr "If specified, a <a href="https://www.php.net/manual/en/reference.pcre.pa
 msgid "required"
 msgstr "Required"
 
+msgid "room"
+msgstr "Room"
+
+msgid "sponsor"
+msgstr "Sponsor"
+
+msgid "state"
+msgstr "State"
+
 msgid "status"
 msgstr "Status"
 
 msgid "Type.status"
 msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"
 
+msgid "street"
+msgstr "Street"
+
 msgid "suffix"
 msgstr "Suffix"
 
 msgid "suffix.desc"
 msgstr "(Jr, III, etc)"
+
+msgid "tag"
+msgstr "Tag"
+
+msgid "title"
+msgstr "Title"
+
+msgid "url"
+msgstr "URL"
 
 msgid "username"
 msgstr "Username"

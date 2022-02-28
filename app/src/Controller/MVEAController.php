@@ -32,6 +32,7 @@ namespace App\Controller;
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Inflector;
 
 class MVEAController extends StandardController {
   /**
@@ -44,6 +45,8 @@ class MVEAController extends StandardController {
   public function beforeRender(\Cake\Event\EventInterface $event) {
     // $this->name = Models
     $modelsName = $this->name;
+    // field = model (or model_name)
+    $fieldName = Inflector::underscore(Inflector::singularize($modelsName));
     
     if(!$this->request->is('restful')) {
       // Use the PrimaryLink to set information for breadcrumbs
@@ -54,13 +57,37 @@ class MVEAController extends StandardController {
         $this->set('vv_primary_link_id', $link->value);
         
         switch($link->attr) {
+          case 'person_role_id':
+            $PersonRoles = TableRegistry::get('PersonRoles');
+            $roleEntity = $PersonRoles->findById((int)$link->value)->firstOrFail();
+            // Note this is a string, but vv_person_name is an entity
+            $this->set('vv_person_role', $PersonRoles->generateDisplayField($roleEntity));
+            $this->set('vv_person_role_id', $link->value);
+            
+            // Also set a name
+            $Names = TableRegistry::get('Names');
+            $this->set('vv_person_name', $Names->primaryName($roleEntity->person_id));
+            $this->set('vv_person_id', $roleEntity->person_id);
+            break;
           case 'person_id':
             $Names = TableRegistry::get('Names');
             $this->set('vv_person_name', $Names->primaryName((int)$link->value));
+            $this->set('vv_person_id', $link->value);
             break;
           default;
             break;
         }
+      }
+      
+      // If there is a default type setting for this model, pass it to the view
+      if($this->$modelsName->getSchema()->hasColumn('type_id')) {
+        $defaultTypeField = $fieldName . "_default_type_id";
+        
+        $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+        
+        $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
+        
+        $this->set('vv_default_type', $settings->$defaultTypeField);
       }
     }
     

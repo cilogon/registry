@@ -30,6 +30,8 @@
 if($vv_action == 'edit') {
   print $this->Field->control('address_required_fields', ['suppressBlank' => true]);
   
+  print $this->Field->control('address_default_type_id');
+  
   print $this->Field->control('email_address_default_type_id');
   
   print $this->Field->control('identifier_default_type_id');
@@ -39,4 +41,10 @@ if($vv_action == 'edit') {
   print $this->Field->control('name_permitted_fields', ['suppressBlank' => true]);
   
   print $this->Field->control('name_required_fields', ['suppressBlank' => true]);
+
+  print $this->Field->control('telephone_number_default_type_id');
+
+  print $this->Field->control('telephone_number_permitted_fields', ['suppressBlank' => true]);
+  
+  print $this->Field->control('url_default_type_id');
 }

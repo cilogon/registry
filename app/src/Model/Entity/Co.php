@@ -48,4 +48,18 @@ class Co extends Entity {
   public function isCOmanageCO(): bool {
     return (strtolower($this->name) == 'comanage');
   }
+  
+  /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity Cake Entity
+   * @return boolean         true if the entity is read only, false otherwise
+   */
+  
+  public function isReadOnly(): bool {
+    // The COmanage CO is read only
+    
+    return $this->isCOmanageCO();
+  }
 }

@@ -31,8 +31,66 @@ namespace App\Lib\Traits;
 
 use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
+use Cake\Validation\Validator;
 
 trait ValidationTrait {
+  /**
+   * Register validation rules for the primary link key(s) associated with this table.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Validator $validator   Cake Validator
+   * @param  array     $primaryKeys Array of primary link key(s) for this table
+   * @return Validator              Cake Validator
+   */
+  
+  public function registerPrimaryKeyValidation(Validator $validator, array $primaryKeys): Validator {
+    foreach($primaryKeys as $pk) {
+      $validator->add($pk, [
+        'content' => ['rule' => 'isInteger']
+      ]);
+      $validator->notEmptyString($pk, null, function($context) use ($pk, $primaryKeys) {
+        // This primary key must be populated if all other primary keys are empty
+        $othersEmpty = true;
+        
+        foreach(array_diff($primaryKeys, [$pk]) as $opk) {
+          $othersEmpty &= empty($context['data'][$opk]);
+        }
+        
+        return !$othersEmpty;
+      });
+    }
+    
+    return $validator;
+  }
+  
+  /**
+   * Register validation rules for the provided field, as a string.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Validator $validator Cake Validator
+   * @param  Schema    $schema    Cake Schema
+   * @param  string    $field     Field name
+   * @param  bool      $required  Whether this field is required
+   * @return Validator            Cake Validator
+   */
+  
+  public function registerStringValidation(Validator $validator, $schema, string $field, bool $required): Validator {
+    $validator->add($field, [
+      'size'    => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn($field)]],
+                    'provider' => 'table'],
+      'filter'  => ['rule'     => ['validateInput'],
+                    'provider' => 'table']
+    ]);
+    
+    if($required) {
+      $validator->notEmptyString($field);
+    } else {
+      $validator->allowEmptyString($field);
+    }
+    
+    return $validator;
+  }
+  
   /**
    * Verify that $value is a valid 
    *
@@ -126,9 +184,6 @@ trait ValidationTrait {
    */
   
   public function validateConditionalRequire($value, array $context) {
-    // What component are we?
-    $COmponent = __('product.code');
-    
     if(!empty($value)
        && in_array($value, $context['providers']['conditionalRequire']['inArray'])
        && empty($context['data'][ $context['providers']['conditionalRequire']['require'] ])) {
@@ -153,25 +208,58 @@ trait ValidationTrait {
     // as an extra "line of defense" against unsanitized HTML output, since there are
     // currently no known cases where user-entered input should permit angle brackets.
     
-// XXX we previously supported 'filter'. 'flags', and 'invalidchars' as arguments, do we still need to?
-    
-    // What component are we?
-    $COmponent = __('product.code');
-    
-    // Perform a basic string search.
-    
-    $invalid = "<>";
-    
-    if(strlen($value) != strcspn($value, $invalid)) {
-      // Mismatch, implying bad input
-      return __d('error', 'input.invalid');
-    }
-    
-    // We require at least one non-whitespace character (CO-1551)
-    if(!preg_match('/\S/', $value)) {
-      return __d('error', 'input.blank');
-    }
+// XXX we previously supported 'flags' and 'invalidchars' as arguments, do we still need to?
+// CFM-152 review the logic here
 
+    if(!empty($context['filter'])) {
+      // We use filter_var for consistency with the views, and simply check
+      // that we end up with the same string we started with.
+
+      $filtered = filter_var($value, $context['filter']);
+      
+      if($value != $filtered) {
+        // Mismatch, implying bad input
+        return __d('error', 'input.invalid');
+      }
+    } else {
+      // Perform a basic string search.
+      
+      $invalid = "<>";
+      
+      if(strlen($value) != strcspn($value, $invalid)) {
+        // Mismatch, implying bad input
+        return __d('error', 'input.invalid');
+      }
+      
+      // We require at least one non-whitespace character (CO-1551)
+      if(!preg_match('/\S/', $value)) {
+        return __d('error', 'input.blank');
+      }
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Validate the maximum length of a field.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $value   Value to validate
+   * @param  array  $context Validation context, which must include the schema definition
+   * @return mixed           True if $value validates, or an error string otherwise
+   */
+  
+  public function validateMaxLength($value, array $context) {
+    // We use our own so we can introspect the field's max length from the
+    // provided table schema object, and use our own error message (without
+    // having to copy it to every table definition).
+    
+    $maxLength = $context['column']['length'];
+    
+    if(!empty($value) && strlen($value) > $maxLength) {
+      return __d('error', 'input.length', [$maxLength]);
+    }
+    
     return true;
   }
   
@@ -185,9 +273,6 @@ trait ValidationTrait {
    */
   
   public function validateSqlIdentifier($value, array $context) {
-    // What component are we?
-    $COmponent = __('product.code');
-    
     // Valid (portable) SQL identifiers begin with a letter or underscore, and
     // subsequent characters can also include digits. We'll be a little stricter
     // than we need to be for now by only accepting A-Z, when in fact certain

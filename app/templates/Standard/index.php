@@ -61,9 +61,9 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
 function _column_key($modelsName, $c, $tz=null) {
   if(strpos($c, "_id", strlen($c)-3)) {
     // Key is of the form field_id, use .ct label instead
-    $k = Inflector::classify(Inflector::pluralize(substr($c, 0, strlen($c)-3)));
+    $k = Inflector::camelize(Inflector::pluralize(substr($c, 0, strlen($c)-3)));
     
-    return __d('controller' ,$k, [1]);
+    return __d('controller', $k, [1]);
   }
   
   // Look for a model specific key first

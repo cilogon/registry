@@ -57,6 +57,22 @@ if($vv_action == 'add' || $vv_action == 'view') {
       );
     }
     
+    if(!empty($vv_obj->person_role_id)) {
+      $viewLink = [
+        'url' => [
+          'controller' => 'person_roles',
+          'action'     => 'edit',
+          $vv_obj->person_role_id
+        ],
+      ];
+      
+      print $this->Field->statusControl(
+        'person_role_id',
+        $vv_obj->person_role_id,
+        $viewLink
+      );
+    }
+    
     if(!empty($vv_obj->actor_person->names)) {
       $viewLink = [
         'url' => [

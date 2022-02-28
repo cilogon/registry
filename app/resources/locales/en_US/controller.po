@@ -24,6 +24,12 @@
 
 # Controllers (Models)
 
+msgid "Addresses"
+msgstr "{0,plural,=1{Address} other{Addresses}}"
+
+msgid "AdHocAttributes"
+msgstr "{0,plural,=1{Ad Hoc Attribute} other{Ad Hoc Attributes}}"
+
 msgid "ApiUsers"
 msgstr "{0,plural,=1{API User} other{API Users}}"
 
@@ -57,5 +63,14 @@ msgstr "{0,plural,=1{Name} other{Names}}"
 msgid "People"
 msgstr "{0,plural,=1{Person} other{People}}"
 
+msgid "PersonRoles"
+msgstr "{0,plural,=1{Person Role} other{Person Roles}}"
+
+msgid "TelephoneNumbers"
+msgstr "{0,plural,=1{Telephone Number} other{Telephone Numbers}}"
+
 msgid "Types"
 msgstr "{0,plural,=1{Type} other{Types}}"
+
+msgid "Urls"
+msgstr "{0,plural,=1{URL} other{URLs}}"

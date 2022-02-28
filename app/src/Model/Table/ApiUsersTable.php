@@ -302,67 +302,46 @@ class ApiUsersTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add(
-      'co_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $schema = $this->getSchema();
+    
+    $validator->add('co_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmpty('co_id');
     
-    $validator->add(
-      'username',
-      'length',
-      [ 'rule' => [ 'maxLength', 64 ] ]
-    );
-    $validator->add(
-      'username',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->notEmpty('username');
+    $this->registerStringValidation($validator, $schema, 'username', true);
     
-    $validator->add(
-      'api_key',
-      'length',
-      [ 'rule' => [ 'maxLength', 256 ] ]
-    );
-    $validator->allowEmpty('api_key');
+    $validator->add('api_key', [
+      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('api_key')]],
+                   'provider' => 'table'],
+    ]);
+    $validator->allowEmptyString('api_key');
     
-    $validator->add(
-      'status',
-      'content',
-      [ 'rule' => [ 'inList', SuspendableStatusEnum::getConstValues() ] ]
-    );
-    $validator->notEmpty('status');
+    $validator->add('status', [
+      'content' => ['rule' => ['inList', SuspendableStatusEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('status');
     
-    $validator->add(
-      'privileged',
-      'content',
-      [ 'rule' => [ 'boolean' ] ]
-    );
-    $validator->allowEmpty('privileged');
+    $validator->add('privileged', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('privileged');
     
-    $validator->add(
-      'valid_from',
-      'content',
-      [ 'rule' => [ 'datetime' ] ]
-    );
-    $validator->allowEmpty('valid_from');
+    $validator->add('valid_from', [
+      'content' => ['rule' => ['datetime']]
+    ]);
+    $validator->allowEmptyString('valid_from');
     
-    $validator->add(
-      'valid_through',
-      'content',
-      [ 'rule' => [ 'datetime' ] ]
-    );
-    $validator->allowEmpty('valid_through');
+    $validator->add('valid_through', [
+      'content' => ['rule' => ['datetime']]
+    ]);
+    $validator->allowEmptyString('valid_through');
     
-    $validator->add(
-      'remote_ip',
-      'length',
-      [ 'rule' => [ 'maxLength', 80 ] ]
-    );
-    $validator->allowEmpty('remote_ip');
+    $validator->add('remote_ip', [
+      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('remote_ip')]],
+                   'provider' => 'table'],
+    ]);
+    $validator->allowEmptyString('remote_ip');
     
     return $validator; 
   }

@@ -32,6 +32,8 @@ namespace App\Lib\Traits;
 use \Cake\Utility\Inflector;
 use \App\Lib\Enum\ActionEnum;
 
+// Note that use of HistoryTrait also requires the use of PrimaryLinkTrait.
+
 trait HistoryTrait {
   use \Cake\ORM\Locator\LocatorAwareTrait;
   
@@ -150,10 +152,14 @@ trait HistoryTrait {
     
     $HistoryRecords = $this->getTableLocator()->get('HistoryRecords');
     
+    $personId = $this->lookupPersonId($entity);
+    $personRoleId = $this->lookupPersonRoleId($entity);
+    
     return $HistoryRecords->recordForPerson(
-      $entity->person_id,
+      $personId,
       $laction,
-      $lcomment
+      $lcomment,
+      $personRoleId
     );
   }
 }

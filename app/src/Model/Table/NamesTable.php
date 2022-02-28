@@ -191,21 +191,6 @@ class NamesTable extends Table {
   }
   
   /**
-   * Determine if this is a Read Only record.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity Cake Entity
-   * @return boolean         true if the entity is read only, false otherwise
-   */
-// XXX this should move to the entity directly
-
-  public function isReadOnly($entity) {
-    // Names pipelined from an EIS are read only
-
-    return !empty($entity->source_name_id);
-  }
-  
-  /**
    * Obtain the primary name entity for a person.
    *
    * @since  COmanage Registry v5.0.0
@@ -251,6 +236,8 @@ class NamesTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
+    $schema = $this->getSchema();
+    
     // We need the current CO ID to dynamically set validation rules according
     // to CoSettings.
     
@@ -265,147 +252,42 @@ class NamesTable extends Table {
     $permittedFields = $settings->name_permitted_fields_array();
     $requiredFields = $settings->name_required_fields_array();
     
-    // One of Person ID or External Identity ID is required
-    $validator->add(
-      'person_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('person_id', null, function($context) {
-      return empty($context['data']['external_identity_id']);
-    });
+    $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
-    $validator->add(
-      'external_identity_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('external_identity_id', null, function($context) {
-      return empty($context['data']['person_id']);
-    });
-    
-    if(in_array('honorific', $permittedFields)) {
-      $validator->add(
-        'honorific',
-        'length',
-        [ 'rule' => [ 'maxLength', 32 ] ]
-      );
-      $validator->add(
-        'honorific',
-        'content',
-        [ 'rule'     => [ 'validateInput' ],
-          'provider' => 'table' ]
-      );
-      $validator->allowEmptyString('honorific');
-    }
-    
-    if(in_array('given', $permittedFields)) {
-      $validator->add(
-        'given',
-        'length',
-        [ 'rule' => [ 'maxLength', 128 ] ]
-      );
-      $validator->add(
-        'given',
-        'content',
-        [ 'rule'     => [ 'validateInput' ],
-          'provider' => 'table' ]
-      );
-      if(in_array('given', $requiredFields)) {
-        $validator->notEmptyString('given');
+    foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
+      $validator->add($f, [
+        'size'    => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn($f)]],
+                      'provider' => 'table'],
+        'filter'  => ['rule'     => ['validateInput'],
+                      'provider' => 'table']
+      ]);
+      if(in_array($f, $requiredFields)) {
+        $validator->notEmptyString($f);
       } else {
-        $validator->allowEmptyString('given');
+        $validator->allowEmptyString($f);
       }
     }
     
-    if(in_array('middle', $permittedFields)) {
-      $validator->add(
-        'middle',
-        'length',
-        [ 'rule' => [ 'maxLength', 128 ] ]
-      );
-      $validator->add(
-        'middle',
-        'content',
-        [ 'rule'     => [ 'validateInput' ],
-          'provider' => 'table' ]
-      );
-      $validator->allowEmptyString('middle');
-    }
-    
-    if(in_array('family', $permittedFields)) {
-      $validator->add(
-        'family',
-        'length',
-        [ 'rule' => [ 'maxLength', 128 ] ]
-      );
-      $validator->add(
-        'family',
-        'content',
-        [ 'rule'     => [ 'validateInput' ],
-          'provider' => 'table' ]
-      );
-      if(in_array('family', $requiredFields)) {
-        $validator->notEmptyString('family');
-      } else {
-        $validator->allowEmptyString('family');
-      }
-    }
-    
-    if(in_array('suffix', $permittedFields)) {
-      $validator->add(
-        'suffix',
-        'length',
-        [ 'rule' => [ 'maxLength', 32 ] ]
-      );
-      $validator->add(
-        'suffix',
-        'content',
-        [ 'rule'     => [ 'validateInput' ],
-          'provider' => 'table' ]
-      );
-      $validator->allowEmptyString('suffix');
-    }
-    
-    $validator->add(
-      'type_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->notEmptyString('type_id');
     
-    $validator->add(
-      'language',
-      'content',
-      [ 'rule' => [ 'inList', LanguageEnum::getConstValues() ] ]
-    );
+    $validator->add('language', [
+      'content' => ['rule' => ['inList', LanguageEnum::getConstValues()]]
+    ]);
     $validator->allowEmptyString('language');
     
-    $validator->add(
-      'primary_name',
-      'content',
-      [ 'rule' => [ 'boolean' ] ]
-    );
+    $validator->add('primary_name', [
+      'content' => ['rule' => ['boolean']]
+    ]);
     $validator->allowEmptyString('primary_name');
     
-    $validator->add(
-      'display_name',
-      'length',
-      [ 'rule' => [ 'maxLength', 256 ] ]
-    );
-    $validator->add(
-      'display_name',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->allowEmptyString('display_name');
+    $this->registerStringValidation($validator, $schema, 'display_name', false);
     
-    $validator->add(
-      'source_name_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
+    $validator->add('source_name_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
     $validator->allowEmptyString('source_name_id');
     
     return $validator; 

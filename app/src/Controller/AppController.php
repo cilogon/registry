@@ -194,14 +194,12 @@ class AppController extends Controller {
     if($id) {
       $readOnlyActions = ['view'];
       
-      // Does this table have an isReadOnly call?
+      // Pull the record so we can interrogate it
       
-      if(method_exists($table, "isReadOnly")) {
-        // Pull the record so we can interrogate it
-        
-        $obj = $table->get($id);
-        
-        $readOnly = $table->isReadOnly($obj);
+      $obj = $table->get($id);
+      
+      if(method_exists($obj, "isReadOnly")) {
+        $readOnly = $obj->isReadOnly();
         
         if(!empty($permissions['readOnly'])) {
           // Merge in controller specific actions permitted on read only entities
@@ -304,104 +302,127 @@ class AppController extends Controller {
     $this->cur_pl = new \stdClass();
     
     // PrimaryLinkTrait
-    if(method_exists($this->$modelsName, "getPrimaryLink")
-       && $this->$modelsName->getPrimaryLink()) {
-      $this->cur_pl->attr = $this->$modelsName->getPrimaryLink();
-      $this->set('vv_primary_link', $this->cur_pl->attr);
+    if(method_exists($this->$modelsName, "getPrimaryLinks")
+       && $this->$modelsName->getPrimaryLinks()) {
+      // Some models, in particular MVEAs, can have multiple potential primary
+      // links. In these cases, only one primary link is valid at a time, so we
+      // have to look through the available primary links and find one.
+      
+      $availablePrimaryLinks = $this->$modelsName->getPrimaryLinks();
       
       if($lookup) {
-        // Try to find a value
-        
-        if($this->request->is('get')) {
-          // If this action allows unkeyed, asserted primary link IDs, check the query
-          // string (eg: 'add' or 'index' allow matchgrid_id to be passed in)
-          if($this->$modelsName->allowUnkeyedPrimaryLink($this->request->getParam('action'))
-             && $this->request->getQuery($this->cur_pl->attr)) {
-            $this->cur_pl->value = $this->request->getQuery($this->cur_pl->attr);
-          } elseif($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
-            // Try to map the requested object ID
-            $param = (int)$this->request->getParam('pass.0');
-            
-            if(!empty($param)) {
-              $this->cur_pl->value = $this->$modelsName->findPrimaryLinkId($param);
-            }
-          }
-        } elseif($this->request->is('post') && $this->request->getParam('action') != 'delete') {
-          // Post = add, where we can have a list of objects and nothing in /objects/{id}
-          // We don't support different primary links across objects, so we throw an error
-          // if different parent keys are provided.
+        foreach($availablePrimaryLinks as $potentialPrimaryLink) {
+          // Try to find a value
           
-          $linkValue = null;
-          
-          // Data in API format
-          $reqData = $this->request->getData($modelsName);
-          
-          if(!$reqData 
-             // Don't create $reqData if the POST data is also empty
-             && !empty($this->request->getData())) {
-            // Data in POST format
-            $reqData[] = $this->request->getData();
-          }
-          
-          if(!empty($reqData)) {
-            foreach($reqData as $rec) {
-              if(!empty($rec[$this->cur_pl->attr])) {
-                if(!$linkValue) {
-                  // This is the first record we've seen, use this primary link value
-                  $linkValue = $rec[$this->cur_pl->attr];
-                } elseif($linkValue != $rec[$this->cur_pl->attr]) {
-                  // We don't support multiple records with different parents
-                  throw new \InvalidArgumentException('All records must have the same primary link'); // XXX I18n
-                }
-              }
+          if($this->request->is('get')) {
+            // If this action allows unkeyed, asserted primary link IDs, check the query
+            // string (eg: 'add' or 'index' allow matchgrid_id to be passed in)
+            if($this->$modelsName->allowUnkeyedPrimaryLink($this->request->getParam('action'))
+               && $this->request->getQuery()) {
+              $this->cur_pl->value = $this->request->getQuery($potentialPrimaryLink);
+            } elseif($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
+              // Try to map the requested object ID
+              $param = (int)$this->request->getParam('pass.0');
               
-              $this->cur_pl->value = $linkValue;
+              if(!empty($param)) {
+                $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
+                // Break the loop here since we also have the link attribute, 
+                // which might not be $potentialPrimaryLink
+                break;
+              }
             }
-          } elseif($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
-            // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
-            $param = (int)$this->request->getParam('pass.0');
+          } elseif($this->request->is('post') && $this->request->getParam('action') != 'delete') {
+            // Post = add, where we can have a list of objects and nothing in /objects/{id}
+            // We don't support different primary links across objects, so we throw an error
+            // if different parent keys are provided.
             
-            if(!empty($param)) {
-              $this->cur_pl->value = $this->$modelsName->findPrimaryLinkId($param);
+            $linkValue = null;
+            
+            // Data in API format
+            $reqData = $this->request->getData($modelsName);
+            
+            if(!$reqData 
+               // Don't create $reqData if the POST data is also empty
+               && !empty($this->request->getData())) {
+              // Data in POST format
+              $reqData[] = $this->request->getData();
+            }
+            
+            if(!empty($reqData)) {
+              foreach($reqData as $rec) {
+                if(!empty($rec[$potentialPrimaryLink])) {
+                  if(!$linkValue) {
+                    // This is the first record we've seen, use this primary link value
+                    $linkValue = $rec[$potentialPrimaryLink];
+                  } elseif($linkValue != $rec[$potentialPrimaryLink]) {
+                    // We don't support multiple records with different parents
+                    throw new \InvalidArgumentException(__d('error', 'primary_link.mismatch'));
+                  }
+                }
+                
+                $this->cur_pl->value = $linkValue;
+              }
+            } elseif($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
+              // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
+              $param = (int)$this->request->getParam('pass.0');
+              
+              if(!empty($param)) {
+                $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
+                // Break the loop here since we also have the link attribute, 
+                // which might not be $potentialPrimaryLink
+                break;
+              }
+            }
+          } elseif($this->request->is('put') || $this->request->getParam('action') == 'delete') {
+            // Put = edit, so we should look up the parent ID via the object itself
+            if($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
+              // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
+              $param = (int)$this->request->getParam('pass.0');
+              
+              if(!empty($param)) {
+                $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
+                // Break the loop here since we also have the link attribute, 
+                // which might not be $potentialPrimaryLink
+                break;
+              }
             }
           }
-        } elseif($this->request->is('put') || $this->request->getParam('action') == 'delete') {
-          // Put = edit, so we should look up the parent ID via the object itself
-          if($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
-            // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
-            $param = (int)$this->request->getParam('pass.0');
-            
-            if(!empty($param)) {
-              $this->cur_pl->value = $this->$modelsName->findPrimaryLinkId($param);
-            }
+          
+          if(!empty($this->cur_pl->value)) {
+            // We found a populated primary link. Store the attribute and break the loop.
+            $this->cur_pl->attr = $potentialPrimaryLink;
+            $this->set('vv_primary_link', $this->cur_pl->attr);
+            break;
           }
         }
         
         if(empty($this->cur_pl->value) && !$this->$modelsName->allowEmptyPrimaryLink()) {
-          throw new \RuntimeException(__d('error', 'primary_link', [ $this->cur_pl->attr ]));
+          throw new \RuntimeException(__d('error', 'primary_link'));
         }
       }
       
       if(!empty($this->cur_pl->value)) {
         // Look up the link value to find the related entity
         
-        $linkModelName = $this->$modelsName->getPrimaryLinkTableName();
-        $linkModel = TableRegistry::get($linkModelName);
+        $linkTableName = $this->$modelsName->getPrimaryLinkTableName($this->cur_pl->attr);
+        $linkTable = TableRegistry::get($linkTableName);
         
-        $this->set('vv_primary_link_model', $linkModelName);
+        $this->set('vv_primary_link_model', $linkTableName);
         
         try {
-          $plObj = $linkModel->findById($this->cur_pl->value)->firstOrFail();
+          $plObj = $linkTable->findById($this->cur_pl->value)->firstOrFail();
           
           $this->set('vv_primary_link_obj', $plObj);
           
           // While we're here, note the CO since we'll probably need it soon
           if(!empty($plObj->co_id)) {
             $this->cur_pl->co_id = $plObj->co_id;
+          } elseif(method_exists($linkTable, "findCoForRecord")) {
+            $this->cur_pl->co_id = $linkTable->findCoForRecord((int)$this->cur_pl->value);
           }
         }
         catch(RecordNotFoundException $e) {
-          $this->llog('error', "Could not find value '" . $this->cur_pl->value . "' for primary link object " . $linkModelName);
+          $this->llog('error', "Could not find value '" . $this->cur_pl->value . "' for primary link object " . $linkTableName);
           // Mask this with a generic UnauthorizedException
           throw new UnauthorizedException(__d('error', 'perm'));
         }

@@ -24,6 +24,18 @@
 
 # Labels for default types when a new CO is created
 
+msgid "Addresses.campus"
+msgstr "Campus"
+
+msgid "Addresses.home"
+msgstr "Home"
+
+msgid "Addresses.office"
+msgstr "Office"
+
+msgid "Addresses.postal"
+msgstr "Postal"
+
 msgid "EmailAddresses.delivery"
 msgstr "Delivery"
 
@@ -113,3 +125,9 @@ msgstr "Official"
 
 msgid "Names.preferred"
 msgstr "Preferred"
+
+msgid "Urls.official"
+msgstr "Official"
+
+msgid "Urls.personal"
+msgstr "Personal"

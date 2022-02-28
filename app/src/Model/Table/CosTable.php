@@ -177,20 +177,6 @@ class CosTable extends Table {
   }
   
   /**
-   * Determine if this is a Read Only record.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity Cake Entity
-   * @return boolean         true if the entity is read only, false otherwise
-   */
-  
-  public function isReadOnly($entity): bool {
-    // The COmanage CO is read only
-    
-    return $entity->isCOmanageCO();
-  }
-
-  /**
    * Application Rule to determine if the current entity is the COmanage CO.
    *
    * @since  COmanage Registry v5.0.0
@@ -260,37 +246,15 @@ class CosTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add(
-      'name',
-      'length',
-      [ 'rule' => [ 'maxLength', 128 ] ]
-    );
-    $validator->add(
-      'name',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->notEmptyString('name');
+    $schema = $this->getSchema();
     
-    $validator->add(
-      'description',
-      'length',
-      [ 'rule' => [ 'maxLength', 128 ] ]
-    );
-    $validator->add(
-      'description',
-      'content',
-      [ 'rule'     => [ 'validateInput' ],
-        'provider' => 'table' ]
-    );
-    $validator->allowEmptyString('description');
+    $this->registerStringValidation($validator, $schema, 'name', true);
     
-    $validator->add(
-      'status',
-      'content',
-      [ 'rule' => [ 'inList', TemplateableStatusEnum::getConstValues() ] ]
-    );
+    $this->registerStringValidation($validator, $schema, 'description', false);
+    
+    $validator->add('status', [
+      'content' => ['rule' => ['inList', TemplateableStatusEnum::getConstValues()]]
+    ]);
     $validator->notEmptyString('status');
     
     return $validator; 

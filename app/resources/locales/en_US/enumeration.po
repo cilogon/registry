@@ -186,6 +186,30 @@ msgstr "Honorific, Given, Family, Suffix"
 msgid "PermittedNameFieldsEnum.honorific,given,middle,family,suffix"
 msgstr "Honorific, Given, Middle, Family, Suffix"
 
+msgid "PermittedTelephoneNumberFieldsEnum.number"
+msgstr "Number"
+
+msgid "PermittedTelephoneNumberFieldsEnum.number,extension"
+msgstr "Number, Extension"
+
+msgid "PermittedTelephoneNumberFieldsEnum.area_code,number"
+msgstr "Area Code, Number"
+
+msgid "PermittedTelephoneNumberFieldsEnum.area_code,number,extension"
+msgstr "Area Code, Number, Extension"
+
+msgid "PermittedTelephoneNumberFieldsEnum.country_code,number"
+msgstr "Country Code, Number"
+
+msgid "PermittedTelephoneNumberFieldsEnum.country_code,number,extension"
+msgstr "Country Code, Number, Extension"
+
+msgid "PermittedTelephoneNumberFieldsEnum.country_code,area_code,number"
+msgstr "Country Code, Area Code, Number"
+
+msgid "PermittedTelephoneNumberFieldsEnum.country_code,area_code,number,extension"
+msgstr "Country Code, Area Code, Number, Extension"
+
 msgid "RequiredAddressFieldsEnum.country"
 msgstr "Country"
 

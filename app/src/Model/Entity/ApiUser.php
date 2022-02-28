@@ -33,6 +33,8 @@ use Cake\Auth\DefaultPasswordHasher;
 use Cake\ORM\Entity;
 
 class ApiUser extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  
   protected $_accessible = [
     '*' => true,
     'id' => false,

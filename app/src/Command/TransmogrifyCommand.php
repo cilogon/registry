@@ -121,6 +121,24 @@ class TransmogrifyCommand extends Command {
         'co_person_id' => 'person_id'
       ]
     ],
+    'person_roles' => [
+      'source' => 'cm_co_person_roles',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'co_person_id' => 'person_id',
+        // Rename the changelog key
+        'co_person_role_id' => 'person_role_id',
+        // We need to map affiliation_type_id before we null out affiliation
+        'affiliation_type_id' => '&map_affiliation_type',
+        'affiliation' => null,
+        'manager_co_person_id' => 'manager_person_id',
+        'sponsor_co_person_id' => 'sponsor_person_id',
+        'o' => 'organization',
+        'ou' => 'department',
+// XXX temporary until tables are migrated
+        'source_org_identity_id' => null
+      ]
+    ],
     'external_identities' => [
       'source' => 'cm_org_identities',
       'displayField' => 'id',
@@ -146,19 +164,27 @@ class TransmogrifyCommand extends Command {
         'type' => null
       ]
     ],
-    'identifiers' => [
-      'source' => 'cm_identifiers',
+    'ad_hoc_attributes' => [
+      'source' => 'cm_ad_hoc_attributes',
       'displayField' => 'id',
-      'booleans' => [ 'login' ],
       'fieldMap' => [
-        'co_person_id' => 'person_id',
+        'co_person_role_id' => 'person_role_id',
         'org_identity_id' => 'external_identity_id',
-        'type_id' => '&map_identifier_type',
+// XXX temporary until tables are migrated
+        'co_department_id' => null,
+        'organization_id' => null
+      ]
+    ],
+    'addresses' => [
+      'source' => 'cm_addresses',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'co_person_role_id' => 'person_role_id',
+        'org_identity_id' => 'external_identity_id',
+        'type_id' => '&map_address_type',
         'type' => null,
 // XXX temporary until tables are migrated
         'co_department_id' => null,
-        'co_group_id' => null,
-        'co_provisioning_target_id' => null,
         'organization_id' => null
       ]
     ],
@@ -176,6 +202,48 @@ class TransmogrifyCommand extends Command {
         'organization_id' => null
       ]
     ],
+    'identifiers' => [
+      'source' => 'cm_identifiers',
+      'displayField' => 'id',
+      'booleans' => [ 'login' ],
+      'fieldMap' => [
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id',
+        'type_id' => '&map_identifier_type',
+        'type' => null,
+// XXX temporary until tables are migrated
+        'co_department_id' => null,
+        'co_group_id' => null,
+        'co_provisioning_target_id' => null,
+        'organization_id' => null
+      ]
+    ],
+    'telephone_numbers' => [
+      'source' => 'cm_telephone_numbers',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'co_person_role_id' => 'person_role_id',
+        'org_identity_id' => 'external_identity_id',
+        'type_id' => '&map_telephone_type',
+        'type' => null,
+// XXX temporary until tables are migrated
+        'co_department_id' => null,
+        'organization_id' => null
+      ]
+    ],
+    'urls' => [
+      'source' => 'cm_urls',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id',
+        'type_id' => '&map_url_type',
+        'type' => null,
+// XXX temporary until tables are migrated
+        'co_department_id' => null,
+        'organization_id' => null
+      ]
+    ],
     'history_records' => [
       'source' => 'cm_history_records',
       'displayField' => 'id',
@@ -183,8 +251,8 @@ class TransmogrifyCommand extends Command {
         'co_person_id' => 'person_id',
         'org_identity_id' => 'external_identity_id',
         'actor_co_person_id' => 'actor_person_id',
+        'co_person_role_id' => 'person_role_id',
 // XXX temporary until tables are migrated
-        'co_person_role_id' => null,
         'co_group_id' => null,
         'co_email_list_id' => null,
         'co_service_id' => null
@@ -322,7 +390,7 @@ class TransmogrifyCommand extends Command {
       
       while($row = $stmt->fetch()) {
         if(!empty($row[ $this->tables[$t]['displayField'] ])) {
-          $io->out($row[ $this->tables[$t]['displayField'] ] . "...", 0);
+          $io->out("$t " . $row[ $this->tables[$t]['displayField'] ] . "...", 0);
         }
         
         try {
@@ -530,10 +598,34 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
+   * Map an address type string to a foreign key.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $row Row of table data
+   * @return int        type_id
+   */
+  
+  protected function map_address_type(array $row) {
+    return $this->map_type($row, 'Addresses.type', $this->findCoId($row));
+  }
+  
+  /**
+   * Map an affiliation type string to a foreign key.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $row Row of table data
+   * @return int        type_id
+   */
+  
+  protected function map_affiliation_type(array $row) {
+    return $this->map_type($row, 'PersonRoles.affiliation', $this->findCoId($row), 'affiliation');
+  }
+  
+  /**
    * Map an email type string to a foreign key.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  array $row Row of table data (ignored)
+   * @param  array $row Row of table data
    * @return int        type_id
    */
   
@@ -659,27 +751,52 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
+   * Map a telephone type string to a foreign key.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $row Row of table data
+   * @return int        type_id
+   */
+  
+  protected function map_telephone_type(array $row) {
+    return $this->map_type($row, 'TelephoneNumbers.type', $this->findCoId($row));
+  }
+  
+  /**
    * Map a type string to a foreign key.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  array  $row  Row of table data (ignored)
-   * @param  string $type Type to map (types:attribute) 
-   * @param  int    $coId CO ID
+   * @param  array  $row    Row of table data (ignored)
+   * @param  string $type   Type to map (types:attribute) 
+   * @param  int    $coId   CO ID
+   * @param  string $attr   Row column to use for type value
    * @return int          type_id
    * @throws              InvalidArgumentException
    */
   
-  protected function map_type(array $row, string $type, $coId) {
+  protected function map_type(array $row, string $type, $coId, string $attr="type") {
     if(!$coId) {
       throw new \InvalidArgumentException("CO ID not provided for $type " . $row['id']);
     }
     
-    $key = $coId . "+" . $type . "+" . $row['type'] . "+";
+    $key = $coId . "+" . $type . "+" . $row[$attr] . "+";
     
     if(empty($this->cache['types']['co_id+attribute+value+'][$key])) {
       throw new \InvalidArgumentException("Type not found for " . $key);
     }
     
     return $this->cache['types']['co_id+attribute+value+'][$key];
+  }
+  
+  /**
+   * Map a URL type string to a foreign key.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $row Row of table data
+   * @return int        type_id
+   */
+  
+  protected function map_url_type(array $row) {
+    return $this->map_type($row, 'Urls.type', $this->findCoId($row));
   }
 }

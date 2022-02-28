@@ -64,6 +64,7 @@ class HistoryRecordsTable extends Table {
          // _id suffix to match Cake's default pattern.
          ->setProperty('actor_person');
     $this->belongsTo('People');
+    $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
     
     $this->setDisplayField('comment');
@@ -125,18 +126,23 @@ class HistoryRecordsTable extends Table {
    * Record a History Record entry for a Person.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int    $personId Person ID
-   * @param  string $action   Action
-   * @param  string $comment  Comment
-   * @return int              History Record ID
+   * @param  int    $personId     Person ID
+   * @param  string $action       Action
+   * @param  string $comment      Comment
+   * @param  int    $personRoleId Person Role ID
+   * @return int                  History Record ID
    */
   
-  public function recordForPerson(int $personId, string $action, string $comment): int {
+  public function recordForPerson(int $personId, string $action, string $comment, ?int $personRoleId=null): int {
     $record = [
       'person_id' => $personId,
       'action'    => $action,
       'comment'   => $comment
     ];
+    
+    if($personRoleId) {
+      $record['person_role_id'] = $personRoleId;
+    }
     
     $obj = $this->newEntity($record);
     
@@ -156,38 +162,20 @@ class HistoryRecordsTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    // One of Person ID or External Identity ID is required
-// XXX or the other fields as we add them
-    $validator->add(
-      'person_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('person_id', null, function($context) {
-      return empty($context['data']['external_identity_id']);
-    });
+    $schema = $this->getSchema();
     
-    $validator->add(
-      'external_identity_id',
-      'content',
-      [ 'rule' => 'isInteger' ]
-    );
-    $validator->notEmptyString('external_identity_id', null, function($context) {
-      return empty($context['data']['person_id']);
-    });
+    $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
-    $validator->add(
-      'action',
-      'length',
-      [ 'rule' => [ 'maxLength', 4 ] ]
-    );
+    $validator->add('action', [
+      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('action')]],
+                   'provider' => 'table'],
+    ]);
     $validator->notEmptyString('action');
     
-    $validator->add(
-      'comment',
-      'length',
-      [ 'rule' => [ 'maxLength', 256 ] ]
-    );
+    $validator->add('comment', [
+      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('comment')]],
+                   'provider' => 'table'],
+    ]);
     $validator->notEmptyString('comment');
     
     return $validator; 

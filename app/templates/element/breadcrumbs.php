@@ -81,7 +81,22 @@ if($this->request->getRequestTarget(false) != '/') {
         $vv_person_name->full_name,
         ['controller' => 'people',
          'action'     => 'canvas',
-         $vv_primary_link_id]
+         $vv_person_id]
+      );
+    }
+    
+    if(!empty($vv_person_role)) {
+      $this->Breadcrumbs->add(
+        __d('controller', 'PersonRoles', [99]),
+        ['controller' => 'person_roles',
+         '?'          => ['person_id' => $vv_person_role_id]]
+      );
+      
+      $this->Breadcrumbs->add(
+        $vv_person_role,
+        ['controller' => 'person_roles',
+         'action'     => 'edit',
+         $vv_person_role_id]
       );
     }
   }
