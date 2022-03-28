@@ -51,6 +51,9 @@ msgstr "{0,plural,=1{Email Address} other{Email Addresses}}"
 msgid "ExternalIdentities"
 msgstr "{0,plural,=1{External Identity} other{External Identities}}"
 
+msgid "ExternalIdentityRoles"
+msgstr "{0,plural,=1{External Identity Role} other{External Identity Roles}}"
+
 msgid "HistoryRecords"
 msgstr "{0,plural,=1{History Record} other{History Records}}"
 

@@ -142,7 +142,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
   }
   
   /**
-   * Application Rule to require foreign keys to be within the same CO as the.
+   * Application Rule to require foreign keys to be within the same CO as the
    * entity being saved. This is more of a Security Rule than an Application
    * Rule, but for now we don't distinguish between the two types.
    *
@@ -179,7 +179,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     if(empty($assn)) {
       // If you're debugging this, you most likely didn't set up your
       // associations correctly.
-      throw new \LogicException("Missing association for $targetProperty in ruleValidateCO");
+      throw new \LogicException("Missing association from " . $table->getAlias(). " to $targetProperty in ruleValidateCO");
     }
 
     // The table holding the foreign key we are validating, eg Type

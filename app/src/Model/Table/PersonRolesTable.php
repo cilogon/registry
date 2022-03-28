@@ -38,6 +38,7 @@ use \App\Lib\Enum\StatusEnum;
 class PersonRolesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
@@ -74,7 +75,8 @@ class PersonRolesTable extends Table {
          ->setForeignKey('sponsor_person_id')
          ->setProperty('sponsor_person');
     $this->belongsTo('Types')
-         ->setForeignKey('affiliation_type_id');
+         ->setForeignKey('affiliation_type_id')
+         ->setProperty('affiliation_type');
     
     $this->hasMany('Addresses')
          ->setDependent(true);
@@ -126,7 +128,6 @@ class PersonRolesTable extends Table {
 // See also CFM-126
 // XXX need to add couAdmin, eventually
       'entity' => [
-        'canvas' =>   ['platformAdmin', 'coAdmin'],
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
@@ -173,7 +174,7 @@ class PersonRolesTable extends Table {
     $validator->add('person_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('co_id');
+    $validator->notEmptyString('person_id');
     
     $validator->add('cou_id', [
       'content' => ['rule' => 'isInteger']
@@ -216,12 +217,6 @@ class PersonRolesTable extends Table {
       'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('status');
-    
-    $validator->add('timezone', [
-      'content' => ['rule' => ['validateTimeZone'],
-                    'provider' => 'table']
-    ]);
-    $validator->allowEmptyString('timezone');
     
     $validator->add('ordr', [
       'content' => ['rule' => 'isInteger']

@@ -268,18 +268,23 @@ class StandardController extends AppController {
           $opts['associated'] = $table->getPatchAssociated();
         }*/
         
+        // $obj will have whatever editContains also pulled, but we don't want
+        // to save all that stuff by default, so we'll pull a new copy of the
+        // object without the associated data.
+        $saveObj = $table->findById($id)->firstOrFail();
+        
         // Attempt the update the record
-        $table->patchEntity($obj, $this->request->getData(), $opts); 
+        $table->patchEntity($saveObj, $this->request->getData(), $opts); 
         
         // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
         // in afterSave
-        if($table->save($obj)) {
+        if($table->save($saveObj)) {
           $this->Flash->success(__d('result', 'saved'));
           
           return $this->generateRedirect((int)$id); 
         }
         
-        $errors = $obj->getErrors();
+        $errors = $saveObj->getErrors();
         
         if(!empty($errors)) {
           $this->Flash->error(__d('error', 'fields', [ implode(',', 

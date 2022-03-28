@@ -188,6 +188,9 @@ class AppController extends Controller {
     // Is this record read only?
     $readOnly = false;
     
+    // Can this record be deleted?
+    $canDelete = true;
+    
     // Pull the table permissions
     $permissions = $table->getPermissions();
 
@@ -207,12 +210,18 @@ class AppController extends Controller {
         }
       }
       
+      if(method_exists($obj, "canDelete")) {
+        $canDelete = $obj->canDelete();
+      }
+      
       // Permissions for actions that operate over individual entities
       
       foreach($permissions['entity'] as $action => $roles) {
         $ok = false;
         
-        if(!$readOnly || in_array($action, $readOnlyActions)) {
+        if(($action != 'delete' || $canDelete)
+           && 
+           !$readOnly || in_array($action, $readOnlyActions)) {
           if(is_array($roles)) {
             foreach($roles as $role) {
               // eg: $role = "platformAdmin", which corresponds to the variables set, above
@@ -328,6 +337,7 @@ class AppController extends Controller {
                 $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
                 // Break the loop here since we also have the link attribute, 
                 // which might not be $potentialPrimaryLink
+                $this->set('vv_primary_link', $this->cur_pl->attr);
                 break;
               }
             }
@@ -370,6 +380,7 @@ class AppController extends Controller {
                 $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
                 // Break the loop here since we also have the link attribute, 
                 // which might not be $potentialPrimaryLink
+                $this->set('vv_primary_link', $this->cur_pl->attr);
                 break;
               }
             }
@@ -383,6 +394,7 @@ class AppController extends Controller {
                 $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
                 // Break the loop here since we also have the link attribute, 
                 // which might not be $potentialPrimaryLink
+                $this->set('vv_primary_link', $this->cur_pl->attr);
                 break;
               }
             }

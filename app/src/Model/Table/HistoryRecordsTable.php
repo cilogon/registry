@@ -66,12 +66,13 @@ class HistoryRecordsTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
+    $this->belongsTo('ExternalIdentityRoles');
     
     $this->setDisplayField('comment');
     
 // XXX note primary link is external_identity_id when set...
 // or the other fields as we add them
-    $this->setPrimaryLink('person_id');
+    $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     
@@ -89,7 +90,8 @@ class HistoryRecordsTable extends Table {
       // force ActorPeople to use multiple queries.
       'ActorPeople' => ['Names' => ['queryBuilder' => function ($q) {
         return $q->where(['primary_name' => true]);
-      }]]
+      }]],
+      'ExternalIdentities' => ['PrimaryName']
     ]);
     
     $this->setPermissions([
@@ -126,14 +128,21 @@ class HistoryRecordsTable extends Table {
    * Record a History Record entry for a Person.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int    $personId     Person ID
-   * @param  string $action       Action
-   * @param  string $comment      Comment
-   * @param  int    $personRoleId Person Role ID
-   * @return int                  History Record ID
+   * @param  int    $personId               Person ID
+   * @param  string $action                 Action
+   * @param  string $comment                Comment
+   * @param  int    $personRoleId           Person Role ID
+   * @param  int    $externalIdentityId     External Identity ID
+   * @param  int    $externalIdentityRoleId External Identity Role ID
+   * @return int                            History Record ID
    */
   
-  public function recordForPerson(int $personId, string $action, string $comment, ?int $personRoleId=null): int {
+  public function recordForPerson(int $personId, 
+                                  string $action,
+                                  string $comment,
+                                  ?int $personRoleId=null,
+                                  ?int $externalIdentityId=null,
+                                  ?int $externalIdentityRoleId=null): int {
     $record = [
       'person_id' => $personId,
       'action'    => $action,
@@ -144,9 +153,17 @@ class HistoryRecordsTable extends Table {
       $record['person_role_id'] = $personRoleId;
     }
     
+    if($externalIdentityId) {
+      $record['external_identity_id'] = $externalIdentityId;
+    }
+    
+    if($externalIdentityRoleId) {
+      $record['external_identity_role_id'] = $externalIdentityRoleId;
+    }
+    
     $obj = $this->newEntity($record);
     
-    $this->save($obj);
+    $this->saveOrFail($obj);
     
     return $obj->id;
   }

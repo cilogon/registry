@@ -82,8 +82,7 @@ class NamesTable extends Table {
     
     $this->setDisplayField('full_name');
     
-// XXX note primary link is external_identity_id when set...
-    $this->setPrimaryLink('person_id');
+    $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
@@ -187,6 +186,11 @@ class NamesTable extends Table {
                       // but cake won't pass the error without a specific field
                       ['errorField' => 'id']);
     
+    // AR-Name-1 The Primary Name cannot be deleted.
+    $rules->addDelete([$this, 'rulePrimaryNameDelete'],
+                      'primaryNameDelete',
+                      ['errorField' => 'primary_name']);
+    
     return $rules;
   }
   
@@ -194,13 +198,14 @@ class NamesTable extends Table {
    * Obtain the primary name entity for a person.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int $personId Person ID
-   * @return Name          Name Entity
+   * @param  int    $id         Record ID
+   * @param  string $recordType Type of record to find primary name for, 'person' or 'external_identity'
+   * @return Name               Name Entity
    */
   
-  public function primaryName(int $personId) {
+  public function primaryName(int $id, string $recordType='person') {
     return $this->find()
-                ->where(['person_id' => $personId,
+                ->where([$recordType.'_id' => $id,
                          'primary_name' => true])
                 ->firstOrFail();
   }
@@ -220,6 +225,23 @@ class NamesTable extends Table {
     
     if($count == 1) {
       return __d('error', 'Names.minimum');
+    }
+    
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the Primary Name is trying to be deleted.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function rulePrimaryNameDelete($entity, $options) {
+    if($entity->primary_name) {
+      return __d('error', 'Names.primary_name.del');
     }
     
     return true;

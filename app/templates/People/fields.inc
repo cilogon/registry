@@ -45,7 +45,7 @@ if($vv_action == 'add') {
     // The initial name must be primary
     'names.0.primary_name' => true
   ];
-} elseif($vv_action == 'canvas') {
+} elseif($vv_action == 'edit') {
   // XXX This is a placeholder for canvas... maybe it should become a separate page
   //     rather than overload fields.inc?
   
@@ -147,11 +147,22 @@ if($vv_action == 'add') {
     ],
     ['class' => 'linkbutton']
   );
+
+  print $this->Html->link(
+    __d('controller', 'ExternalIdentities', [99]),
+    [ 'controller' => 'external-identities',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
   
-  debug($vv_obj);
+  $a = $vv_obj->extract(['person_role_id', 'person_id']);
 }
 
-if($vv_action == 'add' || $vv_action == 'canvas') {
+if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('status', ['empty' => false]);
   
   print $this->Field->control('date_of_birth');

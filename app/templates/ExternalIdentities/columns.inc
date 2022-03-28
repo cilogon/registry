@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry People Index Columns
+ * COmanage Registry ExternalIdentities Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// Which action to render as the main link for the row
+
 $indexColumns = [
   'name' => [
     'type' => 'link',
@@ -32,10 +34,5 @@ $indexColumns = [
     'field' => 'full_name',
 // XXX see comments in the controller about sorting on given vs family
     'sortable' => 'PrimaryName.family'
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'StatusEnum',
-    'sortable' => true
   ]
 ];

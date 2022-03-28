@@ -91,8 +91,7 @@ class IdentifiersTable extends Table {
     
     $this->setDisplayField('identifier');
     
-// XXX note primary link is external_identity_id when set...
-    $this->setPrimaryLink('person_id');
+    $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     

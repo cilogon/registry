@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Ad Hoc Attributes Table
+ * COmanage Registry External Identities Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -29,14 +29,19 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\ORM\Query;
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\StatusEnum;
 
-class AdHocAttributesTable extends Table {
+class ExternalIdentitiesTable extends Table {
+  use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -53,26 +58,69 @@ class AdHocAttributesTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Ad Hoc Attributes are not configuration
+    // External Identities are not configuration
     $this->setIsConfigurationTable(false);
     
     // Define associations
     $this->belongsTo('People');
-    $this->belongsTo('PersonRoles');
-    $this->belongsTo('ExternalIdentities');
-    $this->belongsTo('ExternalIdentityRoles');
     
-    $this->setDisplayField('tag');
+    $this->hasOne('PrimaryName')
+         ->setClassName('Names')
+         ->setConditions(['PrimaryName.primary_name' => true]);
+    $this->hasMany('Names')
+         ->setDependent(true);
+    $this->hasMany('Addresses')
+         ->setDependent(true);
+    $this->hasMany('AdHocAttributes')
+         ->setDependent(true);
+    $this->hasMany('EmailAddresses')
+         ->setDependent(true);
+    $this->hasMany('ExternalIdentityRoles')
+         ->setDependent(true);
+    $this->hasMany('HistoryRecords')
+         ->setDependent(true);
+    $this->hasMany('Identifiers')
+         ->setDependent(true);
+    $this->hasMany('TelephoneNumbers')
+         ->setDependent(true);
+    $this->hasMany('Urls')
+         ->setDependent(true);
     
-    $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
+    $this->setDisplayField('id');
+    
+    $this->setPrimaryLink('person_id');
     $this->setRequiresCO(true);
+    $this->setRedirectGoal('self');
+    
+// XXX does some of this stuff really belong in the controller?
+    $this->setEditContains([
+      'PrimaryName',
+/*      'Addresses',
+      'AdHocAttributes',
+      'EmailAddresses',
+      'Identifiers',
+      'Names',
+      'PersonRoles',
+      'TelephoneNumbers',
+      'Urls'*/
+    ]);
+    $this->setIndexContains(['PrimaryName']);
+
+    $this->setAutoViewVars([
+      'statuses' => [
+        'type' => 'enum',
+// XXX maybe this (and EIRoles) should be SuspendableStatusEnum?
+        'class' => 'StatusEnum'
+      ]
+    ]);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
+// See also CFM-126
+// XXX need to add couAdmin, eventually
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
-        'primary' =>  ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
@@ -83,20 +131,21 @@ class AdHocAttributesTable extends Table {
     ]);
   }
   
+  
   /**
-   * Callback after model save.
+   * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  EventInterface  $event   Event
-   * @param  EntityInterface $entity  Entity (ie: Co)
-   * @param  ArrayObject     $options Save options
-   * @return bool                     True on success
+   * @param  ExternalIdentity $entity Entity to generate display field for
+   * @return string                   Display field
    */
+  
+  public function generateDisplayField(\App\Model\Entity\ExternalIdentity $entity): string {
+    if(empty($entity->primary_name)) {
+      throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
+    }
     
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    $this->recordHistory($entity);
-    
-    return true;
+    return $entity->primary_name->full_name;
   }
   
   /**
@@ -105,8 +154,6 @@ class AdHocAttributesTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  Validator $validator Validator
    * @return Validator            Validator
-   * @throws InvalidArgumentException
-   * @throws RecordNotFoundException
    */
   
   public function validationDefault(Validator $validator): Validator {
@@ -114,14 +161,16 @@ class AdHocAttributesTable extends Table {
     
     $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
-    $this->registerStringValidation($validator, $schema, 'tag', true);
-    
-    $this->registerStringValidation($validator, $schema, 'value', false);
-    
-    $validator->add('source_ad_hoc_attribute_id', [
-      'content' => ['rule' => 'isInteger']
+    $validator->add('status', [
+// XXX what to do about the sync status?
+      'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
     ]);
-    $validator->allowEmptyString('source_ad_hoc_attribute_id');
+    $validator->notEmptyString('status');
+    
+    $validator->add('date_of_birth', [
+      'content' => ['rule' => 'date']
+    ]);
+    $validator->allowEmptyString('date_of_birth');
     
     return $validator; 
   }

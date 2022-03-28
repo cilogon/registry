@@ -45,7 +45,7 @@ if($vv_action == 'add' || $vv_action == 'view') {
       $viewLink = [
         'url' => [
           'controller' => 'people',
-          'action'     => 'canvas',
+          'action'     => 'edit',
           $vv_obj->person->id
         ],
       ];
@@ -73,11 +73,43 @@ if($vv_action == 'add' || $vv_action == 'view') {
       );
     }
     
+    if(!empty($vv_obj->external_identity->primary_name)) {
+      $viewLink = [
+        'url' => [
+          'controller' => 'external_identities',
+          'action'     => 'edit',
+          $vv_obj->external_identity->id
+        ],
+      ];
+      
+      print $this->Field->statusControl(
+        'external_identity_id',
+        $vv_obj->external_identity->primary_name->full_name,
+        $viewLink
+      );
+    }
+    
+    if(!empty($vv_obj->external_identity_role_id)) {
+      $viewLink = [
+        'url' => [
+          'controller' => 'external_identity_roles',
+          'action'     => 'edit',
+          $vv_obj->external_identity_role_id
+        ],
+      ];
+      
+      print $this->Field->statusControl(
+        'external_identity_role_id',
+        $vv_obj->external_identity_role_id,
+        $viewLink
+      );
+    }
+    
     if(!empty($vv_obj->actor_person->names)) {
       $viewLink = [
         'url' => [
           'controller' => 'people',
-          'action'     => 'canvas',
+          'action'     => 'edit',
           $vv_obj->actor_person->id
         ],
       ];

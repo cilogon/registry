@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Telephone Number Entity
+ * COmanage Registry External Identity Role Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -31,43 +31,12 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 
-class TelephoneNumber extends Entity {
+class ExternalIdentityRole extends Entity {
   use \App\Lib\Traits\ReadOnlyEntityTrait;
-  use \App\Lib\Traits\MVETrait;
   
   protected $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
-  
-  /**
-   * Generate a formatted number
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @return string Formatted telephone number
-   */
-  
-  protected function _getFormattedNumber() {
-    // Start with number since it's always required, then prepend and/or append
-    $n = $this->number;
-    
-    // Prepend the area code, if set
-    if(!empty($this->area_code)) {
-      $n = $this->area_code . " " . $n;
-    }
-    
-    // Prepend the country code if set
-    if(!empty($this->country_code)) {
-      // We'll only output + style if a country code was provided
-      $n = "+" . $this->country_code . " " . $n;
-    }
-    
-    // Append the extension, if set
-    if(!empty($this->extension)) {
-      $n .= " " . __d('field', 'TelephoneNumbers.number.ext') . $this->extension;
-    }
-    
-    return $n;
-  }
 }

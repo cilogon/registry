@@ -75,33 +75,4 @@ class PeopleController extends StandardController {
     
     return parent::beforeRender($event);
   }
-  
-  /**
-   * Render the Person Canvas.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $id CO Person ID
-   */
-  
-  public function canvas(string $id) {
-    // use StandardController::edit to render (and not conflict with edit(), below)
-    
-    parent::edit($id);
-  }
-  
-  /**
-   * Stub function to redirect to canvas.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $id CO Person ID
-   */
-  
-  public function edit(string $id) {
-    // Redirect to /canvas
-    
-    return $this->redirect([
-      'action' => 'canvas',
-      $id
-    ]);
-  }
 }

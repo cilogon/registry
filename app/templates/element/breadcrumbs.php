@@ -80,7 +80,7 @@ if($this->request->getRequestTarget(false) != '/') {
       $this->Breadcrumbs->add(
         $vv_person_name->full_name,
         ['controller' => 'people',
-         'action'     => 'canvas',
+         'action'     => 'edit',
          $vv_person_id]
       );
     }
@@ -97,6 +97,36 @@ if($this->request->getRequestTarget(false) != '/') {
         ['controller' => 'person_roles',
          'action'     => 'edit',
          $vv_person_role_id]
+      );
+    }
+    
+    if(!empty($vv_ei_name)) {
+      $this->Breadcrumbs->add(
+        __d('controller', 'ExternalIdentities', [99]),
+        ['controller' => 'external_identities',
+         '?'          => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
+      );
+      
+      $this->Breadcrumbs->add(
+        $vv_ei_name->full_name,
+        ['controller' => 'external_identities',
+         'action'     => 'edit',
+         $vv_ei_id]
+      );
+    }
+    
+    if(!empty($vv_ei_role)) {
+      $this->Breadcrumbs->add(
+        __d('controller', 'ExternalIdentityRoles', [99]),
+        ['controller' => 'external_identity_roles',
+         '?'          => ['external_identity_id' => $vv_ei_id]]
+      );
+      
+      $this->Breadcrumbs->add(
+        $vv_ei_role,
+        ['controller' => 'external_identity_roles',
+         'action'     => 'edit',
+         $vv_ei_role_id]
       );
     }
   }
@@ -125,7 +155,7 @@ if($this->request->getRequestTarget(false) != '/') {
 // XXX This is initially for api_users:generate, not clear how much this does
 // or does not generalize. If we start adding more exceptions here, we should
 // flip the logic and let api_users:generate declare that it wants a link back.
-  if(!in_array($vv_action, ['add', 'canvas', 'edit', 'index', 'view'])
+  if(!in_array($vv_action, ['add', 'edit', 'index', 'view'])
      && !empty($vv_obj->id)
      && !empty($vv_obj->$vv_display_field)) {
     $oaction = ($vv_permissions['edit'] 

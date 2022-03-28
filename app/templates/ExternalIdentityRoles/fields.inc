@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Person Roles Fields
+ * COmanage Registry External Identity Roles Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,8 +27,6 @@
 
 // This view does not currently support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('cou_id');
-  
   print $this->Field->control('affiliation_type_id', [], __d('field', 'affiliation'));
   
   print $this->Field->control('status', ['empty' => false]);
@@ -41,21 +39,10 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print $this->Field->control('department');
   
-  // For now, we render sponsor and manager as read only.
-  // XXX Need People Picker (CFM-150)
-  foreach(['sponsor', 'manager'] as $f) {
-    $fp = $f."_person";
-    
-    $fname = "";
-    $flink = [];
-    
-    if(!empty($vv_obj->$fp->names[0])) {
-      $fname = $vv_obj->$fp->names[0]->full_name;
-      $flink = ['url' => ['controller' => 'people', 'action' => 'edit', $vv_obj->$fp->id]];
-    }
-    
-    print $this->Field->statusControl($f.'_person_id', $fname, $flink, __d('field', $f));
-  }
+// XXX need to clarify this is an _identifier_ not an actual Person FK
+  print $this->Field->control('sponsor_identifier', [], __d('field', 'sponsor'));
+  
+  print $this->Field->control('manager_identifier', [], __d('field', 'manager'));
   
 // XXX these need to render date pickers
 // - we specifically have code in FieldHelper that checks for these two, but not date_of_birth
@@ -74,7 +61,7 @@ print $this->Html->link(
   [ 'controller' => 'ad_hoc_attributes',
     'action' => 'index', 
     '?' => [
-      'person_role_id' => $vv_obj->id
+      'external_identity_role_id' => $vv_obj->id
     ]
   ],
   ['class' => 'linkbutton']
@@ -85,7 +72,7 @@ print $this->Html->link(
   [ 'controller' => 'addresses',
     'action' => 'index', 
     '?' => [
-      'person_role_id' => $vv_obj->id
+      'external_identity_role_id' => $vv_obj->id
     ]
   ],
   ['class' => 'linkbutton']
@@ -96,7 +83,7 @@ print $this->Html->link(
   [ 'controller' => 'telephone_numbers',
     'action' => 'index', 
     '?' => [
-      'person_role_id' => $vv_obj->id
+      'external_identity_role_id' => $vv_obj->id
     ]
   ],
   ['class' => 'linkbutton']

@@ -100,6 +100,17 @@ class Name extends Entity {
   }
   
   /**
+   * Determine if this entity record can be deleted.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool True if the record can be deleted, false otherwise
+   */
+  
+  public function canDelete(): bool {
+    return $this->notPrimary();
+  }
+  
+  /**
    * Determine if this is not a Primary Name.
    *
    * @since  COmanage Registry v5.0.0

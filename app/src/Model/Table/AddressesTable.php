@@ -75,12 +75,12 @@ class AddressesTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
+    $this->belongsTo('ExternalIdentityRoles');
     $this->belongsTo('Types');
     
     $this->setDisplayField('street');
     
-// XXX note primary link is external_identity_id when set...
-    $this->setPrimaryLink(['person_id', 'person_role_id']);
+    $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
     

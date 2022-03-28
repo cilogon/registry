@@ -238,6 +238,63 @@ trait PrimaryLinkTrait {
   }
   
   /**
+   * Determine the External Identity ID associated with an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return ?int           Person ID
+   */
+  
+  public function lookupExternalIdentityId($entity): ?int {
+    // We need to see if 'external_identity_id' exists on the $entity, but it's
+    // not easy. We can't use property_exists() because Cake is dynamically
+    // getting. The Cake Entity API documentation says we should be able to call
+    // $entity->__isset(), but that doesn't actually implement the documented
+    // behavior. (Github issue: https://github.com/cakephp/cakephp/issues/16408)
+    // So we have to extract the key and then use array_key_exists() (but NOT isset()).
+
+    $a = $entity->extract(['external_identity_id']);
+    
+    if(array_key_exists('external_identity_id', $a)) {
+      // We want to return here whether or not the key is set since if it's NULL
+      // we're not directly pointing to an External Identity. We can't use
+      // property_exists because Cake is dynamically getting.
+      
+      return $entity->external_identity_id;
+    } elseif($entity->getSource() == 'ExternalIdentities') {
+      return $entity->id;
+    } else {
+      $linkEntity = $this->findPrimaryLinkEntity($entity);
+      
+      if(!empty($linkEntity->external_identity_id)) {
+        return $linkEntity->external_identity_id;
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Determine the Person Role ID associated with an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return int            Person Role ID
+   */
+  
+  public function lookupExternalIdentityRoleId($entity): ?int {
+    $a = $entity->extract(['external_identity_role_id']);
+    
+    if(array_key_exists('external_identity_role_id', $a)) {
+      return $entity->external_identity_role_id;
+    } elseif($entity->getSource() == 'ExternalIdentityRoles') {
+      return $entity->id;
+    }
+    
+    return null;
+  }
+  
+  /**
    * Determine the Person ID associated with an entity.
    *
    * @since  COmanage Registry v5.0.0
@@ -246,7 +303,9 @@ trait PrimaryLinkTrait {
    */
   
   public function lookupPersonId($entity): ?int {
-    if(!empty($entity->person_id)) {
+    $a = $entity->extract(['person_id']);
+    
+    if(array_key_exists('person_id', $a)) {
       return $entity->person_id;
     } elseif($entity->getSource() == 'People') {
       return $entity->id;
@@ -255,6 +314,13 @@ trait PrimaryLinkTrait {
       
       if(!empty($linkEntity->person_id)) {
         return $linkEntity->person_id;
+      } else {
+        // Our parent link does not directly point to Person, so try recursing
+        // on our parent table
+        
+        $LinkTable = TableRegistry::getTableLocator()->get($linkEntity->getSource());
+        
+        return $LinkTable->lookupPersonId($linkEntity);
       }
     }
     
@@ -270,7 +336,9 @@ trait PrimaryLinkTrait {
    */
   
   public function lookupPersonRoleId($entity): ?int {
-    if(!empty($entity->person_role_id)) {
+    $a = $entity->extract(['person_role_id']);
+    
+    if(array_key_exists('person_role_id', $a)) {
       return $entity->person_role_id;
     } elseif($entity->getSource() == 'PersonRoles') {
       return $entity->id;

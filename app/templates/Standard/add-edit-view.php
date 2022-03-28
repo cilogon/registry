@@ -109,8 +109,7 @@ if(!empty($vv_primary_link)) {
 print $this->Field->startControlSet($this->name, 
                                     $vv_action,
                                     // XXX We need a model specific mechanism to disable read-only
-                                    // (eg: canvas should be declared by People)
-                                    ($vv_action == 'add' || $vv_action == 'canvas' || $vv_action == 'edit'),
+                                    ($vv_action == 'add' || $vv_action == 'edit'),
                                     $vv_required_fields);
 
 // We allow the fields.inc file to be specified for Controllers that have more

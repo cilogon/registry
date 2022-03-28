@@ -407,7 +407,6 @@ function _column_key($modelsName, $c, $tz=null) {
                         'dg_bd_txt_repl_str' => ''                                  // dialog body text replacement strings 
                       ),
                     );
-                    
                   } elseif(!empty($a['controller'])) {
                     // We're linking into a related controller
                     /* XXX Modify the following for links to related controllers set in $indexActions. 

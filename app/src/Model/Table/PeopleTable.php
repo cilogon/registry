@@ -38,6 +38,7 @@ use \App\Lib\Enum\StatusEnum;
 class PeopleTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
@@ -74,6 +75,8 @@ class PeopleTable extends Table {
          ->setDependent(true);
     $this->hasMany('EmailAddresses')
          ->setDependent(true);
+    $this->hasMany('HistoryRecords')
+         ->setDependent(true);
     $this->hasMany('Identifiers')
          ->setDependent(true);
     $this->hasMany('PersonRoles')
@@ -88,7 +91,6 @@ class PeopleTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['canvas']);
     $this->setRedirectGoal('self');
     
 // XXX does some of this stuff really belong in the controller?
@@ -120,7 +122,6 @@ class PeopleTable extends Table {
       // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
       'entity' => [
-        'canvas' =>   ['platformAdmin', 'coAdmin'],
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']

@@ -69,12 +69,13 @@ class TransmogrifyCommand extends Command {
       'displayField' => 'co_id',
       'addChangelog' => true,
       'booleans' => [],
-      'post' => 'insertDefaultSettings',
+      'postTable' => 'insertDefaultSettings',
       'cache' => [ 'co_id' ],
       'fieldMap' => [
         'permitted_fields_name' => 'name_permitted_fields',
         'required_fields_addr' => 'address_required_fields',
         'required_fields_name' => 'name_required_fields',
+        'telephone_number_permitted_fields' => '&populate_co_settings_phone',
         // XXX CFM-80 these fields are not yet migrated
         //     be sure to add appropriate fields to 'booleans'
         'enable_nsf_demo' => null, // CFM-123
@@ -124,6 +125,8 @@ class TransmogrifyCommand extends Command {
     'person_roles' => [
       'source' => 'cm_co_person_roles',
       'displayField' => 'id',
+      // We don't currently need status specifically, just that the role exists
+      'cache' => [ 'status' ],
       'fieldMap' => [
         'co_person_id' => 'person_id',
         // Rename the changelog key
@@ -145,11 +148,19 @@ class TransmogrifyCommand extends Command {
       'fieldMap' => [
         'co_id' => null,
         'person_id' => '&map_org_identity_co_person_id',
-        'o' => 'organization',
-        'ou' => 'department',
         // Rename the changelog key
-        'org_identity_id' => 'external_identity_id'
+        'org_identity_id' => 'external_identity_id',
+        // These fields are migrated to external_identity_roles by split_external_identity()
+        'title' => null,
+        'o' => null,
+        'ou' => null,
+        'affiliation' => null,
+        'manager_identifier' => null,
+        'sponsor_identifier' => null,
+        'valid_from' => null,
+        'valid_through' => null
       ],
+      'postRow' => 'split_external_identity',
       'cache' => [ 'person_id' ]
     ],
     'names' => [
@@ -173,7 +184,8 @@ class TransmogrifyCommand extends Command {
 // XXX temporary until tables are migrated
         'co_department_id' => null,
         'organization_id' => null
-      ]
+      ],
+      'postTable' => 'processExtendedAttributes'
     ],
     'addresses' => [
       'source' => 'cm_addresses',
@@ -379,6 +391,14 @@ class TransmogrifyCommand extends Command {
       
       $io->out("===" . $t . "===");
       
+      // Run any pre processing functions for the table.
+      
+      if(!empty($this->tables[$t]['preTable'])) {
+        $p = $this->tables[$t]['preTable'];
+        
+        $this->$p();
+      }
+      
       $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $this->tables[$t]['source']);
       
       $io->out("= Processing " . $count . " records");
@@ -394,6 +414,9 @@ class TransmogrifyCommand extends Command {
         }
         
         try {
+          // Make a copy of the original data for any post processing followups
+          $origRow = $row;
+          
           // Do this before fixBooleans since we'll insert some
           $this->fixChangelog($t, $row, isset($this->tables[$t]['addChangelog']) && $this->tables[$t]['addChangelog']);
           
@@ -404,6 +427,14 @@ class TransmogrifyCommand extends Command {
           $this->outconn->insert($t, $row);
           
           $this->cacheResults($t, $row);
+          
+          // Run any post processing functions for the row.
+          
+          if(!empty($this->tables[$t]['postRow'])) {
+            $p = $this->tables[$t]['postRow'];
+            
+            $this->$p($origRow, $row);
+          }
         }
         catch(ForeignKeyConstraintViolationException $e) {
           // A foreign key associated with this record did not load, so we can't
@@ -418,6 +449,9 @@ class TransmogrifyCommand extends Command {
           // (ie: mapFields basically requires a successful mapping)
           
           $io->err("WARNING: Skipping record " . $row['id'] . ": " . $e->getMessage());
+        }
+        catch(\Exception $e) {
+          $io->err("ERROR: Record " . $row['id'] . ": " . $e->getMessage());
         }
         
         $tally++;
@@ -437,8 +471,8 @@ class TransmogrifyCommand extends Command {
       
       // Run any post processing functions for the table.
       
-      if(!empty($this->tables[$t]['post'])) {
-        $p = $this->tables[$t]['post'];
+      if(!empty($this->tables[$t]['postTable'])) {
+        $p = $this->tables[$t]['postTable'];
         
         $this->$p();
       }
@@ -504,7 +538,7 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
-   * Populate empty Changelog data from legacy records.
+   * Populate empty Changelog data from legacy records, and handle table renames.
    *
    * @since  COmanage Registry v5.0.0
    * @param  string $table Table Name
@@ -526,6 +560,20 @@ class TransmogrifyCommand extends Command {
     }
     
     // The parent FK should remain NULL since this is the original record.
+    /*
+    // If the table was renamed, we need to rename the changelog key as well.
+    // NOTE: We don't actually do this here because it creates issues with the
+    //       order of field processing. Instead, each key must be renamed
+    //       manually in the fieldMap.
+    // eg: cm_org_identities -> org_identity_id
+    $oldfk = Inflector::singularize(substr($this->tables[$table]['source'], 3)) . "_id";
+    // eg: external_identities -> external_identity_id
+    $newfk = Inflector::singularize($table) . "_id";
+    
+    if($oldfk != $newfk && array_key_exists($oldfk, $row)) {
+      $row[$newfk] = $row[$oldfk];
+      unset($row[$oldfk]);
+    }*/
   }
   
   /**
@@ -652,7 +700,7 @@ class TransmogrifyCommand extends Command {
     // For everything else, we need to pluralize the model name
     $bits = explode('.', $row['attribute'], 2);
     
-    return \Cake\Utility\Inflector::pluralize($bits[0]) . "." . $bits[1];
+    return Inflector::pluralize($bits[0]) . "." . $bits[1];
   }
   
   /**
@@ -798,5 +846,121 @@ class TransmogrifyCommand extends Command {
   
   protected function map_url_type(array $row) {
     return $this->map_type($row, 'Urls.type', $this->findCoId($row));
+  }
+  
+  /**
+   * Set a default value for CO Settings Permitted Telephone Number Fields.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array  $row  Row of table data
+   * @return string       Default value
+   */
+  
+  protected function populate_co_settings_phone(array $row) {
+    return \App\Lib\Enum\PermittedTelephoneNumberFieldsEnum::CANE;
+  }
+  
+  /**
+   * Process Extended Attributes by converting them to Ad Hoc Attributes.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  protected function processExtendedAttributes() {
+    // This is intended to run AFTER AdHocAttributes so that we don't stomp on
+    // the row identifiers.
+    
+    // First, pull the old Extended Attribute configuration.
+    $extendedAttrs = [];
+    
+    $insql = "SELECT * FROM cm_co_extended_attributes ORDER BY id ASC";
+    $stmt = $this->inconn->query($insql);
+    
+    while($row = $stmt->fetch()) {
+      $extendedAttrs[ $row['co_id'] ][] = $row['name'];
+    }
+    
+    if(empty($extendedAttrs)) {
+      // No need to do anything further if no attributes are configured
+      return;
+    }
+    
+    foreach(array_keys($extendedAttrs) as $coId) {
+      $insql = "SELECT * FROM cm_co" . $coId . "_person_extended_attributes";
+      $stmt = $this->inconn->query($insql);
+      
+      while($eaRow = $stmt->fetch()) {
+        // If we didn't transmogrify the parent row for some reason then trying
+        // to insert the ad_hoc_attributes will throw an error.
+        if(!empty($this->cache['person_roles']['id'][ $eaRow['co_person_role_id'] ])) {
+          foreach($extendedAttrs[$coId] as $ea) {
+            $adhocRow = [
+              'person_role_id'      => $eaRow['co_person_role_id'],
+              'tag'                 => $ea,
+              'value'               => $eaRow[$ea],
+              'created'             => $eaRow['created'],
+              'modified'            => $eaRow['modified']
+            ];
+            
+            // Extended Attributes were not changelog enabled
+            $this->fixChangelog('ad_hoc_attributes', $adhocRow, true);
+            $this->fixBooleans('ad_hoc_attributes', $adhocRow);
+            
+            $this->outconn->insert('ad_hoc_attributes', $adhocRow);
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Split an External Identity into an External Identity Role.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $origRow Row of table data (original data)
+   * @param  array $row     Row of table data (post fixes)
+   */
+  
+  protected function split_external_identity(array $origRow, array $row) {
+    $roleRow = [];
+    
+    // We could set the row ID to be the same as the original parent, but then
+    // we'd have to reset the sequence after the table is finished migrating.
+    
+    foreach([
+      // Parent Key
+      'id' => 'external_identity_id',
+      'o' => 'organization',
+      'ou' => 'department',
+      'manager_identifier' => 'manager_identifier',
+      'sponsor_identifier' => 'sponsor_identifier',
+      'status' => 'status',
+      'title' => 'title',
+      'valid_from' => 'valid_from',
+      'valid_through' => 'valid_through',
+      // Fix up changelog
+      'org_identity_id' => 'external_identity_role_id',
+      'revision' => 'revision',
+      'deleted' => 'deleted',
+      'actor_identifier' => 'actor_identifier',
+      'created' => 'created',
+      'modified' => 'modified'
+    ] as $oldKey => $newKey) {
+      $roleRow[$newKey] = $origRow[$oldKey];
+    }
+    
+    // Affiliation requires special handling. We need to use the post-fixed $row
+    // because map_affiliation_type calls findCoId which uses the foreign key to
+    // lookup the CO ID in the cache, however by the time we've been called
+    // affiliation has been null'd out (since we're moving it to the role row).
+    // So shove it back in before calling map_affiliation_type.
+    $row['affiliation'] = $origRow['affiliation'];
+    $roleRow['affiliation_type_id'] = $this->map_affiliation_type($row);
+    
+    // Fix up changelog
+    $roleRow['external_identity_role_id'] = $origRow['org_identity_id'];
+    unset($roleRow['org_identity_id']);
+    
+    $this->outconn->insert('external_identity_roles', $roleRow);
   }
 }

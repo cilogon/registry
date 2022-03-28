@@ -74,8 +74,7 @@ class UrlsTable extends Table {
     
     $this->setDisplayField('url');
     
-// XXX note primary link is external_identity_id when set...
-    $this->setPrimaryLink(['person_id']);
+    $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setRequiresCO(true);
     
     $this->setAutoViewVars([

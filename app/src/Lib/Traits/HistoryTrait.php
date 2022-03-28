@@ -145,7 +145,8 @@ trait HistoryTrait {
       
       $lcomment = __d('result', 
                       $langKey,
-                      Inflector::singularize($entity->getSource()),
+                      //Inflector::singularize($entity->getSource()),
+                      __d('controller', $entity->getSource(), [1]),
                       $entity->id, 
                       $this->changesToString($entity));
     }
@@ -154,12 +155,16 @@ trait HistoryTrait {
     
     $personId = $this->lookupPersonId($entity);
     $personRoleId = $this->lookupPersonRoleId($entity);
+    $externalIdentityId = $this->lookupExternalIdentityId($entity);
+    $externalIdentityRoleId = $this->lookupExternalIdentityRoleId($entity);
     
     return $HistoryRecords->recordForPerson(
       $personId,
       $laction,
       $lcomment,
-      $personRoleId
+      $personRoleId,
+      $externalIdentityId,
+      $externalIdentityRoleId
     );
   }
 }

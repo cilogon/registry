@@ -37,7 +37,7 @@ $indexColumns = [
   ],
   'actor_person_id' => [
     'type' => 'relatedLink',
-    'action' => 'canvas',
+    'action' => 'edit',
     'label' => __d('field', 'actor'),
     'model' => 'actor_person',
     'submodel' => 'primary_name',

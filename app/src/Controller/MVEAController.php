@@ -56,7 +56,33 @@ class MVEAController extends StandardController {
       if(!empty($link->value)) {
         $this->set('vv_primary_link_id', $link->value);
         
+        $Names = TableRegistry::get('Names');
+        
         switch($link->attr) {
+          case 'external_identity_role_id':
+            $ExternalIdentityRoles = TableRegistry::get('ExternalIdentityRoles');
+            $roleEntity = $ExternalIdentityRoles->findById((int)$link->value)->firstOrFail();
+            
+            // Note this is a string, but vv_person_name is an entity
+            $this->set('vv_ei_role', $ExternalIdentityRoles->generateDisplayField($roleEntity));
+            $this->set('vv_ei_role_id', $link->value);
+            // fall through
+          case 'external_identity_id':
+            $ExternalIdentity = TableRegistry::get('ExternalIdentities');
+            
+            // What's the Person ID for the ExternalIdentity?
+            $eiId = isset($roleEntity) ? $roleEntity->external_identity_id : $link->value;
+            
+            $externalIdentity = $ExternalIdentity->findById($eiId)->firstOrFail();
+            
+            // What's the primary name for the Extarnal Identity?
+            $this->set('vv_ei_name', $Names->primaryName($externalIdentity->id, 'external_identity'));
+            $this->set('vv_ei_id', $externalIdentity->id);
+            
+            // What's the primary name of the Person?
+            $this->set('vv_person_name', $Names->primaryName($externalIdentity->person_id));
+            $this->set('vv_person_id', $externalIdentity->person_id);
+            break;
           case 'person_role_id':
             $PersonRoles = TableRegistry::get('PersonRoles');
             $roleEntity = $PersonRoles->findById((int)$link->value)->firstOrFail();
@@ -65,12 +91,10 @@ class MVEAController extends StandardController {
             $this->set('vv_person_role_id', $link->value);
             
             // Also set a name
-            $Names = TableRegistry::get('Names');
             $this->set('vv_person_name', $Names->primaryName($roleEntity->person_id));
             $this->set('vv_person_id', $roleEntity->person_id);
             break;
           case 'person_id':
-            $Names = TableRegistry::get('Names');
             $this->set('vv_person_name', $Names->primaryName((int)$link->value));
             $this->set('vv_person_id', $link->value);
             break;

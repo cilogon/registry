@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Telephone Number Entity
+ * COmanage Registry External Identities Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,47 +27,22 @@
 
 declare(strict_types = 1);
 
-namespace App\Model\Entity;
+namespace App\Controller;
 
-use Cake\ORM\Entity;
+// XXX not doing anything with Log yet
+use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
 
-class TelephoneNumber extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
-  use \App\Lib\Traits\MVETrait;
-  
-  protected $_accessible = [
-    '*' => true,
-    'id' => false,
-    'slug' => false, 
+// Use extend MVEAController for breadcrumb rendering. ExternalIdentities is
+// sort of an MVEA, so maybe it makes sense to treat it as such.
+class ExternalIdentitiesController extends MVEAController {
+  public $pagination = [
+    'order' => [
+      'PrimaryName.family' => 'asc'
+    ],
+    'sortableFields' => [
+      'PrimaryName.given',
+      'PrimaryName.family'
+    ]
   ];
-  
-  /**
-   * Generate a formatted number
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @return string Formatted telephone number
-   */
-  
-  protected function _getFormattedNumber() {
-    // Start with number since it's always required, then prepend and/or append
-    $n = $this->number;
-    
-    // Prepend the area code, if set
-    if(!empty($this->area_code)) {
-      $n = $this->area_code . " " . $n;
-    }
-    
-    // Prepend the country code if set
-    if(!empty($this->country_code)) {
-      // We'll only output + style if a country code was provided
-      $n = "+" . $this->country_code . " " . $n;
-    }
-    
-    // Append the extension, if set
-    if(!empty($this->extension)) {
-      $n .= " " . __d('field', 'TelephoneNumbers.number.ext') . $this->extension;
-    }
-    
-    return $n;
-  }
 }

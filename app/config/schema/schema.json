@@ -13,6 +13,7 @@
       "cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
       "description": { "type": "string", "size": 128 },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
+      "external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
       "language": { "type": "string", "size": 16 },
       "name": { "type": "string", "size": 128, "notnull": true },
@@ -182,18 +183,24 @@
     },
     
     "external_identities": {
-      "comment": [
-        "XXX most of these fields are going to move to person_roles instead",
-        "XXX how is manager_identifier and sponsor_identifier going to work? we can fk from people but not external_identities",
-        "XXX affiliation should become affiliation_type_id"
-      ],
-      
       "columns": {
         "id": {},
         "person_id": { "notnull": true },
         "status": {},
-        "affiliation": { "type": "string", "size": 32 },
-        "date_of_birth": { "type": "date" },
+        "date_of_birth": { "type": "date" }
+      },
+      "indexes": {
+        "external_identities_i1": { "columns": [ "person_id" ] }
+      }
+    },
+    
+    "external_identity_roles": {
+      "columns": {
+        "id": {},
+        "external_identity_id": { "notnull": true },
+        "status": {},
+        "ordr": { "type": "integer" },
+        "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "title": { "type": "string", "size": 128 },
         "organization": { "type": "string", "size": 128 },
         "department": { "type": "string", "size": 128 },
@@ -203,7 +210,8 @@
         "valid_through": {}
       },
       "indexes": {
-        "external_identities_i1": { "columns": [ "person_id" ] }
+        "external_identity_roles_i1": { "columns": [ "external_identity_id" ] },
+        "external_identity_roles_i2": { "columns": [ "affiliation_type_id" ] }
       }
     },
     
@@ -238,7 +246,7 @@
       "indexes": {
         "ad_hoc_attributes_i1": { "columns": [ "tag" ] }
       },
-      "mvea": [ "person", "person_role", "external_identity" ],
+      "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
       "sourced": true
     },
     
@@ -258,7 +266,7 @@
       "indexes": {
         "addresses_i1": { "columns": [ "type_id" ] }
       },
-      "mvea": [ "person", "person_role", "external_identity" ],
+      "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
       "sourced": true
     },
     
@@ -309,7 +317,7 @@
       "indexes": {
         "telephone_numbers_i1": { "columns": [ "type_id" ] }
       },
-      "mvea": [ "person", "person_role", "external_identity" ],
+      "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
       "sourced": true
     },
     
@@ -328,8 +336,6 @@
     },
     
     "history_records": {
-      "comment": "XXX not all foreign keys are defined yet",
-      
       "columns": {
         "id": {},
         "action": { "type": "string", "size": 4 },
@@ -337,19 +343,22 @@
         "person_id": {},
         "person_role_id": {},
         "external_identity_id": {},
+        "external_identity_role_id": {},
         "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } }
       },
       "indexes": {
         "history_records_i1": { "columns": [ "person_id" ] },
         "history_records_i2": { "columns": [ "external_identity_id" ] },
-        "history_records_i3": { "columns": [ "actor_person_id" ] }
+        "history_records_i3": { "columns": [ "actor_person_id" ] },
+        "history_records_i4": { "columns": [ "person_role_id" ] },
+        "history_records_i5": { "columns": [ "external_identity_role_id" ] }
       }
     }
   },
   
   "drop-tables":[
     {
-      "comment": "A list of tables to manually drop, not yet implemented"
+      "comment": "A list of tables to manually drop, not yet implemented -- actually are we going to need this? DBAL seems to be able to figure it out..."
     }
   ]
 }

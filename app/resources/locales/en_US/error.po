@@ -120,6 +120,9 @@ msgstr "At least one name is required"
 msgid "Names.primary_name"
 msgstr "Primary Name not found"
 
+msgid "Names.primary_name.del"
+msgstr "Primary Name cannot be deleted"
+
 msgid "notfound"
 msgstr "{0} not found"
 
