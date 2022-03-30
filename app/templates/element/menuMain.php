@@ -51,17 +51,6 @@
         ]
       ];
 
-      if(count($vv_available_cos) > 1) {
-        // More than one CO is available, so present the switcher
-        $menuItems[] = [
-          'controller' => 'cos',
-          'action'     => 'select',
-          'permission' => null,
-          'icon'       => 'transfer_within_a_station',
-          'label'      => __d('menu', 'co.switch')
-        ];
-      }
-
       foreach($menuItems as $m) {
         if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
           $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em>'

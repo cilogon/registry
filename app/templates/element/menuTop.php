@@ -36,11 +36,12 @@
         <em class="material-icons icon-adjust">person</em>
       </a>
       <!-- Account Dropdown -->
-      <div id="user-panel"  class="dropdown-menu" aria-labelledby="user-panel-toggle">
+      <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
           <?= $this->Html->link(__d('operation','logout') . ' <span class="fa fa-sign-out"></span>',
             '/auth/logout/logout.php',
             ['escape'     => false,
+             'id'         => 'logout-in-panel-link',
              'class'      => 'btn']);
           ?>
         </div>
@@ -49,6 +50,16 @@
           <div id="user-panel-cn"><?= $vv_user['username']; ?></div>
           <div id="user-panel-id"><!-- XXX identifier goes here --></div>
         </div>
+        <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>
+          <div id="user-panel-switch-co">
+            <?= $this->Html->link(__d('menu','co.switch') . ' <em class="material-icons" aria-hidden="true">transfer_within_a_station</em>',
+              '/cos/select',
+              ['escape'     => false,
+               'id'         => 'co-switch-link',
+               'class'      => 'btn']);
+            ?>
+          </div>  
+        <?php endif; ?>
       </div>
     </li>
   </ul>

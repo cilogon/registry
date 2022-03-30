@@ -79,6 +79,8 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     $controller_stripped = preg_replace('/[^a-zA-Z0-9\-_]/', '', strtolower($this->request->getParam('controller')));
     $action_stripped = preg_replace('/[^a-zA-Z0-9\-_]/', '', strtolower($this->request->getParam('action')));
     $bodyClasses = $controller_stripped . ' ' .$action_stripped;
+    $isCoSelectView = $controller_stripped == 'cos' && $action_stripped == 'select';
+    $isDashboard = $controller_stripped == 'dashboards' && $action_stripped == 'dashboard';
 
     // add further body classes as needed
     if(!empty($vv_user)) {
@@ -95,7 +97,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     <!-- Primary layout -->
     <div id="comanage-wrapper">
       <div id="top-bar">
-        <?php if(!empty($vv_user) && !empty($vv_cur_co)): ?>
+        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
           <div id="co-hamburger"><em class="material-icons">menu</em></div>
         <?php endif; // vv_user ?>
         <nav id="top-menu">
@@ -106,7 +108,9 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       <header id="banner">
         <div id="siteTitle">
           <!-- XXX Sanitize $vv_cur_co['name'] -->
-          <?php if(!empty($vv_cur_co)): ?>
+          <?php if($isCoSelectView): // just print the name ?>
+            <?= __('registry.meta.registry') ?>
+          <?php elseif(!empty($vv_cur_co)): ?>
             <?= $this->Html->link(
               $vv_cur_co['name'],
               ['controller' => 'Dashboards',
@@ -136,7 +140,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       </header>
 
       <div id="main-wrapper">
-        <?php if(!empty($vv_user) && !empty($vv_cur_co)): ?>
+        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
           <div id="navigation-drawer">
             <nav id="navigation" aria-label="main menu">
               <?= $this->element('menuMain'); ?>
@@ -147,8 +151,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
         <main id="main">
           <div id="content">
             <div id="content-inner">
-              <?php if(!(($controller_stripped == 'cos' && $action_stripped == 'select') ||
-                         ($controller_stripped == 'dashboards' && $action_stripped == 'dashboard'))): ?>
+              <?php if(!($isCoSelectView || $isDashboard)): ?>
                 <!-- insert breadcrumbs on all but the front page ("Select Collaborations")
                      and Dashboards (including the CO landing page) -->
                 <div id="breadcrumbs">
