@@ -7,14 +7,24 @@
 <div class="message error" onclick="this.classList.add('hidden');"><?= $message ?></div>
 */ ?>
 
+<?php if(!empty($message)): ?>
+  <div class="toast error" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+    <div class="toast-header">
+      <?= $this->Html->image("COmanage-Gears-SM.png", array('alt' => __('registry.meta.logo'))); ?>
+      <span class="me-auto"><?= __('product.comanage'); ?></span>
+      <small><?= __d('information','flash.error'); ?></small>
+      <button type="button" class="btn-close nospin" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      <?= h($message); ?>
+    </div>
+  </div>
 
-<?php
-  if(!empty($message)) {
-    // Strip tags then escape quotes before handing Flash message to noty.js
-    $filteredMessage = filter_var(filter_var($message,FILTER_SANITIZE_STRING,FILTER_FLAG_NO_ENCODE_QUOTES),FILTER_SANITIZE_ADD_SLASHES);
-    // Replace all newlines with html breaks
-    $filteredMessage = str_replace(array("\r", "\n"), '<br/>', $filteredMessage);
-    print "<script>generateFlash('" . $filteredMessage . "', 'error');</script>";
-  }
-?>
-
+  <script>
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    var toastList = toastElList.map(function(toastEl) {
+      return new bootstrap.Toast(toastEl);
+    });
+    toastList.forEach(toast => toast.show());
+  </script>
+<?php endif; ?>

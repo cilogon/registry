@@ -40,17 +40,6 @@ function js_onsubmit_call_hooks() {
   }
 }
 
-// Generate flash notifications for messages
-function generateFlash(text, type) {
-  var n = noty({
-    text: text,
-    type: type,
-    dismissQueue: true,
-    layout: 'topCenter',
-    theme: 'comanage'
-  });
-}
-
 // Generate a loading animation by revealing a persistent hidden div with CSS animation.
 // An element's onclick action will trigger this to appear if it has the class "spin" class on an element.
 // (See Template/Elements/javascript.ctp)

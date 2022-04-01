@@ -319,11 +319,31 @@ instead, reveal in user menu */
   padding: 1em 0;
 }
 /* NOTICES */
-.noty_text {
-  letter-spacing: 0.3px;
-  font-size: 14px;
+#flash-messages {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 1em auto;
+  z-index: 100;
 }
-.noty_text .material-icons {
+#flash-messages .toast-header img {
+  width: 20px;
+  margin-right: 0.3em;
+}
+#flash-messages .toast.success .toast-header {
+  background-color: var(--cmg-color-green-007);
+  color: white;
+}
+#flash-messages .toast.error .toast-header {
+  background-color: var(--cmg-color-red-002);
+  color: white;
+}
+#flash-messages .toast.default .toast-header {
+  background-color: var(--cmg-color-yellow-001);
+  color: black;
+}
+#flash-messages .material-icons {
   font-size: 20px !important;
   padding: 0;
   margin: 0 4px 0 -10px;

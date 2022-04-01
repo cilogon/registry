@@ -40,7 +40,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 <!DOCTYPE html>
 <html lang="<?= __('registry.meta.lang'); ?>">
   <head>
-    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . "\n"; ?>
+    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no') . "\n"; ?>
     <?= $this->Html->charset(); ?>
 
     <title><?= (!empty($vv_title) ? $vv_title : __('registry.meta.registry')); ?></title>
@@ -63,8 +63,9 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       'co-responsive'
     ]) . "\n"; ?>
 
-    <!-- Load JavaScript (only JQuery here - other scripts at bottom) -->
+    <!-- Load Bootstrap and jQuery (other scripts at bottom) -->
     <?= $this->Html->script([
+      'bootstrap/bootstrap.bundle.min.js',
       'jquery/jquery.min.js'
     ]) . "\n"; ?>
 
@@ -176,6 +177,15 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- loading animation -->
     <div id="co-loading"><span></span><span></span><span></span></div>
+    
+    <!-- informational messages -->
+    <div 
+      class="toast-container" 
+      id="flash-messages" 
+      aria-live="polite" 
+      aria-atomic="true" >
+      <?= $this->Flash->render() ?>
+    </div>
 
     <!-- modal dialog box -->
     <?= $this->element('dialog'); ?>
@@ -191,13 +201,9 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     </script>
 
     <!-- Load Javascript -->
-    <!-- XXX Noty, js-cookie, and metisMenu should be deprecated -->
+    <!-- XXX js-cookie should be deprecated -->
     <?= $this->Html->script([
-      'bootstrap/bootstrap.bundle.min.js',
       'js-cookie/js.cookie-2.1.3.min.js',
-      'jquery/noty/jquery.noty.js',
-      'jquery/noty/layouts/topCenter.js',
-      'jquery/noty/themes/comanage.js',
       'comanage.js'
     ]) . "\n"; ?>
 

@@ -26,6 +26,9 @@
 msgid "product.code"
 msgstr "registry"
 
+msgid "product.comanage"
+msgstr "COmanage"
+
 # This should match the ISO 639-1 two letter language code for the translation
 msgid "registry.meta.lang"
 msgstr "en"

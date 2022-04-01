@@ -36,6 +36,15 @@ msgstr "No collaborations (COs) yet exist. Please have an administrator create o
 msgid "cos.select"
 msgstr "Please select the collaboration (CO) you wish to manage."
 
+msgid "flash.default"
+msgstr "Notice"
+
+msgid "flash.error"
+msgstr "Error"
+
+msgid "flash.success"
+msgstr "Success"
+
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 

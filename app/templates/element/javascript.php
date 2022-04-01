@@ -231,5 +231,3 @@
   var defaultConfirmTitle = "<?php print __d('operation', 'confirm'); ?>";
 
 </script>
-
-<?= $this->Flash->render() ?>
