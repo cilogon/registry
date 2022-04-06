@@ -42,8 +42,10 @@ if(empty($_SERVER['REMOTE_USER'])) {
 }
 
 $_SESSION['Auth']['external']['user'] = $_SERVER['REMOTE_USER'];
+$target = $_SESSION['Auth']['target'] ?? "/";
 
-$target = !empty($_SESSION['Auth']['target']) ? $_SESSION['Auth']['target'] : "/";
+$re = '/(.*)\/auth\/login\/login(?:.php)?(.*)/m';
+$subst = '$1' . $target . '$2';
+$path = preg_replace($re, $subst, urldecode($_SERVER['REQUEST_URI']), 1);
 
-// XXX fix hardcoded prefix?
-header("Location: /registry-pe" . $target);
+header("Location: " . $path);

@@ -36,4 +36,8 @@ session_start();
 
 unset($_SESSION['Auth']);
 
-header("Location: " . "/registry-pe");
+$re = '/(.*)\/auth\/logout\/logout(?:.php)?(.*)/m';
+$subst = '$1$2';
+$path = preg_replace($re, $subst, urldecode($_SERVER['REQUEST_URI']), 1);
+
+header("Location: " . $path);
