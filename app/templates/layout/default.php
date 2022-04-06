@@ -40,7 +40,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 <!DOCTYPE html>
 <html lang="<?= __('registry.meta.lang'); ?>">
   <head>
-    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no') . "\n"; ?>
+    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . "\n"; ?>
     <?= $this->Html->charset(); ?>
 
     <title><?= (!empty($vv_title) ? $vv_title : __('registry.meta.registry')); ?></title>
@@ -191,7 +191,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     <?= $this->element('dialog'); ?>
 
     <!-- Get timezone detection -->
-    <?php print $this->Html->script('jstimezonedetect/jstz.min.js'); ?>
+    <?= $this->Html->script('jstimezonedetect/jstz.min.js'); ?>
     <script>
       // Determines the time zone of the browser client
       var tz = jstz.determine();
@@ -202,10 +202,15 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Load Javascript -->
     <!-- XXX js-cookie should be deprecated -->
-    <?= $this->Html->script([
+    <?= $this->Html->script([      
+      'vue/vue-3.2.31.global.prod.js',
       'js-cookie/js.cookie-2.1.3.min.js',
-      'comanage.js'
+      'comanage/comanage.js'
     ]) . "\n"; ?>
+
+    <!-- Duet Datepicker should be loaded as a module -->
+    <?= $this->Html->script('duet-datepicker/duet/duet.esm.js',['type' => 'module']); ?>
+    <?= $this->Html->script('duet-datepicker/duet/duet.js',['nomodule' => '']); ?>
 
     <!-- COmanage JavaScript onload scripts -->
     <?php print $this->element('javascript'); ?>

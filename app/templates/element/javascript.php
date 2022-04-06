@@ -169,50 +169,10 @@
       }
     });
 
-    // Datepickers
-
-    <?php /* For all calls to datepicker, wrap the calling date field in a
-      container of class .modelbox-data: this allows us to show the datepicker next to
-      the appropriate field because jQuery drops the div at the bottom of the body and
-      that approach doesn't work well with Material Design Light (MDL). If you do not
-      do this, the datepicker will float up to the top of the browser window. See
-      app/View/CoGroupMembers for an example. */ ?>
-     
-/* XXX CFM-107 Hide datepickers until replaced with new approach
-    $(".datepicker-f").datepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: "yy-mm-dd 00:00:00",
-      numberOfMonths: 1,
-      showButtonPanel: false,
-      showOtherMonths: true,
-      selectOtherMonths: true,
-      onSelect: function(selectedDate) {
-        $(this).closest('.mdl-textfield').addClass('is-dirty');
-      }
-    }).bind('click',function () {
-      $("#ui-datepicker-div").appendTo($(this).closest('.modelbox-data'));
-    });
-
-    $(".datepicker-u").datepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: "yy-mm-dd 23:59:59",
-      numberOfMonths: 1,
-      showButtonPanel: false,
-      showOtherMonths: true,
-      selectOtherMonths: true,
-      onSelect: function(selectedDate) {
-        $(this).closest('.mdl-textfield').addClass('is-dirty');
-      }
-    }).bind('click',function () {
-      $("#ui-datepicker-div").appendTo($(this).closest('.modelbox-data'));
-    });
-*/
-
     // Add loading animation when a form is submitted, when any item with a "spin" class is clicked,
-    // or on any button or anchor tag lacking the .nospin class.
-    $("input[type='submit'], button:not(.nospin), a:not(.nospin), .spin").click(function() {
+    // or on any anchor tag lacking the .nospin class. We do not automatically add this to buttons
+    // because they are often on-page controls. Add a "spin" class to buttons that need it.
+    $("input[type='submit'], a:not('.nospin'), .spin").click(function() {
 
       displaySpinner();
 

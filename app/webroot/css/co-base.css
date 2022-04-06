@@ -1082,31 +1082,116 @@ ul.form-list li.field-stack textarea {
   display: inline;
   margin: 0;
 }
-/* Ensure datepicker renders properly.
-We are using javascript to move it near its input field so
-that it will scroll properly on mobile devices. */
-#ui-datepicker-div table tr > *:first-child,
-#ui-datepicker-div table tr > *:nth-child(2) {
-  min-width: 0;
-  text-align: center;
-}
-#ui-datepicker-div table tr td:first-child {
-  padding-left: 1px;
-}
-#ui-datepicker-div {
-  top: 0 !important;
-}
-.ui-datepicker select.ui-datepicker-month-year {
-  width: 100%;
-}
-.ui-datepicker select.ui-datepicker-month,
-.ui-datepicker select.ui-datepicker-year {
-  width: 49%;
-}
 #content .material-icons {
   font-size: 17px;
   margin-top: 1px;
   vertical-align: top;
+}
+/* DATE and TIME PICKERS */
+.cm-datetime-picker {
+  display: flex;
+  align-items: center;
+  margin-left: 2.8em;
+}
+.duet-date__toggle {
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  border-radius: 0;
+  margin: -15px 0 0;
+  box-shadow: none;
+}
+.duet-date__toggle:focus {
+  border: 1px dotted var(--cmg-color-black);
+  box-shadow: 0 0 0 .25rem rgba(13,110,253,.25); /* override Duet to be same as Bootstrap */
+}
+table.duet-date__table tr th:first-child,
+table.duet-date__table tr td:first-child,
+table.duet-date__table th,
+table.duet-date__table td {
+  padding: unset;
+}
+table.duet-date__table th.duet-date__table-header {
+  padding: 8px;
+  text-align: center;
+}
+.cm-time-picker button {
+  width: 30px;
+  margin: 0;
+  padding: 0;
+}
+#content .cm-time-picker .material-icons {
+  font-size: 1.5em;
+  margin: 0;
+}
+.duet-date__input {
+  display: none;
+}
+ul.fields li.fields-datepicker {
+  overflow: unset;
+}
+ul.fields li.fields-datepicker .field-info {
+  width: auto;
+  display: flex;
+  align-items: center;
+}
+.cm-time-picker-panel {
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  width: auto;
+  background-color: white;
+  border: 1px solid var(--cmg-color-lightgray-006);
+  text-align: center;
+  border-radius: 4px;
+  align-items: center;
+  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.1);
+}
+.cm-time-picker-title {
+  padding: 0.25em;
+  border-bottom: 1px solid var(--cmg-color-lightgray-005);
+  font-size: 1.1em;
+}
+.cm-time-picker-vals ul {
+  display: grid;
+  /* Mobile view is long. The grid templates are reversed for desktop. */
+  grid-template-columns: repeat(6,40px);
+  grid-template-rows: repeat(4,40px);
+  padding: 0;
+  align-content: center;
+}
+.cm-time-picker-minutes .cm-time-picker-vals ul {
+  grid-template-columns: repeat(4,40px);
+  grid-template-rows: repeat(1,40px);
+}
+ul.form-list .cm-time-picker-vals li {
+  display: block;
+  padding: 4px 0 0 0;
+}
+.cm-time-picker-vals button {
+  background-color: transparent;
+  border: none;
+  width: 30px;
+  height: 30px;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.cm-time-picker-vals button:focus {
+  background-color: var(--cmg-color-blue-003);
+  color: var(--cmg-color-white);
+  border-radius: 14px;
+}
+.cm-time-picker-colon {
+  padding: 0 1em;
+}
+/* Vue transitions */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.2s;
+}
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 /* DIALOG BOX */
 #dialog .modal-header {

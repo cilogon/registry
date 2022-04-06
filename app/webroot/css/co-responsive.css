@@ -116,6 +116,10 @@
   #pagination.with-pagination-elements .paginationCounter {
     margin-top: 2px;
   }
+  /* DATE / TIME PICKER */
+  .duet-date__dialog {
+    left: -20em;
+  }
 }
 
 /* MEDIUM - Primary breakpoint */
@@ -276,7 +280,19 @@
 /**************************************************************************************************************/
 /* Medium devices (desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
-
+  /* DATE / TIME PICKER */
+  .cm-time-picker-panel {
+    right: -100%;
+    display: flex;
+  }
+  .cm-time-picker-vals ul {
+    grid-template-columns: repeat(12, 40px);
+    grid-template-rows: repeat(2, 40px);
+  }
+  .cm-time-picker-minutes .cm-time-picker-vals ul {
+    grid-template-columns: repeat(2,40px);
+    grid-template-rows: repeat(2,40px);
+  }
 }
 
 /* EXTRA LARGE */
