@@ -38,6 +38,8 @@ use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
 class RuleBuilderEventListener Implements EventListenerInterface {
+  use \App\Lib\Traits\LabeledLogTrait;
+  
   /**
    * Build rules event listener.
    *
@@ -48,7 +50,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
    */
   
   public function buildRules(Event $event, RulesChecker $rules) {
-    // We automatically insert ruleValidateCO for GMR-1 ad GMR-2 by examining
+    // We automatically insert ruleValidateCO for GMR-1 and GMR-2 by examining
     // the table schema and injecting a rule for any field ending with _id.
     // We use the table schema in case a programmer forgets to define a
     // validation rule for a foreign key field.
@@ -58,13 +60,22 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     // to have an extra safety check, and we'd need AppController to pass in
     // the RESTful status during __construct() (like for ChangelogEventListener).
     
-    $schema = $event->getSubject()->getSchema();
+    $subjectTable = $event->getSubject();
+    
+    $schema = $subjectTable->getSchema();
     
     // We need to skip some metadata fields, including changelog and EIS fks
     // changelog
-    $cl = Inflector::singularize($event->getSubject()->getTable()) . "_id";
+    $cl = Inflector::singularize($subjectTable->getTable()) . "_id";
     // external identity source
     $eis = "source_" . $cl;
+    
+    // Figure out the primary link(s) for this table.
+    $primaryLinks = [];
+    
+    if(method_exists($subjectTable, "getPrimaryLinks")) {
+      $primaryLinks = $subjectTable->getPrimaryLinks();
+    }
     
     foreach($schema->columns() as $col) {
       if(in_array($col, [$cl, $eis])) {
@@ -74,13 +85,14 @@ class RuleBuilderEventListener Implements EventListenerInterface {
         continue;
       }
       
-      if($col == 'co_id') {
+      if(in_array($col, $primaryLinks)) {
         $rules->addUpdate(
-          [$this, 'ruleFreezeCO'],
-          'freezeCO',
+          [$this, 'ruleFreezePrimaryLink'],
+          'freezePrimaryLink',
           ['errorField' => $col]
         );
       } elseif(preg_match('/^.*_id$/', $col)) {
+      
 // XXX still need to handle whatever "unfreeze" is going to become
         $rules->add(
           [$this, 'ruleValidateCO'],
@@ -126,15 +138,52 @@ class RuleBuilderEventListener Implements EventListenerInterface {
    * @return boolean          true if the Rule check passes, false otherwise
    */
   
-  public function ruleFreezeCO(EntityInterface $entity, array $options) {
+  public function ruleFreezePrimaryLink(EntityInterface $entity, array $options) {
+    // Tables can have multiple primary link fields, but only one can be
+    // populated at a time, and the primary link cannot change.
+    
+    // The table we are validating, eg Name
+    $table = $options['repository'];
+    
+    // The field to check is (confusingly) $options['errorField'].
+    
+    if(empty($options['errorField'])) {
+      return __d('error', 'rule.ValidateCo.errorField');
+    }
+    
+    // The foreign key we are validating
+    $targetField = $options['errorField'];
+    
+    $want = $entity->get($targetField);
+    $have = $entity->getOriginal($targetField);
+    
+    // GMR-3 The Primary Link key cannot be changed once set. If the primary
+    // link field goes to or from NULL throw an error. If it is NULL in both
+    // places, then this Primary Link is not in use for the object.
+    
+    // Changing the primary link key (eg: person_id to external_identity_id)
+    // is not permitted. To be clear, the _value_ CAN be changed (within the
+    // same CO), just not which key is being used.
+      
+    if($want === NULL && $have === NULL) {
+      // This primary link is not in use
+      return true;
+    }
+    
+    if($want != $have && ($want === NULL || $have === NULL)) {
+      // GMR-3
+      $this->llog('error', "GMR-3 The Primary Link key cannot be changed once set, changing " . $table->getAlias() . " record " . $entity->id . " " . $options['errorField'] . " from " . $have . " to " . $want . " is not allowed");
+      return __d('error', 'primary_link.frozen');
+    }
+    
     // GMR-1 Once an entity is created within a CO, it cannot be moved to
-    // another co. Note this check is only for the direct foreign key 'co_id',
-    // all other primary links are checked using ruleValidateCO.
+    // another CO.
+
+    $wantCO = $table->calculateCoForRecord($entity);
+    $haveCO = $table->calculateCoForRecord($entity, true);
     
-    $want = $entity->get('co_id');
-    $have = $entity->getOriginal('co_id');
-    
-    if($want != $have) {
+    if($wantCO != $haveCO) {
+      $this->llog('error', "GMR-1 Attempt to move " . $table->getAlias() . " record " . $entity->id . " from CO " . $have . " to CO " . $want . " is not allowed");
       return __d('error', 'coid.frozen');
     }
     
@@ -156,6 +205,11 @@ class RuleBuilderEventListener Implements EventListenerInterface {
    */
   
   public function ruleValidateCO(EntityInterface $entity, array $options) {
+    // GMR-2 Foreign keys from one entity to another cannot cross COs.
+    // The logic here requires an "anchor" that cannot change, which is the
+    // primary link, which is enforce by ruleFreezePrimaryLink (which verifies
+    // that the primary object cannot be altered).
+    
     // The field to check is (confusingly) $options['errorField'].
     // We don't need to check "unfreeze" here since it should be checked in
     // buildRules().
@@ -196,7 +250,8 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     $want = $targetTable->findCoForRecord($entity->$targetField);
     
     if($want != $have) {
-      return __d('error', 'rule.ValidateCo.mismatch', $want, $have);
+      $this->llog('error', "GMR-2 Field $targetField for " . $table->getAlias() . " record " . $entity->id . " cannot cross from CO " . $have . " to CO " . $want);
+      return __d('error', 'rule.ValidateCo.mismatch', $targetField, $want, $have);
     }
     
     return true;

@@ -358,7 +358,7 @@
   
   "drop-tables":[
     {
-      "comment": "A list of tables to manually drop, not yet implemented -- actually are we going to need this? DBAL seems to be able to figure it out..."
+      "comment": "A list of tables to manually drop, not yet implemented -- actually are we going to need this? DBAL seems to be able to figure it out... (CO-672)"
     }
   ]
 }

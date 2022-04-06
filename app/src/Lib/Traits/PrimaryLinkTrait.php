@@ -107,14 +107,15 @@ trait PrimaryLinkTrait {
    * Determine the CO for an entity.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  EntityInterface $entity Entity
+   * @param  EntityInterface $entity   Entity
+   * @param  bool            $original If true, calculate based on the original value (for a dirty entity)
    * @return int|null                CO ID or null if not found
    */
   
-  public function calculateCoForRecord(EntityInterface $entity): ?int {
+  public function calculateCoForRecord(EntityInterface $entity, bool $original=false): ?int {
     if(isset($this->primaryLinks['co_id'])) {
       if(!empty($entity->co_id)) {
-        return $entity->co_id;
+        return ($original ? $entity->getOriginal('co_id') : $entity->get('co_id'));
       }
     } else {
       foreach($this->primaryLinks as $linkField => $linkTable) {
@@ -122,7 +123,9 @@ trait PrimaryLinkTrait {
           // Use this field. Recursively ask the primaryLink until we get an answer.
           $LinkTable = TableRegistry::getTableLocator()->get($linkTable);
           
-          return $LinkTable->findCoForRecord($entity->$linkField);
+          $linkValue = ($original ? $entity->getOriginal($linkField) : $entity->get($linkField));
+          
+          return $LinkTable->findCoForRecord($linkValue);
         }
       }
     }

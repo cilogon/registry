@@ -144,6 +144,9 @@ msgstr "Permission Denied"
 msgid "primary_link"
 msgstr "Could not find value for Primary Link"
 
+msgid "primary_link.frozen"
+msgstr "The Primary Link key cannot be changed once set"
+
 msgid "primary_link.mismatch"
 msgstr "All records must have the same Primary Link"
 
@@ -151,7 +154,7 @@ msgid "rule.ValidateCo.errorField"
 msgstr "errorField not set in ruleValidateCO"
 
 msgid "rule.ValidateCo.mismatch"
-msgstr "Foreign key $targetField CO ID {0} does not match primary object CO ID {1}"
+msgstr "Foreign key {0} CO ID {1} does not match primary object CO ID {2}"
 
 msgid "save"
 msgstr "Save Failed ({0})"
