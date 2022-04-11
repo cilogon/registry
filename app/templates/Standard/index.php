@@ -91,38 +91,52 @@ function _column_key($modelsName, $c, $tz=null) {
     <h1><?= $vv_title; ?></h1>
   </div>
 
-  <?php if($vv_permissions['add']): ?>
-    <ul id="topLinks">
-      <li>
-        <?= $this->Html->link('<em class="material-icons" aria-hidden="true">add_circle</em> ' .
-            __d('operation', 'add.a', __d('controller', $modelsName, [1])),
-          ['action' => 'add', '?' => $linkFilter],
-          ['escape' => false]); ?>
-      </li>
-      <?php
-        if(!empty($topLinks)) {
-          foreach($topLinks as $t) {
-            if($vv_permissions[ $t['link']['action'] ]) {
-              // We need to inject $linkFilter, but not overwrite any existing query params
-              if(!empty($t['link']['?'])) {
-                $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
-              } else {
-                $t['link']['?'] = $linkFilter;
-              }
-              
-              print '<li>' .
-                $this->Html->link(
-                  '<em class="material-icons" aria-hidden="true">' . $t['icon']. '</em> ' . $t['label'],
-                  $t['link'],
-                  ['escape' => false, 'class' => $t['class']]
-                ) . '
-              </li>';
-            }
-          }
+  <?php
+  // Action list for top menu dropdown / button listing
+  // Index view top link action item can be atomized using the user's identifier
+  // since there will not always be an object id available. Like the case of add action
+  if($vv_permissions['add']) {
+    $action_args = array();
+    $action_args['vv_attr_id'] =  $vv_user['username'];
+
+    $action_args['vv_actions'][] = [
+      'order' => $this->Menu->getMenuOrder('Add'),
+      'icon' => $this->Menu->getMenuIcon('Add'),
+      'url' => $this->Url->build(
+        [
+          'controller' => $modelsName,
+          'action' => 'add',
+          '?' => $linkFilter
+        ]
+      ),
+      'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
+    ];
+
+    foreach(($topLinks ?? []) as $t) {
+      if($vv_permissions[ $t['link']['action'] ]) {
+        // We need to inject $linkFilter, but not overwrite any existing query params
+        if(!empty($t['link']['?'])) {
+          $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+        } else {
+          $t['link']['?'] = $linkFilter;
         }
-      ?>
-    </ul>
-  <?php endif; ?>
+
+        $action_args['vv_actions'][] = [
+          'order' => $this->Menu->getMenuOrder($t['icon']),
+          'icon' => $this->Menu->getMenuIcon($t['icon']),
+          'url' => $this->Url->build($t['link']),
+          'label' => $t['label'],
+        ];
+      }
+    }
+  }
+
+  if(!empty($action_args['vv_actions'])) {
+  print '<div class="field-actions top-links">';
+    print $this->element('menuAction', $action_args);
+    print '</div>';
+  }
+  ?>
 </div>
 <?php if(!empty($indexBanners)): ?>
   <?php foreach($indexBanners as $b): ?>
