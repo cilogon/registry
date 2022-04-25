@@ -25,6 +25,9 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// Turn on the search/filter box for this index view
+$enableFiltering = true;
+
 $indexColumns = [
   'display_name' => [
     'type' => 'link',

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Search Element
+ * COmanage Registry Filter Element - for index view filtering
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -37,7 +37,7 @@ $search_params = array_intersect_key($query, $vv_searchable_attributes);
 
 // Begin the form
 print $this->Form->create(null, [
-  'id'   => 'top-search-form',
+  'id'   => 'top-filters-form',
   'type' => 'get'
 ]);
 
@@ -55,15 +55,15 @@ if(!empty($non_search_params)) {
 $hasActiveFilters = false;
 ?>
 
-<div id="<?= $modelName . ucfirst($this->request->getParam('action')); ?>Search" class="top-search">
-  <fieldset onclick="event.stopPropagation();">
-    <legend id="top-search-toggle">
+<div id="<?= $modelName . ucfirst($this->request->getParam('action')); ?>Search" class="top-filters">
+  <fieldset>
+    <legend id="top-filters-toggle">
       <em class="material-icons">search</em>
       <?= __d('operation', 'filter'); ?>
       
 
       <?php if(!empty($search_params)):?>
-        <span id="top-search-active-filters">
+        <span id="top-filters-active-filters">
         <?php foreach($search_params as $key => $params): ?>
           <?php
             // Construct aria-controls string
@@ -72,27 +72,27 @@ $hasActiveFilters = false;
             // We have active filters - not just a sort.
             $hasActiveFilters = true;
           ?>
-          <button class="top-search-active-filter deletebutton spin btn btn-default btn-sm" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
+          <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
              <em class="material-icons">cancel</em>
-             <span class="top-search-active-filter-title">
+             <span class="top-filters-active-filter-title">
                <?= $vv_searchable_attributes[$key]['label']; ?>
              </span>
-             <span class="top-search-active-filter-value">
+             <span class="top-filters-active-filter-value">
                <?= filter_var($search_params[$key], FILTER_SANITIZE_SPECIAL_CHARS); ?>
              </span>
           </button>
         <?php endforeach; ?>
           <?php if($hasActiveFilters): ?>
-            <button id="top-search-clear-all-button" class="filter-clear-all-button spin btn" type="button" aria-controls="top-search-clear" onclick="event.stopPropagation()">
+            <button id="top-filters-clear-all-button" class="filter-clear-all-button spin btn" type="button" aria-controls="top-filters-clear" onclick="event.stopPropagation()">
               <?= __d('operation', 'clear.filters',[2]); ?>
            </button>
           <?php endif; ?>
       </span>
       <?php endif; ?>
-      <button class="cm-toggle nospin" aria-expanded="false" aria-controls="top-search-fields" type="button"><em class="material-icons drop-arrow">arrow_drop_down</em></button>
+      <button class="cm-toggle nospin" aria-expanded="false" aria-controls="top-filters-fields" type="button"><em class="material-icons drop-arrow">arrow_drop_down</em></button>
     </legend>
-    <div id="top-search-fields">
-      <div id="top-search-fields-subgroups">
+    <div id="top-filters-fields">
+      <div id="top-filters-fields-subgroups">
       <?php
         $field_subgroup_columns = array();
 
@@ -119,17 +119,17 @@ $hasActiveFilters = false;
       ?>
       </div>
       <?php $rebalanceColumns = ((count($vv_searchable_attributes)) % 2 != 0) ? ' class="tss-rebalance"' : ''; ?>
-      <div id="top-search-submit"<?php print $rebalanceColumns ?>>
+      <div id="top-filters-submit"<?php print $rebalanceColumns ?>>
         <?php
           $args = array();
           // search button (submit)
-          $args['id'] = 'top-search-filter-button';
+          $args['id'] = 'top-filters-filter-button';
           $args['aria-label'] = __d('operation', 'filter');
           $args['class'] = 'submit-button spin btn btn-primary';
           print $this->Form->submit(__d('operation', 'filter'),$args);
 
           // clear button
-          $args['id'] = 'top-search-clear';
+          $args['id'] = 'top-filters-clear';
           $args['class'] = 'clear-button spin btn btn-default';
           $args['aria-label'] = __d('operation', 'clear');
           $args['onclick'] = 'clearTopSearch(this.form)';

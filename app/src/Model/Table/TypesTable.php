@@ -42,6 +42,7 @@ class TypesTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -112,6 +113,11 @@ class TypesTable extends Table {
         'class' => 'SuspendableStatusEnum'
       ]
     ]);
+  
+    // Set up the fields that may be filtered in the index view
+    $this->setSearchFilter('display_name', false, null, true);
+    $this->setSearchFilter('attribute', true, null, false);
+    $this->setSearchFilter('statuses', false, null, true);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

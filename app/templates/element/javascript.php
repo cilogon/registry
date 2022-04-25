@@ -99,8 +99,8 @@
 
     // TOP SEARCH FILTER FORM
     // Send only non-empty fields in the form
-    $("#top-search-form").submit(function() {
-      $("#top-search-form *").filter(':input').each(function () {
+    $("#top-filters-form").submit(function() {
+      $("#top-filters-form *").filter(':input').each(function () {
         if($(this).val() == '') {
           $(this).prop('disabled',true);
         }
@@ -108,22 +108,22 @@
     });
 
     // Toggle the top search filter box
-    $("#top-search-toggle, #top-search-toggle button.cm-toggle").click(function(e) {
+    $("#top-filters-toggle, #top-filters-toggle button.cm-toggle").click(function(e) {
       e.preventDefault();
       e.stopPropagation();
-      if ($("#top-search-fields").is(":visible")) {
-        $("#top-search-fields").hide();
-        $("#top-search-toggle button.cm-toggle").attr("aria-expanded","false");
-        $("#top-search-toggle button.cm-toggle .drop-arrow").text("arrow_drop_down");
+      if ($("#top-filters-fields").is(":visible")) {
+        $("#top-filters-fields").hide();
+        $("#top-filters-toggle button.cm-toggle").attr("aria-expanded","false");
+        $("#top-filters-toggle button.cm-toggle .drop-arrow").text("arrow_drop_down");
       } else {
-        $("#top-search-fields").show();
-        $("#top-search-toggle button.cm-toggle").attr("aria-expanded","true");
-        $("#top-search-toggle button.cm-toggle .drop-arrow").text("arrow_drop_up");
+        $("#top-filters-fields").show();
+        $("#top-filters-toggle button.cm-toggle").attr("aria-expanded","true");
+        $("#top-filters-toggle button.cm-toggle .drop-arrow").text("arrow_drop_up");
       }
     });
 
     // Clear a specific top search filter by clicking the filter button
-    $("#top-search-toggle button.top-search-active-filter").click(function(e) {
+    $("#top-filters-toggle button.top-filters-active-filter").click(function(e) {
       e.preventDefault();
       e.stopPropagation();
       $(this).hide();
@@ -133,12 +133,12 @@
     });
 
     // Clear all top filters from the filter bar
-    $("#top-search-clear-all-button").click(function(e) {
+    $("#top-filters-clear-all-button").click(function(e) {
       e.preventDefault();
       e.stopPropagation();
       $(this).hide();
-      $("#top-search-toggle .top-search-active-filter").hide();
-      $("#top-search-clear").click();
+      $("#top-filters-toggle .top-filters-active-filter").hide();
+      $("#top-filters-clear").click();
     });
 
     // Make all submit buttons pretty (Bootstrap)

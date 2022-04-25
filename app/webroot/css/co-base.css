@@ -581,38 +581,37 @@ instead, reveal in user menu */
   top: -2px;
   height: 33px;
 }
-/* TOP SEARCH */
-.top-search {
+/* TOP FILTER */
+.top-filters {
   margin-top: 0.5em;
   padding: 0;
   border: 1px solid var(--cmg-color-lightgray-005);
 }
-#content .top-search legend button.cm-toggle {
+#content .top-filters legend button.cm-toggle {
   position: absolute;
   right: 0.5em;
   border: none;
   background-color: transparent;
 }
-#content .top-search legend .material-icons {
+#content .top-filters legend .material-icons {
   font-size: 1.4em;
-  vertical-align: text-top;
   color: var(--cmg-color-gray-002);
 }
-#content .top-search legend button.cm-toggle .material-icons {
+#content .top-filters legend button.cm-toggle .material-icons {
   font-size: 34px;
   line-height: 17px;
 }
-.top-search fieldset {
+.top-filters fieldset {
   clear: both;
   position: relative;
   padding: 0.5em 0.5em 0;
   margin: 0;
   background-color: var(--cmg-color-lightgray-001);
 }
-.top-search.open fieldset {
+.top-filters.open fieldset {
   padding-bottom: 0.5em;
 }
-.top-search legend {
+.top-filters legend {
   width: 100%;
   background-color: var(--cmg-color-lightgray-001);
   line-height: 1.8em;
@@ -620,17 +619,17 @@ instead, reveal in user menu */
   font-size: 1em;
   box-sizing: content-box;
 }
-#top-search-fields {
+#top-filters-fields {
   display: none;
   padding: 0.25em 0.5em;
 }
-#top-search-submit {
+#top-filters-submit {
   float: right;
   width: 200px;
   margin-bottom: 0.75em;
 }
-.top-search input[type=text],
-.top-search select,
+.top-filters input[type=text],
+.top-filters select,
 .side-search input[type=text],
 .side-search select {
   width: 100%;
@@ -641,7 +640,7 @@ instead, reveal in user menu */
   border: 1px solid var(--cmg-color-lightgray-006);
   background-color: var(--cmg-color-white);
 }
-.top-search label {
+.top-filters label {
   margin-bottom: 0;
 }
 ::-webkit-input-placeholder,
@@ -650,26 +649,25 @@ instead, reveal in user menu */
 :-moz-placeholder {
   opacity: 0.2;
 }
-.top-search input[type=text]:focus,
+.top-filters input[type=text]:focus,
 .side-search input[type=text]:focus {
   background-color: var(--cmg-color-yellow-003);
 }
-.top-search .submit-button,
-.top-search .clear-button,
+.top-filters .submit-button,
+.top-filters .clear-button,
 .side-search .submit-button,
 .side-search .clear-button {
   float: right;
   font-size: 0.9em;
   width: 80px;
-  line-height: 28px;
   height: 28px;
   margin: 1em 0.5em;
   padding: 0;
 }
-.top-search .top-search-checkboxes {
+.top-filters .top-filters-checkboxes {
   margin-top: 0.5em;
 }
-.top-search .filter-clear-all-button {
+.top-filters .filter-clear-all-button {
   font-size: 0.9em;
   width: auto;
   height: auto;
@@ -677,18 +675,18 @@ instead, reveal in user menu */
   margin: -6px 0 0;
   padding: 0 1em;
 }
-.top-search .filter-clear-all-button:hover {
+.top-filters .filter-clear-all-button:hover {
   background-color: unset;
 }
-.top-search.top-search-hide-fields label,
+.top-filters.top-filters-hide-fields label,
 .side-search label {
   display: none;
 }
-#top-search-active-filters {
+#top-filters-active-filters {
   margin-left: 0.25em;
   padding: 0.5em 0;
 }
-.top-search-active-filter.btn.btn-sm {
+.top-filters-active-filter.btn.btn-sm {
   padding: 0.2em 0.4em;
   white-space: nowrap;
   box-shadow: none;
@@ -696,22 +694,22 @@ instead, reveal in user menu */
   font-size: 0.8em;
   border: 1px solid var(--cmg-color-lightgray-007);
 }
-.top-search-active-filter.btn.btn-sm:hover {
+.top-filters-active-filter.btn.btn-sm:hover {
   background-color: var(--cmg-color-lightgray-006);
   color: black !important;
 }
-.top-search-active-filter-title::after {
+.top-filters-active-filter-title::after {
   content: ": ";
 }
-.top-search-active-filter-title.no-value::after {
+.top-filters-active-filter-title.no-value::after {
   content: none;
 }
-.top-search-active-filters-remove button {
+.top-filters-active-filters-remove button {
   margin-left: 2em;
   font-size: 0.9em;
   background-color: var(--cmg-color-lightgray-003);
 }
-.top-search-active-filters-remove button:hover {
+.top-filters-active-filters-remove button:hover {
   background-color: var(--cmg-color-lightgray-005);
 }
 /* RECONCILE TABLE */

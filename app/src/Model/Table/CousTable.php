@@ -39,6 +39,7 @@ class CousTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -71,6 +72,11 @@ class CousTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
+  
+    // Set up the fields that may be filtered in the index view
+    $this->setSearchFilter('name', false, null, true);
+    $this->setSearchFilter('parent_id', true, null, false);
+    $this->setSearchFilter('description', false, null, true);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

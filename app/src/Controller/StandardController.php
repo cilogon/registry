@@ -434,6 +434,21 @@ class StandardController extends AppController {
        && $table->getIndexContains()) {
       $query->contain($table->getIndexContains());
     }
+  
+    // SearchFilterTrait
+    if(method_exists($table, "getSearchableAttributes")) {
+      $searchableAttributes = $table->getSearchableAttributes();
+    
+      if(!empty($searchableAttributes)) {
+        foreach(array_keys($searchableAttributes) as $attribute) {
+          if(!empty($this->request->getQuery($attribute))) {
+            $query = $table->whereFilter($query, $attribute, $this->request->getQuery($attribute));
+          }
+        }
+      
+        $this->set('vv_searchable_attributes', $searchableAttributes);
+      }
+    }
     
     // The Cake documents describe $this->paginate (which worked in Cake 2),
     // but it doesn't seem to work in Cake 4. So we just use $this->pagination

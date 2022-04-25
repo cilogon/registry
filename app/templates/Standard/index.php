@@ -143,9 +143,9 @@ function _column_key($modelsName, $c, $tz=null) {
 <?php endif; // $banners ?>
 
 <!-- Search block -->
-<?php if(!empty($enableSearch)): ?>
-  <?= $this->element('search'); ?>
-<?php endif; // $enableSearch ?>
+<?php if(!empty($enableFiltering)): ?>
+  <?= $this->element('filter'); ?>
+<?php endif; // $enableFiltering ?>
 
 <!-- Index table -->
 <div class="table-container">

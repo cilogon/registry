@@ -192,13 +192,13 @@
     margin-bottom: 0;
   }
   /* TOP SEARCH */
-  #top-search-fields-subgroups {
+  #top-filters-fields-subgroups {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 1em;
     padding: 0 0.5em;
   }
-  #top-search-submit.tss-rebalance {
+  #top-filters-submit.tss-rebalance {
     margin-top: -3.5em;
     position: relative;
   }
