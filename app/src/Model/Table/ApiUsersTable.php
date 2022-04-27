@@ -307,7 +307,7 @@ class ApiUsersTable extends Table {
     $validator->add('co_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmpty('co_id');
+    $validator->notEmptyString('co_id');
     
     $this->registerStringValidation($validator, $schema, 'username', true);
     

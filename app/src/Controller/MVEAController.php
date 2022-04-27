@@ -56,11 +56,11 @@ class MVEAController extends StandardController {
       if(!empty($link->value)) {
         $this->set('vv_primary_link_id', $link->value);
         
-        $Names = TableRegistry::get('Names');
+        $Names = $this->getTableLocator()->get('Names');
         
         switch($link->attr) {
           case 'external_identity_role_id':
-            $ExternalIdentityRoles = TableRegistry::get('ExternalIdentityRoles');
+            $ExternalIdentityRoles = $this->getTableLocator()->get('ExternalIdentityRoles');
             $roleEntity = $ExternalIdentityRoles->findById((int)$link->value)->firstOrFail();
             
             // Note this is a string, but vv_person_name is an entity
@@ -68,7 +68,7 @@ class MVEAController extends StandardController {
             $this->set('vv_ei_role_id', $link->value);
             // fall through
           case 'external_identity_id':
-            $ExternalIdentity = TableRegistry::get('ExternalIdentities');
+            $ExternalIdentity = $this->getTableLocator()->get('ExternalIdentities');
             
             // What's the Person ID for the ExternalIdentity?
             $eiId = isset($roleEntity) ? $roleEntity->external_identity_id : $link->value;
@@ -84,7 +84,7 @@ class MVEAController extends StandardController {
             $this->set('vv_person_id', $externalIdentity->person_id);
             break;
           case 'person_role_id':
-            $PersonRoles = TableRegistry::get('PersonRoles');
+            $PersonRoles = $this->getTableLocator()->get('PersonRoles');
             $roleEntity = $PersonRoles->findById((int)$link->value)->firstOrFail();
             // Note this is a string, but vv_person_name is an entity
             $this->set('vv_person_role', $PersonRoles->generateDisplayField($roleEntity));

@@ -487,7 +487,7 @@ class TransmogrifyCommand extends Command {
       // data here, and also we're executing a maintenance operation (so query
       // optimization is less important)
       $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
-      $this->outconn->query($outsql);
+      $this->outconn->executeQuery($outsql);
       
       // Run any post processing functions for the table.
       

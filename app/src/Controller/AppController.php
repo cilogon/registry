@@ -417,7 +417,7 @@ class AppController extends Controller {
         // Look up the link value to find the related entity
         
         $linkTableName = $this->$modelsName->getPrimaryLinkTableName($this->cur_pl->attr);
-        $linkTable = TableRegistry::get($linkTableName);
+        $linkTable = $this->getTableLocator()->get($linkTableName);
         
         $this->set('vv_primary_link_model', $linkTableName);
         
