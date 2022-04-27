@@ -65,4 +65,20 @@ trait LabeledLogTrait {
     
     Log::write($level, $m);
   }
+
+  /**
+   * Print formatted cli percentage
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $done      Number of iterations completed
+   * @param  string $total     Total number of iterations
+   * @return string            Formated string with line return offset
+   */
+
+  public function cliLogPercentage(int $done, int $total): void {
+    $perc = floor(($done / $total) * 100);
+    $left = 100 - $perc;
+    $out = sprintf("\033[0G\033[2K[%'={$perc}s>%-{$left}s] - $perc%% -- $done/$total", "", "");
+    fwrite(STDERR, $out);
+  }
 }

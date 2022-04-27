@@ -43,6 +43,8 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 
 class TransmogrifyCommand extends Command {
+  use \App\Lib\Traits\LabeledLogTrait;
+
   // Tables must be listed in order of primary key dependencies.
   protected $tables = [
     'cos' => [
@@ -263,6 +265,7 @@ class TransmogrifyCommand extends Command {
         'co_person_id' => 'person_id',
         'org_identity_id' => 'external_identity_id',
         'actor_co_person_id' => 'actor_person_id',
+        'actor_api_user_id' => 'actor_api_user_id',
         'co_person_role_id' => 'person_role_id',
 // XXX temporary until tables are migrated
         'co_group_id' => null,
@@ -389,7 +392,7 @@ class TransmogrifyCommand extends Command {
       if(!empty($atables) && !in_array($t, $atables))
         continue;
       
-      $io->out("===" . $t . "===");
+      $io->info(Inflector::classify($t) . "(" . $t . ")");
       
       // Run any pre processing functions for the table.
       
@@ -401,18 +404,27 @@ class TransmogrifyCommand extends Command {
       
       $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $this->tables[$t]['source']);
       
-      $io->out("= Processing " . $count . " records");
-      
       $insql = "SELECT * FROM " . $this->tables[$t]['source'] . " ORDER BY id ASC";
       $stmt = $this->inconn->query($insql);
+
+      // Check if the table contains data
+      $Model = $this->getTableLocator()->get($t);
+      if($Model->find()->count() > 0) {
+        $io->warning("Skipping Transmogrification. Table is not empty. Drop the database (or truncate) and start over.");
+        $this->llog("debug", "WARNING: Skipping Transmogrification. Table(" . $t . ") is not empty. Drop the database (or truncate) and start over.");
+        continue;
+      }
       
       $tally = 0;
+      $warns = 0;
+      $err = 0;
       
       while($row = $stmt->fetch()) {
         if(!empty($row[ $this->tables[$t]['displayField'] ])) {
-          $io->out("$t " . $row[ $this->tables[$t]['displayField'] ] . "...", 0);
+          // Use this in the message. Modify last
+          $this->llog("debug", "$t " . $row[ $this->tables[$t]['displayField'] ]);
         }
-        
+
         try {
           // Make a copy of the original data for any post processing followups
           $origRow = $row;
@@ -423,7 +435,7 @@ class TransmogrifyCommand extends Command {
           $this->fixBooleans($t, $row);
           
           $this->mapFields($t, $row);
-          
+
           $this->outconn->insert($t, $row);
           
           $this->cacheResults($t, $row);
@@ -441,27 +453,35 @@ class TransmogrifyCommand extends Command {
           // load this record. This can happen, eg, because the source_field_id
           // did not load, perhaps because it was associated with an Org Identity
           // not linked to a CO Person that was not migrated.
-          
-          $io->err("WARNING: Skipping record " . $row['id'] . " due to invalid foreign key: " . $e->getMessage());
+          $warns++;
+          $this->llog("debug", "WARNING: Skipping record " . $row['id'] . " due to invalid foreign key: " . $e->getMessage());
         }
         catch(\InvalidArgumentException $e) {
           // If we can't find a value for mapping we skip the record
           // (ie: mapFields basically requires a successful mapping)
-          
-          $io->err("WARNING: Skipping record " . $row['id'] . ": " . $e->getMessage());
+          $warns++;
+          $this->llog("debug", "WARNING: Skipping record " . $row['id'] . ": " . $e->getMessage());
         }
         catch(\Exception $e) {
-          $io->err("ERROR: Record " . $row['id'] . ": " . $e->getMessage());
+          $err++;
+          $this->llog("debug", "ERROR: Record " . $row['id'] . ": " . $e->getMessage());
         }
         
         $tally++;
-        $io->out(floor(($tally * 100)/$count) . "% done");
+        $this->cliLogPercentage($tally, $count);
       }
       
       $max = $this->inconn->fetchOne('SELECT MAX(id) FROM ' . $this->tables[$t]['source']);
       $max++;
-      
-      $io->out("= New max: " . $max);
+      $stdout_msg = "(New max: " . $max . ")";
+      if($warns > 0) {
+        $stdout_msg .= "<warning>(Warnings: " . $warns . ")</warning>";
+      }
+      if($err > 0) {
+        $stdout_msg .= "<error>(Errors: " . $err . ")</error>";
+      }
+
+      $io->out($stdout_msg);
       
       // Strictly speaking we should use prepared statements, but we control the
       // data here, and also we're executing a maintenance operation (so query
@@ -598,8 +618,11 @@ class TransmogrifyCommand extends Command {
       
       foreach($emptySettings as $coId) {
         // Insert a default row into CoSettings for this CO ID
-        
-        $CoSettings->addDefaults($coId);
+        try {
+          $CoSettings->addDefaults($coId);
+        } catch (\ConflictException $e) {
+          // skip
+        }
       }
     }
   }
@@ -905,8 +928,12 @@ class TransmogrifyCommand extends Command {
             // Extended Attributes were not changelog enabled
             $this->fixChangelog('ad_hoc_attributes', $adhocRow, true);
             $this->fixBooleans('ad_hoc_attributes', $adhocRow);
-            
-            $this->outconn->insert('ad_hoc_attributes', $adhocRow);
+
+            try {
+              $this->outconn->insert('ad_hoc_attributes', $adhocRow);
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+              $this->llog("debug", "record already exists: " . print_r($adhocRow, true));
+            }
           }
         }
       }

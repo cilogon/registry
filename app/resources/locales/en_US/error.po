@@ -72,6 +72,9 @@ msgstr "COU Parent ID not valid"
 msgid "db.config"
 msgstr "Invalid database configuration \"{0}\""
 
+msgid "default.conflict"
+msgstr "Default values already imported"
+
 msgid "delete.active"
 msgstr "This record is in Active status and cannot be deleted"
 

@@ -173,6 +173,7 @@ class CoSettingsTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  int $coId CO ID
    * @return int       CoSettings ID
+   * @throws ConflictException when default values exist
    */
   
   public function addDefaults(int $coId): int {
@@ -210,7 +211,14 @@ class CoSettingsTable extends Table {
       // 'co_theme_id'                => null,
       // 'global_search_limit'        => DEF_GLOBAL_SEARCH_LIMIT
     ];
-    
+
+    // Check if we already have Settings for this CO
+    $settings = $this->find()->where([ 'co_id' => $defaultSettings['co_id'] ])->first();
+    // If the record already exists throw an exception
+    if(!empty($settings->{'id'})) {
+      throw new \ConflictException(__d('error', 'default.conflict'));
+    }
+
     $obj = $this->newEntity($defaultSettings);
     
     $this->save($obj);
