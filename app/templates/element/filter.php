@@ -105,11 +105,14 @@ $hasActiveFilters = false;
             'required' => false,
           ];
 
-          if(isset($$key)) {
+          // The populated variables are in plural while the column names are singular
+          // Convention: It is a prerequisite that the vvar should be the plural of the column name
+          $populated_vvar = Cake\Utility\Inflector::pluralize($key);
+          if(isset($$populated_vvar)) {
             // If we have an AutoViewVar matching the name of this key,
             // convert to a select
             $formParams['type'] = 'select';
-            $formParams['options'] = $$key;
+            $formParams['options'] = $$populated_vvar;
             // Allow empty so a filter doesn't require (eg) SOR
             $formParams['empty'] = true;
           }

@@ -34,33 +34,6 @@ use Cake\Utility\Inflector;
 trait SearchFilterTrait {
   // Array (and configuration) of permitted search filters
   private $searchFilters = array();
-  
-  /**
-   * Determine the UI label for the specified attribute.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $attribute Attribute
-   * @return string            Label
-   * @todo   Merge this with _column_key from index.ctp
-   */
-  
-  public function getLabel(string $attribute): string {
-    if(isset($this->searchFilters[$attribute]['label'])
-      && $this->searchFilters[$attribute]['label'] !== null) {
-      return $this->searchFilters[$attribute]['label'];
-    }
-    
-    // Try to construct a label from the language key.
-    $l = __d('field', $attribute);
-    
-    if($l != $attribute) {
-      return $l;
-    }
-
-    // If we make it here, just return a pretty version of the $attribute name
-    return Inflector::humanize($attribute);
-  }
-  
   /**
    * Obtain the set of permitted search attributes.
    *
@@ -69,37 +42,29 @@ trait SearchFilterTrait {
    */
   
   public function getSearchableAttributes(): array {
-    // Not every configuration element is necessary for the search form, and
-    // some need to be calculated, so we do that work here.
-    
-    $ret = [];
-    
-    foreach(array_keys($this->searchFilters) as $attr) {
-      $ret[ $attr ] = [
-        'label' => $this->getLabel($attr)
+    foreach ($this->filterMetadataFields() as $column => $type) {
+      // If the column is an array then we are accessing the Metadata fields. Skip
+      if(is_array($type)) {
+        continue;
+      }
+      $this->searchFilters[$column] = [
+        'substring' => ($type === "string"),
+        'datetime' => ($type === "timestamp"),
+        // todo: Probably the following line is redundant but i am leaving it for now
+        'label' => (__d('field', $column) ?? Inflector::humanize($column)),
+        'caseSensitive' => true, // hardcoding for now
+      ];
+
+      // Not every configuration element is necessary for the search form, and
+      // some need to be calculated, so we do that work here.
+      $ret[ $column ] = [
+        'label' => (__d('field', $column) ?? Inflector::humanize($column))
       ];
     }
-    
-    return $ret;
+
+    return $ret ?? [];
   }
-  
-  /**
-   * Add a permitted search filters.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $attribute     Attribute that filtering is permitted on (database name)
-   * @param  bool   $caseSensitive Whether this attribute is case sensitive
-   * @param  string $label         Label for this search field, or null to autocalculate
-   * @param  bool   $substring     Whether substring searching is permitted for this attribute
-   */
-  
-  public function setSearchFilter(string $attribute,
-                                  bool   $caseSensitive=false,
-                                  string $label=null,
-                                  bool   $substring=true): void {
-    $this->searchFilters[$attribute] = compact('caseSensitive', 'label', 'substring');
-  }
-  
+
   /**
    * Build a query where() clause for the configured attribute.
    *
@@ -112,6 +77,7 @@ trait SearchFilterTrait {
   
   public function whereFilter(\Cake\ORM\Query $query, string $attribute, string $q): object {
     if(!empty($this->searchFilters[$attribute])) {
+      // todo: move caseSensitive into filter block itself
       $cs = (isset($this->searchFilters[$attribute]['caseSensitive'])
         && $this->searchFilters[$attribute]['caseSensitive']);
       

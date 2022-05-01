@@ -72,11 +72,6 @@ class CousTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-  
-    // Set up the fields that may be filtered in the index view
-    $this->setSearchFilter('name', false, null, true);
-    $this->setSearchFilter('parent_id', true, null, false);
-    $this->setSearchFilter('description', false, null, true);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
