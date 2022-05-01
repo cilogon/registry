@@ -122,7 +122,7 @@ function _column_key($modelsName, $c, $tz=null) {
         }
 
         $action_args['vv_actions'][] = [
-          'order' => $this->Menu->getMenuOrder($t['icon']),
+          'order' => $this->Menu->getMenuOrder($t['order']),
           'icon' => $this->Menu->getMenuIcon($t['icon']),
           'url' => $this->Url->build($t['link']),
           'label' => $t['label'],
