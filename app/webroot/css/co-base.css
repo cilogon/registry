@@ -491,6 +491,7 @@ instead, reveal in user menu */
   display: flex;
   justify-content: space-between;
   margin: 1em 0 0.5em;
+  align-items: baseline;
 }
 .pageTitle {
   padding-bottom: 0.25em;
