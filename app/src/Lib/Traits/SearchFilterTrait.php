@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use Cake\Utility\Inflector;
+
 trait SearchFilterTrait {
   // Array (and configuration) of permitted search filters
   private $searchFilters = array();
@@ -54,9 +56,9 @@ trait SearchFilterTrait {
     if($l != $attribute) {
       return $l;
     }
-    
-    // If we make it here, just return $attribute
-    return $attribute;
+
+    // If we make it here, just return a pretty version of the $attribute name
+    return Inflector::humanize($attribute);
   }
   
   /**
