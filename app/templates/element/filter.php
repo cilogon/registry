@@ -71,6 +71,11 @@ $hasActiveFilters = false;
 
             // We have active filters - not just a sort.
             $hasActiveFilters = true;
+
+            // The populated variables are in plural while the column names are singular
+            // Convention: It is a prerequisite that the vvar should be the plural of the column name
+            $populated_vvar = Cake\Utility\Inflector::pluralize($key);
+            $pvalue = isset($$populated_vvar) ? $$populated_vvar[ $search_params[$key] ] : $search_params[$key];
           ?>
           <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
              <em class="material-icons">cancel</em>
@@ -78,7 +83,7 @@ $hasActiveFilters = false;
                <?= $vv_searchable_attributes[$key]['label']; ?>
              </span>
              <span class="top-filters-active-filter-value">
-               <?= filter_var($search_params[$key], FILTER_SANITIZE_SPECIAL_CHARS); ?>
+               <?= filter_var($pvalue, FILTER_SANITIZE_SPECIAL_CHARS); ?>
              </span>
           </button>
         <?php endforeach; ?>

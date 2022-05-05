@@ -51,8 +51,7 @@ trait SearchFilterTrait {
         'substring' => ($type === "string"),
         'datetime' => ($type === "timestamp"),
         // todo: Probably the following line is redundant but i am leaving it for now
-        'label' => (__d('field', $column) ?? Inflector::humanize($column)),
-        'caseSensitive' => true, // hardcoding for now
+        'label' => (__d('field', $column) ?? Inflector::humanize($column))
       ];
 
       // Not every configuration element is necessary for the search form, and
@@ -76,42 +75,23 @@ trait SearchFilterTrait {
    */
   
   public function whereFilter(\Cake\ORM\Query $query, string $attribute, string $q): object {
-    if(!empty($this->searchFilters[$attribute])) {
-      // todo: move caseSensitive into filter block itself
-      $cs = (isset($this->searchFilters[$attribute]['caseSensitive'])
-        && $this->searchFilters[$attribute]['caseSensitive']);
-      
-      $sub = (isset($this->searchFilters[$attribute]['substring'])
-        && $this->searchFilters[$attribute]['substring']);
-      
-      $search = $q;
-      
-      if($sub) {
-        // Substring
-        // note, for now at least, a user may infix their own %
-        $search .= "%";
-      }
-      
-      if($cs) {
-        // Case sensitive
-        $query->where([$attribute => $search]);
-      } else {
-        // Case insensitive
-        $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search, $sub) {
-          $lower = $query->func()->lower([
-            // https://book.cakephp.org/3/en/orm/query-builder.html#function-arguments
-            $attribute => 'identifier'
-          ]);
-          if($sub) {
-            return $exp->like($lower, strtolower($search));
-          } else {
-            return $exp->eq($lower, strtolower($search));
-          }
-        });
-      }
+    // not a permitted attribute
+    if(empty($this->searchFilters[$attribute])) {
+      return $query;
     }
-    // else not a permitted attribute
-    
-    return $query;
+
+    $search = $q;
+    $sub = false;
+    if(isset($this->searchFilters[$attribute]['substring'])
+       && $this->searchFilters[$attribute]['substring']) {
+      $search = "%" . $search . "%";
+      $sub = true;
+    }
+
+    return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search, $sub) {
+        $lower = $query->func()->lower([$attribute => 'identifier']);
+        return ($sub) ? $exp->like($lower, strtolower($search))
+                      : $exp->eq($lower, strtolower($search));
+      });
   }
 }
