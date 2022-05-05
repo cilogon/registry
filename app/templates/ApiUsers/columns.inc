@@ -32,8 +32,8 @@ if($vv_cur_co->id == 1) {
   ];
 }
 
-// Turn on the search/filter box for this index view
-$enableFiltering = true;
+// Turn off the search/filter box for this index view
+//$disableFiltering = true;
 
 $indexColumns = [
   'username' => [
