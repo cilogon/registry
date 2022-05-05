@@ -48,20 +48,13 @@ trait SearchFilterTrait {
         continue;
       }
       $this->searchFilters[$column] = [
-        'substring' => ($type === "string"),
-        'datetime' => ($type === "timestamp"),
+        'type' => $type,
         // todo: Probably the following line is redundant but i am leaving it for now
-        'label' => (__d('field', $column) ?? Inflector::humanize($column))
-      ];
-
-      // Not every configuration element is necessary for the search form, and
-      // some need to be calculated, so we do that work here.
-      $ret[ $column ] = [
         'label' => (__d('field', $column) ?? Inflector::humanize($column))
       ];
     }
 
-    return $ret ?? [];
+    return $this->searchFilters ?? [];
   }
 
   /**
@@ -82,12 +75,17 @@ trait SearchFilterTrait {
 
     $search = $q;
     $sub = false;
-    if(isset($this->searchFilters[$attribute]['substring'])
-       && $this->searchFilters[$attribute]['substring']) {
+    if( $this->searchFilters[$attribute]['type'] == "string") {
       $search = "%" . $search . "%";
       $sub = true;
     }
 
+    // Boolean Values
+    if($this->searchFilters[$attribute]['type'] == 'boolean') {
+      return $query->where([$attribute => $search]);
+    }
+
+    // String values
     return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search, $sub) {
         $lower = $query->func()->lower([$attribute => 'identifier']);
         return ($sub) ? $exp->like($lower, strtolower($search))

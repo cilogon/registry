@@ -440,6 +440,7 @@ class StandardController extends AppController {
       $searchableAttributes = $table->getSearchableAttributes();
     
       if(!empty($searchableAttributes)) {
+        // Here we iterate over the attributes and we add a new where clause for each one
         foreach(array_keys($searchableAttributes) as $attribute) {
           if(!empty($this->request->getQuery($attribute))) {
             $query = $table->whereFilter($query, $attribute, $this->request->getQuery($attribute));

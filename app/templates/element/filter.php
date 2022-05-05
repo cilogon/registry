@@ -60,7 +60,7 @@ $hasActiveFilters = false;
     <legend id="top-filters-toggle">
       <em class="material-icons">search</em>
       <?= __d('operation', 'filter'); ?>
-      
+
 
       <?php if(!empty($search_params)):?>
         <span id="top-filters-active-filters">
@@ -99,9 +99,13 @@ $hasActiveFilters = false;
     <div id="top-filters-fields">
       <div id="top-filters-fields-subgroups">
       <?php
-        $field_subgroup_columns = array();
+        $field_booleans_columns = [];
 
         foreach($vv_searchable_attributes as $key => $options) {
+          if($options['type'] == 'boolean') {
+            $field_booleans_columns[$key] = $options;
+            continue;
+          }
           $formParams = [
             'label' => $options['label'],
             // The default type is text, but we might convert to select below
@@ -126,6 +130,25 @@ $hasActiveFilters = false;
         }
       ?>
       </div>
+      <?php if(!empty($field_booleans_columns)): ?>
+        <div class="top-search-checkboxes input">
+          <div class="top-search-checkbox-label">Some Title here</div>
+          <div class="top-search-checkbox-fields">
+            <?php foreach($field_booleans_columns as $key => $options): ?>
+              <div class="form-check form-check-inline">
+                <?php
+                  print $this->Form->label($key);
+                  print $this->Form->checkbox($key, [
+                    'class' => 'form-check-input',
+                    'checked' => $query[$key] ?? 0,
+                    'hiddenField' => false
+                  ]);
+                ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
       <?php $rebalanceColumns = ((count($vv_searchable_attributes)) % 2 != 0) ? ' class="tss-rebalance"' : ''; ?>
       <div id="top-filters-submit"<?php print $rebalanceColumns ?>>
         <?php

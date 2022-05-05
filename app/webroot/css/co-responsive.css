@@ -198,6 +198,9 @@
     column-gap: 1em;
     padding: 0 0.5em;
   }
+  .top-search-checkboxes {
+    padding: 0 0.5em;
+  }
   #top-filters-submit.tss-rebalance {
     margin-top: -3.5em;
     position: relative;
