@@ -80,8 +80,9 @@ trait SearchFilterTrait {
       $sub = true;
     }
 
-    // Boolean Values
-    if($this->searchFilters[$attribute]['type'] == 'boolean') {
+    // Primitive types
+    $search_types = ['integer', 'boolean'];
+    if(in_array($this->searchFilters[$attribute]['type'], $search_types, true)) {
       return $query->where([$attribute => $search]);
     }
 

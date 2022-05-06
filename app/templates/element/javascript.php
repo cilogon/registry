@@ -127,7 +127,11 @@
       e.preventDefault();
       e.stopPropagation();
       $(this).hide();
-      filterId = '#' + $(this).attr("aria-controls");
+      // CAKEPHP transforms snake case variables to kebab. As a result
+      // searching for the initial key will fail
+      original_value = $(this).attr("aria-controls");
+      value_to_snake = original_value.replace(/_/g, "-");;
+      filterId = '#' + value_to_snake;
       $(filterId).val("");
       $(this).closest('form').submit();
     });

@@ -573,6 +573,14 @@ class StandardController extends AppController {
             
             $this->set($vvar, $query->toArray());
             break;
+          case 'parent':
+            $modelsName = $this->name;
+            // $table = the actual table object
+            $table = $this->$modelsName;
+            // XXX We assume that all models that load the Tree behavior will
+            //     implement a potentialParents method
+            $this->set($vvar, $table->potentialParents($this->getCOID()));
+            break;
           default:
 // XXX I18n? and in match?
             throw new \LogicException('Unknonwn Auto View Var Type {0}', [$avv['type']]);
