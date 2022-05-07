@@ -713,6 +713,10 @@ instead, reveal in user menu */
 .top-filters-active-filters-remove button:hover {
   background-color: var(--cmg-color-lightgray-005);
 }
+.filter-datepicker-lbl {
+  white-space: nowrap;
+  margin-right: 0.5em;
+}
 /* RECONCILE TABLE */
 #reconcile-table {
   width: auto;

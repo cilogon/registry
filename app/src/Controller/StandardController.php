@@ -444,6 +444,13 @@ class StandardController extends AppController {
         foreach(array_keys($searchableAttributes) as $attribute) {
           if(!empty($this->request->getQuery($attribute))) {
             $query = $table->whereFilter($query, $attribute, $this->request->getQuery($attribute));
+          } elseif (!empty($this->request->getQuery($attribute . "_starts_at"))
+                    || !empty($this->request->getQuery($attribute . "_ends_at"))) {
+            $search_date = [];
+            // We allow empty for dates since we might refer to infinity (from whenever or to always)
+            $search_date[] = $this->request->getQuery($attribute . "_starts_at") ?? "";
+            $search_date[] = $this->request->getQuery($attribute . "_ends_at") ?? "";
+            $query = $table->whereFilter($query, $attribute, $search_date);
           }
         }
       

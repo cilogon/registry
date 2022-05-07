@@ -100,10 +100,14 @@ $hasActiveFilters = false;
       <div id="top-filters-fields-subgroups">
       <?php
         $field_booleans_columns = [];
+        $field_datetime_columns = [];
 
         foreach($vv_searchable_attributes as $key => $options) {
           if($options['type'] == 'boolean') {
             $field_booleans_columns[$key] = $options;
+            continue;
+          } elseif ($options['type'] == 'timestamp') {
+            $field_datetime_columns[$key] = $options;
             continue;
           }
           $formParams = [
@@ -131,8 +135,78 @@ $hasActiveFilters = false;
       ?>
       </div>
       <?php if(!empty($field_booleans_columns)): ?>
+      <?php foreach($field_datetime_columns as $key => $options): ?>
+         <div class="input">
+           <div class="top-search-date-label"><?= Cake\Utility\Inflector::humanize($key) ?></div>
+              <div id="top-filters-fields-subgroups">
+              <!--     Start at       -->
+              <div class="top-search-date-fields">
+                  <div class="d-flex">
+                  <?php
+                  // A datetime field will be rendered as plain text input with adjacent date and time pickers
+                  // that will interact with the field value. Allowing direct access to the input field is for
+                  // accessibility purposes.
+                  $starts_field = $key . "_starts_at";
+                  $coptions['class'] = 'form-control datepicker';
+                  $coptions['label'] = 'Starts at:';
+                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS'; // TODO: test for date-only inputs and send only the date
+                  $coptions['id'] = $starts_field;
+
+                  $pickerDate = '';
+                  if(!empty($query[$starts_field])) {
+                    // Adjust the time back to the user's timezone
+                    $coptions['value'] = $query[$starts_field]->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->get('vv_tz'));
+                    $pickerDate = $query[$starts_field]->i18nFormat("yyyy-MM-dd", $this->get('vv_tz'));
+                  }
+
+                  $date_args = [
+                    'fieldName' => $starts_field,
+                    'pickerDate' => $pickerDate
+                  ];
+                  // Create a text field to hold our value.
+                  print $this->Form->label($starts_field, 'Starts at:', ['class' => 'filter-datepicker-lbl']);
+                  print $this->Form->text($starts_field, $coptions) . $this->element('datePicker', $date_args);
+                  ?>
+                </div>
+              </div>
+              <!--     Ends at       -->
+              <div class="top-search-checkbox-fields">
+                <div class="d-flex">
+                  <?php
+                  // A datetime field will be rendered as plain text input with adjacent date and time pickers
+                  // that will interact with the field value. Allowing direct access to the input field is for
+                  // accessibility purposes.
+                  $ends_field = $key . "_ends_at";
+                  $coptions['class'] = 'form-control datepicker';
+                  $coptions['label'] = 'Ends at:';
+                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS'; // TODO: test for date-only inputs and send only the date
+                  $coptions['id'] = $ends_field;
+
+                  $pickerDate = '';
+                  if(!empty($query[$ends_field])) {
+                    // Adjust the time back to the user's timezone
+                    $coptions['value'] = $query[$ends_field]->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->get('vv_tz'));
+                    $pickerDate = $query[$ends_field]->i18nFormat("yyyy-MM-dd", $this->get('vv_tz'));
+                  }
+
+                  $date_args = [
+                    'fieldName' => $ends_field,
+                    'pickerDate' => $pickerDate
+                  ];
+                  // Create a text field to hold our value.
+                  print $this->Form->label($ends_field, 'Ends at:', ['class' => 'filter-datepicker-lbl']);
+                  print $this->Form->text($ends_field, $coptions) . $this->element('datePicker', $date_args);
+                  ?>
+                </div>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+
+      <?php if(!empty($field_booleans_columns)): ?>
         <div class="top-search-checkboxes input">
-          <div class="top-search-checkbox-label">Some Title here</div>
+          <div class="top-search-checkbox-label">On-Off</div>
           <div class="top-search-checkbox-fields">
             <?php foreach($field_booleans_columns as $key => $options): ?>
               <div class="form-check form-check-inline">

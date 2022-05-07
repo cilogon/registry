@@ -205,6 +205,9 @@
     margin-top: -3.5em;
     position: relative;
   }
+  .top-search-date-label {
+    padding: 0 0.5em;
+  }
   /* CO CONFIGURATION DASHBOARD */
   #configuration-menu {
     column-count: 3;

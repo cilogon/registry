@@ -49,7 +49,6 @@ trait SearchFilterTrait {
       }
       $this->searchFilters[$column] = [
         'type' => $type,
-        // todo: Probably the following line is redundant but i am leaving it for now
         'label' => (__d('field', $column) ?? Inflector::humanize($column))
       ];
     }
@@ -60,14 +59,15 @@ trait SearchFilterTrait {
   /**
    * Build a query where() clause for the configured attribute.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  \Cake\ORM\Query $query     Cake ORM Query object
-   * @param  string          $attribute Attribute to filter on (database name)
-   * @param  string          $q         Value to filter on
+   * @param   \Cake\ORM\Query  $query      Cake ORM Query object
+   * @param   string|array     $attribute  Attribute to filter on (database name)
+   * @param   string           $q          Value to filter on
+   *
    * @return \Cake\ORM\Query            Cake ORM Query object
+   * @since  COmanage Registry v5.0.0
    */
   
-  public function whereFilter(\Cake\ORM\Query $query, string $attribute, string $q): object {
+  public function whereFilter(\Cake\ORM\Query $query, string|array $attribute, string $q): object {
     // not a permitted attribute
     if(empty($this->searchFilters[$attribute])) {
       return $query;
@@ -75,15 +75,17 @@ trait SearchFilterTrait {
 
     $search = $q;
     $sub = false;
+    // Primitive types
+    $search_types = ['integer', 'boolean'];
     if( $this->searchFilters[$attribute]['type'] == "string") {
       $search = "%" . $search . "%";
       $sub = true;
-    }
-
-    // Primitive types
-    $search_types = ['integer', 'boolean'];
-    if(in_array($this->searchFilters[$attribute]['type'], $search_types, true)) {
+    } elseif(in_array($this->searchFilters[$attribute]['type'], $search_types, true)) {
       return $query->where([$attribute => $search]);
+    } elseif( $this->searchFilters[$attribute]['type'] == "timestamp") {
+      return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+        return $exp->between($attribute, $search[0], $search[1]);
+      });
     }
 
     // String values
