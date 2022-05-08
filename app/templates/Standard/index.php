@@ -217,7 +217,7 @@ function _column_key($modelsName, $c, $tz=null) {
               break;
             case 'datetime':
   // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-              print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
+              print !empty($entity->$col) ? $this->Time->nice($entity->$col, $vv_tz) . $suffix : "";
               break;
             case 'enum':
               if($entity->$col) {

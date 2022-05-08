@@ -51,6 +51,12 @@ trait SearchFilterTrait {
         'type' => $type,
         'label' => (__d('field', $column) ?? Inflector::humanize($column))
       ];
+
+      // For the date fields we search ranges
+      if($type === 'timestamp') {
+        $this->searchFilters[$column]['alias'][] = $column . '_starts_at';
+        $this->searchFilters[$column]['alias'][] = $column . '_ends_at';
+      }
     }
 
     return $this->searchFilters ?? [];
@@ -60,14 +66,14 @@ trait SearchFilterTrait {
    * Build a query where() clause for the configured attribute.
    *
    * @param   \Cake\ORM\Query  $query      Cake ORM Query object
-   * @param   string|array     $attribute  Attribute to filter on (database name)
-   * @param   string           $q          Value to filter on
+   * @param   string           $attribute  Attribute to filter on (database name)
+   * @param   string|array     $q          Value to filter on
    *
    * @return \Cake\ORM\Query            Cake ORM Query object
    * @since  COmanage Registry v5.0.0
    */
   
-  public function whereFilter(\Cake\ORM\Query $query, string|array $attribute, string $q): object {
+  public function whereFilter(\Cake\ORM\Query $query, string $attribute, string|array $q): object {
     // not a permitted attribute
     if(empty($this->searchFilters[$attribute])) {
       return $query;
@@ -83,9 +89,29 @@ trait SearchFilterTrait {
     } elseif(in_array($this->searchFilters[$attribute]['type'], $search_types, true)) {
       return $query->where([$attribute => $search]);
     } elseif( $this->searchFilters[$attribute]['type'] == "timestamp") {
-      return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
-        return $exp->between($attribute, $search[0], $search[1]);
-      });
+      // Date between dates
+      if(!empty($search[0])
+         && !empty($search[1])) {
+        return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+          return $exp->between($attribute, $search[0], $search[1]);
+        });
+        // The starts at is non empty. So the data should be greater than the starts_at date
+      } elseif(!empty($search[0])
+        && empty($search[1])) {
+        return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+          return $exp->gte($attribute, $search[0]);
+        });
+        // The ends at is non-empty. So the data should be less than the ends at date
+      } elseif(!empty($search[1])
+        && empty($search[0])) {
+        return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+          return $exp->lte($attribute, $search[1]);
+        });
+      } else {
+        // We return everything
+        return $query;
+      }
+
     }
 
     // String values
