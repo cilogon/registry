@@ -47,7 +47,7 @@ class FieldHelper extends Helper {
   
   // The current entity, if edit or view
   protected $entity = null;
-  
+
   /**
    * Emit an informational banner.
    *

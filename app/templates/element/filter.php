@@ -167,14 +167,35 @@ $hasActiveFilters = false;
         }
       ?>
       </div>
+      <?php if(!empty($field_booleans_columns)): ?>
+        <div class="top-search-checkboxes input">
+          <div class="top-search-checkbox-label">On-Off</div>
+          <div class="top-search-checkbox-fields">
+            <?php foreach($field_booleans_columns as $key => $options): ?>
+              <div class="form-check form-check-inline">
+                <?php
+                  print $this->Form->label($key);
+                  print $this->Form->checkbox($key, [
+                    'id' => $key,
+                    'class' => 'form-check-input',
+                    'checked' => $query[$key] ?? 0,
+                    'hiddenField' => false,
+                    'required' => false
+                  ]);
+                ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
       <?php if(!empty($field_datetime_columns)): ?>
-      <?php foreach($field_datetime_columns as $key => $options): ?>
-         <div class="input">
-           <div class="top-search-date-label"><?= Inflector::humanize($key) ?></div>
-              <div class="top-filters-fields-subgroups">
+        <?php foreach($field_datetime_columns as $key => $options): ?>
+          <div class="input">
+            <div class="top-search-date-label"><?= Inflector::humanize($key) ?></div>
+            <div class="top-filters-fields-subgroups">
               <!--     Start at       -->
               <div class="top-search-date-fields">
-                  <div class="d-flex">
+                <div class="d-flex">
                   <?php
                   // A datetime field will be rendered as plain text input with adjacent date and time pickers
                   // that will interact with the field value. Allowing direct access to the input field is for
@@ -183,7 +204,8 @@ $hasActiveFilters = false;
                   $coptions['class'] = 'form-control datepicker';
                   $coptions['label'] = 'Starts at:';
                   $coptions['required'] = false;
-                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+                  $coptions['placeholder'] = '';
+//                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
                   $coptions['id'] = $starts_field;
 
                   $pickerDate = '';
@@ -214,7 +236,8 @@ $hasActiveFilters = false;
                   $ends_field = $key . "_ends_at";
                   $coptions['class'] = 'form-control datepicker';
                   $coptions['required'] = false;
-                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS'; // TODO: test for date-only inputs and send only the date
+                  $coptions['placeholder'] = ''; // todo: Make this configurable
+//                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
                   $coptions['label'] = 'Ends at:';
                   $coptions['id'] = $ends_field;
 
@@ -241,26 +264,6 @@ $hasActiveFilters = false;
         <?php endforeach; ?>
       <?php endif; ?>
 
-      <?php if(!empty($field_booleans_columns)): ?>
-        <div class="top-search-checkboxes input">
-          <div class="top-search-checkbox-label">On-Off</div>
-          <div class="top-search-checkbox-fields">
-            <?php foreach($field_booleans_columns as $key => $options): ?>
-              <div class="form-check form-check-inline">
-                <?php
-                  print $this->Form->label($key);
-                  print $this->Form->checkbox($key, [
-                    'class' => 'form-check-input',
-                    'checked' => $query[$key] ?? 0,
-                    'hiddenField' => false,
-                    'required' => false
-                  ]);
-                ?>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      <?php endif; ?>
       <?php $rebalanceColumns = ((count($vv_searchable_attributes)) % 2 != 0) ? ' class="tss-rebalance"' : ''; ?>
       <div id="top-filters-submit"<?php print $rebalanceColumns ?>>
         <?php

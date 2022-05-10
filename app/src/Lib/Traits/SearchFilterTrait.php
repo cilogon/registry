@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\Utility\Inflector;
+use Cake\I18n\FrozenTime;
 
 trait SearchFilterTrait {
   // Array (and configuration) of permitted search filters
@@ -93,19 +94,19 @@ trait SearchFilterTrait {
       if(!empty($search[0])
          && !empty($search[1])) {
         return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
-          return $exp->between($attribute, $search[0], $search[1]);
+          return $exp->between($attribute, "'" . $search[0] . "'", "'" . $search[1] . "'");
         });
         // The starts at is non empty. So the data should be greater than the starts_at date
       } elseif(!empty($search[0])
         && empty($search[1])) {
         return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
-          return $exp->gte($attribute, $search[0]);
+          return $exp->gte("'" . FrozenTime::parse($search[0]) . "'", $attribute);
         });
         // The ends at is non-empty. So the data should be less than the ends at date
       } elseif(!empty($search[1])
         && empty($search[0])) {
         return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
-          return $exp->lte($attribute, $search[1]);
+          return $exp->lte("'" . FrozenTime::parse($search[1]) . "'", $attribute);
         });
       } else {
         // We return everything
