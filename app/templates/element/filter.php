@@ -201,6 +201,7 @@ $hasActiveFilters = false;
                   // that will interact with the field value. Allowing direct access to the input field is for
                   // accessibility purposes.
                   $starts_field = $key . "_starts_at";
+                  $coptions = [];
                   $coptions['class'] = 'form-control datepicker';
                   $coptions['label'] = 'Starts at:';
                   $coptions['required'] = false;
@@ -234,6 +235,7 @@ $hasActiveFilters = false;
                   // that will interact with the field value. Allowing direct access to the input field is for
                   // accessibility purposes.
                   $ends_field = $key . "_ends_at";
+                  $coptions = [];
                   $coptions['class'] = 'form-control datepicker';
                   $coptions['required'] = false;
                   $coptions['placeholder'] = ''; // todo: Make this configurable
