@@ -180,7 +180,7 @@ $hasActiveFilters = false;
                 <?php
                   print $this->Form->label($key);
                   print $this->Form->checkbox($key, [
-                    'id' => $key,
+                    'id' => str_replace("_", "-", $key),
                     'class' => 'form-check-input',
                     'checked' => $query[$key] ?? 0,
                     'hiddenField' => false,
@@ -211,7 +211,7 @@ $hasActiveFilters = false;
                   $coptions['required'] = false;
                   $coptions['placeholder'] = '';
 //                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
-                  $coptions['id'] = $starts_field;
+                  $coptions['id'] = str_replace("_", "-", $starts_field);
 
                   $pickerDate = '';
                   if(!empty($query[$starts_field])) {
@@ -245,7 +245,7 @@ $hasActiveFilters = false;
                   $coptions['placeholder'] = ''; // todo: Make this configurable
 //                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
                   $coptions['label'] = 'Ends at:';
-                  $coptions['id'] = $ends_field;
+                  $coptions['id'] = str_replace("_", "-", $ends_field);
 
                   $pickerDate = '';
                   if(!empty($query[$ends_field])) {
