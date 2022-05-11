@@ -204,7 +204,7 @@ function limitPage(pageLimit,recordCount,currentPage) {
 // Clear the top search form for index views
 // formObj         - form object (DOM form obj, required)
 function clearTopSearch(formObj) {
-  for (var i=0; i<formObj.elements.length; i++) {
+  for (let i=0; i<formObj.elements.length; i++) {
     if(formObj.elements[i].type != 'hidden') {
       formObj.elements[i].disabled = true;
     }

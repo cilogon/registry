@@ -140,6 +140,10 @@ export default {
     // POST: For the POST requests we want to strip out all the Vue Related fields but send all the other form fields
     // GET: For GET Requests empty fields are useless, So we need to strip them out as well.
     curForm.addEventListener('submit', e => {
+      // For the GET request send using the default flow
+      if (curForm.getAttribute('method') != 'get') {
+        e.preventDefault();
+      }
       let dateWidgetInputs = document.querySelectorAll('duet-date-picker input');
       // Remove all the Vue related fields
       Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
@@ -147,7 +151,6 @@ export default {
       });
       // For the GET request send using the default flow
       if (curForm.getAttribute('method') != 'get') {
-        e.preventDefault();
         curForm.submit();
       }
     });

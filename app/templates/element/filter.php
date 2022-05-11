@@ -99,6 +99,10 @@ $hasActiveFilters = false;
           <?php
             // Construct aria-controls string
             $aria_controls = $key;
+            // We save the name of the id into a dataset variable, data-identifier. This is an easy way
+            // to store the correct identifier in the case of dates. Dates have two search fields for each column
+            // which makes it more complicated to keep track of the id.
+            $data_identifier = is_array($params) ? implode(':', array_keys($params)) : $key;
 
             // We have active filters - not just a sort.
             $hasActiveFilters = true;
@@ -110,7 +114,7 @@ $hasActiveFilters = false;
               $$populated_vvar[ $search_params[$key] ] :
               (is_array($search_params[$key]) ? 'Range' : $search_params[$key]);
           ?>
-          <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
+          <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" data-identifier="<?= $data_identifier ?>" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
              <em class="material-icons">cancel</em>
              <span class="top-filters-active-filter-title">
                <?= $vv_searchable_attributes[$key]['label'] ?>
