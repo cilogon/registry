@@ -27,12 +27,6 @@
 msgid "api.object"
 msgstr "Did not find \"{0}\" object in request"
 
-msgid "api.username.prefix"
-msgstr "API username must begin with \"{0}\""
-
-msgid "api.username.suffix"
-msgstr "API username requires a suffix"
-
 msgid "auth.api.expired"
 msgstr "API User \"{0}\" has expired"
 
@@ -107,6 +101,9 @@ msgstr "Invalid character found"
 
 msgid "input.invalid.email"
 msgstr "The provided value is not a valid email address"
+
+msgid "input.invalid.prefix"
+msgstr "The provided value is not valid. \"{0}\" prefix is required"
 
 msgid "input.invalid.url"
 msgstr "The provided value is not a valid URL"

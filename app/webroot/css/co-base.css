@@ -1134,6 +1134,18 @@ ul.fields li.fields-datepicker .field-info {
   display: flex;
   align-items: center;
 }
+.field-info .input-group {
+  flex-wrap: unset;
+}
+.field-info .input-group .input.text {
+  width: inherit;
+}
+.field-info .input-group .input-group-text{
+  border-radius: unset;
+  font-size: inherit;
+  line-height: inherit;
+  padding: .25rem .75rem;
+}
 .cm-time-picker-panel {
   position: absolute;
   z-index: 100;

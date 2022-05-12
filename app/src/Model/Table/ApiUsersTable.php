@@ -29,15 +29,16 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use \Cake\Auth\FallbackPasswordHasher;
-use \Cake\Chronos\Chronos;
-use \Cake\ORM\Query;
-use \Cake\ORM\RulesChecker;
-use \Cake\ORM\Table;
-use \Cake\ORM\TableRegistry;
-use \Cake\Validation\Validator;
-use \App\Lib\Enum\SuspendableStatusEnum;
-use \App\Lib\Random\RandomString;
+use ArrayObject;
+use Cake\Auth\FallbackPasswordHasher;
+use Cake\Chronos\Chronos;
+use Cake\Event\EventInterface;
+use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
+use Cake\Validation\Validator;
+use App\Lib\Enum\SuspendableStatusEnum;
+use App\Lib\Random\RandomString;
 
 class ApiUsersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -94,6 +95,22 @@ class ApiUsersTable extends Table {
       ]
     ]);
   }
+
+  /**
+   * Add namespace prefix to username
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   beforeMarshal event
+   * @param  ArrayObject     $data    Entity data
+   * @param  ArrayObject     $options Callback options
+   */
+
+  public function beforeMarshal(EventInterface $event, ArrayObject $data, ArrayObject $options)
+  {
+    if (isset($data['username'])) {
+      $data['username'] = "co_" . $data['co_id'] . "." . $data['username'];
+    }
+  }
   
   /**
    * Define business rules to supplement the default trait implementation.
@@ -109,13 +126,6 @@ class ApiUsersTable extends Table {
     // rule building.
     
     $rules->add(function($entity, $options) use($rules) {
-        // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
-      $ret = $this->ruleIsUsernameValid($entity, $options);
-      
-      if($ret !== true) {
-        // Return the error message
-        return $ret;
-      }
       
       // AR-ApiUser-3 API usernames must be unique across the entire platform.
       $rule = $rules->isUnique(['username'], __d('error', 'exists', [__d('controller', 'ApiUsers', [1])]));
@@ -174,45 +184,6 @@ class ApiUsersTable extends Table {
     }
     
     return false;
-  }
-
-  /**
-   * Application Rule to determine if the current entity username is valid.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity  Entity to be validated
-   * @param  array   $options Application rule options
-   * @return boolean          true if the Rule check passes, false otherwise
-   */
-  
-  public function ruleIsUsernameValid($entity, $options) {
-    // We need to pull the CO data to check the name
-    
-    if(!$entity->co_id) {
-      return __d('error', 'coid');
-    }
-    
-    $Cos = TableRegistry::getTableLocator()->get('Cos');
-    
-    $co = $Cos->get($entity->co_id);
-
-    if(!$co) {
-      return __d('error', 'notfound', [__d('controller', 'cos', [1])]);
-    }
-    
-    $prefix = "co_" . $co->id . ".";
-    
-    // Return false if the prefix doesn't match the CO ID
-    if(strncmp($entity->username, $prefix, strlen($prefix))) {
-      return __d('error', 'api.username.prefix', [$prefix]);
-    }
-    
-    // Or if there's nothing after the dot
-    if(strlen($entity->username) == strlen($prefix)) {
-      return __d('error', 'api.username.suffix');
-    }
-    
-    return true;
   }
   
   /**
@@ -309,7 +280,7 @@ class ApiUsersTable extends Table {
     ]);
     $validator->notEmptyString('co_id');
     
-    $this->registerStringValidation($validator, $schema, 'username', true);
+    $this->registerStringValidation($validator, $schema, 'username', true, 'co_id');
     
     $validator->add('api_key', [
       'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('api_key')]],

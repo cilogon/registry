@@ -70,12 +70,14 @@ class FieldHelper extends Helper {
    * @param  string  $fieldName Form field
    * @param  array   $options   FormHelper control options
    * @param  string  $labelText Label text (fieldName language key used by default)
+   * @param  array   $config    Custom FormHelper configuration options
    * @return string  HTML for control
    */
   
   public function control(string $fieldName,
                           array  $options=[],
-                          string $labelText=null) {
+                          string $labelText=null,
+                          array $config=[]){
     $coptions = $options;
     $coptions['label'] = false;
     $coptions['readonly'] = !$this->editable || (isset($options['readonly']) && $options['readonly']);
@@ -84,7 +86,16 @@ class FieldHelper extends Helper {
     
     // Generate HTML for the control itself
     $liClass = "";
-    
+
+    // Remove prefix from field value
+    if(isset($config['prefix'], $this->getView()->get('vv_obj')->$fieldName)) {
+      $vv_obj = $this->getView()->get('vv_obj');
+      $fieldValue = $vv_obj->$fieldName;
+      $fieldValueTemp = str_replace($config['prefix'], '', $fieldValue);
+      $vv_obj->$fieldName = $fieldValueTemp;
+      $this->getView()->set('vv_obj', $vv_obj);
+    }
+
     // Handle datetime controls specially
     if($fieldName == 'valid_from' || $fieldName == 'valid_through') {
       // Append the timezone to the label
@@ -198,7 +209,9 @@ class FieldHelper extends Helper {
     
     return $this->startLine($liClass)
            . $this->formNameDiv($fieldName, $labelText)
-           . $this->formInfoDiv($controlCode)
+           . ( !empty($config['prefix']) ?
+                 $this->formInfoWithPrefixDiv($controlCode, $config['prefix']) :
+                 $this->formInfoDiv($controlCode) )
            . $this->endLine();
   }
   
@@ -238,6 +251,27 @@ class FieldHelper extends Helper {
     return '<div class="field-info">
       ' . $content . '
     </div>';
+  }
+
+  /**
+   * Generate a form info (control, value) box with a non editable prefix.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string  $content Content HTML
+   * @param  string  $prefix  Prefix value
+   * @return string           Form Info HTML
+   */
+
+  protected function formInfoWithPrefixDiv(string $context, string $prefix) {
+    $div =  '<div class="field-info">' . PHP_EOL
+      . '<div class="input-group mb-3">' . PHP_EOL
+      . '<div class="input-group-prepend">' . PHP_EOL
+      . '<span class="input-group-text" id="basic-addon3">' . $prefix . '</span>'
+      . '</div>' . PHP_EOL
+      . $context
+      . '</div></div>';
+
+    return $div;
   }
   
   /**

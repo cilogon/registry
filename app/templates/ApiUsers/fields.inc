@@ -32,7 +32,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   }
   
   // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
-  print $this->Field->control('username', ['default' => "co_" . $vv_cur_co->id .'.']);
+  print $this->Field->control('username', [], null, ['prefix' => "co_" . $vv_cur_co->id .'.']);
   
   // We link to the "Generate" button on edit only
   $generateLink = [];
