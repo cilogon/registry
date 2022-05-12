@@ -159,7 +159,11 @@
     $("input:submit").addClass("spin submit-button btn btn-primary");
 
     // Make all select form controls Bootstrappy
-    $("select").addClass("form-select");
+    $("select").addClass("form-select").select2({
+      width: '100%',
+      tags: true,
+      placeholder: "-- Select --"
+    });
 
     // Enable Bootstrap Popovers. Unless needed elsewhere, constrain this to #content
     // XXX Enable when/if needed
