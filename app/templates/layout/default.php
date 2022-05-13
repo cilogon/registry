@@ -40,7 +40,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 <!DOCTYPE html>
 <html lang="<?= __('registry.meta.lang'); ?>">
   <head>
-    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . "\n"; ?>
+    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . PHP_EOL ?>
     <?= $this->Html->charset(); ?>
 
     <title><?= (!empty($vv_title) ? $vv_title : __('registry.meta.registry')); ?></title>
@@ -52,7 +52,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     ?> -->
 
     <!-- favicon.ico -->
-    <?= $this->Html->meta('favicon.ico', '/favicon.ico', array('type' => 'icon')) . "\n"; ?>
+    <?= $this->Html->meta('favicon.ico', '/favicon.ico', array('type' => 'icon')) . PHP_EOL ?>
 
     <!-- Load CSS -->
     <?= $this->Html->css([
@@ -62,14 +62,14 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       'co-color',
       'co-base',
       'co-responsive'
-    ]) . "\n"; ?>
+    ]) . PHP_EOL ?>
 
     <!-- Load Bootstrap and jQuery (other scripts at bottom) -->
     <?= $this->Html->script([
       'bootstrap/bootstrap.bundle.min.js',
       'jquery/jquery.min.js',
       'select2/select2.min.js'
-    ]) . "\n"; ?>
+    ]) . PHP_EOL ?>
 
     <!-- Include external files and scripts -->
     <?= $this->fetch('meta') ?>
@@ -104,7 +104,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
           <div id="co-hamburger"><em class="material-icons">menu</em></div>
         <?php endif; // vv_user ?>
         <nav id="top-menu">
-          <?= $this->element('menuTop'); ?>
+          <?= $this->element('menuTop') ?>
         </nav>
       </div>
 
@@ -122,7 +122,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
               ['escape' => false]);
             ?>
           <?php else: ?>
-            <?= $this->Html->link(__('registry.meta.registry'), '/'); ?>
+            <?= $this->Html->link(__('registry.meta.registry'), '/') ?>
           <?php endif; ?>
           <!-- XXX Insert quick CO selector here. -->
         </div>
@@ -146,7 +146,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
         <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
           <div id="navigation-drawer">
             <nav id="navigation" aria-label="main menu">
-              <?= $this->element('menuMain'); ?>
+              <?= $this->element('menuMain') ?>
             </nav>
           </div>
         <?php endif ?>
@@ -158,7 +158,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
                 <!-- insert breadcrumbs on all but the front page ("Select Collaborations")
                      and Dashboards (including the CO landing page) -->
                 <div id="breadcrumbs">
-                  <?= $this->element('breadcrumbs'); ?>
+                  <?= $this->element('breadcrumbs') ?>
                 </div>
               <?php endif; ?>
 
@@ -166,14 +166,14 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
               <a id="content-start"></a>
 
               <!-- insert the page internal content -->
-              <?= $this->fetch('content'); ?>
+              <?= $this->fetch('content') ?>
             </div>
           </div>
         </main>
       </div>
 
       <footer id="co-footer">
-        <?= $this->element('footer'); ?>
+        <?= $this->element('footer') ?>
       </footer>
     </div>
 
@@ -190,10 +190,10 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     </div>
 
     <!-- modal dialog box -->
-    <?= $this->element('dialog'); ?>
+    <?= $this->element('dialog') ?>
 
     <!-- Get timezone detection -->
-    <?= $this->Html->script('jstimezonedetect/jstz.min.js'); ?>
+    <?= $this->Html->script('jstimezonedetect/jstz.min.js') ?>
     <script>
       // Determines the time zone of the browser client
       var tz = jstz.determine();
@@ -208,11 +208,11 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       'vue/vue-3.2.31.global.prod.js',
       'js-cookie/js.cookie-2.1.3.min.js',
       'comanage/comanage.js'
-    ]) . "\n"; ?>
+    ]) . PHP_EOL ?>
 
     <!-- Duet Datepicker should be loaded as a module -->
-    <?= $this->Html->script('duet-datepicker/duet/duet.esm.js',['type' => 'module']); ?>
-    <?= $this->Html->script('duet-datepicker/duet/duet.js',['nomodule' => '']); ?>
+    <?= $this->Html->script('duet-datepicker/duet/duet.esm.js',['type' => 'module']) ?>
+    <?= $this->Html->script('duet-datepicker/duet/duet.js',['nomodule' => '']) ?>
 
     <!-- COmanage JavaScript onload scripts -->
     <?php print $this->element('javascript'); ?>

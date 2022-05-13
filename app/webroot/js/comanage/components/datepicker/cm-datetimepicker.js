@@ -165,7 +165,7 @@ export default {
         ref="curDuetPicker">
       </duet-date-picker>
       <div v-if="this.timed" class="cm-time-picker">
-        <button @click.stop.prevent="showTimePicker" class="btn">
+        <button @click.stop.prevent="showTimePicker" type="button" class="btn">
           <em class="material-icons">schedule</em>
         </button>
         <Transition>
