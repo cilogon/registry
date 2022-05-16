@@ -36,22 +36,21 @@
   </span>
   <?php if($this->Paginator->hasPage(2)): ?>
     <!-- show the pagination elements if there is more than 1 page -->
-    <ul class="paginationFirst">
-      <?= $this->Paginator->first(__d('operation', 'first')); ?>
-    </ul>
-    <ul class="paginationPrev">
-      <?= $this->Paginator->prev(__d('operation', 'previous'), ['class' => 'disabled']); ?>
-    </ul>
+    <?php if($this->Paginator->hasPrev()): ?>
+      <ul class="paginationFirstPrev">
+        <?= $this->Paginator->first(__d('operation', 'first')); ?>
+        <?= $this->Paginator->prev(__d('operation', 'previous'), ['class' => 'disabled']); ?>
+      </ul>
+    <?php endif; ?>
     <ul class="paginationNumbers">
       <?= $this->Paginator->numbers(); ?>
     </ul>
-    <ul class="paginationNext">
-      <?= $this->Paginator->next(__d('operation', 'next'), ['class' => 'disabled']); ?>
-    </ul>
-    <ul class="paginationLast">
-      <?= $this->Paginator->last(__d('operation', 'last')); ?>
-    </ul>
-
+    <?php if($this->Paginator->hasNext()): ?>
+      <ul class="paginationNextLast">
+        <?= $this->Paginator->next(__d('operation', 'next'), ['class' => 'disabled']); ?>
+        <?= $this->Paginator->last(__d('operation', 'last')); ?>
+      </ul>
+    <?php endif; ?>
     <form id="goto-page"
           class="pagination-form"
           method="get"

@@ -851,13 +851,11 @@ th.actions {
 #pagination .paginationCounter {
   display: block;
 }
-#pagination .paginationFirst,
-#pagination .paginationPrev {
+#pagination ul.paginationFirstPrev li {
   margin-right: 0.5em;
   font-size: 0.9em;
 }
-#pagination .paginationLast,
-#pagination .paginationNext {
+#pagination ul.paginationNextLast li {
   margin-left: 0.5em;
   font-size: 0.9em;
 }
