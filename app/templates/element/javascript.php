@@ -159,7 +159,11 @@
     $("input:submit").addClass("spin submit-button btn btn-primary");
 
     // Make all select form controls Bootstrappy
-    $("select").addClass("form-select").select2({
+    $("select").addClass("form-select");
+
+    // Use select2 library everywhere except
+    // - duet-date
+    $("select").not(".duet-date__select--month").not(".duet-date__select--year").select2({
       width: '100%',
       tags: true,
       placeholder: "-- Select --"
