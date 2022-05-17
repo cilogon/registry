@@ -128,8 +128,8 @@
       e.stopPropagation();
       $(this).hide();
       $(this)[0].dataset.identifier.split(':').forEach( (ident) => {
-        // CAKEPHP transforms snake case variables to kebab. As a result
-        // searching for the initial key will fail. This is used for use cases
+        // CAKEPHP transforms snake case variables to kebab when the name has the format of a foreign key.
+        // As a result searching for the initial key will fail. This is used for use cases
         // like the models that use the Tree behavior and have the column parent_id
         let ident_to_snake = ident.replace(/_/g, "-");
         let filterId = '#' + ident_to_snake;

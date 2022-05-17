@@ -106,7 +106,7 @@ class FieldHelper extends Helper {
       // accessibility purposes.
       $coptions['class'] = 'form-control datepicker';
       $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS'; // TODO: test for date-only inputs and send only the date
-      $coptions['id'] = $fieldName;
+      $coptions['id'] = str_replace("_", "-", $fieldName);
       
       $entity = $this->getView()->get('vv_obj');
       

@@ -4,8 +4,12 @@ $fieldName = $fieldName ?? "";
 $pickerDate = $pickerDate ?? "";
 
 // Create a date/time picker. The yyyy-MM-dd format is set above in $pickerDate.
-$pickerId     = 'datepicker-' . $fieldName;
-$pickerTarget = $fieldName;
+
+// CAKEPHP transforms snake case variables to kebab when the name has the format of a foreign key.
+// As a result searching for the initial key will fail. This is used for use cases
+// like the models that use the Tree behavior and have the column parent_id
+$pickerId     = 'datepicker-' . str_replace("_", "-", $fieldName);
+$pickerTarget = str_replace("_", "-", $fieldName);
 $pickerTimed  = $pickerTimed ?? true; // TODO: set false if date-only
 $pickerAmPm   = $pickerAmPm ?? false; // TODO: allow change between AM/PM and 24-hour mode
 
