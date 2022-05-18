@@ -975,6 +975,7 @@ ul.form-list {
   padding: 0;
   border-top: 1px solid var(--cmg-color-lightgray-005);
 }
+.cm-time-picker-vals ul li,
 ul.form-list li {
   background-color: var(--cmg-color-lightgray-001);
   border-left: 1px solid var(--cmg-color-lightgray-005);
@@ -984,6 +985,7 @@ ul.form-list li {
   padding: 0.5em;
   list-style: none;
 }
+.cm-time-picker-vals ul li:nth-child(even),
 ul.form-list li:nth-child(even) {
   background-color: var(--cmg-color-white);
 }
@@ -1179,6 +1181,7 @@ ul.fields li.fields-datepicker .field-info {
   grid-template-columns: repeat(4,40px);
   grid-template-rows: repeat(1,40px);
 }
+.top-filters .cm-time-picker-vals li,
 ul.form-list .cm-time-picker-vals li {
   display: block;
   padding: 4px 0 0 0;
