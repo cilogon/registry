@@ -30,37 +30,11 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\Utility\Inflector;
+use Cake\I18n\FrozenTime;
 
 trait SearchFilterTrait {
   // Array (and configuration) of permitted search filters
   private $searchFilters = array();
-  
-  /**
-   * Determine the UI label for the specified attribute.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $attribute Attribute
-   * @return string            Label
-   * @todo   Merge this with _column_key from index.ctp
-   */
-  
-  public function getLabel(string $attribute): string {
-    if(isset($this->searchFilters[$attribute]['label'])
-      && $this->searchFilters[$attribute]['label'] !== null) {
-      return $this->searchFilters[$attribute]['label'];
-    }
-    
-    // Try to construct a label from the language key.
-    $l = __d('field', $attribute);
-    
-    if($l != $attribute) {
-      return $l;
-    }
-
-    // If we make it here, just return a pretty version of the $attribute name
-    return Inflector::humanize($attribute);
-  }
-  
   /**
    * Obtain the set of permitted search attributes.
    *
@@ -69,83 +43,83 @@ trait SearchFilterTrait {
    */
   
   public function getSearchableAttributes(): array {
-    // Not every configuration element is necessary for the search form, and
-    // some need to be calculated, so we do that work here.
-    
-    $ret = [];
-    
-    foreach(array_keys($this->searchFilters) as $attr) {
-      $ret[ $attr ] = [
-        'label' => $this->getLabel($attr)
+    foreach ($this->filterMetadataFields() as $column => $type) {
+      // If the column is an array then we are accessing the Metadata fields. Skip
+      if(is_array($type)) {
+        continue;
+      }
+      $this->searchFilters[$column] = [
+        'type' => $type,
+        'label' => (__d('field', $column) ?? Inflector::humanize($column))
       ];
+
+      // For the date fields we search ranges
+      if($type === 'timestamp') {
+        $this->searchFilters[$column]['alias'][] = $column . '_starts_at';
+        $this->searchFilters[$column]['alias'][] = $column . '_ends_at';
+      }
     }
-    
-    return $ret;
+
+    return $this->searchFilters ?? [];
   }
-  
-  /**
-   * Add a permitted search filters.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $attribute     Attribute that filtering is permitted on (database name)
-   * @param  bool   $caseSensitive Whether this attribute is case sensitive
-   * @param  string $label         Label for this search field, or null to autocalculate
-   * @param  bool   $substring     Whether substring searching is permitted for this attribute
-   */
-  
-  public function setSearchFilter(string $attribute,
-                                  bool   $caseSensitive=false,
-                                  string $label=null,
-                                  bool   $substring=true): void {
-    $this->searchFilters[$attribute] = compact('caseSensitive', 'label', 'substring');
-  }
-  
+
   /**
    * Build a query where() clause for the configured attribute.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  \Cake\ORM\Query $query     Cake ORM Query object
-   * @param  string          $attribute Attribute to filter on (database name)
-   * @param  string          $q         Value to filter on
+   * @param   \Cake\ORM\Query  $query      Cake ORM Query object
+   * @param   string           $attribute  Attribute to filter on (database name)
+   * @param   string|array     $q          Value to filter on
+   *
    * @return \Cake\ORM\Query            Cake ORM Query object
+   * @since  COmanage Registry v5.0.0
    */
   
-  public function whereFilter(\Cake\ORM\Query $query, string $attribute, string $q): object {
-    if(!empty($this->searchFilters[$attribute])) {
-      $cs = (isset($this->searchFilters[$attribute]['caseSensitive'])
-        && $this->searchFilters[$attribute]['caseSensitive']);
-      
-      $sub = (isset($this->searchFilters[$attribute]['substring'])
-        && $this->searchFilters[$attribute]['substring']);
-      
-      $search = $q;
-      
-      if($sub) {
-        // Substring
-        // note, for now at least, a user may infix their own %
-        $search .= "%";
-      }
-      
-      if($cs) {
-        // Case sensitive
-        $query->where([$attribute => $search]);
-      } else {
-        // Case insensitive
-        $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search, $sub) {
-          $lower = $query->func()->lower([
-            // https://book.cakephp.org/3/en/orm/query-builder.html#function-arguments
-            $attribute => 'identifier'
-          ]);
-          if($sub) {
-            return $exp->like($lower, strtolower($search));
-          } else {
-            return $exp->eq($lower, strtolower($search));
-          }
-        });
-      }
+  public function whereFilter(\Cake\ORM\Query $query, string $attribute, string|array $q): object {
+    // not a permitted attribute
+    if(empty($this->searchFilters[$attribute])) {
+      return $query;
     }
-    // else not a permitted attribute
-    
-    return $query;
+
+    $search = $q;
+    $sub = false;
+    // Primitive types
+    $search_types = ['integer', 'boolean'];
+    if( $this->searchFilters[$attribute]['type'] == "string") {
+      $search = "%" . $search . "%";
+      $sub = true;
+    } elseif(in_array($this->searchFilters[$attribute]['type'], $search_types, true)) {
+      return $query->where([$attribute => $search]);
+    } elseif( $this->searchFilters[$attribute]['type'] == "timestamp") {
+      // Date between dates
+      if(!empty($search[0])
+         && !empty($search[1])) {
+        return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+          return $exp->between($attribute, "'" . $search[0] . "'", "'" . $search[1] . "'");
+        });
+        // The starts at is non empty. So the data should be greater than the starts_at date
+      } elseif(!empty($search[0])
+        && empty($search[1])) {
+        return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+          return $exp->gte("'" . FrozenTime::parse($search[0]) . "'", $attribute);
+        });
+        // The ends at is non-empty. So the data should be less than the ends at date
+      } elseif(!empty($search[1])
+        && empty($search[0])) {
+        return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
+          return $exp->lte("'" . FrozenTime::parse($search[1]) . "'", $attribute);
+        });
+      } else {
+        // We return everything
+        return $query;
+      }
+
+    }
+
+    // String values
+    return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search, $sub) {
+        $lower = $query->func()->lower([$attribute => 'identifier']);
+        return ($sub) ? $exp->like($lower, strtolower($search))
+                      : $exp->eq($lower, strtolower($search));
+      });
   }
 }

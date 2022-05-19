@@ -45,6 +45,9 @@ $tableName = Inflector::tableize(Inflector::singularize($this->name));
 // Otherwise, we'll print out a "no records" message.
 $recordsExist = false;
 
+// By default Index filtering is on and we need to explicitly disable it
+$disableFiltering = false;
+
 // Our default link actions, in order of preference, unless the column config overrides it
 $linkActions = ['edit', 'view'];
 
@@ -157,9 +160,9 @@ function _column_key($modelsName, $c, $tz=null) {
 <?php endif; // $banners ?>
 
 <!-- Search block -->
-<?php if(!empty($enableFiltering)): ?>
+<?php if(!$disableFiltering): ?>
   <?= $this->element('filter'); ?>
-<?php endif; // $enableFiltering ?>
+<?php endif; ?>
 
 <!-- Index table -->
 <div class="table-container">
@@ -214,7 +217,7 @@ function _column_key($modelsName, $c, $tz=null) {
               break;
             case 'datetime':
   // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-              print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
+              print !empty($entity->$col) ? $this->Time->nice($entity->$col, $vv_tz) . $suffix : "";
               break;
             case 'enum':
               if($entity->$col) {

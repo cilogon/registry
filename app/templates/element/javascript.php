@@ -127,8 +127,22 @@
       e.preventDefault();
       e.stopPropagation();
       $(this).hide();
-      filterId = '#' + $(this).attr("aria-controls");
-      $(filterId).val("");
+      $(this)[0].dataset.identifier.split(':').forEach( (ident) => {
+        // CAKEPHP transforms snake case variables to kebab when the name has the format of a foreign key.
+        // As a result searching for the initial key will fail. This is used for use cases
+        // like the models that use the Tree behavior and have the column parent_id
+        let ident_to_snake = ident.replace(/_/g, "-");
+        let filterId = '#' + ident_to_snake;
+        $(filterId).val("");
+      });
+
+      // Remove the Vue date fields if exist
+      let dateWidgetInputs = document.querySelectorAll('duet-date-picker input');
+      // Remove all the Vue related fields
+      Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
+        el.parentNode.removeChild(el);
+      });
+
       $(this).closest('form').submit();
     });
 
@@ -146,6 +160,14 @@
 
     // Make all select form controls Bootstrappy
     $("select").addClass("form-select");
+
+    // Use select2 library everywhere except
+    // - duet-date
+    $("select").not(".duet-date__select--month").not(".duet-date__select--year").select2({
+      width: '100%',
+      tags: true,
+      placeholder: "-- Select --"
+    });
 
     // Enable Bootstrap Popovers. Unless needed elsewhere, constrain this to #content
     // XXX Enable when/if needed

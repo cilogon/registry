@@ -113,11 +113,6 @@ class TypesTable extends Table {
         'class' => 'SuspendableStatusEnum'
       ]
     ]);
-  
-    // Set up the fields that may be filtered in the index view
-    $this->setSearchFilter('display_name', false, null, true);
-    $this->setSearchFilter('attribute', true, null, false);
-    $this->setSearchFilter('statuses', false, null, true);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

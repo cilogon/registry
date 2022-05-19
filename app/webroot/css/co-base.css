@@ -713,6 +713,10 @@ instead, reveal in user menu */
 .top-filters-active-filters-remove button:hover {
   background-color: var(--cmg-color-lightgray-005);
 }
+.filter-datepicker-lbl {
+  white-space: nowrap;
+  margin-right: 0.5em;
+}
 /* RECONCILE TABLE */
 #reconcile-table {
   width: auto;
@@ -969,6 +973,7 @@ ul.form-list {
   padding: 0;
   border-top: 1px solid var(--cmg-color-lightgray-005);
 }
+.cm-time-picker-vals ul li,
 ul.form-list li {
   background-color: var(--cmg-color-lightgray-001);
   border-left: 1px solid var(--cmg-color-lightgray-005);
@@ -978,6 +983,7 @@ ul.form-list li {
   padding: 0.5em;
   list-style: none;
 }
+.cm-time-picker-vals ul li:nth-child(even),
 ul.form-list li:nth-child(even) {
   background-color: var(--cmg-color-white);
 }
@@ -1173,6 +1179,7 @@ ul.fields li.fields-datepicker .field-info {
   grid-template-columns: repeat(4,40px);
   grid-template-rows: repeat(1,40px);
 }
+.top-filters .cm-time-picker-vals li,
 ul.form-list .cm-time-picker-vals li {
   display: block;
   padding: 4px 0 0 0;
@@ -1551,4 +1558,12 @@ td.indented {
 footer {
   text-align: center;
   padding: 2em 2em 1em;
+}
+/*Select2*/
+.select2-container--default .select2-selection--single {
+  border: 1px solid var(--cmg-color-lightgray-006);
+  background-color: var(--cmg-color-white);
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: var(--cmg-color-gray-003);
 }

@@ -24,16 +24,48 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+use Cake\Collection\Collection;
+use Cake\Utility\Inflector;
+
 
 // $this->name = Models
 $modelsName = $this->name;
 // $modelName = Model
-$modelName = \Cake\Utility\Inflector::singularize($modelsName);
+$modelName = Inflector::singularize($modelsName);
 
 // Get the query string and separate the search params from the non-search params
 $query = $this->request->getQueryParams();
-$non_search_params = array_diff_key($query, $vv_searchable_attributes);
-$search_params = array_intersect_key($query, $vv_searchable_attributes);
+// Search attributes collection
+$search_attributes_collection = new Collection($vv_searchable_attributes);
+$alias_params = $search_attributes_collection->filter(fn ($val, $attr) => (is_array($val) && array_key_exists('alias', $val)) )
+                                             ->extract('alias')
+                                             ->unfold()
+                                             ->toArray();
+// For the non search params we need to search the alias params as well
+$searchable_parameters = [
+  ...array_keys($vv_searchable_attributes),
+  ...$alias_params
+  ];
+$non_search_params = (new Collection($query))->filter( fn($value, $key) => !in_array($key, $searchable_parameters) )
+                                             ->toArray();
+
+// Filter the search params and take params with aliases into consideration
+$search_params = [];
+foreach ($vv_searchable_attributes as $attr => $value) {
+  if(isset($query[$attr])) {
+    $search_params[$attr] = $query[$attr];
+    continue;
+  }
+
+  if(isset($value['alias'])
+     && is_array($value['alias'])) {
+    foreach ($value['alias'] as $alias_key) {
+      if(isset($query[$alias_key])) {
+        $search_params[$attr][$alias_key] = $query[$alias_key];
+      }
+    }
+  }
+}
 
 // Begin the form
 print $this->Form->create(null, [
@@ -60,7 +92,6 @@ $hasActiveFilters = false;
     <legend id="top-filters-toggle">
       <em class="material-icons">search</em>
       <?= __d('operation', 'filter'); ?>
-      
 
       <?php if(!empty($search_params)):?>
         <span id="top-filters-active-filters">
@@ -68,17 +99,28 @@ $hasActiveFilters = false;
           <?php
             // Construct aria-controls string
             $aria_controls = $key;
+            // We save the name of the id into a dataset variable, data-identifier. This is an easy way
+            // to store the correct identifier in the case of dates. Dates have two search fields for each column
+            // which makes it more complicated to keep track of the id.
+            $data_identifier = is_array($params) ? implode(':', array_keys($params)) : $key;
 
             // We have active filters - not just a sort.
             $hasActiveFilters = true;
+
+            // The populated variables are in plural while the column names are singular
+            // Convention: It is a prerequisite that the vvar should be the plural of the column name
+            $populated_vvar = Inflector::pluralize($key);
+            $button_label = isset($$populated_vvar) ?
+              $$populated_vvar[ $search_params[$key] ] :
+              (is_array($search_params[$key]) ? 'Range' : $search_params[$key]);
           ?>
-          <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
+          <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" data-identifier="<?= $data_identifier ?>" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
              <em class="material-icons">cancel</em>
              <span class="top-filters-active-filter-title">
-               <?= $vv_searchable_attributes[$key]['label']; ?>
+               <?= $vv_searchable_attributes[$key]['label'] ?>
              </span>
              <span class="top-filters-active-filter-value">
-               <?= filter_var($search_params[$key], FILTER_SANITIZE_SPECIAL_CHARS); ?>
+               <?= filter_var($button_label, FILTER_SANITIZE_SPECIAL_CHARS); ?>
              </span>
           </button>
         <?php endforeach; ?>
@@ -92,11 +134,19 @@ $hasActiveFilters = false;
       <button class="cm-toggle nospin" aria-expanded="false" aria-controls="top-filters-fields" type="button"><em class="material-icons drop-arrow">arrow_drop_down</em></button>
     </legend>
     <div id="top-filters-fields">
-      <div id="top-filters-fields-subgroups">
+      <div class="top-filters-fields-subgroups">
       <?php
-        $field_subgroup_columns = array();
+        $field_booleans_columns = [];
+        $field_datetime_columns = [];
 
         foreach($vv_searchable_attributes as $key => $options) {
+          if($options['type'] == 'boolean') {
+            $field_booleans_columns[$key] = $options;
+            continue;
+          } elseif ($options['type'] == 'timestamp') {
+            $field_datetime_columns[$key] = $options;
+            continue;
+          }
           $formParams = [
             'label' => $options['label'],
             // The default type is text, but we might convert to select below
@@ -105,11 +155,14 @@ $hasActiveFilters = false;
             'required' => false,
           ];
 
-          if(isset($$key)) {
+          // The populated variables are in plural while the column names are singular
+          // Convention: It is a prerequisite that the vvar should be the plural of the column name
+          $populated_vvar = Inflector::pluralize($key);
+          if(isset($$populated_vvar)) {
             // If we have an AutoViewVar matching the name of this key,
             // convert to a select
             $formParams['type'] = 'select';
-            $formParams['options'] = $$key;
+            $formParams['options'] = $$populated_vvar;
             // Allow empty so a filter doesn't require (eg) SOR
             $formParams['empty'] = true;
           }
@@ -118,6 +171,105 @@ $hasActiveFilters = false;
         }
       ?>
       </div>
+      <?php if(!empty($field_booleans_columns)): ?>
+        <div class="top-search-checkboxes input">
+          <div class="top-search-checkbox-label">On-Off</div>
+          <div class="top-search-checkbox-fields">
+            <?php foreach($field_booleans_columns as $key => $options): ?>
+              <div class="form-check form-check-inline">
+                <?php
+                  print $this->Form->label($key);
+                  print $this->Form->checkbox($key, [
+                    'id' => str_replace("_", "-", $key),
+                    'class' => 'form-check-input',
+                    'checked' => $query[$key] ?? 0,
+                    'hiddenField' => false,
+                    'required' => false
+                  ]);
+                ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
+      <?php if(!empty($field_datetime_columns)): ?>
+        <?php foreach($field_datetime_columns as $key => $options): ?>
+          <div class="input">
+            <div class="top-search-date-label"><?= Inflector::humanize($key) ?></div>
+            <div class="top-filters-fields-subgroups">
+              <!--     Start at       -->
+              <div class="top-search-date-fields">
+                <div class="d-flex">
+                  <?php
+                  // A datetime field will be rendered as plain text input with adjacent date and time pickers
+                  // that will interact with the field value. Allowing direct access to the input field is for
+                  // accessibility purposes.
+                  $starts_field = $key . "_starts_at";
+                  $coptions = [];
+                  $coptions['class'] = 'form-control datepicker';
+                  $coptions['label'] = 'Starts at:';
+                  $coptions['required'] = false;
+                  $coptions['placeholder'] = '';
+//                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+                  $coptions['id'] = str_replace("_", "-", $starts_field);
+
+                  $pickerDate = '';
+                  if(!empty($query[$starts_field])) {
+                    $starts_date = \Cake\I18n\FrozenTime::parse($query[$starts_field]);
+                    // Adjust the time back to the user's timezone
+                    $coptions['value'] = $starts_date->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->get('vv_tz'));
+                    $pickerDate = $starts_date->i18nFormat("yyyy-MM-dd", $this->get('vv_tz'));
+                  }
+
+                  $date_args = [
+                    'fieldName' => $starts_field,
+                    'pickerDate' => $pickerDate
+                  ];
+                  // Create a text field to hold our value.
+                  print $this->Form->label($starts_field, 'Starts at:', ['class' => 'filter-datepicker-lbl']);
+                  print $this->Form->text($starts_field, $coptions) . $this->element('datePicker', $date_args);
+                  ?>
+                </div>
+              </div>
+              <!--     Ends at       -->
+              <div class="top-search-checkbox-fields">
+                <div class="d-flex">
+                  <?php
+                  // A datetime field will be rendered as plain text input with adjacent date and time pickers
+                  // that will interact with the field value. Allowing direct access to the input field is for
+                  // accessibility purposes.
+                  $ends_field = $key . "_ends_at";
+                  $coptions = [];
+                  $coptions['class'] = 'form-control datepicker';
+                  $coptions['required'] = false;
+                  $coptions['placeholder'] = ''; // todo: Make this configurable
+//                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+                  $coptions['label'] = 'Ends at:';
+                  $coptions['id'] = str_replace("_", "-", $ends_field);
+
+                  $pickerDate = '';
+                  if(!empty($query[$ends_field])) {
+                    // Adjust the time back to the user's timezone
+                    $ends_date = \Cake\I18n\FrozenTime::parse($query[$ends_field]);
+                    $coptions['value'] = $ends_date->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->get('vv_tz'));
+                    $pickerDate = $ends_date->i18nFormat("yyyy-MM-dd", $this->get('vv_tz'));
+                  }
+
+                  $date_args = [
+                    'fieldName' => $ends_field,
+                    'pickerDate' => $pickerDate
+                  ];
+                  // Create a text field to hold our value.
+                  print $this->Form->label($ends_field, 'Ends at:', ['class' => 'filter-datepicker-lbl']);
+                  print $this->Form->text($ends_field, $coptions) . $this->element('datePicker', $date_args);
+                  ?>
+                </div>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+
       <?php $rebalanceColumns = ((count($vv_searchable_attributes)) % 2 != 0) ? ' class="tss-rebalance"' : ''; ?>
       <div id="top-filters-submit"<?php print $rebalanceColumns ?>>
         <?php
