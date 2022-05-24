@@ -163,7 +163,7 @@
 
     // Use select2 library everywhere except
     // - duet-date
-    $("select").not(".duet-date__select--month").not(".duet-date__select--year").select2({
+    $("select").not("#limit").not(".duet-date__select--month").not(".duet-date__select--year").select2({
       width: '100%',
       tags: true,
       placeholder: "-- Select --"
