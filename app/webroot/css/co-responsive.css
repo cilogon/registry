@@ -155,7 +155,7 @@
   #search-bar input {
     width: calc(100vw - 400px); /* XXX this will change as more items get added to the top menu */
     border: none;
-    padding: 0.4em 0.5em;
+    padding: 0.4em 0.5em 0.4em 1em;
     height: 44px;
   }
   #search-bar input#q:focus-visible {
