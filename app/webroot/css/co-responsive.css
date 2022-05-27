@@ -219,6 +219,17 @@
   #navigation-drawer.closed .co-menu-collapse-icon {
     transform: rotate(-90deg);
   }
+  /* Menu Panels */
+  .menu-panel {
+    left: calc(100% + 1px);
+    padding: 1rem 1.5rem;
+    width: 60vw;
+    border-right: 1px solid var(--cmg-color-lightgray-006);
+    border-bottom: 1px solid var(--cmg-color-lightgray-006);
+  }
+  .menu-panel-content {
+    display: flex;
+  }
   /* GENERAL */
   .two-col {
     -webkit-column-count: 2; /* Chrome, Safari, Opera */

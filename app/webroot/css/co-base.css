@@ -481,6 +481,53 @@ a#login:active {
 #co-menu-collapse {
   display: none;
 }
+/* Menu Panels */
+.menu-panel {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  padding: 1rem;
+  width: 100vw;
+  border-right: 1px solid var(--cmg-color-lightgray-006);
+  border-bottom: 1px solid var(--cmg-color-lightgray-006);
+  text-align: left;
+  background-color: var(--cmg-color-white);
+  -webkit-box-shadow: 5px 5px 8px 0px var(--cmg-color-lightgray-003);
+  box-shadow: 5px 5px 8px 0px var(--cmg-color-lightgray-003);
+}
+.menu-panel.visible {
+  display: block;
+}
+.menu-panel-close.btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  padding: 1rem;
+  line-height: 1.2rem;
+}
+#main-menu .menu-panel-primary-link-text h3 {
+  color: var(--cmg-color-blue-001);
+  padding: 0;
+  font-weight: 500;
+}
+#main-menu a.menu-panel-primary-link {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--cmg-color-white);
+}
+#main-menu .menu-panel-links a.menu-panel-primary-link:hover {
+  background-color: transparent;
+  border: 1px solid var(--cmg-color-lightgray-006);
+}
+#main-menu .menu-panel-links a.menu-panel-primary-link:hover  h3 {  
+  text-decoration: underline;
+}
+#main-menu .menu-panel-primary-link-text {
+  flex: 1;
+}
 /* CONTENT */
 #breadcrumbs {
   font-size: 0.9em;

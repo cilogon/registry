@@ -43,7 +43,8 @@
               'action'     => 'index',
               'icon'       => 'person',
               'dropdown'   => 'true',
-              'label'      => __d('menu', 'co.people')
+              'label'      => __d('menu', 'co.people') //,
+              //'panel'      => 'people' // XXX Uncomment this panel setting to enable panel menus
             ],
             [
               'permission' => 'groups',
@@ -92,16 +93,25 @@
                 . '<span class="menu-title">' . $m['label'] . '</span>';
     
               print '<li>';
-              print $this->Html->link(
-                    $linkContent,
-                    ['plugin'       => null,
-                     'controller'   => $m['controller'],
-                     'action'       => $m['action'],
-                     '?'            => [
-                       'co_id' => $vv_cur_co->id
-                     ]],
-                    ['escape' => false, 'title' => $m['label']]
-                  );
+              if(empty($m['panel'])) {
+                print $this->Html->link(
+                  $linkContent,
+                  ['plugin'       => null,
+                   'controller'   => $m['controller'],
+                   'action'       => $m['action'],
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]],
+                  ['escape' => false, 'title' => $m['label']]
+                );  
+              } else {
+                // include the menu panel
+                print $this->Html->link(
+                  $linkContent, '#',
+                  ['escape' => false, 'title' => $m['label'], 'class' => 'menu-panel-toggle nospin']
+                );
+                print $this->element('menuPanel', ['panel' => $m['panel']]);
+              }
               print '</li>';
             }
           }

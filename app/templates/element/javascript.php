@@ -40,6 +40,15 @@
     $('#co-hamburger').click(function() {
       $('#navigation-drawer').toggleClass('visible');
     });
+    
+    $('.menu-panel-toggle').click(function() {
+      $(this).next('.menu-panel').toggleClass('visible');  
+    });
+
+    $('.menu-panel-close').click(function() {
+      $(this).closest('.menu-panel').removeClass('visible');
+    });
+    
     // END DESKTOP MENU DRAWER BEHAVIOR
 
     // GLOBAL SEARCH
