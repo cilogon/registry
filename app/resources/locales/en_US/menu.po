@@ -25,13 +25,25 @@
 # Menu Messages
 
 msgid "co.configuration"
-msgstr "Configuration"
+msgstr "Config"
+
+msgid "co.connections"
+msgstr "Connections"
+
+msgid "co.lifecycle"
+msgstr "Lifecycle"
+
+msgid "co.operations"
+msgstr "Operations"
 
 msgid "co.groups"
 msgstr "Groups"
 
 msgid "co.people"
 msgstr "People"
+
+msgid "co.structure"
+msgstr "Structure"
 
 msgid "co.switch"
 msgstr "Switch CO"

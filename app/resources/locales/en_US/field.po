@@ -248,6 +248,9 @@ msgstr "Required"
 msgid "room"
 msgstr "Room"
 
+msgid "search.placeholder"
+msgstr "Search..."
+
 msgid "sponsor"
 msgstr "Sponsor"
 

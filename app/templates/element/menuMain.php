@@ -27,60 +27,92 @@
 
 // The following menu will only render if we have a user and CO (see default.ctp)
 ?>
-<ul id="main-menu">
-  <?php
-    if(!empty($vv_cur_co)) {
-      // In Registry PE, there is no more Platform Administration menu, so there
-      // is no menu context without a current CO. (The Platform Administration
-      // menu is now part of the COmanage CO configuration.)
-      
-      // When adding new items here, 'permission' corresponds to
-      // RegistryAuthComponent::getMenuPermissions. 'icon' is from
-      // https://fonts.google.com/icons?selected=Material+Icons
-
-      $menuItems = [
-        [
-          'permission' => 'people',
-          'controller' => 'people',
-          'action'     => 'index',
-          'icon'       => 'person',
-          'label'      => __d('menu', 'co.people')
-        ],
-        [
-          'permission' => 'groups',
-          'controller' => 'groups',
-          'action'     => 'index',
-          'icon'       => 'group',
-          'label'      => __d('menu', 'co.groups')
-        ],
-        [
-          'permission' => 'configuration',
-          'controller' => 'dashboards',
-          'action'     => 'configuration',
-          'icon'       => 'settings',
-          'label' => __d('menu', 'co.configuration')
-        ]
-      ];
-
-      foreach($menuItems as $m) {
-        if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
-          $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em>'
-            . '<span class="menu-title">' . $m['label'] . '</span>';
-
-          print '<li>'
-            . $this->Html->link(
-                $linkContent,
-                ['plugin'       => null,
-                 'controller'   => $m['controller'],
-                 'action'       => $m['action'],
-                 '?'            => [
-                   'co_id' => $vv_cur_co->id
-                 ]],
-                ['escape' => false]
-              )
-            . '</li>';
+<div id="navigation-drawer">
+  <nav id="navigation" aria-label="main menu">
+    <ul id="main-menu">
+      <?php
+        if(!empty($vv_cur_co)) {
+          // In Registry PE, there is no more Platform Administration menu, so there
+          // is no menu context without a current CO. (The Platform Administration
+          // menu is now part of the COmanage CO configuration.)
+    
+          $menuItems = [
+            [
+              'permission' => 'people',
+              'controller' => 'people',
+              'action'     => 'index',
+              'icon'       => 'person',
+              'dropdown'   => 'true',
+              'label'      => __d('menu', 'co.people')
+            ],
+            [
+              'permission' => 'groups',
+              'controller' => 'groups',
+              'action'     => 'index',
+              'icon'       => 'group',
+              'dropdown'   => 'true',
+              'label' => __d('menu', 'co.structure')
+            ],
+            [
+              'permission' => 'configuration',
+              'controller' => 'dashboards',
+              'action'     => 'configuration',
+              'icon'       => 'cached',
+              'dropdown'   => 'true',
+              'label' => __d('menu', 'co.lifecycle')
+            ],
+            [
+              'permission' => 'configuration',
+              'controller' => 'dashboards',
+              'action'     => 'configuration',
+              'icon'       => 'hub',
+              'dropdown'   => 'true',
+              'label' => __d('menu', 'co.connections')
+            ],
+            [
+              'permission' => 'configuration',
+              'controller' => 'dashboards',
+              'action'     => 'configuration',
+              'icon'       => 'play_circle_outline',
+              'dropdown'   => 'true',
+              'label' => __d('menu', 'co.operations')
+            ],
+            [
+              'permission' => 'configuration',
+              'controller' => 'dashboards',
+              'action'     => 'configuration',
+              'icon'       => 'settings',
+              'label' => __d('menu', 'co.configuration')
+            ]
+          ];
+    
+          foreach($menuItems as $m) {
+            if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
+              $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em>'
+                . '<span class="menu-title">' . $m['label'] . '</span>';
+    
+              print '<li>';
+              print $this->Html->link(
+                    $linkContent,
+                    ['plugin'       => null,
+                     'controller'   => $m['controller'],
+                     'action'       => $m['action'],
+                     '?'            => [
+                       'co_id' => $vv_cur_co->id
+                     ]],
+                    ['escape' => false, 'title' => $m['label']]
+                  );
+              print '</li>';
+            }
+          }
         }
-      }
-    }
-  ?>
-</ul>
+      ?>
+    </ul>
+  </nav>
+  <button id="co-menu-collapse">
+    <em class="material-icons-outlined co-menu-collapse-icon">
+      expand_circle_down
+    </em>
+    <div class="co-menu-collapse-text">close</div>
+  </button>
+</div>

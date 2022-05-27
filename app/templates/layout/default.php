@@ -99,56 +99,75 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Primary layout -->
     <div id="comanage-wrapper">
-      <div id="top-bar">
-        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
-          <div id="co-hamburger"><em class="material-icons">menu</em></div>
-        <?php endif; // vv_user ?>
-        <nav id="top-menu">
-          <?= $this->element('menuTop') ?>
-        </nav>
-      </div>
+
+      <!-- Include custom header -->
+      <?php if(!empty($vv_theme_header)): ?>
+        <header id="customHeader">
+          <div class="contentWidth">
+            <?php print $vv_theme_header ?>
+          </div>
+        </header>
+      <?php endif; ?>
 
       <header id="banner">
-        <div id="siteTitle">
-          <!-- XXX Sanitize $vv_cur_co['name'] -->
-          <?php if($isCoSelectView): // just print the name ?>
-            <?= __('registry.meta.registry') ?>
-          <?php elseif(!empty($vv_cur_co)): ?>
-            <?= $this->Html->link(
-              $vv_cur_co['name'],
-              ['controller' => 'Dashboards',
-               'action' => 'dashboard',
-               '?' => ['co_id' => $vv_cur_co->id]],
-              ['escape' => false]);
-            ?>
-          <?php else: ?>
-            <?= $this->Html->link(__('registry.meta.registry'), '/') ?>
-          <?php endif; ?>
-          <!-- XXX Insert quick CO selector here. -->
-        </div>
-
-        <div id="logo">
-          <?=
+        <div id="logo-title-wrapper">
+          <div id="logo">
+            <?=
             $this->Html->link(
               $this->Html->image(
-                "COmanage-Logo-LG-onBlue.png",
+                "COmanage-Gears.svg",
                 array(
                   'alt' => __('registry.meta.logo')
                 )
               ),'/',
               array('escape' => false)
             );
-          ?>
+            ?>
+          </div>
+          <div id="siteTitle">
+            <!-- XXX Sanitize $vv_cur_co['name'] -->
+            <?php if($isCoSelectView): // just print the name ?>
+              <?= __('registry.meta.registry') ?>
+            <?php elseif(!empty($vv_cur_co)): ?>
+              <?= $this->Html->link(
+                $vv_cur_co['name'],
+                ['controller' => 'Dashboards',
+                 'action' => 'dashboard',
+                 '?' => ['co_id' => $vv_cur_co->id]],
+                ['escape' => false]);
+              ?>
+            <?php else: ?>
+              <?= $this->Html->link(__('registry.meta.registry'), '/'); ?>
+            <?php endif; ?>          
+          </div>
         </div>
+        <!-- Custom Navigation Links -->
+        <?php if(!empty($vv_NavLinks) || !empty($vv_CoNavLinks)): ?>
+          <div id="user-defined-links-top">
+            <?php print $this->element('links') // XXX allow user to set this location (e.g. top or side) ?>
+          </div>
+        <?php endif ?>
       </header>
+      
+      <div id="top-bar">
+        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
+          <div id="co-hamburger"><em class="material-icons">menu</em></div>
+          <button id="global-search-toggle" class="top-menu-button">
+            <em class="material-icons">search</em>
+            <span class="sr-only"><?= __d('operation','search') ?></span>
+          </button>
+          <div id="search-bar">
+            <?= $this->element('searchGlobal') ?>
+          </div>
+        <?php endif; // vv_user ?>
+        <div id="top-menu">
+          <?= $this->element('menuTop') ?>
+        </div>
+      </div>
 
       <div id="main-wrapper">
         <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
-          <div id="navigation-drawer">
-            <nav id="navigation" aria-label="main menu">
-              <?= $this->element('menuMain') ?>
-            </nav>
-          </div>
+          <?= $this->element('menuMain') ?>
         <?php endif ?>
 
         <main id="main">

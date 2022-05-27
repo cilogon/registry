@@ -29,12 +29,12 @@
 <?php if(!empty($vv_user)): ?>
   <ul>
     <li id="top-menu-user">
-      <a class="dropdown-toggle nospin" href="#" role="button" id="user-panel-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <button type="button" class="dropdown-toggle top-menu-button" id="user-panel-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span class="top-menu-link-text">
           <?= $vv_user['username']; ?>
         </span>
         <em class="material-icons icon-adjust">person</em>
-      </a>
+      </button>
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
@@ -74,7 +74,7 @@
                                'plugin'     => false],
                               ['escape'     => false,
                                'id'         => 'login',
-                               'class'      => '']);
+                               'class'      => 'btn btn-small']);
     }
   ?>
 <?php endif; ?>
