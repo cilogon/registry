@@ -56,6 +56,10 @@ files and utilities for further information:
  MIT License
  https://getbootstrap.com/
  
+ Duet Date Picker (app/webroot/js/duet-datepicker)
+ MIT License
+ https://github.com/duetds/date-picker
+ 
  Guzzle (app/AvailablePlugin/GithubProvisioner/Vendor/guzzle) 
  MIT License
  https://github.com/guzzle/guzzle
@@ -68,16 +72,28 @@ files and utilities for further information:
  MIT License
  https://bitbucket.org/pellepim/jstimezonedetect
  
- noty (app/webroot/js/jquery/noty)
- MIT License
- http://ned.im/noty
+ Material Icons (app/webroot/css/fonts/material-icons)
+ Apache 2.0
+ https://fonts.google.com/icons?selected=Material+Icons 
+ 
+ Open Sans (app/webroot/css/fonts/opensans)
+ Apache 2.0
+ https://fonts.google.com/specimen/Open+Sans
  
  PHP GitHub API 2.0 (app/AvailablePlugin/GithubProvisioner/Vendor/guzzle/guzzle)
  MIT License
  https://github.com/KnpLabs/php-github-api
  
+ Select 2
+ MIT License
+ https://select2.org/
+ 
  Shibboleth Embedded Discovery Service (app/webroot/js/eds)
  Apache 2.0
  https://shibboleth.net/products/embedded-discovery-service.html
+ 
+ vuejs
+ MIT License
+ https://vuejs.org/
 
 ---------------------------------------------------------------------------

@@ -38,7 +38,7 @@
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
-          <?= $this->Html->link(__d('operation','logout') . ' <span class="fa fa-sign-out"></span>',
+          <?= $this->Html->link(__d('operation','logout') . ' <em class="material-icons" aria-hidden="true">logout</em>',
             '/auth/logout/logout.php',
             ['escape'     => false,
              'id'         => 'logout-in-panel-link',
@@ -68,7 +68,7 @@
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
   <?php
     if(empty($vv_user)) {
-      print $this->Html->link(__d('operation', 'login') . ' <span class="fa fa-sign-in"></span>',
+      print $this->Html->link(__d('operation', 'login') . ' <em class="material-icons" aria-hidden="true">login</em>',
                               ['controller' => 'cos',
                                'action'     => 'select',
                                'plugin'     => false],
