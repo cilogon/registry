@@ -36,7 +36,6 @@ class AssignmentInConditionSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $conditionStartPointer
 	 */
 	public function process(File $phpcsFile, $conditionStartPointer): void
@@ -60,7 +59,6 @@ class AssignmentInConditionSniff implements Sniff
 	private function processCondition(File $phpcsFile, int $parenthesisOpener, int $parenthesisCloser, string $conditionType): void
 	{
 		$equalsTokenPointers = TokenHelper::findNextAll($phpcsFile, T_EQUAL, $parenthesisOpener + 1, $parenthesisCloser);
-		$tokens = $phpcsFile->getTokens();
 		if ($equalsTokenPointers === []) {
 			return;
 		}
@@ -69,6 +67,8 @@ class AssignmentInConditionSniff implements Sniff
 			$this->error($phpcsFile, $conditionType, $equalsTokenPointers[0]);
 			return;
 		}
+
+		$tokens = $phpcsFile->getTokens();
 
 		foreach ($equalsTokenPointers as $equalsTokenPointer) {
 			$parenthesisStarts = array_keys($tokens[$equalsTokenPointer]['nested_parenthesis']);

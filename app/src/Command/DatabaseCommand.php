@@ -262,7 +262,7 @@ class DatabaseCommand extends Command {
       // schema file).
 //      $diffSql = $curSchema->getMigrateToSql($schema, $conn->getDatabasePlatform());
       $comparator = new Comparator();
-      $schemaDiff = $comparator->compare($curSchema, $schema);
+      $schemaDiff = $comparator->compareSchemas($curSchema, $schema);
       
       $diffSql = $schemaDiff->toSaveSql($conn->getDatabasePlatform());
       

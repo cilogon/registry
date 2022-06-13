@@ -2,10 +2,14 @@
 
 namespace PHPStan\PhpDocParser\Ast\PhpDoc;
 
+use PHPStan\PhpDocParser\Ast\NodeAttributes;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use function implode;
 
 class MethodTagValueNode implements PhpDocTagValueNode
 {
+
+	use NodeAttributes;
 
 	/** @var bool */
 	public $isStatic;

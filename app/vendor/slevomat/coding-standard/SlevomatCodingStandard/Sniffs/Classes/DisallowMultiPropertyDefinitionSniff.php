@@ -6,6 +6,7 @@ use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use SlevomatCodingStandard\Helpers\DocCommentHelper;
 use SlevomatCodingStandard\Helpers\IndentationHelper;
+use SlevomatCodingStandard\Helpers\PropertyHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 use function count;
 use function sprintf;
@@ -36,7 +37,6 @@ class DisallowMultiPropertyDefinitionSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $visibilityPointer
 	 */
 	public function process(File $phpcsFile, $visibilityPointer): void
@@ -49,7 +49,11 @@ class DisallowMultiPropertyDefinitionSniff implements Sniff
 		}
 
 		$propertyPointer = TokenHelper::findNext($phpcsFile, [T_VARIABLE, T_FUNCTION], $visibilityPointer + 1);
-		if ($propertyPointer === null || $tokens[$propertyPointer]['code'] === T_FUNCTION) {
+		if (
+			$propertyPointer === null
+			|| $tokens[$propertyPointer]['code'] !== T_VARIABLE
+			|| !PropertyHelper::isProperty($phpcsFile, $propertyPointer)
+		) {
 			return;
 		}
 
@@ -105,7 +109,7 @@ class DisallowMultiPropertyDefinitionSniff implements Sniff
 			$pointerAfterTypeHint = TokenHelper::findNextEffective($phpcsFile, $typeHintEndPointer + 1);
 		}
 
-		$docCommentPointer = DocCommentHelper::findDocCommentOpenToken($phpcsFile, $propertyPointer);
+		$docCommentPointer = DocCommentHelper::findDocCommentOpenPointer($phpcsFile, $propertyPointer);
 		$docComment = $docCommentPointer !== null
 			? trim(TokenHelper::getContent($phpcsFile, $docCommentPointer, $tokens[$docCommentPointer]['comment_closer']))
 			: null;
@@ -142,7 +146,9 @@ class DisallowMultiPropertyDefinitionSniff implements Sniff
 				sprintf(
 					';%s%s%s%s%s ',
 					$phpcsFile->eolChar,
-					$docComment !== null ? sprintf('%s%s%s', $indentation, $docComment, $phpcsFile->eolChar) : '',
+					$docComment !== null
+						? sprintf('%s%s%s', $indentation, $docComment, $phpcsFile->eolChar)
+						: '',
 					$indentation,
 					$visibility,
 					$typeHint !== null ? sprintf(' %s', $typeHint) : ''

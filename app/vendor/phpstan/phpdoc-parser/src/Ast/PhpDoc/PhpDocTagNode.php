@@ -2,8 +2,13 @@
 
 namespace PHPStan\PhpDocParser\Ast\PhpDoc;
 
+use PHPStan\PhpDocParser\Ast\NodeAttributes;
+use function trim;
+
 class PhpDocTagNode implements PhpDocChildNode
 {
+
+	use NodeAttributes;
 
 	/** @var string */
 	public $name;

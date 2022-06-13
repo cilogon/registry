@@ -405,7 +405,7 @@ class TransmogrifyCommand extends Command {
       $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $this->tables[$t]['source']);
       
       $insql = "SELECT * FROM " . $this->tables[$t]['source'] . " ORDER BY id ASC";
-      $stmt = $this->inconn->query($insql);
+      $stmt = $this->inconn->executeQuery($insql);
 
       // Check if the table contains data
       $Model = $this->getTableLocator()->get($t);

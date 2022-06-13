@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -16,6 +16,7 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\Config;
 use Composer\Downloader\TransportException;
+use Composer\Pcre\Preg;
 use Composer\Repository\PlatformRepository;
 use Composer\Plugin\CommandEvent;
 use Composer\Plugin\PluginEvents;
@@ -48,7 +49,10 @@ class DiagnoseCommand extends BaseCommand
     /** @var int */
     protected $exitCode = 0;
 
-    protected function configure()
+    /**
+     * @return void
+     */
+    protected function configure(): void
     {
         $this
             ->setName('diagnose')
@@ -65,12 +69,9 @@ EOT
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $composer = $this->getComposer(false);
+        $composer = $this->tryComposer();
         $io = $this->getIO();
 
         if ($composer) {
@@ -79,6 +80,9 @@ EOT
 
             $io->write('Checking composer.json: ', false);
             $this->outputResult($this->checkComposerSchema());
+            $this->process = $composer->getLoop()->getProcessExecutor() ?? new ProcessExecutor($io);
+        } else {
+            $this->process = new ProcessExecutor($io);
         }
 
         if ($composer) {
@@ -87,11 +91,10 @@ EOT
             $config = Factory::createConfig();
         }
 
-        $config->merge(array('config' => array('secure-http' => false)));
+        $config->merge(array('config' => array('secure-http' => false)), Config::SOURCE_COMMAND);
         $config->prohibitUrlByConfig('http://repo.packagist.org', new NullIO);
 
         $this->httpDownloader = Factory::createHttpDownloader($io, $config);
-        $this->process = new ProcessExecutor($io);
 
         $io->write('Checking platform settings: ', false);
         $this->outputResult($this->checkPlatform());
@@ -195,6 +198,9 @@ EOT
         return $this->exitCode;
     }
 
+    /**
+     * @return string|true
+     */
     private function checkComposerSchema()
     {
         $validator = new ConfigValidator($this->getIO());
@@ -219,6 +225,9 @@ EOT
         return true;
     }
 
+    /**
+     * @return string|true
+     */
     private function checkGit()
     {
         if (!function_exists('proc_open')) {
@@ -233,7 +242,12 @@ EOT
         return true;
     }
 
-    private function checkHttp($proto, Config $config)
+    /**
+     * @param string $proto
+     *
+     * @return string|string[]|true
+     */
+    private function checkHttp(string $proto, Config $config)
     {
         $result = $this->checkConnectivity();
         if ($result !== true) {
@@ -248,7 +262,8 @@ EOT
         try {
             $this->httpDownloader->get($proto . '://repo.packagist.org/packages.json');
         } catch (TransportException $e) {
-            if ($hints = HttpDownloader::getExceptionHints($e)) {
+            $hints = HttpDownloader::getExceptionHints($e);
+            if (null !== $hints && count($hints) > 0) {
                 foreach ($hints as $hint) {
                     $result[] = $hint;
                 }
@@ -268,6 +283,9 @@ EOT
         return true;
     }
 
+    /**
+     * @return string|true|\Exception
+     */
     private function checkHttpProxy()
     {
         $result = $this->checkConnectivity();
@@ -293,7 +311,13 @@ EOT
         return true;
     }
 
-    private function checkGithubOauth($domain, $token)
+    /**
+     * @param string $domain
+     * @param string $token
+     *
+     * @return string|true|\Exception
+     */
+    private function checkGithubOauth(string $domain, string $token)
     {
         $result = $this->checkConnectivity();
         if ($result !== true) {
@@ -322,9 +346,9 @@ EOT
      * @param  string             $domain
      * @param  string             $token
      * @throws TransportException
-     * @return array|string
+     * @return mixed|string
      */
-    private function getGithubRateLimit($domain, $token = null)
+    private function getGithubRateLimit(string $domain, string $token = null)
     {
         $result = $this->checkConnectivity();
         if ($result !== true) {
@@ -341,7 +365,10 @@ EOT
         return $data['resources']['core'];
     }
 
-    private function checkDiskSpace($config)
+    /**
+     * @return string|true
+     */
+    private function checkDiskSpace(Config $config)
     {
         $minSpaceFree = 1024 * 1024;
         if ((($df = @disk_free_space($dir = $config->get('home'))) !== false && $df < $minSpaceFree)
@@ -353,7 +380,10 @@ EOT
         return true;
     }
 
-    private function checkPubKeys($config)
+    /**
+     * @return string[]|true
+     */
+    private function checkPubKeys(Config $config)
     {
         $home = $config->get('home');
         $errors = array();
@@ -382,7 +412,10 @@ EOT
         return $errors ?: true;
     }
 
-    private function checkVersion($config)
+    /**
+     * @return string|\Exception|true
+     */
+    private function checkVersion(Config $config)
     {
         $result = $this->checkConnectivity();
         if ($result !== true) {
@@ -403,7 +436,10 @@ EOT
         return true;
     }
 
-    private function getCurlVersion()
+    /**
+     * @return string
+     */
+    private function getCurlVersion(): string
     {
         if (extension_loaded('curl')) {
             if (!HttpDownloader::isCurlEnabled()) {
@@ -413,8 +449,8 @@ EOT
             $version = curl_version();
 
             return '<comment>'.$version['version'].'</comment> '.
-                'libz <comment>'.(isset($version['libz_version']) ? $version['libz_version'] : 'missing').'</comment> '.
-                'ssl <comment>'.(isset($version['ssl_version']) ? $version['ssl_version'] : 'missing').'</comment>';
+                'libz <comment>'.(!empty($version['libz_version']) ? $version['libz_version'] : 'missing').'</comment> '.
+                'ssl <comment>'.($version['ssl_version'] ?? 'missing').'</comment>';
         }
 
         return '<error>missing, using php streams fallback, which reduces performance</error>';
@@ -422,8 +458,10 @@ EOT
 
     /**
      * @param bool|string|string[]|\Exception $result
+     *
+     * @return void
      */
-    private function outputResult($result)
+    private function outputResult($result): void
     {
         $io = $this->getIO();
         if (true === $result) {
@@ -469,10 +507,13 @@ EOT
         }
     }
 
+    /**
+     * @return string|true
+     */
     private function checkPlatform()
     {
         $output = '';
-        $out = function ($msg, $style) use (&$output) {
+        $out = function ($msg, $style) use (&$output): void {
             $output .= '<'.$style.'>'.$msg.'</'.$style.'>'.PHP_EOL;
         };
 
@@ -512,12 +553,8 @@ EOT
             $errors['ioncube'] = ioncube_loader_version();
         }
 
-        if (PHP_VERSION_ID < 50302) {
+        if (PHP_VERSION_ID < 70205) {
             $errors['php'] = PHP_VERSION;
-        }
-
-        if (!isset($errors['php']) && PHP_VERSION_ID < 50304) {
-            $warnings['php'] = PHP_VERSION;
         }
 
         if (!extension_loaded('openssl')) {
@@ -539,7 +576,7 @@ EOT
         ob_start();
         phpinfo(INFO_GENERAL);
         $phpinfo = ob_get_clean();
-        if (preg_match('{Configure Command(?: *</td><td class="v">| *=> *)(.*?)(?:</td>|$)}m', $phpinfo, $match)) {
+        if (Preg::isMatch('{Configure Command(?: *</td><td class="v">| *=> *)(.*?)(?:</td>|$)}m', $phpinfo, $match)) {
             $configure = $match[1];
 
             if (false !== strpos($configure, '--enable-sigchild')) {
@@ -593,7 +630,7 @@ EOT
                         break;
 
                     case 'php':
-                        $text = PHP_EOL."Your PHP ({$current}) is too old, you must upgrade to PHP 5.3.2 or higher.";
+                        $text = PHP_EOL."Your PHP ({$current}) is too old, you must upgrade to PHP 7.2.5 or higher.";
                         break;
 
                     case 'allow_url_fopen':
@@ -651,11 +688,6 @@ EOT
                         $text .= " Recompile it without this flag if possible";
                         break;
 
-                    case 'php':
-                        $text = "Your PHP ({$current}) is quite old, upgrading to PHP 5.3.4 or higher is recommended.".PHP_EOL;
-                        $text .= " Composer works with 5.3.2+ for most people, but there might be edge case issues.";
-                        break;
-
                     case 'openssl_version':
                         // Attempt to parse version number out, fallback to whole string value.
                         $opensslVersion = strstr(trim(strstr(OPENSSL_VERSION_TEXT, ' ')), ' ', true);
@@ -699,7 +731,7 @@ EOT
     /**
      * Check if allow_url_fopen is ON
      *
-     * @return true|string
+     * @return string|true
      */
     private function checkConnectivity()
     {

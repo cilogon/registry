@@ -49,7 +49,7 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
      * - `warnOnWriteFailures` Some engines, such as ApcuEngine, may raise warnings on
      *    write failures.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_defaultConfig = [
         'duration' => 3600,
@@ -72,7 +72,7 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
      * Called automatically by the cache frontend. Merge the runtime config with the defaults
      * before use.
      *
-     * @param array $config Associative array of parameters for the engine
+     * @param array<string, mixed> $config Associative array of parameters for the engine
      * @return bool True if the engine has been successfully initialized, false if not
      */
     public function init(array $config = []): bool
@@ -187,7 +187,11 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
     }
 
     /**
-     * Deletes multiple cache items in a single operation.
+     * Deletes multiple cache items as a list
+     *
+     * This is a best effort attempt. If deleting an item would
+     * create an error it will be ignored, and all items will
+     * be attempted.
      *
      * @param iterable $keys A list of string-based keys to be deleted.
      * @return bool True if the items were successfully removed. False if there was an error.
@@ -198,14 +202,14 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
     {
         $this->ensureValidType($keys);
 
+        $result = true;
         foreach ($keys as $key) {
-            $result = $this->delete($key);
-            if ($result === false) {
-                return false;
+            if (!$this->delete($key)) {
+                $result = false;
             }
         }
 
-        return true;
+        return $result;
     }
 
     /**
@@ -317,7 +321,7 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
      * and returns the `group value` for each of them, this is
      * the token representing each group in the cache key
      *
-     * @return string[]
+     * @return array<string>
      */
     public function groups(): array
     {

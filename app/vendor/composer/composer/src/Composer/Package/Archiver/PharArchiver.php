@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -19,6 +19,7 @@ namespace Composer\Package\Archiver;
  */
 class PharArchiver implements ArchiverInterface
 {
+    /** @var array<string, int> */
     protected static $formats = array(
         'zip' => \Phar::ZIP,
         'tar' => \Phar::TAR,
@@ -26,15 +27,16 @@ class PharArchiver implements ArchiverInterface
         'tar.bz2' => \Phar::TAR,
     );
 
+    /** @var array<string, int> */
     protected static $compressFormats = array(
         'tar.gz' => \Phar::GZ,
         'tar.bz2' => \Phar::BZ2,
     );
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function archive($sources, $target, $format, array $excludes = array(), $ignoreFilters = false)
+    public function archive(string $sources, string $target, string $format, array $excludes = array(), bool $ignoreFilters = false): string
     {
         $sources = realpath($sources);
 
@@ -93,9 +95,9 @@ class PharArchiver implements ArchiverInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function supports($format, $sourceType)
+    public function supports(string $format, ?string $sourceType): bool
     {
         return isset(static::$formats[$format]);
     }

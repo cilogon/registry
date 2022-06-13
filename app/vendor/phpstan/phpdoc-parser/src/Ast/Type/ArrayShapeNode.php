@@ -2,8 +2,13 @@
 
 namespace PHPStan\PhpDocParser\Ast\Type;
 
+use PHPStan\PhpDocParser\Ast\NodeAttributes;
+use function implode;
+
 class ArrayShapeNode implements TypeNode
 {
+
+	use NodeAttributes;
 
 	/** @var ArrayShapeItemNode[] */
 	public $items;

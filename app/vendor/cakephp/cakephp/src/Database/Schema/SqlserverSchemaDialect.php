@@ -29,7 +29,11 @@ class SqlserverSchemaDialect extends SchemaDialect
     public const DEFAULT_SCHEMA_NAME = 'dbo';
 
     /**
-     * @inheritDoc
+     * Generate the SQL to list the tables and views.
+     *
+     * @param array<string, mixed> $config The connection configuration to use for
+     *    getting tables from.
+     * @return array An array of (sql, params) to execute.
      */
     public function listTablesSql(array $config): array
     {
@@ -37,6 +41,25 @@ class SqlserverSchemaDialect extends SchemaDialect
             FROM INFORMATION_SCHEMA.TABLES
             WHERE TABLE_SCHEMA = ?
             AND (TABLE_TYPE = 'BASE TABLE' OR TABLE_TYPE = 'VIEW')
+            ORDER BY TABLE_NAME";
+        $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
+
+        return [$sql, [$schema]];
+    }
+
+    /**
+     * Generate the SQL to list the tables, excluding all views.
+     *
+     * @param array<string, mixed> $config The connection configuration to use for
+     *    getting tables from.
+     * @return array<mixed> An array of (sql, params) to execute.
+     */
+    public function listTablesWithoutViewsSql(array $config): array
+    {
+        $sql = "SELECT TABLE_NAME
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = ?
+            AND (TABLE_TYPE = 'BASE TABLE')
             ORDER BY TABLE_NAME";
         $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
 
@@ -81,7 +104,7 @@ class SqlserverSchemaDialect extends SchemaDialect
      * @param int|null $length the column length
      * @param int|null $precision The column precision
      * @param int|null $scale The column scale
-     * @return array Array of column information.
+     * @return array<string, mixed> Array of column information.
      * @link https://technet.microsoft.com/en-us/library/ms187752.aspx
      */
     protected function _convertColumn(
@@ -91,6 +114,14 @@ class SqlserverSchemaDialect extends SchemaDialect
         ?int $scale = null
     ): array {
         $col = strtolower($col);
+
+        $type = $this->_applyTypeSpecificColumnConversion(
+            $col,
+            compact('length', 'precision', 'scale')
+        );
+        if ($type !== null) {
+            return $type;
+        }
 
         if (in_array($col, ['date', 'time'])) {
             return ['type' => $col, 'length' => null];
@@ -213,7 +244,7 @@ class SqlserverSchemaDialect extends SchemaDialect
     protected function _defaultValue($type, $default)
     {
         if ($default === null) {
-            return $default;
+            return null;
         }
 
         // remove () surrounding value (NULL) but leave () at the end of functions
@@ -317,7 +348,8 @@ class SqlserverSchemaDialect extends SchemaDialect
             INNER JOIN sys.schemas S ON S.schema_id = T.schema_id AND S.schema_id = RT.schema_id
             INNER JOIN sys.columns C ON C.column_id = FKC.parent_column_id AND C.object_id = FKC.parent_object_id
             INNER JOIN sys.columns RC ON RC.column_id = FKC.referenced_column_id AND RC.object_id = FKC.referenced_object_id
-            WHERE FK.is_ms_shipped = 0 AND T.name = ? AND S.name = ?';
+            WHERE FK.is_ms_shipped = 0 AND T.name = ? AND S.name = ?
+            ORDER BY FKC.constraint_column_id';
         // phpcs:enable Generic.Files.LineLength
 
         $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
@@ -377,6 +409,12 @@ class SqlserverSchemaDialect extends SchemaDialect
     {
         /** @var array $data */
         $data = $schema->getColumn($name);
+
+        $sql = $this->_getTypeSpecificColumnSql($data['type'], $schema, $name);
+        if ($sql !== null) {
+            return $sql;
+        }
+
         $out = $this->_driver->quoteIdentifier($name);
         $typeMap = [
             TableSchema::TYPE_TINYINTEGER => ' TINYINT',

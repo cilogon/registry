@@ -52,7 +52,7 @@ class TreeBehavior extends Behavior
      *
      * These are merged with user-provided configuration when the behavior is used.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_defaultConfig = [
         'implementedFinders' => [
@@ -371,7 +371,7 @@ class TreeBehavior extends Behavior
      * is passed in the options containing the id of the node to get its path for.
      *
      * @param \Cake\ORM\Query $query The constructed query to modify
-     * @param array $options the list of options for the query
+     * @param array<string, mixed> $options the list of options for the query
      * @return \Cake\ORM\Query
      * @throws \InvalidArgumentException If the 'for' key is missing in options
      */
@@ -435,7 +435,7 @@ class TreeBehavior extends Behavior
      * If the direct option is set to true, only the direct children are returned (based upon the parent_id field)
      *
      * @param \Cake\ORM\Query $query Query.
-     * @param array $options Array of options as described above
+     * @param array<string, mixed> $options Array of options as described above
      * @return \Cake\ORM\Query
      * @throws \InvalidArgumentException When the 'for' key is not passed in $options
      */
@@ -487,7 +487,7 @@ class TreeBehavior extends Behavior
      * - spacer: A string to be used as prefix for denoting the depth in the tree for each item
      *
      * @param \Cake\ORM\Query $query Query.
-     * @param array $options Array of options as described above.
+     * @param array<string, mixed> $options Array of options as described above.
      * @return \Cake\ORM\Query
      */
     public function findTreeList(Query $query, array $options): Query
@@ -517,7 +517,7 @@ class TreeBehavior extends Behavior
      * - spacer: A string to be used as prefix for denoting the depth in the tree for each item.
      *
      * @param \Cake\ORM\Query $query The query object to format.
-     * @param array $options Array of options as described above.
+     * @param array<string, mixed> $options Array of options as described above.
      * @return \Cake\ORM\Query Augmented query.
      */
     public function formatTreeList(Query $query, array $options = []): Query
@@ -601,12 +601,12 @@ class TreeBehavior extends Behavior
      * Reorders the node without changing its parent.
      *
      * If the node is the first child, or is a top level node with no previous node
-     * this method will return false
+     * this method will return the same node without any changes
      *
      * @param \Cake\Datasource\EntityInterface $node The node to move
      * @param int|true $number How many places to move the node, or true to move to first position
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
-     * @return \Cake\Datasource\EntityInterface|false $node The node after being moved or false on failure
+     * @return \Cake\Datasource\EntityInterface|false $node The node after being moved or false if `$number` is < 1
      */
     public function moveUp(EntityInterface $node, $number = 1)
     {
@@ -626,7 +626,7 @@ class TreeBehavior extends Behavior
      *
      * @param \Cake\Datasource\EntityInterface $node The node to move
      * @param int|true $number How many places to move the node, or true to move to first position
-     * @return \Cake\Datasource\EntityInterface $node The node after being moved or false on failure
+     * @return \Cake\Datasource\EntityInterface $node The node after being moved
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
      */
     protected function _moveUp(EntityInterface $node, $number): EntityInterface
@@ -693,12 +693,12 @@ class TreeBehavior extends Behavior
      * Reorders the node without changing the parent.
      *
      * If the node is the last child, or is a top level node with no subsequent node
-     * this method will return false
+     * this method will return the same node without any changes
      *
      * @param \Cake\Datasource\EntityInterface $node The node to move
      * @param int|true $number How many places to move the node or true to move to last position
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
-     * @return \Cake\Datasource\EntityInterface|false the entity after being moved or false on failure
+     * @return \Cake\Datasource\EntityInterface|false the entity after being moved or false if `$number` is < 1
      */
     public function moveDown(EntityInterface $node, $number = 1)
     {
@@ -718,7 +718,7 @@ class TreeBehavior extends Behavior
      *
      * @param \Cake\Datasource\EntityInterface $node The node to move
      * @param int|true $number How many places to move the node, or true to move to last position
-     * @return \Cake\Datasource\EntityInterface $node The node after being moved or false on failure
+     * @return \Cake\Datasource\EntityInterface $node The node after being moved
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
      */
     protected function _moveDown(EntityInterface $node, $number): EntityInterface
@@ -828,47 +828,41 @@ class TreeBehavior extends Behavior
     /**
      * Recursive method used to recover a single level of the tree
      *
-     * @param int $counter The Last left column value that was assigned
+     * @param int $lftRght The starting lft/rght value
      * @param mixed $parentId the parent id of the level to be recovered
      * @param int $level Node level
-     * @return int The next value to use for the left column
+     * @return int The next lftRght value
      */
-    protected function _recoverTree(int $counter = 0, $parentId = null, $level = -1): int
+    protected function _recoverTree(int $lftRght = 1, $parentId = null, $level = 0): int
     {
         $config = $this->getConfig();
         [$parent, $left, $right] = [$config['parent'], $config['left'], $config['right']];
         $primaryKey = $this->_getPrimaryKey();
-        $aliasedPrimaryKey = $this->_table->aliasField($primaryKey);
-        $order = $config['recoverOrder'] ?: $aliasedPrimaryKey;
+        $order = $config['recoverOrder'] ?: $primaryKey;
 
-        $query = $this->_scope($this->_table->query())
-            ->select([$aliasedPrimaryKey])
-            ->where([$this->_table->aliasField($parent) . ' IS' => $parentId])
+        $nodes = $this->_scope($this->_table->query())
+            ->select($primaryKey)
+            ->where([$parent . ' IS' => $parentId])
             ->order($order)
-            ->disableHydration();
+            ->disableHydration()
+            ->all();
 
-        $leftCounter = $counter;
-        $nextLevel = $level + 1;
-        foreach ($query as $row) {
-            $counter++;
-            $counter = $this->_recoverTree($counter, $row[$primaryKey], $nextLevel);
+        foreach ($nodes as $node) {
+            $nodeLft = $lftRght++;
+            $lftRght = $this->_recoverTree($lftRght, $node[$primaryKey], $level + 1);
+
+            $fields = [$left => $nodeLft, $right => $lftRght++];
+            if ($config['level']) {
+                $fields[$config['level']] = $level;
+            }
+
+            $this->_table->updateAll(
+                $fields,
+                [$primaryKey => $node[$primaryKey]]
+            );
         }
 
-        if ($parentId === null) {
-            return $counter;
-        }
-
-        $fields = [$left => $leftCounter, $right => $counter + 1];
-        if ($config['level']) {
-            $fields[$config['level']] = $level;
-        }
-
-        $this->_table->updateAll(
-            $fields,
-            [$primaryKey => $parentId]
-        );
-
-        return $counter + 1;
+        return $lftRght;
     }
 
     /**
@@ -968,7 +962,7 @@ class TreeBehavior extends Behavior
             return;
         }
 
-        $fresh = $this->_table->get($entity->get($this->_getPrimaryKey()), $fields);
+        $fresh = $this->_table->get($entity->get($this->_getPrimaryKey()));
         $entity->set($fresh->extract($fields), ['guard' => false]);
 
         foreach ($fields as $field) {
@@ -994,7 +988,7 @@ class TreeBehavior extends Behavior
     /**
      * Returns the depth level of a node in the tree.
      *
-     * @param int|string|\Cake\Datasource\EntityInterface $entity The entity or primary key get the level of.
+     * @param \Cake\Datasource\EntityInterface|string|int $entity The entity or primary key get the level of.
      * @return int|false Integer of the level or false if the node does not exist.
      */
     public function getLevel($entity)

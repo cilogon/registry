@@ -19,20 +19,18 @@ namespace Cake\TestSuite\Constraint\Response;
  * StatusCodeBase
  *
  * @internal
- * @template TCode as int|array<int, int>
  */
 abstract class StatusCodeBase extends ResponseBase
 {
     /**
-     * @var int|array
-     * @psalm-var TCode
+     * @var array<int, int>|int
      */
     protected $code;
 
     /**
      * Check assertion
      *
-     * @param int|array $other Array of min/max status codes, or a single code
+     * @param array<int, int>|int $other Array of min/max status codes, or a single code
      * @return bool
      * @psalm-suppress MoreSpecificImplementedParamType
      */

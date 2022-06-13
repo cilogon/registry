@@ -94,7 +94,6 @@ class SQLiteAdapter extends PdoAdapter
     protected static $unsupportedColumnTypes = [
         self::PHINX_TYPE_BIT,
         self::PHINX_TYPE_CIDR,
-        self::PHINX_TYPE_DECIMAL,
         self::PHINX_TYPE_ENUM,
         self::PHINX_TYPE_FILESTREAM,
         self::PHINX_TYPE_GEOMETRY,
@@ -644,7 +643,8 @@ PCRE_PATTERN;
             $default = $this->parseDefaultValue($columnInfo['dflt_value'], $type['name']);
 
             $column->setName($columnInfo['name'])
-                   ->setNull($columnInfo['notnull'] !== '1')
+                // SQLite on PHP 8.1 returns int for notnull, older versions return a string
+                   ->setNull((int)$columnInfo['notnull'] !== 1)
                    ->setDefault($default)
                    ->setType($type['name'])
                    ->setLimit($type['limit'])
@@ -733,6 +733,21 @@ PCRE_PATTERN;
                 $sql = $table['sql'];
             }
         }
+
+        $columnsInfo = $this->getTableInfo($tableName);
+
+        foreach ($columnsInfo as $column) {
+            $columnName = $column['name'];
+            $columnNamePattern = "\"$columnName\"|`$columnName`|\\[$columnName\\]|$columnName";
+            $columnNamePattern = "#([\(,]+\\s*)($columnNamePattern)(\\s)#iU";
+
+            $sql = preg_replace($columnNamePattern, "$1`$columnName`$3", $sql);
+        }
+
+        $tableNamePattern = "\"$tableName\"|`$tableName`|\\[$tableName\\]|$tableName";
+        $tableNamePattern = "#^(CREATE TABLE)\s*($tableNamePattern)\s*(\()#Ui";
+
+        $sql = preg_replace($tableNamePattern, "$1 `$tableName` $3", $sql, 1);
 
         return $sql;
     }

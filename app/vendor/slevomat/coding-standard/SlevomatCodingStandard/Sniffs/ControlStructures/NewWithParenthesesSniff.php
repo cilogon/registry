@@ -35,7 +35,6 @@ class NewWithParenthesesSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $newPointer
 	 */
 	public function process(File $phpcsFile, $newPointer): void
@@ -46,6 +45,10 @@ class NewWithParenthesesSniff implements Sniff
 
 		if ($tokens[$nextPointer]['code'] === T_ANON_CLASS) {
 			return;
+		}
+
+		if ($tokens[$nextPointer]['code'] === T_OPEN_PARENTHESIS) {
+			$nextPointer = $tokens[$nextPointer]['parenthesis_closer'];
 		}
 
 		$shouldBeOpenParenthesisPointer = $nextPointer + 1;

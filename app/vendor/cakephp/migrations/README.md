@@ -1,8 +1,8 @@
 # Migrations plugin for CakePHP
 
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
-[![Build Status](https://img.shields.io/travis/cakephp/migrations/master.svg?style=flat-square)](https://travis-ci.com/cakephp/migrations)
+[![CI](https://github.com/cakephp/migrations/actions/workflows/ci.yml/badge.svg)](https://github.com/cakephp/migrations/actions/workflows/ci.yml)
 [![Coverage Status](https://img.shields.io/codecov/c/github/cakephp/migrations/master.svg?style=flat-square)](https://codecov.io/github/cakephp/migrations?branch=master)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/migrations.svg?style=flat-square)](https://packagist.org/packages/cakephp/migrations)
 
 This is a Database Migrations system for CakePHP.
@@ -41,4 +41,4 @@ Additionally, you will need to configure the ``default`` database configuration 
 
 ## Documentation
 
-Full documentation of the plugin can be found on the [CakePHP Cookbook](https://book.cakephp.org/migrations/2/).
+Full documentation of the plugin can be found on the [CakePHP Cookbook](https://book.cakephp.org/migrations/3/).

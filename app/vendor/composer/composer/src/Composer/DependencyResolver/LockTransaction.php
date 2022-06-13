@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -59,7 +59,10 @@ class LockTransaction extends Transaction
     }
 
     // TODO make this a bit prettier instead of the two text indexes?
-    public function setResultPackages(Pool $pool, Decisions $decisions)
+    /**
+     * @return void
+     */
+    public function setResultPackages(Pool $pool, Decisions $decisions): void
     {
         $this->resultPackages = array('all' => array(), 'non-dev' => array(), 'dev' => array());
         foreach ($decisions as $i => $decision) {
@@ -76,7 +79,10 @@ class LockTransaction extends Transaction
         }
     }
 
-    public function setNonDevPackages(LockTransaction $extractionResult)
+    /**
+     * @return void
+     */
+    public function setNonDevPackages(LockTransaction $extractionResult): void
     {
         $packages = $extractionResult->getNewLockPackages(false);
 
@@ -95,7 +101,12 @@ class LockTransaction extends Transaction
     }
 
     // TODO additionalFixedRepository needs to be looked at here as well?
-    public function getNewLockPackages($devMode, $updateMirrors = false)
+    /**
+     * @param bool $devMode
+     * @param bool $updateMirrors
+     * @return BasePackage[]
+     */
+    public function getNewLockPackages(bool $devMode, bool $updateMirrors = false): array
     {
         $packages = array();
         foreach ($this->resultPackages[$devMode ? 'dev' : 'non-dev'] as $package) {
@@ -108,7 +119,7 @@ class LockTransaction extends Transaction
                             if ($presentPackage->getSourceReference() && $presentPackage->getSourceType() === $package->getSourceType()) {
                                 $package->setSourceDistReferences($presentPackage->getSourceReference());
                             }
-                            if ($presentPackage->getReleaseDate() && $package instanceof Package) {
+                            if ($presentPackage->getReleaseDate() !== null && $package instanceof Package) {
                                 $package->setReleaseDate($presentPackage->getReleaseDate());
                             }
                         }
@@ -123,8 +134,10 @@ class LockTransaction extends Transaction
 
     /**
      * Checks which of the given aliases from composer.json are actually in use for the lock file
+     * @param array<array{package: string, version: string, alias: string, alias_normalized: string}> $aliases
+     * @return array<array{package: string, version: string, alias: string, alias_normalized: string}>
      */
-    public function getAliases($aliases)
+    public function getAliases(array $aliases): array
     {
         $usedAliases = array();
 
@@ -139,7 +152,7 @@ class LockTransaction extends Transaction
             }
         }
 
-        usort($usedAliases, function ($a, $b) {
+        usort($usedAliases, function ($a, $b): int {
             return strcmp($a['package'], $b['package']);
         });
 

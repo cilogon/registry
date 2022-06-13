@@ -42,7 +42,6 @@ class NamespaceSpacingSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $namespacePointer
 	 */
 	public function process(File $phpcsFile, $namespacePointer): void
@@ -81,8 +80,9 @@ class NamespaceSpacingSniff implements Sniff
 
 		$fix = $phpcsFile->addFixableError(
 			sprintf(
-				'Expected %d lines before namespace statement, found %d.',
+				'Expected %d line%s before namespace statement, found %d.',
 				$requiredLinesCountBeforeNamespace,
+				$requiredLinesCountBeforeNamespace === 1 ? '' : 's',
 				$actualLinesCountBeforeNamespace
 			),
 			$namespacePointer,
@@ -138,8 +138,9 @@ class NamespaceSpacingSniff implements Sniff
 
 		$fix = $phpcsFile->addFixableError(
 			sprintf(
-				'Expected %d lines after namespace statement, found %d.',
+				'Expected %d line%s after namespace statement, found %d.',
 				$requiredLinesCountAfterNamespace,
+				$requiredLinesCountAfterNamespace === 1 ? '' : 's',
 				$actualLinesCountAfterNamespace
 			),
 			$namespacePointer,

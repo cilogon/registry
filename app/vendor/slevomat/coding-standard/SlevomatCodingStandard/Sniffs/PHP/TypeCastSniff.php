@@ -48,7 +48,6 @@ class TypeCastSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $pointer
 	 */
 	public function process(File $phpcsFile, $pointer): void
@@ -57,6 +56,10 @@ class TypeCastSniff implements Sniff
 		$cast = $tokens[$pointer]['content'];
 
 		preg_match('~^\(\s*(\S+)\s*\)\z~i', $cast, $matches);
+
+		if (!array_key_exists(1, $matches)) {
+			return;
+		}
 
 		$castName = $matches[1];
 		$castNameLower = strtolower($castName);

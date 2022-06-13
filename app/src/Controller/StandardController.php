@@ -520,7 +520,7 @@ class StandardController extends AppController {
           case 'select':
             // We assume $modelName has a direct relationship to $avv['model']
             $avvmodel = $avv['model'];
-            $this->loadModel($avvmodel);
+            $this->$avvmodel = $this->fetchTable($avvmodel);
             
             if($avv['type'] == 'auxiliary') {
               $query = $this->$avvmodel->find();

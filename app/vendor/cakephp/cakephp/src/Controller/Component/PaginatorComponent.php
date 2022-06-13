@@ -23,6 +23,7 @@ use Cake\Datasource\Paginator;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Http\Exception\NotFoundException;
 use InvalidArgumentException;
+use UnexpectedValueException;
 
 /**
  * This component is used to handle automatic model data pagination. The primary way to use this
@@ -38,28 +39,6 @@ use InvalidArgumentException;
 class PaginatorComponent extends Component
 {
     /**
-     * Default pagination settings.
-     *
-     * When calling paginate() these settings will be merged with the configuration
-     * you provide.
-     *
-     * - `maxLimit` - The maximum limit users can choose to view. Defaults to 100
-     * - `limit` - The initial number of items per page. Defaults to 20.
-     * - `page` - The starting page, defaults to 1.
-     * - `allowedParameters` - A list of parameters users are allowed to set using request
-     *   parameters. Modifying this list will allow users to have more influence
-     *   over pagination, be careful with what you permit.
-     *
-     * @var array
-     */
-    protected $_defaultConfig = [
-        'page' => 1,
-        'limit' => 20,
-        'maxLimit' => 100,
-        'allowedParameters' => ['limit', 'sort', 'page', 'direction'],
-    ];
-
-    /**
      * Datasource paginator instance.
      *
      * @var \Cake\Datasource\Paginator
@@ -71,6 +50,10 @@ class PaginatorComponent extends Component
      */
     public function __construct(ComponentRegistry $registry, array $config = [])
     {
+        if (!empty($this->_defaultConfig)) {
+            throw new UnexpectedValueException('Default configuration must be set using a custom Paginator class.');
+        }
+
         if (isset($config['paginator'])) {
             if (!$config['paginator'] instanceof Paginator) {
                 throw new InvalidArgumentException('Paginator must be an instance of ' . Paginator::class);
@@ -87,7 +70,7 @@ class PaginatorComponent extends Component
     /**
      * Events supported by this component.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function implementedEvents(): array
     {
@@ -188,7 +171,7 @@ class PaginatorComponent extends Component
      * ```
      *
      * @param \Cake\Datasource\RepositoryInterface|\Cake\Datasource\QueryInterface $object Table or query to paginate.
-     * @param array $settings The settings/configuration used for pagination.
+     * @param array<string, mixed> $settings The settings/configuration used for pagination.
      * @return \Cake\Datasource\ResultSetInterface Query results
      * @throws \Cake\Http\Exception\NotFoundException
      */
@@ -226,8 +209,8 @@ class PaginatorComponent extends Component
      *
      * @param string $alias Model alias being paginated, if the general settings has a key with this value
      *   that key's settings will be used for pagination instead of the general ones.
-     * @param array $settings The settings to merge with the request data.
-     * @return array Array of merged options.
+     * @param array<string, mixed> $settings The settings to merge with the request data.
+     * @return array<string, mixed> Array of merged options.
      */
     public function mergeOptions(string $alias, array $settings): array
     {
@@ -279,7 +262,7 @@ class PaginatorComponent extends Component
     /**
      * Proxy setting config options to Paginator.
      *
-     * @param string|array $key The key to set, or a complete array of configs.
+     * @param array<string, mixed>|string $key The key to set, or a complete array of configs.
      * @param mixed|null $value The value to set.
      * @param bool $merge Whether to recursively merge or overwrite existing config, defaults to true.
      * @return $this
@@ -306,7 +289,7 @@ class PaginatorComponent extends Component
     /**
      * Proxy setting config options to Paginator.
      *
-     * @param string|array $key The key to set, or a complete array of configs.
+     * @param array<string, mixed>|string $key The key to set, or a complete array of configs.
      * @param mixed|null $value The value to set.
      * @return $this
      */

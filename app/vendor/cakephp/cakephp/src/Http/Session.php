@@ -201,7 +201,7 @@ class Session
      *   the configuration array for the engine. You can set the `engine` key to an already
      *   instantiated session handler object.
      *
-     * @param array $config The Configuration to apply to this session object
+     * @param array<string, mixed> $config The Configuration to apply to this session object
      */
     public function __construct(array $config = [])
     {
@@ -250,8 +250,8 @@ class Session
      * If no arguments are passed it will return the currently configured handler instance
      * or null if none exists.
      *
-     * @param string|\SessionHandlerInterface|null $class The session handler to use
-     * @param array $options the options to pass to the SessionHandler constructor
+     * @param \SessionHandlerInterface|string|null $class The session handler to use
+     * @param array<string, mixed> $options the options to pass to the SessionHandler constructor
      * @return \SessionHandlerInterface|null
      * @throws \InvalidArgumentException
      */
@@ -306,7 +306,7 @@ class Session
      * $session->options(['session.use_cookies' => 1]);
      * ```
      *
-     * @param array $options Ini options to set.
+     * @param array<string, mixed> $options Ini options to set.
      * @return void
      * @throws \RuntimeException if any directive could not be set
      */
@@ -481,6 +481,7 @@ class Session
         }
         $value = $this->read($name);
         if ($value !== null) {
+            /** @psalm-suppress InvalidScalarArgument */
             $this->_overwrite($_SESSION, Hash::remove($_SESSION, $name));
         }
 
@@ -490,7 +491,7 @@ class Session
     /**
      * Writes value to given session variable name.
      *
-     * @param string|array $name Name of variable
+     * @param array|string $name Name of variable
      * @param mixed $value Value to write
      * @return void
      */
@@ -545,6 +546,7 @@ class Session
     public function delete(string $name): void
     {
         if ($this->check($name)) {
+            /** @psalm-suppress InvalidScalarArgument */
             $this->_overwrite($_SESSION, Hash::remove($_SESSION, $name));
         }
     }
@@ -558,13 +560,12 @@ class Session
      */
     protected function _overwrite(array &$old, array $new): void
     {
-        if (!empty($old)) {
-            foreach ($old as $key => $var) {
-                if (!isset($new[$key])) {
-                    unset($old[$key]);
-                }
+        foreach ($old as $key => $var) {
+            if (!isset($new[$key])) {
+                unset($old[$key]);
             }
         }
+
         foreach ($new as $key => $var) {
             $old[$key] = $var;
         }

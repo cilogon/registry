@@ -37,7 +37,6 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $methodPointer
 	 */
 	public function process(File $phpcsFile, $methodPointer): void
@@ -82,7 +81,7 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 			return;
 		}
 
-		$error = sprintf('Signature of method "%s" should be splitted to more lines so each parameter is on its own line.', $methodName);
+		$error = sprintf('Signature of method "%s" should be split to more lines so each parameter is on its own line.', $methodName);
 		$fix = $phpcsFile->addFixableError($error, $methodPointer, self::CODE_REQUIRED_MULTI_LINE_SIGNATURE);
 		if (!$fix) {
 			return;
@@ -119,9 +118,7 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 	}
 
 	/**
-	 * @param string $methodName
 	 * @param string[] $normalizedPatterns
-	 * @return bool
 	 */
 	private function isMethodNameInPatterns(string $methodName, array $normalizedPatterns): bool
 	{

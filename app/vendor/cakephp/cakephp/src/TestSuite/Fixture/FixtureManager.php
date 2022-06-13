@@ -44,28 +44,28 @@ class FixtureManager
     /**
      * Holds the fixture classes that where instantiated
      *
-     * @var \Cake\Datasource\FixtureInterface[]
+     * @var array<\Cake\Datasource\FixtureInterface>
      */
     protected $_loaded = [];
 
     /**
      * Holds the fixture classes that where instantiated indexed by class name
      *
-     * @var \Cake\Datasource\FixtureInterface[]
+     * @var array<\Cake\Datasource\FixtureInterface>
      */
     protected $_fixtureMap = [];
 
     /**
      * A map of connection names and the fixture currently in it.
      *
-     * @var array
+     * @var array<string, array<\Cake\Datasource\FixtureInterface>>
      */
     protected $_insertionMap = [];
 
     /**
      * List of TestCase class name that have been processed
      *
-     * @var array
+     * @var array<string, bool>
      */
     protected $_processed = [];
 
@@ -80,7 +80,7 @@ class FixtureManager
     /**
      * Modify the debug mode.
      *
-     * @param bool $debug Whether or not fixture debug mode is enabled.
+     * @param bool $debug Whether fixture debug mode is enabled.
      * @return void
      */
     public function setDebug(bool $debug): void
@@ -89,9 +89,7 @@ class FixtureManager
     }
 
     /**
-     * Inspects the test to look for unloaded fixtures and loads them
-     *
-     * @param \Cake\TestSuite\TestCase $test The test case to inspect.
+     * @param \Cake\TestSuite\TestCase $test Test case
      * @return void
      */
     public function fixturize(TestCase $test): void
@@ -105,13 +103,27 @@ class FixtureManager
     }
 
     /**
-     * Get the loaded fixtures.
-     *
      * @return \Cake\Datasource\FixtureInterface[]
      */
     public function loaded(): array
     {
         return $this->_loaded;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getInserted(): array
+    {
+        $inserted = [];
+        foreach ($this->_insertionMap as $fixtures) {
+            foreach ($fixtures as $fixture) {
+                /** @var \Cake\TestSuite\Fixture\TestFixture $fixture */
+                $inserted[] = $fixture->table;
+            }
+        }
+
+        return $inserted;
     }
 
     /**
@@ -235,7 +247,7 @@ class FixtureManager
      *
      * @param \Cake\Datasource\FixtureInterface $fixture the fixture object to create
      * @param \Cake\Datasource\ConnectionInterface $db The Connection object instance to use
-     * @param string[] $sources The existing tables in the datasource.
+     * @param array<string> $sources The existing tables in the datasource.
      * @param bool $drop whether drop the fixture if it is already created or not
      * @return void
      */
@@ -269,11 +281,8 @@ class FixtureManager
     }
 
     /**
-     * Creates the fixtures tables and inserts data on them.
-     *
-     * @param \Cake\TestSuite\TestCase $test The test to inspect for fixture loading.
+     * @param \Cake\TestSuite\TestCase $test Test case
      * @return void
-     * @throws \Cake\Core\Exception\CakeException When fixture records cannot be inserted.
      * @throws \RuntimeException
      */
     public function load(TestCase $test): void
@@ -285,12 +294,10 @@ class FixtureManager
 
         try {
             $createTables = function (ConnectionInterface $db, array $fixtures) use ($test): void {
-                /** @var \Cake\Datasource\FixtureInterface[] $fixtures */
+                /** @var array<\Cake\Datasource\FixtureInterface> $fixtures */
                 $tables = $db->getSchemaCollection()->listTables();
                 $configName = $db->configName();
-                if (!isset($this->_insertionMap[$configName])) {
-                    $this->_insertionMap[$configName] = [];
-                }
+                $this->_insertionMap[$configName] = $this->_insertionMap[$configName] ?? [];
 
                 foreach ($fixtures as $fixture) {
                     if (!$fixture instanceof ConstraintsInterface) {
@@ -370,7 +377,7 @@ class FixtureManager
     /**
      * Run a function on each connection and collection of fixtures.
      *
-     * @param string[] $fixtures A list of fixtures to operate on.
+     * @param array<string> $fixtures A list of fixtures to operate on.
      * @param callable $operation The operation to run on each connection + fixture set.
      * @return void
      */
@@ -398,7 +405,7 @@ class FixtureManager
     /**
      * Get the unique list of connections that a set of fixtures contains.
      *
-     * @param string[] $fixtures The array of fixtures a list of connections is needed from.
+     * @param array<string> $fixtures The array of fixtures a list of connections is needed from.
      * @return array An array of connection names.
      */
     protected function _fixtureConnections(array $fixtures): array
@@ -429,7 +436,7 @@ class FixtureManager
         $truncate = function (ConnectionInterface $db, array $fixtures): void {
             $configName = $db->configName();
 
-            foreach ($fixtures as $name => $fixture) {
+            foreach ($fixtures as $fixture) {
                 if (
                     $this->isFixtureSetup($configName, $fixture)
                     && $fixture instanceof ConstraintsInterface
@@ -442,14 +449,11 @@ class FixtureManager
     }
 
     /**
-     * Creates a single fixture table and loads data into it.
-     *
-     * @param string $name of the fixture
-     * @param \Cake\Datasource\ConnectionInterface|null $connection Connection instance or null
-     *  to get a Connection from the fixture.
-     * @param bool $dropTables Whether or not tables should be dropped and re-created.
+     * @param string $name Name
+     * @param \Cake\Datasource\ConnectionInterface|null $connection Connection
+     * @param bool $dropTables Drop all tables prior to loading schema files
      * @return void
-     * @throws \UnexpectedValueException if $name is not a previously loaded class
+     * @throws \UnexpectedValueException
      */
     public function loadSingle(string $name, ?ConnectionInterface $connection = null, bool $dropTables = true): void
     {
@@ -502,7 +506,7 @@ class FixtureManager
     }
 
     /**
-     * Check whether or not a fixture has been inserted in a given connection name.
+     * Check whether a fixture has been inserted in a given connection name.
      *
      * @param string $connection The connection name.
      * @param \Cake\Datasource\FixtureInterface $fixture The fixture to check.

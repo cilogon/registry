@@ -47,6 +47,54 @@ use Cake\Routing\Router;
 /** @var \Cake\Routing\RouteBuilder $routes */
 $routes->setRouteClass(DashedRoute::class);
 
+// Registry API routes
+
+//// API routes
+$routes->scope('/api/v2', function (RouteBuilder $builder) {
+  // Register scoped middleware for in scopes.
+  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware(['httponly' => true]));
+  // BodyParserMiddleware will automatically parse JSON bodies, but we only
+  // want that for API transactions, so we only apply it to the /api scope.
+  $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
+  /*
+   * Apply a middleware to the current route scope.
+   * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
+   */
+  $builder->applyMiddleware('csrf');
+  $builder->setExtensions(['json']);
+  $builder->applyMiddleware('bodyparser');
+  // Use setPass to make parameter show up as function parameter
+  // Model specific actions, which will usually have more specific URLs:
+  $builder->post(
+    '/api_users/generate/{id}',
+    ['controller' => 'ApiV2', 'action' => 'generateApiKey', 'model' => 'api_users'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  // These establish the usual CRUD options on all models:
+  $builder->delete(
+    '/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'delete'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  $builder->get(
+    '/{model}',
+    ['controller' => 'ApiV2', 'action' => 'index']);
+  $builder->get(
+    '/{model}/{id}',
+    ['controller' => 'ApiV2', 'action' => 'view'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  $builder->post(
+    '/{model}',
+    ['controller' => 'ApiV2', 'action' => 'add']);
+  $builder->put(
+    '/{model}/{id}',
+    ['controller' => 'ApiV2', 'action' => 'edit'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+});
+
+
+// Main application routes
 $routes->scope('/', function (RouteBuilder $builder) {
     // Register scoped middleware for in scopes.
     $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware([
@@ -74,23 +122,6 @@ $routes->scope('/', function (RouteBuilder $builder) {
      * ...and connect the rest of 'Pages' controller's URLs.
      */
     $builder->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
-
-    // Registry API routes
-    Router::scope('/api/v2', function ($routes) {
-      $routes->setExtensions(['json']);
-      $routes->applyMiddleware('bodyparser');
-      // Use setPass to make parameter show up as function parameter
-      // Model specific actions, which will usually have more specific URLs:
-      $routes->post('/api_users/generate/{id}',
-                    ['controller' => 'ApiV2', 'action' => 'generateApiKey', 'model' => 'api_users'])
-             ->setPass(['id']);
-      // These establish the usual CRUD options on all models:
-      $routes->delete('/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'delete'])->setPass(['id']);
-      $routes->get('/{model}', ['controller' => 'ApiV2', 'action' => 'index']);
-      $routes->get('/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'view'])->setPass(['id']);
-      $routes->post('/{model}', ['controller' => 'ApiV2', 'action' => 'add']);
-      $routes->put('/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'edit'])->setPass(['id']);
-    });
     
     /*
      * Connect catchall routes for all controllers.

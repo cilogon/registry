@@ -32,7 +32,6 @@ class DisallowMultiConstantDefinitionSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $constantPointer
 	 */
 	public function process(File $phpcsFile, $constantPointer): void
@@ -82,7 +81,7 @@ class DisallowMultiConstantDefinitionSniff implements Sniff
 
 		$indentation = IndentationHelper::getIndentation($phpcsFile, $visibilityPointer ?? $constantPointer);
 
-		$docCommentPointer = DocCommentHelper::findDocCommentOpenToken($phpcsFile, $constantPointer);
+		$docCommentPointer = DocCommentHelper::findDocCommentOpenPointer($phpcsFile, $constantPointer);
 		$docComment = $docCommentPointer !== null
 			? trim(TokenHelper::getContent($phpcsFile, $docCommentPointer, $tokens[$docCommentPointer]['comment_closer']))
 			: null;
@@ -112,7 +111,9 @@ class DisallowMultiConstantDefinitionSniff implements Sniff
 				sprintf(
 					';%s%s%s%sconst ',
 					$phpcsFile->eolChar,
-					$docComment !== null ? sprintf('%s%s%s', $indentation, $docComment, $phpcsFile->eolChar) : '',
+					$docComment !== null
+						? sprintf('%s%s%s', $indentation, $docComment, $phpcsFile->eolChar)
+						: '',
 					$indentation,
 					$visibility !== null ? sprintf('%s ', $visibility) : ''
 				)
