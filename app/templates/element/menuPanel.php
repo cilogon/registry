@@ -44,8 +44,8 @@
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
             <div class="menu-panel-primary-link-text">
-              <h3><?= __d('menu','co.population') ?></h3>
-              <div class="menu-panel-link-desc"><?= __d('menu','co.population.desc') ?></div>
+              <h3><?= __d('menu','co.people.population') ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.people.population.desc') ?></div>
             </div>
           </a>
         </li>
@@ -64,8 +64,8 @@
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
             <div class="menu-panel-primary-link-text">
-              <h3><?= __d('menu','co.pending.enrollments') ?></h3>
-              <div class="menu-panel-link-desc"><?= __d('menu','co.pending.enrollments.desc') ?></div>
+              <h3><?= __d('menu','co.people.enrollments.pending') ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.people.enrollments.pending.desc') ?></div>
             </div>
           </a>
         </li>
@@ -82,8 +82,8 @@
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
             <div class="menu-panel-primary-link-text">
-              <h3><?= __d('menu','co.external.source.records') ?></h3>
-              <div class="menu-panel-link-desc"><?= __d('menu','co.external.source.records.desc') ?></div>
+              <h3><?= __d('menu','co.people.external.source.records') ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.people.external.source.records.desc') ?></div>
             </div>
           </a>
         </li>
