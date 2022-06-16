@@ -33,12 +33,16 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Util\PaginatedSqlIterator;
 
 class PeopleTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
@@ -74,6 +78,10 @@ class PeopleTable extends Table {
     $this->hasMany('AdHocAttributes')
          ->setDependent(true);
     $this->hasMany('EmailAddresses')
+         ->setDependent(true);
+    $this->hasMany('GroupMembers')
+         ->setDependent(true);
+    $this->hasMany('GroupOwners')
          ->setDependent(true);
     $this->hasMany('HistoryRecords')
          ->setDependent(true);
@@ -135,6 +143,27 @@ class PeopleTable extends Table {
   }
   
   /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    $this->recordHistory($entity);
+    
+    // XXX implement this eventually?
+    //$provision = (isset($options['provision']) ? $options['provision'] : true);
+    
+    $this->reconcileCoMembersGroupMemberships($entity);
+    
+    return true;
+  }
+  
+  /**
    * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
@@ -148,6 +177,72 @@ class PeopleTable extends Table {
     }
     
     return $entity->primary_name->full_name;
+  }
+  
+  /**
+   * Obtain an iterator for the set of Members in the specified CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int                  $coId CO ID
+   * @return PaginatedSqlIterator       Iterator for People
+   */
+  
+  public function getMembers(int $coId): PaginatedSqlIterator {
+    $conditions = [
+      'co_id' => $coId,
+      'status IS NOT' => StatusEnum::Deleted
+    ];
+    
+    return new PaginatedSqlIterator($this, $conditions);
+  }
+  
+  /**
+   * Reconcile memberships in CO members groups based on the Person entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EntityInterface  $entity         Person Entity
+   * @param  bool             $provision      Whether to run provisioners
+   * @throws InvalidArgumentException
+   * @throws RuntimeException
+   */
+
+  public function reconcileCoMembersGroupMemberships(\Cake\Datasource\EntityInterface $entity, bool $provision=true) {
+    // This is similar to PersonRole::reconcileCouMembersGroupMemberships.
+    
+    $activeEligible = $entity->isActive();
+    $allEligible = $entity->status != StatusEnum::Deleted;
+    
+    // Update the automatic CO groups
+    $this->llog('rule', "AR-Person-1 Syncing membership in All Members Group for CO " . $entity->co_id . " for Person " . $entity->id . ", eligibility=" . $allEligible);
+    $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, null, $entity->id, $allEligible, $provision);
+    $this->llog('rule', "AR-Person-2 Syncing membership in Active Members Group for CO " . $entity->co_id . " for Person " . $entity->id . ", eligibility=" . $activeEligible);
+    $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, null, $entity->id, $activeEligible, $provision);
+    
+    // Pull the Person Roles for this Person. Note if COUs are not in use this
+    // will be a bit of extra work, but probably not worth worrying about.
+    
+    $personRoles = $this->PersonRoles->find('all')
+                                     ->where(['person_id' => $entity->id])
+                                     ->all();
+    
+    foreach($personRoles as $role) {
+      if(!empty($role->cou_id)) {
+        // If the Person is not $allEligible, then no COU groups are eligible either.
+        
+        if($allEligible) {
+          // If a Person has multiple roles in the same COU, we'll be doing a bit
+          // of extra work in calling reconcileCouMembersGroupMemberships multiple
+          // times, since it will correctly handle multiple roles in the same COU
+          // in a single call.
+          
+          $this->PersonRoles->reconcileCouMembersGroupMemberships($role, $provision, $activeEligible);
+        } else {
+          // Make sure there are no memberships for this COU
+          $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $role->cou_id, $entity->id, false, $provision);
+          $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $role->cou_id, $entity->id, false, $provision);
+        }
+      }
+    }
   }
   
   /**

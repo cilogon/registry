@@ -105,6 +105,9 @@ msgstr "Make Primary"
 msgid "Types.restore"
 msgstr "Add/Restore Default Types"
 
+msgid "reconcile"
+msgstr "Reconcile"
+
 msgid "remove"
 msgstr "Remove"
 

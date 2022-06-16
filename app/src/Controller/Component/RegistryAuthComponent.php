@@ -294,6 +294,9 @@ class RegistryAuthComponent extends Component
     // Can access the Configuration Dashboard for the current CO
     $permissions['configuration'] = true;
     
+    // Can manage Groups in the current CO
+    $permissions['groups'] = true;
+    
     // Can manage People in the current CO
     $permissions['people'] = true;
     

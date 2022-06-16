@@ -126,6 +126,30 @@ msgstr "Official"
 msgid "Names.preferred"
 msgstr "Preferred"
 
+msgid "PersonRoles.affiliate"
+msgstr "Affiliate"
+
+msgid "PersonRoles.alum"
+msgstr "Alum"
+
+msgid "PersonRoles.employee"
+msgstr "Employee"
+
+msgid "PersonRoles.faculty"
+msgstr "Faculty"
+
+msgid "PersonRoles.librarywalkin"
+msgstr "Library Walk-In"
+
+msgid "PersonRoles.member"
+msgstr "Member"
+
+msgid "PersonRoles.staff"
+msgstr "Staff"
+
+msgid "PersonRoles.student"
+msgstr "Student"
+
 msgid "Urls.official"
 msgstr "Official"
 

@@ -96,14 +96,14 @@ class ApiUsersTable extends Table {
   }
   
   /**
-   * Define business rules to supplement the default trait implementation.
+   * Define business rules.
    *
    * @since  COmanage Registry v5.0.0
    * @param  RulesChecker $rules RulesChecker object
    * @return RulesChecker
    */
   
-  public function buildTableRules(RulesChecker $rules): RulesChecker {
+  public function buildRules(RulesChecker $rules): RulesChecker {
     // We don't want to perform the uniqueness check until after then namespacing
     // check in order to avoid information leakage. This requires more complicated
     // rule building.
@@ -253,7 +253,7 @@ class ApiUsersTable extends Table {
     ]);
     
     if(!$Hasher->check($apiKey, $apiUser->api_key)) {
-      throw new \InvalidArgumentException('registry.er.auth.api.key', [$username]);
+      throw new \InvalidArgumentException(__d('error', 'auth.api.key', [$username]));
     }
     
     if($Hasher->needsRehash($apiUser->api_key)) {

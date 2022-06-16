@@ -84,6 +84,9 @@ msgstr "This record is read only and cannot be edited"
 msgid "exists"
 msgstr "{0} already exists with this name"
 
+msgid "exists.GroupMember"
+msgstr "{0} is already a member of Group {1}"
+
 msgid "fields"
 msgstr "Please recheck these fields: {0}"
 
@@ -92,6 +95,28 @@ msgstr "The Primary Link {0} is frozen and cannot be changed"
 
 msgid "file"
 msgstr "Cannot read file {0}"
+
+# Used to construct flash message for field errors
+msgid "flash"
+msgstr "{0}: {1}"
+
+msgid "GroupNestings.active"
+msgstr "Group {0} is not active and so cannot be nested"
+
+msgid "GroupNestings.automatic"
+msgstr "Group {0} is an automatic Group and so cannot be a nesting target"
+
+msgid "GroupNestings.exists"
+msgstr "Group is already nested into this target"
+
+msgid "GroupNestings.loop"
+msgstr "Target group is already nested into this Group"
+
+msgid "GroupNestings.same"
+msgstr "Group cannot be nested into itself"
+
+msgid "Groups.nested"
+msgstr "Group is nested or has nestings, and cannot be suspended or deleted"
 
 msgid "input.blank"
 msgstr "Value cannot consist of only blank characters"

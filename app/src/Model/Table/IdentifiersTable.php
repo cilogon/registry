@@ -35,6 +35,7 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 
 class IdentifiersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -85,13 +86,14 @@ class IdentifiersTable extends Table {
     $this->setIsConfigurationTable(false);
     
     // Define associations
-    $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
+    $this->belongsTo('Groups');
+    $this->belongsTo('People');
     $this->belongsTo('Types');
     
     $this->setDisplayField('identifier');
     
-    $this->setPrimaryLink(['external_identity_id', 'person_id']);
+    $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     
@@ -132,7 +134,7 @@ class IdentifiersTable extends Table {
    * @return bool                     True on success
    */
     
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
     $this->recordHistory($entity);
     
     return true;

@@ -32,10 +32,12 @@ namespace App\Model\Table;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
 class CousTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
@@ -67,6 +69,9 @@ class CousTable extends Table {
          // _id suffix to match Cake's default pattern.
          ->setProperty('parent');
     
+    $this->hasMany('Groups');
+    $this->hasMany('PersonRoles');
+    
     $this->setDisplayField('name');
     
     $this->setPrimaryLink('co_id');
@@ -88,14 +93,14 @@ class CousTable extends Table {
   }
   
   /**
-   * Define business rules to supplement the default trait implementation.
+   * Define business rules.
    *
    * @since  COmanage Registry v5.0.0
    * @param  RulesChecker $rules RulesChecker object
    * @return RulesChecker
    */
   
-  public function buildTableRules(RulesChecker $rules): RulesChecker {
+  public function buildRules(RulesChecker $rules): RulesChecker {
     // AR-CO-3 Two COUs within the same CO cannot share the same name
     $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Cous', [1])])));
     
@@ -106,6 +111,26 @@ class CousTable extends Table {
                 ['errorField' => 'parent_id']);
     
     return $rules;
+  }
+  
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
+    if($entity->isNew() && !empty($entity->id)) {
+      // Run setup for new COU
+      
+      $this->setup($entity->id, $entity->co_id);
+    }
+
+    return true;
   }
   
   /**
@@ -160,6 +185,22 @@ class CousTable extends Table {
         return __d('error', 'cou.parent');
       }
     }
+    
+    return true;
+  }
+  
+  /**
+   * Perform initial setup for a COU.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int  $id   COU ID
+   * @param  int  $coId CO ID
+   * @return bool       True on success
+   */
+  
+  public function setup(int $id, int $coId): bool {
+    // AR-COU-4 Create the default groups
+    $this->Groups->addDefaults($coId, $id);
     
     return true;
   }

@@ -1,0 +1,76 @@
+<?php
+/**
+ * COmanage Registry Groups Index Columns
+ *
+ * Portions licensed to the University Corporation for Advanced Internet
+ * Development, Inc. ("UCAID") under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * UCAID licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
+ * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+$indexColumns = [
+  'name' => [
+    'type' => 'link'
+  ],
+  'status' => [
+    'type' => 'enum',
+    'class' => 'StatusEnum',
+    'sortable' => true
+  ],
+  'description' => [
+    'type' => 'echo'
+  ]
+];
+
+// XXX This should show on fields.inc and more generally perhaps we should merge
+// this with the set of buttons available on the add-edit-view page (maybe just
+// have that page use $indexActions?) (CO-647)
+$indexActions = [
+  [
+    'controller' => 'group_members',
+    'action' => 'index',
+    'icon' => 'people',
+  ],
+  [
+    'controller' => 'group_owners',
+    'action' => 'index',
+    'icon' => 'settings'
+  ],
+  [
+    'controller' => 'group_nestings',
+    'action' => 'index',
+    'icon' => 'group_add'
+  ],
+  [
+    'controller' => 'history_records',
+    'action' => 'index',
+    'icon' => 'history'
+  ],
+  [
+    'controller' => 'identifiers',
+    'action' => 'index',
+    'icon' => 'label',
+    'if' => 'notAutomatic'
+  ],
+  [
+    'action' => 'reconcile',
+    'icon' => 'sync'
+  ]
+];

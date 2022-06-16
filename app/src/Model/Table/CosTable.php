@@ -38,6 +38,7 @@ use \App\Lib\Enum\TemplateableStatusEnum;
 
 class CosTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -66,6 +67,8 @@ class CosTable extends Table {
     $this->hasMany('Cous')
          ->setDependent(true);
     $this->hasMany('Dashboards')
+         ->setDependent(true);
+    $this->hasMany('Groups')
          ->setDependent(true);
     $this->hasMany('People')
          ->setDependent(true)
@@ -102,26 +105,6 @@ class CosTable extends Table {
         'select' =>    ['authenticatedUser']
       ]
     ]);
-  }
-  
-  /**
-   * Callback after model save.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface  $event   Event
-   * @param  EntityInterface $entity  Entity (ie: Co)
-   * @param  ArrayObject     $options Save options
-   * @return bool                     True on success
-   */
-
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
-    if($entity->isNew() && !empty($entity->id)) {
-      // Run setup for new CO
-      
-      $this->setup($entity->id);
-    }
-
-    return true;
   }
   
   /**
@@ -177,6 +160,26 @@ class CosTable extends Table {
   }
   
   /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
+    if($entity->isNew() && !empty($entity->id)) {
+      // Run setup for new CO
+      
+      $this->setup($entity->id);
+    }
+
+    return true;
+  }
+  
+  /**
    * Application Rule to determine if the current entity is the COmanage CO.
    *
    * @since  COmanage Registry v5.0.0
@@ -221,18 +224,14 @@ class CosTable extends Table {
    */
   
   public function setup(int $id): bool {
-    $Types = TableRegistry::getTableLocator()->get('Types');
-    
     // AR-Type-1 Set up the default values for extended types
-    $Types->addDefaults($id);
+    $this->Types->addDefaults($id);
 
-    // Create the default groups
-//    $this->CoGroup->addDefaults($coId);
+    // AR-CO-6 Create the default groups
+    $this->Groups->addDefaults($id);
 
     // Set up the default settings
-    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
-    
-    $CoSettings->addDefaults($id);
+    $this->CoSettings->addDefaults($id);
     
     return true;
   }

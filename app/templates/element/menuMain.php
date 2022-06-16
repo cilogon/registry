@@ -33,6 +33,10 @@
       // In Registry PE, there is no more Platform Administration menu, so there
       // is no menu context without a current CO. (The Platform Administration
       // menu is now part of the COmanage CO configuration.)
+      
+      // When adding new items here, 'permission' corresponds to
+      // RegistryAuthComponent::getMenuPermissions. 'icon' is from
+      // https://fonts.google.com/icons?selected=Material+Icons
 
       $menuItems = [
         [
@@ -41,6 +45,13 @@
           'action'     => 'index',
           'icon'       => 'person',
           'label'      => __d('menu', 'co.people')
+        ],
+        [
+          'permission' => 'groups',
+          'controller' => 'groups',
+          'action'     => 'index',
+          'icon'       => 'group',
+          'label'      => __d('menu', 'co.groups')
         ],
         [
           'permission' => 'configuration',

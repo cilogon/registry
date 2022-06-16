@@ -258,14 +258,14 @@ trait PrimaryLinkTrait {
 
     $a = $entity->extract(['external_identity_id']);
     
-    if(array_key_exists('external_identity_id', $a)) {
+    if($entity->getSource() == 'ExternalIdentities') {
+      return $entity->id;
+    } elseif(array_key_exists('external_identity_id', $a)) {
       // We want to return here whether or not the key is set since if it's NULL
       // we're not directly pointing to an External Identity. We can't use
       // property_exists because Cake is dynamically getting.
       
       return $entity->external_identity_id;
-    } elseif($entity->getSource() == 'ExternalIdentities') {
-      return $entity->id;
     } else {
       $linkEntity = $this->findPrimaryLinkEntity($entity);
       
@@ -278,7 +278,7 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Determine the Person Role ID associated with an entity.
+   * Determine the External Identity Role ID associated with an entity.
    *
    * @since  COmanage Registry v5.0.0
    * @param  Entity $entity Entity
@@ -288,10 +288,30 @@ trait PrimaryLinkTrait {
   public function lookupExternalIdentityRoleId($entity): ?int {
     $a = $entity->extract(['external_identity_role_id']);
     
-    if(array_key_exists('external_identity_role_id', $a)) {
-      return $entity->external_identity_role_id;
-    } elseif($entity->getSource() == 'ExternalIdentityRoles') {
+    if($entity->getSource() == 'ExternalIdentityRoles') {
       return $entity->id;
+    } elseif(array_key_exists('external_identity_role_id', $a)) {
+      return $entity->external_identity_role_id;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Determine the Group ID associated with an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return int            Group ID
+   */
+  
+  public function lookupGroupId($entity): ?int {
+    $a = $entity->extract(['group_id']);
+    
+    if($entity->getSource() == 'Groups') {
+      return $entity->id;
+    } elseif(array_key_exists('group_id', $a)) {
+      return $entity->group_id;
     }
     
     return null;
@@ -308,10 +328,10 @@ trait PrimaryLinkTrait {
   public function lookupPersonId($entity): ?int {
     $a = $entity->extract(['person_id']);
     
-    if(array_key_exists('person_id', $a)) {
-      return $entity->person_id;
-    } elseif($entity->getSource() == 'People') {
+    if($entity->getSource() == 'People') {
       return $entity->id;
+    } elseif(array_key_exists('person_id', $a)) {
+      return $entity->person_id;
     } else {
       $linkEntity = $this->findPrimaryLinkEntity($entity);
       
@@ -341,10 +361,10 @@ trait PrimaryLinkTrait {
   public function lookupPersonRoleId($entity): ?int {
     $a = $entity->extract(['person_role_id']);
     
-    if(array_key_exists('person_role_id', $a)) {
-      return $entity->person_role_id;
-    } elseif($entity->getSource() == 'PersonRoles') {
+    if($entity->getSource() == 'PersonRoles') {
       return $entity->id;
+    } elseif(array_key_exists('person_role_id', $a)) {
+      return $entity->person_role_id;
     }
     
     return null;

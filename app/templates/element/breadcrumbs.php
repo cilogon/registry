@@ -68,6 +68,27 @@ if($this->request->getRequestTarget(false) != '/') {
     );
   }
   
+  // If we have a parent object interrogate it to construct a link
+  if(!empty($vv_bc_parent_obj)) {
+    // eg: Groups
+    $parentTable = $vv_bc_parent_obj->getSource();
+    // eg: groups
+    $parentController = \Cake\Utility\Inflector::dasherize($parentTable);
+
+    $this->Breadcrumbs->add(
+      __d('controller', $parentTable, [99]),
+      ['controller' => $parentController,
+       '?'          => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
+    );
+    
+    $this->Breadcrumbs->add(
+      $vv_bc_parent_obj->$vv_bc_parent_displayfield,
+      ['controller' => $parentController,
+       'action'     => 'edit',
+       $vv_bc_parent_obj->id]
+    );
+  }
+  
   // If we're rendering an MVEA, insert a link to the parent entity
   if(!empty($vv_primary_link_id)) {
     if(!empty($vv_person_name)) {

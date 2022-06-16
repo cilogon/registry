@@ -105,6 +105,22 @@ if($vv_action == 'add' || $vv_action == 'view') {
       );
     }
     
+    if(!empty($vv_obj->group_id)) {
+      $viewLink = [
+        'url' => [
+          'controller' => 'groups',
+          'action'     => 'edit',
+          $vv_obj->group_id
+        ],
+      ];
+      
+      print $this->Field->statusControl(
+        'group_id',
+        $vv_obj->group->name,
+        $viewLink
+      );
+    }
+    
     if(!empty($vv_obj->actor_person->names)) {
       $viewLink = [
         'url' => [

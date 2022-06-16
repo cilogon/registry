@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
+use \App\Lib\Enum\StatusEnum;
 
 class Person extends Entity {
   use \App\Lib\Traits\ReadOnlyEntityTrait;
@@ -39,4 +40,15 @@ class Person extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+  
+  /**
+   * Determine if this Person is Active (includes GracePeriod).
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool   true if Person is Active or GracePeriod, false otherwise
+   */
+  
+  public function isActive(): bool {
+    return in_array($this->status, [StatusEnum::Active, StatusEnum::GracePeriod]);
+  }
 }

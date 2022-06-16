@@ -157,14 +157,24 @@ trait HistoryTrait {
     $personRoleId = $this->lookupPersonRoleId($entity);
     $externalIdentityId = $this->lookupExternalIdentityId($entity);
     $externalIdentityRoleId = $this->lookupExternalIdentityRoleId($entity);
+    $groupId = $this->lookupGroupId($entity);
     
-    return $HistoryRecords->recordForPerson(
-      $personId,
-      $laction,
-      $lcomment,
-      $personRoleId,
-      $externalIdentityId,
-      $externalIdentityRoleId
-    );
+    if($groupId) {
+      return $HistoryRecords->recordForGroup(
+        $groupId,
+        $laction,
+        $lcomment,
+        $personId
+      );
+    } else {
+      return $HistoryRecords->recordForPerson(
+        $personId,
+        $laction,
+        $lcomment,
+        $personRoleId,
+        $externalIdentityId,
+        $externalIdentityRoleId
+      );
+    }
   }
 }

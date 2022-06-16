@@ -51,12 +51,7 @@ class LogBehavior extends Behavior
     $label = getmypid() . "/" . $subject->getAlias() . ": ";
 // XXX can we inject IP address of requester (where available)?
 
-    Log::info($label . 'beforeFind', ['scope' => ['trace']]);
-  }
-  
-  // XXX docblock
-  
-  public function beforeSave(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    Log::info($label . 'beforeFind: ' . $query->sql(), ['scope' => ['trace']]);
   }
   
 // XXX don't define log() since it will collide with LogTrait?

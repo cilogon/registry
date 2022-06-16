@@ -39,6 +39,7 @@ use \App\Lib\Enum\LanguageEnum;
 
 class NamesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -115,6 +116,31 @@ class NamesTable extends Table {
   }
   
   /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-Name-4 Each Person or ExternalIdentity must have at least one name at
+    // all times.
+    $rules->addDelete([$this, 'ruleMinimumOneName'],
+                      'minimumOneName',
+                      // This rule is really an entity rule, not a field rule,
+                      // but cake won't pass the error without a specific field
+                      ['errorField' => 'id']);
+    
+    // AR-Name-1 The Primary Name cannot be deleted.
+    $rules->addDelete([$this, 'rulePrimaryNameDelete'],
+                      'primaryNameDelete',
+                      ['errorField' => 'primary_name']);
+    
+    return $rules;
+  }
+  
+  /**
    * Callback after model save.
    *
    * @since  COmanage Registry v5.0.0
@@ -124,12 +150,7 @@ class NamesTable extends Table {
    * @return bool                     True on success
    */
     
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    // If we have a parent, we're creating a changelog archive, which we don't want to modify
-    if($entity->name_id) {
-      return true;
-    }
-    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
     $this->recordHistory($entity);
     
     // AR-Name-1 A Person must have exactly one Primary Name at all times.
@@ -167,31 +188,6 @@ class NamesTable extends Table {
     }
     
     return true;
-  }
-
-  /**
-   * Define business rules.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  RulesChecker $rules RulesChecker object
-   * @return RulesChecker
-   */
-  
-  public function buildRules(RulesChecker $rules): RulesChecker {
-    // AR-Name-4 Each Person or ExternalIdentity must have at least one name at
-    // all times.
-    $rules->addDelete([$this, 'ruleMinimumOneName'],
-                      'minimumOneName',
-                      // This rule is really an entity rule, not a field rule,
-                      // but cake won't pass the error without a specific field
-                      ['errorField' => 'id']);
-    
-    // AR-Name-1 The Primary Name cannot be deleted.
-    $rules->addDelete([$this, 'rulePrimaryNameDelete'],
-                      'primaryNameDelete',
-                      ['errorField' => 'primary_name']);
-    
-    return $rules;
   }
   
   /**

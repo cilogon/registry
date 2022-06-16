@@ -161,7 +161,7 @@ class AppController extends Controller {
   
   /**
    * Default implementation for calculating permissions for standard controllers,
-   * intended to be overridden by controllers with more speciific requirements.
+   * intended to be overridden by controllers with more specific requirements.
    *
    * @since  COmanage Registry v5.0.0
    * @param  int   $id Record ID if relevant, or null
@@ -234,6 +234,28 @@ class AppController extends Controller {
         }
 
         $ret[$action] = $ok;
+      }
+      
+      if(!empty($permissions['related'])) {
+        foreach($permissions['related'] as $rtable) {
+          $rpermissions = $table->$rtable->getPermissions();
+          
+          foreach($rpermissions['table'] as $action => $roles) {
+            $ok = false;
+            
+            if(is_array($roles)) {
+              foreach($roles as $role) {
+                // eg: $role = "platformAdmin", which corresponds to the variables set, above
+                if($$role) {
+                  $ok = true;
+                  break;
+                }
+              }
+            }
+            
+            $ret[$rtable][$action] = $ok;
+          }
+        }
       }
     } else {
       // Permissions for actions that operate over tables

@@ -126,8 +126,50 @@ msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="
 msgid "family"
 msgstr "Family Name"
 
+msgid "GroupMembers.source"
+msgstr "Membership Source"
+
+msgid "GroupMembers.source.direct"
+msgstr "Direct"
+
+msgid "GroupNestings.group_id"
+msgstr "Nested Group"
+
+msgid "GroupNestings.negate"
+msgstr "Negate Nesting"
+
+msgid "GroupNestings.negate.desc"
+msgstr "If true, members of the Nested Group will not be eligible to be a member of the Target Group"
+
+msgid "GroupNestings.target_group_id"
+msgstr "Target Group"
+
+msgid "Groups.desc.admins"
+msgstr "{0} Administrators"
+
+msgid "Groups.desc.members"
+msgstr "{0} Members"
+
+msgid "Groups.desc.members.active"
+msgstr "{0} Active Members"
+
+msgid "Groups.nesting_mode_all"
+msgstr "Require All for Nested Memberships"
+
+msgid "Groups.nesting_mode_all.desc"
+msgstr "For membership in this Group via Nested Groups, require membership in <i>all</i> Nested (Source) Groups to be a member of this Group (instead of <i>any</i>)"
+
+msgid "Groups.open"
+msgstr "Open"
+
+msgid "Groups.open.desc"
+msgstr "Open groups may be self-joined by any Person in the CO"
+
 msgid "given"
 msgstr "Given Name"
+
+msgid "group_membership"
+msgstr "{0} Membership in {1}"
 
 msgid "honorific"
 msgstr "Honorific"

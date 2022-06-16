@@ -14,6 +14,7 @@
       "description": { "type": "string", "size": 128 },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
+      "group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
       "language": { "type": "string", "size": 16 },
       "name": { "type": "string", "size": 128, "notnull": true },
@@ -215,6 +216,70 @@
       }
     },
     
+    "groups": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "cou_id": {},
+        "name": {},
+        "description": { "size": 256 },
+        "open": { "type": "boolean" },
+        "status": {},
+        "group_type": { "type": "string", "size": 2 },
+        "nesting_mode_all": { "type": "boolean" }
+      },
+      "indexes": {
+        "groups_i1": { "columns": [ "co_id" ] },
+        "groups_i2": { "columns": [ "co_id", "name" ] },
+        "groups_i3": { "columns": [ "co_id", "group_type" ] },
+        "groups_i4": { "columns": [ "cou_id", "group_type" ] },
+        "groups_i5": { "columns": [ "cou_id" ], "comment": "Not really needed but DBAL autogenerates"}
+      }
+    },
+    
+    "group_nestings": {
+      "columns": {
+        "id": {},
+        "group_id": { "comment": "Calling this 'source_group_id makes things complicated'" },
+        "target_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
+        "negate": { "type": "boolean" }
+      },
+      "indexes": {
+        "group_nestings_i1": { "columns": [ "group_id" ] },
+        "group_nestings_i2": { "columns": [ "target_group_id" ] }
+      }
+    },
+    
+    "group_members": {
+      "columns": {
+        "id": {},
+        "group_id": {},
+        "person_id": {},
+        "valid_from": {},
+        "valid_through": {},
+        "group_nesting_id": { "type": "integer", "foreignkey": { "table": "group_nestings", "column": "id" }}
+      },
+      "indexes": {
+        "group_members_i1": { "columns": [ "group_id" ]},
+        "group_members_i2": { "columns": [ "person_id" ]},
+        "group_members_i3": { "columns": [ "group_id", "person_id" ]},
+        "group_members_i4": { "columns": [ "group_nesting_id" ]}
+      }
+    },
+    
+    "group_owners": {
+      "columns": {
+        "id": {},
+        "group_id": {},
+        "person_id": {}
+      },
+      "indexes": {
+        "group_owners_i1": { "columns": [ "group_id" ]},
+        "group_owners_i2": { "columns": [ "person_id" ]},
+        "group_owners_i3": { "columns": [ "group_id", "person_id" ]}
+      }
+    },
+    
     "names": {
       "columns": {
         "id": {},
@@ -300,7 +365,7 @@
         "identifiers_i2": { "columns": [ "identifier", "type_id", "external_identity_id" ] },
         "identifiers_i3": { "columns": [ "type_id" ] }
       },
-      "mvea": [ "person", "external_identity" ],
+      "mvea": [ "person", "external_identity", "group" ],
       "sourced": true
     },
     
@@ -344,14 +409,18 @@
         "person_role_id": {},
         "external_identity_id": {},
         "external_identity_role_id": {},
-        "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } }
+        "group_id": {},
+        "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "actor_api_user_id": { "type": "integer", "foreignkey": { "table": "api_users", "column": "id" } }
       },
       "indexes": {
         "history_records_i1": { "columns": [ "person_id" ] },
         "history_records_i2": { "columns": [ "external_identity_id" ] },
         "history_records_i3": { "columns": [ "actor_person_id" ] },
         "history_records_i4": { "columns": [ "person_role_id" ] },
-        "history_records_i5": { "columns": [ "external_identity_role_id" ] }
+        "history_records_i5": { "columns": [ "external_identity_role_id" ] },
+        "history_records_i6": { "columns": [ "group_id" ] },
+        "history_records_i7": { "columns": [ "actor_api_user_id" ] }
       }
     }
   },

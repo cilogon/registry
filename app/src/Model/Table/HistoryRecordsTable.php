@@ -57,6 +57,9 @@ class HistoryRecordsTable extends Table {
     $this->setIsConfigurationTable(false);
     
     // Define associations
+    $this->belongsTo('ApiUser')
+         ->setForeignKey('actor_api_user_id')
+         ->setProperty('actor_api_user');
     $this->belongsTo('ActorPeople')
          ->setClassName('People')
          ->setForeignKey('actor_person_id')
@@ -67,12 +70,13 @@ class HistoryRecordsTable extends Table {
     $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
+    $this->belongsTo('Groups');
     
     $this->setDisplayField('comment');
     
 // XXX note primary link is external_identity_id when set...
 // or the other fields as we add them
-    $this->setPrimaryLink(['external_identity_id', 'person_id']);
+    $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     
@@ -91,7 +95,8 @@ class HistoryRecordsTable extends Table {
       'ActorPeople' => ['Names' => ['queryBuilder' => function ($q) {
         return $q->where(['primary_name' => true]);
       }]],
-      'ExternalIdentities' => ['PrimaryName']
+      'ExternalIdentities' => ['PrimaryName'],
+      'Groups'
     ]);
     
     $this->setPermissions([
@@ -122,6 +127,38 @@ class HistoryRecordsTable extends Table {
     // (which will get appended with the record ID)
 
     return __d('controller', 'HistoryRecords', [1]);
+  }
+  
+  /**
+   * Record a History Record entry for a Group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $groupId                Group ID
+   * @param  string $action                 Action
+   * @param  string $comment                Comment
+   * @param  int    $personId               Person ID
+   * @return int                            History Record ID
+   */
+  
+  public function recordForGroup(int $groupId, 
+                                 string $action,
+                                 string $comment,
+                                 ?int $personId=null): int {
+    $record = [
+      'group_id'  => $groupId,
+      'action'    => $action,
+      'comment'   => $comment
+    ];
+    
+    if($personId) {
+      $record['person_id'] = $personId;
+    }
+    
+    $obj = $this->newEntity($record);
+    
+    $this->saveOrFail($obj);
+    
+    return $obj->id;
   }
   
   /**

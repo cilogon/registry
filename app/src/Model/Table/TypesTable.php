@@ -328,7 +328,7 @@ class TypesTable extends Table {
       'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('value')]],
                    'provider' => 'table'],
       'value'  => ['rule'    => ['custom', '/^[a-zA-Z0-9\-\.]+$/'],
-                   'message' => __d('error', 'input.invalid.url')]
+                   'message' => __d('error', 'input.invalid')]
     ]);
     $validator->notEmptyString('value');
     

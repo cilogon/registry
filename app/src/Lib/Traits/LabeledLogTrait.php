@@ -39,15 +39,11 @@ trait LabeledLogTrait {
    *
    * @since  COmanage Registry v5.0.0
    * @param  string $level Log level
-   * @param  array  $msg   Log message, constructed from an array converted to json
+   * @param  array  $msg   Log message in the form of an array (that will be converted to JSON)
    */
   
   public function alog(string $level, ?array $msg) {
-    $bt = debug_backtrace(0, 2);
-
-    $m = getmypid() . " " . $bt[1]['class'] . "::" . $bt[1]['function'] . ": " . json_encode($msg, JSON_PRETTY_PRINT);
-    
-    Log::write($level, $m);
+    return $this->llog($level, json_encode($msg, JSON_PRETTY_PRINT));
   }
   
   /**
@@ -63,6 +59,14 @@ trait LabeledLogTrait {
 
     $m = getmypid() . " " . $bt[1]['class'] . "::" . $bt[1]['function'] . ": " . $msg;
     
-    Log::write($level, $m);
+    // We overload $level here, which Cake defines roughly the same way as
+    // syslog (alert, info, debug, notice, etc). We add two more: trace and
+    // rule, which we transition to scopes (defined in app.php).
+    
+    if(in_array($level, ['rule', 'trace'])) {
+      Log::info($m, ['scope' => [$level]]);
+    } else {
+      Log::write($level, $m);
+    }
   }
 }

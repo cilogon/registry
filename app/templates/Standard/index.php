@@ -40,6 +40,7 @@ $modelsName = $this->name;
 // $tablename = models
 // XXX backport to match?
 $tableName = Inflector::tableize(Inflector::singularize($this->name));
+$tableFK = Inflector::singularize($tableName) . "_id";
 
 // Do we have records for this index? This will be set to true during render if we do.
 // Otherwise, we'll print out a "no records" message.
@@ -198,36 +199,6 @@ function _column_key($modelsName, $c, $tz=null) {
                 print __d('enumeration', $cfg['class'].'.0') . $suffix;
               }
               break;
-            case 'datetime':
-  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-              print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
-              break;
-            case 'enum':
-              if($entity->$col) {
-                // XXX Need to add badging - see index.php in Match
-                print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
-              }
-              break;
-            case 'fk':
-              // Assuming $col is of the form foo_id, look to see if the corresponding
-              // AutoViewVar $foos is set, and if so render the lookup value instead
-              $f = null;
-              if(preg_match('/^(.*?)_id$/', $col, $f)) {
-                $avv = Inflector::variable(Inflector::pluralize($f[1]));
-                
-                if(!empty(${$avv}[$entity->$col])) {
-                  // We found the viewvar (eg: $foos), and it has a corresponding value
-                  // (eg: $foos[3]), so render it
-                  print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
-                } else {
-                  // No match, just render the value
-                  print $entity->$col. $suffix;
-                }
-              } else {
-                // Just print the value
-                print $entity->$col. $suffix;
-              }
-              break;
             case 'button':
               if(!empty($entity->$col)) {
                 $buttonAttrs = [];
@@ -258,6 +229,42 @@ function _column_key($modelsName, $c, $tz=null) {
                   $buttonAttrs['data-bs-animation'] = 'false';
                 }
                 print $this->Form->button($buttonText, $buttonAttrs);
+              }
+              break;
+            case 'closure':
+              $fn = $cfg['function'];
+              print $fn($entity);
+              break;
+            case 'datetime':
+  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
+              if(!empty($entity->$col)) {
+                print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
+              }
+              break;
+            case 'enum':
+              if($entity->$col) {
+                // XXX Need to add badging - see index.php in Match
+                print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
+              }
+              break;
+            case 'fk':
+              // Assuming $col is of the form foo_id, look to see if the corresponding
+              // AutoViewVar $foos is set, and if so render the lookup value instead
+              $f = null;
+              if(preg_match('/^(.*?)_id$/', $col, $f)) {
+                $avv = Inflector::variable(Inflector::pluralize($f[1]));
+                
+                if(!empty(${$avv}[$entity->$col])) {
+                  // We found the viewvar (eg: $foos), and it has a corresponding value
+                  // (eg: $foos[3]), so render it
+                  print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
+                } else {
+                  // No match, just render the value
+                  print $entity->$col. $suffix;
+                }
+              } else {
+                // Just print the value
+                print $entity->$col. $suffix;
               }
               break;
             case 'link':
@@ -363,16 +370,25 @@ function _column_key($modelsName, $c, $tz=null) {
 //          if(isset($entity->status) && $entity->status == StatusEnum::Active) {
               $actionOrderDefault = $this->Menu->getMenuOrder('Default');
               foreach($indexActions as $a) {
-                if($vv_permission_set[$entity->id][ $a['action'] ]) {
-                  // If there's a conditional on the field, test the entity
-                  if(!empty($a['if'])) {
-                    $f = $a['if'];
-                    
-                    if(!$entity->$f()) {
-                      continue;
-                    }
-                  }
+                $ok = false;
+                if(!empty($a['controller'])) {
+                  $tableName = Inflector::camelize($a['controller']);
                   
+                  if(isset($vv_permission_set[$entity->id][$tableName][ $a['action'] ])) {
+                    $ok = $vv_permission_set[$entity->id][$tableName][ $a['action'] ];
+                  }
+                } else {
+                  $ok = $vv_permission_set[$entity->id][ $a['action'] ];
+                }
+                
+                if($ok && !empty($a['if'])) {
+                  // If there's a conditional on the field, test the entity
+                  $f = $a['if'];
+                  
+                  $ok = $entity->$f();
+                }
+                
+                if($ok) {
                   $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
                   $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
                   $actionClass = !empty($a['class']) ? $a['class'] : '';
@@ -409,14 +425,12 @@ function _column_key($modelsName, $c, $tz=null) {
                     );
                   } elseif(!empty($a['controller'])) {
                     // We're linking into a related controller
-                    /* XXX Modify the following for links to related controllers set in $indexActions. 
-                       This is the example from Match:
-                    $actionLabel = __('match.ct.' . Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
+                    $actionLabel = __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
                     $actionUrl = $this->Url->build(
                       ['controller' => $a['controller'],
-                        'action'     => $a['action'],
-                        '?' => [ $tableFK => $entity->id] ]
-                    ); */
+                       'action'     => $a['action'],
+                       '?' => [ $tableFK => $entity->id] ]
+                    );
                   } else {
                     $actionLabel = __d('operation', $a['action']); 
                     $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);

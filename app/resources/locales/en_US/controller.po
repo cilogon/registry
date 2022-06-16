@@ -54,6 +54,18 @@ msgstr "{0,plural,=1{External Identity} other{External Identities}}"
 msgid "ExternalIdentityRoles"
 msgstr "{0,plural,=1{External Identity Role} other{External Identity Roles}}"
 
+msgid "GroupMembers"
+msgstr "{0,plural,=1{Group Member} other{Group Members}}"
+
+msgid "GroupNestings"
+msgstr "{0,plural,=1{Group Nesting} other{Group Nestings}}"
+
+msgid "GroupOwners"
+msgstr "{0,plural,=1{Group Owner} other{Group Owners}}"
+
+msgid "Groups"
+msgstr "{0,plural,=1{Group} other{Groups}}"
+
 msgid "HistoryRecords"
 msgstr "{0,plural,=1{History Record} other{History Records}}"
 

@@ -39,6 +39,39 @@ msgstr "{0} {1} Deleted: {2}"
 msgid "edited.mvea"
 msgstr "{0} {1} Edited: {2}"
 
+msgid "Groups.added"
+msgstr "Group {0} created"
+
+msgid "Groups.deleted"
+msgstr "Group {0} deleted"
+
+msgid "Groups.edited"
+msgstr "Group {0} edited: {1}"
+
+msgid "Groups.reconciled"
+msgstr "Membership for group reconciled"
+
+msgid "GroupMembers.added"
+msgstr "Added {0} to group {1}"
+
+msgid "GroupMembers.added.nesting"
+msgstr "Added {0} to group {1} via nesting of group {2} ({3})"
+
+msgid "GroupMembers.deleted"
+msgstr "Removed {0} from group {1}"
+
+msgid "GroupMembers.deleted.nesting"
+msgstr "Removed {0} from group {1} via nesting of group {2} ({3})"
+
+msgid "GroupMembers.edited"
+msgstr "Membership for {0} in group {1} edited: {2}"
+
+msgid "GroupOwners.added"
+msgstr "Added {0} as an owner of group {1}"
+
+msgid "GroupOwners.deleted"
+msgstr "Removed {0} as an owner of group {1}"
+
 msgid "saved"
 msgstr "Saved"
 

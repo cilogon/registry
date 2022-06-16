@@ -137,7 +137,7 @@ class ChangelogBehavior extends Behavior
       $actor = substr($actor, 0, 256);
     }
     
-    if(empty($entity->id)) {
+    if($entity->isNew()) {
       // This is an add, just set default metadata
       
       LogBehavior::strace($alias, 'Changelog setting default changelog metadata on add');

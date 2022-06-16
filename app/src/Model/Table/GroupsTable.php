@@ -1,0 +1,573 @@
+<?php
+/**
+ * COmanage Registry Groups Table
+ *
+ * Portions licensed to the University Corporation for Advanced Internet
+ * Development, Inc. ("UCAID") under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * UCAID licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
+ * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+declare(strict_types = 1);
+
+namespace App\Model\Table;
+
+use Cake\ORM\Query;
+use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
+use Cake\Validation\Validator;
+use \App\Lib\Util\PaginatedSqlIterator;
+use \App\Lib\Enum\ActionEnum;
+use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\SuspendableStatusEnum;
+
+class GroupsTable extends Table {
+  use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
+  use \App\Lib\Traits\PermissionsTrait;
+  use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\ValidationTrait;
+  
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array  $config Configuration options passed to constructor
+   */
+  
+  public function initialize(array $config): void {
+    // Timestamp behavior handles created/modified updates
+    $this->addBehavior('Changelog');
+    $this->addBehavior('Log');
+    $this->addBehavior('Timestamp');
+    
+    // Groups are not configuration
+    $this->setIsConfigurationTable(false);
+    
+    // Define associations
+    $this->belongsTo('Cos');
+    $this->belongsTo('Cous');
+    
+    $this->hasMany('GroupMembers')
+         ->setDependent(true);
+    $this->hasMany('GroupNestings')
+         ->setDependent(true);
+    $this->hasMany('GroupOwners')
+         ->setDependent(true);
+    $this->hasMany('HistoryRecords')
+         ->setDependent(true);
+    $this->hasMany('Identifiers')
+         ->setDependent(true);
+    
+    $this->setDisplayField('name');
+    
+    $this->setPrimaryLink('co_id');
+    $this->setAllowLookupPrimaryLink(['reconcile']);
+    $this->setRequiresCO(true);
+    
+    $this->setAutoViewVars([
+      'statuses' => [
+        'type' => 'enum',
+        'class' => 'SuspendableStatusEnum'
+      ]
+    ]);
+    
+    $this->setPermissions([
+// XXX update for couAdmins, etc
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>     ['platformAdmin', 'coAdmin'],
+        'edit' =>       ['platformAdmin', 'coAdmin'],
+        'reconcile' =>  ['platformAdmin', 'coAdmin'],
+        'view' =>       ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>    ['reconcile'],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ],
+      // Related models whose permissions we'll need, typically for table views
+      'related' => [
+// XXX As a first pass, this (combined with the implementation in AppController::calculatePermissions)
+//     will render a link to group-members?group_id=X for all groups in the index view
+//     groups?co_id=2. This may or may not be right in the long term, eg for private
+//     groups. Maybe it's OK for now, since all groups are visible to all members of the CO.
+        'GroupMembers',
+        'GroupNestings',
+        'GroupOwners',
+        'HistoryRecords',
+        'Identifiers'
+      ]
+    ]);
+  }
+  
+  /**
+   * Add the system groups for a CO or COU. (AR-CO-6, AR-COU-4)
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int   $coId    CO ID
+   * @param  int   $couId   COU ID
+   * @param  bool  $rename  If true, rename any existing groups
+   * @return bool           True on success
+   * @throws InvalidArgumentException
+   * @throws RuntimeException
+   * @throws PersistenceFailedException
+   */
+
+  public function addDefaults(int $coId, int $couId=null, bool $rename=false): bool {
+    // Pull the name of the CO/COU
+    
+    $Cos = TableRegistry::getTableLocator()->get('Cos');
+    
+    try {
+      $co = $Cos->get($coId);
+    }
+    catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
+      throw new \InvalidArgumentException(__d('error', __d('controller', 'Cos', [1])));
+    }
+    
+    $couName = null;
+
+    if($couId) {
+      $Cous = TableRegistry::getTableLocator()->get('Cous');
+      
+      try {
+        $cou = $Cous->get($couId);
+      }
+      catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
+        throw new \InvalidArgumentException(__d('error', 'notfound', [__d('controller', 'Cous', [1])]));
+      }
+      
+      $couName = $cou->name;
+    }
+    
+    // The names get prefixed "CO" or "CO:COU:<couname>", as appropriate
+    
+    $defaultGroups = [
+      ':admins' => [
+        'group_type'  => GroupTypeEnum::Admins,
+        'auto'        => false,
+        'description' => __d('field', 'Groups.desc.admins', [$couName ?: $co->name]),
+        'open'        => false,
+        'status'      => SuspendableStatusEnum::Active,
+        'cou_id'      => ($couId ?: null)
+      ],
+      ':members:active' => [
+        'group_type'  => GroupTypeEnum::ActiveMembers,
+        'auto'        => true,
+        'description' => __d('field', 'Groups.desc.members.active', [$couName ?: $co->name]),
+        'open'        => false,
+        'status'      => SuspendableStatusEnum::Active,
+        'cou_id'      => ($couId ?: null)
+      ],
+      ':members:all' => [
+        'group_type'  => GroupTypeEnum::AllMembers,
+        'auto'        => true,
+        'description' => __d('field', 'Groups.desc.members', [$couName ?: $co->name]),
+        'open'        => false,
+        'status'      => SuspendableStatusEnum::Active,
+        'cou_id'      => ($couId ?: null)
+      ],
+    ];
+    
+    foreach($defaultGroups as $suffix => $attrs) {
+      // Construct the full group name
+      $gname = "CO" . ($couName ? ":COU:".$couName : "") . $suffix;
+
+      // See if there is already a group with this type for this CO
+      
+      $grp = $this->find()
+                  ->where([
+                    'Groups.co_id'      => $coId,
+                    'Groups.group_type' => $attrs['group_type'],
+                    'Groups.cou_id IS'  => $couId ?: null
+                  ])
+                  ->first();
+      
+      if(!$grp) {
+        // No existing group, create a new one
+        
+        $entity = $this->newEntity($attrs);
+        $entity->co_id = $coId;
+        $entity->name = $gname;
+        
+        if(!$this->save($entity)) {
+          throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
+        }
+      } elseif($rename) {
+        // We already have an entity, so just update the fields we need to change
+        $grp->name = $gname;
+        $grp->description = $attrs['description'];
+        
+        if(!$this->save($grp)) {
+          throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
+        }
+      }
+    }
+
+    return true;
+  }
+  
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-Group-1 Two Groups within the same CO cannot share the same name
+    $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Groups', [1])])));
+    
+    // AR-Group-2 A Group cannot be set to Suspended if it is nested into a
+    // Target Group or is a Target Group for a nesting. This and AR-Group-3
+    // are to avoid unexpected consequences from implicitly undoing anesting...
+    // the administrator must do that first.
+    $rules->addUpdate([$this, 'ruleIsNested'],
+                       'isNestedUpdate',
+                       ['errorField' => 'status']);
+    
+    // AR-Group-3 A Group cannot be deleted if it is nested into a Target Group
+    // or is a Target Group for a nesting
+    $rules->addDelete([$this, 'ruleIsNested'],
+                       'isNestedDelete',
+                       ['errorField' => 'status']);
+    
+    return $rules;
+  }
+  
+  /**
+   * Obtain an iterator for all members of the requested Group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int                  $id             Group ID
+   * @param  int                  $groupNestingId If provided, only members due to this Group Nesting ID
+   * @return PaginatedSqlIterator                 Iterator for GroupMembers
+   */
+  
+  public function getMembers(int $id, int $groupNestingId=null): PaginatedSqlIterator {
+    $conditions = [
+      'group_id' => $id,
+// XXX add check for valid_from/through and test
+//      'valid_from'
+//      'valid_through'
+    ];
+    
+    if($groupNestingId) {
+      $conditions['group_nesting_id'] = $groupNestingId;
+    }
+    
+    return new PaginatedSqlIterator($this->GroupMembers->getTarget(), $conditions);
+  }
+  
+  /**
+   * Get Members of this Group who are Members due to the specified Group
+   * Nesting ID.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int                  $id             Group ID
+   * @param  int                  $groupNestingId Group Nesting ID
+   * @return PaginatedSqlIterator                 Iterator for GroupMembers
+   */
+  
+  public function getMembersViaNesting(int $id, int $groupNestingId): PaginatedSqlIterator {
+    return $this->getMembers($id, $groupNestingId);
+  }
+  
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    if($entity->isNew()) {
+      $action = ActionEnum::GroupAdded;
+      $comment = __d('result', 'Groups.added', [$entity->name]);
+    } elseif($entity->get('deleted')) {
+      $action = ActionEnum::GroupDeleted;
+      $comment = __d('result', 'Groups.deleted', [$entity->name]);
+    } else {
+      $action = ActionEnum::GroupEdited;
+      $comment = __d('result', 'Groups.edited', [$entity->name, $this->changesToString($entity)]);
+    }
+    
+    $this->recordHistory($entity, $action, $comment);
+    
+    return true;
+  }
+  
+  /**
+   * Reconcile the members of an automatic or nested Group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id   Group ID
+   */
+  
+  public function reconcile(int $id) {
+    $group = $this->get($id);
+    
+    if($group->isAutomatic()) {
+      $this->reconcileAutomaticGroup($group);
+    } else {
+      $this->reconcileNestedMemberships($group);
+    }
+  }
+  
+  /**
+   * Reconcile the members of an automatic Group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EntityInterface $entity  Group
+   */
+  
+  protected function reconcileAutomaticGroup(\Cake\Datasource\EntityInterface $entity) {
+    // In order to handle very large groups, we can't pull the full set of
+    // members into memory. Instead, we use the paginated iterator. This
+    // involves two passes.
+    
+    // First, we pull the current members of the Group, and for each member
+    // make sure they are still eligible.
+    
+    $iterator = $this->getMembers($entity->id);
+    
+    foreach($iterator as $k => $groupMember) {
+      if(!empty($entity->cou_id)) {
+        if($entity->group_type == GroupTypeEnum::ActiveMembers) {
+          // If $groupMember is not an active member of cou_id, remove the membership
+          if(!$this->Cous->PersonRoles->hasActive($groupMember->person_id, $entity->cou_id)) {
+            $this->llog('rule', "AR-PersonRole-2 Reconciliation removing membership for Person ID " . $groupMember->person_id . " from Group ID " . $groupMember->group_id);
+            $this->GroupMembers->delete($groupMember);
+          }
+        } else {
+          // If $groupMember does not have any role in cou_id, remove the membership
+          if(!$this->Cous->PersonRoles->hasAny($groupMember->person_id, $entity->cou_id)) {
+            $this->llog('rule', "AR-PersonRole-1 Reconciliation removing membership for Person ID " . $groupMember->person_id . " from Group ID " . $groupMember->group_id);
+            $this->GroupMembers->delete($groupMember);
+          }
+        }
+      } else {
+        // Look at the Person record
+        $person = $this->GroupMembers->People->get($groupMember->person_id);
+        
+        if($entity->group_type == GroupTypeEnum::ActiveMembers) {
+          if(!$person || !$person->isActive()) {
+            $this->llog('rule', "AR-Person-2 Reconciliation removing membership for Person ID " . $groupMember->person_id . " from Group ID " . $groupMember->group_id);
+            $this->GroupMembers->delete($groupMember);
+          }
+        } else {
+          if(!$person || $person->status == StatusEnum::Deleted) {
+            $this->llog('rule', "AR-Person-1 Reconciliation removing membership for Person ID " . $groupMember->person_id . " from Group ID " . $groupMember->group_id);
+            $this->GroupMembers->delete($groupMember);
+          }
+        }
+      }
+    }
+    
+    // Second, we pull the members of the CO/COU and make sure they have the
+    // correlated membership.
+    
+    if(!empty($entity->cou_id)) {
+      // This won't return roles in Deleted status, but returns all others
+      $iterator = $this->Cous->PersonRoles->getMembers($entity->cou_id);
+      
+      foreach($iterator as $k => $personRole) {
+        if($entity->group_type == GroupTypeEnum::AllMembers
+           || $personRole->isActive()) {
+          // Check if the Person is already a member of the Group
+          if(!$this->GroupMembers->isMember($entity->id, $personRole->person_id)) {
+            // Add the membership
+            
+            $membership = [
+              'group_id'  => $entity->id,
+              'person_id' => $personRole->person_id
+            ];
+            
+            $gmEntity = $this->GroupMembers->newEntity($membership);
+            
+            $this->GroupMembers->saveOrFail($gmEntity);
+            $this->llog('rule', ($entity->group_type == GroupTypeEnum::AllMembers ? "AR-PersonRole-2" : "AR-PersonRole-1") . " Reconciliation added automatic membership for Person ID " . $personRole->person_id . " to Group ID " . $entity->id);
+          }
+        }
+      }
+    } else {
+      $iterator = $this->People->getMembers($entity->co_id);
+      
+      foreach($iterator as $k => $person) {
+        if($entity->group_type == GroupTypeEnum::AllMembers
+           || $person->isActive()) {
+          // Add the membership
+          
+          $membership = [
+            'group_id'  => $entity->id,
+            'person_id' => $person->id
+          ];
+          
+          $entity = $this->GroupMembers->newEntity($membership);
+          
+          $this->GroupMembers->saveOrFail($entity);
+          $this->llog('rule', ($entity->group_type == GroupTypeEnum::AllMembers ? "AR-Person-2" : "AR-Person-1") . " Reconciliation added automatic membership for Person ID " . $person->id . " to Group ID " . $entity->id);
+        }
+      }
+    }
+
+    return;
+  }
+  
+  /**
+   * Reconcile the members of a nested Group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EntityInterface $entity  Group
+   */
+  
+  protected function reconcileNestedMemberships(\Cake\Datasource\EntityInterface $entity) {
+    // When a new GroupNesting is saved, we're called on the _target_.
+
+    // Start by pulling the Group Nestings for this Group. We'll only go one level deep.
+    
+    $groupNestings = $this->GroupNestings->find()
+                          ->where(['GroupNestings.target_group_id' => $entity->id])
+                          ->all();
+    
+    // First iterate through the current members of the target group (who are
+    // members due to one of the nestings) and recheck their eligibility. This
+    // will remove anyone who is no longer eligible.
+    
+    // We convert $groupNestings to an array for the outer loop to ensure we don't
+    // have conflicts with the next loop
+    foreach($groupNestings->toArray() as $groupNesting) {
+      $iterator = $this->getMembersViaNesting($groupNesting->target_group_id, $groupNesting->id);
+
+      foreach($iterator as $k => $targetGroupMember) {
+        $this->GroupMembers->syncNestedMembership($targetGroupMember->person_id,
+                                                  $entity);
+      }
+    }
+  
+    // Next, for each nesting iterate through the members of that nesting and
+    // recheck their eligibility. This will add in anyone who is now eligible.
+    // (We do this second since the first iteration might shrink the population
+    // to check here.)
+    
+    foreach($groupNestings->toArray() as $groupNesting) {
+      $iterator = $this->getMembers($groupNesting->group_id);
+      
+      foreach($iterator as $k => $sourceGroupMember) {
+        $this->GroupMembers->syncNestedMembership($sourceGroupMember->person_id,
+                                                  $entity);
+      }
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Application Rule to determine if the group is nested.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleIsNested($entity, $options) {
+    // We check that the subject group is either a source or a target, but
+    // only if the $entity status is Suspended.
+    
+    if($entity->status == SuspendableStatusEnum::Suspended) {
+      $count = $this->GroupNestings->find('all')
+                                   ->where([
+                                     'OR' => [
+                                       'GroupNestings.group_id' => $entity->id,
+                                       'GroupNestings.target_group_id' => $entity->id
+                                     ]
+                                   ])
+                                   ->count();
+      
+      if($count > 0) {
+        return __d('error', 'Groups.nested');
+      }
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Set validation rules.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Validator $validator Validator
+   * @return Validator            Validator
+   */
+  
+  public function validationDefault(Validator $validator): Validator {
+    $schema = $this->getSchema();
+    
+    $validator->add('co_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->notEmptyString('co_id');
+    
+    $validator->add('cou_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('cou_id');
+    
+    $this->registerStringValidation($validator, $schema, 'name', true);
+    
+    $this->registerStringValidation($validator, $schema, 'description', false);
+    
+    $validator->add('open', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('open');
+    
+    $validator->add('status', [
+      'content' => ['rule' => ['inList', SuspendableStatusEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('status');
+    
+    $validator->add('group_type', [
+      'content' => ['rule' => ['inList', GroupTypeEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('group_type');
+    
+    $validator->add('nesting_mode_all', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('nesting_mode_all');
+    
+    return $validator; 
+  }
+}

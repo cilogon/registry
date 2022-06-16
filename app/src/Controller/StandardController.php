@@ -66,7 +66,9 @@ class StandardController extends AppController {
         
         if(!empty($errors)) {
           $this->Flash->error(__d('error', 'fields', [ implode(',', 
-                                                                 array_map(function($v) { return __d('field', $v); },
+                                                                 array_map(function($v) use ($errors) { 
+                                                                             return __d('error', 'flash', [$v, implode(',', array_values($errors[$v]))]);
+                                                                           },
                                                                            array_keys($errors))) ]));
         } else {
           $this->Flash->error(__d('error', 'save', [$modelsName]));
@@ -288,7 +290,9 @@ class StandardController extends AppController {
         
         if(!empty($errors)) {
           $this->Flash->error(__d('error', 'fields', [ implode(',', 
-                                                                 array_map(function($v) { return __d('field', $v); },
+                                                                 array_map(function($v) use ($errors) { 
+                                                                             return __d('error', 'flash', [$v, implode(',', array_values($errors[$v]))]);
+                                                                           },
                                                                            array_keys($errors))) ]));
         } else {
           $this->Flash->error(__d('error', 'save', [$modelsName]));

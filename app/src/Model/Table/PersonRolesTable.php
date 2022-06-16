@@ -33,17 +33,37 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Util\PaginatedSqlIterator;
 
 class PersonRolesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
+  
+  // Default "out of the box" types for this model. Entries here should be
+  // given a default localization in app/resources/locales/*/defaultType.po
+  protected $defaultTypes = [
+    'affiliation' => [
+      'affiliate',
+      'alum',
+      'employee',
+      'faculty',
+      'librarywalkin',
+      'member',
+      'staff',
+      'student'
+    ]
+  ];
   
   /**
    * Perform Cake Model initialization.
@@ -57,6 +77,7 @@ class PersonRolesTable extends Table {
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
+    $this->addBehavior('Timezone');
     
     // Person Roles are not configuration
     $this->setIsConfigurationTable(false);
@@ -159,6 +180,204 @@ class PersonRolesTable extends Table {
     
     return (string)$entity->id;
   }
+  
+  /**
+   * Obtain an iterator for the set of Members in the specified COU.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int                  $couId  COU ID
+   * @return PaginatedSqlIterator         Iterator for Person Roles
+   */
+  
+  public function getMembers(int $couId): PaginatedSqlIterator {
+    // We don't explicitly look at valid from/through, instead we expect that
+    // Expiration Policies will correctly set status.
+    $conditions = [
+      'cou_id' => $couId,
+      'status IS NOT' => StatusEnum::Deleted
+    ];
+    
+    return new PaginatedSqlIterator($this, $conditions);
+  }
+  
+  /**
+   * Determine if the specified Person has a valid Person Role in the specified
+   * COU. Note this function only looks at status, not validity dates.
+   * 
+   * @param  int  $personId Person ID
+   * @param  int  $couId    COU ID
+   * @return bool           True if the Person has at least one active Person Role, false otherwise
+   */
+  
+  public function hasActive(int $personId, int $couId): bool {
+    // We return true if the Person has at least one active Role in the
+    // specified COU. We ignore validity dates, expecting instead that
+    // expiration policies will correctly update the Role status as needed.
+    
+    // We need to examine the status of all roles in the COU, not just the current
+    // one, to see if the person is eligible for the relevant members group.
+    
+    $roles = $this->find('all')
+                  ->where(['person_id'  => $personId,
+                           'cou_id'     => $couId])
+                  ->all();
+    
+    foreach($roles as $role) {
+      // Any one active role is sufficient
+      
+      if($role->isActive()) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Determine if the specified Person has any Person Role in the specified COU.
+   * 
+   * @param  int  $personId Person ID
+   * @param  int  $couId    COU ID
+   * @return bool           True if the Person has at least one Person Role, false otherwise
+   */
+  
+  public function hasAny(int $personId, int $couId): bool {
+    // We return true if the Person has at least one Role in the specified COU,
+    // regardless of status.
+    
+    // We need to examine the status of any roles returned since a Deleted Role
+    // does not count as "Any" Role.
+    
+    $roles = $this->find('all')
+                  ->where(['person_id'  => $personId,
+                           'cou_id'     => $couId])
+                  ->all();
+    
+    if(empty($roles)) {
+      return false;
+    }
+    
+    foreach($roles as $role) {
+      // Any non-deleted role is sufficient
+      if($role->status != StatusEnum::Deleted) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    $this->recordHistory($entity);
+    
+    $this->reconcileCouMembersGroupMemberships($entity);
+    
+    return true;
+  }
+  
+  /**
+   * Reconcile memberships in COU members groups based on the
+   * PersonRole(s) for a Person and the COU(s) for those roles.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EntityInterface  $entity         PersonRole Entity
+   * @param  bool             $provision      Whether to run provisioners
+   * @param  bool             $personActive   If false, role is not eligible for Active Members Group
+   * @throws InvalidArgumentException
+   * @throws RuntimeException
+   */
+
+  public function reconcileCouMembersGroupMemberships(\Cake\Datasource\EntityInterface $entity, bool $provision=true, bool $personActive=true) {
+    // First see if there is a COU associated with this Role.
+    
+    if(!$entity->cou_id) {
+      if(!$entity->isNew()) {
+        // If we're going from a COU to no COU we need to remove the automatic
+        // group memberships (the inverse of below, where we go from no COU to
+        // having a COU)
+        
+        $oldCouId = $entity->getOriginal('cou_id');
+        
+        if($oldCouId) {
+          $this->llog('rule', "AR-PersonRole-1 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from All Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $oldCouId, $entity->person_id, false, $provision);
+          $this->llog('rule', "AR-PersonRole-2 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from Active Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $oldCouId, $entity->person_id, false, $provision);
+        }
+      }
+      
+      // Since there is no COU associated with this Person Role, there is
+      // nothing else to do
+      
+      return;
+    }
+    
+    if(!$entity->person_id) {
+      // We're probably deleting the CO
+      return;
+    }
+    
+    // We need to examine the status of all roles in the COU, not just the current
+    // one, to see if the person is eligible for the relevant members group.
+    
+    $roles = $this->find('all')
+                  ->where(['person_id'  => $entity->person_id,
+                           'cou_id'     => $entity->cou_id])
+                  ->all();
+    
+    // For $activeEligible, we need at least one active role
+    $activeRole = false;
+    
+    // For $allEligible, we need at least one role not Deleted
+    $allEligible = false;
+    
+    foreach($roles as $role) {
+      if($role->isActive()) {
+        $activeRole = true;
+      }
+      
+      if($role->status != StatusEnum::Deleted) {
+        $allEligible = true;
+      }
+    }
+    
+    $activeEligible = $personActive && $activeRole;
+    
+    // Create or remove memberships for the Active and All groups for this COU.
+    
+    $this->llog('rule', "AR-PersonRole-1 Syncing membership in All Members Group for COU " . $entity->cou_id . " for PersonRole " . $entity->id . " (Person " . $entity->person_id . "), eligibility=" . $allEligible);
+    $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $entity->cou_id, $entity->person_id, $allEligible, $provision);
+    $this->llog('rule', "AR-PersonRole-2 Syncing membership in Active Members Group for COU " . $entity->cou_id . " for PersonRole " . $entity->id . " (Person " . $entity->person_id . "), eligibility=" . $activeEligible);
+    $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $entity->cou_id, $entity->person_id, $activeEligible, $provision);
+    
+    if(!$entity->isNew()) {
+      // Remove group memberships if the COU ID (PersonRole moved) or Person ID
+      // (PersonRole relinked) has changed.
+      
+      if($entity->get('cou_id') !== $entity->getOriginal('cou_id')) {
+        // We must have a COU ID, since we checked above for the case where we don't
+        $oldCouId = $entity->getOriginal('cou_id');
+        
+        if($oldCouId) {
+          $this->llog('rule', "AR-PersonRole-1 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from All Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $oldCouId, $entity->person_id, false, $provision);
+          $this->llog('rule', "AR-PersonRole-1 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from All Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $oldCouId, $entity->person_id, false, $provision);
+        }
+        // else no prior COU ID, nothing to do
+      }
+    }
+  }  
   
   /**
    * Set validation rules.

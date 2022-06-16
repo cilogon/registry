@@ -44,6 +44,10 @@ class TimezoneBehavior extends Behavior
   
   /**
    * Convert timestamps to UTC for database saves prior to data marshaling.
+   * The expectation is this will only be functional for the UI, where $this->tz
+   * is set. (The API is expected to provide times in UTC.) For rendering,
+   * FieldHelper::control() and Standard index.php will adjust back to the local
+   * timezone.
    *
    * @since  COmanage Registry v5.0.0
    * @param  Event       $event   beforeMarshal event

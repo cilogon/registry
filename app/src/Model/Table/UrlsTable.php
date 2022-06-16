@@ -34,6 +34,7 @@ use Cake\Validation\Validator;
 
 class UrlsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -110,7 +111,7 @@ class UrlsTable extends Table {
    * @return bool                     True on success
    */
     
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
     $this->recordHistory($entity);
     
     return true;

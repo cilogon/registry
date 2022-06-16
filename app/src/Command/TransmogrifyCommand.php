@@ -163,6 +163,46 @@ class TransmogrifyCommand extends Command {
       'postRow' => 'split_external_identity',
       'cache' => [ 'person_id' ]
     ],
+    'groups' => [
+      'source' => 'cm_co_groups',
+      'displayField' => 'name',
+      'cache' => [ 'co_id' ],
+      'booleans' => [ 'nesting_mode_all', 'open' ],
+      'fieldMap' => [
+        // auto is implied by group_type
+        'auto' => null,
+        // Rename the changelog key
+        'co_group_id' => 'group_id'
+      ]
+    ],
+    'group_nestings' => [
+      'source' => 'cm_co_group_nestings',
+      'displayField' => 'id',
+      'booleans' => [ 'negate' ],
+      'fieldMap' => [
+        'co_group_id' => 'group_id',
+        'target_co_group_id' => 'target_group_id',
+        // Rename the changelog key
+        'co_group_nesting_id' => 'group_nesting_id'
+      ]
+    ],
+    'group_members' => [
+      'source' => 'cm_co_group_members',
+      'displayField' => 'id',
+      'booleans' => [ 'member', 'owner' ],
+      'fieldMap' => [
+        'co_group_id' => 'group_id',
+        'co_person_id' => 'person_id',
+        'member' => null,
+        'owner' => null,
+        'co_group_nesting_id' => 'group_nesting_id',
+        // Rename the changelog key
+        'co_group_member_id' => 'group_member_id',
+        // Temporary until implemented
+        'source_org_identity_id' => null
+      ],
+      'preRow' => 'check_group_memberships'
+    ],
     'names' => [
       'source' => 'cm_names',
       'displayField' => 'id',
@@ -219,13 +259,13 @@ class TransmogrifyCommand extends Command {
       'displayField' => 'id',
       'booleans' => [ 'login' ],
       'fieldMap' => [
+        'co_group_id' => 'group_id',
         'co_person_id' => 'person_id',
         'org_identity_id' => 'external_identity_id',
         'type_id' => '&map_identifier_type',
         'type' => null,
 // XXX temporary until tables are migrated
         'co_department_id' => null,
-        'co_group_id' => null,
         'co_provisioning_target_id' => null,
         'organization_id' => null
       ]
@@ -260,12 +300,12 @@ class TransmogrifyCommand extends Command {
       'source' => 'cm_history_records',
       'displayField' => 'id',
       'fieldMap' => [
-        'co_person_id' => 'person_id',
-        'org_identity_id' => 'external_identity_id',
         'actor_co_person_id' => 'actor_person_id',
+        'co_person_id' => 'person_id',
         'co_person_role_id' => 'person_role_id',
+        'co_group_id' => 'group_id',
+        'org_identity_id' => 'external_identity_id',
 // XXX temporary until tables are migrated
-        'co_group_id' => null,
         'co_email_list_id' => null,
         'co_service_id' => null
       ]
@@ -325,6 +365,39 @@ class TransmogrifyCommand extends Command {
           $this->cache[$table]['id'][ $row['id'] ][$field] = $row[$field];
         }
       }
+    }
+  }
+  
+  /**
+   * Check if a group membership is actually asserted.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $origRow Row of table data (original data)
+   * @param  array $row     Row of table data (post fixes)
+   * @throws InvalidArgumentException
+   */
+  
+  protected function check_group_memberships(array $origRow, array $row) {
+    if($row['owner'] && !$row['deleted'] && !$row['co_group_member_id']) {
+      // Insert a GroupOwner row for this record. Note we ignore valid from and
+      // through for this. We also ignore non-current changelog records.
+      
+      $ownerRow = [
+        'group_id' => $origRow['co_group_id'],
+        'person_id' => $origRow['co_person_id'],
+        'created' => $origRow['created'],
+        'modified' => $origRow['modified'],
+        'group_owner_id' => null,
+        'revision' => 0,
+        'deleted' => 'f',
+        'actor_identifier' => $origRow['actor_identifier']
+      ];
+      
+      $this->outconn->insert('group_owners', $ownerRow);
+    }
+    
+    if(!$row['member']) {
+      throw new \InvalidArgumentException('member not set on GroupMember');
     }
   }
   
@@ -417,6 +490,14 @@ class TransmogrifyCommand extends Command {
           // Make a copy of the original data for any post processing followups
           $origRow = $row;
           
+          // Run any pre processing functions for the row.
+          
+          if(!empty($this->tables[$t]['preRow'])) {
+            $p = $this->tables[$t]['preRow'];
+            
+            $this->$p($origRow, $row);
+          }
+          
           // Do this before fixBooleans since we'll insert some
           $this->fixChangelog($t, $row, isset($this->tables[$t]['addChangelog']) && $this->tables[$t]['addChangelog']);
           
@@ -505,6 +586,10 @@ class TransmogrifyCommand extends Command {
           return $this->cache['people']['id'][ $personId ]['co_id'];
         }
       }
+    } elseif(!empty($row['group_id'])) {
+      if(isset($this->cache['groups']['id'][ $row['group_id'] ]['co_id'])) {
+        return $this->cache['groups']['id'][ $row['group_id'] ]['co_id'];
+      }
     }
     
     throw new \InvalidArgumentException('CO not found for record');
@@ -538,7 +623,7 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
-   * Populate empty Changelog data from legacy records, and handle table renames.
+   * Populate empty Changelog data from legacy records
    *
    * @since  COmanage Registry v5.0.0
    * @param  string $table Table Name
@@ -581,6 +666,7 @@ class TransmogrifyCommand extends Command {
    *
    * @since  COmanage Registry v5.0.0
    */
+  
   protected function insertDefaultSettings() {
     // Create a CoSetting for any CO that didn't previously have one.
     
@@ -958,8 +1044,8 @@ class TransmogrifyCommand extends Command {
     $roleRow['affiliation_type_id'] = $this->map_affiliation_type($row);
     
     // Fix up changelog
-    $roleRow['external_identity_role_id'] = $origRow['org_identity_id'];
-    unset($roleRow['org_identity_id']);
+    // Since we're creating a new row, we have to manually fix up booleans
+    $roleRow['deleted'] = ($roleRow['deleted'] ? 't' : 'f');
     
     $this->outconn->insert('external_identity_roles', $roleRow);
   }
