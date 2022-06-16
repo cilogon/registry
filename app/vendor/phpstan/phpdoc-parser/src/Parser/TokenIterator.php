@@ -3,6 +3,11 @@
 namespace PHPStan\PhpDocParser\Parser;
 
 use PHPStan\PhpDocParser\Lexer\Lexer;
+use function array_pop;
+use function assert;
+use function count;
+use function in_array;
+use function strlen;
 
 class TokenIterator
 {
@@ -71,8 +76,7 @@ class TokenIterator
 
 
 	/**
-	 * @param  int $tokenType
-	 * @throws \PHPStan\PhpDocParser\Parser\ParserException
+	 * @throws ParserException
 	 */
 	public function consumeTokenType(int $tokenType): void
 	{
@@ -90,6 +94,26 @@ class TokenIterator
 	}
 
 
+	/**
+	 * @throws ParserException
+	 */
+	public function consumeTokenValue(int $tokenType, string $tokenValue): void
+	{
+		if ($this->tokens[$this->index][Lexer::TYPE_OFFSET] !== $tokenType || $this->tokens[$this->index][Lexer::VALUE_OFFSET] !== $tokenValue) {
+			$this->throwError($tokenType, $tokenValue);
+		}
+
+		$this->index++;
+
+		if (($this->tokens[$this->index][Lexer::TYPE_OFFSET] ?? -1) !== Lexer::TOKEN_HORIZONTAL_WS) {
+			return;
+		}
+
+		$this->index++;
+	}
+
+
+	/** @phpstan-impure */
 	public function tryConsumeTokenValue(string $tokenValue): bool
 	{
 		if ($this->tokens[$this->index][Lexer::VALUE_OFFSET] !== $tokenValue) {
@@ -106,6 +130,7 @@ class TokenIterator
 	}
 
 
+	/** @phpstan-impure */
 	public function tryConsumeTokenType(int $tokenType): bool
 	{
 		if ($this->tokens[$this->index][Lexer::TYPE_OFFSET] !== $tokenType) {
@@ -124,7 +149,7 @@ class TokenIterator
 
 	public function getSkippedHorizontalWhiteSpaceIfAny(): string
 	{
-		if ($this->tokens[$this->index - 1][Lexer::TYPE_OFFSET] === Lexer::TOKEN_HORIZONTAL_WS) {
+		if ($this->index > 0 && $this->tokens[$this->index - 1][Lexer::TYPE_OFFSET] === Lexer::TOKEN_HORIZONTAL_WS) {
 			return $this->tokens[$this->index - 1][Lexer::VALUE_OFFSET];
 		}
 
@@ -132,6 +157,7 @@ class TokenIterator
 	}
 
 
+	/** @phpstan-impure */
 	public function joinUntil(int ...$tokenType): string
 	{
 		$s = '';
@@ -151,6 +177,13 @@ class TokenIterator
 		}
 
 		$this->index++;
+	}
+
+	/** @phpstan-impure */
+	public function forwardToTheEnd(): void
+	{
+		$lastToken = count($this->tokens) - 1;
+		$this->index = $lastToken;
 	}
 
 
@@ -175,16 +208,16 @@ class TokenIterator
 
 
 	/**
-	 * @param  int $expectedTokenType
-	 * @throws \PHPStan\PhpDocParser\Parser\ParserException
+	 * @throws ParserException
 	 */
-	private function throwError(int $expectedTokenType): void
+	private function throwError(int $expectedTokenType, ?string $expectedTokenValue = null): void
 	{
-		throw new \PHPStan\PhpDocParser\Parser\ParserException(
+		throw new ParserException(
 			$this->currentTokenValue(),
 			$this->currentTokenType(),
 			$this->currentTokenOffset(),
-			$expectedTokenType
+			$expectedTokenType,
+			$expectedTokenValue
 		);
 	}
 

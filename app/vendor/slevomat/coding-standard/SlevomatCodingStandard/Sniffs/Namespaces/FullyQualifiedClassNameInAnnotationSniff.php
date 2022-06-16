@@ -33,7 +33,6 @@ class FullyQualifiedClassNameInAnnotationSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $docCommentOpenPointer
 	 */
 	public function process(File $phpcsFile, $docCommentOpenPointer): void
@@ -59,7 +58,7 @@ class FullyQualifiedClassNameInAnnotationSniff implements Sniff
 							TypeHintHelper::isSimpleTypeHint($lowercasedTypeHint)
 							|| TypeHintHelper::isSimpleUnofficialTypeHints($lowercasedTypeHint)
 							|| !TypeHelper::isTypeName($typeHint)
-							|| TypeHintHelper::isTemplate($phpcsFile, $docCommentOpenPointer, $typeHint)
+							|| TypeHintHelper::isTypeDefinedInAnnotation($phpcsFile, $docCommentOpenPointer, $typeHint)
 						) {
 							continue;
 						}

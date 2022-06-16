@@ -14,7 +14,9 @@ use function sprintf;
 use function substr;
 use function trim;
 use const T_AS;
+use const T_ATTRIBUTE;
 use const T_CLOSURE;
+use const T_COALESCE_EQUAL;
 use const T_COMMENT;
 use const T_DOC_COMMENT_OPEN_TAG;
 use const T_EQUAL;
@@ -58,7 +60,6 @@ class InlineDocCommentDeclarationSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $commentOpenPointer
 	 */
 	public function process(File $phpcsFile, $commentOpenPointer): void
@@ -71,6 +72,17 @@ class InlineDocCommentDeclarationSniff implements Sniff
 
 		$pointerAfterCommentClosePointer = TokenHelper::findNextEffective($phpcsFile, $commentClosePointer + 1);
 		if ($pointerAfterCommentClosePointer !== null) {
+			do {
+				if ($tokens[$pointerAfterCommentClosePointer]['code'] !== T_ATTRIBUTE) {
+					break;
+				}
+
+				$pointerAfterCommentClosePointer = TokenHelper::findNextEffective(
+					$phpcsFile,
+					$tokens[$pointerAfterCommentClosePointer]['attribute_closer'] + 1
+				);
+			} while (true);
+
 			if (in_array($tokens[$pointerAfterCommentClosePointer]['code'], [T_PRIVATE, T_PROTECTED, T_PUBLIC], true)) {
 				return;
 			}
@@ -161,7 +173,9 @@ class InlineDocCommentDeclarationSniff implements Sniff
 					$commentOpenPointer,
 					sprintf(
 						'%s @var %s %s%s */',
-						$tokens[$commentOpenPointer]['code'] === T_DOC_COMMENT_OPEN_TAG ? '/**' : '/*',
+						$tokens[$commentOpenPointer]['code'] === T_DOC_COMMENT_OPEN_TAG
+							? '/**'
+							: '/*',
 						$matches[2],
 						$matches[1],
 						$matches[3] ?? ''
@@ -305,7 +319,7 @@ class InlineDocCommentDeclarationSniff implements Sniff
 				}
 
 				if ($tokens[$codePointer]['code'] === T_VARIABLE) {
-					if (!$this->isAssignment($phpcsFile, $codePointer)) {
+					if ($tokens[$codePointer]['content'] !== '$this' && !$this->isAssignment($phpcsFile, $codePointer)) {
 						if ($tryNo === 2) {
 							$phpcsFile->addError(...$noAssignmentErrorParameters);
 						}
@@ -444,7 +458,7 @@ class InlineDocCommentDeclarationSniff implements Sniff
 			return $tokens[$pointerBeforeVariable]['code'] === T_STATIC;
 		}
 
-		return $tokens[$pointerAfterVariable]['code'] === T_EQUAL;
+		return in_array($tokens[$pointerAfterVariable]['code'], [T_EQUAL, T_COALESCE_EQUAL], true);
 	}
 
 }

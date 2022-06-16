@@ -245,7 +245,7 @@ class DatabaseCommand extends Command {
     $toSql = $schema->toSql($conn->getDatabasePlatform());
     
     // SchemaManager provides info about the database
-    $sm = $conn->getSchemaManager();
+    $sm = $conn->createSchemaManager();
     
     // The is the current database representation
     $curSchema = $sm->createSchema();
@@ -262,7 +262,7 @@ class DatabaseCommand extends Command {
       // schema file).
 //      $diffSql = $curSchema->getMigrateToSql($schema, $conn->getDatabasePlatform());
       $comparator = new Comparator();
-      $schemaDiff = $comparator->compare($curSchema, $schema);
+      $schemaDiff = $comparator->compareSchemas($curSchema, $schema);
       
       $diffSql = $schemaDiff->toSaveSql($conn->getDatabasePlatform());
       
@@ -282,7 +282,7 @@ class DatabaseCommand extends Command {
           $io->out("Skipping sequence drop");
         } else {
           if($doSQL) {
-            $stmt = $conn->query($sql);
+            $stmt = $conn->executeQuery($sql);
             // $stmt just returns the query string so we don't bother examining it
           }
         }

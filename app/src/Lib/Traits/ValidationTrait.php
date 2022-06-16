@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\Core\Configure;
+use Cake\Database\Schema\TableSchemaInterface;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
@@ -67,20 +68,34 @@ trait ValidationTrait {
    * Register validation rules for the provided field, as a string.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  Validator $validator Cake Validator
-   * @param  Schema    $schema    Cake Schema
-   * @param  string    $field     Field name
-   * @param  bool      $required  Whether this field is required
+   * @param  Validator            $validator Cake Validator
+   * @param  TableSchemaInterface $schema    Cake Schema
+   * @param  string               $field     Field name
+   * @param  bool                 $required  Whether this field is required
    * @return Validator            Cake Validator
    */
   
-  public function registerStringValidation(Validator $validator, $schema, string $field, bool $required): Validator {
-    $validator->add($field, [
+  public function registerStringValidation(Validator $validator,
+                                           TableSchemaInterface $schema,
+                                           string $field,
+                                           bool $required,
+                                           string $prefix = ''): Validator {
+    $rules = [
       'size'    => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn($field)]],
                     'provider' => 'table'],
       'filter'  => ['rule'     => ['validateInput'],
                     'provider' => 'table']
-    ]);
+    ];
+
+    if(!empty($prefix)) {
+      $rules['prefix'] = [
+        'rule'     => ['validatePrefix'],
+        'pass'     => [$prefix],
+        'provider' => 'table'
+      ];
+    }
+
+    $validator->add($field, $rules);
     
     if($required) {
       $validator->notEmptyString($field);
@@ -299,6 +314,29 @@ trait ValidationTrait {
       return __d('error', 'input.invalid');
     }
     
+    return true;
+  }
+
+  /**
+   * Determine if a string submitted from a form has a valid prefix.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $value   Value to validate
+   * @param  string $prefix  Prefix value
+   * @param  array  $context Validation context
+   * @return mixed  True if $value validates, or an error string otherwise
+   */
+
+  public function validatePrefix(string $value, string $prefix, array $context) {
+    $coid   = $context['data']['co_id'] ?? '';
+    if($prefix === "co_id") {
+      $prefix = !empty($coid) ? "co_" . $coid . "." : "";
+    }
+
+    if (!preg_match('/^' . $prefix . '(?:.*)/m', $value)) {
+      return __d('error', 'input.invalid.prefix', [$prefix]);
+    }
+
     return true;
   }
 }

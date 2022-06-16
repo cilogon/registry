@@ -10,6 +10,7 @@ use SlevomatCodingStandard\Helpers\TypeHintHelper;
 use function array_merge;
 use function in_array;
 use function preg_match;
+use const T_ATTRIBUTE;
 use const T_DOC_COMMENT_OPEN_TAG;
 use const T_DOC_COMMENT_STAR;
 use const T_DOC_COMMENT_WHITESPACE;
@@ -32,7 +33,6 @@ class UselessInheritDocCommentSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $docCommentOpenPointer
 	 */
 	public function process(File $phpcsFile, $docCommentOpenPointer): void
@@ -52,14 +52,26 @@ class UselessInheritDocCommentSniff implements Sniff
 			return;
 		}
 
-		$docCommentOwnerPointer = TokenHelper::findNext(
-			$phpcsFile,
-			array_merge(TokenHelper::$functionTokenCodes, TokenHelper::getTypeHintTokenCodes()),
-			$tokens[$docCommentOpenPointer]['comment_closer'] + 1
-		);
-		if ($docCommentOwnerPointer === null) {
-			return;
-		}
+		$searchPointer = $tokens[$docCommentOpenPointer]['comment_closer'] + 1;
+		do {
+			$docCommentOwnerPointer = TokenHelper::findNext(
+				$phpcsFile,
+				array_merge(TokenHelper::$functionTokenCodes, TokenHelper::getTypeHintTokenCodes(), [T_ATTRIBUTE]),
+				$searchPointer
+			);
+
+			if ($docCommentOwnerPointer === null) {
+				return;
+			}
+
+			if ($tokens[$docCommentOwnerPointer]['code'] === T_ATTRIBUTE) {
+				$searchPointer = $tokens[$docCommentOwnerPointer]['attribute_closer'] + 1;
+				continue;
+			}
+
+			break;
+
+		} while (true);
 
 		if (in_array($tokens[$docCommentOwnerPointer]['code'], TokenHelper::$functionTokenCodes, true)) {
 			$returnTypeHint = FunctionHelper::findReturnTypeHint($phpcsFile, $docCommentOwnerPointer);
@@ -67,7 +79,7 @@ class UselessInheritDocCommentSniff implements Sniff
 				return;
 			}
 
-			if (TypeHintHelper::isSimpleIterableTypeHint($returnTypeHint->getTypeHint())) {
+			if (TypeHintHelper::isSimpleIterableTypeHint($returnTypeHint->getTypeHintWithoutNullabilitySymbol())) {
 				return;
 			}
 

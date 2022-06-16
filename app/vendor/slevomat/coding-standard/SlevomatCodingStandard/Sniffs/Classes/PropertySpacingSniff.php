@@ -3,6 +3,7 @@
 namespace SlevomatCodingStandard\Sniffs\Classes;
 
 use PHP_CodeSniffer\Files\File;
+use SlevomatCodingStandard\Helpers\PropertyHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 use function sprintf;
 use const T_AS;
@@ -30,7 +31,6 @@ class PropertySpacingSniff extends AbstractPropertyAndConstantSpacing
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $pointer
 	 */
 	public function process(File $phpcsFile, $pointer): int
@@ -43,7 +43,11 @@ class PropertySpacingSniff extends AbstractPropertyAndConstantSpacing
 		}
 
 		$propertyPointer = TokenHelper::findNext($phpcsFile, [T_VARIABLE, T_FUNCTION, T_CONST, T_USE], $pointer + 1);
-		if ($propertyPointer === null || $tokens[$propertyPointer]['code'] !== T_VARIABLE) {
+		if (
+			$propertyPointer === null
+			|| $tokens[$propertyPointer]['code'] !== T_VARIABLE
+			|| !PropertyHelper::isProperty($phpcsFile, $propertyPointer)
+		) {
 			return $propertyPointer ?? $pointer;
 		}
 
@@ -54,11 +58,7 @@ class PropertySpacingSniff extends AbstractPropertyAndConstantSpacing
 	{
 		$nextPointer = TokenHelper::findNext($phpcsFile, [T_FUNCTION, T_VARIABLE], $pointer + 1);
 
-		if ($nextPointer === null) {
-			return false;
-		}
-
-		return $phpcsFile->getTokens()[$nextPointer]['code'] === T_VARIABLE;
+		return $nextPointer !== null && $phpcsFile->getTokens()[$nextPointer]['code'] === T_VARIABLE;
 	}
 
 	protected function addError(File $phpcsFile, int $pointer, int $minExpectedLines, int $maxExpectedLines, int $found): bool

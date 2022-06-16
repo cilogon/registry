@@ -57,6 +57,7 @@ class TestCommand extends BakeCommand
         'Form' => 'Form',
         'Mailer' => 'Mailer',
         'Command' => 'Command',
+        'CommandHelper' => 'Command\Helper',
     ];
 
     /**
@@ -78,6 +79,7 @@ class TestCommand extends BakeCommand
         'Form' => 'Form',
         'Mailer' => 'Mailer',
         'Command' => 'Command',
+        'CommandHelper' => 'Helper',
     ];
 
     /**
@@ -414,6 +416,7 @@ class TestCommand extends BakeCommand
      *
      * @param string $className Name of class to look at.
      * @return string[] Array of method names.
+     * @throws \ReflectionException
      */
     public function getTestableMethods(string $className): array
     {
@@ -448,6 +451,7 @@ class TestCommand extends BakeCommand
             $this->_processController($subject);
         }
 
+        /** @psalm-suppress RedundantFunctionCall */
         return array_values($this->_fixtures);
     }
 
@@ -576,7 +580,7 @@ class TestCommand extends BakeCommand
             $pre .= "        \$this->response = \$this->getMockBuilder('Cake\Http\Response')->getMock();";
             $construct = "new {$className}(\$this->request, \$this->response);";
         }
-        if ($type === 'ShellHelper') {
+        if ($type === 'ShellHelper' || $type === 'CommandHelper') {
             $pre = "\$this->stub = new ConsoleOutput();\n";
             $pre .= '        $this->io = new ConsoleIo($this->stub);';
             $construct = "new {$className}(\$this->io);";
@@ -626,6 +630,7 @@ class TestCommand extends BakeCommand
                 ];
                 break;
 
+            case 'CommandHelper':
             case 'ShellHelper':
                 $properties[] = [
                     'description' => 'ConsoleOutput stub',
@@ -667,7 +672,7 @@ class TestCommand extends BakeCommand
         if ($type === 'Helper') {
             $uses[] = 'Cake\View\View';
         }
-        if ($type === 'ShellHelper') {
+        if ($type === 'ShellHelper' || $type === 'CommandHelper') {
             $uses[] = 'Cake\TestSuite\Stub\ConsoleOutput';
             $uses[] = 'Cake\Console\ConsoleIo';
         }

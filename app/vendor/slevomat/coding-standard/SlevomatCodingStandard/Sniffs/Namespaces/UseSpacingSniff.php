@@ -15,6 +15,7 @@ use function array_values;
 use function count;
 use function in_array;
 use function sprintf;
+use const T_DOC_COMMENT_OPEN_TAG;
 use const T_OPEN_TAG;
 use const T_SEMICOLON;
 use const T_WHITESPACE;
@@ -47,9 +48,7 @@ class UseSpacingSniff implements Sniff
 	}
 
 	/**
-	 * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $openTagPointer
 	 */
 	public function process(File $phpcsFile, $openTagPointer): void
@@ -102,8 +101,9 @@ class UseSpacingSniff implements Sniff
 
 		$fix = $phpcsFile->addFixableError(
 			sprintf(
-				'Expected %d lines before first use statement, found %d.',
+				'Expected %d line%s before first use statement, found %d.',
 				$requiredLinesCountBeforeFirstUse,
+				$requiredLinesCountBeforeFirstUse === 1 ? '' : 's',
 				$actualLinesCountBeforeFirstUse
 			),
 			$firstUse->getPointer(),
@@ -143,14 +143,13 @@ class UseSpacingSniff implements Sniff
 
 		if (
 			in_array($tokens[$pointerAfterWhitespaceEnd]['code'], Tokens::$commentTokens, true)
+			&& $tokens[$pointerAfterWhitespaceEnd]['code'] !== T_DOC_COMMENT_OPEN_TAG
 			&& (
 				$tokens[$useEndPointer]['line'] === $tokens[$pointerAfterWhitespaceEnd]['line']
 				|| $tokens[$useEndPointer]['line'] + 1 === $tokens[$pointerAfterWhitespaceEnd]['line']
 			)
 		) {
-			$useEndPointer = array_key_exists('comment_closer', $tokens[$pointerAfterWhitespaceEnd])
-				? $tokens[$pointerAfterWhitespaceEnd]['comment_closer']
-				: CommentHelper::getMultilineCommentEndPointer($phpcsFile, $pointerAfterWhitespaceEnd);
+			$useEndPointer = CommentHelper::getMultilineCommentEndPointer($phpcsFile, $pointerAfterWhitespaceEnd);
 			/** @var int $pointerAfterWhitespaceEnd */
 			$pointerAfterWhitespaceEnd = TokenHelper::findNextExcluding($phpcsFile, T_WHITESPACE, $useEndPointer + 1);
 		}
@@ -164,8 +163,9 @@ class UseSpacingSniff implements Sniff
 
 		$fix = $phpcsFile->addFixableError(
 			sprintf(
-				'Expected %d lines after last use statement, found %d.',
+				'Expected %d line%s after last use statement, found %d.',
 				$requiredLinesCountAfterLastUse,
+				$requiredLinesCountAfterLastUse === 1 ? '' : 's',
 				$actualLinesCountAfterLastUse
 			),
 			$lastUse->getPointer(),
@@ -182,7 +182,7 @@ class UseSpacingSniff implements Sniff
 		}
 
 		$linesToAdd = $requiredLinesCountAfterLastUse;
-		if (in_array($tokens[$useEndPointer]['code'], TokenHelper::$inlineCommentTokenCodes, true)) {
+		if (CommentHelper::isLineComment($phpcsFile, $useEndPointer)) {
 			$linesToAdd--;
 		}
 
@@ -193,7 +193,6 @@ class UseSpacingSniff implements Sniff
 	}
 
 	/**
-	 * @param File $phpcsFile
 	 * @param UseStatement[] $useStatements
 	 */
 	private function checkLinesBetweenSameTypesOfUse(File $phpcsFile, array $useStatements): void
@@ -241,8 +240,7 @@ class UseSpacingSniff implements Sniff
 
 			$fix = $phpcsFile->addFixableError(
 				sprintf(
-					'Expected %d lines between same types of use statement, found %d.',
-					$requiredLinesCountBetweenUses,
+					'Expected 0 lines between same types of use statement, found %d.',
 					$actualLinesCountAfterPreviousUse
 				),
 				$use->getPointer(),
@@ -269,7 +267,6 @@ class UseSpacingSniff implements Sniff
 	}
 
 	/**
-	 * @param File $phpcsFile
 	 * @param UseStatement[] $useStatements
 	 */
 	private function checkLinesBetweenDifferentTypesOfUse(File $phpcsFile, array $useStatements): void
@@ -317,8 +314,9 @@ class UseSpacingSniff implements Sniff
 
 			$fix = $phpcsFile->addFixableError(
 				sprintf(
-					'Expected %d lines between different types of use statement, found %d.',
+					'Expected %d line%s between different types of use statement, found %d.',
 					$requiredLinesCountBetweenUseTypes,
+					$requiredLinesCountBetweenUseTypes === 1 ? '' : 's',
 					$actualLinesCountAfterPreviousUse
 				),
 				$use->getPointer(),

@@ -31,7 +31,6 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $controlStructurePointer
 	 */
 	public function process(File $phpcsFile, $controlStructurePointer): void
@@ -51,9 +50,8 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 			$parenthesisOpenerPointer + 1,
 			$parenthesisCloserPointer
 		);
-		$booleanOperatorPointersCount = count($booleanOperatorPointers);
 
-		if ($booleanOperatorPointersCount === 0) {
+		if ($booleanOperatorPointers === []) {
 			return;
 		}
 
@@ -71,13 +69,13 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 		$lineLength = strlen($lineStart . $condition . $lineEnd);
 		$conditionLinesCount = $tokens[$conditionEndPointer]['line'] - $tokens[$conditionStartPointer]['line'] + 1;
 
-		if (!$this->shouldReportError($lineLength, $conditionLinesCount, $booleanOperatorPointersCount)) {
+		if (!$this->shouldReportError($lineLength, $conditionLinesCount, count($booleanOperatorPointers))) {
 			return;
 		}
 
 		$fix = $phpcsFile->addFixableError(
 			sprintf(
-				'Condition of "%s" should be splitted to more lines so each condition part is on its own line.',
+				'Condition of "%s" should be split to more lines so each condition part is on its own line.',
 				$this->getControlStructureName($phpcsFile, $controlStructurePointer)
 			),
 			$controlStructurePointer,
@@ -90,10 +88,9 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 
 		$controlStructureIndentation = IndentationHelper::getIndentation(
 			$phpcsFile,
-			$conditionStartsOnNewLine ? $conditionStartPointer : TokenHelper::findFirstNonWhitespaceOnLine(
-				$phpcsFile,
-				$parenthesisOpenerPointer
-			)
+			$conditionStartsOnNewLine
+				? $conditionStartPointer
+				: TokenHelper::findFirstNonWhitespaceOnLine($phpcsFile, $parenthesisOpenerPointer)
 		);
 
 		$conditionIndentation = $conditionStartsOnNewLine

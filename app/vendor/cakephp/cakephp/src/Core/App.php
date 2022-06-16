@@ -59,13 +59,16 @@ class App
         }
 
         [$plugin, $name] = pluginSplit($class);
-        $base = $plugin ?: Configure::read('App.namespace');
-        $base = str_replace('/', '\\', rtrim($base, '\\'));
         $fullname = '\\' . str_replace('/', '\\', $type . '\\' . $name) . $suffix;
 
-        if (static::_classExistsInBase($fullname, $base)) {
-            /** @var class-string */
-            return $base . $fullname;
+        $base = $plugin ?: Configure::read('App.namespace');
+        if ($base !== null) {
+            $base = str_replace('/', '\\', rtrim($base, '\\'));
+
+            if (static::_classExistsInBase($fullname, $base)) {
+                /** @var class-string */
+                return $base . $fullname;
+            }
         }
 
         if ($plugin || !static::_classExistsInBase($fullname, 'Cake')) {
@@ -126,11 +129,11 @@ class App
             return $class;
         }
 
-        $pluginName = substr($class, 0, $pos);
-        $name = substr($class, $pos + strlen($type));
+        $pluginName = (string)substr($class, 0, $pos);
+        $name = (string)substr($class, $pos + strlen($type));
 
         if ($suffix) {
-            $name = substr($name, 0, -strlen($suffix));
+            $name = (string)substr($name, 0, -strlen($suffix));
         }
 
         $nonPluginNamespaces = [
@@ -182,7 +185,7 @@ class App
      *
      * @param string $type Type of path
      * @param string|null $plugin Plugin name
-     * @return string[]
+     * @return array<string>
      * @link https://book.cakephp.org/4/en/core-libraries/app.html#finding-paths-to-namespaces
      */
     public static function path(string $type, ?string $plugin = null): array
@@ -228,7 +231,7 @@ class App
      *
      * @param string $type Package type.
      * @param string|null $plugin Plugin name.
-     * @return string[]
+     * @return array<string>
      */
     public static function classPath(string $type, ?string $plugin = null): array
     {
@@ -253,7 +256,7 @@ class App
      * Will return the full path to the cache engines package.
      *
      * @param string $type Package type.
-     * @return string[] Full path to package
+     * @return array<string> Full path to package
      */
     public static function core(string $type): array
     {

@@ -46,6 +46,9 @@ $tableFK = Inflector::singularize($tableName) . "_id";
 // Otherwise, we'll print out a "no records" message.
 $recordsExist = false;
 
+// By default Index filtering is on and we need to explicitly disable it
+$disableFiltering = false;
+
 // Our default link actions, in order of preference, unless the column config overrides it
 $linkActions = ['edit', 'view'];
 
@@ -92,38 +95,52 @@ function _column_key($modelsName, $c, $tz=null) {
     <h1><?= $vv_title; ?></h1>
   </div>
 
-  <?php if($vv_permissions['add']): ?>
-    <ul id="topLinks">
-      <li>
-        <?= $this->Html->link('<em class="material-icons" aria-hidden="true">add_circle</em> ' .
-            __d('operation', 'add.a', __d('controller', $modelsName, [1])),
-          ['action' => 'add', '?' => $linkFilter],
-          ['escape' => false]); ?>
-      </li>
-      <?php
-        if(!empty($topLinks)) {
-          foreach($topLinks as $t) {
-            if($vv_permissions[ $t['link']['action'] ]) {
-              // We need to inject $linkFilter, but not overwrite any existing query params
-              if(!empty($t['link']['?'])) {
-                $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
-              } else {
-                $t['link']['?'] = $linkFilter;
-              }
-              
-              print '<li>' .
-                $this->Html->link(
-                  '<em class="material-icons" aria-hidden="true">' . $t['icon']. '</em> ' . $t['label'],
-                  $t['link'],
-                  ['escape' => false, 'class' => $t['class']]
-                ) . '
-              </li>';
-            }
-          }
+  <?php
+  // Action list for top menu dropdown / button listing
+  // Index view top link action item can be atomized using the user's identifier
+  // since there will not always be an object id available. Like the case of add action
+  if($vv_permissions['add']) {
+    $action_args = array();
+    $action_args['vv_attr_id'] =  $vv_user['username'];
+
+    $action_args['vv_actions'][] = [
+      'order' => $this->Menu->getMenuOrder('Add'),
+      'icon' => $this->Menu->getMenuIcon('Add'),
+      'url' => $this->Url->build(
+        [
+          'controller' => $modelsName,
+          'action' => 'add',
+          '?' => $linkFilter
+        ]
+      ),
+      'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
+    ];
+
+    foreach(($topLinks ?? []) as $t) {
+      if($vv_permissions[ $t['link']['action'] ]) {
+        // We need to inject $linkFilter, but not overwrite any existing query params
+        if(!empty($t['link']['?'])) {
+          $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+        } else {
+          $t['link']['?'] = $linkFilter;
         }
-      ?>
-    </ul>
-  <?php endif; ?>
+
+        $action_args['vv_actions'][] = [
+          'order' => $this->Menu->getMenuOrder($t['order']),
+          'icon' => $this->Menu->getMenuIcon($t['icon']),
+          'url' => $this->Url->build($t['link']),
+          'label' => $t['label'],
+        ];
+      }
+    }
+  }
+
+  if(!empty($action_args['vv_actions'])) {
+  print '<div class="field-actions top-links">';
+    print $this->element('menuAction', $action_args);
+    print '</div>';
+  }
+  ?>
 </div>
 <?php if(!empty($indexBanners)): ?>
   <?php foreach($indexBanners as $b): ?>
@@ -144,9 +161,9 @@ function _column_key($modelsName, $c, $tz=null) {
 <?php endif; // $banners ?>
 
 <!-- Search block -->
-<?php if(!empty($enableSearch)): ?>
-  <?= $this->element('search'); ?>
-<?php endif; // $enableSearch ?>
+<?php if(!$disableFiltering): ?>
+  <?= $this->element('filter'); ?>
+<?php endif; ?>
 
 <!-- Index table -->
 <div class="table-container">
@@ -197,6 +214,36 @@ function _column_key($modelsName, $c, $tz=null) {
                 print __d('enumeration', $cfg['class'].'.1') . $suffix;
               } else {
                 print __d('enumeration', $cfg['class'].'.0') . $suffix;
+              }
+              break;
+            case 'datetime':
+  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
+              print !empty($entity->$col) ? $this->Time->nice($entity->$col, $vv_tz) . $suffix : "";
+              break;
+            case 'enum':
+              if($entity->$col) {
+                // XXX Need to add badging - see index.php in Match
+                print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
+              }
+              break;
+            case 'fk':
+              // Assuming $col is of the form foo_id, look to see if the corresponding
+              // AutoViewVar $foos is set, and if so render the lookup value instead
+              $f = null;
+              if(preg_match('/^(.*?)_id$/', $col, $f)) {
+                $avv = Inflector::variable(Inflector::pluralize($f[1]));
+                
+                if(!empty(${$avv}[$entity->$col])) {
+                  // We found the viewvar (eg: $foos), and it has a corresponding value
+                  // (eg: $foos[3]), so render it
+                  print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
+                } else {
+                  // No match, just render the value
+                  print $entity->$col. $suffix;
+                }
+              } else {
+                // Just print the value
+                print $entity->$col. $suffix;
               }
               break;
             case 'button':

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -21,9 +21,9 @@ use Composer\Repository\RepositorySet;
 class RuleSet implements \IteratorAggregate, \Countable
 {
     // highest priority => lowest number
-    const TYPE_PACKAGE = 0;
-    const TYPE_REQUEST = 1;
-    const TYPE_LEARNED = 4;
+    public const TYPE_PACKAGE = 0;
+    public const TYPE_REQUEST = 1;
+    public const TYPE_LEARNED = 4;
 
     /**
      * READ-ONLY: Lookup table for rule id to rule object
@@ -32,9 +32,8 @@ class RuleSet implements \IteratorAggregate, \Countable
      */
     public $ruleById = array();
 
-    /** @var array<255|0|1|4, string> */
+    /** @var array<0|1|4, string> */
     protected static $types = array(
-        255 => 'UNKNOWN',
         self::TYPE_PACKAGE => 'PACKAGE',
         self::TYPE_REQUEST => 'REQUEST',
         self::TYPE_LEARNED => 'LEARNED',
@@ -46,7 +45,7 @@ class RuleSet implements \IteratorAggregate, \Countable
     /** @var int */
     protected $nextRuleId = 0;
 
-    /** @var array<string, Rule|Rule[]> */
+    /** @var array<int|string, Rule|Rule[]> */
     protected $rulesByHash = array();
 
     public function __construct()
@@ -56,7 +55,11 @@ class RuleSet implements \IteratorAggregate, \Countable
         }
     }
 
-    public function add(Rule $rule, $type)
+    /**
+     * @param self::TYPE_* $type
+     * @return void
+     */
+    public function add(Rule $rule, $type): void
     {
         if (!isset(self::$types[$type])) {
             throw new \OutOfBoundsException('Unknown rule type: ' . $type);
@@ -100,28 +103,27 @@ class RuleSet implements \IteratorAggregate, \Countable
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function count()
+    public function count(): int
     {
         return $this->nextRuleId;
     }
 
-    public function ruleById($id)
+    /**
+     * @param int $id
+     * @return Rule
+     */
+    public function ruleById(int $id): Rule
     {
         return $this->ruleById[$id];
     }
 
     /** @return array<self::TYPE_*, Rule[]> */
-    public function getRules()
+    public function getRules(): array
     {
         return $this->rules;
     }
 
-    /**
-     * @return RuleSetIterator
-     */
-    #[\ReturnTypeWillChange]
-    public function getIterator()
+    public function getIterator(): RuleSetIterator
     {
         return new RuleSetIterator($this->getRules());
     }
@@ -130,7 +132,7 @@ class RuleSet implements \IteratorAggregate, \Countable
      * @param  self::TYPE_*|array<self::TYPE_*> $types
      * @return RuleSetIterator
      */
-    public function getIteratorFor($types)
+    public function getIteratorFor($types): RuleSetIterator
     {
         if (!\is_array($types)) {
             $types = array($types);
@@ -148,7 +150,11 @@ class RuleSet implements \IteratorAggregate, \Countable
         return new RuleSetIterator($rules);
     }
 
-    public function getIteratorWithout($types)
+    /**
+     * @param array<self::TYPE_*>|self::TYPE_* $types
+     * @return RuleSetIterator
+     */
+    public function getIteratorWithout($types): RuleSetIterator
     {
         if (!\is_array($types)) {
             $types = array($types);
@@ -164,15 +170,18 @@ class RuleSet implements \IteratorAggregate, \Countable
     }
 
     /** @return array{0: 0, 1: 1, 2: 4} */
-    public function getTypes()
+    public function getTypes(): array
     {
         $types = self::$types;
-        unset($types[255]);
 
         return array_keys($types);
     }
 
-    public function getPrettyString(RepositorySet $repositorySet = null, Request $request = null, Pool $pool = null, $isVerbose = false)
+    /**
+     * @param bool $isVerbose
+     * @return string
+     */
+    public function getPrettyString(RepositorySet $repositorySet = null, Request $request = null, Pool $pool = null, bool $isVerbose = false): string
     {
         $string = "\n";
         foreach ($this->rules as $type => $rules) {
@@ -186,7 +195,7 @@ class RuleSet implements \IteratorAggregate, \Countable
         return $string;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getPrettyString();
     }

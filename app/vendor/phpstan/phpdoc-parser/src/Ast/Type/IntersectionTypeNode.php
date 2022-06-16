@@ -2,8 +2,13 @@
 
 namespace PHPStan\PhpDocParser\Ast\Type;
 
+use PHPStan\PhpDocParser\Ast\NodeAttributes;
+use function implode;
+
 class IntersectionTypeNode implements TypeNode
 {
+
+	use NodeAttributes;
 
 	/** @var TypeNode[] */
 	public $types;

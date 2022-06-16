@@ -49,7 +49,7 @@ class TemplateRenderer
     /**
      * Constructor
      *
-     * @param string $theme The template theme/plugin to use.
+     * @param ?string $theme The template theme/plugin to use.
      */
     public function __construct(?string $theme = '')
     {
@@ -69,7 +69,7 @@ class TemplateRenderer
         }
 
         $this->viewBuilder()
-            ->setHelpers(['Bake.Bake', 'Bake.DocBlock'])
+            ->addhelpers(['Bake.Bake', 'Bake.DocBlock'])
             ->setTheme($this->theme);
 
         $view = $this->createView(BakeView::class);

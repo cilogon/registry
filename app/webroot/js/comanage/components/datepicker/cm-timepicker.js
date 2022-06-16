@@ -50,7 +50,7 @@ export default {
         <div class="cm-time-picker-vals">
           <ul>
             <li v-for="n in 24">              
-              <button @click.stop.prevent="setTime($event,'hour')" class="btn">{{ ('0' + (n-1)).slice(-2) }}</button>
+              <button @click.stop.prevent="setTime($event,'hour')" type="button" class="btn">{{ ('0' + (n-1)).slice(-2) }}</button>
             </li>  
           </ul>
         </div>
@@ -61,7 +61,7 @@ export default {
         <div class="cm-time-picker-vals">
           <ul>
             <li v-for="val of minuteVals">
-              <button @click.stop.prevent="setTime($event,'minute')" class="btn">{{ val }}</button>
+              <button @click.stop.prevent="setTime($event,'minute')" type="button"  class="btn">{{ val }}</button>
             </li>
           </ul>
         </div>

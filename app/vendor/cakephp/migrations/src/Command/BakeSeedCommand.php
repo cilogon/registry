@@ -117,19 +117,23 @@ class BakeSeedCommand extends SimpleBakeCommand
             if ($fields !== '*') {
                 $fields = explode(',', $fields);
             }
+            $model = $this->getTableLocator()->get('BakeSeed', [
+                'table' => $table,
+                'connection' => ConnectionManager::get($this->connection),
+            ]);
 
-            $connection = ConnectionManager::get($this->connection);
-
-            $query = $connection->newQuery()
-                ->from($table)
-                ->select($fields);
+            $query = $model->find('all')
+                ->enableHydration(false);
 
             if ($limit) {
                 $query->limit($limit);
             }
+            if ($fields !== '*') {
+                $query->select($fields);
+            }
 
             /** @var array $records */
-            $records = $connection->execute($query->sql())->fetchAll('assoc');
+            $records = $query->toArray();
             $records = $this->prettifyArray($records);
         }
 
@@ -191,7 +195,7 @@ class BakeSeedCommand extends SimpleBakeCommand
      * @param string $indentCharacter   Desired indent for the code.
      * @return string
      */
-    protected function prettifyArray(array $array, $tabCount = 3, $indentCharacter = "    ")
+    protected function prettifyArray(array $array, $tabCount = 3, $indentCharacter = '    ')
     {
         $content = var_export($array, true);
 
@@ -216,7 +220,7 @@ class BakeSeedCommand extends SimpleBakeCommand
 
             if (!$inString) {
                 if ($line === '),') {
-                    //Check for closing bracket
+                    // Check for closing bracket
                     $line = '],';
                     $tabCount--;
                 } elseif (preg_match("/^\d+\s\=\>\s$/", $line)) {
@@ -232,15 +236,15 @@ class BakeSeedCommand extends SimpleBakeCommand
             $length = strlen($line);
             for ($j = 0; $j < $length; $j++) {
                 if ($line[$j] === '\\') {
-                    //skip character right after an escape \
+                    // skip character right after an escape \
                     $j++;
                 } elseif ($line[$j] === '\'') {
-                    //check string open/end
+                    // check string open/end
                     $inString = !$inString;
                 }
             }
 
-            //check for opening bracket
+            // check for opening bracket
             if (!$inString && trim($line) === 'array (') {
                 $line = str_replace('array (', '[', $line);
                 $tabCount++;

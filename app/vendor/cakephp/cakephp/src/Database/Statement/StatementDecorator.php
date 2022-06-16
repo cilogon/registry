@@ -53,7 +53,7 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
     protected $_driver;
 
     /**
-     * Whether or not this statement has already been executed
+     * Whether this statement has already been executed
      *
      * @var bool
      */
@@ -76,7 +76,7 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
      * Magic getter to return $queryString as read-only.
      *
      * @param string $property internal property to get
-     * @return mixed
+     * @return string|null
      */
     public function __get(string $property)
     {
@@ -84,6 +84,8 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
             /** @psalm-suppress NoInterfaceProperties */
             return $this->_statement->queryString;
         }
+
+        return null;
     }
 
     /**
@@ -144,7 +146,7 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
     /**
      * Returns the error code for the last error that occurred when executing this statement.
      *
-     * @return int|string
+     * @return string|int
      */
     public function errorCode()
     {
@@ -202,9 +204,9 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
 
     /**
      * Returns the next row in a result set as an associative array. Calling this function is the same as calling
-     * $statement->fetch(StatementDecorator::FETCH_TYPE_ASSOC). If no results are found false is returned.
+     * $statement->fetch(StatementDecorator::FETCH_TYPE_ASSOC). If no results are found an empty array is returned.
      *
-     * @return array Result array containing columns and values an an associative array or an empty array if no results
+     * @return array
      */
     public function fetchAssoc(): array
     {
@@ -282,6 +284,7 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
      * @return \Cake\Database\StatementInterface
      * @psalm-suppress ImplementedReturnTypeMismatch
      */
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         if (!$this->_hasExecuted) {
@@ -315,13 +318,10 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
             return;
         }
 
-        $anonymousParams = is_int(key($params)) ? true : false;
+        $anonymousParams = is_int(key($params));
         $offset = 1;
         foreach ($params as $index => $value) {
-            $type = null;
-            if (isset($types[$index])) {
-                $type = $types[$index];
-            }
+            $type = $types[$index] ?? null;
             if ($anonymousParams) {
                 /** @psalm-suppress InvalidOperand */
                 $index += $offset;

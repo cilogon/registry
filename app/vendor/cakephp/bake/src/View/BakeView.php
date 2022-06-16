@@ -33,14 +33,6 @@ class BakeView extends TwigView
     public const BAKE_TEMPLATE_FOLDER = 'bake';
 
     /**
-     * Path where bake's intermediary files are written.
-     * Defaults to `TMP . 'bake' . DS`.
-     *
-     * @var string
-     */
-    protected $_tmpLocation;
-
-    /**
      * @inheritDoc
      */
     protected $layout = 'Bake.default';
@@ -52,11 +44,6 @@ class BakeView extends TwigView
      */
     public function initialize(): void
     {
-        $this->_tmpLocation = TMP . 'bake' . DS;
-        if (!file_exists($this->_tmpLocation)) {
-            mkdir($this->_tmpLocation);
-        }
-
         $this->setConfig('environment', [
           'cache' => false,
           'strict_variables' => Configure::read('Bake.twigStrictVariables', false),
@@ -131,7 +118,7 @@ class BakeView extends TwigView
     /**
      * Return all possible paths to find view files in order
      *
-     * @param string $plugin Optional plugin name to scan for view files.
+     * @param ?string $plugin Optional plugin name to scan for view files.
      * @param bool $cached Set to false to force a refresh of view paths. Default true.
      * @return string[] paths
      */

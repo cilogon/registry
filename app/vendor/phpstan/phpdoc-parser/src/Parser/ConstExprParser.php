@@ -4,6 +4,8 @@ namespace PHPStan\PhpDocParser\Parser;
 
 use PHPStan\PhpDocParser\Ast;
 use PHPStan\PhpDocParser\Lexer\Lexer;
+use function strtolower;
+use function trim;
 
 class ConstExprParser
 {
@@ -14,13 +16,15 @@ class ConstExprParser
 			$value = $tokens->currentTokenValue();
 			$tokens->next();
 			return new Ast\ConstExpr\ConstExprFloatNode($value);
+		}
 
-		} elseif ($tokens->isCurrentTokenType(Lexer::TOKEN_INTEGER)) {
+		if ($tokens->isCurrentTokenType(Lexer::TOKEN_INTEGER)) {
 			$value = $tokens->currentTokenValue();
 			$tokens->next();
 			return new Ast\ConstExpr\ConstExprIntegerNode($value);
+		}
 
-		} elseif ($tokens->isCurrentTokenType(Lexer::TOKEN_SINGLE_QUOTED_STRING)) {
+		if ($tokens->isCurrentTokenType(Lexer::TOKEN_SINGLE_QUOTED_STRING)) {
 			$value = $tokens->currentTokenValue();
 			if ($trimStrings) {
 				$value = trim($tokens->currentTokenValue(), "'");
@@ -54,15 +58,33 @@ class ConstExprParser
 
 			if ($tokens->tryConsumeTokenType(Lexer::TOKEN_DOUBLE_COLON)) {
 				$classConstantName = '';
-				if ($tokens->currentTokenType() === Lexer::TOKEN_IDENTIFIER) {
-					$classConstantName .= $tokens->currentTokenValue();
-					$tokens->consumeTokenType(Lexer::TOKEN_IDENTIFIER);
-					if ($tokens->tryConsumeTokenType(Lexer::TOKEN_WILDCARD)) {
-						$classConstantName .= '*';
+				$lastType = null;
+				while (true) {
+					if ($lastType !== Lexer::TOKEN_IDENTIFIER && $tokens->currentTokenType() === Lexer::TOKEN_IDENTIFIER) {
+						$classConstantName .= $tokens->currentTokenValue();
+						$tokens->consumeTokenType(Lexer::TOKEN_IDENTIFIER);
+						$lastType = Lexer::TOKEN_IDENTIFIER;
+
+						continue;
 					}
-				} else {
-					$tokens->consumeTokenType(Lexer::TOKEN_WILDCARD);
-					$classConstantName .= '*';
+
+					if ($lastType !== Lexer::TOKEN_WILDCARD && $tokens->tryConsumeTokenType(Lexer::TOKEN_WILDCARD)) {
+						$classConstantName .= '*';
+						$lastType = Lexer::TOKEN_WILDCARD;
+
+						if ($tokens->getSkippedHorizontalWhiteSpaceIfAny() !== '') {
+							break;
+						}
+
+						continue;
+					}
+
+					if ($lastType === null) {
+						// trigger parse error if nothing valid was consumed
+						$tokens->consumeTokenType(Lexer::TOKEN_WILDCARD);
+					}
+
+					break;
 				}
 
 				return new Ast\ConstExpr\ConstFetchNode($identifier, $classConstantName);
@@ -75,7 +97,12 @@ class ConstExprParser
 			return $this->parseArray($tokens, Lexer::TOKEN_CLOSE_SQUARE_BRACKET);
 		}
 
-		throw new \LogicException($tokens->currentTokenValue());
+		throw new ParserException(
+			$tokens->currentTokenValue(),
+			$tokens->currentTokenType(),
+			$tokens->currentTokenOffset(),
+			Lexer::TOKEN_IDENTIFIER
+		);
 	}
 
 

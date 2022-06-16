@@ -11,12 +11,14 @@ use function preg_match;
 use function trim;
 use const PHP_VERSION_ID;
 
+/**
+ * @internal
+ */
 class SniffSettingsHelper
 {
 
 	/**
 	 * @param string|int $settings
-	 * @return int
 	 */
 	public static function normalizeInteger($settings): int
 	{

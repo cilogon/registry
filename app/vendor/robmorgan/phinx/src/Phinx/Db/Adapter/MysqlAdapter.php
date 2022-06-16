@@ -75,6 +75,12 @@ class MysqlAdapter extends PdoAdapter
     public const INT_REGULAR = 4294967295;
     public const INT_BIG = 18446744073709551615;
 
+    public const INT_DISPLAY_TINY = 4;
+    public const INT_DISPLAY_SMALL = 6;
+    public const INT_DISPLAY_MEDIUM = 8;
+    public const INT_DISPLAY_REGULAR = 11;
+    public const INT_DISPLAY_BIG = 20;
+
     public const BIT = 64;
 
     public const TYPE_YEAR = 'year';
@@ -443,7 +449,6 @@ class MysqlAdapter extends PdoAdapter
             $column = new Column();
             $column->setName($columnInfo['Field'])
                    ->setNull($columnInfo['Null'] !== 'NO')
-                   ->setDefault($columnInfo['Default'])
                    ->setType($phinxType['name'])
                    ->setSigned(strpos($columnInfo['Type'], 'unsigned') === false)
                    ->setLimit($phinxType['limit'])
@@ -456,6 +461,25 @@ class MysqlAdapter extends PdoAdapter
             if (isset($phinxType['values'])) {
                 $column->setValues($phinxType['values']);
             }
+
+            $default = $columnInfo['Default'];
+            if (
+                is_string($default) &&
+                in_array(
+                    $column->getType(),
+                    array_merge(
+                        static::PHINX_TYPES_GEOSPATIAL,
+                        [static::PHINX_TYPE_BLOB, static::PHINX_TYPE_JSON, static::PHINX_TYPE_TEXT]
+                    )
+                )
+            ) {
+                // The default that comes back from MySQL for these types prefixes the collation type and
+                // surrounds the value with escaped single quotes, for example "_utf8mbf4\'abc\'", and so
+                // this converts that then down to the default value of "abc" to correspond to what the user
+                // would have specified in a migration.
+                $default = preg_replace("/^_(?:[a-zA-Z0-9]+?)\\\'(.*)\\\'$/", '\1', $default);
+            }
+            $column->setDefault($default);
 
             $columns[] = $column;
         }
@@ -1001,12 +1025,28 @@ class MysqlAdapter extends PdoAdapter
             case static::PHINX_TYPE_BIT:
                 return ['name' => 'bit', 'limit' => $limit ?: 64];
             case static::PHINX_TYPE_BIG_INTEGER:
+                if ($limit === static::INT_BIG) {
+                    $limit = static::INT_DISPLAY_BIG;
+                }
+
                 return ['name' => 'bigint', 'limit' => $limit ?: 20];
             case static::PHINX_TYPE_MEDIUM_INTEGER:
+                if ($limit === static::INT_MEDIUM) {
+                    $limit = static::INT_DISPLAY_MEDIUM;
+                }
+
                 return ['name' => 'mediumint', 'limit' => $limit ?: 8];
             case static::PHINX_TYPE_SMALL_INTEGER:
+                if ($limit === static::INT_SMALL) {
+                    $limit = static::INT_DISPLAY_SMALL;
+                }
+
                 return ['name' => 'smallint', 'limit' => $limit ?: 6];
             case static::PHINX_TYPE_TINY_INTEGER:
+                if ($limit === static::INT_TINY) {
+                    $limit = static::INT_DISPLAY_TINY;
+                }
+
                 return ['name' => 'tinyint', 'limit' => $limit ?: 4];
             case static::PHINX_TYPE_INTEGER:
                 if ($limit && $limit >= static::INT_TINY) {
@@ -1019,11 +1059,11 @@ class MysqlAdapter extends PdoAdapter
                         'tinyint' => static::INT_TINY,
                     ];
                     $limits = [
-                        'tinyint' => 4,
-                        'smallint' => 6,
-                        'mediumint' => 8,
-                        'int' => 11,
-                        'bigint' => 20,
+                        'tinyint' => static::INT_DISPLAY_TINY,
+                        'smallint' => static::INT_DISPLAY_SMALL,
+                        'mediumint' => static::INT_DISPLAY_MEDIUM,
+                        'int' => static::INT_DISPLAY_REGULAR,
+                        'bigint' => static::INT_DISPLAY_BIG,
                     ];
                     foreach ($sizes as $name => $length) {
                         if ($limit >= $length) {
@@ -1036,7 +1076,7 @@ class MysqlAdapter extends PdoAdapter
                         }
                     }
                 } elseif (!$limit) {
-                    $limit = 11;
+                    $limit = static::INT_DISPLAY_REGULAR;
                 }
 
                 return ['name' => 'int', 'limit' => $limit];
@@ -1101,26 +1141,17 @@ class MysqlAdapter extends PdoAdapter
                 break;
             case 'tinyint':
                 $type = static::PHINX_TYPE_TINY_INTEGER;
-                $limit = static::INT_TINY;
                 break;
             case 'smallint':
                 $type = static::PHINX_TYPE_SMALL_INTEGER;
-                $limit = static::INT_SMALL;
                 break;
             case 'mediumint':
                 $type = static::PHINX_TYPE_MEDIUM_INTEGER;
-                $limit = static::INT_MEDIUM;
                 break;
             case 'int':
                 $type = static::PHINX_TYPE_INTEGER;
-                if ($limit === 11) {
-                    $limit = null;
-                }
                 break;
             case 'bigint':
-                if ($limit === 20) {
-                    $limit = null;
-                }
                 $type = static::PHINX_TYPE_BIG_INTEGER;
                 break;
             case 'bit':
@@ -1322,20 +1353,31 @@ class MysqlAdapter extends PdoAdapter
         $def .= $column->isNull() ? ' NULL' : ' NOT NULL';
 
         if (
-            version_compare($this->getAttribute(\PDO::ATTR_SERVER_VERSION), '8') > -1
-            && in_array($column->getType(), [
-                static::PHINX_TYPE_GEOMETRY,
-                static::PHINX_TYPE_POINT,
-                static::PHINX_TYPE_LINESTRING,
-                static::PHINX_TYPE_POLYGON,
-            ])
+            version_compare($this->getAttribute(\PDO::ATTR_SERVER_VERSION), '8', '>=')
+            && in_array($column->getType(), static::PHINX_TYPES_GEOSPATIAL)
             && !is_null($column->getSrid())
         ) {
             $def .= " SRID {$column->getSrid()}";
         }
 
         $def .= $column->isIdentity() ? ' AUTO_INCREMENT' : '';
-        $def .= $this->getDefaultValueDefinition($column->getDefault(), $column->getType());
+
+        $default = $column->getDefault();
+        // MySQL 8 supports setting default for the following tested types, but only if they are "cast as expressions"
+        if (
+            version_compare($this->getAttribute(\PDO::ATTR_SERVER_VERSION), '8', '>=') &&
+            is_string($default) &&
+            in_array(
+                $column->getType(),
+                array_merge(
+                    static::PHINX_TYPES_GEOSPATIAL,
+                    [static::PHINX_TYPE_BLOB, static::PHINX_TYPE_JSON, static::PHINX_TYPE_TEXT]
+                )
+            )
+        ) {
+            $default = Literal::from('(' . $this->getConnection()->quote($column->getDefault()) . ')');
+        }
+        $def .= $this->getDefaultValueDefinition($default, $column->getType());
 
         if ($column->getComment()) {
             $def .= ' COMMENT ' . $this->getConnection()->quote($column->getComment());

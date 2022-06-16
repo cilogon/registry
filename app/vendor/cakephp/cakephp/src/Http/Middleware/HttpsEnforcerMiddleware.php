@@ -39,8 +39,7 @@ class HttpsEnforcerMiddleware implements MiddlewareInterface
      * - `headers` - Array of response headers in case of redirect.
      * - `disableOnDebug` - Whether HTTPS check should be disabled when debug is on. Default `true`.
      *
-     * @var array
-     * @psalm-var array{redirect: bool, statusCode: int, headers: array, disableOnDebug: bool}
+     * @var array<string, mixed>
      */
     protected $config = [
         'redirect' => true,
@@ -52,8 +51,8 @@ class HttpsEnforcerMiddleware implements MiddlewareInterface
     /**
      * Constructor
      *
-     * @param array $config The options to use.
-     * @see self::$config
+     * @param array<string, mixed> $config The options to use.
+     * @see \Cake\Http\Middleware\HttpsEnforcerMiddleware::$config
      */
     public function __construct(array $config = [])
     {
@@ -83,6 +82,10 @@ class HttpsEnforcerMiddleware implements MiddlewareInterface
 
         if ($this->config['redirect'] && $request->getMethod() === 'GET') {
             $uri = $request->getUri()->withScheme('https');
+            $base = $request->getAttribute('base');
+            if ($base) {
+                $uri = $uri->withPath($base . $uri->getPath());
+            }
 
             return new RedirectResponse(
                 $uri,

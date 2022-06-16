@@ -136,15 +136,23 @@ export default {
     let dateWidgets = document.getElementsByTagName('duet-date-picker');
     let curForm = dateWidgets[0].closest('form');
 
+    // We should distinguish between POST and GET requests.
+    // POST: For the POST requests we want to strip out all the Vue Related fields but send all the other form fields
+    // GET: For GET Requests empty fields are useless, So we need to strip them out as well.
     curForm.addEventListener('submit', e => {
-      e.preventDefault();
+      // For the GET request send using the default flow
+      if (curForm.getAttribute('method') != 'get') {
+        e.preventDefault();
+      }
       let dateWidgetInputs = document.querySelectorAll('duet-date-picker input');
-      Array.prototype.slice.call(dateWidgetInputs).forEach(
-        function(element) {
-          element.parentNode.removeChild(element);
-        }
-      );
-      curForm.submit();
+      // Remove all the Vue related fields
+      Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
+        el.parentNode.removeChild(el);
+      });
+      // For the GET request send using the default flow
+      if (curForm.getAttribute('method') != 'get') {
+        curForm.submit();
+      }
     });
   },
   template: `
@@ -157,7 +165,7 @@ export default {
         ref="curDuetPicker">
       </duet-date-picker>
       <div v-if="this.timed" class="cm-time-picker">
-        <button @click.stop.prevent="showTimePicker" class="btn">
+        <button @click.stop.prevent="showTimePicker" type="button" class="btn">
           <em class="material-icons">schedule</em>
         </button>
         <Transition>

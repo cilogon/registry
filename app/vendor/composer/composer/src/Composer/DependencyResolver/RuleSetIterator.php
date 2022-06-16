@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -42,20 +42,20 @@ class RuleSetIterator implements \Iterator
         $this->rewind();
     }
 
-    #[\ReturnTypeWillChange]
-    public function current()
+    public function current(): Rule
     {
         return $this->rules[$this->currentType][$this->currentOffset];
     }
 
-    #[\ReturnTypeWillChange]
-    public function key()
+    /**
+     * @return RuleSet::TYPE_*|-1
+     */
+    public function key(): int
     {
         return $this->currentType;
     }
 
-    #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         $this->currentOffset++;
 
@@ -79,8 +79,7 @@ class RuleSetIterator implements \Iterator
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->currentOffset = 0;
 
@@ -99,8 +98,7 @@ class RuleSetIterator implements \Iterator
         } while (isset($this->types[$this->currentTypeOffset]) && !\count($this->rules[$this->currentType]));
     }
 
-    #[\ReturnTypeWillChange]
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->rules[$this->currentType], $this->rules[$this->currentType][$this->currentOffset]);
     }

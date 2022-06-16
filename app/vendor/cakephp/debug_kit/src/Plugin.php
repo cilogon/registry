@@ -95,6 +95,24 @@ class Plugin extends BasePlugin
             $previousHandler = set_error_handler(
                 function ($code, $message, $file, $line, $context = null) use (&$previousHandler) {
                     if ($code == E_USER_DEPRECATED || $code == E_DEPRECATED) {
+                        // In PHP 8.0+ the $context variable has been removed from the set_error_handler callback
+                        // Therefore we need to fetch the correct file and line string ourselves
+                        if (PHP_VERSION_ID >= 80000) {
+                            $trace = debug_backtrace();
+                            foreach ($trace as $idx => $traceEntry) {
+                                if ($traceEntry['function'] !== 'deprecationWarning') {
+                                    continue;
+                                }
+                                $offset = 1;
+                                // ['args'][1] refers to index of $stackFrame argument in deprecationWarning()
+                                if (isset($traceEntry['args'][1])) {
+                                    $offset = $traceEntry['args'][1];
+                                }
+                                $file = $trace[$idx + $offset]['file'];
+                                $line = $trace[$idx + $offset]['line'];
+                                break;
+                            }
+                        }
                         DeprecationsPanel::addDeprecatedError(compact('code', 'message', 'file', 'line', 'context'));
 
                         return;

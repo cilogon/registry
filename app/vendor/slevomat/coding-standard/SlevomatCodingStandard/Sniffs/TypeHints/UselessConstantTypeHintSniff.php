@@ -31,14 +31,13 @@ class UselessConstantTypeHintSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $constantPointer
 	 */
 	public function process(File $phpcsFile, $constantPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
-		$docCommentOpenPointer = DocCommentHelper::findDocCommentOpenToken($phpcsFile, $constantPointer);
+		$docCommentOpenPointer = DocCommentHelper::findDocCommentOpenPointer($phpcsFile, $constantPointer);
 		if ($docCommentOpenPointer === null) {
 			return;
 		}

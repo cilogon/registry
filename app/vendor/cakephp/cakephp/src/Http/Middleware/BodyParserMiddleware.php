@@ -28,9 +28,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Parse encoded request body data.
  *
- * Enables JSON and XML request payloads to be parsed into the request's
- * Provides CSRF protection & validation.
- *
+ * Enables JSON and XML request payloads to be parsed into the request's body.
  * You can also add your own request body parsers using the `addParser()` method.
  */
 class BodyParserMiddleware implements MiddlewareInterface
@@ -38,14 +36,14 @@ class BodyParserMiddleware implements MiddlewareInterface
     /**
      * Registered Parsers
      *
-     * @var \Closure[]
+     * @var array<\Closure>
      */
     protected $parsers = [];
 
     /**
      * The HTTP methods to parse data on.
      *
-     * @var string[]
+     * @var array<string>
      */
     protected $methods = ['PUT', 'POST', 'PATCH', 'DELETE'];
 
@@ -59,7 +57,7 @@ class BodyParserMiddleware implements MiddlewareInterface
      *   handling requires more care than JSON does.
      * - `methods` The HTTP methods to parse on. Defaults to PUT, POST, PATCH DELETE.
      *
-     * @param array $options The options to use. See above.
+     * @param array<string, mixed> $options The options to use. See above.
      */
     public function __construct(array $options = [])
     {
@@ -84,7 +82,7 @@ class BodyParserMiddleware implements MiddlewareInterface
     /**
      * Set the HTTP methods to parse request bodies on.
      *
-     * @param string[] $methods The methods to parse data on.
+     * @param array<string> $methods The methods to parse data on.
      * @return $this
      */
     public function setMethods(array $methods)
@@ -97,7 +95,7 @@ class BodyParserMiddleware implements MiddlewareInterface
     /**
      * Get the HTTP methods to parse request bodies on.
      *
-     * @return string[]
+     * @return array<string>
      */
     public function getMethods(): array
     {
@@ -119,7 +117,7 @@ class BodyParserMiddleware implements MiddlewareInterface
      * });
      * ```
      *
-     * @param string[] $types An array of content-type header values to match. eg. application/json
+     * @param array<string> $types An array of content-type header values to match. eg. application/json
      * @param \Closure $parser The parser function. Must return an array of data to be inserted
      *   into the request.
      * @return $this
@@ -137,7 +135,7 @@ class BodyParserMiddleware implements MiddlewareInterface
     /**
      * Get the current parsers
      *
-     * @return \Closure[]
+     * @return array<\Closure>
      */
     public function getParsers(): array
     {

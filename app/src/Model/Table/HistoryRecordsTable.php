@@ -39,6 +39,7 @@ class HistoryRecordsTable extends Table {
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   
   /**
    * Perform Cake Model initialization.

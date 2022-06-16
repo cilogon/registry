@@ -53,7 +53,7 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
     /**
      * Fields / Schema for the fixture.
      *
-     * This array should be compatible with Cake\Database\Schema\Schema.
+     * This array should be compatible with {@link \Cake\Database\Schema\Schema}.
      * The `_constraints`, `_options` and `_indexes` keys are reserved for defining
      * constraints, options and indexes respectively.
      *
@@ -90,7 +90,7 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
     /**
      * Fixture constraints to be created.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_constraints = [];
 
@@ -165,11 +165,7 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
     {
         [, $class] = namespaceSplit(static::class);
         preg_match('/^(.*)Fixture$/', $class, $matches);
-        $table = $class;
-
-        if (isset($matches[1])) {
-            $table = $matches[1];
-        }
+        $table = $matches[1] ?? $class;
 
         return Inflector::tableize($table);
     }
@@ -249,20 +245,23 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
     protected function _schemaFromReflection(): void
     {
         $db = ConnectionManager::get($this->connection());
-        $schemaCollection = $db->getSchemaCollection();
-        $tables = $schemaCollection->listTables();
+        try {
+            $name = Inflector::camelize($this->table);
+            $ormTable = $this->fetchTable($name, ['connection' => $db]);
 
-        if (!in_array($this->table, $tables, true)) {
-            throw new CakeException(
-                sprintf(
-                    'Cannot describe schema for table `%s` for fixture `%s`: the table does not exist.',
-                    $this->table,
-                    static::class
-                )
+            /** @var \Cake\Database\Schema\TableSchema $schema */
+            $schema = $ormTable->getSchema();
+            $this->_schema = $schema;
+
+            $this->getTableLocator()->clear();
+        } catch (CakeException $e) {
+            $message = sprintf(
+                'Cannot describe schema for table `%s` for fixture `%s`. The table does not exist.',
+                $this->table,
+                static::class
             );
+            throw new CakeException($message, null, $e);
         }
-
-        $this->_schema = $schemaCollection->describe($this->table);
     }
 
     /**
@@ -270,7 +269,8 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
      */
     public function create(ConnectionInterface $connection): bool
     {
-        if (empty($this->_schema)) {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        if (!isset($this->_schema)) {
             return false;
         }
 
@@ -306,7 +306,8 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
      */
     public function drop(ConnectionInterface $connection): bool
     {
-        if (empty($this->_schema)) {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        if (!isset($this->_schema)) {
             return false;
         }
 
@@ -332,7 +333,7 @@ class TestFixture implements ConstraintsInterface, FixtureInterface, TableSchema
      */
     public function insert(ConnectionInterface $connection)
     {
-        if (isset($this->records) && !empty($this->records)) {
+        if (!empty($this->records)) {
             [$fields, $values, $types] = $this->_getRecords();
             $query = $connection->newQuery()
                 ->insert($fields, $types)

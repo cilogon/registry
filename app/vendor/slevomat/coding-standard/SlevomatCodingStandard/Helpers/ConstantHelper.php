@@ -13,6 +13,9 @@ use const T_CONST;
 use const T_NAMESPACE;
 use const T_STRING;
 
+/**
+ * @internal
+ */
 class ConstantHelper
 {
 
@@ -33,7 +36,6 @@ class ConstantHelper
 	}
 
 	/**
-	 * @param File $phpcsFile
 	 * @return string[]
 	 */
 	public static function getAllNames(File $phpcsFile): array
@@ -58,8 +60,6 @@ class ConstantHelper
 	}
 
 	/**
-	 * @param File $phpcsFile
-	 * @param int $previousConstantPointer
 	 * @return Generator<int>
 	 */
 	private static function getAllConstantPointers(File $phpcsFile, int &$previousConstantPointer): Generator

@@ -47,7 +47,7 @@ class FieldHelper extends Helper {
   
   // The current entity, if edit or view
   protected $entity = null;
-  
+
   /**
    * Emit an informational banner.
    *
@@ -70,12 +70,14 @@ class FieldHelper extends Helper {
    * @param  string  $fieldName Form field
    * @param  array   $options   FormHelper control options
    * @param  string  $labelText Label text (fieldName language key used by default)
+   * @param  array   $config    Custom FormHelper configuration options
    * @return string  HTML for control
    */
   
   public function control(string $fieldName,
                           array  $options=[],
-                          string $labelText=null) {
+                          string $labelText=null,
+                          array $config=[]){
     $coptions = $options;
     $coptions['label'] = false;
     $coptions['readonly'] = !$this->editable || (isset($options['readonly']) && $options['readonly']);
@@ -84,90 +86,44 @@ class FieldHelper extends Helper {
     
     // Generate HTML for the control itself
     $liClass = "";
-    
+
+    // Remove prefix from field value
+    if(isset($config['prefix'], $this->getView()->get('vv_obj')->$fieldName)) {
+      $vv_obj = $this->getView()->get('vv_obj');
+      $fieldValue = $vv_obj->$fieldName;
+      $fieldValueTemp = str_replace($config['prefix'], '', $fieldValue);
+      $vv_obj->$fieldName = $fieldValueTemp;
+      $this->getView()->set('vv_obj', $vv_obj);
+    }
+
     // Handle datetime controls specially
     if($fieldName == 'valid_from' || $fieldName == 'valid_through') {
       // Append the timezone to the label
       $label = __d('field', $fieldName.".tz", [$this->_View->get('vv_tz')]);
-      
+
       // A datetime field will be rendered as plain text input with adjacent date and time pickers
       // that will interact with the field value. Allowing direct access to the input field is for
       // accessibility purposes.
       $coptions['class'] = 'form-control datepicker';
       $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS'; // TODO: test for date-only inputs and send only the date
-      $coptions['id'] = $fieldName;
+      $coptions['id'] = str_replace("_", "-", $fieldName);
       
-      $entity = $this->_View->get('vv_obj');
+      $entity = $this->getView()->get('vv_obj');
       
       $pickerDate = '';
       if(!empty($entity->$fieldName)) {
         // Adjust the time back to the user's timezone
-        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->_View->get('vv_tz'));
-        $pickerDate = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->_View->get('vv_tz'));
+        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz'));
+        $pickerDate = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
       }
       
+      $date_args = [
+        'fieldName' => $fieldName,
+        'pickerDate' => $pickerDate
+      ];
       // Create a text field to hold our value.
-      $controlCode = $this->Form->text($fieldName, $coptions);
-      
-      // Create a date/time picker. The yyyy-MM-dd format is set above in $pickerDate.
-      $pickerId = 'datepicker-' . $fieldName;
-      $pickerTarget = $fieldName;
-      $pickerTimed = true; // TODO: set false if date-only
-      $pickerAmPm = false; // TODO: allow change between AM/PM and 24-hour mode
-      
-      $controlCode .= '  
-        <script type="module">
-          import CmDateTimePicker from "' . $this->Url->script('comanage/components/datepicker/cm-datetimepicker.js') . '";
-          const app = Vue.createApp({
-            data() {
-              return {
-                id: "' . $pickerId . '",
-                target: "' . $pickerTarget . '",
-                date: "' . $pickerDate . '",
-                timed: ' . ($pickerTimed ? 'true' : 'false') . ',
-                ampm: ' . ($pickerAmPm ? 'true' : 'false') . ',
-                txt: {
-                  hour: "' . __d('field', 'datepicker.hour') . '",
-                  minute: "' . __d('field', 'datepicker.minute') . '",
-                  am: "' . __d('field', 'datepicker.am') . '",
-                  pm: "' . __d('field', 'datepicker.pm') . '"
-                }
-              }
-            },
-            components: {
-              CmDateTimePicker
-            }
-          });
-          
-          // Add custom global directives available to all child components.
-          // "clickout" allows us to pass a function to a click outside behavior which
-          // is registered and destroyed as the component is mounted and unmounted.
-          app.directive("clickout", {
-            mounted(el, binding, vnode) {
-              el.clickOutEvent = function(event) {
-                if (!(el === event.target || el.contains(event.target))) {
-                  binding.value(event, el);
-                }
-              };
-              document.body.addEventListener("click", el.clickOutEvent);
-            },
-            unmounted(el) {
-              document.body.removeEventListener("click", el.clickOutEvent);
-            }
-          });
-          
-          app.mount("#' . $pickerId . '-container");
-        </script>
-        <div id="' . $pickerId . '-container">
-          <cm-date-time-picker
-            :id="id"
-            :target="target"
-            :date="date"
-            :timed="timed" 
-            :ampm="ampm"
-            :txt="txt">
-          </cm-date-time-picker>
-        </div>';
+      $controlCode = $this->Form->text($fieldName, $coptions)
+                     . $this->getView()->element('datePicker', $date_args);
       
       $liClass = "fields-datepicker";
     } else {
@@ -198,7 +154,9 @@ class FieldHelper extends Helper {
     
     return $this->startLine($liClass)
            . $this->formNameDiv($fieldName, $labelText)
-           . $this->formInfoDiv($controlCode)
+           . ( !empty($config['prefix']) ?
+                 $this->formInfoWithPrefixDiv($controlCode, $config['prefix']) :
+                 $this->formInfoDiv($controlCode) )
            . $this->endLine();
   }
   
@@ -238,6 +196,27 @@ class FieldHelper extends Helper {
     return '<div class="field-info">
       ' . $content . '
     </div>';
+  }
+
+  /**
+   * Generate a form info (control, value) box with a non editable prefix.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string  $content Content HTML
+   * @param  string  $prefix  Prefix value
+   * @return string           Form Info HTML
+   */
+
+  protected function formInfoWithPrefixDiv(string $context, string $prefix) {
+    $div =  '<div class="field-info">' . PHP_EOL
+      . '<div class="input-group mb-3">' . PHP_EOL
+      . '<div class="input-group-prepend">' . PHP_EOL
+      . '<span class="input-group-text" id="basic-addon3">' . $prefix . '</span>'
+      . '</div>' . PHP_EOL
+      . $context
+      . '</div></div>';
+
+    return $div;
   }
   
   /**

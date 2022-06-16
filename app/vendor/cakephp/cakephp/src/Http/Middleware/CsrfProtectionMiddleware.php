@@ -23,6 +23,7 @@ use Cake\Http\Exception\InvalidCsrfTokenException;
 use Cake\Http\Response;
 use Cake\Utility\Hash;
 use Cake\Utility\Security;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -53,15 +54,15 @@ class CsrfProtectionMiddleware implements MiddlewareInterface
      *  - `cookieName` The name of the cookie to send.
      *  - `expiry` A strotime compatible value of how long the CSRF token should last.
      *    Defaults to browser session.
-     *  - `secure` Whether or not the cookie will be set with the Secure flag. Defaults to false.
-     *  - `httponly` Whether or not the cookie will be set with the HttpOnly flag. Defaults to false.
+     *  - `secure` Whether the cookie will be set with the Secure flag. Defaults to false.
+     *  - `httponly` Whether the cookie will be set with the HttpOnly flag. Defaults to false.
      *  - `samesite` "SameSite" attribute for cookies. Defaults to `null`.
      *    Valid values: `CookieInterface::SAMESITE_LAX`, `CookieInterface::SAMESITE_STRICT`,
      *    `CookieInterface::SAMESITE_NONE` or `null`.
      *  - `field` The form field to check. Changing this will also require configuring
      *    FormHelper.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_config = [
         'cookieName' => 'csrfToken',
@@ -73,7 +74,7 @@ class CsrfProtectionMiddleware implements MiddlewareInterface
     ];
 
     /**
-     * Callback for deciding whether or not to skip the token check for particular request.
+     * Callback for deciding whether to skip the token check for particular request.
      *
      * CSRF protection token check will be skipped if the callback returns `true`.
      *
@@ -102,7 +103,7 @@ class CsrfProtectionMiddleware implements MiddlewareInterface
     /**
      * Constructor
      *
-     * @param array $config Config options. See $_config for valid keys.
+     * @param array<string, mixed> $config Config options. See $_config for valid keys.
      */
     public function __construct(array $config = [])
     {
@@ -148,8 +149,12 @@ class CsrfProtectionMiddleware implements MiddlewareInterface
         $cookies = $request->getCookieParams();
         $cookieData = Hash::get($cookies, $this->_config['cookieName']);
 
-        if (is_string($cookieData) && strlen($cookieData) > 0) {
-            $request = $request->withAttribute('csrfToken', $this->saltToken($cookieData));
+        if (is_string($cookieData) && $cookieData !== '') {
+            try {
+                $request = $request->withAttribute('csrfToken', $this->saltToken($cookieData));
+            } catch (InvalidArgumentException $e) {
+                $cookieData = null;
+            }
         }
 
         if ($method === 'GET' && $cookieData === null) {
@@ -277,6 +282,10 @@ class CsrfProtectionMiddleware implements MiddlewareInterface
             return $token;
         }
         $decoded = base64_decode($token, true);
+        if ($decoded === false) {
+            throw new InvalidArgumentException('Invalid token data.');
+        }
+
         $length = strlen($decoded);
         $salt = Security::randomBytes($length);
         $salted = '';
@@ -333,7 +342,7 @@ class CsrfProtectionMiddleware implements MiddlewareInterface
         } else {
             $decoded = base64_decode($token, true);
         }
-        if (strlen($decoded) <= static::TOKEN_VALUE_LENGTH) {
+        if (!$decoded || strlen($decoded) <= static::TOKEN_VALUE_LENGTH) {
             return false;
         }
 

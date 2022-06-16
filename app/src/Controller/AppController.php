@@ -45,7 +45,8 @@ use InvalidArgumentException;
 
 class AppController extends Controller {
   use \App\Lib\Traits\LabeledLogTrait;
-  
+
+
   // If set, the current requested CO. Note this may be *unauthenticated*
   // and so should not be trusted without further authorization.
   private $cur_co = null;
@@ -439,7 +440,7 @@ class AppController extends Controller {
         // Look up the link value to find the related entity
         
         $linkTableName = $this->$modelsName->getPrimaryLinkTableName($this->cur_pl->attr);
-        $linkTable = TableRegistry::get($linkTableName);
+        $linkTable = $this->getTableLocator()->get($linkTableName);
         
         $this->set('vv_primary_link_model', $linkTableName);
         
@@ -544,7 +545,7 @@ class AppController extends Controller {
     }
     
     if($coid) {
-      $this->loadModel('Cos');
+      $this->Cos = $this->fetchTable('Cos');
       
       // This throws Cake\Datasource\Exception\RecordNotFoundException which
       // we just let pass up the stack.
@@ -553,8 +554,9 @@ class AppController extends Controller {
       // While the COmanage CO cannot be suspended (AR-CO-2), this is enforced
       // at cos/edit, not here.
       
-      if($this->cur_co->status == TemplateableStatusEnum::Active) {
+      if($this->cur_co->status === TemplateableStatusEnum::Active) {
         $this->set('vv_cur_co', $this->cur_co);
+
       }
       
       // We store the CO ID in Configuration to facilitate its access from

@@ -438,6 +438,29 @@ class StandardController extends AppController {
        && $table->getIndexContains()) {
       $query->contain($table->getIndexContains());
     }
+  
+    // SearchFilterTrait
+    if(method_exists($table, "getSearchableAttributes")) {
+      $searchableAttributes = $table->getSearchableAttributes();
+    
+      if(!empty($searchableAttributes)) {
+        // Here we iterate over the attributes and we add a new where clause for each one
+        foreach(array_keys($searchableAttributes) as $attribute) {
+          if(!empty($this->request->getQuery($attribute))) {
+            $query = $table->whereFilter($query, $attribute, $this->request->getQuery($attribute));
+          } elseif (!empty($this->request->getQuery($attribute . "_starts_at"))
+                    || !empty($this->request->getQuery($attribute . "_ends_at"))) {
+            $search_date = [];
+            // We allow empty for dates since we might refer to infinity (from whenever or to always)
+            $search_date[] = $this->request->getQuery($attribute . "_starts_at") ?? "";
+            $search_date[] = $this->request->getQuery($attribute . "_ends_at") ?? "";
+            $query = $table->whereFilter($query, $attribute, $search_date);
+          }
+        }
+      
+        $this->set('vv_searchable_attributes', $searchableAttributes);
+      }
+    }
     
     // The Cake documents describe $this->paginate (which worked in Cake 2),
     // but it doesn't seem to work in Cake 4. So we just use $this->pagination
@@ -501,7 +524,7 @@ class StandardController extends AppController {
           case 'select':
             // We assume $modelName has a direct relationship to $avv['model']
             $avvmodel = $avv['model'];
-            $this->loadModel($avvmodel);
+            $this->$avvmodel = $this->fetchTable($avvmodel);
             
             if($avv['type'] == 'auxiliary') {
               $query = $this->$avvmodel->find();
@@ -560,6 +583,14 @@ class StandardController extends AppController {
             }
             
             $this->set($vvar, $query->toArray());
+            break;
+          case 'parent':
+            $modelsName = $this->name;
+            // $table = the actual table object
+            $table = $this->$modelsName;
+            // XXX We assume that all models that load the Tree behavior will
+            //     implement a potentialParents method
+            $this->set($vvar, $table->potentialParents($this->getCOID()));
             break;
           default:
 // XXX I18n? and in match?

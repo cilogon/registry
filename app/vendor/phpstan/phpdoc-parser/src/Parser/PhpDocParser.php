@@ -5,6 +5,10 @@ namespace PHPStan\PhpDocParser\Parser;
 use PHPStan\PhpDocParser\Ast;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\ShouldNotHappenException;
+use function array_values;
+use function count;
+use function trim;
 
 class PhpDocParser
 {
@@ -41,7 +45,21 @@ class PhpDocParser
 			}
 		}
 
-		$tokens->consumeTokenType(Lexer::TOKEN_CLOSE_PHPDOC);
+		try {
+			$tokens->consumeTokenType(Lexer::TOKEN_CLOSE_PHPDOC);
+		} catch (ParserException $e) {
+			$name = '';
+			if (count($children) > 0) {
+				$lastChild = $children[count($children) - 1];
+				if ($lastChild instanceof Ast\PhpDoc\PhpDocTagNode) {
+					$name = $lastChild->name;
+				}
+			}
+			$tokens->forwardToTheEnd();
+			return new Ast\PhpDoc\PhpDocNode([
+				new Ast\PhpDoc\PhpDocTagNode($name, new Ast\PhpDoc\InvalidTagValueNode($e->getMessage(), $e)),
+			]);
+		}
 
 		return new Ast\PhpDoc\PhpDocNode(array_values($children));
 	}
@@ -61,39 +79,27 @@ class PhpDocParser
 	private function parseText(TokenIterator $tokens): Ast\PhpDoc\PhpDocTextNode
 	{
 		$text = '';
-		while (true) {
-			// If we received a Lexer::TOKEN_PHPDOC_EOL, exit early to prevent
-			// them from being processed.
-			$currentTokenType = $tokens->currentTokenType();
-			if ($currentTokenType === Lexer::TOKEN_PHPDOC_EOL) {
-				break;
-			}
-			$text .= $tokens->joinUntil(Lexer::TOKEN_PHPDOC_EOL, Lexer::TOKEN_CLOSE_PHPDOC, Lexer::TOKEN_END);
-			$text = rtrim($text, " \t");
 
-			// If we joined until TOKEN_PHPDOC_EOL, peak at the next tokens to see
-			// if we have a multiline string to join.
-			$currentTokenType = $tokens->currentTokenType();
-			if ($currentTokenType !== Lexer::TOKEN_PHPDOC_EOL) {
+		while (!$tokens->isCurrentTokenType(Lexer::TOKEN_PHPDOC_EOL)) {
+			$text .= $tokens->getSkippedHorizontalWhiteSpaceIfAny() . $tokens->joinUntil(Lexer::TOKEN_PHPDOC_EOL, Lexer::TOKEN_CLOSE_PHPDOC, Lexer::TOKEN_END);
+
+			if (!$tokens->isCurrentTokenType(Lexer::TOKEN_PHPDOC_EOL)) {
 				break;
 			}
 
-			// Peek at the next token to determine if it is more text that needs
-			// to be combined.
 			$tokens->pushSavePoint();
 			$tokens->next();
-			$currentTokenType = $tokens->currentTokenType();
-			if ($currentTokenType !== Lexer::TOKEN_IDENTIFIER) {
+
+			if ($tokens->isCurrentTokenType(Lexer::TOKEN_PHPDOC_TAG) || $tokens->isCurrentTokenType(Lexer::TOKEN_PHPDOC_EOL) || $tokens->isCurrentTokenType(Lexer::TOKEN_CLOSE_PHPDOC) || $tokens->isCurrentTokenType(Lexer::TOKEN_END)) {
 				$tokens->rollback();
 				break;
 			}
 
-			// There's more text on a new line, ensure spacing.
+			$tokens->dropSavePoint();
 			$text .= "\n";
 		}
-		$text = trim($text, " \t");
 
-		return new Ast\PhpDoc\PhpDocTextNode($text);
+		return new Ast\PhpDoc\PhpDocTextNode(trim($text, " \t"));
 	}
 
 
@@ -189,6 +195,25 @@ class PhpDocParser
 					$tagValue = $this->parseExtendsTagValue('@use', $tokens);
 					break;
 
+				case '@phpstan-type':
+				case '@psalm-type':
+					$tagValue = $this->parseTypeAliasTagValue($tokens);
+					break;
+
+				case '@phpstan-import-type':
+				case '@psalm-import-type':
+					$tagValue = $this->parseTypeAliasImportTagValue($tokens);
+					break;
+
+				case '@phpstan-assert':
+				case '@phpstan-assert-if-true':
+				case '@phpstan-assert-if-false':
+				case '@psalm-assert':
+				case '@psalm-assert-if-true':
+				case '@psalm-assert-if-false':
+					$tagValue = $this->parseAssertTagValue($tokens);
+					break;
+
 				default:
 					$tagValue = new Ast\PhpDoc\GenericTagValueNode($this->parseOptionalDescription($tokens));
 					break;
@@ -196,7 +221,7 @@ class PhpDocParser
 
 			$tokens->dropSavePoint();
 
-		} catch (\PHPStan\PhpDocParser\Parser\ParserException $e) {
+		} catch (ParserException $e) {
 			$tokens->rollback();
 			$tagValue = new Ast\PhpDoc\InvalidTagValueNode($this->parseOptionalDescription($tokens), $e);
 		}
@@ -208,10 +233,11 @@ class PhpDocParser
 	private function parseParamTagValue(TokenIterator $tokens): Ast\PhpDoc\ParamTagValueNode
 	{
 		$type = $this->typeParser->parse($tokens);
+		$isReference = $tokens->tryConsumeTokenType(Lexer::TOKEN_REFERENCE);
 		$isVariadic = $tokens->tryConsumeTokenType(Lexer::TOKEN_VARIADIC);
 		$parameterName = $this->parseRequiredVariableName($tokens);
 		$description = $this->parseOptionalDescription($tokens);
-		return new Ast\PhpDoc\ParamTagValueNode($type, $isVariadic, $parameterName, $description);
+		return new Ast\PhpDoc\ParamTagValueNode($type, $isVariadic, $parameterName, $description, $isReference);
 	}
 
 
@@ -361,7 +387,55 @@ class PhpDocParser
 				return new Ast\PhpDoc\UsesTagValueNode($type, $description);
 		}
 
-		throw new \PHPStan\ShouldNotHappenException();
+		throw new ShouldNotHappenException();
+	}
+
+	private function parseTypeAliasTagValue(TokenIterator $tokens): Ast\PhpDoc\TypeAliasTagValueNode
+	{
+		$alias = $tokens->currentTokenValue();
+		$tokens->consumeTokenType(Lexer::TOKEN_IDENTIFIER);
+
+		// support psalm-type syntax
+		$tokens->tryConsumeTokenType(Lexer::TOKEN_EQUAL);
+
+		$type = $this->typeParser->parse($tokens);
+
+		return new Ast\PhpDoc\TypeAliasTagValueNode($alias, $type);
+	}
+
+	private function parseTypeAliasImportTagValue(TokenIterator $tokens): Ast\PhpDoc\TypeAliasImportTagValueNode
+	{
+		$importedAlias = $tokens->currentTokenValue();
+		$tokens->consumeTokenType(Lexer::TOKEN_IDENTIFIER);
+
+		if (!$tokens->tryConsumeTokenValue('from')) {
+			throw new ParserException(
+				$tokens->currentTokenValue(),
+				$tokens->currentTokenType(),
+				$tokens->currentTokenOffset(),
+				Lexer::TOKEN_IDENTIFIER
+			);
+		}
+
+		$importedFrom = $tokens->currentTokenValue();
+		$tokens->consumeTokenType(Lexer::TOKEN_IDENTIFIER);
+
+		$importedAs = null;
+		if ($tokens->tryConsumeTokenValue('as')) {
+			$importedAs = $tokens->currentTokenValue();
+			$tokens->consumeTokenType(Lexer::TOKEN_IDENTIFIER);
+		}
+
+		return new Ast\PhpDoc\TypeAliasImportTagValueNode($importedAlias, new IdentifierTypeNode($importedFrom), $importedAs);
+	}
+
+	private function parseAssertTagValue(TokenIterator $tokens): Ast\PhpDoc\AssertTagValueNode
+	{
+		$isNegated = $tokens->tryConsumeTokenType(Lexer::TOKEN_NEGATED);
+		$type = $this->typeParser->parse($tokens);
+		$parameter = $this->parseRequiredVariableName($tokens);
+		$description = $this->parseOptionalDescription($tokens);
+		return new Ast\PhpDoc\AssertTagValueNode($type, $parameter, $isNegated, $description);
 	}
 
 	private function parseOptionalVariableName(TokenIterator $tokens): string

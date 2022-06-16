@@ -18,6 +18,9 @@ use const T_SEMICOLON;
 use const T_STRING;
 use const T_USE;
 
+/**
+ * @internal
+ */
 class UseStatementHelper
 {
 
@@ -86,8 +89,6 @@ class UseStatementHelper
 	}
 
 	/**
-	 * @param File $phpcsFile
-	 * @param int $pointer
 	 * @return array<string, UseStatement>
 	 */
 	public static function getUseStatementsForPointer(File $phpcsFile, int $pointer): array
@@ -108,7 +109,6 @@ class UseStatementHelper
 	}
 
 	/**
-	 * @param File $phpcsFile
 	 * @return array<int, array<string, UseStatement>>
 	 */
 	public static function getFileUseStatements(File $phpcsFile): array
@@ -132,7 +132,7 @@ class UseStatementHelper
 				}
 
 				$nextTokenFromUsePointer = TokenHelper::findNextEffective($phpcsFile, $usePointer + 1);
-				$type = UseStatement::TYPE_DEFAULT;
+				$type = UseStatement::TYPE_CLASS;
 				if ($tokens[$nextTokenFromUsePointer]['code'] === T_STRING) {
 					if ($tokens[$nextTokenFromUsePointer]['content'] === 'const') {
 						$type = UseStatement::TYPE_CONSTANT;
@@ -173,8 +173,6 @@ class UseStatementHelper
 	/**
 	 * Searches for all use statements in a file, skips bodies of classes and traits.
 	 *
-	 * @param File $phpcsFile
-	 * @param int $openTagPointer
 	 * @return int[]
 	 */
 	private static function getUseStatementPointers(File $phpcsFile, int $openTagPointer): array

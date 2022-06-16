@@ -26,11 +26,32 @@ use Cake\Database\Exception\DatabaseException;
 class PostgresSchemaDialect extends SchemaDialect
 {
     /**
-     * @inheritDoc
+     * Generate the SQL to list the tables and views.
+     *
+     * @param array<string, mixed> $config The connection configuration to use for
+     *    getting tables from.
+     * @return array An array of (sql, params) to execute.
      */
     public function listTablesSql(array $config): array
     {
-        $sql = 'SELECT table_name as name FROM information_schema.tables WHERE table_schema = ? ORDER BY name';
+        $sql = 'SELECT table_name as name FROM information_schema.tables
+                WHERE table_schema = ? ORDER BY name';
+        $schema = empty($config['schema']) ? 'public' : $config['schema'];
+
+        return [$sql, [$schema]];
+    }
+
+    /**
+     * Generate the SQL to list the tables, excluding all views.
+     *
+     * @param array<string, mixed> $config The connection configuration to use for
+     *    getting tables from.
+     * @return array<mixed> An array of (sql, params) to execute.
+     */
+    public function listTablesWithoutViewsSql(array $config): array
+    {
+        $sql = 'SELECT table_name as name FROM information_schema.tables
+                WHERE table_schema = ? AND table_type = \'BASE TABLE\' ORDER BY name';
         $schema = empty($config['schema']) ? 'public' : $config['schema'];
 
         return [$sql, [$schema]];
@@ -75,7 +96,7 @@ class PostgresSchemaDialect extends SchemaDialect
      *
      * @param string $column The column type + length
      * @throws \Cake\Database\Exception\DatabaseException when column cannot be parsed.
-     * @return array Array of column information.
+     * @return array<string, mixed> Array of column information.
      */
     protected function _convertColumn(string $column): array
     {
@@ -85,9 +106,17 @@ class PostgresSchemaDialect extends SchemaDialect
         }
 
         $col = strtolower($matches[1]);
-        $length = null;
+        $length = $precision = $scale = null;
         if (isset($matches[2])) {
             $length = (int)$matches[2];
+        }
+
+        $type = $this->_applyTypeSpecificColumnConversion(
+            $col,
+            compact('length', 'precision', 'scale')
+        );
+        if ($type !== null) {
+            return $type;
         }
 
         if (in_array($col, ['date', 'time', 'boolean'], true)) {
@@ -379,6 +408,12 @@ class PostgresSchemaDialect extends SchemaDialect
     {
         /** @var array $data */
         $data = $schema->getColumn($name);
+
+        $sql = $this->_getTypeSpecificColumnSql($data['type'], $schema, $name);
+        if ($sql !== null) {
+            return $sql;
+        }
+
         $out = $this->_driver->quoteIdentifier($name);
         $typeMap = [
             TableSchema::TYPE_TINYINTEGER => ' SMALLINT',
@@ -559,7 +594,7 @@ class PostgresSchemaDialect extends SchemaDialect
      */
     public function constraintSql(TableSchema $schema, string $name): string
     {
-        /** @var array $data */
+        /** @var array<string, mixed> $data */
         $data = $schema->getConstraint($name);
         $out = 'CONSTRAINT ' . $this->_driver->quoteIdentifier($name);
         if ($data['type'] === TableSchema::CONSTRAINT_PRIMARY) {
@@ -576,7 +611,7 @@ class PostgresSchemaDialect extends SchemaDialect
      * Helper method for generating key SQL snippets.
      *
      * @param string $prefix The key prefix
-     * @param array $data Key data.
+     * @param array<string, mixed> $data Key data.
      * @return string
      */
     protected function _keySql(string $prefix, array $data): string

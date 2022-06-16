@@ -99,8 +99,8 @@
 
     // TOP SEARCH FILTER FORM
     // Send only non-empty fields in the form
-    $("#top-search-form").submit(function() {
-      $("#top-search-form *").filter(':input').each(function () {
+    $("#top-filters-form").submit(function() {
+      $("#top-filters-form *").filter(':input').each(function () {
         if($(this).val() == '') {
           $(this).prop('disabled',true);
         }
@@ -108,37 +108,51 @@
     });
 
     // Toggle the top search filter box
-    $("#top-search-toggle, #top-search-toggle button.cm-toggle").click(function(e) {
+    $("#top-filters-toggle, #top-filters-toggle button.cm-toggle").click(function(e) {
       e.preventDefault();
       e.stopPropagation();
-      if ($("#top-search-fields").is(":visible")) {
-        $("#top-search-fields").hide();
-        $("#top-search-toggle button.cm-toggle").attr("aria-expanded","false");
-        $("#top-search-toggle button.cm-toggle .drop-arrow").text("arrow_drop_down");
+      if ($("#top-filters-fields").is(":visible")) {
+        $("#top-filters-fields").hide();
+        $("#top-filters-toggle button.cm-toggle").attr("aria-expanded","false");
+        $("#top-filters-toggle button.cm-toggle .drop-arrow").text("arrow_drop_down");
       } else {
-        $("#top-search-fields").show();
-        $("#top-search-toggle button.cm-toggle").attr("aria-expanded","true");
-        $("#top-search-toggle button.cm-toggle .drop-arrow").text("arrow_drop_up");
+        $("#top-filters-fields").show();
+        $("#top-filters-toggle button.cm-toggle").attr("aria-expanded","true");
+        $("#top-filters-toggle button.cm-toggle .drop-arrow").text("arrow_drop_up");
       }
     });
 
     // Clear a specific top search filter by clicking the filter button
-    $("#top-search-toggle button.top-search-active-filter").click(function(e) {
+    $("#top-filters-toggle button.top-filters-active-filter").click(function(e) {
       e.preventDefault();
       e.stopPropagation();
       $(this).hide();
-      filterId = '#' + $(this).attr("aria-controls");
-      $(filterId).val("");
+      $(this)[0].dataset.identifier.split(':').forEach( (ident) => {
+        // CAKEPHP transforms snake case variables to kebab when the name has the format of a foreign key.
+        // As a result searching for the initial key will fail. This is used for use cases
+        // like the models that use the Tree behavior and have the column parent_id
+        let ident_to_snake = ident.replace(/_/g, "-");
+        let filterId = '#' + ident_to_snake;
+        $(filterId).val("");
+      });
+
+      // Remove the Vue date fields if exist
+      let dateWidgetInputs = document.querySelectorAll('duet-date-picker input');
+      // Remove all the Vue related fields
+      Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
+        el.parentNode.removeChild(el);
+      });
+
       $(this).closest('form').submit();
     });
 
     // Clear all top filters from the filter bar
-    $("#top-search-clear-all-button").click(function(e) {
+    $("#top-filters-clear-all-button").click(function(e) {
       e.preventDefault();
       e.stopPropagation();
       $(this).hide();
-      $("#top-search-toggle .top-search-active-filter").hide();
-      $("#top-search-clear").click();
+      $("#top-filters-toggle .top-filters-active-filter").hide();
+      $("#top-filters-clear").click();
     });
 
     // Make all submit buttons pretty (Bootstrap)
@@ -146,6 +160,14 @@
 
     // Make all select form controls Bootstrappy
     $("select").addClass("form-select");
+
+    // Use select2 library everywhere except
+    // - duet-date
+    $("select").not("#limit").not(".duet-date__select--month").not(".duet-date__select--year").select2({
+      width: '100%',
+      tags: true,
+      placeholder: "-- Select --"
+    });
 
     // Enable Bootstrap Popovers. Unless needed elsewhere, constrain this to #content
     // XXX Enable when/if needed

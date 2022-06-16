@@ -44,6 +44,7 @@ use const T_LIST;
 use const T_LNUMBER;
 use const T_LOGICAL_AND;
 use const T_LOGICAL_OR;
+use const T_MATCH;
 use const T_MINUS;
 use const T_MODULUS;
 use const T_MULTIPLY;
@@ -57,6 +58,7 @@ use const T_REQUIRE;
 use const T_REQUIRE_ONCE;
 use const T_SELF;
 use const T_SEMICOLON;
+use const T_SR;
 use const T_STATIC;
 use const T_STRING_CAST;
 use const T_STRING_CONCAT;
@@ -108,7 +110,6 @@ class UselessParenthesesSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $parenthesisOpenerPointer
 	 */
 	public function process(File $phpcsFile, $parenthesisOpenerPointer): void
@@ -149,6 +150,7 @@ class UselessParenthesesSniff implements Sniff
 				T_OBJECT_CAST,
 				T_BOOL_CAST,
 				T_UNSET_CAST,
+				T_MATCH,
 			]
 		), true)
 		) {
@@ -321,7 +323,7 @@ class UselessParenthesesSniff implements Sniff
 			$parenthesisOpenerPointer + 1,
 			$tokens[$parenthesisOpenerPointer]['parenthesis_closer']
 		);
-		if (count($operatorsPointers) !== 0) {
+		if ($operatorsPointers !== []) {
 			return;
 		}
 
@@ -339,7 +341,7 @@ class UselessParenthesesSniff implements Sniff
 			$phpcsFile,
 			$tokens[$parenthesisOpenerPointer]['parenthesis_closer'] + 1
 		);
-		if (in_array($tokens[$pointerAfterParenthesisCloser]['code'], [T_INLINE_THEN, T_OPEN_PARENTHESIS], true)) {
+		if (in_array($tokens[$pointerAfterParenthesisCloser]['code'], [T_INLINE_THEN, T_OPEN_PARENTHESIS, T_SR], true)) {
 			return;
 		}
 

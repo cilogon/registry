@@ -54,9 +54,27 @@ class Collection implements CollectionInterface
     }
 
     /**
-     * Get the list of tables available in the current connection.
+     * Get the list of tables, excluding any views, available in the current connection.
      *
-     * @return string[] The list of tables in the connected database/schema.
+     * @return array<string> The list of tables in the connected database/schema.
+     */
+    public function listTablesWithoutViews(): array
+    {
+        [$sql, $params] = $this->_dialect->listTablesWithoutViewsSql($this->_connection->config());
+        $result = [];
+        $statement = $this->_connection->execute($sql, $params);
+        while ($row = $statement->fetch()) {
+            $result[] = $row[0];
+        }
+        $statement->closeCursor();
+
+        return $result;
+    }
+
+    /**
+     * Get the list of tables and views available in the current connection.
+     *
+     * @return array<string> The list of tables and views in the connected database/schema.
      */
     public function listTables(): array
     {
@@ -85,7 +103,7 @@ class Collection implements CollectionInterface
      *   Defaults to false.
      *
      * @param string $name The name of the table to describe.
-     * @param array $options The options to use, see above.
+     * @param array<string, mixed> $options The options to use, see above.
      * @return \Cake\Database\Schema\TableSchema Object with column metadata.
      * @throws \Cake\Database\Exception\DatabaseException when table cannot be described.
      */
@@ -114,7 +132,7 @@ class Collection implements CollectionInterface
      *
      * @param string $stage The stage name.
      * @param string $name The table name.
-     * @param array $config The config data.
+     * @param array<string, mixed> $config The config data.
      * @param \Cake\Database\Schema\TableSchema $schema The table schema instance.
      * @return void
      * @throws \Cake\Database\Exception\DatabaseException on query failure.

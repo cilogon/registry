@@ -25,6 +25,9 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// Turn off the search/filter box for this index view
+//$disableFiltering = true;
+
 $indexColumns = [
   'display_name' => [
     'type' => 'link',
@@ -44,6 +47,7 @@ $indexColumns = [
 $topLinks = [
   [
     'icon'  => 'settings_backup_restore',
+    'order' => 'Default',
     'label' => __d('operation', 'Types.restore'),
     'link'  => [
       'action' => 'restore'

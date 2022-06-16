@@ -80,7 +80,8 @@ class MenuHelper extends Helper {
       'Delete'        =>  'delete'
     );
 
-    return $icon[$action];
+    // For the actions with Default order we can pass directly the name of the icon
+    return $icon[$action] ?? $action;
   }
 
 }

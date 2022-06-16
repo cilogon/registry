@@ -113,7 +113,7 @@ class Log
     /**
      * An array mapping url schemes to fully qualified Log engine class names
      *
-     * @var string[]
+     * @var array<string, string>
      * @psalm-var array<string, class-string>
      */
     protected static $_dsnClassMap = [
@@ -123,7 +123,7 @@ class Log
     ];
 
     /**
-     * Internal flag for tracking whether or not configuration has been changed.
+     * Internal flag for tracking whether configuration has been changed.
      *
      * @var bool
      */
@@ -139,7 +139,7 @@ class Log
     /**
      * Handled log levels
      *
-     * @var string[]
+     * @var array<string>
      */
     protected static $_levels = [
         'emergency',
@@ -156,7 +156,7 @@ class Log
      * Log levels as detailed in RFC 5424
      * https://tools.ietf.org/html/rfc5424
      *
-     * @var array
+     * @var array<string, int>
      */
     protected static $_levelMap = [
         'emergency' => LOG_EMERG,
@@ -176,7 +176,8 @@ class Log
      */
     protected static function _init(): void
     {
-        if (empty(static::$_registry)) {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        if (!isset(static::$_registry)) {
             static::$_registry = new LogEngineRegistry();
         }
         if (static::$_dirtyConfig) {
@@ -215,7 +216,8 @@ class Log
      */
     public static function reset(): void
     {
-        if (!empty(static::$_registry)) {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        if (isset(static::$_registry)) {
             static::$_registry->reset();
         }
         static::$_config = [];
@@ -228,7 +230,7 @@ class Log
      * Call this method to obtain current
      * level configuration.
      *
-     * @return string[] Active log levels
+     * @return array<string> Active log levels
      */
     public static function levels(): array
     {
@@ -270,8 +272,8 @@ class Log
      * Log::setConfig($arrayOfConfig);
      * ```
      *
-     * @param string|array $key The name of the logger config, or an array of multiple configs.
-     * @param array|null $config An array of name => config data for adapter.
+     * @param array<string, mixed>|string $key The name of the logger config, or an array of multiple configs.
+     * @param array<string, mixed>|null $config An array of name => config data for adapter.
      * @return void
      * @throws \BadMethodCallException When trying to modify an existing config.
      */
@@ -298,7 +300,7 @@ class Log
     }
 
     /**
-     * Writes the given message and type to all of the configured log adapters.
+     * Writes the given message and type to all the configured log adapters.
      * Configured adapters are passed both the $level and $message variables. $level
      * is one of the following strings/values.
      *
@@ -340,14 +342,14 @@ class Log
      * then the logged message will be ignored and silently dropped. You can check if this has happened
      * by inspecting the return of write(). If false the message was not handled.
      *
-     * @param int|string $level The severity level of the message being written.
+     * @param string|int $level The severity level of the message being written.
      *    The value must be an integer or string matching a known level.
      * @param string $message Message content to log
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      * @throws \InvalidArgumentException If invalid level is passed.
      */
@@ -399,11 +401,11 @@ class Log
      * Convenience method to log emergency messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function emergency(string $message, $context = []): bool
@@ -415,11 +417,11 @@ class Log
      * Convenience method to log alert messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function alert(string $message, $context = []): bool
@@ -431,11 +433,11 @@ class Log
      * Convenience method to log critical messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function critical(string $message, $context = []): bool
@@ -447,11 +449,11 @@ class Log
      * Convenience method to log error messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function error(string $message, $context = []): bool
@@ -463,11 +465,11 @@ class Log
      * Convenience method to log warning messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function warning(string $message, $context = []): bool
@@ -479,11 +481,11 @@ class Log
      * Convenience method to log notice messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function notice(string $message, $context = []): bool
@@ -495,11 +497,11 @@ class Log
      * Convenience method to log debug messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
      *  log engines to be used. If a string or a numerically index array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function debug(string $message, $context = []): bool
@@ -511,11 +513,11 @@ class Log
      * Convenience method to log info messages
      *
      * @param string $message log message
-     * @param string|array $context Additional data to be used for logging the message.
+     * @param array|string $context Additional data to be used for logging the message.
      *  The special `scope` key can be passed to be used for further filtering of the
-     *  log engines to be used. If a string or a numerically index array is passed, it
+     *  log engines to be used. If a string or a numerically indexed array is passed, it
      *  will be treated as the `scope` key.
-     *  See Cake\Log\Log::setConfig() for more information on logging scopes.
+     *  See {@link \Cake\Log\Log::setConfig()} for more information on logging scopes.
      * @return bool Success
      */
     public static function info(string $message, $context = []): bool

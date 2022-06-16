@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -46,22 +46,32 @@ class Transaction
      */
     protected $resultPackagesByName = array();
 
-    public function __construct($presentPackages, $resultPackages)
+    /**
+     * @param PackageInterface[] $presentPackages
+     * @param PackageInterface[] $resultPackages
+     */
+    public function __construct(array $presentPackages, array $resultPackages)
     {
         $this->presentPackages = $presentPackages;
         $this->setResultPackageMaps($resultPackages);
         $this->operations = $this->calculateOperations();
     }
 
-    /** @return OperationInterface[] */
-    public function getOperations()
+    /**
+     * @return OperationInterface[]
+     */
+    public function getOperations(): array
     {
         return $this->operations;
     }
 
-    private function setResultPackageMaps($resultPackages)
+    /**
+     * @param PackageInterface[] $resultPackages
+     * @return void
+     */
+    private function setResultPackageMaps(array $resultPackages): void
     {
-        $packageSort = function (PackageInterface $a, PackageInterface $b) {
+        $packageSort = function (PackageInterface $a, PackageInterface $b): int {
             // sort alias packages by the same name behind their non alias version
             if ($a->getName() == $b->getName()) {
                 if ($a instanceof AliasPackage != $b instanceof AliasPackage) {
@@ -88,7 +98,10 @@ class Transaction
         }
     }
 
-    protected function calculateOperations()
+    /**
+     * @return OperationInterface[]
+     */
+    protected function calculateOperations(): array
     {
         $operations = array();
 
@@ -205,7 +218,7 @@ class Transaction
      *
      * @return array<string, PackageInterface>
      */
-    protected function getRootPackages()
+    protected function getRootPackages(): array
     {
         $roots = $this->resultPackageMap;
 
@@ -228,7 +241,10 @@ class Transaction
         return $roots;
     }
 
-    protected function getProvidersInResult(Link $link)
+    /**
+     * @return PackageInterface[]
+     */
+    protected function getProvidersInResult(Link $link): array
     {
         if (!isset($this->resultPackagesByName[$link->getTarget()])) {
             return array();
@@ -250,7 +266,7 @@ class Transaction
      * @param  OperationInterface[] $operations
      * @return OperationInterface[] reordered operation list
      */
-    private function movePluginsToFront(array $operations)
+    private function movePluginsToFront(array $operations): array
     {
         $dlModifyingPluginsNoDeps = array();
         $dlModifyingPluginsWithDeps = array();
@@ -273,7 +289,7 @@ class Transaction
             // is this a downloads modifying plugin or a dependency of one?
             if ($isDownloadsModifyingPlugin || count(array_intersect($package->getNames(), $dlModifyingPluginRequires))) {
                 // get the package's requires, but filter out any platform requirements
-                $requires = array_filter(array_keys($package->getRequires()), function ($req) {
+                $requires = array_filter(array_keys($package->getRequires()), function ($req): bool {
                     return !PlatformRepository::isPlatformPackage($req);
                 });
 
@@ -298,7 +314,7 @@ class Transaction
             // is this a plugin or a dependency of a plugin?
             if ($isPlugin || count(array_intersect($package->getNames(), $pluginRequires))) {
                 // get the package's requires, but filter out any platform requirements
-                $requires = array_filter(array_keys($package->getRequires()), function ($req) {
+                $requires = array_filter(array_keys($package->getRequires()), function ($req): bool {
                     return !PlatformRepository::isPlatformPackage($req);
                 });
 
@@ -327,7 +343,7 @@ class Transaction
      * @param  OperationInterface[] $operations
      * @return OperationInterface[] reordered operation list
      */
-    private function moveUninstallsToFront(array $operations)
+    private function moveUninstallsToFront(array $operations): array
     {
         $uninstOps = array();
         foreach ($operations as $idx => $op) {

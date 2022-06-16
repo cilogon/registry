@@ -18,6 +18,7 @@ namespace Bake\Command;
 
 use Bake\Utility\TableScanner;
 use Bake\Utility\TemplateRenderer;
+use Brick\VarExporter\VarExporter;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
@@ -72,6 +73,10 @@ class FixtureCommand extends BakeCommand
             'help' => 'When using generated data, the number of records to include in the fixture(s).',
             'short' => 'n',
             'default' => 1,
+        ])->addOption('fields', [
+            'help' => 'Create a fixture that includes the deprecated $fields property.',
+            'short' => 'f',
+            'boolean' => true,
         ])->addOption('schema', [
             'help' => 'Create a fixture that imports schema, instead of dumping a schema snapshot into the fixture.',
             'short' => 's',
@@ -162,6 +167,8 @@ class FixtureCommand extends BakeCommand
             $data = $this->readSchema($model, $useTable);
         }
 
+        $this->validateNames($data, $io);
+
         if ($modelImport === null) {
             $schema = $this->_generateSchema($data);
         }
@@ -203,12 +210,33 @@ class FixtureCommand extends BakeCommand
     }
 
     /**
+     * Validates table and column names are supported.
+     *
+     * @param \Cake\Database\Schema\TableSchemaInterface $schema Table schema
+     * @param \Cake\Console\ConsoleIo $io Console io
+     * @return void
+     * @throws \Cake\Console\Exception\StopException When table or column names are not supported
+     */
+    public function validateNames(TableSchemaInterface $schema, ConsoleIo $io): void
+    {
+        foreach ($schema->columns() as $column) {
+            if (!$this->isValidColumnName($column)) {
+                $io->abort(sprintf(
+                    'Unable to bake model. Table column name must start with a letter or underscore and
+                    cannot contain special characters. Found `%s`.',
+                    $column
+                ));
+            }
+        }
+    }
+
+    /**
      * Generate the fixture file, and write to disk
      *
      * @param \Cake\Console\Arguments $args The CLI arguments.
      * @param \Cake\Console\ConsoleIo $io The console io instance.
      * @param string $model name of the model being generated
-     * @param array $otherVars Contents of the fixture file.
+     * @param array<string, mixed> $otherVars Contents of the fixture file.
      * @return void
      */
     public function generateFixtureFile(Arguments $args, ConsoleIo $io, string $model, array $otherVars): void
@@ -226,6 +254,9 @@ class FixtureCommand extends BakeCommand
             $defaults['namespace'] = $this->_pluginNamespace($this->plugin);
         }
         $vars = $otherVars + $defaults;
+        if (!$args->getOption('fields')) {
+            $vars['schema'] = null;
+        }
 
         $path = $this->getPath($args);
         $filename = $vars['name'] . 'Fixture.php';
@@ -235,7 +266,7 @@ class FixtureCommand extends BakeCommand
         $renderer->set($vars);
         $content = $renderer->generate('Bake.tests/fixture');
 
-        $io->out("\n" . sprintf('Baking test fixture for %s...', $model), 1, ConsoleIo::QUIET);
+        $io->out("\n" . sprintf('Baking test fixture for %s...', $model), 1, ConsoleIo::NORMAL);
         $io->createFile($path . $filename, $content, $args->getOption('force'));
         $emptyFile = $path . '.gitkeep';
         $this->deleteEmptyFile($emptyFile, $io);
@@ -400,29 +431,19 @@ class FixtureCommand extends BakeCommand
      *
      * @param array $records Array of records to be converted to string
      * @return string A string value of the $records array.
+     * @throws \Brick\VarExporter\ExportException
      */
     protected function _makeRecordString(array $records): string
     {
-        $out = "[\n";
-        foreach ($records as $record) {
-            $values = [];
-            foreach ($record as $field => $value) {
+        foreach ($records as &$record) {
+            array_walk($record, function (&$value) {
                 if ($value instanceof DateTimeInterface) {
                     $value = $value->format('Y-m-d H:i:s');
                 }
-                $val = var_export($value, true);
-                if ($val === 'NULL') {
-                    $val = 'null';
-                }
-                $values[] = "                '$field' => $val";
-            }
-            $out .= "            [\n";
-            $out .= implode(",\n", $values);
-            $out .= ",\n            ],\n";
+            });
         }
-        $out .= '        ]';
 
-        return $out;
+        return VarExporter::export($records, VarExporter::TRAILING_COMMA_IN_ARRAY, 2);
     }
 
     /**

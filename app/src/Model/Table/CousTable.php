@@ -41,6 +41,7 @@ class CousTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -90,6 +91,12 @@ class CousTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+
+    $this->setAutoViewVars([
+       'parent_ids' => [
+         'type'  => 'parent'
+       ]
+     ]);
   }
   
   /**
@@ -141,6 +148,7 @@ class CousTable extends Table {
    * @param  int  $id        COU ID to determine potential parents of, or null for any (or a new) COU
    * @param  bool $hierarchy Render the hierarchy in the name
    * @return Array     Array of COU IDs and COU Names
+   * @todo Make a TreeTrait and move the function there
    */
   
   public function potentialParents(int $coId, int $id=null, bool $hierarchy=false) {

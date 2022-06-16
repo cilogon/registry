@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -20,6 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Composer\Factory;
 use Composer\Installer;
+use Composer\Installer\InstallerEvents;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
 use Composer\Package\Version\VersionParser;
@@ -36,8 +37,10 @@ use Composer\Util\Silencer;
  * @author Jérémy Romey <jeremy@free-agent.fr>
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class RequireCommand extends InitCommand
+class RequireCommand extends BaseCommand
 {
+    use PackageDiscoveryTrait;
+
     /** @var bool */
     private $newlyCreated;
     /** @var bool */
@@ -52,7 +55,12 @@ class RequireCommand extends InitCommand
     private $lock;
     /** @var ?string contents before modification if the lock file exists */
     private $lockBackup;
+    /** @var bool */
+    private $dependencyResolutionCompleted = false;
 
+    /**
+     * @return void
+     */
     protected function configure()
     {
         $this
@@ -70,7 +78,6 @@ class RequireCommand extends InitCommand
                 new InputOption('no-progress', null, InputOption::VALUE_NONE, 'Do not output download progress.'),
                 new InputOption('no-update', null, InputOption::VALUE_NONE, 'Disables the automatic update of the dependencies (implies --no-install).'),
                 new InputOption('no-install', null, InputOption::VALUE_NONE, 'Skip the install step after updating the composer.lock file.'),
-                new InputOption('no-scripts', null, InputOption::VALUE_NONE, 'Skips the execution of all scripts defined in composer.json file.'),
                 new InputOption('update-no-dev', null, InputOption::VALUE_NONE, 'Run the dependency update with the --no-dev option.'),
                 new InputOption('update-with-dependencies', 'w', InputOption::VALUE_NONE, 'Allows inherited dependencies to be updated, except those that are root requirements.'),
                 new InputOption('update-with-all-dependencies', 'W', InputOption::VALUE_NONE, 'Allows all inherited dependencies to be updated, including those that are root requirements.'),
@@ -103,6 +110,9 @@ EOT
         ;
     }
 
+    /**
+     * @throws \Seld\JsonLint\ParsingException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (function_exists('pcntl_async_signals') && function_exists('pcntl_signal')) {
@@ -167,11 +177,11 @@ EOT
             }
         }
 
-        $composer = $this->getComposer(true, $input->getOption('no-plugins'));
+        $composer = $this->requireComposer();
         $repos = $composer->getRepositoryManager()->getRepositories();
 
-        $platformOverrides = $composer->getConfig()->get('platform') ?: array();
-        // initialize $this->repos as it is used by the parent InitCommand
+        $platformOverrides = $composer->getConfig()->get('platform');
+        // initialize $this->repos as it is used by the PackageDiscoveryTrait
         $this->repos = new CompositeRepository(array_merge(
             array($platformRepo = new PlatformRepository(array(), $platformOverrides)),
             $repos
@@ -195,6 +205,8 @@ EOT
             );
         } catch (\Exception $e) {
             if ($this->newlyCreated) {
+                $this->revertComposerFile(false);
+
                 throw new \RuntimeException('No composer.json present in the current directory ('.$this->file.'), this may be the cause of the following exception.', 0, $e);
             }
 
@@ -212,6 +224,9 @@ EOT
                 $io->writeError(sprintf('<error>Root package \'%s\' cannot require itself in its composer.json</error>', $package));
 
                 return 1;
+            }
+            if ($constraint === 'self.version') {
+                continue;
             }
             $versionParser->parseConstraints($constraint);
         }
@@ -244,7 +259,7 @@ EOT
         $this->firstRequire = $this->newlyCreated;
         if (!$this->firstRequire) {
             $composerDefinition = $this->json->read();
-            if (empty($composerDefinition['require']) && empty($composerDefinition['require-dev'])) {
+            if (count($composerDefinition['require'] ?? []) === 0 && count($composerDefinition['require-dev'] ?? []) === 0) {
                 $this->firstRequire = true;
             }
         }
@@ -267,15 +282,24 @@ EOT
             return 0;
         }
 
+        $composer->getPluginManager()->deactivateInstalledPlugins();
+
         try {
             return $this->doUpdate($input, $output, $io, $requirements, $requireKey, $removeKey);
         } catch (\Exception $e) {
-            $this->revertComposerFile(false);
+            if (!$this->dependencyResolutionCompleted) {
+                $this->revertComposerFile(false);
+            }
             throw $e;
         }
     }
 
-    private function getInconsistentRequireKeys(array $newRequirements, $requireKey)
+    /**
+     * @param array<string, string> $newRequirements
+     * @param string $requireKey
+     * @return string[]
+     */
+    private function getInconsistentRequireKeys(array $newRequirements, string $requireKey): array
     {
         $requireKeys = $this->getPackagesByRequireKey();
         $inconsistentRequirements = array();
@@ -291,7 +315,10 @@ EOT
         return $inconsistentRequirements;
     }
 
-    private function getPackagesByRequireKey()
+    /**
+     * @return array<string, string>
+     */
+    private function getPackagesByRequireKey(): array
     {
         $composerDefinition = $this->json->read();
         $require = array();
@@ -311,12 +338,23 @@ EOT
         );
     }
 
-    private function doUpdate(InputInterface $input, OutputInterface $output, IOInterface $io, array $requirements, $requireKey, $removeKey)
+    /**
+     * @param array<string, string> $requirements
+     * @param string $requireKey
+     * @param string $removeKey
+     * @return int
+     * @throws \Exception
+     */
+    private function doUpdate(InputInterface $input, OutputInterface $output, IOInterface $io, array $requirements, string $requireKey, string $removeKey): int
     {
         // Update packages
         $this->resetComposer();
-        $composer = $this->getComposer(true, $input->getOption('no-plugins'));
-        $composer->getEventDispatcher()->setRunScripts(!$input->getOption('no-scripts'));
+        $composer = $this->requireComposer();
+
+        $this->dependencyResolutionCompleted = false;
+        $composer->getEventDispatcher()->addListener(InstallerEvents::PRE_OPERATIONS_EXEC, function (): void {
+            $this->dependencyResolutionCompleted = true;
+        }, 10000);
 
         if ($input->getOption('dry-run')) {
             $rootPackage = $composer->getPackage();
@@ -359,7 +397,6 @@ EOT
 
         $install = Installer::create($io, $composer);
 
-        $ignorePlatformReqs = $input->getOption('ignore-platform-reqs') ?: ($input->getOption('ignore-platform-req') ?: false);
         list($preferSource, $preferDist) = $this->getPreferredInstallOptions($composer->getConfig(), $input);
 
         $install
@@ -374,7 +411,7 @@ EOT
             ->setUpdate(true)
             ->setInstall(!$input->getOption('no-install'))
             ->setUpdateAllowTransitiveDependencies($updateAllowTransitiveDependencies)
-            ->setIgnorePlatformRequirements($ignorePlatformReqs)
+            ->setPlatformRequirementFilter($this->getPlatformRequirementFilter($input))
             ->setPreferStable($input->getOption('prefer-stable'))
             ->setPreferLowest($input->getOption('prefer-lowest'))
         ;
@@ -387,13 +424,28 @@ EOT
 
         $status = $install->run();
         if ($status !== 0) {
+            if ($status === Installer::ERROR_DEPENDENCY_RESOLUTION_FAILED) {
+                foreach ($this->normalizeRequirements($input->getArgument('packages')) as $req) {
+                    if (!isset($req['version'])) {
+                        $io->writeError('You can also try re-running composer require with an explicit version constraint, e.g. "composer require '.$req['name'].':*" to figure out if any version is installable, or "composer require '.$req['name'].':^2.1" if you know which you need.');
+                        break;
+                    }
+                }
+            }
             $this->revertComposerFile(false);
         }
 
         return $status;
     }
 
-    private function updateFileCleanly($json, array $new, $requireKey, $removeKey, $sortPackages)
+    /**
+     * @param array<string, string> $new
+     * @param string $requireKey
+     * @param string $removeKey
+     * @param bool $sortPackages
+     * @return bool
+     */
+    private function updateFileCleanly(JsonFile $json, array $new, string $requireKey, string $removeKey, bool $sortPackages): bool
     {
         $contents = file_get_contents($json->getPath());
 
@@ -415,12 +467,16 @@ EOT
         return true;
     }
 
-    protected function interact(InputInterface $input, OutputInterface $output)
+    protected function interact(InputInterface $input, OutputInterface $output): void
     {
         return;
     }
 
-    public function revertComposerFile($hardExit = true)
+    /**
+     * @param bool $hardExit
+     * @return void
+     */
+    public function revertComposerFile(bool $hardExit = true): void
     {
         $io = $this->getIO();
 

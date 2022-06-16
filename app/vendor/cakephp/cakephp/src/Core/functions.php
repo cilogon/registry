@@ -110,7 +110,7 @@ if (!function_exists('namespaceSplit')) {
      * Commonly used like `list($namespace, $className) = namespaceSplit($class);`.
      *
      * @param string $class The full class name, ie `Cake\Core\App`.
-     * @return string[] Array with 2 indexes. 0 => namespace, 1 => classname.
+     * @return array<string> Array with 2 indexes. 0 => namespace, 1 => classname.
      */
     function namespaceSplit(string $class): array
     {
@@ -206,12 +206,8 @@ if (!function_exists('env')) {
             $key = 'SCRIPT_URL';
         }
 
-        $val = null;
-        if (isset($_SERVER[$key])) {
-            $val = $_SERVER[$key];
-        } elseif (isset($_ENV[$key])) {
-            $val = $_ENV[$key];
-        } elseif (getenv($key) !== false) {
+        $val = $_SERVER[$key] ?? $_ENV[$key] ?? null;
+        if ($val == null && getenv($key) !== false) {
             $val = getenv($key);
         }
 
@@ -256,10 +252,9 @@ if (!function_exists('triggerWarning')) {
      */
     function triggerWarning(string $message): void
     {
-        $stackFrame = 1;
         $trace = debug_backtrace();
-        if (isset($trace[$stackFrame])) {
-            $frame = $trace[$stackFrame];
+        if (isset($trace[1])) {
+            $frame = $trace[1];
             $frame += ['file' => '[internal]', 'line' => '??'];
             $message = sprintf(
                 '%s - %s, line: %s',
@@ -302,15 +297,25 @@ if (!function_exists('deprecationWarning')) {
             }
 
             $message = sprintf(
-                '%s - %s, line: %s' . "\n" .
-                ' You can disable all deprecation warnings by setting `Error.errorLevel` to' .
-                ' `E_ALL & ~E_USER_DEPRECATED`, or add `%s` to ' .
-                ' `Error.ignoredDeprecationPaths` in your `config/app.php` to mute deprecations from only this file.',
+                "%s\n%s, line: %s\n" .
+                'You can disable all deprecation warnings by setting `Error.errorLevel` to ' .
+                '`E_ALL & ~E_USER_DEPRECATED`. Adding `%s` to `Error.ignoredDeprecationPaths` ' .
+                'in your `config/app.php` config will mute deprecations from that file only.',
                 $message,
                 $frame['file'],
                 $frame['line'],
                 $relative
             );
+        }
+
+        static $errors = [];
+        $checksum = md5($message);
+        $duplicate = (bool)Configure::read('Error.allowDuplicateDeprecations', false);
+        if (isset($errors[$checksum]) && !$duplicate) {
+            return;
+        }
+        if (!$duplicate) {
+            $errors[$checksum] = true;
         }
 
         trigger_error($message, E_USER_DEPRECATED);

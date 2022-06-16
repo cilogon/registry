@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Composer.
@@ -36,7 +36,7 @@ class ErrorHandler
      * @throws \ErrorException
      * @return bool
      */
-    public static function handle($level, $message, $file, $line)
+    public static function handle(int $level, string $message, string $file, int $line): bool
     {
         // error code is not included in error_reporting
         if (!(error_reporting() & $level)) {
@@ -53,19 +53,10 @@ class ErrorHandler
         }
 
         if (self::$io) {
-            // ignore symfony/* deprecation warnings
-            // TODO remove in 2.3
-            if (preg_match('{^Return type of Symfony\\\\.*ReturnTypeWillChange}is', $message)) {
-                return true;
-            }
-            if (strpos(strtr($file, '\\', '/'), 'vendor/symfony/') !== false) {
-                return true;
-            }
-
             self::$io->writeError('<warning>Deprecation Notice: '.$message.' in '.$file.':'.$line.'</warning>');
             if (self::$io->isVerbose()) {
                 self::$io->writeError('<warning>Stack trace:</warning>');
-                self::$io->writeError(array_filter(array_map(function ($a) {
+                self::$io->writeError(array_filter(array_map(function ($a): ?string {
                     if (isset($a['line'], $a['file'])) {
                         return '<warning> '.$a['file'].':'.$a['line'].'</warning>';
                     }
@@ -82,8 +73,10 @@ class ErrorHandler
      * Register error handler.
      *
      * @param IOInterface|null $io
+     *
+     * @return void
      */
-    public static function register(IOInterface $io = null)
+    public static function register(IOInterface $io = null): void
     {
         set_error_handler(array(__CLASS__, 'handle'));
         error_reporting(E_ALL | E_STRICT);

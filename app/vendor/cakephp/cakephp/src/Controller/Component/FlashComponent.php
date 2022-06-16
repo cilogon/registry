@@ -28,6 +28,8 @@ use Throwable;
  * FlashHelper.
  *
  * @method void success(string $message, array $options = []) Set a message using "success" element
+ * @method void info(string $message, array $options = []) Set a message using "info" element
+ * @method void warning(string $message, array $options = []) Set a message using "warning" element
  * @method void error(string $message, array $options = []) Set a message using "error" element
  */
 class FlashComponent extends Component
@@ -35,7 +37,7 @@ class FlashComponent extends Component
     /**
      * Default configuration
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_defaultConfig = [
         'key' => 'flash',
@@ -60,10 +62,10 @@ class FlashComponent extends Component
      * - `clear` A bool stating if the current stack should be cleared to start a new one
      * - `escape` Set to false to allow templates to print out HTML content
      *
-     * @param string|\Throwable $message Message to be flashed. If an instance
+     * @param \Throwable|string $message Message to be flashed. If an instance
      *   of \Throwable the throwable message will be used and code will be set
      *   in params.
-     * @param array $options An array of options
+     * @param array<string, mixed> $options An array of options
      * @return void
      */
     public function set($message, array $options = []): void
@@ -88,7 +90,7 @@ class FlashComponent extends Component
     /**
      * Proxy method to FlashMessage instance.
      *
-     * @param string|array $key The key to set, or a complete array of configs.
+     * @param array<string, mixed>|string $key The key to set, or a complete array of configs.
      * @param mixed|null $value The value to set.
      * @param bool $merge Whether to recursively merge or overwrite existing config, defaults to true.
      * @return $this
@@ -128,7 +130,7 @@ class FlashComponent extends Component
     /**
      * Proxy method to FlashMessage instance.
      *
-     * @param string|array $key The key to set, or a complete array of configs.
+     * @param array<string, mixed>|string $key The key to set, or a complete array of configs.
      * @param mixed|null $value The value to set.
      * @return $this
      */

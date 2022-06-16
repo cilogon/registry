@@ -42,7 +42,6 @@ class StrictCallSniff implements Sniff
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param File $phpcsFile
 	 * @param int $stringPointer
 	 */
 	public function process(File $phpcsFile, $stringPointer): void
@@ -106,7 +105,7 @@ class StrictCallSniff implements Sniff
 				($hasTrailingComma ? $lastCommaPointer : $parenthesisCloserPointer) - 1
 			);
 
-			if (strtolower(trim($strictParameterValue)) === 'true') {
+			if (strtolower(trim($strictParameterValue)) !== 'false') {
 				return;
 			}
 

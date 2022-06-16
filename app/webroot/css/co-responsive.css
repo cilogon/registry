@@ -32,7 +32,10 @@
 /**************************************************************************************************************/
 /* Small phones in landscape mode  */
 @media only screen and (min-width: 480px) {
-
+  .top-filters .cm-time-picker-panel {
+    right: unset;
+    transform: translate(-95%,0);
+  }
 }
 
 /* SMALL */
@@ -192,15 +195,21 @@
     margin-bottom: 0;
   }
   /* TOP SEARCH */
-  #top-search-fields-subgroups {
+  .top-filters-fields-subgroups {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 1em;
     padding: 0 0.5em;
   }
-  #top-search-submit.tss-rebalance {
+  .top-search-checkboxes {
+    padding: 0 0.5em;
+  }
+  #top-filters-submit.tss-rebalance {
     margin-top: -3.5em;
     position: relative;
+  }
+  .top-search-date-label {
+    padding: 0 0.5em;
   }
   /* CO CONFIGURATION DASHBOARD */
   #configuration-menu {
