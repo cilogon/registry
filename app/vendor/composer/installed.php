@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '93bba0447bb8054b40e23c848b1daf270ef7b68f',
+        'reference' => '20a630fdda018e7cfdfe697ae7c25d9ac5d9bb20',
         'name' => 'cakephp/app',
         'dev' => true,
     ),
@@ -25,7 +25,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '93bba0447bb8054b40e23c848b1daf270ef7b68f',
+            'reference' => '20a630fdda018e7cfdfe697ae7c25d9ac5d9bb20',
             'dev_requirement' => false,
         ),
         'cakephp/bake' => array(

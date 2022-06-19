@@ -220,9 +220,9 @@ class AppController extends Controller {
       foreach($permissions['entity'] as $action => $roles) {
         $ok = false;
         
-        if(($action != 'delete' || $canDelete)
-           && 
-           !$readOnly || in_array($action, $readOnlyActions)) {
+        if((($action != 'delete' || $canDelete)
+            &&
+            !$readOnly) || in_array($action, $readOnlyActions)) {
           if(is_array($roles)) {
             foreach($roles as $role) {
               // eg: $role = "platformAdmin", which corresponds to the variables set, above
