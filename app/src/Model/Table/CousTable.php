@@ -131,10 +131,23 @@ class CousTable extends Table {
    */
 
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
+    if(!empty($entity->id)) {
+      if($entity->isNew()) {
+        // Run setup for new COU
+        
+        $this->setup(id: $entity->id, coId: $entity->co_id);
+      } elseif($entity->getOriginal('name') != $entity->get('name')) {
+        // AR-COU-5 The name was changed, so we may need to update the system groups
+        
+        $this->Groups->addDefaults(coId: $entity->co_id, couId: $entity->id, rename: true);
+      }
+    }
+
+
     if($entity->isNew() && !empty($entity->id)) {
       // Run setup for new COU
       
-      $this->setup($entity->id, $entity->co_id);
+      $this->setup(id: $entity->id, coId: $entity->co_id);
     }
 
     return true;
@@ -187,7 +200,10 @@ class CousTable extends Table {
   public function rulePotentialParent($entity, $options) {
     // We want negative logic since we want to fail if we're editing the COmanage CO
     if(!empty($entity->parent_id)) {
-      $potentialParents = $this->potentialParents($entity->co_id, (!empty($entity->id) ? $entity->id : null));
+      $potentialParents = $this->potentialParents(
+        coId: $entity->co_id,
+        id: (!empty($entity->id) ? $entity->id : null)
+      );
       
       if(!isset($potentialParents[$entity->parent_id])) {
         return __d('error', 'cou.parent');
@@ -208,7 +224,7 @@ class CousTable extends Table {
   
   public function setup(int $id, int $coId): bool {
     // AR-COU-4 Create the default groups
-    $this->Groups->addDefaults($coId, $id);
+    $this->Groups->addDefaults(coId: $coId, couId: $id);
     
     return true;
   }

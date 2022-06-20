@@ -170,10 +170,16 @@ class CosTable extends Table {
    */
 
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
-    if($entity->isNew() && !empty($entity->id)) {
-      // Run setup for new CO
-      
-      $this->setup($entity->id);
+    if(!empty($entity->id)) {
+      if($entity->isNew()) {
+        // Run setup for new CO
+        
+        $this->setup($entity->id);
+      } elseif($entity->getOriginal('name') != $entity->get('name')) {
+        // AR-CO-7 The name was changed, so we may need to update the system groups
+        
+        $this->Groups->addDefaults(coId: $entity->id, couId: null, rename: true);
+      }
     }
 
     return true;
