@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '20a630fdda018e7cfdfe697ae7c25d9ac5d9bb20',
+        'reference' => 'c30962d4b82e0bf29c54e2ea414abd003a620bec',
         'name' => 'cakephp/app',
         'dev' => true,
     ),
@@ -25,7 +25,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '20a630fdda018e7cfdfe697ae7c25d9ac5d9bb20',
+            'reference' => 'c30962d4b82e0bf29c54e2ea414abd003a620bec',
             'dev_requirement' => false,
         ),
         'cakephp/bake' => array(
@@ -272,12 +272,12 @@
             'dev_requirement' => false,
         ),
         'doctrine/dbal' => array(
-            'pretty_version' => '3.3.6',
-            'version' => '3.3.6.0',
+            'pretty_version' => '3.3.7',
+            'version' => '3.3.7.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../doctrine/dbal',
             'aliases' => array(),
-            'reference' => '9e7f76dd1cde81c62574fdffa5a9c655c847ad21',
+            'reference' => '9f79d4650430b582f4598fe0954ef4d52fbc0a8a',
             'dev_requirement' => false,
         ),
         'doctrine/deprecations' => array(
