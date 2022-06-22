@@ -521,11 +521,28 @@ body.logged-in #top-menu {
   background-color: transparent;
   border: 1px solid var(--cmg-color-lightgray-006);
 }
-#main-menu .menu-panel-links a.menu-panel-primary-link:hover  h3 {  
+#main-menu .menu-panel-links a.menu-panel-primary-link:hover h3 {  
   text-decoration: underline;
 }
 #main-menu .menu-panel-primary-link-text {
   flex: 1;
+}
+#main-menu ul.menu-panel-lists ul {
+  padding: 0;
+  margin-left: 1em;
+}
+#main-menu ul.menu-panel-lists ul li {
+  list-style: disc;
+  margin: 0.5em 0 0 0.5em;
+}
+#main-menu ul.menu-panel-lists ul li a {
+  display: inline;
+  padding: 0;
+  color: var(--cmg-color-blue-003);
+}
+#main-menu ul.menu-panel-lists ul li a:hover {
+  text-decoration: underline;
+  background-color: transparent;
 }
 /* CONTENT */
 #breadcrumbs {

@@ -69,6 +69,18 @@ msgstr "Review and manage people in your collaboration (CO Person Records)"
 msgid "co.structure"
 msgstr "Structure"
 
+msgid "co.structure.panel.title"
+msgstr "Structure"
+
+msgid "co.structure.panel.desc"
+msgstr "COmanage registry provides structures for modeling and managing your organization, including COUs, Groups, and Departments."
+
+msgid "co.structure.groups"
+msgstr "Groups"
+
+msgid "co.structure.groups.all"
+msgstr "All Groups"
+
 msgid "co.switch"
 msgstr "Switch CO"
 

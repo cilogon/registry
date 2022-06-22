@@ -48,11 +48,10 @@
             ],
             [
               'permission' => 'groups',
-              'controller' => 'groups',
-              'action'     => 'index',
               'icon'       => 'group',
               'dropdown'   => 'true',
-              'label' => __d('menu', 'co.structure')
+              'label' => __d('menu', 'co.structure'),
+              'panel'      => 'structure'
             ],
             [
               'permission' => 'configuration',

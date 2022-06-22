@@ -91,6 +91,34 @@
       </ul>
     </div>
   <?php endif; ?>
+  <?php if($panel == 'structure'): ?>
+    <h2><?= __d('menu','co.structure.panel.title') ?></h2>
+    <p><?= __d('menu','co.structure.panel.desc') ?></p>
+    <div class="menu-panel-content">
+      <ul class="menu-panel-lists">
+        <li>
+          <h3><?= __d('menu','co.structure.groups') ?></h3>
+          <ul>
+            <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'groups',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+            ?>
+            <li>
+              <a href="<?= $menuUrl ?>">
+                <?= __d('menu','co.structure.groups.all') ?>
+              </a>  
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  <?php endif; ?>
   <button type="button" class="menu-panel-close btn"><span class="material-icons-outlined">close</span></button>
 </div>
 
