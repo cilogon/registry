@@ -26,11 +26,18 @@
 */
 
 $options = array(
-  'type' => 'get',
+  // XXX Re-enable and adjust the following when we are ready to implement the search feature  
+  /*'type' => 'get',
   'url' => array(
     'plugin' => null,
     'action' => 'search'
-  )
+  )*/
+  // XXX For now, note that this feature is unimplemented 
+  'type' => 'get',
+  'url' => array(
+    'plugin' => null
+  ),
+  'onsubmit' => 'alert("unimplemented"); return false;'
 );
 
 print $this->Form->create(null, $options);
