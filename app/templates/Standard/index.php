@@ -46,9 +46,6 @@ $tableFK = Inflector::singularize($tableName) . "_id";
 // Otherwise, we'll print out a "no records" message.
 $recordsExist = false;
 
-// By default Index filtering is on and we need to explicitly disable it
-$disableFiltering = false;
-
 // Our default link actions, in order of preference, unless the column config overrides it
 $linkActions = ['edit', 'view'];
 
@@ -161,7 +158,7 @@ function _column_key($modelsName, $c, $tz=null) {
 <?php endif; // $banners ?>
 
 <!-- Search block -->
-<?php if(!$disableFiltering): ?>
+<?php if(isset($vv_searchable_attributes)): ?>
   <?= $this->element('filter'); ?>
 <?php endif; ?>
 
