@@ -25,7 +25,16 @@
 # Menu Messages
 
 msgid "co.configuration"
-msgstr "Configuration"
+msgstr "Config"
+
+msgid "co.connections"
+msgstr "Connections"
+
+msgid "co.lifecycle"
+msgstr "Lifecycle"
+
+msgid "co.operations"
+msgstr "Operations"
 
 msgid "co.groups"
 msgstr "Groups"
@@ -33,5 +42,45 @@ msgstr "Groups"
 msgid "co.people"
 msgstr "People"
 
+msgid "co.people.enrollments.pending"
+msgstr "Pending Enrollments"
+
+msgid "co.people.enrollments.pending.desc"
+msgstr "See and manage in-progress enrollments (CO Petitions)"
+
+msgid "co.people.external.source.records"
+msgstr "External Source Records"
+
+msgid "co.people.external.source.records.desc"
+msgstr "See and manage information from your external sources"
+
+msgid "co.people.panel.title"
+msgstr "People"
+
+msgid "co.people.panel.desc"
+msgstr "COmanage Registry is a registry for people. This section contains the basic building blocks for modeling and  managing people in COmanage."
+
+msgid "co.people.population"
+msgstr "My Population"
+
+msgid "co.people.population.desc"
+msgstr "Review and manage people in your collaboration (CO Person Records)"
+
+msgid "co.structure"
+msgstr "Structure"
+
+msgid "co.structure.panel.title"
+msgstr "Structure"
+
+msgid "co.structure.panel.desc"
+msgstr "COmanage registry provides structures for modeling and managing your organization, including COUs, Groups, and Departments."
+
+msgid "co.structure.groups"
+msgstr "Groups"
+
+msgid "co.structure.groups.all"
+msgstr "All Groups"
+
 msgid "co.switch"
 msgstr "Switch CO"
+

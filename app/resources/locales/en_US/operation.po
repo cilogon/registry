@@ -114,6 +114,9 @@ msgstr "Remove"
 msgid "save"
 msgstr "Save"
 
+msgid "search"
+msgstr "Search"
+
 msgid "skip_to_content"
 msgstr "Skip to main content"
 

@@ -33,71 +33,30 @@
     $('.focusFirst').focus();
 
     // DESKTOP MENU DRAWER BEHAVIOR
-    // Check the drawer half-closed cookie on first load and set the drawer state appropriately
-    if (Cookies.get("desktop-drawer-state") == "half-closed") {
-      $("#navigation-drawer").addClass("half-closed");
-      $("#main").addClass("drawer-half-closed");
-    }
-
-    // Hamburger menu-drawer toggle
-    $('#co-hamburger').click(function () {
-      if($(window).width() < 768) {
-        // Mobile mode
-        $("#navigation-drawer").removeClass("half-closed").toggle();
-      } else {
-        // Desktop mode
-        if ($("#navigation-drawer").hasClass("half-closed")) {
-          $("#navigation-drawer").removeClass("half-closed");
-          $("#main").removeClass("drawer-half-closed");
-          // set a cookie to hold drawer half-open state between requests
-          Cookies.set("desktop-drawer-state", "open");
-        } else {
-          $("#navigation-drawer").addClass("half-closed");
-          $("#main").addClass("drawer-half-closed");
-          // set a cookie to hold drawer half-open state between requests
-          Cookies.set("desktop-drawer-state", "half-closed");
-        }
-      }
+    $('#co-menu-collapse').click(function(){
+      $('#navigation-drawer').toggleClass('closed');
     });
 
-    // Catch the edge-case of browser resize causing menu-drawer
-    // to remain hidden and vice versa.
-    $(window).resize(function() {
-      if($( window ).width() > 767) {
-        $("#navigation-drawer").show();
-      } else {
-        $("#navigation-drawer").hide();
-      }
+    $('#co-hamburger').click(function() {
+      $('#navigation-drawer').toggleClass('visible');
+    });
+    
+    $('.menu-panel-toggle').click(function() {
+      $(this).next('.menu-panel').toggleClass('visible');  
     });
 
-    // Desktop half-closed drawer behavior & expandable menu items
-    $('#navigation-drawer a.menuTop').click(function () {
-      if (Cookies.get("desktop-drawer-state") == "half-closed") {
-        $("#navigation-drawer").toggleClass("half-closed");
-      }
+    $('.menu-panel-close').click(function() {
+      $(this).closest('.menu-panel').removeClass('visible');
     });
+    
     // END DESKTOP MENU DRAWER BEHAVIOR
 
-    // USER MENU BEHAVIORS
-    $("#global-search label").click(function () {
-      $("#global-search-box").toggle();
+    // GLOBAL SEARCH
+    $('#search-bar input').focus(function() {
+      $('#search-bar button').addClass('visible');
     });
-
-    // Accordion - XXX Deprecated?
-    // $(".accordion").accordion();
-
-    // Click outside behaviors
-    // XXX Enable when / if needed (also enable popopvers below)
-    /*$(document).on('click', function (e) {
-      // Hide popovers on click outside but don't close current popover when interacting with content inside it
-      $('#content [data-bs-toggle="popover"]').each(function () {
-        if (!$(this).is(e.target) && $('.popover.show').has(e.target).length === 0) {
-          $(this).popover('hide');
-        }
-      });
-    });*/
-
-    // TOP SEARCH FILTER FORM
+    
+    // TOP FILTER FORM
     // Send only non-empty fields in the form
     $("#top-filters-form").submit(function() {
       $("#top-filters-form *").filter(':input').each(function () {

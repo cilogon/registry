@@ -29,16 +29,16 @@
 <?php if(!empty($vv_user)): ?>
   <ul>
     <li id="top-menu-user">
-      <a class="dropdown-toggle nospin" href="#" role="button" id="user-panel-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <button type="button" class="dropdown-toggle top-menu-button" id="user-panel-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span class="top-menu-link-text">
           <?= $vv_user['username']; ?>
         </span>
         <em class="material-icons icon-adjust">person</em>
-      </a>
+      </button>
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
-          <?= $this->Html->link(__d('operation','logout') . ' <span class="fa fa-sign-out"></span>',
+          <?= $this->Html->link(__d('operation','logout') . ' <em class="material-icons" aria-hidden="true">logout</em>',
             '/auth/logout/logout.php',
             ['escape'     => false,
              'id'         => 'logout-in-panel-link',
@@ -68,13 +68,13 @@
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
   <?php
     if(empty($vv_user)) {
-      print $this->Html->link(__d('operation', 'login') . ' <span class="fa fa-sign-in"></span>',
+      print $this->Html->link(__d('operation', 'login') . ' <em class="material-icons" aria-hidden="true">login</em>',
                               ['controller' => 'cos',
                                'action'     => 'select',
                                'plugin'     => false],
                               ['escape'     => false,
                                'id'         => 'login',
-                               'class'      => '']);
+                               'class'      => 'btn btn-small']);
     }
   ?>
 <?php endif; ?>
