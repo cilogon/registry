@@ -27,6 +27,9 @@
 msgid "co.configuration"
 msgstr "Configuration"
 
+msgid "co.groups"
+msgstr "Groups"
+
 msgid "co.people"
 msgstr "People"
 

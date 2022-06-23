@@ -377,6 +377,14 @@ return [
             'file' => 'trace',
             'url' => env('LOG_TRACE_URL', null),
             'scopes' => ['trace'],
+        ],
+        // We define a rules level to record application rule execution
+        'rule' => [
+            'className' => 'Cake\Log\Engine\FileLog',
+            'path' => LOGS,
+            'file' => 'rule',
+            'url' => env('LOG_TRACE_URL', null),
+            'scopes' => ['rule'],
         ]
     ],
 

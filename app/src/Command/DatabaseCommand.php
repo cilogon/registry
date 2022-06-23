@@ -114,8 +114,13 @@ class DatabaseCommand extends Command {
       'user'     => $cfg['username'],
       'password' => $cfg['password'],
       'host'     => $cfg['host'],
-      'driver'   => ($cfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "pdo_mysql")
+      'driver'   => ($cfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
     ];
+    
+    // For MySQL SSL
+    if(!empty($cfg['ssl_ca'])) {
+      $cfargs['ssl_ca'] = $cfg['ssl_ca'];
+    }
     
     $conn = DriverManager::getConnection($cfargs, $config);
     

@@ -320,6 +320,8 @@ class TransmogrifyCommand extends Command {
   // Make some objects more easily accessible
   protected $inconn = null;
   protected $outconn = null;
+  // Cache the driver for ease of workarounds
+  protected $outdriver = null;
   
   /**
    * Build an Option Parser.
@@ -439,8 +441,14 @@ class TransmogrifyCommand extends Command {
       'user'     => $incfg['username'],
       'password' => $incfg['password'],
       'host'     => $incfg['host'],
-      'driver'   => ($incfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "pdo_mysql")
+      'driver'   => ($incfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
     ];
+    
+    // For MySQL SSL
+    if(!empty($incfg['ssl_ca'])) {
+      // mysqli supports SSL configuration
+      $cargs['ssl_ca'] = $incfg['ssl_ca'];
+    }
     
     $this->inconn = DriverManager::getConnection($cargs, $inconfig);
     
@@ -451,10 +459,17 @@ class TransmogrifyCommand extends Command {
       'user'     => $outcfg['username'],
       'password' => $outcfg['password'],
       'host'     => $outcfg['host'],
-      'driver'   => ($outcfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "pdo_mysql")
+      'driver'   => ($outcfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
     ];
     
+    // For MySQL SSL
+    if(!empty($outcfg['ssl_ca'])) {
+      // mysqli supports SSL configuration
+      $cargs['ssl_ca'] = $outcfg['ssl_ca'];
+    }
+    
     $this->outconn = DriverManager::getConnection($cargs, $outconfig);
+    $this->outdriver = $cargs['driver'];
     
     // We accept a list of table names, mostly for testing purposes
     $atables = $args->getArguments();
@@ -516,7 +531,9 @@ class TransmogrifyCommand extends Command {
           
           $this->mapFields($t, $row);
 
-          $this->outconn->insert($t, $row);
+          // We prefix the database to the table to avoid having to quote
+          // table names that match (MySQL) reserved keywords (in particular "groups")
+          $this->outconn->insert($outcfg['database'] . '.' . $t, $row);
           
           $this->cacheResults($t, $row);
           
@@ -566,7 +583,11 @@ class TransmogrifyCommand extends Command {
       // Strictly speaking we should use prepared statements, but we control the
       // data here, and also we're executing a maintenance operation (so query
       // optimization is less important)
-      $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
+      if($this->outdriver == 'mysqli') {
+        $outsql = "ALTER TABLE `" . $t . "` AUTO_INCREMENT = " . $max;
+      } else {
+        $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
+      }
       $this->outconn->executeQuery($outsql);
       
       // Run any post processing functions for the table.
@@ -636,7 +657,11 @@ class TransmogrifyCommand extends Command {
         // this issue: https://github.com/doctrine/dbal/issues/1847
         // We need to (more generically than this hack) convert from boolean to char
         // to avoid errors on insert
-        $row[$a] = ($row[$a] ? 't' : 'f');
+        if($this->outdriver == 'mysqli') {
+          $row[$a] = ($row[$a] ? '1' : '0');
+        } else {
+          $row[$a] = ($row[$a] ? 't' : 'f');
+        }
       }
     }
   }

@@ -72,13 +72,6 @@ class TimezoneBehavior extends Behavior
         }
       }
     }
-// XXX
-// - adjust back after find
-//   - afterfind isn't a thing anymore, perhaps use a mutator?
-//     - note that's on the entity, not the table, so we can't just use the Behavior, maybe need a trait
-//     - maybe move this behavior to a trait on the entity and do this entirely with accessors and mutators?
-//     - or on retrieve we should assert values are UTC then convert in the view
-//       https://stackoverflow.com/questions/49280448/how-to-handle-users-timezone-and-utc-sync-between-application-and-database-in-c
   }
   
   /**
