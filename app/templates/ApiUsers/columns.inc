@@ -32,9 +32,6 @@ if($vv_cur_co->id == 1) {
   ];
 }
 
-// Turn off the search/filter box for this index view
-//$disableFiltering = true;
-
 $indexColumns = [
   'username' => [
     'type' => 'link',
