@@ -56,7 +56,6 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Load CSS -->
     <?= $this->Html->css([
-      'fonts/Font-Awesome-4.6.3/css/font-awesome.min',
       'bootstrap/bootstrap.min',
       'select2/select2.min',
       'co-color',
