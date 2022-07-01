@@ -1,43 +1,93 @@
 <?php
 /**
- * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * COmanage Registry Error Layout
  *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
+ * Portions licensed to the University Corporation for Advanced Internet
+ * Development, Inc. ("UCAID") under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- * @link          https://cakephp.org CakePHP(tm) Project
- * @since         0.10.0
- * @license       https://opensource.org/licenses/mit-license.php MIT License
- * @var \App\View\AppView $this
+ * UCAID licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
+ * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+declare(strict_types = 1);
+
+// As a general rule, all Registry pages are post-login and so shouldn't be cached
+header("Expires: Thursday, 10-Jan-69 00:00:00 GMT");
+header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate");
+header("Pragma: no-cache");
+
+// Add X-UA-Compatible header for IE
+if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false)) {
+  header('X-UA-Compatible: IE=edge,chrome=1');
+}
 ?>
 <!DOCTYPE html>
-<html>
-<head>
+<html lang="<?= __('registry.meta.lang'); ?>">
+  <head>
+    <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . PHP_EOL ?>
     <?= $this->Html->charset() ?>
-    <title>
-        <?= $this->fetch('title') ?>
-    </title>
-    <?= $this->Html->meta('icon') ?>
-
-    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
-
-    <?= $this->Html->css('milligram.min.css') ?>
-    <?= $this->Html->css('cake.css') ?>
-
+    
+    <title><?= $this->fetch('title') ?></title>
+    
+    <!-- favicon.ico -->
+    <?= $this->Html->meta('favicon.ico', '/favicon.ico', array('type' => 'icon')) . PHP_EOL ?>
     <?= $this->fetch('meta') ?>
-    <?= $this->fetch('css') ?>
-    <?= $this->fetch('script') ?>
-</head>
-<body>
-    <div class="error-container">
-        <?= $this->Flash->render() ?>
-        <?= $this->fetch('content') ?>
-        <?= $this->Html->link(__('Back'), 'javascript:history.back()') ?>
-    </div>
-</body>
+    
+    <!-- Load CSS -->
+    <?= $this->Html->css([
+      'bootstrap/bootstrap.min',
+      'co-color',
+      'co-base',
+      'co-responsive'
+    ]) . PHP_EOL ?>
+  </head>
+  <body>
+    <div id="comanage-wrapper">
+      <header id="banner">
+        <div id="logo-title-wrapper">
+          <div id="logo">
+            <?=
+              $this->Html->image(
+                "COmanage-Gears.svg",
+                array(
+                  'alt' => __('registry.meta.logo')
+                )
+              );
+            ?>
+          </div>
+          <div id="siteTitle">
+            <?= __('registry.meta.registry') ?>
+          </div>
+        </div>
+      </header>
+      <div id="main-wrapper">
+        <main id="main">
+          <div id="content">
+            <div id="content-inner">
+              <div class="error-container">
+                <?= $this->Flash->render() ?>
+                <?= $this->fetch('content') ?>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>  
+    </div>  
+  </body>
 </html>
