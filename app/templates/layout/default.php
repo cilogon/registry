@@ -197,15 +197,6 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- loading animation -->
     <div id="co-loading"><span></span><span></span><span></span></div>
-    
-    <!-- informational messages -->
-    <div 
-      class="toast-container" 
-      id="flash-messages" 
-      aria-live="polite" 
-      aria-atomic="true" >
-      <?= $this->Flash->render() ?>
-    </div>
 
     <!-- modal dialog box -->
     <?= $this->element('dialog') ?>

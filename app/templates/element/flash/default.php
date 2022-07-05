@@ -1,4 +1,5 @@
 <?php
+  // XXX are these classes set anywhere? Are they in use?
   $class = 'message';
   if (!empty($params['class'])) {
     $class .= ' ' . $params['class'];
@@ -7,30 +8,8 @@
     $message = h($message);
   }
 ?>
-<?php /*
-<div class="<?= h($class) ?>" onclick="this.classList.add('hidden');"><?= $message ?></div>
-*/ ?>
-
 
 <?php if(!empty($message)): ?>
-  <div class="toast error" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
-    <div class="toast-header">
-      <?= $this->Html->image("COmanage-Gears-SM.png", array('alt' => __('registry.meta.logo'))); ?>
-      <span class="me-auto"><?= __('product.comanage'); ?></span>
-      <small><?= __d('information','flash.default'); ?></small>
-      <button type="button" class="btn-close nospin" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-    <div class="toast-body">
-      <?= h($message); ?>
-    </div>
-  </div>
-
-  <script>
-    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-    var toastList = toastElList.map(function(toastEl) {
-      return new bootstrap.Toast(toastEl);
-    });
-    toastList.forEach(toast => toast.show());
-  </script>
+  <?= $this->Alert->alert(h($message), 'warning', true, __d('information','flash.default')) ?>
 <?php endif; ?>
 
