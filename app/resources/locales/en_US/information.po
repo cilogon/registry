@@ -37,13 +37,13 @@ msgid "cos.select"
 msgstr "Please select the collaboration (CO) you wish to manage."
 
 msgid "flash.default"
-msgstr "Notice"
+msgstr "Notice: "
 
 msgid "flash.error"
-msgstr "Error"
+msgstr "Error: "
 
 msgid "flash.success"
-msgstr "Success"
+msgstr "Success: "
 
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"

@@ -35,10 +35,7 @@
 </div>
 
 <?php if(count($vv_available_cos) == 0): ?>
-  <div class="co-info-topbox">
-    <em class="material-icons">info</em>
-    <?= __d('information','cos.none'); ?>
-  </div>
+  <?=  $this->Alert->alert(__d('information','cos.none'), 'warning') ?>
 <?php else: // vv_available_cos ?>
   <p><?= __d('information', 'cos.select'); ?></p>
   <div id="fpList" class="co-grid co-grid-with-header container">

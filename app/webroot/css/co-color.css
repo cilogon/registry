@@ -30,19 +30,20 @@
  */
 
 :root {
-  --cmg-color-blue-001: #06c;        /* primary hyperlink color; accessible on backgrounds down to #e7e7e7 */
-  --cmg-color-blue-002: #0067A3;     /* Registry v5.x banner color, primary hyperlink hover color; pagination; accessible on backgrounds down to #dfdfdf */
-  --cmg-color-blue-003: #0c75c0;     /* submit buttons, .btn-primary */
-  --cmg-color-blue-004: #9fc6e2;     /* spinner  */
-  /*--cmg-color-blue-005: #53B1F4;     !* link focus borders for keyboard nav *!*/
-  --cmg-color-blue-005: #0067A3;
-  --cmg-color-blue-006: #17a2b8;     /* info badge */
+  /* Blues */
+  --cmg-color-blue-001: #06c;        /* primary hyperlink color, spinner; accessible on backgrounds down to #e7e7e7 */
+  --cmg-color-blue-002: #115791;     /* Registry v5.x banner color, submit buttons, .btn-primary, 
+                                        primary hyperlink hover color; pagination; accessible on backgrounds down to #c9c9c9 */
+  --cmg-color-blue-003: #9fc6e2;     /* spinner  */
+  --cmg-color-blue-004: #17a2b8;     /* info badge; XXX check for deprecated */
 
+  /* Dark Grays */
   --cmg-color-gray-001: #222;        /* body text */
-  --cmg-color-gray-002: #555;        /* headings text */
+  --cmg-color-gray-002: #444;        /* headings text */
   --cmg-color-gray-003: #666;        /* disabled text or form fields */
   --cmg-color-gray-004: #212529;     /* badge light */
 
+  /* Light Grays */
   --cmg-color-lightgray-001: #fafafa; /* background color */
   --cmg-color-lightgray-002: #f8f8f8; /* background color */
   --cmg-color-lightgray-003: #f5f5f5; /* background color */
@@ -54,20 +55,28 @@
   --cmg-color-lightgray-009: #ededed; /* data-list background color */
   --cmg-color-lightgray-010: #e8e8e8; /* co-grid background color */
   
-  --cmg-color-green-001: #0b6623;    /* infobox icon color */
-  --cmg-color-green-002: #dfd;       /* highlight: matching fields for reconciliation */
-  --cmg-color-green-003: #28a745;    /* success badge */
+  /* Greens */
+  --cmg-color-green-001: #b4ffba;     /* alert: success */
+  --cmg-color-green-002: #28a745;     /* alert: success text color, badge outline */
+  --cmg-color-green-003: #acf4b2;     /* alert: success border color */
+  --cmg-color-green-004: #dfd;        /* highlight: matching fields for reconciliation */
 
-  --cmg-color-yellow-001: #f5f5bb;    /* yellow warning */
-  --cmg-color-yellow-002: #fbec88;    /* infobox informational area */
-  --cmg-color-yellow-003: #ffd;       /* forms: focused input */
-
-  --cmg-color-red-001: #fcc;          /* red warning */
+  /* Yellows */
+  --cmg-color-yellow-001: #fffeb4;    /* alert: warning */
+  --cmg-color-yellow-002: #41412e;    /* alert: warning text color */
+  --cmg-color-yellow-003: #f6f5ae;    /* alert: warning border color */
+  --cmg-color-yellow-004: #ffd;       /* forms: focused input */
+  
+  /* Reds */
+  --cmg-color-red-001: #ffd4d4;       /* alert: danger */
   --cmg-color-red-002: #c00;          /* forms: error icons */
   --cmg-color-red-003: #e33;          /* title for deleted/archived */
   --cmg-color-red-004: #c33;          /* button */
   --cmg-color-red-005: #dc3545;       /* danger badge */
+  --cmg-color-red-006: #842029;       /* alert: danger text color */
+  --cmg-color-red-007: #f8cece;       /* alert: danger border color */
 
+  /* White and Black */
   --cmg-color-white: #fff;            /* white */
   --cmg-color-black: #000;            /* black */
   

@@ -34,7 +34,7 @@ use \Cake\Utility\Inflector;
 use Cake\View\Helper;
 
 class FieldHelper extends Helper {
-  public $helpers = ['Form', 'Html', 'Url'];
+  public $helpers = ['Form', 'Html', 'Url', 'Alert'];
   
   // Is this read-only or read-write?
   protected $editable = true;
@@ -57,10 +57,9 @@ class FieldHelper extends Helper {
    */
   
   public function banner(string $info) {
-    return '<div class="co-info-topbox">
-  <em class="material-icons">info</em>
-  ' . $info . '
-</div>';
+    return '<li class="alert-banner">' .
+      $this->Alert->alert($info, 'warning')
+    . '</li>';
   }
   
   /**

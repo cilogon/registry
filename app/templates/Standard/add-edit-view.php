@@ -77,19 +77,24 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
     }
   ?>
 </div>
-<?php
-// XXX this doesn't work yet because we don't include fields.inc until later
-//     either create a second file to include earlier, or use a function to emit
-//     the fields (which would be more consistent with how Views render...)
-if(!empty($banners)) {
-  foreach($banners as $b): ?>  
-<div class="co-info-topbox">
-  <em class="material-icons">info</em>
-  <?php print $b; ?>
-</div>
-<?php endforeach; // $banners
-}
 
+<!-- Flash Messages and defined Info Banners -->
+<div class="alert-container" id="flash-messages">
+  <?= $this->Flash->render() ?>
+
+  <?php
+  // XXX this doesn't work yet because we don't include fields.inc until later
+  //     either create a second file to include earlier, or use a function to emit
+  //     the fields (which would be more consistent with how Views render...)
+  if(!empty($banners)) {
+    foreach($banners as $b) {
+      print $this->Alert->alert($b, 'warning');
+    }
+  }
+  ?>
+</div>
+
+<?php
 // By default, the form will POST to the current controller
 // Note we need to open the form for view so Cake will autopopulate values
 print $this->Form->create($vv_obj);

@@ -139,23 +139,23 @@ function _column_key($modelsName, $c, $tz=null) {
   }
   ?>
 </div>
-<?php if(!empty($indexBanners)): ?>
-  <?php foreach($indexBanners as $b): ?>
-    <div class="co-info-topbox">
-      <em class="material-icons">info</em>
-      <?= $b; ?>
-    </div>
-  <?php endforeach; // $indexBanners ?>
-<?php endif; // $indexBanners ?>
 
-<?php if(!empty($banners)): ?>
-  <?php foreach($banners as $b): ?>
-    <div class="co-info-topbox">
-      <em class="material-icons">info</em>
-      <?= $b; ?>
-    </div>
-  <?php endforeach; // $banners ?>
-<?php endif; // $banners ?>
+<!-- Flash Messages and defined Info Banners -->
+<div class="alert-container" id="flash-messages">
+  <?= $this->Flash->render() ?>
+
+  <?php if(!empty($indexBanners)): ?>
+    <?php foreach($indexBanners as $b): ?>
+      <?=  $this->Alert->alert($b, 'warning') ?>
+    <?php endforeach; // $indexBanners ?>
+  <?php endif; // $indexBanners ?>
+
+  <?php if(!empty($banners)): ?>
+    <?php foreach($banners as $b): ?>
+      <?=  $this->Alert->alert($b, 'warning') ?>
+    <?php endforeach; // $banners ?>
+  <?php endif; // $banners ?>
+</div>
 
 <!-- Search block -->
 <?php if(isset($vv_searchable_attributes)): ?>
