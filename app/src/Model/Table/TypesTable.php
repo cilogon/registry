@@ -40,7 +40,6 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 class TypesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
-  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -111,21 +110,6 @@ class TypesTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'SuspendableStatusEnum'
-      ]
-    ]);
-    
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        'restore' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

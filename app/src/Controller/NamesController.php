@@ -34,12 +34,39 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class NamesController extends MVEAController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
       'Names.family' => 'asc',
       'Names.given' => 'asc'
     ]
   ];
+
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'primary' =>  ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
+  }
   
   /**
    * Callback run prior to the request render.

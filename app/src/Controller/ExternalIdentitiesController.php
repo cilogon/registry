@@ -36,6 +36,8 @@ use Cake\ORM\TableRegistry;
 // Use extend MVEAController for breadcrumb rendering. ExternalIdentities is
 // sort of an MVEA, so maybe it makes sense to treat it as such.
 class ExternalIdentitiesController extends MVEAController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
       'PrimaryName.family' => 'asc'
@@ -45,4 +47,30 @@ class ExternalIdentitiesController extends MVEAController {
       'PrimaryName.family'
     ]
   ];
+
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+// See also CFM-126
+// XXX need to add couAdmin, eventually
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
+  }
 }

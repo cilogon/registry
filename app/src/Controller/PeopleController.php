@@ -34,6 +34,8 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class PeopleController extends StandardController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
 // XXX this will sort by family name, but it this universally correct?
@@ -50,6 +52,31 @@ class PeopleController extends StandardController {
       'PrimaryName.family'
     ]
   ];
+  
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function initialize(): void {
+    parent::initialize();
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+// See also CFM-126
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
+  }
   
   /**
    * Callback run prior to the request render.

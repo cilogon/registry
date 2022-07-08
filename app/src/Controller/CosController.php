@@ -36,11 +36,41 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class CosController extends StandardController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
       'Cos.name' => 'asc'
     ]
   ];
+  
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function initialize(): void {
+    parent::initialize();
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>    ['platformAdmin'],
+        'duplicate' => ['platformAdmin'],
+        'edit' =>      ['platformAdmin'],
+        'view' =>      ['platformAdmin']
+      ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>    ['duplicate'],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>       ['platformAdmin'],
+        'index' =>     ['platformAdmin'],
+        'select' =>    ['authenticatedUser']
+      ]
+    ]);
+  }
   
   /**
    * Callback run prior to the view rendering.
@@ -76,5 +106,21 @@ class CosController extends StandardController {
   
   public function select() {
     // Population of vv_available_cos is currently done in AppController
+    // since it's also used to determine if the "change collaboration" menu
+    // should render.
+    
+    // If only one CO is found, auto-redirect into it.
+    
+    $availableCos = $this->viewBuilder()->getVar('vv_available_cos');
+    
+    if($availableCos && count($availableCos) === 1) {
+      return $this->redirect([
+        'controller'  => 'dashboards',
+        'action'      => 'dashboard',
+        '?' => [
+          'co_id' => $availableCos[0]->id
+        ]
+      ]);
+    }
   }
 }

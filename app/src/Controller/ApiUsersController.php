@@ -30,6 +30,8 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 class ApiUsersController extends StandardController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
       'ApiUsers.username' => 'asc'
@@ -59,5 +61,30 @@ class ApiUsersController extends StandardController {
     $this->set('vv_title', __d('operation', 'api.key.generate'));
     
     $this->render('/Standard/add-edit-view');
+  }
+
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'generate' => ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
   }
 }

@@ -47,6 +47,9 @@ msgstr "Attribute"
 msgid "comment"
 msgstr "Comment"
 
+msgid "Cos.member.not"
+msgstr "{0} (Not a Member)"
+
 msgid "CoSettings.address_default_type_id"
 msgstr "Default Address Type"
 

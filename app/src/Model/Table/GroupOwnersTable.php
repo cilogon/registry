@@ -41,7 +41,6 @@ class GroupOwnersTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
-  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -75,21 +74,6 @@ class GroupOwnersTable extends Table {
     $this->setEditContains(['Groups', 'People.PrimaryName']);
     
     $this->setIndexContains(['Groups', 'People.PrimaryName']);
-    
-    $this->setPermissions([
-// XXX update for couAdmins, group owners, etc
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     false,
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ]
-    ]);
   }
   
   /**

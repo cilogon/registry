@@ -34,6 +34,8 @@ use Cake\Log\Log;
 //use \App\Lib\Enum\PermissionEnum;
 
 class CousController extends StandardController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
       'Cous.name' => 'asc'
@@ -69,5 +71,29 @@ class CousController extends StandardController {
     }
     
     return parent::beforeRender($event);
+  }
+
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
   }
 }

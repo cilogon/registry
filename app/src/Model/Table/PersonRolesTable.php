@@ -43,7 +43,6 @@ class PersonRolesTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\LabeledLogTrait;
-  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -142,22 +141,6 @@ class PersonRolesTable extends Table {
       'cous' => [
         'type' => 'select',
         'model' => 'Cous'
-      ]
-    ]);
-    
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-// See also CFM-126
-// XXX need to add couAdmin, eventually
-      'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

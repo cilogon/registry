@@ -33,6 +33,8 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class TypesController extends StandardController {
+  use \App\Lib\Traits\PermissionsTrait;
+  
   public $pagination = [
     'order' => [
       'Types.attribute' => 'asc',
@@ -59,5 +61,30 @@ class TypesController extends StandardController {
     }
     
     return $this->generateRedirect(null);
+  }
+
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'restore' =>  ['platformAdmin', 'coAdmin']
+      ]
+    ]);
   }
 }

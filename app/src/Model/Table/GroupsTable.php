@@ -46,7 +46,6 @@ class GroupsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\LabeledLogTrait;
-  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -92,36 +91,6 @@ class GroupsTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'SuspendableStatusEnum'
-      ]
-    ]);
-    
-    $this->setPermissions([
-// XXX update for couAdmins, etc
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'reconcile' =>  ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>    ['reconcile'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
-// XXX As a first pass, this (combined with the implementation in AppController::calculatePermissions)
-//     will render a link to group-members?group_id=X for all groups in the index view
-//     groups?co_id=2. This may or may not be right in the long term, eg for private
-//     groups. Maybe it's OK for now, since all groups are visible to all members of the CO.
-        'GroupMembers',
-        'GroupNestings',
-        'GroupOwners',
-        'HistoryRecords',
-        'Identifiers'
       ]
     ]);
   }
@@ -260,6 +229,23 @@ class GroupsTable extends Table {
                        ['errorField' => 'status']);
     
     return $rules;
+  }
+  
+  /**
+   * Find a CO's Administrators group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  \Cake\ORM\Query $query   Query
+   * @param  array           $options Options: co_id (required)
+   * @return \Cake\ORM\Query          Query
+   */
+  
+  public function findAdminGroup(Query $query, array $options): Query {
+    return $query->where([
+      'co_id'       => $options['co_id'],
+      'status'      => SuspendableStatusEnum::Active,
+      'group_type'  => GroupTypeEnum::Admins
+    ]);
   }
   
   /**

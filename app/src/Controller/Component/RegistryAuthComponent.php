@@ -57,6 +57,8 @@ use \Cake\Http\Exception\ForbiddenException;
 use \Cake\Http\Exception\UnauthorizedException;
 use \Cake\ORM\ResultSet;
 use \Cake\ORM\TableRegistry;
+use App\Lib\Enum\SuspendableStatusEnum;
+use App\Lib\Enum\TemplateableStatusEnum;
 
 class RegistryAuthComponent extends Component
 {
@@ -67,6 +69,9 @@ class RegistryAuthComponent extends Component
   
   // Was this an API user?
   protected bool $authenticatedApiUser = false;
+  
+  // Cached results
+  protected array $cache = [];
   
   /**
    * Authenticate an API User.
@@ -318,21 +323,78 @@ class RegistryAuthComponent extends Component
    * Determine if the current user is a CO Administrator.
    *
    * @since  COmanage Registry v5.0.0
-   * @return bool True if the current user is a CO Administrator
+   * @param  int  $coId CO ID
+   * @return bool       True if the current user is a CO Administrator
    */
   
   public function isCoAdmin(?int $coId): bool {
-    if($this->authenticatedApiUser) {
-      $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
-      
-      $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
-      
-      return ($priv === true || $priv === $coId);
-    } else {
-// XXX hardcoded for now until we've bootstrapped the COmanage CO
-// XXX we should cache the lookup when we actually do a db query
-      return ($this->authenticatedUser == 'admin');
+    // We might get called in some contexts without a coId, in which case there
+    // are no CO Admins.
+    
+    if(!$coId) {
+      return false;
     }
+    
+    if(!isset($this->cache['isCoAdmin'])) {
+      $this->cache['isCoAdmin'] = false;
+      
+      if($this->authenticatedApiUser) {
+        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+        
+        $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
+        
+        $this->cache['isCoAdmin'] = ($priv === true || $priv === $coId);
+      } else {
+        if(!empty($this->authenticatedUser)) {
+          $this->cache['isCoAdmin'] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $coId);
+        }
+      }
+    }
+    
+    return $this->cache['isCoAdmin'];
+  }
+  
+  /**
+   * Determine if an identifier represents an administrator in the specified CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $identifier Identifier
+   * @param  int    $coId       CO ID
+   * @return bool               true if the identifier represent an administrator, false otherwise
+   */
+
+  protected function isIdentifierAdmin(string $identifier, int $coId): bool {
+    $Cos = TableRegistry::getTableLocator()->get('Cos');
+    
+    // First see if this Identifier is a login Identifier in the requested CO
+    // This is similar to CosTable::getCosForIdentifier
+    $identifiers = $Cos->People
+                       ->Identifiers
+                       ->find('all')
+                       ->where([
+                         'Identifiers.identifier' => $identifier,
+                         'Identifiers.status'     => SuspendableStatusEnum::Active,
+                         'Identifiers.login'      => true,
+                         'Identifiers.person_id IS NOT NULL'
+                       ])
+                       ->contain(['People' => 'Cos'])
+                       ->all();
+    
+    foreach($identifiers as $i) {
+      // Both the Person and the CO must be active
+      if($i->person->isActive() 
+         && $i->person->co->status == TemplateableStatusEnum::Active
+         && $i->person->co->id == $coId) {
+        // We found a Person in this CO, now see if it's an admin
+        // (for which we'll need the admin group)
+        
+        $adminGroup = $Cos->Groups->find('adminGroup', ['co_id' => $i->person->co_id])->firstOrFail();
+        
+        return $Cos->Groups->GroupMembers->isMember(groupId: $adminGroup->id, personId: $i->person->id);
+      }
+    }
+    
+    return false;
   }
   
   /**
@@ -343,14 +405,25 @@ class RegistryAuthComponent extends Component
    */
   
   public function isPlatformAdmin(): bool {
-    if($this->authenticatedApiUser) {
-      $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+    if(!isset($this->cache['isPlatformAdmin'])) {
+      $this->cache['isPlatformAdmin'] = false;
       
-      return ($ApiUsers->getUserPrivilege($this->authenticatedUser) === true);
-    } else {
-// XXX hardcoded for now until we've bootstrapped the COmanage CO
-// XXX we should cache the lookup when we actually do a db query
-      return ($this->authenticatedUser == 'admin');
+      if($this->authenticatedApiUser) {
+        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+        
+        $this->cache['isPlatformAdmin'] = ($ApiUsers->getUserPrivilege($this->authenticatedUser) === true);
+      } else {
+        if(!empty($this->authenticatedUser)) {
+          $Cos = TableRegistry::getTableLocator()->get('Cos');
+          
+          // Find the COmanage CO
+          $COmanageCO = $Cos->find('COmanageCO')->firstOrFail();
+          
+          $this->cache['isPlatformAdmin'] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $COmanageCO->id);
+        }
+      }
     }
+    
+    return $this->cache['isPlatformAdmin'];
   }
 }

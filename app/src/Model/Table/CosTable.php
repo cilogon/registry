@@ -33,14 +33,15 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Enum\TemplateableStatusEnum;
 
 class CosTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
-  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -85,24 +86,6 @@ class CosTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'TemplateableStatusEnum'
-      ]
-    ]);
-    
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>    ['platformAdmin'],
-        'duplicate' => ['platformAdmin'],
-        'edit' =>      ['platformAdmin'],
-        'view' =>      ['platformAdmin']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>    ['duplicate'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>       ['platformAdmin'],
-        'index' =>     ['platformAdmin'],
-        'select' =>    ['authenticatedUser']
       ]
     ]);
   }
@@ -160,6 +143,49 @@ class CosTable extends Table {
   }
   
   /**
+   * Obtain the set of COs for the specified Identifier. The Identifier must
+   * be a login identifier, Active, and attached to an Active or Grace Period
+   * Person in an Active CO. If the Identifier belongs to a Platform Admin, all
+   * Active COs will be returned.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $loginIdentifier Login Identifier
+   * @return array                   Array of COs
+   */
+  
+  public function getCosForIdentifier(string $loginIdentifier): array {
+    // Start by pulling the active Identifier records where $loginIdentifier is
+    // flagged for login and attached to a Person (not an External Identity).
+    
+    $identifiers = $this->People
+                        ->Identifiers
+                        ->find('all')
+                        ->where([
+                          'Identifiers.identifier' => $loginIdentifier,
+                          'Identifiers.status'     => SuspendableStatusEnum::Active,
+                          'Identifiers.login'      => true,
+                          'Identifiers.person_id IS NOT NULL'
+                        ])
+                        ->contain(['People' => 'Cos'])
+                        ->all();
+    
+    $cos = [];
+    
+    // Did we find an Identifier attached to a Person in the COmanage CO?
+    
+    foreach($identifiers as $i) {
+      // Both the Person and the CO must be active
+      if($i->person->isActive() 
+         && $i->person->co->status == TemplateableStatusEnum::Active) {
+        // Keying on co_id should eliminate duplicates
+        $cos[ $i->person->co_id ] = $i->person->co;
+      }
+    }
+    
+    return $cos;
+  }
+  
+  /**
    * Callback after model save.
    *
    * @since  COmanage Registry v5.0.0
@@ -178,7 +204,7 @@ class CosTable extends Table {
       } elseif($entity->getOriginal('name') != $entity->get('name')) {
         // AR-CO-7 The name was changed, so we may need to update the system groups
         
-        $this->Groups->addDefaults(coId: $entity->id, couId: null, rename: true);
+        $this->Groups->addDefaults(coId: $entity->id, rename: true);
       }
     }
 

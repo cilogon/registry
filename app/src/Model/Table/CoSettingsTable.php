@@ -52,7 +52,6 @@ use \App\Lib\Enum\RequiredNameFieldsEnum;
 class CoSettingsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
-  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   
@@ -147,22 +146,6 @@ class CoSettingsTable extends Table {
       'urlDefaultTypes' => [
         'type' => 'type',
         'attribute' => 'Urls.type'
-      ]
-    ]);
-    
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id). Since each CO's
-      // CoSetting is created during CO Setup, admins can only edit.
-      'entity' => [
-        'delete' => false,
-        'edit'   => ['platformAdmin', 'coAdmin'],
-        'view'   => ['platformAdmin', 'coAdmin']    // Required for REST API
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add'    => false,
-        'index'  => ['platformAdmin', 'coAdmin'],   // Required for REST API
-        'manage' => ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

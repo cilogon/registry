@@ -29,7 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
-use \App\Lib\Enum\TemplateableStatusEnum;
+use App\Lib\Enum\TemplateableStatusEnum;
 use App\Lib\Events\ChangelogEventListener;
 use App\Lib\Events\CoIdEventListener;
 use App\Lib\Events\RuleBuilderEventListener;
@@ -41,11 +41,11 @@ use Cake\Http\Exception\UnauthorizedException;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use InvalidArgumentException;
 
 class AppController extends Controller {
   use \App\Lib\Traits\LabeledLogTrait;
-
 
   // If set, the current requested CO. Note this may be *unauthenticated*
   // and so should not be trusted without further authorization.
@@ -119,6 +119,14 @@ class AppController extends Controller {
     // Determine the requested CO
     $this->setCO();
     
+    if(isset($this->RegistryAuth)) {
+      // Components might not be loaded on error, so check
+      
+      // We need to populate this in beforeFilter (rather than beforeRender)
+      // so it's available to CosController::select
+      $this->populateAvailableCos();
+    }
+    
     return parent::beforeFilter($event);
   }
   
@@ -141,14 +149,6 @@ class AppController extends Controller {
       // Components might not be loaded on error, so check
       $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions());
     }
-    
-    // Pull the set of COs this user is a member of, for rendering via menuMain
-    $Cos = TableRegistry::getTableLocator()->get("Cos");
-      
-// XXX filter this based on the current user's eligibility (user should have one active or grace period role)
-//     and also filter only Active COs, etc
-// - do this in CosTable or in RegistryAuth?
-    $this->set('vv_available_cos', $Cos->find()->toArray());
     
     // For breadcrumbs, do we have a target model, and if so is it a configuration
     // model (eg: ApiUsers) or an object model (eg: CoPeople)?
@@ -192,9 +192,9 @@ class AppController extends Controller {
     // Can this record be deleted?
     $canDelete = true;
     
-    // Pull the table permissions
-    $permissions = $table->getPermissions();
-
+    // Pull the controller permissions
+    $permissions = $this->getPermissions();
+    
     if($id) {
       $readOnlyActions = ['view'];
       
@@ -484,6 +484,72 @@ class AppController extends Controller {
     }
     
     return 'index';
+  }
+  
+  /**
+   * Populate the list of Available COs, primarily for the CO Selector.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  protected function populateAvailableCos() {
+    // Prepare the list of available COs, primarily for the CO Selector. We do
+    // this here because the menuTop element, which renders on every page, needs it.
+    
+    $availableCos = [];
+    
+    $userInfo = $this->viewBuilder()->getVar('vv_user');
+    
+    if(!empty($userInfo['username'])) {
+      // There are two data sets to look at: the COs the current user is a member
+      // of, and (if the current user is a Platform Admin) all other COs. We then
+      // bubble the COmanage CO to the top (if present), followed by an alphabetical
+      // list of member COs, then an alphabetical list of non-member COs.
+      
+      $Cos = TableRegistry::getTableLocator()->get("Cos");
+      
+      // Pull the set of COs this user is a member of, for rendering via menuMain
+      $memberCos = Hash::sort($Cos->getCosForIdentifier(loginIdentifier: $userInfo['username']), '{n}.name', 'asc');
+      $allCos = null;
+      
+      if($this->RegistryAuth->isPlatformAdmin()) {
+        // Pull all available (active COs)
+        $allCos = Hash::sort($Cos->find('all')->where(['Cos.status' => TemplateableStatusEnum::Active])->toArray(), '{n}.name', 'asc');
+      }
+      
+      // See if the COmanage CO is in the $memberCos list. (If the user is a
+      // Platform Admin it will always be in the $memberCos list.)
+      
+      $COmanageCO = null;
+      
+      foreach($memberCos as $key => $co) {
+        if($co->isCOmanageCO()) {
+          $COmanageCO = $co;
+          unset($memberCos[$key]);
+        } else {
+          $availableCos[$key] = $co;
+        }
+      }
+      
+      if($COmanageCO) {
+        $availableCos = array_merge([$COmanageCO->id => $COmanageCO], $availableCos);
+      }
+      
+      if(!empty($allCos)) {
+        foreach($allCos as $key => $co) {
+          if(isset($availableCos[$key])) {
+            // Already in the list as a member
+            unset($allCos[$key]);
+          } else {
+            $co->name = __d('field', 'Cos.member.not', [$co->name]);
+          }
+        }
+        
+        $availableCos = array_merge($availableCos, $allCos);
+      }
+    }
+    
+    $this->set('vv_available_cos', $availableCos);
   }
   
   /**
