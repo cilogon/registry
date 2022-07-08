@@ -43,8 +43,11 @@ export default {
       this.$emit('hide');
     }
   },
+  mounted() {
+    this.$refs.timepicker.focus();
+  },
   template: `
-    <div class="cm-time-picker-panel" v-clickout="hide">
+    <div class="cm-time-picker-panel" ref="timepicker" v-clickout="hide" @keydown.esc="hide" tabindex="-1">
       <div class="cm-time-picker-hours">
         <div class="cm-time-picker-title">{{ txt.hour }}</div>
         <div class="cm-time-picker-vals">
