@@ -147,7 +147,7 @@ class AppController extends Controller {
     
     if(isset($this->RegistryAuth)) {
       // Components might not be loaded on error, so check
-      $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions());
+      $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions($this->getCOID()));
     }
     
     // For breadcrumbs, do we have a target model, and if so is it a configuration

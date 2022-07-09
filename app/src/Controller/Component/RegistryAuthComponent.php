@@ -287,23 +287,26 @@ class RegistryAuthComponent extends Component
    * templates/element/menuMain.php.
    * 
    * @since  COmanage Registry v5.0.0
-   * @return array Array of permissions
+   * @param  int   $coId  Current CO ID, if known
+   * @return array        Array of permissions
    */
   
-  public function getMenuPermissions() {
+  public function getMenuPermissions(?int $coId): array {
     $permissions = [];
     
-// XXX need to set permissions according to current user's roles
-    $permissions['platform'] = true;
+    $permissions['platform'] = $this->isPlatformAdmin();
 
     // Can access the Configuration Dashboard for the current CO
-    $permissions['configuration'] = true;
+    $permissions['configuration'] = $this->isPlatformAdmin() 
+                                    || $this->isCoAdmin($coId);
     
     // Can manage Groups in the current CO
-    $permissions['groups'] = true;
+    $permissions['groups'] = $this->isPlatformAdmin()
+                             || $this->isCoAdmin($coId);
     
     // Can manage People in the current CO
-    $permissions['people'] = true;
+    $permissions['people'] = $this->isPlatformAdmin()
+                             || $this->isCoAdmin($coId);
     
     return $permissions;
   }
@@ -336,22 +339,22 @@ class RegistryAuthComponent extends Component
     }
     
     if(!isset($this->cache['isCoAdmin'])) {
-      $this->cache['isCoAdmin'] = false;
+      $this->cache['isCoAdmin'][$coId] = false;
       
       if($this->authenticatedApiUser) {
         $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
         
         $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
         
-        $this->cache['isCoAdmin'] = ($priv === true || $priv === $coId);
+        $this->cache['isCoAdmin'][$coId] = ($priv === true || $priv === $coId);
       } else {
         if(!empty($this->authenticatedUser)) {
-          $this->cache['isCoAdmin'] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $coId);
+          $this->cache['isCoAdmin'][$coId] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $coId);
         }
       }
     }
     
-    return $this->cache['isCoAdmin'];
+    return $this->cache['isCoAdmin'][$coId];
   }
   
   /**
