@@ -51,7 +51,7 @@ class LogBehavior extends Behavior
     $label = getmypid() . "/" . $subject->getAlias() . ": ";
 // XXX can we inject IP address of requester (where available)?
 
-    Log::info($label . 'beforeFind: ' . $query->sql(), ['scope' => ['trace']]);
+    Log::debug($label . 'beforeFind: ' . $query->sql(), ['scope' => ['trace']]);
   }
   
 // XXX don't define log() since it will collide with LogTrait?
@@ -63,6 +63,6 @@ class LogBehavior extends Behavior
   public static function strace(string $name, string $msg) {
     $label = getmypid() . "/" . $name . ": ";
     
-    Log::info($label . $msg, ['scope' => ['trace']]);
+    Log::debug($label . $msg, ['scope' => ['trace']]);
   }
 }

@@ -83,6 +83,6 @@ trait LabeledLogTrait {
     $perc = floor(($done / $total) * 100);
     $left = 100 - $perc;
     $out = sprintf("\033[0G\033[2K[%'={$perc}s>%-{$left}s] - $perc%% -- $done/$total", "", "");
-    fwrite(STDERR, $out);
+    fwrite(STDOUT, $out);
   }
 }

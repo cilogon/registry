@@ -323,6 +323,10 @@ class TransmogrifyCommand extends Command {
   // Cache the driver for ease of workarounds
   protected $outdriver = null;
   
+  // Our noise level ('quiet', 'verbose', or 'default')
+  protected $noise = 'default';
+  protected $io = null;
+  
   /**
    * Build an Option Parser.
    *
@@ -414,6 +418,8 @@ class TransmogrifyCommand extends Command {
    */
   
   public function execute(Arguments $args, ConsoleIo $io) {
+    $this->io = $io;
+    
     // Load data from the inbound "transmogrify" database to a newly created
     // (and empty) v5 database. The schema should already be applied to the
     // new database.
@@ -471,8 +477,25 @@ class TransmogrifyCommand extends Command {
     $this->outconn = DriverManager::getConnection($cargs, $outconfig);
     $this->outdriver = $cargs['driver'];
     
+    if($args->getOption('quiet')) {
+      $this->noise = 'quiet';
+    } elseif($args->getOption('verbose')) {
+      $this->noise = 'verbose';
+    }
+    
     // We accept a list of table names, mostly for testing purposes
     $atables = $args->getArguments();
+    
+    $schemaPrefix = '';
+    
+    if($this->outdriver == 'mysqli') {
+      // We prefix the database to the table to avoid having to quote table names
+      // that match (MySQL) reserved keywords (in particular "groups"). While
+      // theoretically Postgres supports the same notation, it seems to cause
+      // more problems than it solves.
+      
+      $schemaPrefix = $outcfg['database'] . '.';
+    }
     
     foreach(array_keys($this->tables) as $t) {
       // If we were given a list of tables see if this table is in the list
@@ -497,8 +520,7 @@ class TransmogrifyCommand extends Command {
       // Check if the table contains data
       $Model = $this->getTableLocator()->get($t);
       if($Model->find()->count() > 0) {
-        $io->warning("Skipping Transmogrification. Table is not empty. Drop the database (or truncate) and start over.");
-        $this->llog("debug", "WARNING: Skipping Transmogrification. Table(" . $t . ") is not empty. Drop the database (or truncate) and start over.");
+        $io->warning("Skipping Transmogrification. Table (" . $t . ") is not empty. Drop the database (or truncate) and start over.");
         continue;
       }
       
@@ -508,8 +530,7 @@ class TransmogrifyCommand extends Command {
       
       while($row = $stmt->fetch()) {
         if(!empty($row[ $this->tables[$t]['displayField'] ])) {
-          // Use this in the message. Modify last
-          $this->llog("debug", "$t " . $row[ $this->tables[$t]['displayField'] ]);
+          $io->verbose("$t " . $row[ $this->tables[$t]['displayField'] ]);
         }
 
         try {
@@ -531,9 +552,8 @@ class TransmogrifyCommand extends Command {
           
           $this->mapFields($t, $row);
 
-          // We prefix the database to the table to avoid having to quote
-          // table names that match (MySQL) reserved keywords (in particular "groups")
-          $this->outconn->insert($outcfg['database'] . '.' . $t, $row);
+          
+          $this->outconn->insert($schemaPrefix.$t, $row);
           
           $this->cacheResults($t, $row);
           
@@ -551,21 +571,26 @@ class TransmogrifyCommand extends Command {
           // did not load, perhaps because it was associated with an Org Identity
           // not linked to a CO Person that was not migrated.
           $warns++;
-          $this->llog("debug", "WARNING: Skipping record " . $row['id'] . " due to invalid foreign key: " . $e->getMessage());
+          $io->warning("Skipping record " . $row['id'] . " due to invalid foreign key: " . $e->getMessage());
         }
         catch(\InvalidArgumentException $e) {
           // If we can't find a value for mapping we skip the record
           // (ie: mapFields basically requires a successful mapping)
           $warns++;
-          $this->llog("debug", "WARNING: Skipping record " . $row['id'] . ": " . $e->getMessage());
+          $io->warning("Skipping record " . $row['id'] . ": " . $e->getMessage());
         }
         catch(\Exception $e) {
           $err++;
-          $this->llog("debug", "ERROR: Record " . $row['id'] . ": " . $e->getMessage());
+          $io->error("Record " . $row['id'] . ": " . $e->getMessage());
         }
         
         $tally++;
-        $this->cliLogPercentage($tally, $count);
+        
+        if($this->noise == 'default') {
+          // We don't output the progress bar for quiet for obvious reasons,
+          // or for verbose so we don't interfere with the extra output
+          $this->cliLogPercentage($tally, $count);
+        }
       }
       
       $max = $this->inconn->fetchOne('SELECT MAX(id) FROM ' . $this->tables[$t]['source']);
@@ -908,7 +933,7 @@ class TransmogrifyCommand extends Command {
     // so we can't ignore deleted rows here.
     
     if(empty($this->cache['org_identities']['co_people'])) {
-      //$this->io('Populating org identity map...');
+      $this->io->info('Populating org identity map...');
       
       // We pull deleted rows because we might be migrating deleted rows
       $mapsql = "SELECT * FROM cm_co_org_identity_links";
@@ -1042,7 +1067,7 @@ class TransmogrifyCommand extends Command {
             try {
               $this->outconn->insert('ad_hoc_attributes', $adhocRow);
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
-              $this->llog("debug", "record already exists: " . print_r($adhocRow, true));
+              $this->io->warning("record already exists: " . print_r($adhocRow, true));
             }
           }
         }
