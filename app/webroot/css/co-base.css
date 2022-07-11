@@ -1301,21 +1301,27 @@ p { /* MDL override */
 .warn-level-b td {
   background-color: var(--cmg-color-yellow-001);
 }
-.asc,
-.desc {
-  color: black;
+/* Sortable table headings and icons */
+a.asc,
+a.desc {
+  white-space: nowrap;
 }
 a.asc::after,
 a.desc::after {
-  position: relative;
-  right: -2px;
-  font-style: normal;
+  display: inline-block;
+  content: "";
+  height: 0;
+  width: 0;
+  margin-left: 0.25em;
+  border: 4px solid transparent;
 }
 a.asc::after {
-  content: "▲"; /*\25b2 in escaped hex*/
+  border-bottom-color: var(--cmg-color-blue-001);
+  margin-bottom: 3px;
 }
 a.desc::after {
-  content: "▼"; /*\25bc in escaped hex*/
+  border-top-color: var(--cmg-color-blue-001);
+  margin-bottom: -3px;
 }
 /* CO GRID LAYOUT; currently used only on CO Selection */
 .co-grid {
@@ -1329,15 +1335,9 @@ a.desc::after {
 }
 .co-grid .co-grid-header {
   font-weight: bold;
-  border-bottom: 1px solid #eee;
 }
 .co-grid .co-row {
   border-top: 1px solid var(--cmg-color-lightgray-005);
-  border-left: 1px solid var(--cmg-color-lightgray-005);
-  border-right: 1px solid var(--cmg-color-lightgray-005);
-}
-.co-grid .co-row:nth-child(even) {
-  background-color: var(--cmg-color-lightgray-001);
 }
 code,
 .fixed-width * {
@@ -1359,7 +1359,7 @@ th, td {
   text-align: left;
 }
 th {
-  background-color: var(--cmg-color-lightgray-005);
+  background-color: var(--cmg-color-lightgray-003);
   color: var(--cmg-color-black);
 }
 td {
@@ -1376,12 +1376,6 @@ tr td:last-child {
 tr.noborder td {
   border: none;
 }
-tr:nth-child(odd) td {
-  background-color: var(--cmg-color-lightgray-001);
-}
-tr:nth-child(even) td {
-  background-color: var(--cmg-color-white);
-}
 td.indented {
   border-left: 3em solid var(--cmg-color-white);
 }
@@ -1390,7 +1384,7 @@ td.indented {
 }
 .linked-row:hover,
 .linked-row:hover td {
-  background-color: var(--cmg-color-lightgray-003) !important;
+  background-color: var(--cmg-color-lightgray-001) !important;
 }
 .menuitembutton {
   width: 250px;
