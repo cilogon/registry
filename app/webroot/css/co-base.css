@@ -1335,15 +1335,11 @@ a.desc::after {
 }
 .co-grid .co-grid-header {
   font-weight: bold;
-  border-bottom: 1px solid #eee;
 }
 .co-grid .co-row {
   border-top: 1px solid var(--cmg-color-lightgray-005);
-  border-left: 1px solid var(--cmg-color-lightgray-005);
-  border-right: 1px solid var(--cmg-color-lightgray-005);
-}
-.co-grid .co-row:nth-child(even) {
-  background-color: var(--cmg-color-lightgray-001);
+  /*border-left: 1px solid var(--cmg-color-lightgray-005);*/
+  /*border-right: 1px solid var(--cmg-color-lightgray-005);*/
 }
 code,
 .fixed-width * {
@@ -1390,7 +1386,7 @@ td.indented {
 }
 .linked-row:hover,
 .linked-row:hover td {
-  background-color: var(--cmg-color-lightgray-003) !important;
+  background-color: var(--cmg-color-lightgray-001) !important;
 }
 .menuitembutton {
   width: 250px;
