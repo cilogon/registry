@@ -1338,8 +1338,6 @@ a.desc::after {
 }
 .co-grid .co-row {
   border-top: 1px solid var(--cmg-color-lightgray-005);
-  /*border-left: 1px solid var(--cmg-color-lightgray-005);*/
-  /*border-right: 1px solid var(--cmg-color-lightgray-005);*/
 }
 code,
 .fixed-width * {
