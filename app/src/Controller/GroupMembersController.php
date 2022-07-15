@@ -33,38 +33,11 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class GroupMembersController extends StandardController {
-  use \App\Lib\Traits\PermissionsTrait;
-  
   public $pagination = [
     'order' => [
       'People.primary_name.name' => 'asc'
     ]
   ];
-  
-  /**
-   * Perform Cake Model initialization.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function initialize(): void {
-    parent::initialize();
-    
-    $this->setPermissions([
-  // XXX update for couAdmins, group owners, etc
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ]
-    ]);
-  }
   
   /**
    * Callback run prior to the request render.

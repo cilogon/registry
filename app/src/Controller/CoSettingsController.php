@@ -33,8 +33,6 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class CoSettingsController extends StandardController {
-  use \App\Lib\Traits\PermissionsTrait;
-  
   /**
    * Manage CO Settings.
    *
@@ -49,31 +47,5 @@ class CoSettingsController extends StandardController {
     $settings = $this->CoSettings->find('all', ['conditions' => ['CoSettings.co_id' => $this->getCOID()]])->first();
     
     return $this->redirect(['action' => 'edit', $settings->id]);
-  }
-
-  /**
-   * Perform Cake Model initialization.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function initialize(): void {
-    parent::initialize();
-
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id). Since each CO's
-      // CoSetting is created during CO Setup, admins can only edit.
-      'entity' => [
-        'delete' => false,
-        'edit'   => ['platformAdmin', 'coAdmin'],
-        'view'   => ['platformAdmin', 'coAdmin']    // Required for REST API
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add'    => false,
-        'index'  => ['platformAdmin', 'coAdmin'],   // Required for REST API
-        'manage' => ['platformAdmin', 'coAdmin']
-      ]
-    ]);
   }
 }

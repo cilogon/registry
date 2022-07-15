@@ -34,6 +34,7 @@ use Cake\Validation\Validator;
 
 class HistoryRecordsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -97,6 +98,20 @@ class HistoryRecordsTable extends Table {
       }]],
       'ExternalIdentities' => ['PrimaryName'],
       'Groups'
+    ]);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   false,
+        'edit' =>     false,
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
     ]);
   }
   

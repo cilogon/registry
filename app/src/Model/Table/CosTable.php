@@ -42,6 +42,7 @@ class CosTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -86,6 +87,24 @@ class CosTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'TemplateableStatusEnum'
+      ]
+    ]);
+    
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>    ['platformAdmin'],
+        'duplicate' => ['platformAdmin'],
+        'edit' =>      ['platformAdmin'],
+        'view' =>      ['platformAdmin']
+      ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>    ['duplicate'],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>       ['platformAdmin'],
+        'index' =>     ['platformAdmin'],
+        'select' =>    ['authenticatedUser']
       ]
     ]);
   }

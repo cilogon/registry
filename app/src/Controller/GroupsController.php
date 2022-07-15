@@ -33,49 +33,11 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class GroupsController extends StandardController {
-  use \App\Lib\Traits\PermissionsTrait;
-  
   public $pagination = [
     'order' => [
       'Groups.name' => 'asc'
     ]
   ];
-  
-  /**
-   * Perform Cake Model initialization.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function initialize(): void {
-    parent::initialize();
-    
-    $this->setPermissions([
-  // XXX update for couAdmins, etc
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'reconcile' =>  ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>    ['reconcile'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
-        'GroupMembers',
-        'GroupNestings',
-        'GroupOwners',
-        'HistoryRecords',
-        'Identifiers'
-      ]
-    ]);
-  }
   
   /**
    * Reconcile a Group's memberships.

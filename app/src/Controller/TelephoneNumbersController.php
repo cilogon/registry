@@ -34,8 +34,6 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class TelephoneNumbersController extends MVEAController {
-  use \App\Lib\Traits\PermissionsTrait;
-  
   public $pagination = [
     'order' => [
       'TelephoneNumbers.number' => 'asc'
@@ -61,30 +59,5 @@ class TelephoneNumbersController extends MVEAController {
     }
     
     return parent::beforeRender($event);
-  }
-
-  /**
-   * Perform Cake Model initialization.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function initialize(): void {
-    parent::initialize();
-    
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'primary' =>  ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ]
-    ]);
   }
 }

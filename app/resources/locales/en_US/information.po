@@ -31,7 +31,7 @@ msgid "api.key"
 msgstr "This newly generated API Key cannot be recovered. If it is lost a new key must be generated."
 
 msgid "cos.none"
-msgstr "No collaborations (COs) yet exist. Please have an administrator create one."
+msgstr "You are not an active member in any collaboration. If your request for enrollment is still being processed, you will not be able to login until it is approved. Please contact an administrator for assistance."
 
 msgid "cos.select"
 msgstr "Please select the collaboration (CO) you wish to manage."

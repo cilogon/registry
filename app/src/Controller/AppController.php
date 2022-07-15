@@ -193,7 +193,7 @@ class AppController extends Controller {
     $canDelete = true;
     
     // Pull the controller permissions
-    $permissions = $this->getPermissions();
+    $permissions = $table->getPermissions();
     
     if($id) {
       $readOnlyActions = ['view'];
@@ -536,16 +536,14 @@ class AppController extends Controller {
       }
       
       if(!empty($allCos)) {
-        foreach($allCos as $key => $co) {
-          if(isset($availableCos[$key])) {
-            // Already in the list as a member
-            unset($allCos[$key]);
-          } else {
+        foreach($allCos as $co) {
+          if(!Hash::extract($availableCos, '{n}[id='.$co->id.']')) {
+            // Not already in the list as a member
             $co->name = __d('field', 'Cos.member.not', [$co->name]);
+            
+            $availableCos[] = $co;
           }
         }
-        
-        $availableCos = array_merge($availableCos, $allCos);
       }
     }
     
