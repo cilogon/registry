@@ -47,3 +47,6 @@ msgstr "Available Collaborations"
 
 msgid "registry.home.welcome"
 msgstr "Welcome to {0}."
+
+msgid "registry.version"
+msgstr "COmanage Registry v{0}"

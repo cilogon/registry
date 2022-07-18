@@ -65,3 +65,5 @@
     <?php endforeach; // $vv_configuration_menu_items ?>
   </ul>
 </section>
+
+<?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
