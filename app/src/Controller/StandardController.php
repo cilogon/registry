@@ -319,15 +319,15 @@ class StandardController extends AppController {
     if(method_exists($table, 'generateDisplayField')) {
       // We don't use a trait for this since each table will implement different logic
       
-      $this->set('vv_title', __d('operation', 'edit.ai', $table->generateDisplayField($obj), $id));
+      $this->set('vv_title', __d('operation', 'edit.ai', $table->generateDisplayField($obj)));
     } else {
       // Default view title is edit object display field
       $field = $table->getDisplayField();
       
       if(!empty($obj->$field)) {
-        $this->set('vv_title', __d('operation', 'edit.ai', $obj->$field, $id));
+        $this->set('vv_title', __d('operation', 'edit.ai', $obj->$field));
       } else {
-        $this->set('vv_title', __d('operation', 'edit.ai', __d('controller', $modelsName, [1]), $id));
+        $this->set('vv_title', __d('operation', 'edit.ai', __d('controller', $modelsName, [1])));
       }
     }
     
@@ -648,15 +648,15 @@ class StandardController extends AppController {
     if(method_exists($table, 'generateDisplayField')) {
       // We don't use a trait for this since each table will implement different logic
       
-      $this->set('vv_title', __d('operation', 'view.ai', $table->generateDisplayField($obj), $id));
+      $this->set('vv_title', __d('operation', 'view.ai', $table->generateDisplayField($obj)));
     } else {
       // Default view title is the object display field
       $field = $table->getDisplayField();
       
       if(!empty($obj->$field)) {
-        $this->set('vv_title', __d('operation', 'view.ai', $obj->$field, $id));
+        $this->set('vv_title', __d('operation', 'view.ai', $obj->$field));
       } else {
-        $this->set('vv_title', __d('operation', 'view.ai', __d('controller', $modelsName, [1]), $id));
+        $this->set('vv_title', __d('operation', 'view.ai', __d('controller', $modelsName, [1])));
       }
     }
     

@@ -67,7 +67,7 @@ msgid "edit.a"
 msgstr "Edit {0}"
 
 msgid "edit.ai"
-msgstr "Edit {0} (ID {1})"
+msgstr "Edit {0}"
 
 msgid "filter"
 msgstr "Filter"
@@ -127,5 +127,5 @@ msgid "view.a"
 msgstr "View {0}"
 
 msgid "view.ai"
-msgstr "View {0} ({1})"
+msgstr "View {0}"
 

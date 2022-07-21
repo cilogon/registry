@@ -45,6 +45,9 @@ msgstr "Error: "
 msgid "flash.success"
 msgstr "Success: "
 
+msgid "entity.id"
+msgstr "ID: {0}"
+
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 

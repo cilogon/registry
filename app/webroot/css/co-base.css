@@ -1252,6 +1252,14 @@ ul.form-list .cm-time-picker-vals li {
 .v-leave-to {
   opacity: 0;
 }
+/* ENTITY ID under each Edit/View Form/List */
+#cm-entity-id {
+  position: absolute;
+  border: none;
+  right: 2.5em;
+  color: var(--cmg-color-gray-003);
+  background-color: unset;
+}
 /* DIALOG BOX */
 #dialog .modal-header {
   background-color: var(--cmg-color-lightgray-004);

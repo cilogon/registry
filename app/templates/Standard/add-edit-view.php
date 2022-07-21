@@ -134,6 +134,8 @@ if(!empty($hidden)) {
   }
 }
 
+print '<li id="cm-entity-id">' . __d('information', 'entity.id', $vv_obj->id) . '</li>'; 
+
 if($vv_action == 'add' || $vv_action == 'edit') {
   // We don't want/need to output these for view actions
   
