@@ -24,6 +24,12 @@
 
 # Enumerations
 
+msgid "AuthenticationEventEnum.AI"
+msgstr "API Login"
+
+msgid "AuthenticationEventEnum.IN"
+msgstr "Registry Login"
+
 msgid "BooleanEnum.0"
 msgstr "False"
 

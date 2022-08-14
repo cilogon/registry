@@ -94,6 +94,19 @@
       }
     },
     
+    "authentication_events": {
+      "columns": {
+        "id": {},
+        "authenticated_identifier": { "type": "string", "size": 256 },
+        "authentication_event": { "type": "string", "size": 2 },
+        "remote_ip": { "type": "string", "size": 40 }
+      },
+      "indexes": {
+        "authentication_events_i1": { "columns": [ "authenticated_identifier" ] }
+      },
+      "changelog": false
+    },
+    
     "api_users": {
       "columns": {
         "id": {},

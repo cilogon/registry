@@ -462,6 +462,18 @@ class StandardController extends AppController {
       }
     }
     
+    // Filter on requested filter, if requested
+    // QueryModificationTrait
+    if(method_exists($table, "getIndexFilter")) {
+      $filter = $table->getIndexFilter();
+      
+      if(is_callable($filter)) {
+        $query->where($filter($this->request));
+      } else {
+        $query->where($table->getIndexFilter());
+      }
+    }
+    
     // The Cake documents describe $this->paginate (which worked in Cake 2),
     // but it doesn't seem to work in Cake 4. So we just use $this->pagination
     // ourselves here.

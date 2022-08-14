@@ -115,6 +115,9 @@ msgstr "Group cannot be nested into itself"
 msgid "Groups.nested"
 msgstr "Group is nested or has nestings, and cannot be suspended or deleted"
 
+msgid "Identifiers.login"
+msgstr "Only Identifiers attached to a Person may be flagged for login"
+
 msgid "input.blank"
 msgstr "Value cannot consist of only blank characters"
 
@@ -135,6 +138,9 @@ msgstr "The provided value is not a valid URL"
 
 msgid "input.length"
 msgstr "The provided value cannot be longer than {0} characters"
+
+msgid "input.notprov"
+msgstr "{0} must be provided"
 
 msgid "invalid"
 msgstr "Invalid value \"{0}\""

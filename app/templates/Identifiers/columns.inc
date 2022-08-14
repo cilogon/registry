@@ -33,3 +33,18 @@ $indexColumns = [
     'type' => 'fk'
   ]
 ];
+
+$indexActions = [
+  [
+    'controller' => 'authentication_events',
+    'action'     => 'index',
+    'icon'       => 'person',
+    'if'         => 'isLogin',
+    'query'      => function ($e) { 
+                      return [ 
+                        'authenticated_identifier' => 
+                        \App\Lib\Util\StringUtilities::urlbase64encode($e->identifier) 
+                      ];
+                    }
+  ]
+];

@@ -50,14 +50,15 @@ trait ValidationTrait {
         'content' => ['rule' => 'isInteger']
       ]);
       $validator->notEmptyString($pk, null, function($context) use ($pk, $primaryKeys) {
-        // This primary key must be populated if all other primary keys are empty
+        // This primary key must be populated (and this closure returns true)
+        // if all other primary keys are empty
         $othersEmpty = true;
         
         foreach(array_diff($primaryKeys, [$pk]) as $opk) {
           $othersEmpty &= empty($context['data'][$opk]);
         }
         
-        return !$othersEmpty;
+        return $othersEmpty;
       });
     }
     

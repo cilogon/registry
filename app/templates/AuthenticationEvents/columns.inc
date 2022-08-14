@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Identifiers Fields
+ * COmanage Registry Authentication Events Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,18 +25,21 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('identifier');
-
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
-
-  if($vv_primary_link_attr == 'person_id') {
-    // AR-Identifier-1 Only Persons can have a login flag
-    print $this->Field->control('login');
-  } else {
-    $hidden['login'] = false;
-  }
-  
-  print $this->Field->control('status', ['empty' => false]);
-}
+$indexColumns = [
+  'id' => [
+    'type' => 'echo'
+  ],
+  'authenticated_identifier' => [
+    'type' => 'echo'
+  ],
+  'authentication_event' => [
+    'type' => 'enum',
+    'class' => 'AuthenticationEventEnum'
+  ],
+  'created' => [
+    'type' => 'datetime'
+  ],
+  'remote_ip' => [
+    'type' => 'echo'
+  ]
+];

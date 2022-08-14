@@ -39,6 +39,9 @@ trait QueryModificationTrait {
   // Containable models for index actions
   private $indexContains = null;
   
+  // Filter (where clause) for index actions
+  private $indexFilter = null;
+  
   // Array of associated models to save during a patch
   private $patchAssociated = [];
   
@@ -76,6 +79,17 @@ trait QueryModificationTrait {
   
   public function getIndexContains() {
     return $this->indexContains;
+  }
+  
+  /**
+   * Obtain the index filter for this model.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array|Closure Array of index filters or closure that generates an array
+   */
+  
+  public function getIndexFilter(): array|\Closure|null {
+    return $this->indexFilter;
   }
   
   /**
@@ -131,6 +145,17 @@ trait QueryModificationTrait {
   
   public function setIndexContains(array $contains) {
     $this->indexContains = $contains;
+  }
+  
+  /**
+   * Set the index filter for this model.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  array|Closure $filter Array of index filters or closure that generates the array
+   */
+  
+  public function setIndexFilter(array|\Closure $filter) {
+    $this->indexFilter = $filter;
   }
   
   /**

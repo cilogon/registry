@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Identifiers Fields
+ * COmanage Registry Authentication Event Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,18 +25,11 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('identifier');
+declare(strict_types = 1);
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
+namespace App\Lib\Enum;
 
-  if($vv_primary_link_attr == 'person_id') {
-    // AR-Identifier-1 Only Persons can have a login flag
-    print $this->Field->control('login');
-  } else {
-    $hidden['login'] = false;
-  }
-  
-  print $this->Field->control('status', ['empty' => false]);
+class AuthenticationEventEnum extends StandardEnum {
+  const ApiLogin      = 'AI';
+  const RegistryLogin = 'IN';
 }

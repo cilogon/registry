@@ -121,6 +121,10 @@ class IdentifiersTable extends Table {
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']
+      ],
+      // Related models whose permissions we'll need, typically for table views
+      'related' => [
+        'AuthenticationEvents'
       ]
     ]);
   }
@@ -172,6 +176,18 @@ class IdentifiersTable extends Table {
     $validator->add('login', [
       'content' => ['rule' => ['boolean']]
     ]);
+    
+    // AR-Identifier-1 Login Identifiers can only be attached to People
+    $validator->add('login', 'loginPersonIdentifier', [
+      'rule' => function ($value, array $context) {
+        if($value && empty($context['data']['person_id'])) {
+          return __d('error', 'Identifiers.login');
+        }
+        
+        return true;
+      }
+    ]);
+    
     $validator->allowEmptyString('login');
     
     $validator->add('status', [

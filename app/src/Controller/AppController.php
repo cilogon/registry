@@ -68,8 +68,6 @@ class AppController extends Controller {
     $this->loadComponent('RequestHandler');
     
     // Add a detector so we can tell restful from non-restful calls
-    // Add a detector so we can call request->is('restful') (though note we no longer
-    // really support XML format...)
     $request = $this->getRequest();
     
     $request->addDetector('restful', function($request) {
@@ -158,127 +156,6 @@ class AppController extends Controller {
     }
     
     return parent::beforeRender($event);
-  }
-  
-  /**
-   * Default implementation for calculating permissions for standard controllers,
-   * intended to be overridden by controllers with more specific requirements.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  int   $id Record ID if relevant, or null
-   * @return array     Array of permissions
-   */
-  
-  public function calculatePermissions(?int $id): array {
-    $ret = [];
-    
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
-    
-    // Do we have an authenticated user?
-    $authenticatedUser = (bool)$this->RegistryAuth->getAuthenticatedUser();
-
-    // Is this user a Platform Administrator?
-    $platformAdmin = $this->RegistryAuth->isPlatformAdmin();
-    
-    // Is this user a CO Administrator?
-    $coAdmin = $this->RegistryAuth->isCoAdmin($this->getCOID());
-    
-    // Is this record read only?
-    $readOnly = false;
-    
-    // Can this record be deleted?
-    $canDelete = true;
-    
-    // Pull the controller permissions
-    $permissions = $table->getPermissions();
-    
-    if($id) {
-      $readOnlyActions = ['view'];
-      
-      // Pull the record so we can interrogate it
-      
-      $obj = $table->get($id);
-      
-      if(method_exists($obj, "isReadOnly")) {
-        $readOnly = $obj->isReadOnly();
-        
-        if(!empty($permissions['readOnly'])) {
-          // Merge in controller specific actions permitted on read only entities
-          $readOnlyActions = array_merge($readOnlyActions, $permissions['readOnly']);
-        }
-      }
-      
-      if(method_exists($obj, "canDelete")) {
-        $canDelete = $obj->canDelete();
-      }
-      
-      // Permissions for actions that operate over individual entities
-      
-      foreach($permissions['entity'] as $action => $roles) {
-        $ok = false;
-        
-        if((($action != 'delete' || $canDelete)
-            &&
-            !$readOnly) || in_array($action, $readOnlyActions)) {
-          if(is_array($roles)) {
-            foreach($roles as $role) {
-              // eg: $role = "platformAdmin", which corresponds to the variables set, above
-              if($$role) {
-                $ok = true;
-                break;
-              }
-            }
-          }
-        }
-
-        $ret[$action] = $ok;
-      }
-      
-      if(!empty($permissions['related'])) {
-        foreach($permissions['related'] as $rtable) {
-          $rpermissions = $table->$rtable->getPermissions();
-          
-          foreach($rpermissions['table'] as $action => $roles) {
-            $ok = false;
-            
-            if(is_array($roles)) {
-              foreach($roles as $role) {
-                // eg: $role = "platformAdmin", which corresponds to the variables set, above
-                if($$role) {
-                  $ok = true;
-                  break;
-                }
-              }
-            }
-            
-            $ret[$rtable][$action] = $ok;
-          }
-        }
-      }
-    } else {
-      // Permissions for actions that operate over tables
-      
-      foreach($permissions['table'] as $action => $roles) {
-        $ok = false;
-        
-        if(is_array($roles)) {
-          foreach($roles as $role) {
-            // eg: $role = "platformAdmin", which corresponds to the variables set, above
-            if($$role) {
-              $ok = true;
-              break;
-            }
-          }
-        }
-        
-        $ret[$action] = $ok;
-      }
-    }
-    
-    return $ret;
   }
   
   /**
@@ -620,7 +497,6 @@ class AppController extends Controller {
       
       if($this->cur_co->status === TemplateableStatusEnum::Active) {
         $this->set('vv_cur_co', $this->cur_co);
-
       }
       
       // We store the CO ID in Configuration to facilitate its access from

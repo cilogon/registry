@@ -57,8 +57,9 @@ use \Cake\Http\Exception\ForbiddenException;
 use \Cake\Http\Exception\UnauthorizedException;
 use \Cake\ORM\ResultSet;
 use \Cake\ORM\TableRegistry;
-use App\Lib\Enum\SuspendableStatusEnum;
-use App\Lib\Enum\TemplateableStatusEnum;
+use \App\Lib\Enum\AuthenticationEventEnum;
+use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Enum\TemplateableStatusEnum;
 
 class RegistryAuthComponent extends Component
 {
@@ -133,8 +134,15 @@ class RegistryAuthComponent extends Component
       
       try {
         if($this->authenticateApiUser()) {
-          if($this->calculatePermission($request->getParam('action'), $id)) {
+          if($this->calculatePermission(action: $request->getParam('action'), id: $id)) {
             // Authorization successful
+            
+            $AuthenticationEvents = TableRegistry::getTableLocator()->get('AuthenticationEvents');
+            
+            $AuthenticationEvents->record(identifier: $this->authenticatedUser,
+                                          eventType: AuthenticationEventEnum::ApiLogin,
+                                          remoteIp: $_SERVER['REMOTE_ADDR']);
+            
             return true;
           }
         }
@@ -216,15 +224,154 @@ class RegistryAuthComponent extends Component
    */
   
   protected function calculatePermission(string $action, ?int $id=null): bool {
-    $controller = $this->_registry->getController();
-    
-    $perms = $controller->calculatePermissions($id);
-    
+    $perms = $this->calculatePermissions($id);
+  
     if(!isset($perms[$action])) {
       throw new UnauthorizedException('Invalid Request (RegistryAuthComponent)');
     }
     
     return $perms[$action];
+  }
+  
+  /**
+   * Obtain the permission set for this request.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id   Subject ID, if applicable
+   * @return array        Array of actions and authorized roles
+   */
+  
+  protected function calculatePermissions(?int $id=null): array {
+    $controller = $this->getController();
+
+    $ret = [];
+    
+    // $this->name = Models (ie: from ModelsTable)
+    $modelsName = $controller->getName();
+    // $table = the actual table object
+    $table = $controller->getTableLocator()->get($modelsName);
+    
+    // Do we have an authenticated user?
+    $authenticatedUser = (bool)$this->getAuthenticatedUser();
+
+    // Is this user a Platform Administrator?
+    $platformAdmin = $this->isPlatformAdmin();
+    
+    // Is this user a CO Administrator?
+    $coAdmin = $this->isCoAdmin($controller->getCOID());
+    
+    // Is this user a CO Member?
+    $coMember = $this->isCoMember($controller->getCOID());
+    
+    // Is this record read only?
+    $readOnly = false;
+    
+    // Can this record be deleted?
+    $canDelete = true;
+    
+    // Pull the table's permission definitions
+    $permissions = $this->getTablePermissions($table, $id);
+    
+    if($id) {
+      $readOnlyActions = ['view'];
+      
+      // Pull the record so we can interrogate it
+      
+      $obj = $table->get($id);
+      
+      if(method_exists($obj, "isReadOnly")) {
+        $readOnly = $obj->isReadOnly();
+        
+        if(!empty($permissions['readOnly'])) {
+          // Merge in controller specific actions permitted on read only entities
+          $readOnlyActions = array_merge($readOnlyActions, $permissions['readOnly']);
+        }
+      }
+      
+      if(method_exists($obj, "canDelete")) {
+        $canDelete = $obj->canDelete();
+      }
+      
+      // Permissions for actions that operate over individual entities
+      
+      foreach($permissions['entity'] as $action => $roles) {
+        $ok = false;
+        
+        if((($action != 'delete' || $canDelete)
+            &&
+            !$readOnly) || in_array($action, $readOnlyActions)) {
+          if(is_array($roles)) {
+            // A list of roles authorized to perform this action, see if the
+            // current user has any
+            foreach($roles as $role) {
+              // eg: $role = "platformAdmin", which corresponds to the variables set, above
+              if($$role) {
+                $ok = true;
+                break;
+              }
+            }
+          } elseif($roles === true) {
+            // Any authenticated user is permitted
+            $ok = true;
+          }
+        }
+
+        $ret[$action] = $ok;
+      }
+      
+      if(!empty($permissions['related'])) {
+        foreach($permissions['related'] as $rtable) {
+          $RelatedTable = TableRegistry::getTableLocator()->get($rtable);
+          $rpermissions = $this->getTablePermissions($RelatedTable, $id);
+          
+          foreach($rpermissions['table'] as $action => $roles) {
+            $ok = false;
+            
+            if(is_array($roles)) {
+              // A list of roles authorized to perform this action, see if the
+              // current user has any
+              foreach($roles as $role) {
+                // eg: $role = "platformAdmin", which corresponds to the variables set, above
+                if($$role) {
+                  $ok = true;
+                  break;
+                }
+              }
+            } elseif($roles === true) {
+              // Any authenticated user is permitted
+              $ok = true;
+            }
+            
+            $ret[$rtable][$action] = $ok;
+          }
+        }
+      }
+    } else {
+      // Permissions for actions that operate over tables
+      
+      foreach($permissions['table'] as $action => $roles) {
+        $ok = false;
+        
+        if(is_array($roles)) {
+          // A list of roles authorized to perform this action, see if the
+          // current user has any
+          foreach($roles as $role) {
+            // eg: $role = "platformAdmin", which corresponds to the variables set, above
+            if($$role) {
+              $ok = true;
+              break;
+            }
+          }
+        } elseif($roles === true) {
+          // Any authenticated user is permitted
+          $ok = true;
+        }
+        
+        $ret[$action] = $ok;
+      }
+    }
+    
+    return $ret;
   }
   
   /**
@@ -236,8 +383,6 @@ class RegistryAuthComponent extends Component
    */
   
   public function calculatePermissionsForResultSet(ResultSet $rs): array {
-    $controller = $this->_registry->getController();
-    
     // We return an array since this is intended to be passed to a view
     $ret = [];
     
@@ -248,7 +393,7 @@ class RegistryAuthComponent extends Component
     while($rs->valid()) {
       $o = $rs->current();
       
-      $ret[ $o->id ] = $controller->calculatePermissions($o->id);
+      $ret[ $o->id ] = $this->calculatePermissions($o->id);
       
       $rs->next();
     }
@@ -266,9 +411,7 @@ class RegistryAuthComponent extends Component
    */
   
   public function calculatePermissionsForView(string $action, ?int $id=null): array {
-    $controller = $this->_registry->getController();
-    
-    return $controller->calculatePermissions($id);
+    return $this->calculatePermissions($id);
   }
   
   /**
@@ -312,6 +455,79 @@ class RegistryAuthComponent extends Component
   }
   
   /**
+   * Obtain the set of permissions as provided by the table.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  table  $table  Cake Table
+   * @param  int    $id     Entity ID, if applicable
+   * @return array          Table permissions
+   */
+  
+  protected function getTablePermissions($table, ?int $id): array {
+    $p = $table->getPermissions();
+    
+    if(is_callable($p)) {
+      $controller = $this->getController();
+      $request = $controller->getRequest();
+      
+      return $p($request, $this, $id);
+    } else {
+      return $p;
+    }
+  }
+  
+  /**
+   * Determine if the current user is an administrator (CMP/CO/COU) for the
+   * provided identifier. Note that the identifier is not bound to any
+   * particular CO, this function will return true if the user is an
+   * administrator in any CO for which the subject identifier has an associated
+   * Person record.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $identifier Identifiers
+   * @return bool               true if the current user is an administrator over $identifier, false otherwise
+   */
+  
+  public function isAdminForIdentifier(string $identifier): bool {
+    if(!isset($this->cache['isAdminForIdentifier'][$identifier])) {
+      $this->cache['isAdminForIdentifier'][$identifier] = false;
+      
+      if($this->isPlatformAdmin()) {
+        // Platform Admins are admins for every identifier
+        $this->cache['isAdminForIdentifier'][$identifier] = true;
+      } else {
+        // Map $identifier to a set of People. Note we may be crossing COs when
+        // we do this. Note for now we only examine login identifiers since this
+        // is largely in support of the AuthenticationEvents index view, but
+        // there may be different use cases in the future.
+        
+        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+        
+        $identifiers = $Identifiers->find('all')
+                                   ->where([
+                                     'Identifiers.identifier' => $identifier,
+                                     'Identifiers.status'     => SuspendableStatusEnum::Active,
+                                     'Identifiers.login'      => true,
+                                     'Identifiers.person_id IS NOT NULL'
+                                   ])
+                                   ->contain(['People' => 'Cos'])
+                                   ->all();
+        
+        foreach($identifiers as $i) {
+          if(!empty($i->person->co_id) 
+             && $this->isCoAdmin($i->person->co_id)) {
+            // If the current user is an admin for this Person we're done
+            $this->cache['isAdminForIdentifier'][$identifier] = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    return $this->cache['isAdminForIdentifier'][$identifier];
+  }
+  
+  /**
    * Determine if the current user is an API user.
    *
    * @since  COmanage Registry v5.0.0
@@ -338,7 +554,7 @@ class RegistryAuthComponent extends Component
       return false;
     }
     
-    if(!isset($this->cache['isCoAdmin'])) {
+    if(!isset($this->cache['isCoAdmin'][$coId])) {
       $this->cache['isCoAdmin'][$coId] = false;
       
       if($this->authenticatedApiUser) {
@@ -355,6 +571,59 @@ class RegistryAuthComponent extends Component
     }
     
     return $this->cache['isCoAdmin'][$coId];
+  }
+  
+  /**
+   * Determine if the current user is a member of the specified CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int  $coId CO ID
+   * @return bool       True if the current user is a CO Administrator
+   */
+  
+  public function isCoMember(?int $coId): bool {
+    // We might get called in some contexts without a coId, in which case there
+    // are no members.
+    
+    if(!$coId) {
+      return false;
+    }
+    
+    if(!isset($this->cache['isCoMember'][$coId])) {
+      $this->cache['isCoMember'][$coId] = false;
+      
+      if($this->authenticatedApiUser) {
+        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+        
+        $apiUser = $ApiUsers->find()
+                            ->where([
+                              'ApiUsers.username' => $this->authenticateApiUser,
+                              'ApiUsers.co_id'    => $coId,
+                              'ApiUsers.status'   => SuspendableStatusEnum::Active
+                            ])
+                            ->contain()
+                            ->first();
+        
+        if($apiUser) {
+          $now = Chronos::now();
+          
+          if((!$apiUser->valid_from || $now->gt($apiUser->valid_from))
+             && (!$apiUser->valid_through || $now->gt($apiUser->valid_through))) {
+            $this->cache['isCoMember'][$coId] = true;
+          }
+        }
+      } else {
+        if(!empty($this->authenticatedUser)) {
+          $Cos = TableRegistry::getTableLocator()->get('Cos');
+          
+          $memberCos = $Cos->getCosForIdentifier($this->authenticatedUser);
+          
+          $this->cache['isCoMember'][$coId] = isset($memberCos[$coId]);
+        }
+      }
+    }
+    
+    return $this->cache['isCoMember'][$coId];
   }
   
   /**
@@ -385,7 +654,7 @@ class RegistryAuthComponent extends Component
     
     foreach($identifiers as $i) {
       // Both the Person and the CO must be active
-      if($i->person->isActive() 
+      if($i->person && $i->person->isActive() 
          && $i->person->co->status == TemplateableStatusEnum::Active
          && $i->person->co->id == $coId) {
         // We found a Person in this CO, now see if it's an admin

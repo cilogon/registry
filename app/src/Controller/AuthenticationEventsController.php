@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Permissions Trait
+ * COmanage Registry Authentication Events Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,31 +27,38 @@
 
 declare(strict_types = 1);
 
-namespace App\Lib\Traits;
+namespace App\Controller;
 
-trait PermissionsTrait {
-  // Array of permissions
-  private $permissions = null;
+// XXX not doing anything with Log yet
+use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
+
+class AuthenticationEventsController extends MVEAController {
+  public $pagination = [
+    'order' => [
+      'AuthenticationEvents.id' => 'desc'
+    ]
+  ];
+  
+  // Cached permissions
+  protected ?array $permCache = null;
   
   /**
-   * Get the permissions for this model.
+   * Callback run prior to the request action.
    *
    * @since  COmanage Registry v5.0.0
-   * @return array $vars Array of permissions
+   * @param  EventInterface $event Cake Event
    */
   
-  public function getPermissions(): array|\Closure {
-    return $this->permissions;
-  }
+  public function beforeFilter(\Cake\Event\EventInterface $event) {
+    // If an identifier was passed in, use that to filter the index query.
+    // (Authz is handled in the closure passed to setIndexFilter by AuthenticationEventsTable.)
+    $targetIdentifier = $this->getRequest()->getQuery('authenticated_identifier');
     
-  /**
-   * Set the permissions for this model.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  array $vars Array of permissions
-   */
-  
-  public function setPermissions(array|\Closure $perms) {
-    $this->permissions = $perms;
+    if($targetIdentifier) {
+      $this->AuthenticationEvents->setIndexFilter(['authenticated_identifier' => \App\Lib\Util\StringUtilities::urlbase64decode($targetIdentifier)]);
+    }
+    
+    return parent::beforeFilter($event);
   }
 }

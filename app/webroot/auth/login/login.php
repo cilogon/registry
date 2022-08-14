@@ -42,10 +42,13 @@ if(empty($_SERVER['REMOTE_USER'])) {
 }
 
 $_SESSION['Auth']['external']['user'] = $_SERVER['REMOTE_USER'];
-$target = $_SESSION['Auth']['target'] ?? "/";
+
+// After storing the user in the session, we redirect into the TrafficController
+// which handles the rest of the login process. To construct the URL, we look at
+// REQUEST_URI to figure out what our application prefix is (eg: /registry).
 
 $re = '/(.*)\/auth\/login\/login(?:.php)?(.*)/m';
-$subst = '$1' . $target . '$2';
+$subst = '$1' . '/traffic/process-login' . '$2';
 $path = preg_replace($re, $subst, urldecode($_SERVER['REQUEST_URI']), 1);
 
 header("Location: " . $path);

@@ -73,10 +73,9 @@ class DashboardsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'configuration' => ['platformAdmin', 'coAdmin'],
-        'dashboard'     => ['platformAdmin', 'coAdmin']   // XXX this is not the correct long term permission
+        'dashboard'     => ['coMember']
   /*      'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
-        */
+        'index' =>    ['platformAdmin', 'coAdmin']*/
       ]
     ]);
   }

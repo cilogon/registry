@@ -40,4 +40,15 @@ class Identifier extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+  
+  /**
+   * Determine if this Identifier is flagged as a login identifier.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool true if this is a login identifier, false otherwise
+   */
+  
+  public function isLogin(): bool {
+    return $this->login;
+  }
 }

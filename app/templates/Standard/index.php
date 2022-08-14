@@ -473,7 +473,8 @@ function _column_key($modelsName, $c, $tz=null) {
                     $actionUrl = $this->Url->build(
                       ['controller' => $a['controller'],
                        'action'     => $a['action'],
-                       '?' => [ $tableFK => $entity->id] ]
+                       // We support the use of closures for custom query strings
+                       '?' => (!empty($a['query']) ? $a['query']($entity) : [ $tableFK => $entity->id ])]
                     );
                   } else {
                     $actionLabel = __d('operation', $a['action']); 

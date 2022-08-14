@@ -26,14 +26,13 @@
  */
 
 // We use this template for both /view (1 record) and /index (n records)
-$action = $this->template;
 
 $responseMeta = [
   'resource' => $vv_model_name,
   'version' => '2'
 ];
 
-if($action == 'index') {
+if($this->request->getParam('action') == 'index') {
   $responseMeta['totalResults'] = $this->Paginator->counter('{{count}}');
   $responseMeta['startIndex'] = $this->Paginator->counter('{{start}}');
   $responseMeta['itemsPerPage'] = $this->Paginator->counter('{{current}}'); // confusingly this is different than ->current()

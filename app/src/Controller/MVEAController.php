@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Multi Valued Entity Attributes (VMEA) Controller
+ * COmanage Registry Multi Valued Entity Attributes (MVEA) Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -54,6 +54,7 @@ class MVEAController extends StandardController {
       $link = $this->getPrimaryLink(true);
       
       if(!empty($link->value)) {
+        $this->set('vv_primary_link_attr', $link->attr);
         $this->set('vv_primary_link_id', $link->value);
         
         $Names = $this->getTableLocator()->get('Names');

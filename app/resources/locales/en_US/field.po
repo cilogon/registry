@@ -44,6 +44,12 @@ msgstr "Area Code"
 msgid "attribute"
 msgstr "Attribute"
 
+msgid "AuthenticationEvents.authenticated_identifier"
+msgstr "Authenticated Identifier"
+
+msgid "AuthenticationEvents.authentication_event"
+msgstr "Authentication Event"
+
 msgid "comment"
 msgstr "Comment"
 

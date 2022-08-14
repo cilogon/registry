@@ -102,6 +102,10 @@ class TransmogrifyCommand extends Command {
         'person_picker_display_types' => null
       ]
     ],
+    'authentication_events' => [
+      'source' => 'cm_authentication_events',
+      'displayField' => 'authenticated_identifier'
+    ],
     'api_users' => [
       'source' => 'cm_api_users',
       'displayField' => 'username',
@@ -270,7 +274,8 @@ class TransmogrifyCommand extends Command {
         'co_department_id' => null,
         'co_provisioning_target_id' => null,
         'organization_id' => null
-      ]
+      ],
+      'preRow' => 'map_login_identifiers'
     ],
     'telephone_numbers' => [
       'source' => 'cm_telephone_numbers',
@@ -323,8 +328,8 @@ class TransmogrifyCommand extends Command {
   // Cache the driver for ease of workarounds
   protected $outdriver = null;
   
-  // Our noise level ('quiet', 'verbose', or 'default')
-  protected $noise = 'default';
+  // Shell arguments, for easier access
+  protected $args = null;
   protected $io = null;
   
   /**
@@ -336,7 +341,16 @@ class TransmogrifyCommand extends Command {
    */
   
   protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser {
-    $parser->setEpilog('An optional, space separated list of tables to transmogrify may be specified');
+    $parser->addOption('login-identifier-copy', [
+                        'help' => __d('command', 'tm.login-identifier-copy'),
+                        'boolean' => true
+                      ]);
+    
+    $parser->addOption('login-identifier-type', [
+                        'help' => __d('command', 'tm.login-identifier-type')
+                      ]);
+    
+    $parser->setEpilog(__d('command', 'tm.epilog'));
 
     return $parser;
   }
@@ -418,6 +432,7 @@ class TransmogrifyCommand extends Command {
    */
   
   public function execute(Arguments $args, ConsoleIo $io) {
+    $this->args = $args;
     $this->io = $io;
     
     // Load data from the inbound "transmogrify" database to a newly created
@@ -476,12 +491,6 @@ class TransmogrifyCommand extends Command {
     
     $this->outconn = DriverManager::getConnection($cargs, $outconfig);
     $this->outdriver = $cargs['driver'];
-    
-    if($args->getOption('quiet')) {
-      $this->noise = 'quiet';
-    } elseif($args->getOption('verbose')) {
-      $this->noise = 'verbose';
-    }
     
     // We accept a list of table names, mostly for testing purposes
     $atables = $args->getArguments();
@@ -551,7 +560,6 @@ class TransmogrifyCommand extends Command {
           $this->fixBooleans($t, $row);
           
           $this->mapFields($t, $row);
-
           
           $this->outconn->insert($schemaPrefix.$t, $row);
           
@@ -571,29 +579,37 @@ class TransmogrifyCommand extends Command {
           // did not load, perhaps because it was associated with an Org Identity
           // not linked to a CO Person that was not migrated.
           $warns++;
-          $io->warning("Skipping record " . $row['id'] . " due to invalid foreign key: " . $e->getMessage());
+          $io->warning("Skipping $t record " . $row['id'] . " due to invalid foreign key: " . $e->getMessage());
         }
         catch(\InvalidArgumentException $e) {
           // If we can't find a value for mapping we skip the record
           // (ie: mapFields basically requires a successful mapping)
           $warns++;
-          $io->warning("Skipping record " . $row['id'] . ": " . $e->getMessage());
+          $io->warning("Skipping $t record " . $row['id'] . ": " . $e->getMessage());
         }
         catch(\Exception $e) {
           $err++;
-          $io->error("Record " . $row['id'] . ": " . $e->getMessage());
+          $io->error("$t record " . $row['id'] . ": " . $e->getMessage());
         }
         
         $tally++;
         
-        if($this->noise == 'default') {
+        if(!$this->args->getOption('quiet') && !$this->args->getOption('verbose')) {
           // We don't output the progress bar for quiet for obvious reasons,
           // or for verbose so we don't interfere with the extra output
           $this->cliLogPercentage($tally, $count);
         }
       }
       
-      $max = $this->inconn->fetchOne('SELECT MAX(id) FROM ' . $this->tables[$t]['source']);
+      // Run any post processing functions for the table.
+      
+      if(!empty($this->tables[$t]['postTable'])) {
+        $p = $this->tables[$t]['postTable'];
+        
+        $this->$p();
+      }
+      
+      $max = $this->outconn->fetchOne('SELECT MAX(id) FROM ' . $t);
       $max++;
       $stdout_msg = "(New max: " . $max . ")";
       if($warns > 0) {
@@ -605,6 +621,8 @@ class TransmogrifyCommand extends Command {
 
       $io->out($stdout_msg);
       
+      $this->io->info("Resetting sequence for $t to $max");
+      
       // Strictly speaking we should use prepared statements, but we control the
       // data here, and also we're executing a maintenance operation (so query
       // optimization is less important)
@@ -614,14 +632,6 @@ class TransmogrifyCommand extends Command {
         $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
       }
       $this->outconn->executeQuery($outsql);
-      
-      // Run any post processing functions for the table.
-      
-      if(!empty($this->tables[$t]['postTable'])) {
-        $p = $this->tables[$t]['postTable'];
-        
-        $this->$p();
-      }
     }
   }
   
@@ -654,6 +664,21 @@ class TransmogrifyCommand extends Command {
     } elseif(!empty($row['group_id'])) {
       if(isset($this->cache['groups']['id'][ $row['group_id'] ]['co_id'])) {
         return $this->cache['groups']['id'][ $row['group_id'] ]['co_id'];
+      }
+    }
+    // We also support being called using the old keys for use in the preRow context
+    elseif(!empty($row['org_identity_id'])) {
+      // Map the OrgIdentity to a CO Person, then to the CO
+      if(!empty($this->cache['external_identities']['id'][ $row['org_identity_id'] ]['person_id'])) {
+        $personId = $this->cache['external_identities']['id'][ $row['org_identity_id'] ]['person_id'];
+        
+        if(isset($this->cache['people']['id'][ $personId ]['co_id'])) {
+          return $this->cache['people']['id'][ $personId ]['co_id'];
+        }
+      }
+    } elseif(!empty($row['co_person_id'])) {
+      if(isset($this->cache['people']['id'][ $row['co_person_id'] ]['co_id'])) {
+        return $this->cache['people']['id'][ $row['co_person_id'] ]['co_id'];
       }
     }
     
@@ -862,6 +887,67 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
+   * Map login identifiers, in accordance with the configuration.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $origRow Row of table data (original data)
+   * @param  array $row     Row of table data (post fixes)
+   * @throws InvalidArgumentException
+   */
+  
+  protected function map_login_identifiers(array $origRow, array $row) {
+    // There might be multiple reasons to copy the row, but we only want to
+    // copy it once.
+    $copyRow = false;
+    
+    if(!empty($origRow['org_identity_id'])) {
+      if($this->args->getOption('login-identifier-copy')
+         && $origRow['login']) {
+        $copyRow = true;
+      }
+      
+      // Note the argument here is the old v4 string (eg "eppn") and not the
+      // PE foreign key
+      if($this->args->getOption('login-identifier-type')
+         && $origRow['type'] == $this->args->getOption('login-identifier-type')) {
+        $copyRow = true;
+      }
+      
+      // Identifiers attached to External Identities do not have login flags in PE
+      $row['login'] = false;
+    }
+    
+    if($copyRow) {
+      // Find the Person ID associated with this External Identity ID
+      
+      if(!empty($this->cache['external_identities']['id'][ $origRow['org_identity_id'] ]['person_id'])) {
+        // Insert a new row attached to the Person, leave the original record
+        // (ie: $row) untouched
+        
+        $copiedRow = [
+          'person_id'   => $this->map_org_identity_co_person_id(['id' => $origRow['org_identity_id']]),
+          'identifier'  => $origRow['identifier'],
+          'type_id'     => $this->map_identifier_type($origRow),
+          'status'      => $origRow['status'],
+          'login'       => true,
+          'created'     => $origRow['created'],
+          'modified'    => $origRow['modified']
+        ];
+        
+        // Set up changelog and fix booleans
+        $this->fixChangelog('identifiers', $copiedRow, true);
+        $this->fixBooleans('identifiers', $copiedRow);
+        
+        try {
+          $this->outconn->insert('identifiers', $copiedRow);
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+          $this->io->warning("record already exists: " . print_r($copiedRow, true));
+        }
+      }
+    }
+  }
+  
+  /**
    * Map an identifier type string to a foreign key.
    *
    * @since  COmanage Registry v5.0.0
@@ -941,7 +1027,15 @@ class TransmogrifyCommand extends Command {
       
       while($r = $stmt->fetch()) {
         if(!empty($r['org_identity_id'])) {
-          $this->cache['org_identities']['co_people'][ $r['org_identity_id'] ][ $r['revision'] ] = $r['co_person_id'];
+          if(isset($this->cache['org_identities']['co_people'][ $r['org_identity_id'] ][ $r['revision'] ])) {
+            // If for some reason we already have a record, it's probably due to
+            // improper unpooling from a legacy deployment. We'll accept only the
+            // first record and throw warnings on the others.
+            
+            $this->io->warning("Found existing CO Person for Org Identity " . $r['org_identity_id'] . ", skipping");
+          } else {
+            $this->cache['org_identities']['co_people'][ $r['org_identity_id'] ][ $r['revision'] ] = $r['co_person_id'];
+          }
         }
       }
     }

@@ -53,3 +53,12 @@ msgstr "Setup appears to have already run"
 
 msgid "se.salt"
 msgstr "Generating salt file"
+
+msgid "tm.epilog"
+msgstr "An optional, space separated list of tables to transmogrify may be specified"
+
+msgid "tm.login-identifier-copy"
+msgstr "Copy any login Identifiers from External Identities to the associated Persons"
+
+msgid "tm.login-identifier-type"
+msgstr "Flag all Person Identifiers of this type as login identifiers"

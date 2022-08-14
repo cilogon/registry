@@ -193,8 +193,11 @@ class CosTable extends Table {
     // Did we find an Identifier attached to a Person in the COmanage CO?
     
     foreach($identifiers as $i) {
-      // Both the Person and the CO must be active
-      if($i->person->isActive() 
+      // Both the Person and the CO must be active. Note that there may be an
+      // Active Identifier pointing to a Deleted Person (for certain edge cases),
+      // in which case $i->person is null even though person_id is not.
+      
+      if($i->person && $i->person->isActive() 
          && $i->person->co->status == TemplateableStatusEnum::Active) {
         // Keying on co_id should eliminate duplicates
         $cos[ $i->person->co_id ] = $i->person->co;

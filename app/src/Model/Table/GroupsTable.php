@@ -274,6 +274,7 @@ class GroupsTable extends Table {
   public function findAdminGroup(Query $query, array $options): Query {
     return $query->where([
       'co_id'       => $options['co_id'],
+      'cou_id IS'   => null,
       'status'      => SuspendableStatusEnum::Active,
       'group_type'  => GroupTypeEnum::Admins
     ]);

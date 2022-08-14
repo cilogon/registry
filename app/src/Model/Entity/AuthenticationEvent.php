@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Identifiers Fields
+ * COmanage Registry Authentication Event Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,18 +25,29 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('identifier');
+declare(strict_types = 1);
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
+namespace App\Model\Entity;
 
-  if($vv_primary_link_attr == 'person_id') {
-    // AR-Identifier-1 Only Persons can have a login flag
-    print $this->Field->control('login');
-  } else {
-    $hidden['login'] = false;
-  }
+use Cake\ORM\Entity;
+
+class AuthenticationEvent extends Entity {
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false
+  ];
   
-  print $this->Field->control('status', ['empty' => false]);
+  /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return boolean  True if the entity is read only, false otherwise
+   */
+
+  public function isReadOnly(): bool {
+    // All Authentication Events are read only.
+    
+    return true;
+  }
 }

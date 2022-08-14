@@ -175,7 +175,7 @@ class HistoryRecordsTable extends Table {
    * @return int                            History Record ID
    */
   
-  public function recordForPerson(int $personId, 
+  public function recordForPerson(?int $personId, 
                                   string $action,
                                   string $comment,
                                   ?int $personRoleId=null,
