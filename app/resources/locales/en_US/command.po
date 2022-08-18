@@ -51,6 +51,12 @@ msgstr "Calculate changes but do not apply"
 msgid "se.already"
 msgstr "Setup appears to have already run"
 
+msgid "se.db.co"
+msgstr "Creating COmanage CO"
+
+msgid "se.db.co.done"
+msgstr "COmanage CO created - CO Id: {0}"
+
 msgid "se.salt"
 msgstr "Generating salt file"
 

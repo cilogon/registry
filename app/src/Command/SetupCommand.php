@@ -18,43 +18,44 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Application;
 use Cake\Console\Arguments;
 use Cake\Console\Command;
-use Cake\Console\CommandRunner;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
-use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
-use \App\Lib\Enum\PermissionEnum;
+use App\Lib\Enum\PermissionEnum;
 
-class SetupCommand extends Command {
+
+class SetupCommand extends Command
+{
   /**
    * Register command specific options.
    *
-   * @since  COmanage Registry v6.0.0
-   * @param  ConsoleOptionParser $parser Console Option Parser
+   * @param   ConsoleOptionParser  $parser  Console Option Parser
+   *
    * @return ConsoleOptionParser         Console Option Parser
+   * @since  COmanage Registry v6.0.0
    */
-  
-  public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser {
+
+  public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+  {
     $parser->addOption('admin-username', [
-                        'help' => __d('command', 'opt.admin-username')
-                      ])->addOption('force', [
-                        'help' => __d('command', 'opt.force'),
-                        'boolean' => true
-                      ]);
+      'help' => __d('command', 'opt.admin-username'),
+    ])->addOption('force', [
+      'help'    => __d('command', 'opt.force'),
+      'boolean' => true,
+    ]);
 
     return $parser;
   }
@@ -62,80 +63,57 @@ class SetupCommand extends Command {
   /**
    * Execute the Setup Command.
    *
+   * @param   Arguments  $args  Command Arguments
+   * @param   ConsoleIo  $io    Console IO
+   *
    * @since  COmanage Registry v5.0.0
-   * @param  Arguments $args Command Arguments
-   * @param  ConsoleIo $io   Console IO
    */
-  
-  public function execute(Arguments $args, ConsoleIo $io) {
+
+  public function execute(Arguments $args, ConsoleIo $io)
+  {
     global $argv;
-    
+
     // Check if the security salt file already exists, and if so abort.
-    
-    $securitySaltFile = LOCAL . DS . "Config" . DS . "security.salt";
-    
+
+    $securitySaltFile = LOCAL . DS . "config" . DS . "security.salt";
+
     if(file_exists($securitySaltFile)) {
       $io->out(__d('command', 'se.already'));
-      
+
       if(!$args->getOption('force')) {
         exit;
       }
     }
-    
-    // Before we get going, prompt for whatever information we need in case
-    // the user hits ctrl-c.
-  /*  
-    $user = $args->getOption('admin-username');
-    
-    while(!$user) {
-      $user = $io->ask(__('match.cmd.se.admin.user'));
-    }
-  */  
-    // Set the salt now in case we need it. (Normally this is done in bootstrap.php.)
-    // We'll write it out after we're done with the database updates.
+
+    // Set the salt now in case we need it. Normally this is done in bootstrap.php.
     $salt = hash('sha256', Security::randomBytes(64));
     Security::setSalt($salt);
-    
-    // Perform database related setup. Start by trying to run the database schema.
-/*    
-    // Build the runner with an application and root executable name. (based on bin/cake.php)
-    $runner = new CommandRunner(new Application(dirname(__DIR__) . DS . '..' . DS . 'config'), 'cake');
-    $runner->run([ $argv[0], 'database' ]);
-    
-    // Create the initial admin permission
-    $io->out(__('match.cmd.se.admin'));
-    
-    $permissionsTable = TableRegistry::get('Permissions');
-    $permission = $permissionsTable->newEntity();
-    
-    $permission->username = $user;
-    $permission->matchgrid_id = null;
-    $permission->permission = PermissionEnum::PlatformAdmin;
-    
-    if(!$permissionsTable->save($permission)) {
-      throw new \RuntimeException(__('match.er.save', ['Permissions']));
-    }
-    
-    // Register the current version for future upgrade purposes
-    // Read the current release from the VERSION file
-    $versionFile = CONFIG . "VERSION";
 
-    $targetVersion = rtrim(file_get_contents($versionFile));
-    
-    $metaTable = TableRegistry::get('Meta');
-    $metaTable->setUpgradeVersion($targetVersion, true);
-  */  
     // Write out the salt file
     $io->out(__d('command', 'se.salt'));
-    
-    if(file_put_contents($securitySaltFile, $salt)===false) {
+
+    if(file_put_contents($securitySaltFile, $salt) === false) {
       $err = error_get_last();
       throw new \RuntimeException($err[message]);
     }
-    
-    // We set 444 to prevent accidental changing of the salt, but also so the 
+    // We set 444 to prevent accidental changing of the salt, but also so the
     // web server user can read it if this script is run by (say) root.
     // We assume we're not installed on a shared, semi-public server.
     chmod($securitySaltFile, 0444);
+
+    // We need the following:
+    // - The COmanage CO
+    // - Register the current version for future upgrade purposes
+
+    // Start with the COmanage CO
+
+    $io->out(__d('command', 'se.db.co'));
+
+    $coTable = $this->getTableLocator()->get("Cos");
+
+    $co_id = $coTable->setupCOmanageCO();
+    if(!is_null($co_id)) {
+      $io->out(__d('command', 'se.db.co.done', [$co_id]));
+    }
   }
 }

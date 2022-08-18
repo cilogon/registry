@@ -154,7 +154,7 @@ class TypesTable extends Table {
     // We need the appropriate model for $attribute to manipulate the default types
     // $table = (eg) NamesTable
     $table = TableRegistry::getTableLocator()->get($attr[0]);
-    
+
     // The current set of types for this model, of the form value => display_name
     $current = $table->availableTypes($coId, $attribute);
     

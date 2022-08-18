@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Lib\Enum\StatusEnum;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -160,7 +161,7 @@ class CosTable extends Table {
   public function findCOmanageCO(Query $query): Query {
     return $query->where(['lower(name)' => 'comanage']);
   }
-  
+
   /**
    * Obtain the set of COs for the specified Identifier. The Identifier must
    * be a login identifier, Active, and attached to an Active or Grace Period
@@ -236,33 +237,35 @@ class CosTable extends Table {
   /**
    * Application Rule to determine if the current entity is the COmanage CO.
    *
+   * @param   Entity  $entity   Entity to be validated
+   * @param   array   $options  Application rule options
+   *
+   * @return string|bool true if the Rule check passes, false otherwise
    * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity  Entity to be validated
-   * @param  array   $options Application rule options
-   * @return boolean          true if the Rule check passes, false otherwise
    */
-  
-  public function ruleIsCOmanageCO($entity, $options): bool {
+
+  public function ruleIsCOmanageCO($entity, array $options): string|bool {
     // We want negative logic since we want to fail if we're editing the COmanage CO
     if($entity->isCOmanageCO()) {
-      return __d('error', 'edit.comanage');
-    }
-    
+        return __d('error', 'edit.comanage');
+      }
+
     return true;
   }
-  
+
   /**
    * Application Rule to determine if the current entity is not Active.
    *
+   * @param   Entity  $entity   Entity to be validated
+   * @param   array   $options  Application rule options
+   *
+   * @return bool|string true if the Rule check passes, false otherwise
    * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity  Entity to be validated
-   * @param  array   $options Application rule options
-   * @return boolean          true if the Rule check passes, false otherwise
    */
-  
-  public function ruleIsActive($entity, $options): bool {
+
+  public function ruleIsActive($entity, array $options): bool|string {
     // We want negative logic since we want to fail if the record is Active
-    if($entity->status == TemplateableStatusEnum::Active) {
+    if($entity->status === TemplateableStatusEnum::Active) {
       return __d('error', 'delete.active');
     }
     
@@ -288,6 +291,27 @@ class CosTable extends Table {
     $this->CoSettings->addDefaults($id);
     
     return true;
+  }
+
+  /**
+   * Perform initial setup for COmanage CO
+   *
+   * @since  COmanage   Registry v5.0.0
+   * @return null|int   null or the id of the COmanage CO
+   */
+
+  public function setupCOmanageCO(): int|null {
+    $comanage_co = $this->newEmptyEntity();
+    $comanage_co->name = __d('command', 'product.comanage');
+    $comanage_co->description = __d('command', 'registry.co.desc');
+    $comanage_co->status = StatusEnum::Active;
+
+    $co_id = null;
+    if ($this->save($comanage_co, ['checkRules' => false])) {
+      $co_id = $comanage_co->id;
+    }
+
+    return $co_id;
   }
   
   /**

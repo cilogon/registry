@@ -451,7 +451,7 @@ class TransmogrifyCommand extends Command {
     $outdb = ConnectionManager::get('default');
     $outcfg = $outdb->config();
     
-    if(empty($incfg)) {
+    if(empty($outcfg)) {
       throw new \InvalidArgumentException(__d('error', 'db.config', ["default"]));
     }
     
