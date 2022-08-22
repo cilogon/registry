@@ -35,7 +35,7 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Utility\Security;
 use App\Lib\Enum\PermissionEnum;
-
+use App\Lib\Enum\SuspendableStatusEnum;
 
 class SetupCommand extends Command
 {
@@ -52,6 +52,10 @@ class SetupCommand extends Command
   {
     $parser->addOption('admin-username', [
       'help' => __d('command', 'opt.admin-username'),
+    ])->addOption('admin-given-name', [
+      'help' => __d('command', 'opt.admin-given-name'),
+    ])->addOption('admin-family-name', [
+      'help' => __d('command', 'opt.admin-family-name'),
     ])->addOption('force', [
       'help'    => __d('command', 'opt.force'),
       'boolean' => true,
@@ -76,7 +80,7 @@ class SetupCommand extends Command
     // Check if the security salt file already exists, and if so abort.
 
     $securitySaltFile = LOCAL . DS . "config" . DS . "security.salt";
-
+    
     if(file_exists($securitySaltFile)) {
       $io->out(__d('command', 'se.already'));
 
@@ -84,36 +88,81 @@ class SetupCommand extends Command
         exit;
       }
     }
-
-    // Set the salt now in case we need it. Normally this is done in bootstrap.php.
-    $salt = hash('sha256', Security::randomBytes(64));
-    Security::setSalt($salt);
-
-    // Write out the salt file
-    $io->out(__d('command', 'se.salt'));
-
-    if(file_put_contents($securitySaltFile, $salt) === false) {
-      $err = error_get_last();
-      throw new \RuntimeException($err[message]);
+    
+    // Collect the admin info before we try to do anything
+    
+    $givenName = $args->getOption('admin-given-name');
+    $sn = $args->getOption('admin-family-name');
+    $username = $args->getOption('admin-username');
+    
+    if(empty($givenName)) {
+      $givenName = $io->ask(__d('command', 'opt.admin-given-name'));
     }
-    // We set 444 to prevent accidental changing of the salt, but also so the
-    // web server user can read it if this script is run by (say) root.
-    // We assume we're not installed on a shared, semi-public server.
-    chmod($securitySaltFile, 0444);
-
-    // We need the following:
-    // - The COmanage CO
-    // - Register the current version for future upgrade purposes
-
-    // Start with the COmanage CO
-
-    $io->out(__d('command', 'se.db.co'));
-
-    $coTable = $this->getTableLocator()->get("Cos");
-
-    $co_id = $coTable->setupCOmanageCO();
-    if(!is_null($co_id)) {
-      $io->out(__d('command', 'se.db.co.done', [$co_id]));
+    
+    if(empty($sn)) {
+      $sn = $io->ask(__d('command', 'opt.admin-family-name'));
     }
+    
+    if(empty($username)) {
+      $username = $io->ask(__d('command', 'opt.admin-username'));
+    }
+    
+    $coTable = $this->getTableLocator()->get('Cos');
+    
+    // Add the first CMP Administrator
+    
+    $io->out(__d('command', 'se.db.cmpadmin'));
+    
+    // We disable validation here because there may be dependencies on
+    // validation aspects that aren't set up yet or aren't available here
+    
+    $person = $coTable->People->newEntity([
+      'co_id'   => $co_id,
+      'status'  => SuspendableStatusEnum::Active
+    ],
+    ['validate' => false]);
+    
+    $person->names = [$coTable->People->Names->newEntity([
+      'type_id'       => $coTable->Types->getTypeId(coId:       $co_id, 
+                                                    attribute:  'Names.type',
+                                                    value:      'official'),
+      'given'         => $givenName,
+      'family'        => $sn,
+      'primary_name'  => true
+    ],
+    ['validate' => false])];
+    
+    $person->identifiers = [$coTable->People->Identifiers->newEntity([
+      'type_id'       => $coTable->Types->getTypeId(coId:       $co_id, 
+                                                    attribute:  'Identifiers.type',
+                                                    value:      'network'),
+      'identifier'    => $username,
+      'login'         => true,
+      'status'        => SuspendableStatusEnum::Active
+    ],
+    ['validate' => false])];
+    
+    $person->person_roles = [$coTable->People->PersonRoles->newEntity([
+      'affiliation_type_id'   => $coTable->Types->getTypeId(coId:       $co_id, 
+                                                            attribute:  'PersonRoles.affiliation',
+                                                            value:      'staff'),
+      'title'                 => __d('command', 'se.person_role.title'),
+      'status'                => SuspendableStatusEnum::Active
+    ],
+    ['validate' => false])];
+    
+    $person->group_members = [$coTable->People->GroupMembers->newEntity([
+      'group_id' => $coTable->Groups->getAdminGroupId(coId: $co_id)
+    ],
+    ['validate' => false])];
+    
+    $person->group_owners = [$coTable->People->GroupOwners->newEntity([
+      'group_id' => $coTable->Groups->getAdminGroupId(coId: $co_id)
+    ],
+    ['validate' => false])];
+    
+    $coTable->People->save($person);
+    
+    $io->out(__d('command', 'se.done'));
   }
 }

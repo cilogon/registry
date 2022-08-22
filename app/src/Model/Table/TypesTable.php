@@ -225,6 +225,28 @@ class TypesTable extends Table {
   }
   
   /**
+   * Get the ID for a Type.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId      CO ID
+   * @param  string $attribute Attribute, in Models.attribute form
+   * @param  string $value     Value
+   * @return int               Type ID
+   */
+  
+  public function getTypeId(int $coId, string $attribute, string $value): int {
+    $t = $this->find()
+              ->where([
+                'Types.co_id'     => $coId,
+                'Types.attribute' => $attribute,
+                'Types.value'     => $value
+              ])
+              ->firstOrFail();
+    
+    return $t->id;
+  }
+  
+  /**
    * Obtain the type label for a given type entity.
    *
    * @since  COmanage Registry v5.0.0

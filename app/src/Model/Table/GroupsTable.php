@@ -281,6 +281,20 @@ class GroupsTable extends Table {
   }
   
   /**
+   * Get the Admin Group for a CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int $coId CO ID
+   * @return int       Group ID
+   */
+  
+  public function getAdminGroupId(int $coId): int {
+    $g = $this->find('adminGroup', ['co_id' => $coId])->firstOrFail();
+    
+    return $g->id;
+  }
+  
+  /**
    * Obtain an iterator for all members of the requested Group.
    *
    * @since  COmanage Registry v5.0.0

@@ -506,6 +506,13 @@ class TransmogrifyCommand extends Command {
       $schemaPrefix = $outcfg['database'] . '.';
     }
     
+    // Register the current version for future upgrade purposes
+    
+    $targetVersion = rtrim(file_get_contents(CONFIG . DS . "VERSION"));
+    
+    $metaTable = $this->getTableLocator()->get('Meta');
+    $metaTable->setUpgradeVersion($targetVersion, true);
+    
     foreach(array_keys($this->tables) as $t) {
       // If we were given a list of tables see if this table is in the list
       if(!empty($atables) && !in_array($t, $atables))

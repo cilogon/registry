@@ -28,6 +28,14 @@
   },
   
   "tables": {
+    "meta": {
+      "columns": {
+        "upgrade_version": { "type": "string", "size": 16 }
+      },
+      "changelog": false,
+      "timestamps": false
+    },
+    
     "cos": {
       "columns": {
         "id": {},

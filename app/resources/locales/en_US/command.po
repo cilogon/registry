@@ -33,6 +33,12 @@ msgstr "Database schema update successful"
 msgid "db.schema"
 msgstr "Loading database schema from {0}"
 
+msgid "opt.admin-family-name"
+msgstr "Family Name of initial platform administrator"
+
+msgid "opt.admin-given-name"
+msgstr "Given Name of initial platform administrator"
+
 msgid "opt.admin-username"
 msgstr "Username of initial platform administrator"
 
@@ -51,11 +57,20 @@ msgstr "Calculate changes but do not apply"
 msgid "se.already"
 msgstr "Setup appears to have already run"
 
+msgid "se.db.cmpadmin"
+msgstr "Creating the Platform Administrator"
+
 msgid "se.db.co"
 msgstr "Creating COmanage CO"
 
 msgid "se.db.co.done"
 msgstr "COmanage CO created - CO Id: {0}"
+
+msgid "se.done"
+msgstr "Done"
+
+msgid "se.person_role.title"
+msgstr "COmanage Platform Administrator"
 
 msgid "se.salt"
 msgstr "Generating salt file"
