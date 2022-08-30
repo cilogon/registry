@@ -56,3 +56,8 @@ $indexColumns = [
     'type' => 'datetime'
   ]
 ];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
+];

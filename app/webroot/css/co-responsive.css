@@ -235,6 +235,9 @@
     display: flex;
   }
   /* GENERAL */
+  .table-container {
+    overflow: unset;
+  }
   .two-col {
     -webkit-column-count: 2; /* Chrome, Safari, Opera */
     -moz-column-count: 2; /* Firefox */
@@ -287,46 +290,46 @@
   #reconcile-table {
     font-size: 1em;
   }
-  /* INDEX ACTION COMMAND MENUS */
-  /* convert the dropdown menus to be visible on wider screens */
-  .field-actions .action-menu-toggle {
+  /* INDEX ACTION ROW MENUS */
+  .field-actions .dropdown-menu {
+    font-size: 0.9em;
+    white-space: nowrap;
+  }
+  th.actions,
+  td.actions {
+    width: 40px; /* this is pushed wider by the nowrap on .field-actions .dropdown-menu */
+    padding: 0;
+  }
+  /* EDIT / VIEW / INDEX ACTION TOP-LINKS MENU */
+  /* Convert the dropdown menus to be visible on wider screens.
+     XXX We will likely collapse the toplinks when there are many, but for now, expose them. */
+  .field-actions.top-links {
+    align-self: end;
+  }
+  .field-actions.top-links  .action-menu-toggle {
     display: none;
   }
-  .field-actions .dropdown-menu {
+  .field-actions.top-links  .dropdown-menu {
     position: static;
     display: inline-block;
+    min-width: 0;
     font-size: 0.9em;
     border: none;
     background-color: transparent;
     white-space: nowrap;
   }
-  .field-actions .action-list-item {
+  .field-actions.top-links  .action-list-item {
     display: inline-block;
   }
-  .field-actions a.dropdown-item {
+  .field-actions.top-links  a.dropdown-item {
     padding: 0 0.5em;
   }
-  #main .field-actions a.dropdown-item:hover {
+  #main .field-actions.top-links  a.dropdown-item:hover {
     color: var(--cmg-color-blue-001);
     text-decoration: underline;
   }
-  .field-actions a.dropdown-item:hover {
+  .field-actions.top-links  a.dropdown-item:hover {
     background-color: transparent;
-  }
-  th.actions {
-    width: 100px; /* this is pushed wider by the nowrap on .field-actions .dropdown-menu */
-    padding-left: 1.5em;
-    text-align: left;
-  }
-  td.actions {
-    text-align: left;
-  }
-  /* EDIT / VIEW ACTION TOP MENU */
-  .field-actions.top-links {
-    align-self: end;
-  }
-  .field-actions.top-links .dropdown-menu {
-    min-width: 0;
   }
   /* FOOTER */
   #co-footer {

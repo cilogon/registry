@@ -41,14 +41,7 @@ $indexColumns = [
   ]
 ];
 
-$topLinks = [
-  [
-    'icon'  => 'settings_backup_restore',
-    'order' => 'Default',
-    'label' => __d('operation', 'Types.restore'),
-    'link'  => [
-      'action' => 'restore'
-    ],
-    'class' => ''
-  ]
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
 ];

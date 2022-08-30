@@ -128,27 +128,62 @@
       placeholder: "-- Select --"
     });
 
-    // Enable Bootstrap Popovers. Unless needed elsewhere, constrain this to #content
-    // XXX Enable when/if needed
-    // $('#content [data-bs-toggle="popover"]').popover();
-
     // Generic row click handling for div-based rows
-    $('div.linked-row').click(function (e) {
+    $('div.linked-row').click(function(e) {
       location.href = $(this).find('a.row-link').attr('href');
     });
 
-    // Generic row click handling for table rows
-    $('td.row-link').each(function (e) {
-      url = $(this).find('a').attr('href');
+    // Generic row click handling for index-table rows
+    // First capture mouse location to test if we're clicking or drag-selecting (for copy)
+    var mouseDownEvent = null;
+    $('table.index-table tr').mousedown(function(e) {
+      mouseDownEvent = e;
+    });
+    
+    $('table.index-table tr').each(function(e) {
+      url = $(this).find('a.row-link').attr('href');
       if(url != undefined && url != '') {
-        $(this).closest('tr').addClass('linked-row').attr('data-cm-target',url).click(function (e) {
-          location.href = $(this).attr('data-cm-target');
-        }).find('a').on('click',function(e){
-          // don't propagate on other links to avoid redirecting dialog boxes
+        $(this).addClass('linked-row').attr('data-cm-target',url).mouseup(function(e) {
+          if(Math.abs(e.clientX-mouseDownEvent.clientX) < 5 &&
+             Math.abs(e.clientY-mouseDownEvent.clientY < 5)) {
+            // We have a click event on the row. Now determine what mode we're in and act accordingly.
+            if($(this).closest('table.index-table').hasClass('bulk-edit-mode')) {
+              // We're in bulk edit mode, so click the associated checkbox unless we mouseup on a label or checkbox input.
+              if(e.target.nodeName != 'LABEL' && e.target.nodeName != 'INPUT') {
+                $(this).find('.form-check-input').click();  
+              }              
+            } else {
+              // We're in list mode, so follow the row-link target.
+              location.href = $(this).attr('data-cm-target');  
+            }
+          }
+          mouseDownEvent = null;
+        });
+        // don't propagate on other links to avoid redirecting dialog boxes and action menus
+        $(this).find('a').on('click, mouseup',function(e){
           e.stopPropagation();
         });
       }
     });
+
+    // Bulk edit switch
+    $('#bulk-edit-switch').click(function() {
+      if($("#bulk-edit-switch").is(':checked')) {
+        $("table.index-table").removeClass('list-mode').addClass('bulk-edit-mode');
+      } else {
+        $("table.index-table").removeClass('bulk-edit-mode').addClass('list-mode');
+      }
+    });
+    
+    // Bulk edit select all checkbox
+    $('#bulk-action-select-all').click(function() {
+      if($(this).is(":checked")) {
+        $('table.index-table.bulk-edit-mode .form-check-input').prop('checked', true);
+      } else {
+        $('table.index-table.bulk-edit-mode .form-check-input').prop('checked', false);
+      }
+    });
+       
 
     // Add loading animation when a form is submitted, when any item with a "spin" class is clicked,
     // or on any anchor tag lacking the .nospin class. We do not automatically add this to buttons

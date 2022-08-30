@@ -33,3 +33,8 @@ $indexColumns = [
     'field' => 'name'
   ]
 ];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
+];

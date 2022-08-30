@@ -28,12 +28,12 @@
 // Which action to render as the main link for the row
 
 $indexColumns = [
-  'cou_id' => [
-    'type' => 'fk',
-    'sortable' => true
-  ],
   'title' => [
     'type' => 'link',
+    'sortable' => true
+  ],
+  'cou_id' => [
+    'type' => 'fk',
     'sortable' => true
   ],
   'affiliation_type_id' => [
@@ -46,4 +46,9 @@ $indexColumns = [
     'class' => 'StatusEnum',
     'sortable' => true
   ]
+];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
 ];

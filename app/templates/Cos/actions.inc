@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Index Columns
+ * COmanage Registry COS Actions Menu Configuration
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,16 +25,15 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'mail' => [
-    'type' => 'link'
-  ],
-  'type_id' => [
-    'type' => 'fk'
-  ]
-];
+// Index top-links appear as top links in the index view
+$indexTopLinks = [];
 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
-  'delete' => true
+// Actions appear as row-level menu items in the index view gear icon and as a tab menu or top-link menu on 
+// edit and view pages based on user permissions (TODO).
+$actions = [
+  [
+    'action' => 'duplicate',
+    'class'  => '',
+    'icon'   => 'content_copy'
+  ]
 ];

@@ -39,38 +39,7 @@ $indexColumns = [
   ]
 ];
 
-// XXX This should show on fields.inc and more generally perhaps we should merge
-// this with the set of buttons available on the add-edit-view page (maybe just
-// have that page use $indexActions?) (CO-647)
-$indexActions = [
-  [
-    'controller' => 'group_members',
-    'action' => 'index',
-    'icon' => 'people',
-  ],
-  [
-    'controller' => 'group_owners',
-    'action' => 'index',
-    'icon' => 'settings'
-  ],
-  [
-    'controller' => 'group_nestings',
-    'action' => 'index',
-    'icon' => 'group_add'
-  ],
-  [
-    'controller' => 'history_records',
-    'action' => 'index',
-    'icon' => 'history'
-  ],
-  [
-    'controller' => 'identifiers',
-    'action' => 'index',
-    'icon' => 'label',
-    'if' => 'notAutomatic'
-  ],
-  [
-    'action' => 'reconcile',
-    'icon' => 'sync'
-  ]
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
 ];

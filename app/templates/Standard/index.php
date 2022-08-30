@@ -42,15 +42,18 @@ $modelsName = $this->name;
 $tableName = Inflector::tableize(Inflector::singularize($this->name));
 $tableFK = Inflector::singularize($tableName) . "_id";
 
-// Do we have records for this index? This will be set to true during render if we do.
-// Otherwise, we'll print out a "no records" message.
+// Do we have records for this index? This will be set to true during render of the
+// first table data row if we do. Otherwise, we'll print out a "no records" message.
 $recordsExist = false;
 
 // Our default link actions, in order of preference, unless the column config overrides it
 $linkActions = ['edit', 'view'];
 
-// Read the index configuration ($indexColumns) for this model
+// Read the index configuration ($indexColumns) and the associated actions for this model
 include(ROOT . DS . "templates" . DS . $modelsName . DS . "columns.inc");
+if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "actions.inc")) {
+  include(ROOT . DS . "templates" . DS . $modelsName . DS . "actions.inc");
+}
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
@@ -113,7 +116,7 @@ function _column_key($modelsName, $c, $tz=null) {
       'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
     ];
 
-    foreach(($topLinks ?? []) as $t) {
+    foreach(($indexTopLinks ?? []) as $t) {
       if($vv_permissions[ $t['link']['action'] ]) {
         // We need to inject $linkFilter, but not overwrite any existing query params
         if(!empty($t['link']['?'])) {
@@ -130,14 +133,21 @@ function _column_key($modelsName, $c, $tz=null) {
         ];
       }
     }
-  }
-
-  if(!empty($action_args['vv_actions'])) {
-  print '<div class="field-actions top-links">';
-    print $this->element('menuAction', $action_args);
-    print '</div>';
+    // Declare the type of actions being sent so we can produce the bulk actions switch only for top-links.
+    // XXX Bulk actions are currently being provided if a user has "add" permissions. Review this.
+    $action_args['vv_actions_type'] = 'top-links';
+    
+    if(!empty($bulkActions)) {
+      $action_args['vv_bulk_actions'] = $bulkActions;
+    }
   }
   ?>
+
+  <?php if(!empty($action_args['vv_actions'])): ?>
+    <div class="field-actions top-links">
+      <?= $this->element('menuAction', $action_args); ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <!-- Flash Messages and defined Info Banners -->
@@ -164,234 +174,73 @@ function _column_key($modelsName, $c, $tz=null) {
 
 <!-- Index table -->
 <div class="table-container">
-  <table id="<?= $tableName . '-table'; ?>">
-    <tr>
-      <?php foreach($indexColumns as $col => $cfg): ?>
-      <th<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
+  <?php 
+    $indexTableClasses = 'index-table list-mode';
+    if (!empty($actions)) {
+      $indexTableClasses .= ' with-actions';  
+    }
+  ?>  
+  <table id="<?= $tableName . '-table'; ?>" class="<?= $indexTableClasses; ?>">
+    <thead>
+      <tr>
+        <?php if(!empty($actions)): ?>
+          <th class="actions"></th>
+        <?php endif; ?>
         <?php
-        $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
-
-        if(isset($cfg['sortable']) && $cfg['sortable']) {
-          if(is_string($cfg['sortable'])) {
-            print $this->Paginator->sort($cfg['sortable'], $label);
-          } else {
-            print $this->Paginator->sort($col, $label);
-          }
-        } else {
-          print $label;
-        }
+          // The first heading will get the bulk select all checkbox.
+          $firstHeading = true;
         ?>
-      </th>
-      <?php endforeach; ?>
-      <th class="actions"><?= __d('field', 'action'); ?></th>
-    </tr>
-  <?php foreach($$tableName as $entity): ?>
-    <tr>
-      <?php foreach($indexColumns as $col => $cfg): ?>
-      <td<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
-        <?php
-          $suffix = "";
-          
-          if(!empty($cfg['append'])) {
-            // The value is a method on the entity that returns a string to
-            // append to the label
-            $f = $cfg['append'];
-            
-            $str = $entity->$f();
-            
-            if(!empty($str)) {
-              // For our first pass, we insert a comma, but this might not generalize
-              $suffix = ", " . $str;
+        <?php foreach($indexColumns as $col => $cfg): ?>
+          <th<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
+            <?php
+            if($firstHeading) {
+              print '<span class="row-link-heading">';
             }
-          }
-          
-          switch($cfg['type']) {
-            case 'boolean':
-              if(!empty($entity->$col) && $entity->$col) {
-                print __d('enumeration', $cfg['class'].'.1') . $suffix;
+            
+            $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
+            
+            if(isset($cfg['sortable']) && $cfg['sortable']) {
+              if(is_string($cfg['sortable'])) {
+                print $this->Paginator->sort($cfg['sortable'], $label);
               } else {
-                print __d('enumeration', $cfg['class'].'.0') . $suffix;
+                print $this->Paginator->sort($col, $label);
               }
-              break;
-            case 'datetime':
-  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-              print !empty($entity->$col) ? $this->Time->nice($entity->$col, $vv_tz) . $suffix : "";
-              break;
-            case 'enum':
-              if($entity->$col) {
-                // XXX Need to add badging - see index.php in Match
-                print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
-              }
-              break;
-            case 'fk':
-              // Assuming $col is of the form foo_id, look to see if the corresponding
-              // AutoViewVar $foos is set, and if so render the lookup value instead
-              $f = null;
-              if(preg_match('/^(.*?)_id$/', $col, $f)) {
-                $avv = Inflector::variable(Inflector::pluralize($f[1]));
-                
-                if(!empty(${$avv}[$entity->$col])) {
-                  // We found the viewvar (eg: $foos), and it has a corresponding value
-                  // (eg: $foos[3]), so render it
-                  print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
-                } else {
-                  // No match, just render the value
-                  print $entity->$col. $suffix;
-                }
-              } else {
-                // Just print the value
-                print $entity->$col. $suffix;
-              }
-              break;
-            case 'button':
-              if(!empty($entity->$col)) {
-                $buttonAttrs = [];
-                $buttonText = $entity->$col;
-                if(!empty($cfg['button']['attrs'])) {
-                  $buttonAttrs = $cfg['button']['attrs'];
-                }
-                $buttonAttrs['type'] = 'button';
-                if(!empty($cfg['button']['text']) && $cfg['button']['text'] != 'fieldVal') {
-                  $buttonText = $cfg['button']['text'];
-                }
-                if(!empty($cfg['truncate']) && is_int($cfg['truncate'])) {
-                  // We check for $truncate + 1 because there's no point trimming
-                  // the last character if we're just going to replace it with ...
-                  $buttonText = (strlen($buttonText) > $cfg['truncate'] + 1) ? substr($buttonText,0,$cfg['truncate']).'...' : $buttonText;
-                }
-                if(!empty($cfg['button']['popover'])) {
-                  if($cfg['button']['popover'] == 'fieldVal') {
-                    $buttonAttrs['data-bs-content'] = $entity->$col;
-                  } else {
-                    $buttonAttrs['data-bs-content'] = $cfg['button']['popover'];
-                  }
-                  $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
-                  $buttonAttrs['title'] = $label;
-                  $buttonAttrs['data-bs-toggle'] = 'popover';
-                  $buttonAttrs['data-bs-container'] = 'body';
-                  $buttonAttrs['data-bs-placement'] = 'top';
-                  $buttonAttrs['data-bs-animation'] = 'false';
-                }
-                print $this->Form->button($buttonText, $buttonAttrs);
-              }
-              break;
-            case 'closure':
-              $fn = $cfg['function'];
-              print $fn($entity);
-              break;
-            case 'datetime':
-  // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-              if(!empty($entity->$col)) {
-                print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
-              }
-              break;
-            case 'enum':
-              if($entity->$col) {
-                // XXX Need to add badging - see index.php in Match
-                print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
-              }
-              break;
-            case 'fk':
-              // Assuming $col is of the form foo_id, look to see if the corresponding
-              // AutoViewVar $foos is set, and if so render the lookup value instead
-              $f = null;
-              if(preg_match('/^(.*?)_id$/', $col, $f)) {
-                $avv = Inflector::variable(Inflector::pluralize($f[1]));
-                
-                if(!empty(${$avv}[$entity->$col])) {
-                  // We found the viewvar (eg: $foos), and it has a corresponding value
-                  // (eg: $foos[3]), so render it
-                  print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
-                } else {
-                  // No match, just render the value
-                  print $entity->$col. $suffix;
-                }
-              } else {
-                // Just print the value
-                print $entity->$col. $suffix;
-              }
-              break;
-            case 'link':
-            case 'relatedLink':
-            case 'echo':
-            default:
-              // By default our label is the column value, but it might be overridden
-              $label = $entity->$col . $suffix;
-              
-              if(!empty($cfg['model']) && !empty($cfg['field'])) {
-                $m = $cfg['model'];
-                $f = $cfg['field'];
-                
-                if(!empty($cfg['submodel'])) {
-                  // We have a related model, eg actor_person.primary_name
-                  $sm = $cfg['submodel'];
-                  
-                  if(!empty($entity->$m->$sm->$f)) {
-                    $label = $entity->$m->$sm->$f . $suffix;
-                  }
-                } else {
-                  if(!empty($entity->$m->$f)) {
-                    $label = $entity->$m->$f . $suffix;
-                  }
-                }
-              }
-              
-              $linked = false;
-              
-              // $linkActions can be overridden in columns.inc to apply to all
-              // generated links, or $cfg['action'] can be set to apply only to
-              // a specific field (column).
-              $tryActions = (!empty($cfg['action']) ? [ $cfg['action'] ] : $linkActions);
-              
-              if($cfg['type'] == 'link') {
-                foreach($tryActions as $a) {
-                  // Does this user have permission for this action?
-                  if($vv_permission_set[$entity->id][$a]) {
-                    print $this->Html->link($label, ['action' => $a, $entity->id]);
-                    $linked = true;
-                    break 2;
-                  }
-                }
-              } elseif($cfg['type'] == 'relatedLink') {
-                $m = $cfg['model'];
-                
-                if(!empty($entity->$m->id)) {
-                  // We need the controller for the related entity, however $m
-                  // might be an alias and $entity->getSource() returns the
-                  // aliased class name. So we use PHP's get_class instead.
-                  $c = Inflector::tableize(substr(get_class($entity->$m), strrpos(get_class($entity->$m), '\\')+1));
-                  
-                  foreach($tryActions as $a) {
-                    // Does this user have permission for this action?
-// XXX we actually need to know the permissions on the target (ie: actor person)
-                    if(true ||
-                       $vv_permission_set[$entity->id][$a]) {
-                      print $this->Html->link($label, ['controller' => $c, 'action' => $a, $entity->$m->id]);
-                      $linked = true;
-                      break 2;
-                    }
-                  }
-                }
-              }
-              
-              if(!$linked) {
-                // Just echo the value
-                print $label;
-              }
-              break;
-          }
-        ?>
-      </td>
-      <?php endforeach; // $indexColumns ?>
-      <td class="actions">
-        <?php
+            } else {
+              print $label;
+            }
 
-          // Action list for command menu dropdown / button listing
-          $action_args = array();
-          $action_args['vv_attr_id'] =  $entity->id;
-          
-          // Edit
-          if($vv_permission_set[$entity->id]['edit']) {
+            if($firstHeading) {
+              print '</span>';
+            }
+            ?>
+            <?php if($firstHeading): ?>
+              <div class="form-check bulk-action-checkbox-container">
+                <input class="form-check-input" type="checkbox" value="" id="bulk-action-select-all">
+                <label class="form-check-label" for="bulk-action-select-all">
+                  <?= $label; ?>
+                </label>
+              </div>
+              <?php
+              // The first heading has been used.
+              $firstHeading = false;
+              ?>
+            <?php endif; ?>
+          </th>
+        <?php endforeach; ?>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach($$tableName as $entity): ?>
+      <tr>
+      <?php if(!empty($actions)): ?>
+      <?php
+        // Action list for command menu dropdown / button listing
+        $action_args = array();
+        $action_args['vv_attr_id'] =  $entity->id;
+    
+          // Edit / View
+         /* TODO: Keep as reference for now; ultimately remove.
+          * if($vv_permission_set[$entity->id]['edit']) {
             $action_args['vv_actions'][] = array(
               'order' => $this->Menu->getMenuOrder('Edit'),
               'icon' => $this->Menu->getMenuIcon('Edit'),
@@ -405,140 +254,396 @@ function _column_key($modelsName, $c, $tz=null) {
               'url' => $this->Url->build(['action' => 'view', $entity->id]),
               'label' => __d('operation', 'view')
             );
+          }*/
+        
+    // Insert actions as per the .inc file
+        
+    // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions 
+    // XXX this isn't quite the right test
+    // if(isset($entity->status) && $entity->status == StatusEnum::Active) {
+        $actionOrderDefault = $this->Menu->getMenuOrder('Default');
+        foreach($actions as $a) {
+          $ok = false;
+          if(!empty($a['controller'])) {
+            $tableName = Inflector::camelize($a['controller']);
+
+            if(isset($vv_permission_set[$entity->id][$tableName][ $a['action'] ])) {
+              $ok = $vv_permission_set[$entity->id][$tableName][ $a['action'] ];
+            }
+          } else {
+            $ok = $vv_permission_set[$entity->id][ $a['action'] ];
           }
 
-          // Insert additional actions as per the .inc file
-          if(!empty($indexActions)) {
-// TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as indexActions 
-// XXX this isn't quite the right test
-//          if(isset($entity->status) && $entity->status == StatusEnum::Active) {
-              $actionOrderDefault = $this->Menu->getMenuOrder('Default');
-              foreach($indexActions as $a) {
-                $ok = false;
-                if(!empty($a['controller'])) {
-                  $tableName = Inflector::camelize($a['controller']);
-                  
-                  if(isset($vv_permission_set[$entity->id][$tableName][ $a['action'] ])) {
-                    $ok = $vv_permission_set[$entity->id][$tableName][ $a['action'] ];
-                  }
-                } else {
-                  $ok = $vv_permission_set[$entity->id][ $a['action'] ];
-                }
-                
-                if($ok && !empty($a['if'])) {
-                  // If there's a conditional on the field, test the entity
-                  $f = $a['if'];
-                  
-                  $ok = $entity->$f();
-                }
-                
-                if($ok) {
-                  $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
-                  $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
-                  $actionClass = !empty($a['class']) ? $a['class'] : '';
-                  $actionUrl = ''; 
-                  $actionLabel = '';
-                  $actionOnClick = []; // used for confirmation dialog 
+          if($ok && !empty($a['if'])) {
+            // If there's a conditional on the field, test the entity
+            $f = $a['if'];
 
-                  // Generate the link text and urls:
-
-                  // If we have a .confirm text, we need to generate a confirm dialog box
-                  $confirmKey = $a['action'].'.confirm';
-                  $confirmTxt = __d('operation', $confirmKey);
-
-                  if($confirmTxt != $confirmKey) {
-                    // We found the localized string
-                    $actionPostBtnArray = ['action' => $a['action'], $entity->id];
-                    $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
-                    // XXX should be configurable which field we put in, maybe displayField?
-                    $action_args['vv_actions'][] = array(
-                      'order' => $actionOrder,
-                      'icon' =>  $actionIcon,
-                      'url' => 'javascript:void(0);',
-                      'label' => __d('operation', $a['action']),
-                      'class' => !empty($actionClass) ? $actionClass . ' nospin' : 'nospin',
-                      'onclick' => array(
-                        'dg_bd_txt' => __d('operation', $confirmKey, [$entity->id]), // dialog body text
-                        'dg_post_btn_array' => $actionPostBtnArray,                 // postButton array for building the postButton
-                        'dg_url' => $actionUrl,                                     // action url for building a unique ID
-                        'dg_conf_btn' => __d('operation', 'confirm'),  // dialog confirm button text
-                        'dg_cancel_btn' => __d('operation', 'cancel'), // dialog cancel button text
-                        'dg_title' => __d('operation', 'confirm'),     // dialog box title
-                        'dg_bd_txt_repl_str' => ''                                  // dialog body text replacement strings 
-                      ),
-                    );
-                  } elseif(!empty($a['controller'])) {
-                    // We're linking into a related controller
-                    $actionLabel = __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
-                    $actionUrl = $this->Url->build(
-                      ['controller' => $a['controller'],
-                       'action'     => $a['action'],
-                       // We support the use of closures for custom query strings
-                       '?' => (!empty($a['query']) ? $a['query']($entity) : [ $tableFK => $entity->id ])]
-                    );
-                  } else {
-                    $actionLabel = __d('operation', $a['action']); 
-                    $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
-                  }
-
-                  // If a specific label is sent in the config, use it instead
-                  if(!empty($a['label'])) {
-                    $actionLabel = $a['label'];
-                  }
-
-                  // Set the action link configuration
-                  $action_args['vv_actions'][] = array(
-                    'order' => $actionOrder,
-                    'icon' => $actionIcon,
-                    'url' => $actionUrl,
-                    'label' => $actionLabel,
-                    'class' => $actionClass,
-                    'onclick' => $actionOnClick
-                  );    
-                }
-              }
-              
-//            }
+            $ok = $entity->$f();
           }
 
-          // Delete
-          if($vv_permission_set[$entity->id]['delete']) {
-            $actionPostBtnArray = ['action' => 'delete', $entity->id];
-            $actionUrl = $this->Url->build(['action' => 'delete', $entity->id]);
+          if($ok) {
+            $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
+            $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
+            $actionClass = !empty($a['class']) ? $a['class'] : '';
+            $actionUrl = '';
+            $actionLabel = '';
+            $actionOnClick = []; // used for confirmation dialog 
+
+            // Generate the link text and urls:
+
+            // If we have a .confirm text, we need to generate a confirm dialog box
+            $confirmKey = $a['action'].'.confirm';
+            $confirmTxt = __d('operation', $confirmKey);
+
+            if($confirmTxt != $confirmKey) {
+              // We found the localized string
+              $actionPostBtnArray = ['action' => $a['action'], $entity->id];
+              $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
+              // XXX should be configurable which field we put in, maybe displayField?
+              $action_args['vv_actions'][] = array(
+                'order' => $actionOrder,
+                'icon' =>  $actionIcon,
+                'url' => 'javascript:void(0);',
+                'label' => __d('operation', $a['action']),
+                'class' => !empty($actionClass) ? $actionClass . ' nospin' : 'nospin',
+                'onclick' => array(
+                  'dg_bd_txt' => __d('operation', $confirmKey, [$entity->id]), // dialog body text
+                  'dg_post_btn_array' => $actionPostBtnArray,                 // postButton array for building the postButton
+                  'dg_url' => $actionUrl,                                     // action url for building a unique ID
+                  'dg_conf_btn' => __d('operation', 'confirm'),  // dialog confirm button text
+                  'dg_cancel_btn' => __d('operation', 'cancel'), // dialog cancel button text
+                  'dg_title' => __d('operation', 'confirm'),     // dialog box title
+                  'dg_bd_txt_repl_str' => ''                                  // dialog body text replacement strings 
+                ),
+              );
+            } elseif(!empty($a['controller'])) {
+              // We're linking into a related controller
+              $actionLabel = __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
+              $actionUrl = $this->Url->build(
+                ['controller' => $a['controller'],
+                 'action'     => $a['action'],
+                 '?' => [ $tableFK => $entity->id] ]
+              );
+            } else {
+              $actionLabel = __d('operation', $a['action']);
+              $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
+            }
+
+            // If a specific label is sent in the config, use it instead
+            if(!empty($a['label'])) {
+              $actionLabel = $a['label'];
+            }
+
+            // Set the action link configuration
             $action_args['vv_actions'][] = array(
-              'order' => $this->Menu->getMenuOrder('Delete'),
-              'icon' =>  $this->Menu->getMenuIcon('Delete'),
-              'url' => 'javascript:void(0);',
-              'label' => __d('operation', 'delete'),
-              'class' => 'deletebutton nospin',
-              'onclick' => array(
-                'dg_bd_txt' => __d('operation', 'delete.confirm', [$entity->id]),
-                'dg_post_btn_array' => $actionPostBtnArray,
-                'dg_url' => $actionUrl,
-                'dg_conf_btn' => __d('operation', 'remove'),
-                'dg_cancel_btn' => __d('operation', 'cancel'),
-                'dg_title' => __d('operation', 'remove'),
-                'dg_bd_txt_repl_str' => ''
-              ),
+              'order' => $actionOrder,
+              'icon' => $actionIcon,
+              'url' => $actionUrl,
+              'label' => $actionLabel,
+              'class' => $actionClass,
+              'onclick' => $actionOnClick
             );
           }
+        }
 
-          if(!empty($action_args['vv_actions'])) {
-            print '<div class="field-actions">';
-            print $this->element('menuAction', $action_args);
-            print '</div>';
-          }
-          
-        ?>
-      </td>
-    </tr>
-    <?php $recordsExist = true; ?>
-  <?php endforeach; // $$tablename ?>
-  <?php if(!$recordsExist): ?>
-    <tr><td colspan="<?= count($indexColumns); ?>"><?= __d('information','global.records.none') ?></td></tr>
-  <?php endif; ?>
+//            }
+
+      // Delete
+      /* TODO: Keep as reference for now - ultimately remove.
+       * if($vv_permission_set[$entity->id]['delete']) {
+          $actionPostBtnArray = ['action' => 'delete', $entity->id];
+          $actionUrl = $this->Url->build(['action' => 'delete', $entity->id]);
+          $action_args['vv_actions'][] = array(
+            'order' => $this->Menu->getMenuOrder('Delete'),
+            'icon' =>  $this->Menu->getMenuIcon('Delete'),
+            'url' => 'javascript:void(0);',
+            'label' => __d('operation', 'delete'),
+            'class' => 'deletebutton nospin',
+            'onclick' => array(
+              'dg_bd_txt' => __d('operation', 'delete.confirm', [$entity->id]),
+              'dg_post_btn_array' => $actionPostBtnArray,
+              'dg_url' => $actionUrl,
+              'dg_conf_btn' => __d('operation', 'remove'),
+              'dg_cancel_btn' => __d('operation', 'cancel'),
+              'dg_title' => __d('operation', 'remove'),
+              'dg_bd_txt_repl_str' => ''
+            ),
+          );
+        }*/
+
+        ?>  
+      
+        <td class="actions">
+          <div class="field-actions">
+            <?php if(!empty($action_args['vv_actions'])): ?>
+              <?= $this->element('menuAction', $action_args); ?>
+            <?php endif; ?>
+          </div>
+        </td>
+      <?php endif; ?>
+        
+      <?php
+        // We will set $isFirstLink to false after the first link is set. This is used to
+        // establish the row-link class (and thus click action) for the row. There can be only one.
+        // This is also used to determine which label will be assigned to the bulk action checkbox.
+        $isFirstLink = true; 
+      ?>  
+      <?php foreach($indexColumns as $col => $cfg): ?>
+        <td<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
+          <?php
+            $suffix = "";
+            
+            if(!empty($cfg['append'])) {
+              // The value is a method on the entity that returns a string to
+              // append to the label
+              $f = $cfg['append'];
+              
+              $str = $entity->$f();
+              
+              if(!empty($str)) {
+                // For our first pass, we insert a comma, but this might not generalize
+                $suffix = ", " . $str;
+              }
+            }
+            
+            switch($cfg['type']) {
+              case 'boolean':
+                if(!empty($entity->$col) && $entity->$col) {
+                  print __d('enumeration', $cfg['class'].'.1') . $suffix;
+                } else {
+                  print __d('enumeration', $cfg['class'].'.0') . $suffix;
+                }
+                break;
+              case 'datetime':
+    // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
+                print !empty($entity->$col) ? $this->Time->nice($entity->$col, $vv_tz) . $suffix : "";
+                break;
+              case 'enum':
+                if($entity->$col) {
+                  // XXX Need to add badging - see index.php in Match
+                  print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
+                }
+                break;
+              case 'fk':
+                // Assuming $col is of the form foo_id, look to see if the corresponding
+                // AutoViewVar $foos is set, and if so render the lookup value instead
+                $f = null;
+                if(preg_match('/^(.*?)_id$/', $col, $f)) {
+                  $avv = Inflector::variable(Inflector::pluralize($f[1]));
+                  
+                  if(!empty(${$avv}[$entity->$col])) {
+                    // We found the viewvar (eg: $foos), and it has a corresponding value
+                    // (eg: $foos[3]), so render it
+                    print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
+                  } else {
+                    // No match, just render the value
+                    print $entity->$col. $suffix;
+                  }
+                } else {
+                  // Just print the value
+                  print $entity->$col. $suffix;
+                }
+                break;
+              case 'button':
+                if(!empty($entity->$col)) {
+                  $buttonAttrs = [];
+                  $buttonText = $entity->$col;
+                  if(!empty($cfg['button']['attrs'])) {
+                    $buttonAttrs = $cfg['button']['attrs'];
+                  }
+                  $buttonAttrs['type'] = 'button';
+                  if(!empty($cfg['button']['text']) && $cfg['button']['text'] != 'fieldVal') {
+                    $buttonText = $cfg['button']['text'];
+                  }
+                  if(!empty($cfg['truncate']) && is_int($cfg['truncate'])) {
+                    // We check for $truncate + 1 because there's no point trimming
+                    // the last character if we're just going to replace it with ...
+                    $buttonText = (strlen($buttonText) > $cfg['truncate'] + 1) ? substr($buttonText,0,$cfg['truncate']).'...' : $buttonText;
+                  }
+                  if(!empty($cfg['button']['popover'])) {
+                    if($cfg['button']['popover'] == 'fieldVal') {
+                      $buttonAttrs['data-bs-content'] = $entity->$col;
+                    } else {
+                      $buttonAttrs['data-bs-content'] = $cfg['button']['popover'];
+                    }
+                    $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
+                    $buttonAttrs['title'] = $label;
+                    $buttonAttrs['data-bs-toggle'] = 'popover';
+                    $buttonAttrs['data-bs-container'] = 'body';
+                    $buttonAttrs['data-bs-placement'] = 'top';
+                    $buttonAttrs['data-bs-animation'] = 'false';
+                  }
+                  print $this->Form->button($buttonText, $buttonAttrs);
+                }
+                break;
+              case 'closure':
+                $fn = $cfg['function'];
+                print $fn($entity);
+                break;
+              case 'datetime':
+    // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
+                if(!empty($entity->$col)) {
+                  print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
+                }
+                break;
+              case 'enum':
+                if($entity->$col) {
+                  // XXX Need to add badging - see index.php in Match
+                  print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
+                }
+                break;
+              case 'fk':
+                // Assuming $col is of the form foo_id, look to see if the corresponding
+                // AutoViewVar $foos is set, and if so render the lookup value instead
+                $f = null;
+                if(preg_match('/^(.*?)_id$/', $col, $f)) {
+                  $avv = Inflector::variable(Inflector::pluralize($f[1]));
+                  
+                  if(!empty(${$avv}[$entity->$col])) {
+                    // We found the viewvar (eg: $foos), and it has a corresponding value
+                    // (eg: $foos[3]), so render it
+                    print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
+                  } else {
+                    // No match, just render the value
+                    print $entity->$col. $suffix;
+                  }
+                } else {
+                  // Just print the value
+                  print $entity->$col. $suffix;
+                }
+                break;
+              case 'link':
+              case 'relatedLink':
+              case 'echo':
+              default:
+                // By default our label is the column value, but it might be overridden
+                $label = $entity->$col . $suffix;
+                
+                if(!empty($cfg['model']) && !empty($cfg['field'])) {
+                  $m = $cfg['model'];
+                  $f = $cfg['field'];
+                  
+                  if(!empty($cfg['submodel'])) {
+                    // We have a related model, eg actor_person.primary_name
+                    $sm = $cfg['submodel'];
+                    
+                    if(!empty($entity->$m->$sm->$f)) {
+                      $label = $entity->$m->$sm->$f . $suffix;
+                    }
+                  } else {
+                    if(!empty($entity->$m->$f)) {
+                      $label = $entity->$m->$f . $suffix;
+                    }
+                  }
+                }
+                
+                $linked = false;
+
+                // Output the bulk-action checkbox and label
+                if($isFirstLink) {
+                  print '<div class="form-check bulk-action-checkbox-container">';
+                  print '<input class="form-check-input" type="checkbox" value="" id="bulk-action-id-' . $entity->id . '" data-entity-id="' . $entity->id . '">';
+                  print '<label class="form-check-label" for="bulk-action-id-' . $entity->id . '">';
+                  print $label;
+                  print '</label>';
+                  print '</div>';
+                }
+                
+                // $linkActions can be overridden in columns.inc to apply to all
+                // generated links, or $cfg['action'] can be set to apply only to
+                // a specific field (column).
+                $tryActions = (!empty($cfg['action']) ? [ $cfg['action'] ] : $linkActions);
+                
+                if($cfg['type'] == 'link') {
+                  foreach($tryActions as $a) {
+                    // Does this user have permission for this action?
+                    if($vv_permission_set[$entity->id][$a]) {
+                      $args = [];
+                      $readOnlyIcon = '';                       
+                      if($isFirstLink) {
+                        $linkClass = 'row-link';
+                        if($a == 'edit') {
+                          $linkClass .= ' row-link-edit';
+                        } elseif ($a == 'view') {
+                          $linkClass .= ' row-link-view';
+                          $readOnlyIcon = ' <em class="material-icons-outlined read-only-icon">edit_off</em>';
+                        }
+                        $args = ['class' => $linkClass];
+                        $isFirstLink = false;
+                      }
+                      // Output the link
+                      if(!empty($readOnlyIcon)) {
+                        print '<div class="read-only-link-container">';
+                      }
+                      print $this->Html->link($label, ['action' => $a, $entity->id], $args);
+                      if(!empty($readOnlyIcon)) {
+                        print $readOnlyIcon;
+                        print '</div>';
+                      }
+                      $linked = true;
+                      break 2;
+                    }
+                  }
+                } elseif($cfg['type'] == 'relatedLink') {
+                  $m = $cfg['model'];
+                  
+                  if(!empty($entity->$m->id)) {
+                    // We need the controller for the related entity, however $m
+                    // might be an alias and $entity->getSource() returns the
+                    // aliased class name. So we use PHP's get_class instead.
+                    $c = Inflector::tableize(substr(get_class($entity->$m), strrpos(get_class($entity->$m), '\\')+1));
+                    
+                    foreach($tryActions as $a) {
+                      // Does this user have permission for this action?
+  // XXX we actually need to know the permissions on the target (ie: actor person)
+                      if(true || 
+                         $vv_permission_set[$entity->id][$a]) {
+                        $args = [];
+                        $readOnlyIcon = '';
+                        if($isFirstLink) {
+                          $linkClass = 'row-link';
+                          if($a == 'edit') {
+                            $linkClass .= ' row-link-edit';
+                          } elseif ($a == 'view') {
+                            $linkClass .= ' row-link-view';
+                            $readOnlyIcon = ' <em class="material-icons-outlined read-only-icon">edit_off</em>';
+                          }
+                          $args = ['class' => $linkClass];
+                          $isFirstLink = false;
+                        }
+                        // Output the link
+                        if(!empty($readOnlyIcon)) {
+                          print '<div class="read-only-link-container">';
+                        }
+                        print $this->Html->link($label, ['controller' => $c, 'action' => $a, $entity->$m->id], $args);
+                        if(!empty($readOnlyIcon)) {
+                          print $readOnlyIcon;
+                          print '</div>';
+                        }  
+                        $linked = true;
+                        break 2;
+                      }
+                    }
+                  }
+                }
+                
+                if(!$linked) {
+                  // Just echo the value
+                  print $label;
+                }
+                break;
+            }
+          ?>
+        </td>
+        <?php endforeach; // $indexColumns ?>
+      </tr>
+      <?php $recordsExist = true; ?>
+    <?php endforeach; // $$tablename ?>
+    <?php if(!$recordsExist): ?>
+      <tr><td colspan="<?= count($indexColumns); ?>"><?= __d('information','global.records.none') ?></td></tr>
+    <?php endif; ?>
+    </tbody>
   </table>
 </div>
 
-<?php
-  print $this->element("pagination");
+<?= $this->element("pagination");

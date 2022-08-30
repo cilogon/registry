@@ -39,10 +39,7 @@ $indexColumns = [
   ]
 ];
 
-$indexActions = [
-  [
-    'action' => 'primary',
-    'icon' => 'publish',
-    'if' => 'notPrimary'
-  ]
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
 ];

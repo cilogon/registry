@@ -29,6 +29,7 @@ $actionsCount = count($vv_actions);
 $actionsCountClass = $actionsCount > 0 ? ' actions-count-' . $actionsCount : '';
 $actionsMenuClass = 'field-actions-menu dropdown dropleft' . $actionsCountClass;
 $actionsMenuUid = md5($vv_attr_id);
+$actionsType = isset($vv_actions_type) ? $vv_actions_type : 'row-actions';
 ?>
 
 <div id="action-menu_<?= $actionsMenuUid; ?>"
@@ -94,5 +95,13 @@ $actionsMenuUid = md5($vv_attr_id);
         <?php endif; ?>
       </li>
     <?php endforeach;?>
+    <?php if(!empty($vv_bulk_actions) && $actionsType == 'top-links'): ?>
+      <li id="bulk-edit-switch-container" class="action-list-item">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="bulk-edit-switch">
+          <label class="form-check-label" for="bulk-edit-switch">Bulk edit</label>
+        </div>
+      </li>
+    <?php endif; ?>
   </ul>
 </div>

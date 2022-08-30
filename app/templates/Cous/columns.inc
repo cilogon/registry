@@ -37,3 +37,8 @@ $indexColumns = [
     'type' => 'echo'
   ]
 ];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
+];

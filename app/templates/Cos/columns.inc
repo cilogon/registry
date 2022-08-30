@@ -38,10 +38,7 @@ $indexColumns = [
   ]
 ];
 
-$indexActions = [
-  [
-    'action' => 'duplicate',
-    'class'  => '',
-    'icon'   => 'content_copy'
-  ]
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
 ];

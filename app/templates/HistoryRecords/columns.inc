@@ -27,7 +27,7 @@
 
 $indexColumns = [
   'id' => [
-    'type' => 'echo'
+    'type' => 'link'
   ],
   'created' => [
     'type' => 'datetime'

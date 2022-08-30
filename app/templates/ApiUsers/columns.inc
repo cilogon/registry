@@ -59,3 +59,8 @@ if($vv_cur_co->id > 1) {
 $indexColumns['valid_through'] = [
   'type' => 'datetime'
 ];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
+];

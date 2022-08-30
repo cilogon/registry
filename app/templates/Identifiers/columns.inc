@@ -34,17 +34,22 @@ $indexColumns = [
   ]
 ];
 
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
+];
+
 $indexActions = [
   [
     'controller' => 'authentication_events',
     'action'     => 'index',
     'icon'       => 'person',
     'if'         => 'isLogin',
-    'query'      => function ($e) { 
-                      return [ 
-                        'authenticated_identifier' => 
-                        \App\Lib\Util\StringUtilities::urlbase64encode($e->identifier) 
-                      ];
-                    }
+    'query'      => function ($e) {
+      return [
+        'authenticated_identifier' =>
+          \App\Lib\Util\StringUtilities::urlbase64encode($e->identifier)
+      ];
+    }
   ]
 ];

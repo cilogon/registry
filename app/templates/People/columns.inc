@@ -39,3 +39,8 @@ $indexColumns = [
     'sortable' => true
   ]
 ];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'expunge' => true
+];
