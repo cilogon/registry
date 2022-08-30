@@ -286,10 +286,6 @@
     column-gap: 1em;
     margin-bottom: 4em;
   }
-  /* RECONCILE TABLE */
-  #reconcile-table {
-    font-size: 1em;
-  }
   /* INDEX ACTION ROW MENUS */
   .field-actions .dropdown-menu {
     font-size: 0.9em;

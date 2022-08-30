@@ -48,13 +48,6 @@ h1.loginMsg {
   margin: 1em 0;
   text-align: center;
 }
-h1.firstPrompt {
-  font-size: 1.2em;
-  font-weight: normal;
-}
-#fpDashboard h2 {
-  margin: 0.5em 0;
-}
 h2 {
   font-size: 2em;
   line-height: 2.5em;
@@ -552,31 +545,6 @@ ul.form-list li.alert-banner .co-alert {
 .pageTitle .archived {
   background-color: var(--cmg-color-gray-003);
 }
-/* TOP CONTENT LINKS (contextual) */
-#topLinks {
-  margin: 1.5em 0 -1.5em 0;
-  padding: 0;
-  font-size: 0.9em;
-}
-#topLinks li {
-  list-style: none;
-  display: inline-block;
-  margin: 0.5em;
-  padding: 0 0.5em;
-}
-#topLinks a {
-  text-decoration: none;
-  border: none;
-  background: none;
-  background-color: var(--cmg-color-white);
-}
-#topLinks a:hover {
-  color: var(--cmg-color-gray-001);
-}
-#main #topLinks a:active,
-#main #topLinks a:hover {
-  text-decoration: underline;
-}
 /* INNER CONTENT - for non-table-based layouts */
 #content {
   padding: 2rem;
@@ -697,9 +665,7 @@ ul.form-list li.alert-banner .co-alert {
   background-color: var(--cmg-color-yellow-004);
 }
 .top-filters .submit-button,
-.top-filters .clear-button,
-.side-search .submit-button,
-.side-search .clear-button {
+.top-filters .clear-button {
   float: right;
   font-size: 0.9em;
   width: 80px;
@@ -1226,13 +1192,8 @@ ul.form-list .cm-time-picker-vals li {
 .co-dialog {
   display: none;
 }
-p { /* MDL override */
-  font-size: inherit;
+p {
   margin: 0 0 1em;
-  line-height: 1.6em;
-}
-.clearfix {
-  clear: both;
 }
 .fieldTitle {
   font-weight: bold;
@@ -1372,12 +1333,6 @@ table.list-mode .read-only-link-container {
   color: var(--cmg-color-gray-003);
   padding: 0 0.5em;
 }
-.menuitembutton {
-  width: 250px;
-}
-.submitCell {
-  text-align: right;
-}
 /* LOADING ANIMATION */
 @keyframes loading {
   0%   { opacity: 0.3; }
@@ -1507,19 +1462,6 @@ table.list-mode .read-only-link-container {
   color: var(--cmg-color-blue-002);
   border: none;
 }
-/* Call to Action Blocks */
-.call-to-action {
-  margin-bottom: 2em;
-}
-.call-to-action a.btn {
-  display: block;
-  margin-bottom: 0.5em;
-}
-#content .call-to-action .btn .material-icons {
-  font-size: 1.4em;
-  vertical-align: text-bottom;
-  margin-right: 0.25em;
-}
 /*Bootstrap badge*/
 .badge {
   font-size: 0.95em;
@@ -1581,7 +1523,7 @@ footer {
   text-align: center;
   padding: 2em 2em 1em;
 }
-/*Select2*/
+/* Select2 */
 .select2-container--default .select2-selection--single {
   border: 1px solid var(--cmg-color-lightgray-006);
   background-color: var(--cmg-color-white);
