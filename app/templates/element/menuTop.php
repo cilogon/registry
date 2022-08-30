@@ -38,7 +38,7 @@
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
-          <?= $this->Html->link(__d('operation','logout') . ' <em class="material-icons" aria-hidden="true">logout</em>',
+          <?= $this->Html->link('<em class="material-icons" aria-hidden="true">logout</em> ' . __d('operation','logout'),
             '/auth/logout/logout.php',
             ['escape'     => false,
              'id'         => 'logout-in-panel-link',
@@ -52,7 +52,7 @@
         </div>
         <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>
           <div id="user-panel-switch-co">
-            <?= $this->Html->link(__d('menu','co.switch') . ' <em class="material-icons" aria-hidden="true">transfer_within_a_station</em>',
+            <?= $this->Html->link('<em class="material-icons" aria-hidden="true">transfer_within_a_station</em> ' . __d('menu','co.switch'),
               '/cos/select',
               ['escape'     => false,
                'id'         => 'co-switch-link',
@@ -68,7 +68,7 @@
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
   <?php
     if(empty($vv_user)) {
-      print $this->Html->link(__d('operation', 'login') . ' <em class="material-icons" aria-hidden="true">login</em>',
+      print $this->Html->link('<em class="material-icons" aria-hidden="true">login</em> '. __d('operation', 'login'),
                               ['controller' => 'cos',
                                'action'     => 'select',
                                'plugin'     => false],
