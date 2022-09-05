@@ -188,13 +188,16 @@
     // Add loading animation when a form is submitted, when any item with a "spin" class is clicked,
     // or on any anchor tag lacking the .nospin class. We do not automatically add this to buttons
     // because they are often on-page controls. Add a "spin" class to buttons that need it.
-    $("input[type='submit'], a:not('.nospin'), .spin").click(function() {
+    $("input[type='submit'], a:not('.nospin'), .spin").click(function(e) {
 
-      displaySpinner();
+      // Start a spinner only if CTRL, CMD, or SHIFT is not pressed (which loads a new tab or window).
+      if(!(e.ctrlKey || e.metaKey || e.shiftKey)) {
+        displaySpinner();
 
-      // Test for invalid fields (HTML5) and turn off spinner explicitly if found
-      if(document.querySelectorAll(":invalid").length) {
-        stopSpinner();
+        // Test for invalid fields (HTML5) and turn off spinner explicitly if found
+        if (document.querySelectorAll(":invalid").length) {
+          stopSpinner();
+        }
       }
 
     });
