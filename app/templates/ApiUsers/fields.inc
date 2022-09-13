@@ -56,9 +56,9 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print $this->Field->control('status', ['empty' => false]);
   
-  print $this->Field->control('valid_from');
+  print $this->Field->dateControl('valid_from');
   
-  print $this->Field->control('valid_through');
+  print $this->Field->dateControl('valid_through');
   
   print $this->Field->control('remote_ip');
   

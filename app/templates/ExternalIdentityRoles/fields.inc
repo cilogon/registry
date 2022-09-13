@@ -44,13 +44,9 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print $this->Field->control('manager_identifier', [], __d('field', 'manager'));
   
-// XXX these need to render date pickers
-// - we specifically have code in FieldHelper that checks for these two, but not date_of_birth
-//   - can FieldHelper introspect the date type rather than require a hard coded list of fields?
-//     though note valid_from/through uses special logic for 00:00:00 and 23:59:59
-  print $this->Field->control('valid_from');
+  print $this->Field->dateControl('valid_from');
   
-  print $this->Field->control('valid_through');
+  print $this->Field->dateControl('valid_through');
 }
 
 // XXX This is a placeholder for canvas... maybe it should become a separate page

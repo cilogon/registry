@@ -1,7 +1,9 @@
 <?php
 // Get parameters
-$fieldName = $fieldName ?? "";
-$pickerDate = $pickerDate ?? "";
+$fieldName   = $fieldName ?? "";
+$pickerDate  = $pickerDate ?? "";
+$pickerType  = $pickerType ?? \App\Lib\Enum\DateTypeEnum::Standard;
+$pickerFloor = $pickerFloor ?? "";
 
 // Create a date/time picker. The yyyy-MM-dd format is set above in $pickerDate.
 
@@ -10,8 +12,11 @@ $pickerDate = $pickerDate ?? "";
 // like the models that use the Tree behavior and have the column parent_id
 $pickerId     = 'datepicker-' . str_replace("_", "-", $fieldName);
 $pickerTarget = str_replace("_", "-", $fieldName);
-$pickerTimed  = $pickerTimed ?? true; // TODO: set false if date-only
 $pickerAmPm   = $pickerAmPm ?? false; // TODO: allow change between AM/PM and 24-hour mode
+
+// Set the min and max dates to allow for a wide range of year selections in the datepicker.
+$pickerDateMin = $pickerFloor; // We are passing in -100 years from FieldHelper where the values are constructed.
+$pickerDateMax = ''; // If empty, the date picker will default to +10 years.
 
 ?>
 
@@ -24,13 +29,16 @@ $pickerAmPm   = $pickerAmPm ?? false; // TODO: allow change between AM/PM and 24
         id: "<?= $pickerId ?>",
         target: "<?= $pickerTarget ?>",
         date: "<?= $pickerDate ?>",
-        timed: <?= ($pickerTimed ? 'true' : 'false') ?>,
+        datemin: "<?= $pickerDateMin ?>",
+        datemax: "<?= $pickerDateMax ?>",
+        type: "<?= $pickerType ?>",
         ampm: <?= ($pickerAmPm ? 'true' : 'false') ?>,
         txt: {
           hour: "<?= __d('field', 'datepicker.hour') ?>",
           minute: "<?= __d('field', 'datepicker.minute') ?>",
           am: "<?= __d('field', 'datepicker.am') ?>",
-          pm: "<?= __d('field', 'datepicker.pm') ?>"
+          pm: "<?= __d('field', 'datepicker.pm') ?>",
+          choosetime: "<?= __d('field', 'datepicker.chooseTime') ?>"
         }
       }
     },
@@ -63,7 +71,9 @@ $pickerAmPm   = $pickerAmPm ?? false; // TODO: allow change between AM/PM and 24
     :id="id"
     :target="target"
     :date="date"
-    :timed="timed"
+    :datemin="datemin"
+    :datemax="datemax"
+    :type="type"
     :ampm="ampm"
     :txt="txt">
   </cm-date-time-picker>

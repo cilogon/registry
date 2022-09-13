@@ -30,8 +30,10 @@ declare(strict_types = 1);
 
 namespace App\View\Helper;
 
-use \Cake\Utility\Inflector;
+use Cake\I18n\FrozenTime;
+use Cake\Utility\Inflector;
 use Cake\View\Helper;
+use App\Lib\Enum\DateTypeEnum;
 
 class FieldHelper extends Helper {
   public $helpers = ['Form', 'Html', 'Url', 'Alert'];
@@ -56,7 +58,7 @@ class FieldHelper extends Helper {
    * @return string       HTML for banner
    */
   
-  public function banner(string $info) {
+  public function banner(string $info): string {
     return '<li class="alert-banner">' .
       $this->Alert->alert($info, 'warning')
     . '</li>';
@@ -66,25 +68,29 @@ class FieldHelper extends Helper {
    * Emit a form control.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string  $fieldName Form field
-   * @param  array   $options   FormHelper control options
-   * @param  string  $labelText Label text (fieldName language key used by default)
-   * @param  array   $config    Custom FormHelper configuration options
+   * @param  string  $fieldName   Form field
+   * @param  array   $options     FormHelper control options
+   * @param  string  $labelText   Label text (fieldName language key used by default)
+   * @param  array   $config      Custom FormHelper configuration options
+   * @param  string  $ctrlCode    Control code passed in from wrapper functions
+   * @param  string  $cssClass    Start li css class passed in from wrapper functions
    * @return string  HTML for control
    */
   
   public function control(string $fieldName,
                           array  $options=[],
                           string $labelText=null,
-                          array $config=[]){
+                          array  $config=[],
+                          string $ctrlCode=null,
+                          string $cssClass=''): string {
     $coptions = $options;
     $coptions['label'] = false;
     $coptions['readonly'] = !$this->editable || (isset($options['readonly']) && $options['readonly']);
     // Selects, Checkboxes, and Radio Buttons use "disabled"
     $coptions['disabled'] = $coptions['readonly'];
     
-    // Generate HTML for the control itself
-    $liClass = "";
+    // Specify a class on the <li> form control wrapper
+    $liClass = $cssClass;
 
     // Remove prefix from field value
     if(isset($config['prefix'], $this->getView()->get('vv_obj')->$fieldName)) {
@@ -94,49 +100,19 @@ class FieldHelper extends Helper {
       $vv_obj->$fieldName = $fieldValueTemp;
       $this->getView()->set('vv_obj', $vv_obj);
     }
-
-    // Handle datetime controls specially
-    if($fieldName == 'valid_from' || $fieldName == 'valid_through') {
-      // Append the timezone to the label
-      $label = __d('field', $fieldName.".tz", [$this->_View->get('vv_tz')]);
-
-      // A datetime field will be rendered as plain text input with adjacent date and time pickers
-      // that will interact with the field value. Allowing direct access to the input field is for
-      // accessibility purposes.
-      $coptions['class'] = 'form-control datepicker';
-      $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS'; // TODO: test for date-only inputs and send only the date
-      $coptions['id'] = str_replace("_", "-", $fieldName);
-      
-      $entity = $this->getView()->get('vv_obj');
-      
-      $pickerDate = '';
-      if(!empty($entity->$fieldName)) {
-        // Adjust the time back to the user's timezone
-        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz'));
-        $pickerDate = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
-      }
-      
-      $date_args = [
-        'fieldName' => $fieldName,
-        'pickerDate' => $pickerDate
-      ];
-      // Create a text field to hold our value.
-      $controlCode = $this->Form->text($fieldName, $coptions)
-                     . $this->getView()->element('datePicker', $date_args);
-      
-      $liClass = "fields-datepicker";
-    } else {
-      if($fieldName != 'status' 
-         && !isset($options['empty'])
-         && (!isset($options['suppressBlank']) || !$options['suppressBlank'])) {
-        // Cause any select (except status) to render with a blank option, even
-        // if the field is required. This makes it clear when a value need to be set.
-        // Note this will be ignored for non-select controls.
-        $coptions['empty'] = true;
-      }
-      
-      $controlCode = $this->Form->control($fieldName, $coptions);
+    
+    if($fieldName != 'status' 
+       && !isset($options['empty'])
+       && (!isset($options['suppressBlank']) || !$options['suppressBlank'])) {
+      // Cause any select (except status) to render with a blank option, even
+      // if the field is required. This makes it clear when a value need to be set.
+      // Note this will be ignored for non-select controls.
+      $coptions['empty'] = true;
     }
+    
+    // Generate the form control or pass along the markup generated in a wrapper function
+    $controlCode = empty($ctrlCode) ? $this->Form->control($fieldName, $coptions) : $ctrlCode;
+    
     
     // Required fields are usually determined by the model validator, but for
     // related models the view (currently) has to pass the field as required in
@@ -160,13 +136,97 @@ class FieldHelper extends Helper {
   }
   
   /**
+   * Emit a date/time form control.
+   * This is a wrapper function for $this->control()
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $fieldName Form field
+   * @param  string $dateType Standard, DateOnly, FromTime, ThroughTime
+   * 
+   * @return string  HTML for control
+   */
+  
+  public function dateControl(string $fieldName, string $dateType=DateTypeEnum::Standard): string {
+    // A datetime field will be rendered as a plain text input with adjacent date and time pickers
+    // that will interact with the field value. Allowing direct access to the input field is for
+    // accessibility purposes.
+    
+    $pickerType = $dateType;
+    // Special-case the very common "valid_from" and "valid_through" fields so we won't need
+    // to specify their types in fields.inc.
+    if($fieldName == 'valid_from') {
+      $pickerType = DateTypeEnum::FromTime;
+    }
+    if($fieldName == 'valid_through') {
+      $pickerType = DateTypeEnum::ThroughTime;
+    }
+    
+    // Append the timezone to the label -- TODO: see that the timezone gets output to the display
+    $label = __d('field', $fieldName.".tz", [$this->_View->get('vv_tz')]);
+    
+    // Create the options array for the (text input) form control
+    $coptions = [];
+    $coptions['class'] = 'form-control datepicker';
+    
+    if($pickerType == DateTypeEnum::DateOnly) {
+      $coptions['placeholder'] = 'YYYY-MM-DD';
+      $coptions['pattern'] = '\d{4}-\d{2}-\d{2}';
+      $coptions['title'] = __d('field', 'datepicker.enterDate');
+    } else {
+      $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+      $coptions['pattern'] = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
+      $coptions['title'] = __d('field', 'datepicker.enterDateTime');
+    }
+    $coptions['id'] = str_replace("_", "-", $fieldName);
+  
+    $entity = $this->getView()->get('vv_obj');
+  
+    // Default the picker date to today
+    $now = FrozenTime::now();
+    $pickerDate = $now->i18nFormat('yyyy-MM-dd');
+    
+    // Get the existing values, if present
+    if(!empty($entity->$fieldName)) {
+      // Adjust the time back to the user's timezone
+      if($pickerType == DateTypeEnum::DateOnly) {
+        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
+      } else {
+        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz'));
+      }
+      $pickerDate = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
+    }
+    
+    // Set the date picker floor year value (-100 years)
+    $pickerDateFT = new FrozenTime($pickerDate);
+    $pickerDateFT = $pickerDateFT->subYears(100);
+    $pickerFloor = $pickerDateFT->i18nFormat("yyyy-MM-dd"); 
+  
+    $date_picker_args = [
+      'fieldName'   => $fieldName,
+      'pickerDate'  => $pickerDate,
+      'pickerType'  => $pickerType,
+      'pickerFloor' => $pickerFloor
+    ];
+    
+    // Create a text field to hold our value and call the datePicker
+    $controlCode = $this->Form->text($fieldName, $coptions)
+      . $this->getView()->element('datePicker', $date_picker_args);
+  
+    // Specify a class on the <li> form control wrapper
+    $liClass = "fields-datepicker";
+    
+    // Pass everything to the generic control() function
+    return $this->control($fieldName, $coptions, '', [], $controlCode, $liClass);
+  }
+  
+  /**
    * End a set of form controls.
    *
    * @since  COmanage Registry v5.0.0
    * @return string Control Set end HTML
    */
   
-  public function endControlSet() {
+  public function endControlSet(): string {
     $this->modelName = null;
     
     return "</ul>\n";
@@ -179,7 +239,7 @@ class FieldHelper extends Helper {
    * @return string Line end HTML
    */
   
-  protected function endLine() {
+  protected function endLine(): string {
     return "</li>\n";
   }
   
@@ -191,7 +251,7 @@ class FieldHelper extends Helper {
    * @return string           Form Info HTML
    */
   
-  protected function formInfoDiv(string $content) {
+  protected function formInfoDiv(string $content): string {
     return '<div class="field-info">
       ' . $content . '
     </div>';
@@ -206,7 +266,7 @@ class FieldHelper extends Helper {
    * @return string           Form Info HTML
    */
 
-  protected function formInfoWithPrefixDiv(string $context, string $prefix) {
+  protected function formInfoWithPrefixDiv(string $context, string $prefix): string {
     $div =  '<div class="field-info">' . PHP_EOL
       . '<div class="input-group mb-3">' . PHP_EOL
       . '<div class="input-group-prepend">' . PHP_EOL
@@ -227,7 +287,7 @@ class FieldHelper extends Helper {
    * @return string             Form Name HTML
    */
   
-  protected function formNameDiv(string $fieldName, string $labelText=null) {
+  protected function formNameDiv(string $fieldName, string $labelText=null): string {
     $label = $labelText;
     $desc = null;
     
@@ -310,7 +370,10 @@ class FieldHelper extends Helper {
    * @return string
    */
   
-  public function statusControl(string $fieldName, string $status, array $link=[], string $labelText=null): string {
+  public function statusControl(string $fieldName, 
+                                string $status, 
+                                array $link=[], 
+                                string $labelText=null): string {
     $linkHtml = $status;
     
     if($link) {
@@ -354,7 +417,11 @@ class FieldHelper extends Helper {
    * @return string
    */
   
-  public function startControlSet(string $modelName, string $action, bool $editable, array $reqFields, $entity=null) {
+  public function startControlSet(string $modelName, 
+                                  string $action, 
+                                  bool $editable, 
+                                  array $reqFields, 
+                                  $entity=null): string {
     $this->editable = $editable;
     $this->modelName = $modelName;
     $this->reqFields = $reqFields;
@@ -371,7 +438,7 @@ class FieldHelper extends Helper {
    * @return string
    */
   
-  protected function startLine(string $class=null) {
+  protected function startLine(string $class=null): string {
     $ret = '<li';
     
     if($class) {
@@ -391,7 +458,7 @@ class FieldHelper extends Helper {
    * @return string
    */
   
-  public function submit(string $label) {
+  public function submit(string $label): string {
     return '<li class="fields-submit">
       <div class="field-name">
         <span class="required">* ' . __d('field', 'required') . '</span>

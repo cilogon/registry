@@ -98,6 +98,15 @@ msgstr "Created"
 msgid "datepicker.am"
 msgstr "AM"
 
+msgid "datepicker.chooseTime"
+msgstr "Choose time"
+
+msgid "datepicker.enterDate"
+msgstr "Enter a date as YYYY-MM-DD"
+
+msgid "datepicker.enterDateTime"
+msgstr "Enter a date as YYYY-MM-DD HH:MM:SS"
+
 msgid "datepicker.hour"
 msgstr "Hour"
 

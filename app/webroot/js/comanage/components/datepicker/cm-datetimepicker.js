@@ -29,7 +29,9 @@ export default {
     id: String,
     target: String,
     date: String,
-    timed: Boolean,
+    datemin: String,
+    datemax: String,
+    type: String,
     ampm: Boolean,
     txt: Object
   },
@@ -46,30 +48,39 @@ export default {
       const dateField = document.getElementById(this.target);
       if(dateField.value === '') {
         // There's no existing value, so just format what's given.
-        dateField.value = date + " 00:00:00";
-        // If using a Date object, use the following instead:
-        // dateField.value = this.formatDate(date);  
-      } else {
-        // We need to apply the given date to our existing field value so we can retain the time.
-        const dateTime = dateField.value.split(' ');
-        dateTime[0] = date;
-        // A sanity check to see if someone messed up the field.
-        // XXX Pattern should also be enforced by the browser.
-        if(dateTime[1] === undefined || dateTime[1] === '') {
-          dateTime[1] = '00:00:00';
+        dateField.value = date;
+        if(this.type != 'dateonly') {
+          if(this.type == 'throughtime') {
+            dateField.value += " 23:59:59";
+          } else {
+            dateField.value += " 00:00:00";  
+          }
         }
-        dateField.value = dateTime.join(' ');
+      } else {
+        if(this.type == 'dateonly') {
+          dateField.value = date;
+        } else  {
+          // We need to apply the given date to our existing field value so we can retain the time.
+          const dateTime = dateField.value.split(' ');
+          dateTime[0] = date;
+          // A sanity check to see if someone messed up the field.
+          // The pattern is also enforced by the browser via the "pattern" attribute.
+          if(dateTime[1] === undefined || dateTime[1] === '') {
+            dateTime[1] = '00:00:00';
+          }
+          dateField.value = dateTime.join(' ');  
+        }
       }
     },
     formatDate(date) {
-      // Consider using Luxon for JavaScript Date/Time formatting if
-      // we get any more complicated than this.
       let formattedDate = date.getFullYear();
       formattedDate += '-' + ('0' + (date.getMonth()+1)).slice(-2);
       formattedDate += '-' + ('0' + date.getDate()).slice(-2);
-      formattedDate += ' ' + ('0' + date.getHours()).slice(-2);
-      formattedDate += ':' + ('0' + date.getMinutes()).slice(-2);
-      formattedDate += ':' + ('0' + date.getSeconds()).slice(-2);
+      if(this.type != 'dateonly') {
+        formattedDate += ' ' + ('0' + date.getHours()).slice(-2);
+        formattedDate += ':' + ('0' + date.getMinutes()).slice(-2);
+        formattedDate += ':' + ('0' + date.getSeconds()).slice(-2);
+      }
       return(formattedDate);
     },
     showTimePicker() {
@@ -90,7 +101,7 @@ export default {
         // We need to apply the given time to our existing field value so we can retain the date.
         dateTime = dateField.value.split(' ');
         // A sanity check to see if someone messed up the field.
-        // XXX Pattern should also be enforced by the browser.
+        // The pattern is also enforced by the browser via the "pattern" attribute.
         if (dateTime[1] === undefined || dateTime[1] === '') {
           // Clear the field and start with today
           dateField.value = '';
@@ -160,13 +171,16 @@ export default {
       <duet-date-picker 
         :name="this.id" 
         :identifier="this.id"
-        :value="this.date"    
+        :value="this.date"
+        :min="this.datemin"
+        :max="this.datemax"
         @duetChange="setFieldDate" 
         ref="curDuetPicker">
       </duet-date-picker>
-      <div v-if="this.timed" class="cm-time-picker">
+      <div v-if="this.type != 'dateonly'" class="cm-time-picker">
         <button @click.stop.prevent="showTimePicker" type="button" class="btn">
-          <em class="material-icons">schedule</em>
+          <em class="material-icons"  aria-hidden="true">schedule</em>
+          <span class="visually-hidden">{{ this.txt.choosetime }}</span>
         </button>
         <Transition>
           <cm-time-picker

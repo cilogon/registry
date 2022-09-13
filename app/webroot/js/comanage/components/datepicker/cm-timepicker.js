@@ -37,7 +37,8 @@ export default {
   },
   methods: {
     setTime(e,type) {
-      this.$emit('setTime',type,e.target.innerText);
+      let timeValue = e.currentTarget.querySelector('.cm-time-picker-val').innerText;
+      this.$emit('setTime', type, timeValue);
     },
     hide() {
       this.$emit('hide');
@@ -47,13 +48,16 @@ export default {
     this.$refs.timepicker.focus();
   },
   template: `
-    <div class="cm-time-picker-panel" ref="timepicker" v-clickout="hide" @keydown.esc="hide" tabindex="-1">
+    <div class="cm-time-picker-panel" role="dialog" ref="timepicker" v-clickout="hide" @keydown.esc="hide" tabindex="-1">
       <div class="cm-time-picker-hours">
         <div class="cm-time-picker-title">{{ txt.hour }}</div>
         <div class="cm-time-picker-vals">
           <ul>
             <li v-for="n in 24">              
-              <button @click.stop.prevent="setTime($event,'hour')" type="button" class="btn">{{ ('0' + (n-1)).slice(-2) }}</button>
+              <button @click.stop.prevent="setTime($event,'hour')" type="button" class="btn">
+                <span class="cm-time-picker-val" aria-hidden="true">{{ ('0' + (n-1)).slice(-2) }}</span>
+                <span class="visually-hidden">{{ this.txt.hour }} {{ n-1 }}</span>
+              </button>
             </li>  
           </ul>
         </div>
@@ -64,7 +68,10 @@ export default {
         <div class="cm-time-picker-vals">
           <ul>
             <li v-for="val of minuteVals">
-              <button @click.stop.prevent="setTime($event,'minute')" type="button"  class="btn">{{ val }}</button>
+              <button @click.stop.prevent="setTime($event,'minute')" type="button"  class="btn">
+                <span class="cm-time-picker-val" aria-hidden="true">{{ val }}</span>
+                <span class="visually-hidden">{{ this.txt.minute }} {{ val }}</span>
+              </button>
             </li>
           </ul>
         </div>

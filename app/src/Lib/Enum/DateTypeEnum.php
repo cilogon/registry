@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Group Members Fields
+ * COmanage Registry Date Type Enum, Standard Variant
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,15 +25,13 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add') {
-  // As a temporary hack for development, we accept a manually entered Person ID
-  print $this->Field->control('person_id', ['type' => 'text']);
-} else {
-  print $this->Form->hidden('person_id');
+declare(strict_types = 1);
+
+namespace App\Lib\Enum;
+
+class DateTypeEnum extends StandardEnum {
+  const Standard     = 'standard';
+  const DateOnly     = 'dateonly';
+  const FromTime     = 'fromtime';
+  const ThroughTime  = 'throughtime';
 }
-
-print $this->Field->dateControl('valid_from');
-
-print $this->Field->dateControl('valid_through');
-
-// XXX RFE: Add links to EIS or Nesting info

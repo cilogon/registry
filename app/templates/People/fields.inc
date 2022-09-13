@@ -165,5 +165,5 @@ if($vv_action == 'add') {
 if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('status', ['empty' => false]);
   
-  print $this->Field->control('date_of_birth');
+  print $this->Field->dateControl('date_of_birth', \App\Lib\Enum\DateTypeEnum::DateOnly);
 }

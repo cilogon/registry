@@ -30,7 +30,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
 // XXX sync status?
   print $this->Field->control('status', ['empty' => false]);
   
-  print $this->Field->control('date_of_birth');
+  print $this->Field->dateControl('date_of_birth', \App\Lib\Enum\DateTypeEnum::DateOnly);
 }
 
 // XXX This is a placeholder for canvas... maybe it should become a separate page
