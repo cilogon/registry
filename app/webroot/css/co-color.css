@@ -54,6 +54,7 @@
   --cmg-color-lightgray-008: #bbb;    /* border color */
   --cmg-color-lightgray-009: #ededed; /* data-list background color */
   --cmg-color-lightgray-010: #e8e8e8; /* co-grid background color */
+  --cmg-color-lightgray-011: #fcfcfc; /* action dropdown menu background color */
   
   /* Greens */
   --cmg-color-green-001: #b4ffba;     /* alert: success */

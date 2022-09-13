@@ -64,7 +64,11 @@ $actionsType = isset($vv_actions_type) ? $vv_actions_type : 'row-actions';
         <?php if(empty($action['onclick'])): ?>
           <a class="<?= $actionCssClass; ?>" href="<?= $action['url']; ?>">
             <?php if(!empty($action['icon'])): ?>
-              <em class="material-icons"><?= $action['icon']; ?></em>
+              <?php if(!empty($action['iconClass'])): ?>
+                <em class="<?= $action['iconClass']; ?>"><?= $action['icon']; ?></em>
+              <?php else: ?>
+                <em class="material-icons"><?= $action['icon']; ?></em>
+              <?php endif; ?>
             <?php endif; ?>
             <?= $action['label']; ?>
           </a>
@@ -85,7 +89,11 @@ $actionsType = isset($vv_actions_type) ? $vv_actions_type : 'row-actions';
           <a class="<?= $actionCssClass; ?>" href="#" onclick="<?= $dg_onclick; ?>"  
              data-bs-toggle="modal" data-bs-target="#dialog">
             <?php if(!empty($action['icon'])): ?>
-              <em class="material-icons"><?= $action['icon']; ?></em>
+              <?php if(!empty($action['icon_class'])): ?>
+                <em class="<?= $action['icon_class']; ?>"><?= $action['icon']; ?></em>
+              <?php else: ?>
+                <em class="material-icons"><?= $action['icon']; ?></em>
+              <?php endif; ?>
             <?php endif; ?>
             <?= $action['label']; ?>
           </a>

@@ -139,6 +139,19 @@ class PeopleTable extends Table {
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']
+      ],
+      // Related models whose permissions we'll need, typically for table views
+      'related' => [
+        'Addresses',
+        'AdHocAttributes',
+        'Names',
+        'EmailAddresses',
+        'ExternalIdentities',
+        'HistoryRecords',
+        'Identifiers',
+        'PersonRoles',
+        'TelephoneNumbers',
+        'Urls'
       ]
     ]);
   }

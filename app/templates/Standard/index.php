@@ -237,30 +237,9 @@ function _column_key($modelsName, $c, $tz=null) {
         // Action list for command menu dropdown / button listing
         $action_args = array();
         $action_args['vv_attr_id'] =  $entity->id;
-    
-          // Edit / View
-         /* TODO: Keep as reference for now; ultimately remove.
-          * if($vv_permission_set[$entity->id]['edit']) {
-            $action_args['vv_actions'][] = array(
-              'order' => $this->Menu->getMenuOrder('Edit'),
-              'icon' => $this->Menu->getMenuIcon('Edit'),
-              'url' => $this->Url->build(['action' => 'edit', $entity->id]),
-              'label' => __d('operation', 'edit')
-            );
-          } elseif($vv_permission_set[$entity->id]['view']) {
-            $action_args['vv_actions'][] = array(
-              'order' => $this->Menu->getMenuOrder('View'),
-              'icon' => $this->Menu->getMenuIcon('View'),
-              'url' => $this->Url->build(['action' => 'view', $entity->id]),
-              'label' => __d('operation', 'view')
-            );
-          }*/
         
     // Insert actions as per the .inc file
-        
-    // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions 
-    // XXX this isn't quite the right test
-    // if(isset($entity->status) && $entity->status == StatusEnum::Active) {
+    // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
         $actionOrderDefault = $this->Menu->getMenuOrder('Default');
         foreach($actions as $a) {
           $ok = false;
@@ -284,6 +263,7 @@ function _column_key($modelsName, $c, $tz=null) {
           if($ok) {
             $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
             $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
+            $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
             $actionClass = !empty($a['class']) ? $a['class'] : '';
             $actionUrl = '';
             $actionLabel = '';
@@ -338,6 +318,7 @@ function _column_key($modelsName, $c, $tz=null) {
             $action_args['vv_actions'][] = array(
               'order' => $actionOrder,
               'icon' => $actionIcon,
+              'iconClass' => $actionIconClass,
               'url' => $actionUrl,
               'label' => $actionLabel,
               'class' => $actionClass,
@@ -345,31 +326,6 @@ function _column_key($modelsName, $c, $tz=null) {
             );
           }
         }
-
-//            }
-
-      // Delete
-      /* TODO: Keep as reference for now - ultimately remove.
-       * if($vv_permission_set[$entity->id]['delete']) {
-          $actionPostBtnArray = ['action' => 'delete', $entity->id];
-          $actionUrl = $this->Url->build(['action' => 'delete', $entity->id]);
-          $action_args['vv_actions'][] = array(
-            'order' => $this->Menu->getMenuOrder('Delete'),
-            'icon' =>  $this->Menu->getMenuIcon('Delete'),
-            'url' => 'javascript:void(0);',
-            'label' => __d('operation', 'delete'),
-            'class' => 'deletebutton nospin',
-            'onclick' => array(
-              'dg_bd_txt' => __d('operation', 'delete.confirm', [$entity->id]),
-              'dg_post_btn_array' => $actionPostBtnArray,
-              'dg_url' => $actionUrl,
-              'dg_conf_btn' => __d('operation', 'remove'),
-              'dg_cancel_btn' => __d('operation', 'cancel'),
-              'dg_title' => __d('operation', 'remove'),
-              'dg_bd_txt_repl_str' => ''
-            ),
-          );
-        }*/
 
         ?>  
       
