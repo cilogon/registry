@@ -751,14 +751,10 @@ a.action-menu-toggle {
 }
 .field-actions a.dropdown-item {
   padding: 0.5em 1em;
-  color: var(--cmg-color-blue-002);
 }
 #main .field-actions a.dropdown-item:hover {
   color: var(--cmg-color-black);
   text-decoration: none;
-}
-.dropdown-item {
-  background-color: var(--cmg-color-lightgray-011);
 }
 .dropdown-item.active, 
 .dropdown-item:active {
