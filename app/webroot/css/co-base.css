@@ -942,7 +942,7 @@ ul.form-list li {
   border-bottom: 1px solid var(--cmg-color-lightgray-005);
   border-right: 1px solid var(--cmg-color-lightgray-005);
   margin: 0;
-  padding: 0.5em;
+  padding: 0.75em;
   list-style: none;
 }
 .cm-time-picker-vals ul li:nth-child(even),
@@ -955,9 +955,6 @@ ul.form-list li.fields-submit {
 }
 ul.form-list .field-name {
   display: block;
-}
-ul.form-list .field-title {
-  font-weight: bold;
 }
 ul.form-list .field-info {
   position: relative;

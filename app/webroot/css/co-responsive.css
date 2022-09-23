@@ -94,6 +94,7 @@
   ul.form-list li {
     display: flex;
     column-gap: 1em;
+    align-items: center;
   }
   ul.form-list li.field-stack textarea {
     margin: 0.5em 0 0.5em 0.5em;
