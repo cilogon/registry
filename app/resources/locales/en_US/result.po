@@ -72,8 +72,26 @@ msgstr "Added {0} as an owner of group {1}"
 msgid "GroupOwners.deleted"
 msgstr "Removed {0} as an owner of group {1}"
 
+msgid "Names.primary_name"
+msgstr "Primary Name Updated"
+
 msgid "saved"
 msgstr "Saved"
 
-msgid "Names.primary_name"
-msgstr "Primary Name Updated"
+msgid "search.exact"
+msgstr "Exact match for \"{0}\" found ({1})"
+
+msgid "search.limit"
+msgstr "Search limit reached"
+
+msgid "search.none"
+msgstr "No results found"
+
+msgid "search.result.id"
+msgstr "({0})"
+
+msgid "search.result.related"
+msgstr "({0}, {1}: {2})"
+
+msgid "search.results"
+msgstr "Search Results"

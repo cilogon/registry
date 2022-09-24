@@ -106,7 +106,7 @@ class MVEAController extends StandardController {
       
       // If there is a default type setting for this model, pass it to the view
       if($this->$modelsName->getSchema()->hasColumn('type_id')) {
-        $defaultTypeField = $fieldName . "_default_type_id";
+        $defaultTypeField = "default_" . $fieldName . "_type_id";
         
         $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
         

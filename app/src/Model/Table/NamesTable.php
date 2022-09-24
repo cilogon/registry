@@ -243,6 +243,69 @@ class NamesTable extends Table {
     
     return true;
   }
+
+  /**
+   * Perform a keyword search.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId   CO ID to constrain search to
+   * @param  string $q      String to search for
+   * @param  int    $limit  Search limit
+   * @return Array          Array of search results, as from find('all)
+   */
+
+  public function search(int $coId, string $q, int $limit) {
+    // Tokenize $q on spaces
+    $tokens = explode(" ", $q);
+
+    $ret = array();
+
+    // We take two loops through, the first time we only do a prefix search
+    // (foo%). If that doesn't reach the search limit, we'll do an infix search
+    // the second time around.
+
+    $whereClause = [];
+
+    foreach($tokens as $t) {
+      $whereClause[1]['AND'][] = [
+        'OR' => [
+          'LOWER(Names.given) LIKE' => strtolower($t) . '%',
+          'LOWER(Names.middle) LIKE' => strtolower($t) . '%',
+          'LOWER(Names.family) LIKE' => strtolower($t) . '%'
+        ]
+      ];
+
+      $whereClause[2]['AND'][] = [
+        'OR' => [
+          'LOWER(Names.given) LIKE' => '%' . strtolower($t) . '%',
+          'LOWER(Names.middle) LIKE' => '%' . strtolower($t) . '%',
+          'LOWER(Names.family) LIKE' => '%' . strtolower($t) . '%'
+        ]
+      ];
+    }
+
+    $results = $this->find()
+                    ->where($whereClause[1])
+                    ->andWhere(['People.co_id' => $coId])
+                    ->order(['Names.family', 'Names.given', 'Names.middle'])
+                    ->limit($limit)
+                    ->contain(['People' => 'PrimaryName'])
+                    ->all();
+    
+    if($results->count() < $limit) {
+      $results2 = $this->find()
+                       ->where($whereClause[2])
+                       ->andWhere(['People.co_id' => $coId])
+                       ->order(['Names.family', 'Names.given', 'Names.middle'])
+                       ->limit($limit - $results->count())
+                       ->contain(['People' => 'PrimaryName'])
+                       ->all();
+      
+      $results = $results->append($results2);
+    }
+
+    return $results;
+  }
   
   /**
    * Set validation rules.

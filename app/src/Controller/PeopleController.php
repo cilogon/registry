@@ -70,7 +70,7 @@ class PeopleController extends StandardController {
       
       $this->set('vv_permitted_name_fields', $settings->name_permitted_fields_array());
       $this->set('vv_required_name_fields', $settings->name_required_fields_array());
-      $this->set('vv_default_name_type', $settings->name_default_type_id);
+      $this->set('vv_default_name_type', $settings->default_name_type_id);
     }
     
     return parent::beforeRender($event);

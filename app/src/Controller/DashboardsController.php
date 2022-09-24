@@ -31,6 +31,9 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
+use Cake\Utility\Inflector;
 //use \App\Lib\Enum\PermissionEnum;
 
 class DashboardsController extends StandardController {
@@ -113,5 +116,189 @@ class DashboardsController extends StandardController {
   
   public function dashboard(?int $id=null) {
     // XXX placeholder
+  }
+
+  /**
+   * Perform a cross model search.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function search() {
+    /* To add a new backend to search:
+     * (1) Implement $model->search($id, $q, $limit)
+     * (2) Add the model to $models here, and define which roles can query it
+     * (3) Update documentation at https://spaces.at.internet2.edu/pages/viewpage.action?pageId=243078053
+     */
+    
+     $models = [
+      'Addresses' => [
+        'parent'        => ['People' => 'person_id', 'PersonRoles' => 'person_role_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'street',
+        'searchLimited' => false
+      ],
+      'EmailAddresses' => [
+        'parent'        => ['People' => 'person_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'mail',
+        'searchLimited' => true
+      ],
+      'Groups' => [
+        'parent'        => ['Cos' => 'co_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'name',
+        'searchLimited' => false
+      ],
+      'Identifiers' => [
+        'parent'        => ['Groups' => 'group_id', 'People' => 'person_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'identifier',
+        'searchLimited' => true
+      ],
+      'Names' => [
+        'parent'        => ['People' => 'person_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'full_name',
+        'searchLimited' => true
+      ],
+      'PersonRoles' => [
+        'parent'        => ['People' => 'person_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'title',
+        'searchLimited' => false
+      ],
+      'TelephoneNumbers' => [
+        'parent'        => ['People' => 'person_id', 'PersonRoles' => 'person_role_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'number',
+        'searchLimited' => false
+      ],
+      'Urls' => [
+        'parent'        => ['People' => 'person_id'],
+        'roles'         => ['platformAdmin', 'coAdmin'],
+        'displayField'  => 'url',
+        'searchLimited' => false
+      ]
+    ];
+
+    $this->set('vv_supported_models', $models);
+
+    // XXX inject plugins here
+
+    // $results tracks the per-model backend results
+    $results = [
+      'Cos'         => [],
+      'Groups'      => [],
+      'People'      => []
+    ];
+
+    // XXX Still need to implement this (see also CFM-126)
+    $roles = [];
+
+    if(!empty($this->request->getData('q'))
+       // Only process the request if there are non-space characters
+       && !ctype_space($this->request->getData('q'))) {
+      // Trim leading and trailing whitespace
+      $q = trim($this->request->getData('q'));
+
+      // Pull our search configuration
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+      $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
+
+      $searchLimit = $settings->search_global_limit;
+
+      foreach(array_keys($models) as $m) {
+        // If we're in limited search mode, we don't search all models
+        if($settings->search_global_limited_models
+           && !$models[$m]['searchLimited']) {
+          continue;
+        }
+
+        $authorized = true;  // XXX dynamically calculate this
+
+        $table = $this->getTableLocator()->get($m);
+
+        $searchResults = $table->search(coId: $this->getCOID(),
+                                        q: $q,
+                                        limit: $searchLimit);
+
+        // For models with a parent other than Co, we aggregate the results to the parent
+        // model, but track what the matching model was. We key on the foreign key to the parent
+        // to also unique-ify the results while we're here.
+
+        foreach($searchResults as $r) {
+          // Some tables support multiple parent models (eg: Identifiers), so we walk through
+          // the possibilities to see which one matched
+          foreach($models[$m]['parent'] as $pmodel => $pkey) {
+            if(!empty($r->$pkey)) {
+              if($m == 'Groups') {
+                // We special case Groups since (unlike People) they can match on both the
+                // primary model (Groups::name) or associated models (Identifiers::identifier).
+                // We force any Groups matches into the parent key format.
+                $results['Groups'][$r->id]['Groups'] = $r;
+              } elseif($pmodel == 'Cos') {
+                // This will look something like $results['Cos']['Departments'][] = $entity
+                $results[$pmodel][$m][] = $r;
+              } elseif($pmodel == 'PersonRoles') {
+                // Although we matched on a PersonRole we're really interested in the Person
+                $results['People'][$r->person_role->person_id][$m] = $r->person_role;
+              } else {
+                // Note we're also keying on the matched model, so this will look something like
+                // $results['People'][123]['Names'] = $entity
+                $results[$pmodel][$r->$pkey][$m] = $r;
+              }
+            }
+          }
+        }
+      }
+
+      if(count($results['Cos']) + count($results['Groups']) + count($results['People']) >= $searchLimit) {
+        $this->Flash->information(__d('result', 'search.limit'));
+      }
+    }
+
+    // It's a single match if there is a single person or person role result,
+    // or if there is a single result overall, redirect to that result.
+    if((count($results['Cos']) == 0
+        && (count($results['People']) + count($results['Groups'])) == 1)
+       || 
+       (count($results['Cos']) == 1
+        && (count($results['People']) + count($results['Groups'])) == 0)) {
+      // Figure out which model matched, as well as the target model to redirect to
+      $matchClass = null;
+      $targetClass = null;
+      $targetRecordId = null;
+
+      foreach(['Cos', 'Groups', 'People'] as $m) {
+        if(!empty($results[$m])) {
+          $targetClass = $m;
+          $targetRecordId = array_key_first($results[$m]);
+          $matchClass = array_key_first($results[$m][$targetRecordId]);
+        }
+      }
+      
+      $this->Flash->information(__d('result',
+                                    'search.exact',
+                                    [filter_var($this->request->getData('q'), FILTER_SANITIZE_SPECIAL_CHARS),
+                                     __d('controller', $matchClass, [1])]));
+
+      // Redirect to the matchClass controller
+      return $this->redirect([
+        'controller'  => Inflector::dasherize($targetClass),
+        'action'      => 'edit',
+        $targetRecordId
+      ]);
+
+      // XXX handle plugins
+    } elseif(count($results['Cos'])
+             + count($results['People'])
+             + count($results['Groups']) == 0) {
+      $this->Flash->information(__d('result', 'search.none'));
+    }
+
+    $this->set('vv_results', $results);
+    $this->set('vv_title', __d('result', 'search.results'));
   }
 }

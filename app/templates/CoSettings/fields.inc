@@ -28,23 +28,27 @@
 <?php
 // This view does not support add or read-only
 if($vv_action == 'edit') {
-  print $this->Field->control('address_required_fields', ['suppressBlank' => true]);
+  print $this->Field->control('required_fields_address', ['suppressBlank' => true]);
   
-  print $this->Field->control('address_default_type_id');
+  print $this->Field->control('default_address_type_id');
   
-  print $this->Field->control('email_address_default_type_id');
+  print $this->Field->control('default_email_address_type_id');
   
-  print $this->Field->control('identifier_default_type_id');
+  print $this->Field->control('default_identifier_type_id');
   
-  print $this->Field->control('name_default_type_id');
+  print $this->Field->control('default_name_type_id');
 
-  print $this->Field->control('name_permitted_fields', ['suppressBlank' => true]);
+  print $this->Field->control('permitted_fields_name', ['suppressBlank' => true]);
   
-  print $this->Field->control('name_required_fields', ['suppressBlank' => true]);
+  print $this->Field->control('required_fields_name', ['suppressBlank' => true]);
 
-  print $this->Field->control('telephone_number_default_type_id');
+  print $this->Field->control('default_telephone_number_type_id');
 
-  print $this->Field->control('telephone_number_permitted_fields', ['suppressBlank' => true]);
+  print $this->Field->control('permitted_fields_telephone_number', ['suppressBlank' => true]);
   
-  print $this->Field->control('url_default_type_id');
+  print $this->Field->control('default_url_type_id');
+  
+  print $this->Field->control('search_global_limit');
+  
+  print $this->Field->control('search_global_limited_models');
 }

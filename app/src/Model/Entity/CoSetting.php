@@ -51,7 +51,7 @@ class CoSetting extends Entity {
    */
   
   public function address_required_fields_array(): array {
-    return explode(",", $this->address_required_fields);
+    return explode(",", $this->required_fields_address);
   }
     
   /**
@@ -62,7 +62,7 @@ class CoSetting extends Entity {
    */
   
   public function name_permitted_fields_array(): array {
-    return explode(",", $this->name_permitted_fields);
+    return explode(",", $this->permitted_fields_name);
   }
   
   /**
@@ -73,7 +73,7 @@ class CoSetting extends Entity {
    */
   
   public function name_required_fields_array(): array {
-    return explode(",", $this->name_required_fields);
+    return explode(",", $this->required_fields_name);
   }
   
   /**
@@ -84,6 +84,6 @@ class CoSetting extends Entity {
    */
   
   public function telephone_number_permitted_fields_array(): array {
-    return explode(",", $this->telephone_number_permitted_fields);
+    return explode(",", $this->permitted_fields_telephone_number);
   }
 }

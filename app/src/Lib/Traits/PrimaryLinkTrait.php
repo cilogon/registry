@@ -330,11 +330,13 @@ trait PrimaryLinkTrait {
     
     if($entity->getSource() == 'People') {
       return $entity->id;
-    } elseif(array_key_exists('person_id', $a)) {
+    } elseif(array_key_exists('person_id', $a)
+             // MVEAs can have multiple parent keys, but not all of them may be set
+             && !empty($entity->person_id)) {
       return $entity->person_id;
     } else {
       $linkEntity = $this->findPrimaryLinkEntity($entity);
-      
+
       if(!empty($linkEntity->person_id)) {
         return $linkEntity->person_id;
       } else {

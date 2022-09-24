@@ -233,3 +233,8 @@ TypeFactory::map('time', StringType::class);
 Inflector::rules('irregular', ['co_terms_and_condition' => 'co_terms_and_conditions']);
 Inflector::rules('irregular', ['cou' => 'cous']);
 Inflector::rules('irregular', ['meta' => 'meta']);
+
+/*
+ * Define some constants
+ */
+define('DEF_GLOBAL_SEARCH_LIMIT', 500);

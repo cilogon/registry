@@ -119,6 +119,24 @@ class UrlsTable extends Table {
   }
   
   /**
+   * Perform a keyword search.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId   CO ID to constrain search to
+   * @param  string $q      String to search for
+   * @param  int    $limit  Search limit
+   * @return Array          Array of search results, as from find('all)
+   */
+
+  public function search(int $coId, string $q, int $limit) {
+    return $this->find()
+                ->where(['Urls.url' => $q])
+                ->limit($limit)
+                ->contain(['People' => 'PrimaryName'])
+                ->all();
+  }
+
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0

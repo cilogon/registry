@@ -56,35 +56,44 @@ msgstr "Comment"
 msgid "Cos.member.not"
 msgstr "{0} (Not a Member)"
 
-msgid "CoSettings.address_default_type_id"
+msgid "CoSettings.default_address_type_id"
 msgstr "Default Address Type"
 
-msgid "CoSettings.address_required_fields"
-msgstr "Address Required Fields"
-
-msgid "CoSettings.email_address_default_type_id"
+msgid "CoSettings.default_email_address_type_id"
 msgstr "Default Email Address Type"
 
-msgid "CoSettings.identifier_default_type_id"
+msgid "CoSettings.default_identifier_type_id"
 msgstr "Default Identifier Type"
 
-msgid "CoSettings.name_default_type_id"
+msgid "CoSettings.default_name_type_id"
 msgstr "Default Name Type"
 
-msgid "CoSettings.name_permitted_fields"
-msgstr "Name Permitted Fields"
-
-msgid "CoSettings.name_required_fields"
-msgstr "Name Required Fields"
-
-msgid "CoSettings.telephone_number_default_type_id"
+msgid "CoSettings.default_telephone_number_type_id"
 msgstr "Default Telephone Number Type"
 
-msgid "CoSettings.telephone_number_permitted_fields"
+msgid "CoSettings.default_url_type_id"
+msgstr "Default URL Type"
+
+msgid "CoSettings.permitted_fields_name"
+msgstr "Name Permitted Fields"
+
+msgid "CoSettings.permitted_fields_telephone_number"
 msgstr "Telephone Number Permitted Fields"
 
-msgid "CoSettings.url_default_type_id"
-msgstr "Default URL Type"
+msgid "CoSettings.required_fields_address"
+msgstr "Address Required Fields"
+
+msgid "CoSettings.required_fields_name"
+msgstr "Name Required Fields"
+
+msgid "CoSettings.search_global_limit"
+msgstr "Global Search Limit"
+
+msgid "CoSettings.search_global_limited_models"
+msgstr "Limit Global Search Scope"
+
+msgid "CoSettings.search_global_limited_models.desc"
+msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
 msgid "country"
 msgstr "Country"

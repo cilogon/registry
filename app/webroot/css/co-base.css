@@ -360,6 +360,11 @@ body.logged-in #top-menu {
   color: var(--cmg-color-red-006);
   border-color: var(--cmg-color-red-007);
 }
+.co-alert.alert-information {
+  background-color: var(--cmg-color-blue-003);
+  color: var(--cmg-color-blue-002);
+  border-color: var(--cmg-color-blue-001);
+}
 .co-alert .alert-icon {
   margin-right: 0.1rem;
 }

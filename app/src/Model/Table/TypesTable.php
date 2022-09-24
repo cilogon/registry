@@ -84,7 +84,7 @@ class TypesTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
     $this->hasMany('CoSettings')
-         ->setForeignKey('name_default_type_id');
+         ->setForeignKey('default_name_type_id');
     $this->hasMany('Addresses');
     $this->hasMany('EmailAddresses');
     $this->hasMany('Identifiers');

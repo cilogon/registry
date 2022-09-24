@@ -74,9 +74,8 @@ class TransmogrifyCommand extends Command {
       'postTable' => 'insertDefaultSettings',
       'cache' => [ 'co_id' ],
       'fieldMap' => [
-        'permitted_fields_name' => 'name_permitted_fields',
-        'required_fields_addr' => 'address_required_fields',
-        'required_fields_name' => 'name_required_fields',
+        'global_search_limit' => 'search_global_limit',
+        'required_fields_addr' => 'required_fields_address',
         'telephone_number_permitted_fields' => '&populate_co_settings_phone',
         // XXX CFM-80 these fields are not yet migrated
         //     be sure to add appropriate fields to 'booleans'
@@ -96,7 +95,6 @@ class TransmogrifyCommand extends Command {
         'elect_strategy_primary_name' => null,
         'co_dashboard_id' => null,
         'co_theme_id' => null,
-        'global_search_limit' => null,
         'person_picker_email_type' => null,
         'person_picker_identifier_type' => null,
         'person_picker_display_types' => null

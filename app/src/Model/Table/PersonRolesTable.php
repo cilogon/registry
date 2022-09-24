@@ -381,6 +381,44 @@ class PersonRolesTable extends Table {
   }  
   
   /**
+   * Perform a keyword search.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId   CO ID to constrain search to
+   * @param  string $q      String to search for
+   * @param  int    $limit  Search limit
+   * @return Array          Array of search results, as from find('all)
+   */
+
+  public function search(int $coId, string $q, int $limit) {
+    // Tokenize $q on spaces
+    $tokens = explode(" ", $q);
+
+    // We take two loops through, the first time we only do a prefix search
+    // (foo%). If that doesn't reach the search limit, we'll do an infix search
+    // the second time around.
+
+    $whereClause = [];
+
+    foreach($tokens as $t) {
+      $whereClause['AND'][] = [
+        'OR' => [
+          'LOWER(PersonRoles.title) LIKE' => '%' . strtolower($tokens[0]) . '%',
+          'LOWER(PersonRoles.organization) LIKE' => '%' . strtolower($tokens[0]) . '%',
+          'LOWER(PersonRoles.department) LIKE' => '%' . strtolower($tokens[0]) . '%'
+        ]
+      ];
+    }
+
+    return $this->find()
+                ->where($whereClause)
+                ->andWhere(['People.co_id' => $coId])
+                ->limit($limit)
+                ->contain(['People' => 'PrimaryName'])
+                ->all();
+  }
+
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0

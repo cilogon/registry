@@ -60,7 +60,7 @@ class NamesController extends MVEAController {
       $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
       
       $this->set('vv_permitted_fields', $settings->name_permitted_fields_array());
-      $this->set('vv_default_type', $settings->name_default_type_id);
+      $this->set('vv_default_type', $settings->default_name_type_id);
     }
     
     return parent::beforeRender($event);

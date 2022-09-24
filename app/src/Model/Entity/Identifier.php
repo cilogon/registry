@@ -49,6 +49,6 @@ class Identifier extends Entity {
    */
   
   public function isLogin(): bool {
-    return $this->login;
+    return $this->login ?? false;
   }
 }

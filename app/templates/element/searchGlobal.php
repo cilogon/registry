@@ -25,22 +25,17 @@
 * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 */
 
-$options = array(
-  // XXX Re-enable and adjust the following when we are ready to implement the search feature  
-  /*'type' => 'get',
-  'url' => array(
-    'plugin' => null,
-    'action' => 'search'
-  )*/
-  // XXX For now, note that this feature is unimplemented 
-  'type' => 'get',
-  'url' => array(
-    'plugin' => null
-  ),
-  'onsubmit' => 'alert("unimplemented"); return false;'
-);
+$options = [
+  'type' => 'post',
+  'url' => [
+    'plugin'      => null,
+    'controller'  => 'dashboards',
+    'action'      => 'search'
+  ]
+];
 
 print $this->Form->create(null, $options);
+print $this->Form->hidden('co_id', ['default' => $vv_cur_co->id]);
 print $this->Form->label('q', __d('field','search.placeholder'), ['class' => 'visually-hidden']);
 print $this->Form->input('q',['id' => 'q','placeholder' => __d('field','search.placeholder')]);
 print $this->Form->button(

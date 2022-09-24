@@ -73,32 +73,32 @@ class CoSettingsTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
-    $this->belongsTo('AddressDefaultTypes')
+    $this->belongsTo('DefaultAddressTypes')
          ->setClassName('Types')
-         ->setForeignKey('address_default_type_id')
+         ->setForeignKey('default_address_type_id')
          // Property is set so ruleValidateCO can find it. We don't use the
          // _id suffix to match Cake's default pattern.
-         ->setProperty('address_default_type');
-    $this->belongsTo('EmailAddressDefaultTypes')
+         ->setProperty('default_address_type');
+    $this->belongsTo('DefaultEmailAddressTypes')
          ->setClassName('Types')
-         ->setForeignKey('email_address_default_type_id')
-         ->setProperty('email_address_default_type');
-    $this->belongsTo('IdentifierDefaultTypes')
+         ->setForeignKey('default_email_address_type_id')
+         ->setProperty('default_email_address_type');
+    $this->belongsTo('DefaultIdentifierTypes')
          ->setClassName('Types')
-         ->setForeignKey('identifier_default_type_id')
-         ->setProperty('identifier_default_type');
-    $this->belongsTo('NameDefaultTypes')
+         ->setForeignKey('default_identifier_type_id')
+         ->setProperty('default_identifier_type');
+    $this->belongsTo('DefaultNameTypes')
          ->setClassName('Types')
-         ->setForeignKey('name_default_type_id')
-         ->setProperty('name_default_type');
-    $this->belongsTo('TelephoneNumberDefaultTypes')
+         ->setForeignKey('default_name_type_id')
+         ->setProperty('default_name_type');
+    $this->belongsTo('DefaultTelephoneNumberTypes')
          ->setClassName('Types')
-         ->setForeignKey('telephone_number_default_type_id')
-         ->setProperty('telephone_number_default_type');
-    $this->belongsTo('UrlDefaultTypes')
+         ->setForeignKey('default_telephone_number_type_id')
+         ->setProperty('default_telephone_number_type');
+    $this->belongsTo('DefaultUrlTypes')
          ->setClassName('Types')
-         ->setForeignKey('url_default_type_id')
-         ->setProperty('url_default_type');
+         ->setForeignKey('default_url_type_id')
+         ->setProperty('default_url_type');
     
     $this->setDisplayField('co_id');
     
@@ -108,45 +108,45 @@ class CoSettingsTable extends Table {
     $this->setRedirectGoal('self');
     
     $this->setAutoViewVars([
-      'addressDefaultTypes' => [
+      'defaultAddressTypes' => [
         'type' => 'type',
         'attribute' => 'Addresses.type'
       ],
-      'addressRequiredFields' => [
-        'type' => 'enum',
-        'class' => 'RequiredAddressFieldsEnum'
-      ],
-      'emailAddressDefaultTypes' => [
+      'defaultEmailAddressTypes' => [
         'type' => 'type',
         'attribute' => 'EmailAddresses.type'
       ],
-      'identifierDefaultTypes' => [
+      'defaultIdentifierTypes' => [
         'type' => 'type',
         'attribute' => 'Identifiers.type'
       ],
-      'nameDefaultTypes' => [
+      'defaultNameTypes' => [
         'type' => 'type',
         'attribute' => 'Names.type'
       ],
-      'namePermittedFields' => [
-        'type' => 'enum',
-        'class' => 'PermittedNameFieldsEnum'
-      ],
-      'nameRequiredFields' => [
-        'type' => 'enum',
-        'class' => 'RequiredNameFieldsEnum'
-      ],
-      'telephoneNumberDefaultTypes' => [
+      'defaultTelephoneNumberTypes' => [
         'type' => 'type',
         'attribute' => 'TelephoneNumbers.type'
       ],
-      'telephoneNumberPermittedFields' => [
+      'defaultUrlTypes' => [
+        'type' => 'type',
+        'attribute' => 'Urls.type'
+      ],
+      'permittedFieldsNames' => [
+        'type' => 'enum',
+        'class' => 'PermittedNameFieldsEnum'
+      ],
+      'permittedFieldsTelephoneNumbers' => [
         'type' => 'enum',
         'class' => 'PermittedTelephoneNumberFieldsEnum'
       ],
-      'urlDefaultTypes' => [
-        'type' => 'type',
-        'attribute' => 'Urls.type'
+      'requiredFieldsAddresses' => [
+        'type' => 'enum',
+        'class' => 'RequiredAddressFieldsEnum'
+      ],
+      'requiredFieldsNames' => [
+        'type' => 'enum',
+        'class' => 'RequiredNameFieldsEnum'
       ]
     ]);
 
@@ -181,16 +181,18 @@ class CoSettingsTable extends Table {
     
     $defaultSettings = [
       'co_id'                             => $coId,
-      'address_default_type_id'           => null,
-      'address_required_fields'           => RequiredAddressFieldsEnum::Street,
-      'email_address_default_type_id'     => null,
-      'identifier_default_type_id'        => null,
-      'name_default_type_id'              => null,
-      'name_permitted_fields'             => PermittedNameFieldsEnum::HGMFS,
-      'name_required_fields'              => RequiredNameFieldsEnum::Given,
-      'telephone_number_default_type_id'  => null,
-      'telephone_number_permitted_fields' => PermittedTelephoneNumberFieldsEnum::CANE,
-      'url_default_type_id'               => null
+      'default_address_type_id'           => null,
+      'default_email_address_type_id'     => null,
+      'default_identifier_type_id'        => null,
+      'default_name_type_id'              => null,
+      'default_telephone_number_type_id'  => null,
+      'default_url_type_id'               => null,
+      'permitted_fields_name'             => PermittedNameFieldsEnum::HGMFS,
+      'permitted_fields_telephone_number' => PermittedTelephoneNumberFieldsEnum::CANE,
+      'required_fields_address'           => RequiredAddressFieldsEnum::Street,
+      'required_fields_name'              => RequiredNameFieldsEnum::Given,
+      'search_global_limit'               => DEF_GLOBAL_SEARCH_LIMIT,
+      'search_limited_models'             => false
 // XXX to add new settings, set a default here, then add a validation rule below
 //     also update data model documentation
       // 'disable_expiration'         => false,
@@ -209,7 +211,6 @@ class CoSettingsTable extends Table {
       // 'enable_empty_cou'           => false,
       // 'theme_stacking'             => SuspendableStatusEnum::Suspended,
       // 'co_theme_id'                => null,
-      // 'global_search_limit'        => DEF_GLOBAL_SEARCH_LIMIT
     ];
 
     // Check if we already have Settings for this CO
@@ -254,7 +255,7 @@ class CoSettingsTable extends Table {
     $orclause = [];
     
     foreach($this->getSchema()->columns() as $col) {
-      if(preg_match('/_default_type_id$/', $col)) {
+      if(preg_match('/^default_[a-z]+_type_id$/', $col)) {
         $orclause[] = [$col => $id];
       }
     }
@@ -273,56 +274,66 @@ class CoSettingsTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
-    $validator->add('address_default_type_id', [
+    $validator->add('default_address_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('address_default_type_id');
+    $validator->allowEmptyString('default_address_type_id');
     
-    $validator->add('address_required_fields', [
-      'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]
-    ]);
-    $validator->notEmptyString('address_required_fields');
-    
-    $validator->add('email_address_default_type_id', [
+    $validator->add('default_email_address_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('email_address_default_type_id');
+    $validator->allowEmptyString('default_email_address_type_id');
     
-    $validator->add('identifier_default_type_id', [
+    $validator->add('default_identifier_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('identifier_default_type_id');
+    $validator->allowEmptyString('default_identifier_type_id');
     
-    $validator->add('name_default_type_id', [
+    $validator->add('default_name_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('name_default_type_id');
+    $validator->allowEmptyString('default_name_type_id');
     
-    $validator->add('name_permitted_fields', [
+    $validator->add('default_telephone_number_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('default_telephone_number_type_id');
+    
+    $validator->add('default_url_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('default_url_type_id');
+    
+    $validator->add('permitted_name_fields', [
       'content' => ['rule' => ['inList', PermittedNameFieldsEnum::getConstValues()]]
     ]);
-    $validator->notEmptyString('name_permitted_fields');
+    $validator->notEmptyString('permitted_name_fields');
     
-    $validator->add('name_required_fields', [
-      'content' => ['rule' => ['inList', RequiredNameFieldsEnum::getConstValues()]]
-    ]);
-    $validator->notEmptyString('name_required_fields');
-    
-    $validator->add('telephone_number_default_type_id', [
-      'content' => ['rule' => 'isInteger']
-    ]);
-    $validator->allowEmptyString('telephone_number_default_type_id');
-    
-    $validator->add('telephone_number_permitted_fields', [
+    $validator->add('permitted_telephone_number_fields', [
       'content' => ['rule' => ['inList', PermittedTelephoneNumberFieldsEnum::getConstValues()]]
     ]);
-    $validator->notEmptyString('telephone_number_permitted_fields');
-    
-    $validator->add('url_default_type_id', [
-      'content' => ['rule' => 'isInteger']
+    $validator->notEmptyString('permitted_fields_telephone_number');
+
+    $validator->add('required_fields_address', [
+      'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]
     ]);
-    $validator->allowEmptyString('url_default_type_id');
+    $validator->notEmptyString('required_fields_address');
     
+    $validator->add('required_fields_name', [
+      'content' => ['rule' => ['inList', RequiredNameFieldsEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('required_name_fields');
+    
+    $validator->add('search_global_limited_models', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('search_global_limited_models');
+    
+    $validator->add('search_global_limit', [
+      'content' => ['rule' => ['comparison', '>', 0]]
+    ]);
+    $validator->notEmptyString('search_global_limit');
+
     return $validator; 
   }
 }

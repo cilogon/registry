@@ -74,16 +74,18 @@
       "columns": {
         "id": {},
         "co_id": {},
-        "address_required_fields": { "type": "string", "size": 160 },
-        "address_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-        "email_address_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-        "identifier_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-        "name_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-        "name_permitted_fields": { "type": "string", "size": 160 },
-        "name_required_fields": { "type": "string", "size": 160 },
-        "telephone_number_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-        "telephone_number_permitted_fields": { "type": "string", "size": 160 },
-        "url_default_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } }
+        "default_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "default_email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "default_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "default_name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "default_telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "default_url_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "permitted_fields_name": { "type": "string", "size": 160 },
+        "permitted_fields_telephone_number": { "type": "string", "size": 160 },
+        "required_fields_address": { "type": "string", "size": 160 },
+        "required_fields_name": { "type": "string", "size": 160 },
+        "search_global_limit": { "type": "integer" },
+        "search_global_limited_models": { "type": "boolean" }
       },
       "indexes": {
         "co_settings_i1": { "columns": [ "co_id" ]},
@@ -92,13 +94,13 @@
             "We don't really need an index, but DBAL will create one for all foreign keys if none exists",
             "typeIsDefault will make queries using these columns, but rarely and won't usually have enough rows to need the index"
           ],
-          "columns": [ "name_default_type_id" ]
+          "columns": [ "default_name_type_id" ]
         },
-        "co_settings_i3": { "columns": [ "email_address_default_type_id" ] },
-        "co_settings_i4": { "columns": [ "identifier_default_type_id" ] },
-        "co_settings_i5": { "columns": [ "address_default_type_id" ] },
-        "co_settings_i6": { "columns": [ "telephone_number_default_type_id" ] },
-        "co_settings_i7": { "columns": [ "url_default_type_id" ] }
+        "co_settings_i3": { "columns": [ "default_email_address_type_id" ] },
+        "co_settings_i4": { "columns": [ "default_identifier_type_id" ] },
+        "co_settings_i5": { "columns": [ "default_address_type_id" ] },
+        "co_settings_i6": { "columns": [ "default_telephone_number_type_id" ] },
+        "co_settings_i7": { "columns": [ "default_url_type_id" ] }
       }
     },
     

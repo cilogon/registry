@@ -51,7 +51,7 @@ class DashboardsTable extends Table {
     $this->addBehavior('Timezone');
     
     // Dashboards are configuration
-    $this->setIsConfigurationTable(true);
+    $this->setIsConfigurationTable(false);
     
     // Define associations
     $this->belongsTo('Cos');
@@ -60,7 +60,7 @@ class DashboardsTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-    $this->setAllowUnkeyedPrimaryCO(['configuration', 'dashboard']);
+    $this->setAllowUnkeyedPrimaryCO(['configuration', 'dashboard', 'search']);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
@@ -73,7 +73,8 @@ class DashboardsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'configuration' => ['platformAdmin', 'coAdmin'],
-        'dashboard'     => ['coMember']
+        'dashboard'     => ['coMember'],
+        'search'        => ['platformAdmin', 'coAdmin']
   /*      'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']*/
       ]

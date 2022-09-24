@@ -42,6 +42,9 @@ msgstr "Notice: "
 msgid "flash.error"
 msgstr "Error: "
 
+msgid "flash.information"
+msgstr "Information: "
+
 msgid "flash.success"
 msgstr "Success: "
 
