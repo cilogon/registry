@@ -756,14 +756,10 @@ a.action-menu-toggle {
 }
 .field-actions a.dropdown-item {
   padding: 0.5em 1em;
-  color: var(--cmg-color-blue-002);
 }
 #main .field-actions a.dropdown-item:hover {
   color: var(--cmg-color-black);
   text-decoration: none;
-}
-.dropdown-item {
-  background-color: var(--cmg-color-lightgray-011);
 }
 .dropdown-item.active, 
 .dropdown-item:active {
@@ -951,7 +947,7 @@ ul.form-list li {
   border-bottom: 1px solid var(--cmg-color-lightgray-005);
   border-right: 1px solid var(--cmg-color-lightgray-005);
   margin: 0;
-  padding: 0.5em;
+  padding: 0.75em;
   list-style: none;
 }
 .cm-time-picker-vals ul li:nth-child(even),
@@ -964,9 +960,6 @@ ul.form-list li.fields-submit {
 }
 ul.form-list .field-name {
   display: block;
-}
-ul.form-list .field-title {
-  font-weight: bold;
 }
 ul.form-list .field-info {
   position: relative;
