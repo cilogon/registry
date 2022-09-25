@@ -60,6 +60,18 @@ msgstr "Staff"
 msgid "EduPersonAffiliationEnum.student"
 msgstr "Student"
 
+msgid "GroupTypeEnum.MA"
+msgstr "Active Members"
+
+msgid "GroupTypeEnum.A"
+msgstr "Admins"
+
+msgid "GroupTypeEnum.M"
+msgstr "All Members"
+
+msgid "GroupTypeEnum.S"
+msgstr "Standard"
+
 msgid "LanguageEnum.af"
 msgstr "Afrikaans"
 

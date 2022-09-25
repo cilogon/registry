@@ -62,33 +62,6 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
 
-function _column_key($modelsName, $c, $tz=null) {
-  if(strpos($c, "_id", strlen($c)-3)) {
-    // Key is of the form field_id, use .ct label instead
-    $k = Inflector::camelize(Inflector::pluralize(substr($c, 0, strlen($c)-3)));
-    
-    return __d('controller', $k, [1]);
-  }
-  
-  // Look for a model specific key first
-  $label = __d('field', $modelsName.'.'.$c);
-  
-  if($label != $modelsName.'.'.$c) {
-    return $label;
-  }
-  
-  if($tz) {
-    // If there is a timezone aware label, use that
-    $label = __d('field', $c.'.tz', [$tz]);
-    
-    if($label != $c.'.tz') {
-      return $label;
-    }
-  }
-  
-  // Otherwise look for the general key
-  return __d('field', $c);
-}
 ?>
 <div class="titleNavContainer">
   <div class="pageTitle">
@@ -197,7 +170,7 @@ function _column_key($modelsName, $c, $tz=null) {
               print '<span class="row-link-heading">';
             }
             
-            $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
+            $label = !empty($cfg['label']) ? $cfg['label'] : \App\Lib\Util\StringUtilities::columnKey($modelsName, $col, $vv_tz);
             
             if(isset($cfg['sortable']) && $cfg['sortable']) {
               if(is_string($cfg['sortable'])) {
@@ -422,7 +395,7 @@ function _column_key($modelsName, $c, $tz=null) {
                     } else {
                       $buttonAttrs['data-bs-content'] = $cfg['button']['popover'];
                     }
-                    $label = !empty($cfg['label']) ? $cfg['label'] : _column_key($modelsName, $col, $vv_tz);
+                    $label = !empty($cfg['label']) ? $cfg['label'] : \App\Lib\Util\StringUtilities::columnKey($modelsName, $col, $vv_tz);
                     $buttonAttrs['title'] = $label;
                     $buttonAttrs['data-bs-toggle'] = 'popover';
                     $buttonAttrs['data-bs-container'] = 'body';

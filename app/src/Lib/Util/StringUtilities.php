@@ -29,7 +29,53 @@ declare(strict_types = 1);
 
 namespace App\Lib\Util;
 
+use \Cake\Utility\Inflector;
+
 class StringUtilities {
+  /**
+   * Construct the Column human-readable key
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string  $modelsName           The name of the Model
+   * @param  string  $c                    The name of the column
+   * @param  string  $tz                   The timezone
+   * @param  boolean $useCustomClMdlLabel  Whether to use a custom `Model.column` field entry or rely on the default
+   * @return string  Column friendly name
+   */
+
+  public static function columnKey($modelsName, $c, $tz=null, $useCustomClMdlLabel=false): string {
+    if(strpos($c, "_id", strlen($c)-3)) {
+      // Key is of the form field_id, use .ct label instead
+      $k = Inflector::camelize(Inflector::pluralize(substr($c, 0, strlen($c)-3)));
+
+      return __d('controller', $k, [1]);
+    }
+
+    // Look for a model specific key first
+    $label = __d('field', $modelsName.'.'.$c);
+
+    if($label != $modelsName.'.'.$c && !$useCustomClMdlLabel) {
+      return $label;
+    }
+
+    if($tz) {
+      // If there is a timezone aware label, use that
+      $label = __d('field', $c.'.tz', [$tz]);
+
+      if($label != $c.'.tz') {
+        return $label;
+      }
+    }
+
+    // XXX for the case of eduPersonAffiliation names we could
+    //     consider the Inflector solution. First underscore and then
+    //     Humanize
+
+    // Otherwise look for the general key
+    $cfield = __d('field', $c);
+    return ($cfield !== $c) ? $cfield : \Cake\Utility\Inflector::humanize($c);
+  }
+
   // The following two utilities provide base64 encoding and decoding for
   // strings that might contain special characters that could interfere with
   // URLs. base64 can generate reserved characters, so we handle those specially

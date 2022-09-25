@@ -42,7 +42,8 @@ trait SearchFilterTrait {
    * @return array Array of permitted search attributes and configuration elements needed for display
    */
   
-  public function getSearchableAttributes(): array {
+  public function getSearchableAttributes(string $controller, string $vv_tz=null): array {
+    $modelname = Inflector::classify(Inflector::underscore($controller));
     foreach ($this->filterMetadataFields() as $column => $type) {
       // If the column is an array then we are accessing the Metadata fields. Skip
       if(is_array($type)) {
@@ -50,7 +51,7 @@ trait SearchFilterTrait {
       }
       $this->searchFilters[$column] = [
         'type' => $type,
-        'label' => (__d('field', $column) ?? Inflector::humanize($column))
+        'label' => \App\Lib\Util\StringUtilities::columnKey($modelname, $column, $vv_tz, true)
       ];
 
       // For the date fields we search ranges
@@ -96,7 +97,7 @@ trait SearchFilterTrait {
         return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {
           return $exp->between($attribute, "'" . $search[0] . "'", "'" . $search[1] . "'");
         });
-        // The starts at is non empty. So the data should be greater than the starts_at date
+        // The starts at is non-empty. So the data should be greater than the starts_at date
       } elseif(!empty($search[0])
         && empty($search[1])) {
         return $query->where(function (\Cake\Database\Expression\QueryExpression $exp, \Cake\ORM\Query $query) use ($attribute, $search) {

@@ -546,7 +546,7 @@ class AppController extends Controller {
     // $this->name = Models
     $modelsName = $this->name;
     
-    // See if we've collected it from the browser in a previous page load. Otherwise
+    // See if we've collected it from the browser in a previous page load. Otherwise,
     // use the system default. If the user set a preferred timezone, we'll catch that below.
     
     $tz = date_default_timezone_get();
