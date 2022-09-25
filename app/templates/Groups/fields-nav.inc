@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Names Actions Menu Configuration
+ * COmanage Registry Groups Edit Navigation
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,15 +25,14 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// Index top-links appear as top links in the index view
-$indexTopLinks = [];
-
-// Actions appear as row-level menu items in the index view gear icon and as a tab menu or top-link menu on 
-// edit and view pages based on user permissions.
-$actions = [
+$topLinks = [
   [
-    'action' => 'primary',
-    'icon' => 'publish',
-    'if' => 'notPrimary'
+    'icon' => 'sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'reconcile'),
+    'link' => [
+      'action' => 'reconcile'
+    ],
+    'class' => ''
   ]
 ];

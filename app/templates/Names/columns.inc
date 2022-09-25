@@ -39,7 +39,19 @@ $indexColumns = [
   ]
 ];
 
+// $topLinks appear as an upper right menu
+$topLinks = [];
+
+// $rowActions appear as row-level menu items in the index view gear icon
+$rowActions = [
+  [
+    'action' => 'primary',
+    'icon' => 'publish',
+    'if' => 'notPrimary'
+  ]
+];
+
+// TODO: develop bulk actions. For now, use a placeholder. 
 $bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
   'delete' => true
 ];

@@ -39,7 +39,44 @@ $indexColumns = [
   ]
 ];
 
+// $topLinks appear as an upper right menu
+$topLinks = [];
+
+// $rowActions appear as row-level menu items in the index view gear icon
+$rowActions = [
+  [
+    'controller' => 'group_members',
+    'action' => 'index',
+    'icon' => 'people'
+  ],
+  [
+    'controller' => 'group_owners',
+    'action' => 'index',
+    'icon' => 'settings'
+  ],
+  [
+    'controller' => 'group_nestings',
+    'action' => 'index',
+    'icon' => 'group_add'
+  ],
+  [
+    'controller' => 'history_records',
+    'action' => 'index',
+    'icon' => 'history'
+  ],
+  [
+    'controller' => 'identifiers',
+    'action' => 'index',
+    'icon' => 'label',
+    'if' => 'notAutomatic'
+  ],
+  [
+    'action' => 'reconcile',
+    'icon' => 'sync'
+  ]
+];
+
+// TODO: develop bulk actions. For now, use a placeholder. 
 $bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
   'delete' => true
 ];

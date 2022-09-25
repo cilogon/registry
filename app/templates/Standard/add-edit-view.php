@@ -36,6 +36,22 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
 
 // If you're looking to set a custom $vv_title, you might be able to use
 // generateDisplayField() on the Table instead
+
+// Include subnavigation structures on edit pages
+// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc.
+if($vv_action == 'edit') {
+  if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc")) {
+    include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc");
+  }  
+}
+
+// $linkFilter is used for models that belong to a specific parent model (eg: co_id)
+$linkFilter = [];
+
+if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
+  $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
+}
+
 ?>
 <div class="titleNavContainer">
   <div class="pageTitle">
@@ -46,7 +62,23 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
     $action_args = array();
     $action_args['vv_attr_id'] =  $vv_obj->id;
     
-    // TODO: More actions in the config? Add them to $action_args['vv_actions'][] here.
+    foreach(($topLinks ?? []) as $t) {
+      if($vv_permissions[ $t['link']['action'] ]) {
+        // We need to inject $linkFilter, but not overwrite any existing query params
+        if(!empty($t['link']['?'])) {
+          $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+        } else {
+          $t['link']['?'] = $linkFilter;
+        }
+  
+        $action_args['vv_actions'][] = [
+          'order' => $this->Menu->getMenuOrder($t['order']),
+          'icon' => $this->Menu->getMenuIcon($t['icon']),
+          'url' => $this->Url->build($t['link']),
+          'label' => $t['label'],
+        ];
+      }
+    }
   
     // Delete
     if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {

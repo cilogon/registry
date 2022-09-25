@@ -51,9 +51,6 @@ $linkActions = ['edit', 'view'];
 
 // Read the index configuration ($indexColumns) and the associated actions for this model
 include(ROOT . DS . "templates" . DS . $modelsName . DS . "columns.inc");
-if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "actions.inc")) {
-  include(ROOT . DS . "templates" . DS . $modelsName . DS . "actions.inc");
-}
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
@@ -89,7 +86,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
       'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
     ];
 
-    foreach(($indexTopLinks ?? []) as $t) {
+    foreach(($topLinks ?? []) as $t) {
       if($vv_permissions[ $t['link']['action'] ]) {
         // We need to inject $linkFilter, but not overwrite any existing query params
         if(!empty($t['link']['?'])) {
@@ -149,14 +146,14 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
 <div class="table-container">
   <?php 
     $indexTableClasses = 'index-table list-mode';
-    if (!empty($actions)) {
+    if (!empty($rowActions)) {
       $indexTableClasses .= ' with-actions';  
     }
   ?>  
   <table id="<?= $tableName . '-table'; ?>" class="<?= $indexTableClasses; ?>">
     <thead>
       <tr>
-        <?php if(!empty($actions)): ?>
+        <?php if(!empty($rowActions)): ?>
           <th class="actions"></th>
         <?php endif; ?>
         <?php
@@ -205,7 +202,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
     <tbody>
     <?php foreach($$tableName as $entity): ?>
       <tr>
-      <?php if(!empty($actions)): ?>
+      <?php if(!empty($rowActions)): ?>
       <?php
         // Action list for command menu dropdown / button listing
         $action_args = array();
@@ -214,7 +211,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
     // Insert actions as per the .inc file
     // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
         $actionOrderDefault = $this->Menu->getMenuOrder('Default');
-        foreach($actions as $a) {
+        foreach($rowActions as $a) {
           $ok = false;
           if(!empty($a['controller'])) {
             $tableName = Inflector::camelize($a['controller']);

@@ -40,7 +40,80 @@ $indexColumns = [
   ]
 ];
 
+// $topLinks appear as an upper right menu
+$topLinks = [];
+
+// $rowActions appear as row-level menu items in the index view gear icon
+$rowActions = [
+  [
+    'controller' => 'names',
+    'action' => 'index',
+    'icon' => 'account_box',
+    'iconClass' => 'material-icons-outlined',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'email_addresses',
+    'action' => 'index',
+    'icon' => 'email',
+    'iconClass' => 'material-icons-outlined',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'identifiers',
+    'action' => 'index',
+    'icon' => 'fingerprint',
+    'type' => 'tab',
+    'class' => 'bottom-border'
+  ],
+  [
+    'controller' => 'person_roles',
+    'action' => 'index',
+    'icon' => 'emoji_people',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'external_identities',
+    'action' => 'index',
+    'icon' => 'system_update_alt',
+    'type' => 'tab',
+    'class' => 'bottom-border'
+  ],
+  [
+    'controller' => 'ad_hoc_attributes',
+    'action' => 'index',
+    'icon' => 'check_box',
+    'iconClass' => 'material-icons-outlined',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'addresses',
+    'action' => 'index',
+    'icon' => 'contact_mail',
+    'iconClass' => 'material-icons-outlined',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'history_records',
+    'action' => 'index',
+    'icon' => 'history',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'telephone_numbers',
+    'action' => 'index',
+    'icon' => 'phone',
+    'type' => 'tab'
+  ],
+  [
+    'controller' => 'urls',
+    'action' => 'index',
+    'icon' => 'link',
+    'type' => 'tab'
+  ]
+];
+
+// TODO: develop bulk actions. For now, use a placeholder. 
 $bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
   'expunge' => true
 ];

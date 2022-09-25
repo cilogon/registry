@@ -41,7 +41,23 @@ $indexColumns = [
   ]
 ];
 
+// $topLinks appear as an upper right menu
+$topLinks = [
+  [
+    'icon'  => 'settings_backup_restore',
+    'order' => 'Default',
+    'label' => __d('operation', 'Types.restore'),
+    'link'  => [
+      'action' => 'restore'
+    ],
+    'class' => ''
+  ]
+];
+
+// $rowActions appear as row-level menu items in the index view gear icon
+$rowActions = [];
+
+// TODO: develop $bulkActions. For now, use a placeholder. 
 $bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
   'delete' => true
 ];
