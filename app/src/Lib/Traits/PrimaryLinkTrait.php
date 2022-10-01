@@ -341,11 +341,14 @@ trait PrimaryLinkTrait {
         return $linkEntity->person_id;
       } else {
         // Our parent link does not directly point to Person, so try recursing
-        // on our parent table
+        // on our parent table, though we might also not have a parent that points
+        // to a Person (eg Group -> Co).
         
         $LinkTable = TableRegistry::getTableLocator()->get($linkEntity->getSource());
-        
-        return $LinkTable->lookupPersonId($linkEntity);
+
+        if(method_exists($LinkTable, "lookupPersonId")) {
+          return $LinkTable->lookupPersonId($linkEntity);
+        }
       }
     }
     

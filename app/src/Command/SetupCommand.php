@@ -67,10 +67,9 @@ class SetupCommand extends Command
   /**
    * Execute the Setup Command.
    *
-   * @param   Arguments  $args  Command Arguments
-   * @param   ConsoleIo  $io    Console IO
-   *
    * @since  COmanage Registry v5.0.0
+   * @param  Arguments  $args  Command Arguments
+   * @param  ConsoleIo  $io    Console IO
    */
 
   public function execute(Arguments $args, ConsoleIo $io)
@@ -107,8 +106,19 @@ class SetupCommand extends Command
       $username = $io->ask(__d('command', 'opt.admin-username'));
     }
     
+    // Setup the COmanage CO
     $coTable = $this->getTableLocator()->get('Cos');
     
+    $io->out(__d('command', 'se.db.co'));
+
+    $co_id = $coTable->setupCOmanageCO();
+
+    if(is_null($co_id)) {
+      throw new \RuntimeException('setup.co.comanage');
+    }
+
+    $io->out(__d('command', 'se.db.co.done', [$co_id]));
+
     // Add the first CMP Administrator
     
     $io->out(__d('command', 'se.db.cmpadmin'));
