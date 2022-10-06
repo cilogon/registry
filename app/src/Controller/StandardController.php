@@ -117,6 +117,8 @@ class StandardController extends AppController {
     // $table = the actual table object
     $table = $this->$modelsName;
     
+    // Provide some hints to the views
+    $this->getFieldTypes();
     $this->getRequiredFields();
     
     // Set the display field as a view var to make it available to the views
@@ -376,6 +378,29 @@ class StandardController extends AppController {
     return $this->redirect($redirect);
   }
   
+  /**
+   * Make a list of fields types suitable for FieldHelper
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  protected function getFieldTypes() {
+    // $this->name = Models (ie: from ModelsTable)
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+
+    $schema = $table->getSchema();
+
+    // We don't pass the schema object as is, partly because cake might change it
+    // and partly to simplify access to the parts the views (FieldHelper, really)
+    // actually need.
+
+    // Note the schema does have field lengths for strings, but typeMap
+    // doesn't return them and we're not doing anything with them at the moment.
+    $this->set('vv_field_types', $schema->typeMap());
+  }
+
   /**
    * Build a list of required fields suitable for FieldHelper
    *
