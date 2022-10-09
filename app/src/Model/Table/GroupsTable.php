@@ -252,7 +252,7 @@ class GroupsTable extends Table {
     
     // AR-Group-2 A Group cannot be set to Suspended if it is nested into a
     // Target Group or is a Target Group for a nesting. This and AR-Group-3
-    // are to avoid unexpected consequences from implicitly undoing anesting...
+    // are to avoid unexpected consequences from implicitly undoing a nesting...
     // the administrator must do that first.
     $rules->addUpdate([$this, 'ruleIsNested'],
                        'isNestedUpdate',

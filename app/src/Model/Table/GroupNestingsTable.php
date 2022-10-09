@@ -103,13 +103,13 @@ class GroupNestingsTable extends Table {
    * specified source.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int   $id Group ID (of source Group)
-   * @return array     Array of available target Groups, as returned by find('list')
+   * @param  int   $groupId Group ID (of source Group)
+   * @return array          Array of available target Groups, as returned by find('list')
    */
   
   public function availableGroups(int $groupId): array {
     // Find the CO for $id. This will throw an exception if not found.
-    $sourceGroup = $this->Groups->get($id);
+    $sourceGroup = $this->Groups->get($groupId);
     
     // We don't remove groups that are already nested from the list -- we'll
     // catch those in rule validation.
@@ -120,7 +120,7 @@ class GroupNestingsTable extends Table {
                           // AR-Group-Nesting-1 Only Active groups may be nested
                           'Groups.status'     => SuspendableStatusEnum::Active,
                           // AR-Group-Nesting-2 A group may not nest into itself
-                          'Groups.id IS NOT'  => $id,
+                          'Groups.id IS NOT'  => $groupId,
                           // AR-Group-Nesting-3 Automatic groups cannot be targets
                           'OR' => [
                             'Groups.group_type NOT IN' => [GroupTypeEnum::ActiveMembers, GroupTypeEnum::AllMembers],

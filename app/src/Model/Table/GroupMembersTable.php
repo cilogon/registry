@@ -386,7 +386,10 @@ class GroupMembersTable extends Table {
                           ->all();
     
     // We convert $groupNestings to an array to avoid any confusion with the
-    // nested foreach() loops
+    // nested foreach() loops. Note that (unlike v4) we do not need to check for
+    // suspended Group status here since Groups cannot be suspended if they are
+    // nested (AR-Group-2), and cannot be nested if they are suspended (AR-GroupNesting-1).
+    // (This prevents admins from inadvertantly messing things up.)
     foreach($groupNestings->toArray() as $groupNesting) {
       $shouldBe = false;      // Should $person be a member of $targetGroup?
       $negated = false;       // $person is ineligible for $targetGroup due to any negative membership
