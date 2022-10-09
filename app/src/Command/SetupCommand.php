@@ -76,20 +76,24 @@ class SetupCommand extends Command
   {
     global $argv;
 
-    // Check if the security salt file already exists, and if so abort.
+    $force = $args->getOption('force');
 
-    $securitySaltFile = LOCAL . DS . "config" . DS . "security.salt";
-    
-    if(file_exists($securitySaltFile)) {
+    // Check if the COmanage CO already exists, and if so abort.
+
+    $coTable = $this->getTableLocator()->get('Cos');
+    $query = $coTable->find();
+    $comanageCO = $coTable->findCOmanageCO($query)->first();
+
+    if(!is_null($comanageCO)) {
       $io->out(__d('command', 'se.already'));
 
-      if(!$args->getOption('force')) {
+      if(!$force) {
         exit;
       }
     }
-    
-    // Collect the admin info before we try to do anything
-    
+
+    // Collect the admin info before we try to do anything.
+
     $givenName = $args->getOption('admin-given-name');
     $sn = $args->getOption('admin-family-name');
     $username = $args->getOption('admin-username');
@@ -106,20 +110,22 @@ class SetupCommand extends Command
       $username = $io->ask(__d('command', 'opt.admin-username'));
     }
     
-    // Setup the COmanage CO
-    $coTable = $this->getTableLocator()->get('Cos');
+    // Setup the COmanage CO.
     
-    $io->out(__d('command', 'se.db.co'));
+    if(is_null($comanageCO)) {
+      $io->out(__d('command', 'se.db.co'));
+      $co_id = $coTable->setupCOmanageCO();
 
-    $co_id = $coTable->setupCOmanageCO();
+      if(is_null($co_id)) {
+        throw new \RuntimeException('setup.co.comanage');
+      }
 
-    if(is_null($co_id)) {
-      throw new \RuntimeException('setup.co.comanage');
+      $io->out(__d('command', 'se.db.co.done', [$co_id]));
+    } else {
+      $co_id = $comanageCO->id;
     }
 
-    $io->out(__d('command', 'se.db.co.done', [$co_id]));
-
-    // Add the first CMP Administrator
+    // Add the first CMP Administrator.
     
     $io->out(__d('command', 'se.db.cmpadmin'));
     
@@ -170,9 +176,22 @@ class SetupCommand extends Command
       'group_id' => $coTable->Groups->getAdminGroupId(coId: $co_id)
     ],
     ['validate' => false])];
-    
+
     $coTable->People->save($person);
-    
+
+    // Write the salt file if not set in environment and file does not exist.
+    if(!env('SECURITY_SALT', null)) {
+      $securitySaltFile = LOCAL . "config" . DS . "security.salt";
+
+      if(file_exists($securitySaltFile)) {
+        $io->out(__d('command', 'se.already'));
+      } else {
+        $salt = substr(bin2hex(random_bytes(1024)), 0, 40);
+        file_put_contents($securitySaltFile, $salt);
+        $io->out(__d('command', 'se.salt', [$securitySaltFile]));
+      }
+    }
+
     $io->out(__d('command', 'se.done'));
   }
 }

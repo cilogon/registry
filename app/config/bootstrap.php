@@ -168,14 +168,22 @@ ConnectionManager::setConfig(Configure::consume('Datasources'));
 TransportFactory::setConfig(Configure::consume('EmailTransport'));
 Mailer::setConfig(Configure::consume('Email'));
 Log::setConfig(Configure::consume('Log'));
-// Set the salt based on our local configuration
-$securitySaltFile = LOCAL . DS . "config" . DS . "security.salt";
-// If the file doesn't exist yet, we're probably in SetupCommand, which will create it
-if(file_exists($securitySaltFile)) {
-  $salt = file_get_contents($securitySaltFile);
+
+// Set the salt from the environment if available, else from the filesystem,
+// and if the salt cannot be determined we're probably in SetupCommand,
+// which will create it.
+$salt = env('SECURITY_SALT', null);
+
+if(is_null($salt)) {
+  $securitySaltFile = LOCAL . "config" . DS . "security.salt";
+  if(file_exists($securitySaltFile)) {
+    $salt = file_get_contents($securitySaltFile);
+  }
+}
+
+if($salt) {
   Security::setSalt($salt);
 }
-//Security::setSalt(Configure::consume('Security.salt'));
 
 /*
  * Setup detectors for mobile and tablet.
