@@ -43,7 +43,8 @@ class PeopleController extends StandardController {
 // so basically a mess... let's just use family name for now and wait for
 // (and we haven't even gotten to other languages like Hindi)
 // someone to file an RFE
-      'PrimaryName.family' => 'asc'
+      'PrimaryName.family' => 'asc',
+      'PrimaryName.given' => 'asc'
     ],
     'sortableFields' => [
       'PrimaryName.given',
