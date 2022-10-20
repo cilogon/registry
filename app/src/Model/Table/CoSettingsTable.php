@@ -91,6 +91,10 @@ class CoSettingsTable extends Table {
          ->setClassName('Types')
          ->setForeignKey('default_name_type_id')
          ->setProperty('default_name_type');
+    $this->belongsTo('DefaultPronounTypes')
+         ->setClassName('Types')
+         ->setForeignKey('default_pronoun_type_id')
+         ->setProperty('default_pronoun_type');
     $this->belongsTo('DefaultTelephoneNumberTypes')
          ->setClassName('Types')
          ->setForeignKey('default_telephone_number_type_id')
@@ -123,6 +127,10 @@ class CoSettingsTable extends Table {
       'defaultNameTypes' => [
         'type' => 'type',
         'attribute' => 'Names.type'
+      ],
+      'defaultPronounTypes' => [
+        'type' => 'type',
+        'attribute' => 'Pronouns.type'
       ],
       'defaultTelephoneNumberTypes' => [
         'type' => 'type',
@@ -185,6 +193,7 @@ class CoSettingsTable extends Table {
       'default_email_address_type_id'     => null,
       'default_identifier_type_id'        => null,
       'default_name_type_id'              => null,
+      'default_pronoun_type_id'           => null,
       'default_telephone_number_type_id'  => null,
       'default_url_type_id'               => null,
       'permitted_fields_name'             => PermittedNameFieldsEnum::HGMFS,
@@ -294,6 +303,11 @@ class CoSettingsTable extends Table {
     ]);
     $validator->allowEmptyString('default_name_type_id');
     
+    $validator->add('default_pronoun_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('default_pronoun_type_id');
+
     $validator->add('default_telephone_number_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);

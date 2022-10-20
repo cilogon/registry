@@ -128,16 +128,16 @@ print $this->Html->link(
   [ 'controller' => 'urls',
     'action' => 'index',
     '?' => [
-      'person_id' => $vv_obj->id
+      'external_identity_id' => $vv_obj->id
     ]
   ],
   ['class' => 'linkbutton']
 );
 
 print $this->Html->link(
-  __d('controller', 'ExternalIdentities', [99]),
-  [ 'controller' => 'external-identities',
-    'action' => 'index',
+  __d('controller', 'Pronouns', [99]),
+  [ 'controller' => 'pronouns',
+    'action' => 'index', 
     '?' => [
       'external_identity_id' => $vv_obj->id
     ]

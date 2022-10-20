@@ -149,6 +149,17 @@ if($vv_action == 'add') {
   );
 
   print $this->Html->link(
+    __d('controller', 'Pronouns', [99]),
+    [ 'controller' => 'pronouns',
+      'action' => 'index', 
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    ['class' => 'linkbutton']
+  );
+
+  print $this->Html->link(
     __d('controller', 'ExternalIdentities', [99]),
     [ 'controller' => 'external-identities',
       'action' => 'index', 

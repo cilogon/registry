@@ -61,6 +61,7 @@ class TypesTable extends Table {
     'Identifiers.type',
     'Names.type',
 //    'Organizations.type',
+    'Pronouns.type',
     'TelephoneNumbers.type',
     'Urls.type'
   ];
@@ -89,6 +90,7 @@ class TypesTable extends Table {
     $this->hasMany('EmailAddresses');
     $this->hasMany('Identifiers');
     $this->hasMany('Names');
+    $this->hasMany('Pronouns');
     $this->hasMany('TelephoneNumbers');
     $this->hasMany('Urls');
 // XXX add other MVEA models

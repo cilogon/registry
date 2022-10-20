@@ -191,10 +191,13 @@ msgid "save"
 msgstr "Save Failed ({0})"
 
 msgid "schema.column"
-msgstr "No type defined for table {0} column {1}"
+msgstr "No type defined for table \"{0}\" column \"{1}\""
 
 msgid "schema.parse"
 msgstr "Failed to parse file {0}"
+
+msgid "setup.co.comanage"
+msgstr "Failed to setup COmanage CO"
 
 msgid "Types.inuse"
 msgstr "Type {0} is in use and cannot be deleted"

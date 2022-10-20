@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry CO Settings Fields
+ * COmanage Registry Pronoun Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,33 +24,21 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support add or read-only
-if($vv_action == 'edit') {
-  print $this->Field->control('required_fields_address', ['suppressBlank' => true]);
-  
-  print $this->Field->control('default_address_type_id');
-  
-  print $this->Field->control('default_email_address_type_id');
-  
-  print $this->Field->control('default_identifier_type_id');
-  
-  print $this->Field->control('default_name_type_id');
 
-  print $this->Field->control('permitted_fields_name', ['suppressBlank' => true]);
-  
-  print $this->Field->control('required_fields_name', ['suppressBlank' => true]);
+declare(strict_types = 1);
 
-  print $this->Field->control('default_pronoun_type_id');
+namespace App\Model\Entity;
 
-  print $this->Field->control('default_telephone_number_type_id');
+use Cake\ORM\Entity;
 
-  print $this->Field->control('permitted_fields_telephone_number', ['suppressBlank' => true]);
+// Strictly speaking, this should probably be "Pronouns", but it's easier not to fight inflection
+class Pronoun extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\MVETrait;
   
-  print $this->Field->control('default_url_type_id');
-  
-  print $this->Field->control('search_global_limit');
-  
-  print $this->Field->control('search_global_limited_models');
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false, 
+  ];
 }

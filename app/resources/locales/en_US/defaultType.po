@@ -150,6 +150,9 @@ msgstr "Staff"
 msgid "PersonRoles.student"
 msgstr "Student"
 
+msgid "Pronouns.default"
+msgstr "Default"
+
 msgid "Urls.official"
 msgstr "Official"
 

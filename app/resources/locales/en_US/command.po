@@ -25,7 +25,7 @@
 # Command Line text
 
 msgid "db.noop"
-msgstr "SQL NOT EXECUTED"
+msgstr "== SQL NOT EXECUTED =="
 
 msgid "db.ok"
 msgstr "Database schema update successful"

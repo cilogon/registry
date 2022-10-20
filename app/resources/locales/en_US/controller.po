@@ -84,6 +84,9 @@ msgstr "{0,plural,=1{Person} other{People}}"
 msgid "PersonRoles"
 msgstr "{0,plural,=1{Person Role} other{Person Roles}}"
 
+msgid "Pronouns"
+msgstr "{0,plural,=1{Pronoun Preference} other{Pronouns}}"
+
 msgid "TelephoneNumbers"
 msgstr "{0,plural,=1{Telephone Number} other{Telephone Numbers}}"
 

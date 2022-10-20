@@ -78,6 +78,7 @@
         "default_email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "default_pronoun_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_url_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "permitted_fields_name": { "type": "string", "size": 160 },
@@ -99,8 +100,9 @@
         "co_settings_i3": { "columns": [ "default_email_address_type_id" ] },
         "co_settings_i4": { "columns": [ "default_identifier_type_id" ] },
         "co_settings_i5": { "columns": [ "default_address_type_id" ] },
-        "co_settings_i6": { "columns": [ "default_telephone_number_type_id" ] },
-        "co_settings_i7": { "columns": [ "default_url_type_id" ] }
+        "co_settings_i6": { "columns": [ "default_pronoun_type_id" ] },
+        "co_settings_i7": { "columns": [ "default_telephone_number_type_id" ] },
+        "co_settings_i8": { "columns": [ "default_url_type_id" ] }
       }
     },
     
@@ -392,6 +394,20 @@
       "sourced": true
     },
     
+    "pronouns": {
+      "columns": {
+        "id": {},
+        "pronouns": { "type": "string", "size": 64 },
+        "language": {},
+        "type_id": {}
+      },
+      "indexes": {
+        "pronouns_i1": { "columns": [ "type_id" ] }
+      },
+      "mvea": [ "person", "external_identity" ],
+      "sourced": true
+    },
+
     "telephone_numbers": {
       "columns": {
         "id": {},

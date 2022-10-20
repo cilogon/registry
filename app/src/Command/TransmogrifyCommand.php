@@ -57,6 +57,7 @@ class TransmogrifyCommand extends Command {
     'types' => [
       'source' => 'cm_co_extended_types',
       'displayField' => 'display_name',
+      'postTable' => 'insertPronounTypes',
       'fieldMap' => [
         'attribute' => '&map_extended_type',
         'name' => 'value',
@@ -789,6 +790,23 @@ class TransmogrifyCommand extends Command {
           // skip
         }
       }
+    }
+  }
+  
+  /**
+   * Insert default Pronoun types.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  protected function insertPronounTypes() {
+    // Since the Pronoun MVEA didn't exist in v4, we'll need to create the
+    // default types for all COs.
+
+    $Types = TableRegistry::getTableLocator()->get('Types');
+
+    foreach(array_keys($this->cache['cos']['id']) as $coId) {
+      $Types->addDefault($coId, 'Pronouns.type');
     }
   }
   

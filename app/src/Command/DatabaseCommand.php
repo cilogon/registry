@@ -294,7 +294,7 @@ class DatabaseCommand extends Command {
       }
       
       if(!$doSQL) {
-        $io->out(__d('registry', 'db.noop'));
+        $io->out(__d('command', 'db.noop'));
       } else {
         $io->out(__d('command', 'db.ok'));
       }

@@ -90,6 +90,8 @@ class PeopleTable extends Table {
          ->setDependent(true);
     $this->hasMany('PersonRoles')
          ->setDependent(true);
+    $this->hasMany('Pronouns')
+         ->setDependent(true);
     $this->hasMany('TelephoneNumbers')
          ->setDependent(true);
     $this->hasMany('Urls')

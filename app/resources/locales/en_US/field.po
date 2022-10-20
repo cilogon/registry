@@ -68,6 +68,9 @@ msgstr "Default Identifier Type"
 msgid "CoSettings.default_name_type_id"
 msgstr "Default Name Type"
 
+msgid "CoSettings.default_pronoun_type_id"
+msgstr "Default Pronoun Type"
+
 msgid "CoSettings.default_telephone_number_type_id"
 msgstr "Default Telephone Number Type"
 
@@ -259,6 +262,9 @@ msgstr "Primary Name"
 
 msgid "privileged"
 msgstr "Privileged"
+
+msgid "pronouns"
+msgstr "Preferred Pronouns"
 
 msgid "ApiUsers.privileged.desc"
 msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."
