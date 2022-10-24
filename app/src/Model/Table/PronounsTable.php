@@ -31,6 +31,7 @@ namespace App\Model\Table;
 
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use App\Lib\Enum\LanguageEnum;
 
 class PronounsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
