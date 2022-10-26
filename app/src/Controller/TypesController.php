@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class TypesController extends StandardController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'Types.attribute' => 'asc',
       'Types.display_name' => 'asc'

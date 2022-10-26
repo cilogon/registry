@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class PeopleController extends StandardController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
 // XXX this will sort by family name, but it this universally correct?
 // so we need a configuration, or can we do something automagic?

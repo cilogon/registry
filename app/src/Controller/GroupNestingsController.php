@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class GroupNestingsController extends StandardController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'Group.name' => 'asc'
     ]

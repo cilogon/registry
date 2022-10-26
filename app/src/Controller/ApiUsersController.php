@@ -30,7 +30,7 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 class ApiUsersController extends StandardController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'ApiUsers.username' => 'asc'
     ]

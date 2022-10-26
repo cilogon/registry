@@ -36,7 +36,7 @@ use Cake\ORM\TableRegistry;
 // Use extend MVEAController for breadcrumb rendering. ExternalIdentities is
 // sort of an MVEA, so maybe it makes sense to treat it as such.
 class ExternalIdentitiesController extends MVEAController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'PrimaryName.family' => 'asc'
     ],

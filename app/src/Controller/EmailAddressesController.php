@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class EmailAddressesController extends MVEAController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'EmailAddresses.mail' => 'asc'
     ]

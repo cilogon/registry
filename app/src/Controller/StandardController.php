@@ -499,10 +499,7 @@ class StandardController extends AppController {
       }
     }
     
-    // The Cake documents describe $this->paginate (which worked in Cake 2),
-    // but it doesn't seem to work in Cake 4. So we just use $this->pagination
-    // ourselves here.
-    $resultSet = $this->Paginator->paginate($query, $this->pagination);
+    $resultSet = $this->paginate($query);
     
     $this->set($tableName, $resultSet);
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));

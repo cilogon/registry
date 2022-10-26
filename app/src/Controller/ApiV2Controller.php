@@ -300,7 +300,7 @@ class ApiV2Controller extends AppController {
     
     // This magically makes REST calls paginated... can use eg direction=,
     // sort=, limit=, page= 
-    $this->set($this->tableName, $this->Paginator->paginate($query));
+    $this->set($this->tableName, $this->paginate($query));
     
     // Let the view render
     $this->render('/Standard/api/v2/json/index');

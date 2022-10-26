@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class UrlsController extends MVEAController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'Urls.url' => 'asc'
     ]

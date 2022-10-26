@@ -36,7 +36,7 @@ use Cake\ORM\TableRegistry;
 // Use extend MVEAController for breadcrumb rendering. PersonRoles is sort of
 // an MVEA, so maybe it makes sense to treat it as such.
 class PersonRolesController extends MVEAController {
-  public $pagination = [
+  public $paginate = [
     'order' => [
       'PersonRoles.ordr' => 'asc',
       'PersonRoles.title' => 'asc'
