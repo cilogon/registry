@@ -97,6 +97,12 @@ class StandardController extends AppController {
     
     // Default title is add new object
     $this->set('vv_title', __d('operation', 'add.a', __d('controller', $modelsName, [1])));
+    
+    // Supertitle is normally the display name of the parent object when subnavigation exists.
+    // Set this here as the fallback default. This value is overriden in MVEAController to hold the
+    // name of the parent object, not the model name of the current object.
+    // TODO: set this to a better value for other kinds of child objects (e.g. Group member)
+    $this->set('vv_supertitle', __d('controller', $modelsName, [1]));
 
     // Let the view render
     $this->render('/Standard/add-edit-view');
@@ -322,6 +328,9 @@ class StandardController extends AppController {
       // We don't use a trait for this since each table will implement different logic
       
       $this->set('vv_title', __d('operation', 'edit.ai', $table->generateDisplayField($obj)));
+      $this->set('vv_supertitle', $table->generateDisplayField($obj));
+      // Pass the display field also into subtitle for dealing with External IDs
+      $this->set('vv_subtitle', $table->generateDisplayField($obj));
     } else {
       // Default view title is edit object display field
       $field = $table->getDisplayField();

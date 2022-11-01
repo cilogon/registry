@@ -81,7 +81,9 @@ class MVEAController extends StandardController {
             $this->set('vv_ei_id', $externalIdentity->id);
             
             // What's the primary name of the Person?
-            $this->set('vv_person_name', $Names->primaryName($externalIdentity->person_id));
+            $personName = $Names->primaryName($externalIdentity->person_id);
+            $this->set('vv_person_name', $personName);
+            $this->set('vv_supertitle', $personName->full_name);
             $this->set('vv_person_id', $externalIdentity->person_id);
             break;
           case 'person_role_id':
@@ -92,11 +94,15 @@ class MVEAController extends StandardController {
             $this->set('vv_person_role_id', $link->value);
             
             // Also set a name
-            $this->set('vv_person_name', $Names->primaryName($roleEntity->person_id));
+            $personName = $Names->primaryName($roleEntity->person_id);
+            $this->set('vv_person_name', $personName);
+            $this->set('vv_supertitle', $personName->full_name);
             $this->set('vv_person_id', $roleEntity->person_id);
             break;
           case 'person_id':
-            $this->set('vv_person_name', $Names->primaryName((int)$link->value));
+            $personName = $Names->primaryName((int)$link->value);
+            $this->set('vv_person_name', $personName);
+            $this->set('vv_supertitle', $personName->full_name);
             $this->set('vv_person_id', $link->value);
             break;
           default;

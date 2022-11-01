@@ -1,0 +1,517 @@
+<?php
+/**
+* COmanage Registry Subnavigation Tabs Element
+*
+* Portions licensed to the University Corporation for Advanced Internet
+* Development, Inc. ("UCAID") under one or more contributor license agreements.
+* See the NOTICE file distributed with this work for additional information
+* regarding copyright ownership.
+*
+* UCAID licenses this file to you under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with the
+* License. You may obtain a copy of the License at:
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* @link          https://www.internet2.edu/comanage COmanage Project
+* @package       registry
+* @since         COmanage Registry v5.0.0
+* @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+*
+* The subnavigation is structured in first, second, and third level blocks.
+* Only External Identity Roles have a third-level of navigation.
+* 
+*/
+use Cake\View\Helper;
+
+$linkFilter = [];
+$curId = NULL;
+$curController = $this->request->getParam('controller');
+$curAction = $this->request->getParam('action');
+
+if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
+  // This will work for most top-level index views
+  $curId = $this->request->getQuery($vv_primary_link);
+  $linkFilter = [$vv_primary_link => $curId];
+  // For top-level nav
+  if(!empty($vv_person_id)) {
+    $curId = $vv_person_id;
+    $linkFilter = ['person_id' => $vv_person_id];
+  }
+} elseif (!empty($vv_obj)) {
+  // This will work for most top-level edit views
+  // XXX we might produce the $vv_primary_link for edit views so the approach below could be deprecated
+  $curId = $vv_obj->id;
+  if(!empty($vv_person_id)) {
+    $curId = $vv_person_id;
+  } elseif(!empty($vv_primary_link_id)) {
+    $curId = $vv_primary_link_id;
+  }
+  // For top-level nav while in edit pages.
+  if ($name == 'person') {
+    $linkFilter = ['person_id' => $curId];
+  } elseif ($name == 'group') {
+    $linkFilter = ['group_id' => $curId];
+  }
+}
+?>
+  
+<!-- Top-Level Subnavigation Tabs -->  
+<nav id="cm-<?= $name ?>-subnav-tabs" class="cm-subnav-tabs">
+  <ul class="nav nav-tabs">
+
+    <?php if ($name == 'person'): ?>      
+    <!-- Person Subnavigation -->
+      <?php
+        // Simplify our tests for roles and external identifiers
+        $isPersonRole = (
+          $vv_primary_link == 'person_role_id'
+          || $vv_primary_link == 'person_role_id'
+          || ($curController == 'PersonRoles' && ($curAction == 'edit' || $curAction == 'view'))
+        ) ? true : false;
+
+        $isExternalIdRole = (
+          $vv_primary_link == 'external_identity_role_id'
+          || ($curController == 'ExternalIdentityRoles' && ($curAction == 'edit' || $curAction == 'view'))
+        ) ? true : false;
+
+        $isExternalId = (
+          $vv_primary_link == 'external_identity_id'
+          || $vv_primary_link == 'external_identity_role_id'
+          || ($curController == 'ExternalIdentities' && ($curAction == 'edit' || $curAction == 'view'))
+          || ($curController == 'ExternalIdentityRoles' && ($curAction == 'edit' || $curAction == 'view'))
+        ) ? true : false;
+        
+        // Determine active tab. This logic is necessitated by MVEAs (that are displayed in multiple contexts).
+        $isPropertiesTab = ($active == 'properties') ? true : false;
+        
+        $isAttributesTab = (
+          $active == 'attributes' 
+          && !$isPersonRole
+          && !$isExternalId
+        ) ? true : false;
+        
+        $isRolesTab = (
+          $active == 'person_roles'
+          || $isPersonRole
+          && !$isExternalId
+        ) ? true : false;
+        
+        $isExternalIdentitiesTab = (
+          $active == 'external_identities' 
+          || $isExternalId
+        ) ? true : false;
+      ?>
+      
+      <li class="nav-item">
+        <?php
+          $linkClass = $isPropertiesTab ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'Properties', [99]),
+            [ 'controller' => 'people',
+              'action' => 'edit',
+              $curId
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+      <li class="nav-item">
+        <?php
+          $linkClass = $isAttributesTab ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('menu', 'Attributes', [99]),
+            [ 'controller' => 'names',
+              'action' => 'index',
+              '?' => $linkFilter
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+      <li class="nav-item">
+        <?php
+          $linkClass = $isRolesTab ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'PersonRoles', [99]),
+            [ 'controller' => 'person_roles',
+              'action' => 'index',
+              '?' => $linkFilter
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+      <li class="nav-item">
+        <?php
+          $linkClass = $isExternalIdentitiesTab ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'ExternalIdentities', [99]),
+            [ 'controller' => 'external-identities',
+              'action' => 'index',
+              '?' => $linkFilter
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+    <?php endif; ?>
+    
+    <?php if ($name == 'group'): ?>
+    <!-- Group Subnavigation -->
+      <li class="nav-item">
+        <?php
+          $linkClass = ($active == 'properties') ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'Properties', [99]),
+            [ 'controller' => 'groups',
+              'action' => 'edit',
+              $curId
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+      <li class="nav-item">
+        <?php
+          $linkClass = ($active == 'members') ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'Members', [99]),
+            [ 'controller' => 'group_members',
+              'action' => 'index',
+              '?' => $linkFilter
+            ],
+            ['class' => $linkClass]
+          ); 
+        ?>
+      </li>
+      <li class="nav-item">
+        <?php
+          $linkClass = ($active == 'owners') ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'Owners', [99]),
+            [ 'controller' => 'group_owners',
+              'action' => 'index',
+              '?' => $linkFilter
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+      <li class="nav-item">
+        <?php
+          $linkClass = ($active == 'nestings') ? 'nav-link active' : 'nav-link';
+          print $this->Html->link(
+            __d('controller', 'Nestings', [99]),
+            [ 'controller' => 'group_nestings',
+              'action' => 'index',
+              '?' => $linkFilter
+            ],
+            ['class' => $linkClass]
+          );
+        ?>
+      </li>
+    <?php endif; ?>
+  </ul>
+</nav>
+  
+<?php if(!empty($subActive)): ?>
+<!-- Second Level Subnavigation Links -->
+  <?php
+    $curId = $this->request->getQuery($vv_primary_link);
+    if($isPersonRole || $isExternalId) {
+      if($isExternalId && !empty($vv_ei_id)) {
+        $curId = $vv_ei_id;
+      }
+      // We display the role or external identity name above the subnav to show the hierarchy.
+      // We also use this structure to set the second-level $linkFilter
+      print '<h2>';
+      if(!empty($vv_ei_name)) {
+        // We have an external identity name
+        print $vv_ei_name->full_name;
+        $linkFilter = ['external_identity_id' => $curId];
+      } elseif(!empty($vv_person_role)) {
+        // We have a person role
+        print $vv_person_role;
+        $linkFilter = ['person_role_id' => $curId];
+      } elseif(!empty($vv_obj)) {
+        // We are editing/viewing an object
+        if(!empty($vv_obj->title)) {
+          print $vv_obj->title;
+        } elseif (!empty($vv_subtitle)) {
+          print $vv_subtitle;
+        } else {
+          print print __d('information','global.title.none');
+        }
+        // Set up $linkFilter for edit/view on Roles and External Identities
+        $curId = $vv_obj->id;
+        if($curController == 'PersonRoles') {
+          $linkFilter = ['person_role_id' => $curId];
+        }
+        if($curController == 'ExternalIdentities') {
+          $linkFilter = ['external_identity_id' => $curId];
+        }
+      } else {
+        // We shouldn't get here, but have a deafult in case.
+        print __d('information','global.title.none');
+      }
+      print '</h2>'; 
+    }
+  ?>
+  <nav id="cm-<?= $name ?>-subnav-links" class="cm-subnav-links">
+    <ul class="list-inline">
+      <?php if($name == 'person'): ?>
+        <?php if($isPersonRole || $isExternalId): ?>
+          <li class="list-inline-item">
+            <?php
+              // Properties
+              $cc = 'person-roles';
+              $cid = !empty($vv_person_role_id) ? $vv_person_role_id : $curId;
+              if($isExternalId) {
+                $cc = 'external-identities';
+                if(!empty($vv_ei_id)) {
+                  $cid = $vv_ei_id;  
+                }
+              }
+              $linkClass = ($subActive == 'properties') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Properties', [99]),
+                [ 'controller' => $cc,
+                  'action' => 'edit',
+                  $cid
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+        <?php endif; ?>
+        <?php if(!$isPersonRole): ?>
+          <li class="list-inline-item">
+            <?php
+              // Names
+              $linkClass = ($subActive == 'names') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Names', [99]),
+                [ 'controller' => 'names',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+             );
+            ?>
+          </li>
+          <li class="list-inline-item">
+            <?php
+              // Email Addresses
+              $linkClass = ($subActive == 'email_addresses') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'EmailAddresses', [99]),
+                [ 'controller' => 'email_addresses',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>  
+          </li>
+          <li class="list-inline-item">
+            <?php
+              // Identifiers
+              $linkClass = ($subActive == 'identifiers') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Identifiers', [99]),
+                [ 'controller' => 'identifiers',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+          <?php if($isExternalId): ?>
+            <li class="list-inline-item">
+              <?php
+                // External Identity Roles
+                $linkClass = ($subActive == 'external_identity_roles' ||  $isExternalIdRole) ? 'nav-link active' : 'nav-link';
+                print $this->Html->link(
+                  __d('controller', 'ExternalIdentityRoles', [99]),
+                  [ 'controller' => 'external_identity_roles',
+                    'action' => 'index',
+                    '?' => $linkFilter
+                  ],
+                  ['class' => $linkClass]
+                );
+              ?>
+            </li>
+          <?php endif; ?>
+        <?php endif; ?>
+        <li class="list-inline-item">
+          <?php
+            // Ad-Hoc Attributes
+            $linkClass = ($subActive == 'ad_hoc_attributes' && !($isExternalIdRole)) ? 'nav-link active' : 'nav-link';
+            print $this->Html->link(
+              __d('controller', 'AdHocAttributes', [99]),
+              [ 'controller' => 'ad_hoc_attributes',
+                'action' => 'index',
+                '?' => $linkFilter
+              ],
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+        <li class="list-inline-item">
+          <?php
+            // Addresses
+            $linkClass = ($subActive == 'addresses' && !($isExternalIdRole)) ? 'nav-link active' : 'nav-link';
+            print $this->Html->link(
+              __d('controller', 'Addresses', [99]),
+              [ 'controller' => 'addresses',
+                'action' => 'index',
+                '?' => $linkFilter
+              ],
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+        <li class="list-inline-item">
+          <?php
+            // Telephone Numbers
+            $linkClass = ($subActive == 'telephone_numbers' && !($isExternalIdRole)) ? 'nav-link active' : 'nav-link';
+            print $this->Html->link(
+              __d('controller', 'TelephoneNumbers', [99]),
+              [ 'controller' => 'telephone_numbers',
+                'action' => 'index',
+                '?' => $linkFilter
+              ],
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+        <?php if(!$isPersonRole): ?>
+          <li class="list-inline-item">
+            <?php
+              // URLs
+              $linkClass = ($subActive == 'urls') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Urls', [99]),
+                [ 'controller' => 'urls',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+          <li class="list-inline-item">
+            <?php
+              // Pronouns
+              $linkClass = ($subActive == 'pronouns') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Pronouns', [99]),
+                [ 'controller' => 'pronouns',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+        <?php endif; ?>
+      <?php endif; ?>
+    </ul>
+  </nav>
+  
+  <?php if($isExternalIdRole): ?>
+  <!-- Third-level subnavigation links - only for External Identity Roles  -->
+    <div id="external-id-role">
+      <h3>
+        <?php 
+          // Set the link filter for External Identity Roles
+          $curId = $vv_primary_link_obj->id;
+          if(!empty($vv_obj) && ($curController == 'ExternalIdentityRoles' && ($curAction == 'edit' || $curAction == 'view'))) {
+            $curId = $vv_obj->id;  
+          }
+          $linkFilter = ['external_identity_role_id' => $curId];
+          
+          if(!empty($vv_ei_role)) {
+            print $vv_ei_role;
+          } elseif(!empty($vv_obj->title)) {
+            print $vv_obj->title;
+          } else {
+            // As above, we shouldn't get here, but have a deafult in case.
+            print __d('information','global.title.none');
+          }
+        ?>  
+      </h3>
+      <nav id="external-id-role-nav" class="cm-subnav-links">
+        <ul class="list-inline">
+          <li class="list-inline-item">
+            <?php
+              // Properties
+              $linkClass = (
+                $curController == 'ExternalIdentityRoles' 
+                && ($curAction == 'edit' || $curAction == 'view')
+              ) ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Properties', [99]),
+                [ 'controller' => 'external-identity-roles',
+                  'action' => 'edit',
+                  $curId
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+          <li class="list-inline-item">
+            <?php
+              // Ad-Hoc Attributes
+              $linkClass = ($subActive == 'ad_hoc_attributes') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'AdHocAttributes', [99]),
+                [ 'controller' => 'ad_hoc_attributes',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+          <li class="list-inline-item">
+            <?php
+              // Addresses
+              $linkClass = ($subActive == 'addresses') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'Addresses', [99]),
+                [ 'controller' => 'addresses',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+          <li class="list-inline-item">
+            <?php
+              // Telephone Numbers
+              $linkClass = ($subActive == 'telephone_numbers') ? 'nav-link active' : 'nav-link';
+              print $this->Html->link(
+                __d('controller', 'TelephoneNumbers', [99]),
+                [ 'controller' => 'telephone_numbers',
+                  'action' => 'index',
+                  '?' => $linkFilter
+                ],
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+        </ul>  
+      </nav>
+    </div>
+  <?php endif; ?>
+<?php endif; ?>

@@ -61,3 +61,8 @@ $bulkActions = [
   // TODO: develop bulk actions. For now, use a placeholder. 
   'delete' => true
 ];
+
+$subnav = [
+  'name' => 'group',
+  'active' => 'members'
+];

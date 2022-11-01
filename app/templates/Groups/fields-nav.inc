@@ -25,14 +25,32 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
 $topLinks = [
   [
     'icon' => 'sync',
     'order' => 'Default',
     'label' => __d('operation', 'reconcile'),
     'link' => [
-      'action' => 'reconcile'
+      'action' => 'reconcile',
+      $vv_obj->id
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'history',
+    'order' => 'Default',
+    'label' => __d('operation', 'HistoryRecords'),
+    'link' => [
+      'controller' => 'history_records',
+      'action' => 'index',
+      '?' => ['group_id' => $vv_obj->id]
     ],
     'class' => ''
   ]
+];
+
+$subnav = [
+  'name' => 'group',
+  'active' => 'properties'
 ];

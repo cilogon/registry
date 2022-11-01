@@ -38,3 +38,9 @@ $bulkActions = [
   // TODO: develop bulk actions. For now, use a placeholder. 
   'delete' => true
 ];
+
+$subnav = [
+  'name' => 'person',
+  'active' => 'attributes',
+  'subActive' => 'urls'
+];

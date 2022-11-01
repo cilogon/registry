@@ -56,3 +56,6 @@ msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 
 msgid "global.records.none"
 msgstr "There are no records to display."
+
+msgid "global.title.none"
+msgstr "No title"

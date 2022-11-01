@@ -54,8 +54,8 @@ h2 {
   margin: 0;
 }
 h3 {
-  font-size: 1.6em;
-  line-height: 1.6em;
+  font-size: 1.4em;
+  line-height: 1.4em;
   margin: 0;
 }
 a {
@@ -527,7 +527,7 @@ ul.form-list li.alert-banner .co-alert {
   font-size: 0.9em;
   margin-top: -1em;
 }
-.titleNavContainer {
+.pageTitleContainer {
   display: flex;
   justify-content: space-between;
   margin: 1em 0 0.5em;
@@ -535,6 +535,9 @@ ul.form-list li.alert-banner .co-alert {
 }
 .pageTitle {
   padding-bottom: 0.25em;
+}
+.pageTitle h2 {
+  line-height: 1.2em;
 }
 .pageTitle .deleted,
 .pageTitle .archived {
@@ -549,6 +552,41 @@ ul.form-list li.alert-banner .co-alert {
 }
 .pageTitle .archived {
   background-color: var(--cmg-color-gray-003);
+}
+/* SUBNAVIGATION & TABS */
+.supertitle {
+  padding: 1em 0;
+}
+#subnavigation nav {
+  padding: 0.5em 0;
+}
+.cm-subnav-tabs .nav-link {
+  text-transform: uppercase;
+  padding: 1em 1.5em;
+  color: var(--cmg-color-blue-001);
+}
+.cm-subnav-links .nav-link.active {
+  color: var(--cmg-color-gray-001);
+}
+.cm-subnav-links ul.list-inline {
+  margin: 0.5em 0 0 0;
+  font-size: 0.9em;
+}
+.cm-subnav-links .list-inline-item {
+  margin: 0;
+}
+.cm-subnav-links .list-inline-item a.nav-link {
+  padding: 0 1.5em 0.5em 0;
+}
+#external-id-role {
+  border-top: 1px solid var(--cmg-color-lightgray-006);
+}
+#external-id-role h3 {
+  padding: 0.5rem 1rem;
+  background-color: var(--cmg-color-lightgray-003);
+}
+#external-id-role-nav {
+  margin-left: 1rem;
 }
 /* INNER CONTENT - for non-table-based layouts */
 #content {

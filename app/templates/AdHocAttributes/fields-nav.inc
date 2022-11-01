@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Group Nestings Index Columns
+ * COmanage Registry Ad Hoc Attributes Edit Navigation
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,21 +25,11 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
- 'name' => [
-    'label' => __d('field', 'GroupNestings.target_group_id'),
-    'type' => 'relatedLink',
-    'model' => 'target_group',
-    'field' => 'name'
-  ]
-];
-
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
-  'delete' => true
-];
+// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
+$topLinks = [];
 
 $subnav = [
-  'name' => 'group',
-  'active' => 'nestings'
+  'name' => 'person',
+  'active' => 'attributes',
+  'subActive' => 'ad_hoc_attributes'
 ];

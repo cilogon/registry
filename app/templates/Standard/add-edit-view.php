@@ -37,9 +37,10 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
 // If you're looking to set a custom $vv_title, you might be able to use
 // generateDisplayField() on the Table instead
 
-// Include subnavigation structures on edit pages
-// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc.
-if($vv_action == 'edit') {
+// Include subnavigation structures on add/edit/view pages
+// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc
+// When subnav exists, include on all Edit views and on Add/View for items with a parent.
+if($vv_action == 'edit' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
   if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc")) {
     include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc");
   }  
@@ -51,11 +52,41 @@ $linkFilter = [];
 if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
-
 ?>
-<div class="titleNavContainer">
+
+<?php if(!empty($subnav)): ?>
+  <div id="subnavigation">
+    <div class="supertitle">
+      <h1>
+        <?php if(!empty($vv_supertitle)): ?>
+          <?= $vv_supertitle; ?>
+        <?php elseif(!empty($vv_obj)): ?>
+          <?= $vv_obj->$vv_display_field; ?>
+        <?php endif; ?>
+      </h1>
+    </div>
+    <?= $this->element('subnavigation', $subnav); ?>
+  </div>
+<?php endif; ?>
+
+<div class="pageTitleContainer">
   <div class="pageTitle">
-    <h1><?= $vv_title; ?></h1>
+    <?php if(empty($subnav)): ?>
+      <h1><?= $vv_title; ?></h1>
+    <?php else: ?>
+      <?php if(
+        // Subnavigation contains an h2 for these entities
+        $vv_primary_link == 'person_role_id'
+        || $vv_primary_link == 'external_identity_id'
+        || $vv_primary_link == 'external_identity_role_id'
+        || $this->request->getParam('controller') == 'PersonRoles'
+        || $this->request->getParam('controller') == 'ExternalIdentities'
+        || $this->request->getParam('controller') == 'ExternalIdentityRoles'): ?>
+        <h3><?= $vv_title; ?></h3>
+      <?php else: ?>
+        <h2><?= $vv_title; ?></h2>
+      <?php endif; ?>
+    <?php endif; ?>
   </div>
   <?php
     // Action list for top menu dropdown / button listing
@@ -63,7 +94,8 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
     $action_args['vv_attr_id'] =  $vv_obj->id;
     
     foreach(($topLinks ?? []) as $t) {
-      if($vv_permissions[ $t['link']['action'] ]) {
+      // TODO: fix the following test so that cross-model links can exist in top-links (e.g. History Records index)
+      //if($vv_permissions[ $t['link']['action'] ]) {
         // We need to inject $linkFilter, but not overwrite any existing query params
         if(!empty($t['link']['?'])) {
           $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
@@ -77,7 +109,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
           'url' => $this->Url->build($t['link']),
           'label' => $t['label'],
         ];
-      }
+      //}
     }
   
     // Delete

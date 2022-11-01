@@ -55,3 +55,9 @@ $rowActions = [
 $bulkActions = [
   'delete' => true
 ];
+
+$subnav = [
+  'name' => 'person',
+  'active' => 'attributes',
+  'subActive' => 'names'
+];

@@ -34,11 +34,6 @@ $indexColumns = [
   ]
 ];
 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
-  'delete' => true
-];
-
 $indexActions = [
   [
     'controller' => 'authentication_events',
@@ -52,4 +47,15 @@ $indexActions = [
       ];
     }
   ]
+];
+
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder. 
+  'delete' => true
+];
+
+$subnav = [
+  'name' => 'person',
+  'active' => 'attributes',
+  'subActive' => 'identifiers'
 ];

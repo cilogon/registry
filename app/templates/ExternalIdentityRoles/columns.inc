@@ -44,6 +44,12 @@ $indexColumns = [
   ]
 ];
 
+$subnav = [
+  'name' => 'person',
+  'active' => 'external_identities',
+  'subActive' => 'external_identity_roles'
+];
+
 $bulkActions = [
   // TODO: develop bulk actions. For now, use a placeholder. 
   'delete' => true

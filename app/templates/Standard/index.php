@@ -58,11 +58,38 @@ $linkFilter = [];
 if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
-
 ?>
-<div class="titleNavContainer">
+
+<?php if(!empty($subnav)): ?>
+  <div id="subnavigation">
+    <div class="supertitle">
+      <h1>
+        <?php if(!empty($vv_person_name)): ?>
+          <?= $vv_person_name->full_name; ?>
+        <?php elseif(!empty($vv_bc_parent_obj)): ?>
+          <?= $vv_bc_parent_obj->$vv_bc_parent_displayfield; ?>
+        <?php endif; ?>
+      </h1>
+    </div>
+    <?= $this->element('subnavigation', $subnav); ?>
+  </div>
+<?php endif; ?>
+
+<div class="pageTitleContainer">
   <div class="pageTitle">
-    <h1><?= $vv_title; ?></h1>
+    <?php if(empty($subnav)): ?>
+      <h1><?= $vv_title; ?></h1>
+    <?php else: ?>
+      <?php if(
+        // Subnavigation contains an h2 for these entities
+        $vv_primary_link == 'person_role_id'
+        || $vv_primary_link == 'external_identity_id'
+        || $vv_primary_link == 'external_identity_role_id'): ?>
+        <h3><?= $vv_title; ?></h3>
+      <?php else: ?>
+        <h2><?= $vv_title; ?></h2>
+      <?php endif; ?>
+    <?php endif; ?>
   </div>
 
   <?php
@@ -208,8 +235,8 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
         $action_args = array();
         $action_args['vv_attr_id'] =  $entity->id;
         
-    // Insert actions as per the .inc file
-    // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
+        // Insert actions as per the .inc file
+        // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
         $actionOrderDefault = $this->Menu->getMenuOrder('Default');
         foreach($rowActions as $a) {
           $ok = false;

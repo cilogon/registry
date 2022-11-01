@@ -61,39 +61,3 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print $this->Field->dateControl('valid_through');
 }
-
-// XXX This is a placeholder for canvas... maybe it should become a separate page
-//     rather than overload fields.inc?
-
-print $this->Html->link(
-  __d('controller', 'AdHocAttributes', [99]),
-  [ 'controller' => 'ad_hoc_attributes',
-    'action' => 'index', 
-    '?' => [
-      'person_role_id' => $vv_obj->id
-    ]
-  ],
-  ['class' => 'linkbutton']
-);
-
-print $this->Html->link(
-  __d('controller', 'Addresses', [99]),
-  [ 'controller' => 'addresses',
-    'action' => 'index', 
-    '?' => [
-      'person_role_id' => $vv_obj->id
-    ]
-  ],
-  ['class' => 'linkbutton']
-);
-
-print $this->Html->link(
-  __d('controller', 'TelephoneNumbers', [99]),
-  [ 'controller' => 'telephone_numbers',
-    'action' => 'index', 
-    '?' => [
-      'person_role_id' => $vv_obj->id
-    ]
-  ],
-  ['class' => 'linkbutton']
-);
