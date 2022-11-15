@@ -28,7 +28,7 @@
 // Output advisory banner when co=1
 if($vv_cur_co->id == 1) {
   $indexBanners = [
-    __('registry.in.api.cmp')
+    __d('information','api.cmp')
   ];
 }
 
