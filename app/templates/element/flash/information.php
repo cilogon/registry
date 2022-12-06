@@ -5,5 +5,7 @@ if (!isset($params['escape']) || $params['escape'] !== false) {
 ?>
 
 <?php if(!empty($message)): ?>
-  <?= $this->Alert->alert(h($message), 'information', true, __d('information','flash.information')) ?>
+  <?php /* Note: unlike Notice, Error, and Success messages, Information messages require 
+           no prefix. That is, we don't include "Information: " in front of the message. */ ?> 
+  <?= $this->Alert->alert($message, 'information', true) ?>
 <?php endif; ?>

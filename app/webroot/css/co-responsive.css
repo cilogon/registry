@@ -53,9 +53,6 @@
     display: block;
     color: var(--cmg-color-white);
   }
-  #top-menu {
-    right: 15px;
-  }
   #top-menu .top-menu-link-text {
     display: inline;
   }
@@ -65,8 +62,6 @@
   }
   #user-panel-user-info {
     border-top: none;
-    margin: 0 80px 0 0;
-    padding-top: 0;
   }
   #logout-in-panel {
     position: absolute;
@@ -146,33 +141,58 @@
     min-height: 46px;
     line-height: 1.6em;
   }
-  #global-search-toggle {
+  /* GLOBAL SEARCH */
+  #top-bar #global-search-toggle {
     display: none;
   }
-  #search-bar {
+  #global-search {
+    position: static;
     display: block;
-    margin: -0.5em 1em -0.5em -0.5em; /* offset top-bar padding */
-  }
-  #search-bar input {
-    width: calc(100vw - 400px); /* XXX this will change as more items get added to the top menu */
+    font-size: 1em;
+    background-color: transparent;
     border: none;
-    padding: 0.4em 0.5em 0.4em 1em;
-    height: 44px;
+    border-right: 1px solid var(--cmg-color-lightgray-006);
+    padding: 0.5em 0.2em;
   }
-  #search-bar input#q:focus-visible {
+  #global-search form {
+    padding: 0 0.5em;
+    min-height: 30px;
+  }
+  #global-search #global-search-q {
+    flex: 1;
+    width: auto;
+    border: none;
+    background-color: transparent;
+  }
+  #global-search #global-search-q:focus-visible {
     outline: none;
   }
-  #search-bar button {
-    margin-left: 1em;
-    margin-top: -2px;
+  #global-search button {
     padding: 0.25em 0.75em;
-    display: none;
-    text-transform: none;
+    margin-left: 0.25em;
     font-weight: 400;
-    font-size: 1em;
+    background-color: transparent;
+    border-radius: 3px;
   }
-  #search-bar button.visible {
+  #global-search button.btn-link {
+    color: var(--cmg-color-gray-001);
+    text-decoration: none;
+  }
+  #global-search button.btn-link:hover {
+    text-decoration: underline;
+  }
+  #global-search button.visible {
     display: inline-block;
+  }
+  /* SEARCH RESULTS */
+  #search {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #search-results {
+    flex-wrap: nowrap;
+    gap: 2em;
   }
   #top-menu {
     z-index: 30;

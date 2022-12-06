@@ -36,6 +36,8 @@
                                         primary hyperlink hover color; pagination; accessible on backgrounds down to #c9c9c9 */
   --cmg-color-blue-003: #9fc6e2;     /* spinner  */
   --cmg-color-blue-004: #17a2b8;     /* info badge; XXX check for deprecated */
+  --cmg-color-blue-005: #0B3556;     /* alert: info text color */
+  --cmg-color-blue-006: #d4ecff;     /* search bar active */
 
   /* Dark Grays */
   --cmg-color-gray-001: #222;        /* body text */

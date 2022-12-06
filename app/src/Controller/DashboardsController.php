@@ -195,12 +195,21 @@ class DashboardsController extends StandardController {
 
     // XXX Still need to implement this (see also CFM-126)
     $roles = [];
-
-    if(!empty($this->request->getData('q'))
-       // Only process the request if there are non-space characters
-       && !ctype_space($this->request->getData('q'))) {
-      // Trim leading and trailing whitespace
+    
+    // Gather our search string.
+    $q = '';
+    if(!empty($this->request->getData('global-search-q'))) {
+      // A search was passed in from the global search-bar.
+      $q = trim($this->request->getData('global-search-q'));
+      // Now pass the search string to the in-page search form and empty the global search bar.
+      $this->setRequest($this->getRequest()->withData('global-search-q', '')->withData('q', $q));
+    } elseif(!empty($this->request->getData('q'))) {
+      // A search was passed in from the form on the Global Search page. 
       $q = trim($this->request->getData('q'));
+    }
+  
+    // Only process the request if we have a string of non-space characters
+    if(!empty($q)) {
 
       // Pull our search configuration
       $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');

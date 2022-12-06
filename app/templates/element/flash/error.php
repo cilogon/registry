@@ -8,5 +8,5 @@
 */ ?>
 
 <?php if(!empty($message)): ?>
-  <?= $this->Alert->alert(h($message), 'danger', true, __d('information','flash.error')) ?>
+  <?= $this->Alert->alert($message, 'danger', true, __d('information','flash.error')) ?>
 <?php endif; ?>

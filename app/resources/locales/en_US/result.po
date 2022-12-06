@@ -87,11 +87,20 @@ msgstr "Search limit reached"
 msgid "search.none"
 msgstr "No results found"
 
+msgid "search.result.found"
+msgstr "Found"
+
+msgid "search.result.found.modelCount"
+msgstr "{0} {1}"
+
 msgid "search.result.id"
-msgstr "({0})"
+msgstr "ID {0}"
 
 msgid "search.result.related"
-msgstr "({0}, {1}: {2})"
+msgstr "{0}: {1}, ID {2}"
 
 msgid "search.results"
 msgstr "Search Results"
+
+msgid "search.retry"
+msgstr "Please select an option from a menu, or try your search again."

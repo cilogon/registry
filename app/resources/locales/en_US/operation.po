@@ -117,6 +117,9 @@ msgstr "Save"
 msgid "search"
 msgstr "Search"
 
+msgid "search.global"
+msgstr "Global Search"
+
 msgid "skip_to_content"
 msgstr "Skip to main content"
 

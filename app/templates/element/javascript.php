@@ -51,9 +51,32 @@
     
     // END DESKTOP MENU DRAWER BEHAVIOR
 
-    // GLOBAL SEARCH
-    $('#search-bar input').focus(function() {
-      $('#search-bar button').addClass('visible');
+    // SEARCH
+    // Persistent search bar form:
+    $('#global-search form').submit(function () {
+      // Disallow submit on blank
+      if($.trim($('#global-search-q').val()) == '') {
+        return false;
+      }
+    });
+    // Select search text on focus
+    $('#global-search-q').focus(function() {
+      $('#global-search-q').select();
+    });
+    
+    // Search page form:
+    $('#search').submit(function () {
+      // Disallow submit on blank
+      if($.trim($('#q').val()) == '') {
+        return false;
+      }
+    });
+    $('#search-clear').click(function () {
+      $('#q').val('');
+      $('#q').focus();
+    });
+    $('#q').focus(function() {
+      $('#q').select();
     });
     
     // TOP FILTER FORM

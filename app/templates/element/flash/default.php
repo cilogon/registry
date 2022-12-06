@@ -10,6 +10,6 @@
 ?>
 
 <?php if(!empty($message)): ?>
-  <?= $this->Alert->alert(h($message), 'warning', true, __d('information','flash.default')) ?>
+  <?= $this->Alert->alert($message, 'warning', true, __d('information','flash.default')) ?>
 <?php endif; ?>
 

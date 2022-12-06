@@ -31,16 +31,29 @@ $options = [
     'plugin'      => null,
     'controller'  => 'dashboards',
     'action'      => 'search'
-  ]
+  ],
+  'id' => 'global-search-form'
 ];
 
-print $this->Form->create(null, $options);
-print $this->Form->hidden('co_id', ['default' => $vv_cur_co->id]);
-print $this->Form->label('q', __d('field','search.placeholder'), ['class' => 'visually-hidden']);
-print $this->Form->input('q',['id' => 'q','placeholder' => __d('field','search.placeholder')]);
-print $this->Form->button(
-  __d('operation','search'), 
-  ['type' => 'submit', 'escapeTitle' => false, 'class' => 'btn btn-primary']
-); 
-print $this->Form->end();
+?>
+
+<button id="global-search-toggle" class="dropdown-toggle top-menu-button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  <em class="material-icons">search</em>
+  <span class="visually-hidden"><?= __d('operation','search') ?></span>
+</button>
+
+<div id="global-search" class="dropdown-menu" aria-labelledby="global-search-toggle">
+  <?php
+    print $this->Form->create(null, $options);
+    print $this->Form->hidden('co_id', ['default' => $vv_cur_co->id]);
+    print $this->Form->label('global-search-q', __d('field','search.placeholder'), ['class' => 'visually-hidden']);
+    print $this->Form->input('global-search-q',['id' => 'global-search-q', 'placeholder' => __d('field','search.placeholder')]);
+    print $this->Form->button(
+      '<em class="material-icons">search</em>',
+      ['type' => 'submit', 'escapeTitle' => false, 'id' => 'global-search-button', 'class' => 'btn btn-link btn-sm']
+    );
+    print $this->Form->end();
+  ?>
+</div>
+
   

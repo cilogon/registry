@@ -93,7 +93,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
   ?>
   <body class="<?= $bodyClasses ?>" onload="js_onload_call_hooks()">
     <div id="skip-to-content-box">
-      <a href="#content-start" id="skip-to-content" class="nospin"><?= __d('operation', 'skip_to_content') ?></a>
+      <a href="#content-start" id="skip-to-content" class="visually-hidden-focusable nospin"><?= __d('operation', 'skip_to_content') ?></a>
     </div>
 
     <!-- Primary layout -->
@@ -150,12 +150,8 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       
       <div id="top-bar">
         <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
-          <div id="co-hamburger"><em class="material-icons">menu</em></div>
-          <button id="global-search-toggle" class="top-menu-button">
-            <em class="material-icons">search</em>
-            <span class="sr-only"><?= __d('operation','search') ?></span>
-          </button>
-          <div id="search-bar">
+          <div id="top-controls">
+            <div id="co-hamburger"><em class="material-icons">menu</em></div>
             <?= $this->element('searchGlobal') ?>
           </div>
         <?php endif; // vv_user ?>
