@@ -46,11 +46,42 @@ $options = [
   <?php
     print $this->Form->create(null, $options);
     print $this->Form->hidden('co_id', ['default' => $vv_cur_co->id]);
-    print $this->Form->label('global-search-q', __d('field','search.placeholder'), ['class' => 'visually-hidden']);
-    print $this->Form->input('global-search-q',['id' => 'global-search-q', 'placeholder' => __d('field','search.placeholder')]);
+    print $this->Form->label(
+      'q', 
+      __d('field','search.global'), 
+      ['class' => 'visually-hidden']
+    );
+    $globalSearchInputClass = '';
+    if(!empty($this->request->getData('q'))) {
+      $globalSearchInputClass = 'hasValue';
+    }
+    print $this->Form->input(
+      'q',
+      [
+        'id' => 'q', 
+        'class' => $globalSearchInputClass, 
+        'placeholder' => __d('field','search.placeholder')
+      ]
+    );
+    print $this->Form->button(
+      '<span class="material-icons">close</span>',
+      [
+        'type' => 'button', 
+        'escapeTitle' => false, 
+        'id' => 'global-search-clear', 
+        'class' => 'btn btn-link',
+        'aria-label' => __d('field','search.global.clear')
+      ]
+    );
     print $this->Form->button(
       '<em class="material-icons">search</em>',
-      ['type' => 'submit', 'escapeTitle' => false, 'id' => 'global-search-button', 'class' => 'btn btn-link btn-sm']
+      [
+        'type' => 'submit', 
+        'escapeTitle' => false, 
+        'id' => 'global-search-button', 
+        'class' => 'btn btn-link btn-sm',
+        'aria-label' => __d('field','search.global.submit')
+      ]
     );
     print $this->Form->end();
   ?>

@@ -53,30 +53,29 @@
 
     // SEARCH
     // Persistent search bar form:
-    $('#global-search form').submit(function () {
-      // Disallow submit on blank
-      if($.trim($('#global-search-q').val()) == '') {
-        return false;
-      }
-    });
-    // Select search text on focus
-    $('#global-search-q').focus(function() {
-      $('#global-search-q').select();
-    });
-    
-    // Search page form:
-    $('#search').submit(function () {
+    $('#global-search form').submit(function() {
       // Disallow submit on blank
       if($.trim($('#q').val()) == '') {
         return false;
       }
     });
-    $('#search-clear').click(function () {
+    $('#global-search-clear').click(function(e) {
+      e.stopPropagation();
       $('#q').val('');
+      $('#q').removeClass('hasValue');
       $('#q').focus();
     });
+    // Select search text on focus
     $('#q').focus(function() {
-      $('#q').select();
+      $(this).select();
+    });
+    // Hide and reveal clear button
+    $('#q').on('input', function(e) {
+      if($(this).val() != '') {
+        $(this).addClass('hasValue');
+      } else {
+        $(this).removeClass('hasValue');
+      }
     });
     
     // TOP FILTER FORM

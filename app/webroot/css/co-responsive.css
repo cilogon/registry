@@ -119,11 +119,6 @@
     display: none;
   }
   /* CONTENT LAYOUT */
-  #comanage-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
   #main-wrapper {
     display: flex;
     flex-direction: row;
@@ -155,16 +150,16 @@
     padding: 0.5em 0.2em;
   }
   #global-search form {
-    padding: 0 0.5em;
+    padding: 0 0 0 0.5em;
     min-height: 30px;
   }
-  #global-search #global-search-q {
+  #global-search #q {
     flex: 1;
     width: auto;
     border: none;
     background-color: transparent;
   }
-  #global-search #global-search-q:focus-visible {
+  #global-search #q:focus-visible {
     outline: none;
   }
   #global-search button {
@@ -184,15 +179,13 @@
   #global-search button.visible {
     display: inline-block;
   }
-  /* SEARCH RESULTS */
-  #search {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  #global-search #global-search-clear {
+    padding: 0 0.75em;
+    border-right: 1px dashed var(--cmg-color-lightgray-006);
   }
-  #search-results {
-    flex-wrap: nowrap;
-    gap: 2em;
+  /* SEARCH RESULTS */
+  #search-results ul.search-results-group {
+    grid-template-columns: repeat(2,1fr);
   }
   #top-menu {
     z-index: 30;
@@ -387,6 +380,10 @@
   .cm-time-picker-minutes .cm-time-picker-vals ul {
     grid-template-columns: repeat(2,40px);
     grid-template-rows: repeat(2,40px);
+  }
+  /* SEARCH RESULTS */
+  #search-results ul.search-results-group {
+    grid-template-columns: repeat(4,1fr);
   }
 }
 

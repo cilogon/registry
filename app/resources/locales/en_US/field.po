@@ -281,6 +281,15 @@ msgstr "Required"
 msgid "room"
 msgstr "Room"
 
+msgid "search.global"
+msgstr "Global search"
+
+msgid "search.global.submit"
+msgstr "Submit global search"
+
+msgid "search.global.clear"
+msgstr "Clear global search"
+
 msgid "search.placeholder"
 msgstr "Search..."
 
