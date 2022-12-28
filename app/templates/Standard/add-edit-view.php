@@ -52,6 +52,15 @@ $linkFilter = [];
 if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
+
+// $flashArgs pass banner messages to the flash element container
+$flashArgs = [];
+if(!empty($banners)) {
+  // XXX this doesn't work yet because we don't include fields.inc until later
+  //     either create a second file to include earlier, or use a function to emit
+  //     the fields (which would be more consistent with how Views render...)
+  $flashArgs['vv_banners'] = $banners;
+}
 ?>
 
 <?php if(!empty($subnav)): ?>
@@ -65,6 +74,10 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
         <?php endif; ?>
       </h1>
     </div>
+    
+    <?php /* Flash Messages are placed below supertitle when subnavigation exists. */ ?>
+    <?= $this->element('flash', $flashArgs); ?>
+    
     <?= $this->element('subnavigation', $subnav); ?>
   </div>
 <?php endif; ?>
@@ -142,21 +155,10 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   ?>
 </div>
 
-<!-- Flash Messages and defined Info Banners -->
-<div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-
-  <?php
-  // XXX this doesn't work yet because we don't include fields.inc until later
-  //     either create a second file to include earlier, or use a function to emit
-  //     the fields (which would be more consistent with how Views render...)
-  if(!empty($banners)) {
-    foreach($banners as $b) {
-      print $this->Alert->alert($b, 'warning');
-    }
-  }
-  ?>
-</div>
+<?php if(empty($subnav)): ?>
+  <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
+  <?= $this->element('flash', $flashArgs); ?>
+<?php endif; ?>
 
 <?php
 // By default, the form will POST to the current controller

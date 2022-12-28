@@ -1,11 +1,12 @@
 <?php
-if (!isset($params['escape']) || $params['escape'] !== false) {
-    $message = h($message);
-}
+  if (!isset($params['escape']) || $params['escape'] !== false) {
+      $message = h($message);
+  }
 ?>
 
 <?php if(!empty($message)): ?>
-  <?php /* Note: unlike Notice, Error, and Success messages, Information messages require 
-           no prefix. That is, we don't include "Information: " in front of the message. */ ?> 
+  <?php /* CFM-221: while a prefix such as "Error: " or "Success: " can be sent with the Alert, 
+    we avoid prefixes to better support LTR languages. Prefixes, if desired, should be included 
+    directly in the language strings instead. */ ?>
   <?= $this->Alert->alert($message, 'information', true) ?>
 <?php endif; ?>

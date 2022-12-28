@@ -36,18 +36,6 @@ msgstr "You are not an active member in any collaboration. If your request for e
 msgid "cos.select"
 msgstr "Please select the collaboration (CO) you wish to manage."
 
-msgid "flash.default"
-msgstr "Notice: "
-
-msgid "flash.error"
-msgstr "Error: "
-
-msgid "flash.information"
-msgstr "Information: "
-
-msgid "flash.success"
-msgstr "Success: "
-
 msgid "entity.id"
 msgstr "ID: {0}"
 

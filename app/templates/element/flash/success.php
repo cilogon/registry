@@ -1,9 +1,12 @@
 <?php
-if (!isset($params['escape']) || $params['escape'] !== false) {
-    $message = h($message);
-}
+  if (!isset($params['escape']) || $params['escape'] !== false) {
+      $message = h($message);
+  }
 ?>
 
 <?php if(!empty($message)): ?>
-  <?= $this->Alert->alert($message, 'success', true, __d('information','flash.success')) ?>
+  <?php /* CFM-221: while a prefix such as "Error: " or "Success: " can be sent with the Alert, 
+    we avoid prefixes to better support LTR languages. Prefixes, if desired, should be included 
+    directly in the language strings instead. */ ?>
+  <?= $this->Alert->alert($message, 'success', true) ?>
 <?php endif; ?>

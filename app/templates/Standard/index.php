@@ -58,6 +58,15 @@ $linkFilter = [];
 if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
+
+// $flashArgs pass banner messages to the flash element container
+$flashArgs = [];
+if(!empty($indexBanners)) {
+  $flashArgs['vv_index_banners'] = $indexBanners;
+}
+if(!empty($banners)) {
+  $flashArgs['vv_banners'] = $banners;
+}
 ?>
 
 <?php if(!empty($subnav)): ?>
@@ -71,6 +80,10 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
         <?php endif; ?>
       </h1>
     </div>
+
+    <?php /* Flash Messages are placed below supertitle when subnavigation exists. */ ?>
+    <?= $this->element('flash', $flashArgs); ?>
+    
     <?= $this->element('subnavigation', $subnav); ?>
   </div>
 <?php endif; ?>
@@ -147,23 +160,11 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   <?php endif; ?>
 </div>
 
-<!-- Flash Messages and defined Info Banners -->
-<div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-
-  <?php if(!empty($indexBanners)): ?>
-    <?php foreach($indexBanners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $indexBanners ?>
-  <?php endif; // $indexBanners ?>
-
-  <?php if(!empty($banners)): ?>
-    <?php foreach($banners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $banners ?>
-  <?php endif; // $banners ?>
-</div>
-
+<?php if(empty($subnav)): ?>
+  <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
+  <?= $this->element('flash', $flashArgs); ?>
+<?php endif; ?>
+  
 <!-- Search block -->
 <?php if(isset($vv_searchable_attributes)): ?>
   <?= $this->element('filter'); ?>

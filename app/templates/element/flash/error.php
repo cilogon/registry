@@ -3,10 +3,10 @@
     $message = h($message);
   }
 ?>
-<?php /*
-<div class="message error" onclick="this.classList.add('hidden');"><?= $message ?></div>
-*/ ?>
 
 <?php if(!empty($message)): ?>
-  <?= $this->Alert->alert($message, 'danger', true, __d('information','flash.error')) ?>
+  <?php /* CFM-221: while a prefix such as "Error: " or "Success: " can be sent with the Alert, 
+    we avoid prefixes to better support LTR languages. Prefixes, if desired, should be included 
+    directly in the language strings instead. */ ?>
+  <?= $this->Alert->alert($message, 'danger', true) ?>
 <?php endif; ?>
