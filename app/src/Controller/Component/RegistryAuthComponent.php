@@ -252,7 +252,7 @@ class RegistryAuthComponent extends Component
     // $this->name = Models (ie: from ModelsTable)
     $modelsName = ($pluginName ? "$pluginName." : "") . $controller->getName();
     // $table = the actual table object
-    
+    $table = $controller->getTableLocator()->get($modelsName);
     
     // Do we have an authenticated user?
     $authenticatedUser = (bool)$this->getAuthenticatedUser();
@@ -600,11 +600,10 @@ class RegistryAuthComponent extends Component
         
         $apiUser = $ApiUsers->find()
                             ->where([
-                              'ApiUsers.username' => $this->authenticateApiUser,
+                              'ApiUsers.username' => $this->authenticatedUser,
                               'ApiUsers.co_id'    => $coId,
                               'ApiUsers.status'   => SuspendableStatusEnum::Active
                             ])
-                            ->contain()
                             ->first();
         
         if($apiUser) {
