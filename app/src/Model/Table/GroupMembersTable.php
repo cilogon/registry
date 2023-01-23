@@ -73,7 +73,7 @@ class GroupMembersTable extends Table {
     
     $this->setDisplayField('id');
     
-    $this->setPrimaryLink('group_id');
+    $this->setPrimaryLink(['group_id', 'person_id']);
     $this->setRequiresCO(true);
     
     $this->setEditContains(['Groups', 'People.PrimaryName']);

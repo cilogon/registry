@@ -51,6 +51,7 @@ namespace App\Controller\Component;
 
 use \Cake\Controller\Component;
 use \Cake\Core\Configure;
+use \Cake\Chronos\Chronos;
 use \Cake\Datasource\Exception\RecordNotFoundException;
 use \Cake\Event\EventInterface;
 use \Cake\Http\Exception\ForbiddenException;
