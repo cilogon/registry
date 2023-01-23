@@ -246,10 +246,13 @@ class RegistryAuthComponent extends Component
 
     $ret = [];
     
+    // This will need to be prefixed to the model, if set
+    $pluginName = $controller->getPlugin();
+    
     // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $controller->getName();
+    $modelsName = ($pluginName ? "$pluginName." : "") . $controller->getName();
     // $table = the actual table object
-    $table = $controller->getTableLocator()->get($modelsName);
+    
     
     // Do we have an authenticated user?
     $authenticatedUser = (bool)$this->getAuthenticatedUser();

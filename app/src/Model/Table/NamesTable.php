@@ -42,6 +42,7 @@ class NamesTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -221,6 +222,11 @@ class NamesTable extends Table {
     $count = $this->find()->where($entity->whereClause())->count();
     
     if($count == 1) {
+      $this->llog(
+        level: 'error',
+        msg: "AR-Name-4 Each Person or ExternalIdentity must have at least one name at all times",
+        id: $entity->id
+      );
       return __d('error', 'Names.minimum');
     }
     
@@ -238,6 +244,11 @@ class NamesTable extends Table {
   
   public function rulePrimaryNameDelete($entity, $options) {
     if($entity->primary_name) {
+      $this->llog(
+        level: 'error', 
+        msg: "AR-Name-1 The Primary Name cannot be deleted",
+        id: $entity->id
+      );
       return __d('error', 'Names.primary_name.del');
     }
     

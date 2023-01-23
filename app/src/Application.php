@@ -24,6 +24,8 @@ use Cake\Http\MiddlewareQueue;
 use Cake\Routing\Middleware\AssetMiddleware;
 use Cake\Routing\Middleware\RoutingMiddleware;
 
+use Cake\ORM\TableRegistry;
+
 /**
  * Application setup class.
  *
@@ -55,6 +57,14 @@ class Application extends BaseApplication
         }
 
         // Load more plugins here
+        
+        $Plugins = TableRegistry::getTableLocator()->get('Plugins');
+
+        $activePlugins = $Plugins->find('active')->all();
+
+        foreach($activePlugins as $p) {
+            $this->addPlugin($p->plugin);
+        }
     }
     
     /**

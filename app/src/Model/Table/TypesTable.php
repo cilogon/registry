@@ -56,7 +56,7 @@ class TypesTable extends Table {
   protected $supportedAttributes = [
     'Addresses.type',
 //    'Departments.type',
-    'PersonRoles.affiliation',
+    'PersonRoles.affiliation_type',
     'EmailAddresses.type',
     'Identifiers.type',
     'Names.type',
@@ -90,6 +90,8 @@ class TypesTable extends Table {
     $this->hasMany('EmailAddresses');
     $this->hasMany('Identifiers');
     $this->hasMany('Names');
+    $this->hasMany('PersonRoles')
+         ->setForeignKey('affiliation_type_id');
     $this->hasMany('Pronouns');
     $this->hasMany('TelephoneNumbers');
     $this->hasMany('Urls');
@@ -150,7 +152,7 @@ class TypesTable extends Table {
       throw new \InvalidArgumentException(__d('error', 'unknown', [$attribute]));
     }
 
-    // Split $attribute
+    // Split $attribute (eg: Names.type)
     $attr = explode('.', $attribute, 2);
     
     // We need the appropriate model for $attribute to manipulate the default types

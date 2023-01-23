@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Co Entity
+ * COmanage Registry Plugin Location  Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,52 +27,10 @@
 
 declare(strict_types = 1);
 
-namespace App\Model\Entity;
+namespace App\Lib\Enum;
 
-use Cake\ORM\Entity;
-
-use \App\Lib\Enum\SuspendableStatusEnum;
-
-class Co extends Entity {
-  protected $_accessible = [
-    '*' => true,
-    'id' => false,
-    'slug' => false, 
-  ];
-  
-  /**
-   * Determine if this CO is Active.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return bool   true if the CO is Active, false otherwise
-   */
-
-  public function isActive(): bool {
-    return $this->status == SuspendableStatusEnum::Active;
-  }
-
-  /**
-   * Determine if this entity is the COmanage CO.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return bool true if this entity is the COmanage CO, false otherwise
-   */
-  
-  public function isCOmanageCO(): bool {
-    return (strtolower($this->name) == 'comanage');
-  }
-  
-  /**
-   * Determine if this entity is Read Only.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity Cake Entity
-   * @return boolean         true if the entity is read only, false otherwise
-   */
-  
-  public function isReadOnly(): bool {
-    // The COmanage CO is read only
-    
-    return $this->isCOmanageCO();
-  }
+class PluginLocationEnum extends StandardEnum {
+  const Available = "available";
+  const Core      = "core";
+  const Local     = "local";
 }

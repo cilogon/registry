@@ -73,15 +73,20 @@ class GroupsTable extends Table {
     $this->belongsTo('Cous');
     
     $this->hasMany('GroupMembers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('GroupNestings')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('GroupOwners')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Identifiers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->setDisplayField('name');
     
@@ -423,7 +428,7 @@ class GroupsTable extends Table {
             $this->GroupMembers->delete($groupMember);
           }
         } else {
-          if(!$person || $person->status == StatusEnum::Deleted) {
+          if(!$person || $person->status == StatusEnum::Archived) {
             $this->llog('rule', "AR-Person-1 Reconciliation removing membership for Person ID " . $groupMember->person_id . " from Group ID " . $groupMember->group_id);
             $this->GroupMembers->delete($groupMember);
           }
@@ -435,7 +440,7 @@ class GroupsTable extends Table {
     // correlated membership.
     
     if(!empty($entity->cou_id)) {
-      // This won't return roles in Deleted status, but returns all others
+      // This won't return roles in Archived status, but returns all others
       $iterator = $this->Cous->PersonRoles->getMembers($entity->cou_id);
       
       foreach($iterator as $k => $personRole) {

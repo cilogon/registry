@@ -45,17 +45,32 @@ class ChangelogBehavior extends Behavior
    */
   
   public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    if(isset($options['useHardDelete']) && $options['useHardDelete']) {
+      // Hard delete requested, so just return
+      return true;
+    }
+
     $subject = $event->getSubject();
     $alias = $subject->getAlias();
     
     LogBehavior::strace($alias, 'Changelog converting delete to update');
     
+    // Since we stop the delete event, we need to manually trigger cascades.
+    // Note Cake defaults to delete via deleteAll(), which skips callbacks,
+    // which means we wouldn't be called. Models need to declare "cascadeCallbacks" to
+    // true in association definitions.
+    // XXX though this will slow hard delete, which doesn't need it...
+
+    $subject->associations()->cascadeDelete($entity, $options->getArrayCopy());
+    
+    // Update this record as deleted
+
     $entity->deleted = true;
     $subject->saveOrFail($entity, ['checkRules' => false, 'archive' => false]);
     
     // Stop the delete from actually happening
     $event->stopPropagation();
-    
+
     // But return success
     return true;
   }
@@ -71,16 +86,15 @@ class ChangelogBehavior extends Behavior
    */
   
   public function beforeFind(\Cake\Event\Event $event, \Cake\ORM\Query $query, \ArrayObject $options, bool $primary) {
+    if(isset($options['archived']) && $options['archived']) {
+      // Archived records requested (including possiblf expunge), so just return
+      return true;
+    }
+
     $subject = $event->getSubject();
     $table = $subject->getTable();
     $alias = $subject->getAlias();
     $parentfk = Inflector::singularize($table) . "_id";
-    
-    if(isset($options['archived']) && $options['archived']) {
-      // XXX need to the same check for expunge
-      
-      return true;
-    }
     
     LogBehavior::strace($alias, 'Changelog altering find conditions');
     

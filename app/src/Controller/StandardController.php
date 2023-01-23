@@ -32,11 +32,12 @@ namespace App\Controller;
 use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Util\StringUtilities;
 
 class StandardController extends AppController {
   // Pagination defaults should be set in each controller
   public $pagination = [];
-  
+
   /**
    * Handle an add action for a Standard object.
    *
@@ -55,10 +56,17 @@ class StandardController extends AppController {
       try {
         // Try to save
         $obj = $table->newEntity($this->request->getData());
-        
+
         if($table->save($obj)) {
           $this->Flash->success(__d('result', 'saved'));
           
+          // If this is a Pluggable Model, instantiate the plugin and redirect
+          // into the Entry Point Model
+          if(!empty($obj->plugin) && method_exists($this, "instantiatePlugin")) {
+            // instantiatePlugin() is implemented in StandardPluggableController
+            return $this->instantiatePlugin($obj);
+          }
+
           return $this->generateRedirect($obj->id);
         }
         
@@ -97,7 +105,7 @@ class StandardController extends AppController {
     
     // Default title is add new object
     $this->set('vv_title', __d('operation', 'add.a', __d('controller', $modelsName, [1])));
-    
+
     // Supertitle is normally the display name of the parent object when subnavigation exists.
     // Set this here as the fallback default. This value is overriden in MVEAController to hold the
     // name of the parent object, not the model name of the current object.
@@ -150,6 +158,15 @@ class StandardController extends AppController {
     
     $this->set('vv_permissions', $this->RegistryAuth->calculatePermissionsForView($this->request->getParam('action'), $id));
     
+    // The template path may vary if we're in a plugin context
+    $vv_template_path = ROOT . DS . "templates" . DS . $modelsName;
+
+    if(!empty($this->getPlugin())) {
+      $vv_template_path = $this->getPluginPath($this->getPlugin(), "templates") . DS . $modelsName;
+    }
+
+    $this->set('vv_template_path', $vv_template_path);
+
     return parent::beforeRender($event);
   }
   
@@ -174,8 +191,13 @@ class StandardController extends AppController {
       $obj = $table->findById($id)->firstOrFail();
       
 // XXX throw 404 on RESTful not found?
-// XXX document AR-CO-1 when we implement hard delete/changelog
-      $table->deleteOrFail($obj);
+      // By default, a delete is a soft delete. The exceptions are when
+      // deleting a CO (AR-CO-1) or when an expunge flag is passed and
+      // expunge is enabled within the CO (XXX not yet implemented).
+
+      $useHardDelete = ($modelsName == "Cos");
+
+      $table->deleteOrFail($obj, ['useHardDelete' => $useHardDelete]);
       
       // Use the display field to generate the flash message
       
@@ -360,6 +382,16 @@ class StandardController extends AppController {
     // By default we return to the index, but we'll also accept "self" or "primaryLink".
     $redirectGoal = $this->getRedirectGoal();
     
+    if(!$redirectGoal) {
+      // Our default behavior is index unless we're in a plugin context
+
+      if(!empty($this->getPlugin())) {
+        $redirectGoal = 'pluggableLink';
+      } else {
+        $redirectGoal = 'index';
+      }
+    }
+
     if($redirectGoal == 'self'
        && $id
        && in_array($this->request->getParam('action'), ['add', 'edit'])) {
@@ -370,9 +402,22 @@ class StandardController extends AppController {
         'action' => 'edit',
         $id
       ];
-    } elseif($redirectGoal == 'primaryLink') {
-      // XXX implement me
-      throw new \RuntimeException('generateRedirect NOT IMPLEMENTED');
+    } elseif($redirectGoal == 'pluggableLink' || $redirectGoal == 'primaryLink') {
+      // pluggableLink and primaryLink do basically the same thing, except that
+      // pluggableLink moves from a plugin to core so we need to drop the plugin
+      $link = $this->getPrimaryLink(true);
+      
+      if(!empty($link->attr) && !empty($link->value)) {
+        $redirect = [
+          'controller' => StringUtilities::foreignKeyToClassName($link->attr),
+          'action' => 'edit',
+          $link->value
+        ];
+
+        if($redirectGoal == 'pluggableLink') {
+          $redirect['plugin'] = null;
+        }
+      }
     } else {
       // Default is to redirect to the index view
       $redirect = ['action' => 'index'];
@@ -519,7 +564,7 @@ class StandardController extends AppController {
     // Let the view render
     $this->render('/Standard/index');
   }
-  
+
   /**
    * Populate any auto view variables, as requested via AutoViewVarsTrait.
    *
@@ -562,6 +607,7 @@ class StandardController extends AppController {
               'attribute' => $avv['attribute'],
               'status'    => SuspendableStatusEnum::Active
             ];
+            // fall through
           case 'auxiliary':
 // XXX add list as in match?
           case 'select':
@@ -634,6 +680,10 @@ class StandardController extends AppController {
             // XXX We assume that all models that load the Tree behavior will
             //     implement a potentialParents method
             $this->set($vvar, $table->potentialParents($this->getCOID()));
+            break;
+          case 'plugin':
+            $PluginTable = $this->getTableLocator()->get('Plugins');
+            $this->set($vvar, $PluginTable->getActivePluginModels($avv['pluginType']));
             break;
           default:
 // XXX I18n? and in match?

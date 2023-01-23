@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Co Entity
+ * COmanage Registry Plugin Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -29,50 +29,52 @@ declare(strict_types = 1);
 
 namespace App\Model\Entity;
 
-use Cake\ORM\Entity;
-
+use \Cake\ORM\Entity;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
-class Co extends Entity {
+class Plugin extends Entity {
   protected $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
-  
+
   /**
-   * Determine if this CO is Active.
-   *
+   * Determine if this Plugin can be activated.
+   * 
    * @since  COmanage Registry v5.0.0
-   * @return bool   true if the CO is Active, false otherwise
+   * @return bool   True if this plugin can be activated, false otherwise
    */
 
-  public function isActive(): bool {
-    return $this->status == SuspendableStatusEnum::Active;
+  public function canActivate(): bool {
+    // Any Suspended plugin can be activated
+
+    return $this->status == SuspendableStatusEnum::Suspended;
   }
 
   /**
-   * Determine if this entity is the COmanage CO.
-   *
+   * Determine if this Plugin can be deactivated.
+   * 
    * @since  COmanage Registry v5.0.0
-   * @return bool true if this entity is the COmanage CO, false otherwise
+   * @return bool   True if this plugin can be deactivated, false otherwise
    */
-  
-  public function isCOmanageCO(): bool {
-    return (strtolower($this->name) == 'comanage');
+
+  public function canDeactivate(): bool {
+    // Only non-core Active plugins can be deactivated
+
+    return ($this->status == SuspendableStatusEnum::Active && !$this->isReadOnly());
   }
   
   /**
    * Determine if this entity is Read Only.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity Cake Entity
-   * @return boolean         true if the entity is read only, false otherwise
+   * @return bool   True if the entity is read only, false otherwise
    */
   
   public function isReadOnly(): bool {
-    // The COmanage CO is read only
+    // Local plugins are read only
     
-    return $this->isCOmanageCO();
+    return $this->location == 'core';
   }
 }

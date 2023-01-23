@@ -66,6 +66,11 @@ class DashboardsController extends StandardController {
         'controller'    => 'cous',
         'action'        => 'index'
       ],
+      __d('controller', 'Reports', [99]) => [
+        'icon'          => 'summarize',
+        'controller'    => 'reports',
+        'action'        => 'index'
+      ],
       __d('controller', 'Types', [99]) => [
         'icon'          => 'widgets',
         'controller'    => 'types',
@@ -98,6 +103,11 @@ class DashboardsController extends StandardController {
           'icon'          => 'home',
           'controller'    => 'cos',
           'action'        => 'index'
+        ],
+        __d('controller', 'Plugins', [99]) => [
+          'icon'          => 'electrical_services',
+          'controller'    => 'plugins',
+          'action'        => 'index'
         ]
       ];
     }
@@ -106,7 +116,7 @@ class DashboardsController extends StandardController {
     
     $this->set('vv_platform_menu_items', $platformMenuItems);
   }
-   
+  
   /**
    * Render a Dashboard.
    *
@@ -195,7 +205,7 @@ class DashboardsController extends StandardController {
 
     // XXX Still need to implement this (see also CFM-126)
     $roles = [];
-    
+
     // Gather our search string.
     $q = '';
     if(!empty($this->request->getData('global-search-q'))) {

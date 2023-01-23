@@ -32,8 +32,9 @@ namespace App\Lib\Enum;
 class StatusEnum extends StandardEnum {
   const Active              = 'A';
   const Approved            = 'Y';
+  // Archived was Deleted in v4, so we reuse "D" to simplify upgrading
+  const Archived            = 'D';
   const Confirmed           = 'C';
-  const Deleted             = 'D';
   const Denied              = 'N';
   const Duplicate           = 'D2';
   const Expired             = 'XP';

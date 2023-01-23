@@ -80,7 +80,14 @@ return [
         'cssBaseUrl' => 'css/',
         'jsBaseUrl' => 'js/',
         'paths' => [
-            'plugins' => [ROOT . DS . 'plugins' . DS],
+            'plugins' => [
+                // Core plugins, always active
+                ROOT . DS . 'plugins' . DS,
+                // Optional plugins, must be activated
+                ROOT . DS . 'availableplugins' . DS,
+                // Local plugins, must be activated
+                LOCAL . DS . 'plugins' . DS
+            ],
             'templates' => [ROOT . DS . 'templates' . DS],
             'locales' => [ROOT . DS . 'resources' . DS . 'locales' . DS],
         ],

@@ -69,25 +69,35 @@ class ExternalIdentitiesTable extends Table {
          ->setClassName('Names')
          ->setConditions(['PrimaryName.primary_name' => true]);
     $this->hasMany('Names')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Addresses')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('AdHocAttributes')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('EmailAddresses')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('ExternalIdentityRoles')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Identifiers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Pronouns')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('TelephoneNumbers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Urls')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->setDisplayField('id');
     

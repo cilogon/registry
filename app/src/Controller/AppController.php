@@ -351,7 +351,7 @@ class AppController extends Controller {
    * @return string Redirect goal
    */
   
-  protected function getRedirectGoal(): string {
+  protected function getRedirectGoal(): ?string {
     // $this->name = Models
     $modelsName = $this->name;
     
@@ -497,6 +497,8 @@ class AppController extends Controller {
       
       if($this->cur_co->status === TemplateableStatusEnum::Active) {
         $this->set('vv_cur_co', $this->cur_co);
+      } else {
+        throw new \InvalidArgumentException(__d('error', 'inactive', [__d('controller', 'Cos', [1]), $coid]));
       }
       
       // We store the CO ID in Configuration to facilitate its access from

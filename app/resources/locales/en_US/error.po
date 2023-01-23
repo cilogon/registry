@@ -69,6 +69,9 @@ msgstr "Invalid database configuration \"{0}\""
 msgid "default.conflict"
 msgstr "Default values already imported"
 
+msgid "delete"
+msgstr "Failed to delete {0} {1}"
+
 msgid "delete.active"
 msgstr "This record is in Active status and cannot be deleted"
 
@@ -117,6 +120,9 @@ msgstr "Group is nested or has nestings, and cannot be suspended or deleted"
 
 msgid "Identifiers.login"
 msgstr "Only Identifiers attached to a Person may be flagged for login"
+
+msgid "inactive"
+msgstr "{0} {1} is not Active"
 
 msgid "input.blank"
 msgstr "Value cannot consist of only blank characters"
@@ -172,6 +178,9 @@ msgstr "Page number must be an integer"
 msgid "perm"
 msgstr "Permission Denied"
 
+msgid "Plugins.inuse"
+msgstr "{0,plural,=1{Plugin in use for {1} \"{2}\" in CO {3}} other{Plugin in use for {1} \"{2}\" in CO {3} and others}}"
+
 msgid "primary_link"
 msgstr "Could not find value for Primary Link"
 
@@ -189,6 +198,9 @@ msgstr "Foreign key {0} CO ID {1} does not match primary object CO ID {2}"
 
 msgid "save"
 msgstr "Save Failed ({0})"
+
+msgid "save.plugin"
+msgstr "Failed to instantiate Plugin {0}"
 
 msgid "schema.column"
 msgstr "No type defined for table \"{0}\" column \"{1}\""

@@ -34,6 +34,7 @@ use Cake\I18n\FrozenTime;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use App\Lib\Enum\DateTypeEnum;
+use App\Lib\Util\StringUtilities;
 
 class FieldHelper extends Helper {
   public $helpers = ['Form', 'Html', 'Url', 'Alert'];
@@ -49,6 +50,9 @@ class FieldHelper extends Helper {
   
   // The current entity, if edit or view
   protected $entity = null;
+
+  // The current action
+  protected $action = null;
 
   /**
    * Emit an informational banner.
@@ -85,7 +89,11 @@ class FieldHelper extends Helper {
                           string $cssClass=''): string {
     $coptions = $options;
     $coptions['label'] = false;
-    $coptions['readonly'] = !$this->editable || (isset($options['readonly']) && $options['readonly']);
+    $coptions['readonly'] = 
+      !$this->editable 
+      || (isset($options['readonly']) && $options['readonly'])
+      // Plugins can't be changed after the parent object is instantiated
+      || ($fieldName == 'plugin' && $this->action == 'edit');
     // Selects, Checkboxes, and Radio Buttons use "disabled"
     $coptions['disabled'] = $coptions['readonly'];
     
@@ -113,6 +121,22 @@ class FieldHelper extends Helper {
     // Generate the form control or pass along the markup generated in a wrapper function
     $controlCode = empty($ctrlCode) ? $this->Form->control($fieldName, $coptions) : $ctrlCode;
     
+    $vv_obj = $this->getView()->get('vv_obj');
+
+    if($fieldName == 'plugin') {
+      return $this->statusControl($fieldName, 
+                                  $vv_obj->$fieldName, 
+                                  [
+                                    'label' => __d('operation', 'configure.plugin'),
+                                    'url' => [
+                                      'plugin'      => null,
+                                      'controller'  => 'reports',
+                                      'action'      => 'configure',
+                                      $vv_obj->id
+                                    ]
+                                  ], 
+                                  $labelText);
+    }
     
     // Required fields are usually determined by the model validator, but for
     // related models the view (currently) has to pass the field as required in
@@ -426,6 +450,7 @@ class FieldHelper extends Helper {
     $this->modelName = $modelName;
     $this->reqFields = $reqFields;
     $this->entity = $entity;
+    $this->action = $action;
     
     return '<ul id="' . $action . '_' . $modelName . '" class="fields form-list">' . "\n";
   }

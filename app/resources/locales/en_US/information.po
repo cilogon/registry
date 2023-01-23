@@ -42,6 +42,15 @@ msgstr "ID: {0}"
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 
+msgid "plugin.active"
+msgstr "Active"
+
+msgid "plugin.active.only"
+msgstr "Active, Cannot Be Disabled"
+
+msgid "plugin.inactive"
+msgstr "Inactive"
+
 msgid "global.records.none"
 msgstr "There are no records to display."
 

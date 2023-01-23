@@ -24,8 +24,17 @@
 
 # Results
 
+msgid "activated"
+msgstr "{0} Activated"
+
 msgid "added.mvea"
 msgstr "{0} {1} Added: {2}"
+
+msgid "applied.schema"
+msgstr "Successfully applied database schema"
+
+msgid "deactivated"
+msgstr "{0} Deactivated"
 
 msgid "deleted"
 msgstr "Deleted"

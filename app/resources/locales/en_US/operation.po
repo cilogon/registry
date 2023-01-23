@@ -24,6 +24,9 @@
 
 # Operations (Commands)
 
+msgid "activate"
+msgstr "Activate"
+
 msgid "add.a"
 msgstr "Add a New {0}"
 
@@ -32,6 +35,9 @@ msgstr "Generate API Key"
 
 msgid "api.key.generate.confirm"
 msgstr "Are you sure you wish to generate a new API Key?"
+
+msgid "applySchema"
+msgstr "Apply Database Schema"
 
 msgid "cancel"
 msgstr "Cancel"
@@ -48,8 +54,14 @@ msgstr "Close"
 msgid "confirm"
 msgstr "Confirm"
 
+msgid "configure.plugin"
+msgstr "Configure Plugin"
+
 msgid "dashboard.configuration"
 msgstr "Manage {0} Configuration"
+
+msgid "deactivate"
+msgstr "Deactivate"
 
 msgid "delete"
 msgstr "Delete"
@@ -122,6 +134,9 @@ msgstr "Global Search"
 
 msgid "skip_to_content"
 msgstr "Skip to main content"
+
+msgid "Cos.switch"
+msgstr "Switch To This CO"
 
 msgid "view"
 msgstr "View"

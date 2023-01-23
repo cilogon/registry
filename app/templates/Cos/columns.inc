@@ -44,6 +44,14 @@ $topLinks = [];
 // $rowActions appear as row-level menu items in the index view gear icon
 $rowActions = [
   [
+    'controller'  => 'dashboards',
+    'action'      => 'dashboard',
+    'class'       => '',
+    'icon'        => 'transfer_within_a_station',
+    'label'       => __d('operation', 'Cos.switch'),
+    'if'          => 'isActive'
+  ],
+  [
     'action' => 'duplicate',
     'class'  => '',
     'icon'   => 'content_copy'

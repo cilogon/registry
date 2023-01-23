@@ -21,7 +21,7 @@
  * 
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v3.3.0
+ * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -46,7 +46,7 @@ class StringUtilities {
   public static function columnKey($modelsName, $c, $tz=null, $useCustomClMdlLabel=false): string {
     if(strpos($c, "_id", strlen($c)-3)) {
       // Key is of the form field_id, use .ct label instead
-      $k = Inflector::camelize(Inflector::pluralize(substr($c, 0, strlen($c)-3)));
+      $k = $this->foreignKeyToClassName($c);
 
       return __d('controller', $k, [1]);
     }
@@ -74,6 +74,91 @@ class StringUtilities {
     // Otherwise look for the general key
     $cfield = __d('field', $c);
     return ($cfield !== $c) ? $cfield : \Cake\Utility\Inflector::humanize($c);
+  }
+
+  /**
+   * Determine the class basename of a Cake Entity.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return string         Entity Class Basename
+   * @todo   Refactor existing code to use these calls (Standard/index.php, MVETrait, ReadOnlyTrait, TableMetaTrait, and ChangelogBehavior)
+   */
+
+  public static function entityToClassName($entity): string {
+    // $classPath will be something like App\Model\Entity\Name, but we want to return "Names"
+    $classPath = get_class($entity);
+
+    return Inflector::pluralize(substr($classPath, strrpos($classPath, '\\')+1));
+  }
+
+  /**
+   * Determine the foreign key name to point to a Cake Entity (eg: foo_id for a Foo object).
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return string         Foreign key name
+   */
+
+  public static function entityToForeignKey($entity): string {
+    // $classPath will be something like App\Model\Entity\Name, but we want to return "name_id"
+    $classPath = get_class($entity);
+
+    return Inflector::underscore(Inflector::singularize(substr($classPath, strrpos($classPath, '\\')+1))) . "_id";
+  }
+
+  /**
+   * Determine the class name from a foreign key (eg: report_id -> Reports).
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $s Foreign Key name
+   * @return string    Class name
+   */
+
+  public static function foreignKeyToClassName(string $s): string {
+    return Inflector::camelize(Inflector::pluralize(substr($s, 0, strlen($s)-3)));
+  }
+
+  /**
+   * Determine the model component of a Plugin path.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $s Plugin path, in Plugin.Model format.
+   * @return string    Model name
+   */
+  
+  public static function pluginModel(string $s): string {
+    $bits = explode('.', $s, 2);
+
+    return $bits[1];
+  }
+
+  /**
+   * Determine the plugin component of a Plugin path.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $s Plugin path, in Plugin.Model format.
+   * @return string    Plugin name
+   */
+  
+  public static function pluginPlugin(string $s): string {
+    $bits = explode('.', $s, 2);
+
+    return $bits[0];
+  }
+
+  /**
+   * Determine the Entity name from a Table object.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Table $table Cake Table object
+   * @return string       Entity name (eg: Report)
+   */
+  
+  public static function tableToEntityName($table): string {
+    $classPath = $table->getEntityClass();
+
+    return substr($classPath, strrpos($classPath, '\\')+1);
   }
 
   // The following two utilities provide base64 encoding and decoding for

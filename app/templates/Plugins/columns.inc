@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Pronouns Controller
+ * COmanage Registry Plugins Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,18 +25,35 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+$indexColumns = [
+  'plugin' => [
+    'type' => 'link'
+  ],
+  'location' => [
+    'type' => 'echo'
+  ],
+  'status' => [
+    'type' => 'enum',
+    'class' => 'SuspendableStatusEnum'
+  ],
+  'comment' => [
+    'type' => 'echo'
+  ]
+];
 
-namespace App\Controller;
-
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
-
-class PronounsController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'Pronouns.pronouns' => 'asc'
-    ]
-  ];
-}
+$rowActions = [
+  [
+    'action'  => 'activate',
+    'icon'    => 'toggle_off',
+    'if'      => 'canActivate'
+  ],
+  [
+    'action'  => 'deactivate',
+    'icon'    => 'toggle_on',
+    'if'      => 'canDeactivate'
+  ],
+  [
+    'action'  => 'applySchema',
+    'icon'    => 'schema'
+  ]
+];

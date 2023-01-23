@@ -85,7 +85,7 @@ if(!empty($banners)) {
 <div class="pageTitleContainer">
   <div class="pageTitle">
     <?php if(empty($subnav)): ?>
-      <h1><?= $vv_title; ?></h1>
+    <h1><?= $vv_title; ?></h1>
     <?php else: ?>
       <?php if(
         // Subnavigation contains an h2 for these entities
@@ -107,8 +107,7 @@ if(!empty($banners)) {
     $action_args['vv_attr_id'] =  $vv_obj->id;
     
     foreach(($topLinks ?? []) as $t) {
-      // TODO: fix the following test so that cross-model links can exist in top-links (e.g. History Records index)
-      //if($vv_permissions[ $t['link']['action'] ]) {
+      if($vv_permissions[ $t['link']['action'] ]) {
         // We need to inject $linkFilter, but not overwrite any existing query params
         if(!empty($t['link']['?'])) {
           $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
@@ -122,7 +121,7 @@ if(!empty($banners)) {
           'url' => $this->Url->build($t['link']),
           'label' => $t['label'],
         ];
-      //}
+      }
     }
   
     // Delete
@@ -191,7 +190,9 @@ if(!empty($vv_fields_inc)) {
   $fieldsFile = $vv_fields_inc;
 }
 
-include(ROOT . DS . "templates" . DS . $modelsName . DS . $fieldsFile);
+// The controller will calculate the template path for us, since it could be
+// in one of several paths if we are in a plugin context.
+include($vv_template_path . DS . $fieldsFile);
 
 if(!empty($hidden)) {
   // Inject any hidden variables set by the include file

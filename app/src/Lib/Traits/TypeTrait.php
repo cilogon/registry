@@ -78,7 +78,7 @@ trait TypeTrait {
     // eg: "Name"
     foreach($this->defaultTypes[$attribute] as $t) {
       // Map to localized text string
-      $ret[$t] = __d('defaultType', $this->getAlias().'.'.$t);
+      $ret[$t] = __d('defaultType', $this->getAlias().'.'.$attribute.'.'.$t);
     }
     
     return $ret;

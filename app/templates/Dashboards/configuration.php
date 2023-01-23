@@ -26,10 +26,8 @@
  */
 ?>
 <section class="inner-content">
-  <!-- XXX currently platform and configuration menu items get rendered in one list,
-           but they should probably be separated visually somehow -->
-  <ul id="configuration-menu" class="three-col">
-    <?php if(!empty($vv_platform_menu_items)): ?>
+  <?php if(!empty($vv_platform_menu_items)): ?>
+    <ul id="configuration-menu" class="three-col">
       <?php foreach($vv_platform_menu_items as $label => $cfg): ?>
         <li>
           <?php 
@@ -45,8 +43,10 @@
           ?>
         </li>
       <?php endforeach; // $vv_configuration_menu_items ?>
-    <?php endif; // $vv_platform_menu_items ?>
-    
+  </ul>
+  <?php endif; // $vv_platform_menu_items ?>
+  <hr />
+  <ul id="configuration-menu" class="three-col">
     <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
       <li>
         <?php 

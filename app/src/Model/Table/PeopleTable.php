@@ -73,29 +73,44 @@ class PeopleTable extends Table {
          ->setClassName('Names')
          ->setConditions(['PrimaryName.primary_name' => true]);
     $this->hasMany('Names')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Addresses')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('AdHocAttributes')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('EmailAddresses')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('ExternalIdentities')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('GroupMembers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('GroupOwners')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Identifiers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('PersonRoles')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Pronouns')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('TelephoneNumbers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Urls')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
 // XXX can we change this to Name?
     $this->setDisplayField('id');
@@ -159,6 +174,37 @@ class PeopleTable extends Table {
   }
   
   /**
+   * Callback before model delete.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  CakeEventEvent $event   The beforeDelete event
+   * @param                 $entity  Entity
+   * @param  ArrayObject    $options Options
+   * @return boolean                 True on success
+   */
+  
+  public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    if(isset($options['useHardDelete']) 
+       && $options['useHardDelete']
+       && $entity->id > 0) {
+      // Hard delete, so clear out any foreign keys pointing to this Person.
+      // This will also clear foreign keys from archived changelog records.
+      
+      $this->PersonRoles->updateAll(
+        [ 'manager_person_id' => null ],
+        [ 'manager_person_id' => $entity->id ]
+      );
+
+      $this->PersonRoles->updateAll(
+        [ 'sponsor_person_id' => null ],
+        [ 'sponsor_person_id' => $entity->id ]
+      );
+    }
+
+    return true;
+  }
+
+  /**
    * Callback after model save.
    *
    * @since  COmanage Registry v5.0.0
@@ -206,7 +252,7 @@ class PeopleTable extends Table {
   public function getMembers(int $coId): PaginatedSqlIterator {
     $conditions = [
       'co_id' => $coId,
-      'status IS NOT' => StatusEnum::Deleted
+      'status IS NOT' => StatusEnum::Archived
     ];
     
     return new PaginatedSqlIterator($this, $conditions);
@@ -226,7 +272,7 @@ class PeopleTable extends Table {
     // This is similar to PersonRole::reconcileCouMembersGroupMemberships.
     
     $activeEligible = $entity->isActive();
-    $allEligible = $entity->status != StatusEnum::Deleted;
+    $allEligible = $entity->status != StatusEnum::Archived;
     
     // Update the automatic CO groups
     $this->llog('rule', "AR-Person-1 Syncing membership in All Members Group for CO " . $entity->co_id . " for Person " . $entity->id . ", eligibility=" . $allEligible);

@@ -29,15 +29,19 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use App\Lib\Enum\StatusEnum;
+use Cake\Datasource\EntityInterface;
+use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Validation\Validator;
+
+use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Enum\TemplateableStatusEnum;
+use \App\Lib\Util\PaginatedSqlIterator;
 
 class CosTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -66,21 +70,30 @@ class CosTable extends Table {
     // Define associations
     
     $this->hasMany('ApiUsers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Cous')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Dashboards')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Groups')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('People')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('Reports')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Types')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->hasOne('CoSettings')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->setDisplayField('name');
     
@@ -97,6 +110,7 @@ class CosTable extends Table {
         'delete' =>    ['platformAdmin'],
         'duplicate' => ['platformAdmin'],
         'edit' =>      ['platformAdmin'],
+        'switch' =>    ['platformAdmin'],
         'view' =>      ['platformAdmin']
       ],
       // Actions that are permitted on readonly entities (besides view)
@@ -106,6 +120,10 @@ class CosTable extends Table {
         'add' =>       ['platformAdmin'],
         'index' =>     ['platformAdmin'],
         'select' =>    ['authenticatedUser']
+      ],
+      // Related models whose permissions we'll need, typically for table views
+      'related' => [
+        'Dashboards'
       ]
     ]);
   }
@@ -145,6 +163,105 @@ class CosTable extends Table {
     return $rules;
   }
   
+  /**
+   * Delete a CO.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  EntityInterface  $entity   CO to be deleted
+   * @param  array            $options  Delete options (as per Cake)
+   * @return boolean                    true on success
+   * @throws Cake\ORM\Exception\PersistenceFailedException
+   */
+
+  public function deleteOrFail(EntityInterface $entity, $options = []): bool {
+    // Completely wiping a CO requires special handling. Because of the complex
+    // dependency paths, we can't simply rely on Cake's dependency propagation
+    // on delete.
+
+    // We ignore $options['useHardDelete'] because COs can _only_ be hard deleted.
+
+    // We'll start by obtaining the set of models directly associated with the CO model.
+    $associations = $this->associations();
+
+    // We need to sort the associations into several buckets:
+    //  (1) Pluggable Models,
+    //  (2) Configuration Models that belong to a model other than Cos,
+    //  (3) Primary Models,
+    //  (4) Configuration Models that do not belong to another model
+    // We don't need to identify Secondary Models because Primary Model deletes 
+    // will cascade to them, and generally Cake's cascade delete will be sufficient.
+    // See also: https://spaces.at.internet2.edu/display/COmanage/Registry+PE+Data+Model#RegistryPEDataModel-Tables
+
+    // These will be keyed on the association target class name, with values being the Table objects
+    $pluggable = [];
+    $configFirst = [];
+    $primary = [];
+    $configLast = [];
+
+    foreach($associations->getByType(['HasOne', 'HasMany']) as $a) {
+      $targetTable = $a->getTarget();
+
+      if(method_exists($targetTable, "getPluggableModelType")) {
+        $pluggable[ $a->getClassName() ] = $targetTable;
+      } elseif($targetTable->getIsConfigurationTable()) {
+        // eg: CoSettings
+        $targetAssociations = $a->associations();
+
+        // Did we find an association to something other than Cos?
+        $found = false;
+
+        foreach($targetAssociations->getByType(['belongsTo', 'belongsToMany']) as $ta) {
+          // eg: Types (CoSettings belongsTo Types)
+          // We also skip associations into the same model (eg: Cous, for TreeBehavior)
+
+          if($ta->getClassName() != 'Cos' 
+             && $ta->getClassName() != $a->getClassName()) {
+            $found = true;
+            break;
+          }
+        }
+
+        if($found) {
+          $configFirst[ $a->getClassName() ] = $targetTable;
+        } else {
+          $configLast[ $a->getClassName() ] = $targetTable;
+        }
+      } else {
+        // This is by definition a Primary Object since it belongsTo CO, eg: People
+        $primary[ $a->getClassName() ] = $targetTable;
+      }
+    }
+
+    // First, delete plugin related models
+    // XXX unclear that we need to do anything here... PluggableModelTrait will
+    // automatically bind instantiated Entry Point Models when a Pluggable Table object
+    // is initialized, so plugin related models should be automatically deleted when
+    // the Pluggable Model is deleted.
+
+    // Delete any Configuration Object that references a Primary Object or other
+    // Configuration Objects (such as Types)
+
+    $this->paginatedDelete($entity->id, $configFirst);
+
+    // Delete Primary Objects, which should cascade and take Secondary Objects with them.
+
+    $this->paginatedDelete($entity->id, $primary);
+
+    // Delete any remaining Configuration Objects, (including Types) after all
+    // models that might reference them
+
+    $this->paginatedDelete($entity->id, $configLast);
+
+    // Delete any Changelog records for this CO. We can use deleteAll because we
+    // don't need any callbacks to fire.
+    $this->deleteAll(['Cos.co_id' => $entity->id]);
+
+    // Finally, delete the CO itself
+    parent::deleteOrFail($entity, ['useHardDelete' => true, 'checkRules' => false]);
+
+    return true;
+  }
+
   /*
   public function duplicate($id) {
     // XXX document AR-CO-4, use TableMetaTrait to determine which tables are configuration
@@ -195,7 +312,7 @@ class CosTable extends Table {
     
     foreach($identifiers as $i) {
       // Both the Person and the CO must be active. Note that there may be an
-      // Active Identifier pointing to a Deleted Person (for certain edge cases),
+      // Active Identifier pointing to an Archived Person (for certain edge cases),
       // in which case $i->person is null even though person_id is not.
       
       if($i->person && $i->person->isActive() 
@@ -233,7 +350,32 @@ class CosTable extends Table {
 
     return true;
   }
-  
+
+  /**
+   * Perform a paginated delete over a large set of objects within a CO.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId     CO ID
+   * @param  array  $tableSet Set of tables to operate over.
+   * @todo   This could probably be generalized, if it were useful somewhere else
+   */
+
+  protected function paginatedDelete(int $coId, array $tableSet) {
+    foreach($tableSet as $tableName => $table) {
+      $iterator = new PaginatedSqlIterator(table: $table,
+                                           conditions: ['co_id' => $coId],
+                                           options: ['archived' => true]);
+
+      foreach($iterator as $k => $tentity) {
+        // We call delete on each entity individually so that callbacks fire,
+        // in particular the unsetting of foreign keys that might be set.
+
+        // We disable checkRules since we're hard deleting all objects in the CO.
+        $table->deleteOrFail($tentity, ['useHardDelete' => true, 'checkRules' => false]);
+      }
+    }
+  }
+
   /**
    * Application Rule to determine if the current entity is the COmanage CO.
    *

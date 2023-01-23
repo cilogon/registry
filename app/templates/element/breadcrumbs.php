@@ -42,7 +42,8 @@ if($this->request->getRequestTarget(false) != '/') {
 
   $this->Breadcrumbs->prepend(
     __('registry.meta.registry'),
-    ['controller'   => 'cos',
+    ['plugin'       => null,
+     'controller'   => 'cos',
      'action'       => 'select']
   );
   
@@ -50,10 +51,10 @@ if($this->request->getRequestTarget(false) != '/') {
 // XXX this link doesn't land anywhere yet...
   $this->Breadcrumbs->add(
     !empty($vv_cur_co->name) ? $vv_cur_co->name : "COmanage",
-    ['controller'   => 'dashboards',
+    ['plugin'       => null,
+     'controller'   => 'dashboards',
      'action'       => 'dashboard',
-     '?'            => [
-      'co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
+     '?'            => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
   );
   
   if(isset($vv_is_configuration_model) && $vv_is_configuration_model
@@ -62,12 +63,43 @@ if($this->request->getRequestTarget(false) != '/') {
     
     $this->Breadcrumbs->add(
       __d('menu', 'co.configuration'),
-      ['controller'   => 'dashboards',
+      ['plugin'       => null,
+       'controller'   => 'dashboards',
        'action'       => 'configuration',
        '?'            => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
     );
   }
-  
+
+  if(!empty($vv_primary_link_obj->plugin)) {
+    // We're in a plugin. Insert a link back to the pluggable object.
+
+    $plModelsName = \App\Lib\Util\StringUtilities::entityToClassName($vv_primary_link_obj);
+    $plTable = $vv_primary_link_obj->getSource();
+
+    $this->Breadcrumbs->add(
+      __d('controller', $plModelsName, [99]),
+      [
+        'plugin'      => null,
+        'controller'  => $plModelsName, //\Cake\Utility\Inflector::dasherize($plModelsName),
+        'action'      => 'index',
+        '?'           => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]
+      ]
+    );
+
+    $this->Breadcrumbs->add(
+      // We should look up the display field but since we need the table to do it
+      // it's a bit complicated to get. For now, we'll just used name.
+      $vv_primary_link_obj->name,
+      [
+        'plugin'      => null,
+        'controller'  => $plModelsName, //\Cake\Utility\Inflector::dasherize($plModelsName),
+        'action'      => 'edit',
+        $vv_primary_link_obj->id
+      ]
+    );
+  }
+
+// XXX this could possibly somehow merge with the MVEA logic below
   // If we have a parent object interrogate it to construct a link
   if(!empty($vv_bc_parent_obj)) {
     // eg: Groups
@@ -77,13 +109,15 @@ if($this->request->getRequestTarget(false) != '/') {
 
     $this->Breadcrumbs->add(
       __d('controller', $parentTable, [99]),
-      ['controller' => $parentController,
+      ['plugin'     => null,
+       'controller' => $parentController,
        '?'          => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
     );
     
     $this->Breadcrumbs->add(
       $vv_bc_parent_obj->$vv_bc_parent_displayfield,
-      ['controller' => $parentController,
+      ['plugin'     => null,
+       'controller' => $parentController,
        'action'     => 'edit',
        $vv_bc_parent_obj->id]
     );
@@ -94,13 +128,15 @@ if($this->request->getRequestTarget(false) != '/') {
     if(!empty($vv_person_name)) {
       $this->Breadcrumbs->add(
         __d('controller', 'People', [99]),
-        ['controller' => 'people',
+        ['plugin'     => null,
+         'controller' => 'people',
          '?'          => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
       );
       
       $this->Breadcrumbs->add(
         $vv_person_name->full_name,
-        ['controller' => 'people',
+        ['plugin'     => null,
+         'controller' => 'people',
          'action'     => 'edit',
          $vv_person_id]
       );
@@ -109,13 +145,15 @@ if($this->request->getRequestTarget(false) != '/') {
     if(!empty($vv_person_role)) {
       $this->Breadcrumbs->add(
         __d('controller', 'PersonRoles', [99]),
-        ['controller' => 'person_roles',
+        ['plugin'     => null,
+         'controller' => 'person_roles',
          '?'          => ['person_id' => $vv_person_role_id]]
       );
       
       $this->Breadcrumbs->add(
         $vv_person_role,
-        ['controller' => 'person_roles',
+        ['plugin'     => null,
+         'controller' => 'person_roles',
          'action'     => 'edit',
          $vv_person_role_id]
       );
@@ -124,13 +162,15 @@ if($this->request->getRequestTarget(false) != '/') {
     if(!empty($vv_ei_name)) {
       $this->Breadcrumbs->add(
         __d('controller', 'ExternalIdentities', [99]),
-        ['controller' => 'external_identities',
+        ['plugin'     => null,
+         'controller' => 'external_identities',
          '?'          => ['co_id' => !empty($vv_cur_co) ? $vv_cur_co->id : 1]]
       );
       
       $this->Breadcrumbs->add(
         $vv_ei_name->full_name,
-        ['controller' => 'external_identities',
+        ['plugin'     => null,
+         'controller' => 'external_identities',
          'action'     => 'edit',
          $vv_ei_id]
       );
@@ -139,13 +179,15 @@ if($this->request->getRequestTarget(false) != '/') {
     if(!empty($vv_ei_role)) {
       $this->Breadcrumbs->add(
         __d('controller', 'ExternalIdentityRoles', [99]),
-        ['controller' => 'external_identity_roles',
+        ['plugin'     => null,
+         'controller' => 'external_identity_roles',
          '?'          => ['external_identity_id' => $vv_ei_id]]
       );
       
       $this->Breadcrumbs->add(
         $vv_ei_role,
-        ['controller' => 'external_identity_roles',
+        ['plugin'     => null,
+         'controller' => 'external_identity_roles',
          'action'     => 'edit',
          $vv_ei_role_id]
       );
@@ -153,10 +195,13 @@ if($this->request->getRequestTarget(false) != '/') {
   }
   
   if($vv_action != 'index'
-     && !($modelsName == 'Dashboards' && $vv_action == 'configuration')) {
+     && !($modelsName == 'Dashboards' && $vv_action == 'configuration')
+     // Plugin breadcrumbs are handled above
+     && empty($vv_primary_link_obj->plugin)) {
     // Default parent is index, to which we might need to append the Primary Link ID
     
     $target = [
+      'plugin'     => null,
       'controller' => $tableName,
       'action'     => 'index'
     ];
@@ -186,7 +231,8 @@ if($this->request->getRequestTarget(false) != '/') {
     if($oaction) {
       $this->Breadcrumbs->add(
         $vv_obj->$vv_display_field,
-        ['controller'   => $tableName,
+        ['plugin'       => null,
+         'controller'   => $tableName,
          'action'       => $oaction,
          $vv_obj->id ]
       );

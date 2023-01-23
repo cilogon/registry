@@ -58,9 +58,13 @@ class PaginatedSqlIterator implements \Iterator {
   // The highest ID we've seen so far
   private $maxid = 0;
   
-  public function __construct($table, $conditions=null) { //}, $fields=null, $contain=null) {
+  // Options for find()
+  private $options = [];
+
+  public function __construct($table, $conditions=null, $options=[]) {
     $this->table = $table;
     $this->conditions = $conditions;
+    $this->options = $options;
     
     $this->position = 0;
   }
@@ -131,7 +135,7 @@ class PaginatedSqlIterator implements \Iterator {
     
     $this->position = 0;
     
-    $query = $this->table->find()
+    $query = $this->table->find('all', $this->options)
                          ->where([$this->keyField . ' >' => $this->maxid]);
     
     if($this->conditions) {

@@ -872,7 +872,7 @@ class TransmogrifyCommand extends Command {
    */
   
   protected function map_affiliation_type(array $row) {
-    return $this->map_type($row, 'PersonRoles.affiliation', $this->findCoId($row), 'affiliation');
+    return $this->map_type($row, 'PersonRoles.affiliation_type', $this->findCoId($row), 'affiliation_type');
   }
   
   /**
@@ -900,7 +900,7 @@ class TransmogrifyCommand extends Command {
       case 'CoDepartment.type':
         return 'Departments.type';
       case 'CoPersonRole.affiliation':
-        return 'PersonRoles.affiliation';
+        return 'PersonRoles.affiliation_type';
     }
     
     // For everything else, we need to pluralize the model name

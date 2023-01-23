@@ -54,7 +54,7 @@ class PersonRolesTable extends Table {
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
   protected $defaultTypes = [
-    'affiliation' => [
+    'affiliation_type' => [
       'affiliate',
       'alum',
       'employee',
@@ -101,13 +101,17 @@ class PersonRolesTable extends Table {
          ->setProperty('affiliation_type');
     
     $this->hasMany('Addresses')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('AdHocAttributes')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('TelephoneNumbers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->setDisplayField('id');
     
@@ -137,7 +141,7 @@ class PersonRolesTable extends Table {
       ],
       'affiliationTypes' => [
         'type' => 'type',
-        'attribute' => 'PersonRoles.affiliation'
+        'attribute' => 'PersonRoles.affiliation_type'
       ],
       'cous' => [
         'type' => 'select',
@@ -195,7 +199,7 @@ class PersonRolesTable extends Table {
     // Expiration Policies will correctly set status.
     $conditions = [
       'cou_id' => $couId,
-      'status IS NOT' => StatusEnum::Deleted
+      'status IS NOT' => StatusEnum::Archived
     ];
     
     return new PaginatedSqlIterator($this, $conditions);
@@ -246,7 +250,7 @@ class PersonRolesTable extends Table {
     // We return true if the Person has at least one Role in the specified COU,
     // regardless of status.
     
-    // We need to examine the status of any roles returned since a Deleted Role
+    // We need to examine the status of any roles returned since an Archived Role
     // does not count as "Any" Role.
     
     $roles = $this->find('all')
@@ -259,8 +263,8 @@ class PersonRolesTable extends Table {
     }
     
     foreach($roles as $role) {
-      // Any non-deleted role is sufficient
-      if($role->status != StatusEnum::Deleted) {
+      // Any non-archived role is sufficient
+      if($role->status != StatusEnum::Archived) {
         return true;
       }
     }
@@ -339,7 +343,7 @@ class PersonRolesTable extends Table {
     // For $activeEligible, we need at least one active role
     $activeRole = false;
     
-    // For $allEligible, we need at least one role not Deleted
+    // For $allEligible, we need at least one role not Archived
     $allEligible = false;
     
     foreach($roles as $role) {
@@ -347,7 +351,7 @@ class PersonRolesTable extends Table {
         $activeRole = true;
       }
       
-      if($role->status != StatusEnum::Deleted) {
+      if($role->status != StatusEnum::Archived) {
         $allEligible = true;
       }
     }

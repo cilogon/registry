@@ -54,10 +54,14 @@ trait LabeledLogTrait {
    * @param  string $msg   Log message
    */
   
-  public function llog(string $level, string $msg) {
+  public function llog(string $level, string $msg, int|string $id=null) {
     $bt = debug_backtrace(0, 2);
 
-    $m = getmypid() . " " . $bt[1]['class'] . "::" . $bt[1]['function'] . ": " . $msg;
+    $m = getmypid() . " " . $bt[1]['class'] . "::" . $bt[1]['function'] 
+       // $id, if provided, doesn't actually need to be an ID, it's just something
+       // that can help trace the error to a specific record or point
+       . (!empty($id) ? "($id)" : null)
+       . ": " . $msg;
     
     // We overload $level here, which Cake defines roughly the same way as
     // syslog (alert, info, debug, notice, etc). We add two more: trace and

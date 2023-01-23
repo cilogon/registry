@@ -265,7 +265,7 @@ msgid "StatusEnum.C"
 msgstr "Confirmed"
 
 msgid "StatusEnum.D"
-msgstr "Deleted"
+msgstr "Archived"
 
 msgid "StatusEnum.D2"
 msgstr "Duplicate"

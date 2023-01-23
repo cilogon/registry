@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Co Entity
+ * COmanage Registry Standard Plugin Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,52 +27,37 @@
 
 declare(strict_types = 1);
 
-namespace App\Model\Entity;
+namespace App\Controller;
 
-use Cake\ORM\Entity;
+// XXX not doing anything with Log yet
+use Cake\Log\Log;
 
+use \App\Lib\Util\StringUtilities;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
-class Co extends Entity {
-  protected $_accessible = [
-    '*' => true,
-    'id' => false,
-    'slug' => false, 
-  ];
-  
+class StandardPluginController extends StandardController {
   /**
-   * Determine if this CO is Active.
-   *
+   * Determine the filesystem path to a file within a plugin.
+   * 
    * @since  COmanage Registry v5.0.0
-   * @return bool   true if the CO is Active, false otherwise
+   * @param  string $pluginName Physical plugin name
+   * @param  string $file       File name within plugin
+   * @return string             Path to file
    */
 
-  public function isActive(): bool {
-    return $this->status == SuspendableStatusEnum::Active;
-  }
+  protected function getPluginPath(string $pluginName, string $file): string {
+    $PluginTable = $this->getTableLocator()->get('Plugins');
 
-  /**
-   * Determine if this entity is the COmanage CO.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return bool true if this entity is the COmanage CO, false otherwise
-   */
-  
-  public function isCOmanageCO(): bool {
-    return (strtolower($this->name) == 'comanage');
-  }
-  
-  /**
-   * Determine if this entity is Read Only.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity Cake Entity
-   * @return boolean         true if the entity is read only, false otherwise
-   */
-  
-  public function isReadOnly(): bool {
-    // The COmanage CO is read only
-    
-    return $this->isCOmanageCO();
+    // Because plugins are uniquely named (AR-Plugin-1) we can do a find based
+    // on the name to get the object.
+
+    $plugin = $PluginTable->find()
+                          ->where([
+                              'plugin' => $pluginName,
+                              'status' => SuspendableStatusEnum::Active
+                            ])
+                          ->firstOrFail();
+
+    return $PluginTable->pluginPath($plugin, $file);
   }
 }

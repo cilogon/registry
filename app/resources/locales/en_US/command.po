@@ -33,6 +33,12 @@ msgstr "Database schema update successful"
 msgid "db.schema"
 msgstr "Loading database schema from {0}"
 
+msgid "db.schema.plugin"
+msgstr "Loading database schema from active plugin {0}"
+
+msgid "db.schema.plugin.none"
+msgstr "No database schema found for active plugin {0}"
+
 msgid "opt.admin-family-name"
 msgstr "Family Name of initial platform administrator"
 

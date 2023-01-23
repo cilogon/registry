@@ -25,6 +25,9 @@
 # Fields
 # Keys of the form MyModels.field_name[.desc] will apply only to MyModels.field_name
 # Keys of the form field_name[.desc] will apply if no model specific key is found
+#
+# When adding entries to this file, group non-model specific translations at the top,
+# then model specific translations alphabetically by model.
 
 msgid "action"
 msgstr "Action"
@@ -44,59 +47,8 @@ msgstr "Area Code"
 msgid "attribute"
 msgstr "Attribute"
 
-msgid "AuthenticationEvents.authenticated_identifier"
-msgstr "Authenticated Identifier"
-
-msgid "AuthenticationEvents.authentication_event"
-msgstr "Authentication Event"
-
 msgid "comment"
 msgstr "Comment"
-
-msgid "Cos.member.not"
-msgstr "{0} (Not a Member)"
-
-msgid "CoSettings.default_address_type_id"
-msgstr "Default Address Type"
-
-msgid "CoSettings.default_email_address_type_id"
-msgstr "Default Email Address Type"
-
-msgid "CoSettings.default_identifier_type_id"
-msgstr "Default Identifier Type"
-
-msgid "CoSettings.default_name_type_id"
-msgstr "Default Name Type"
-
-msgid "CoSettings.default_pronoun_type_id"
-msgstr "Default Pronoun Type"
-
-msgid "CoSettings.default_telephone_number_type_id"
-msgstr "Default Telephone Number Type"
-
-msgid "CoSettings.default_url_type_id"
-msgstr "Default URL Type"
-
-msgid "CoSettings.permitted_fields_name"
-msgstr "Name Permitted Fields"
-
-msgid "CoSettings.permitted_fields_telephone_number"
-msgstr "Telephone Number Permitted Fields"
-
-msgid "CoSettings.required_fields_address"
-msgstr "Address Required Fields"
-
-msgid "CoSettings.required_fields_name"
-msgstr "Name Required Fields"
-
-msgid "CoSettings.search_global_limit"
-msgstr "Global Search Limit"
-
-msgid "CoSettings.search_global_limited_models"
-msgstr "Limit Global Search Scope"
-
-msgid "CoSettings.search_global_limited_models.desc"
-msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
 msgid "country"
 msgstr "Country"
@@ -149,51 +101,8 @@ msgstr "Extension"
 msgid "id"
 msgstr "ID"
 
-msgid "Types.edupersonaffiliation.desc"
-# XXX update link to PE wiki?
-msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations">eduPersonAffiliation and Extended Affiliations</a>"
-
 msgid "family"
 msgstr "Family Name"
-
-msgid "GroupMembers.source"
-msgstr "Membership Source"
-
-msgid "GroupMembers.source.direct"
-msgstr "Direct"
-
-msgid "GroupNestings.group_id"
-msgstr "Nested Group"
-
-msgid "GroupNestings.negate"
-msgstr "Negate Nesting"
-
-msgid "GroupNestings.negate.desc"
-msgstr "If true, members of the Nested Group will not be eligible to be a member of the Target Group"
-
-msgid "GroupNestings.target_group_id"
-msgstr "Target Group"
-
-msgid "Groups.desc.admins"
-msgstr "{0} Administrators"
-
-msgid "Groups.desc.members"
-msgstr "{0} Members"
-
-msgid "Groups.desc.members.active"
-msgstr "{0} Active Members"
-
-msgid "Groups.nesting_mode_all"
-msgstr "Require All for Nested Memberships"
-
-msgid "Groups.nesting_mode_all.desc"
-msgstr "For membership in this Group via Nested Groups, require membership in <i>all</i> Nested (Source) Groups to be a member of this Group (instead of <i>any</i>)"
-
-msgid "Groups.open"
-msgstr "Open"
-
-msgid "Groups.open.desc"
-msgstr "Open groups may be self-joined by any Person in the CO"
 
 msgid "given"
 msgstr "Given Name"
@@ -234,16 +143,6 @@ msgstr "Middle"
 msgid "name"
 msgstr "Name"
 
-msgid "TelephoneNumbers.formatted_number"
-msgstr "Telephone Number"
-
-msgid "TelephoneNumbers.number"
-msgstr "Telephone Number"
-
-# This field is for rendering the telephone number into a string (eg: 555 1212 x279)
-msgid "TelephoneNumbers.number.ext"
-msgstr "x"
-
 # This field is called "ordr" to avoid conflicts with MySQL
 msgid "ordr"
 msgstr "Order"
@@ -253,6 +152,9 @@ msgstr "Organization"
 
 msgid "parent_id"
 msgstr "Parent"
+
+msgid "plugin"
+msgstr "Plugin"
 
 msgid "postal_code"
 msgstr "Postal Code"
@@ -266,14 +168,8 @@ msgstr "Privileged"
 msgid "pronouns"
 msgstr "Preferred Pronouns"
 
-msgid "ApiUsers.privileged.desc"
-msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."
-
 msgid "remote_ip"
 msgstr "IP Address"
-
-msgid "ApiUsers.remote_ip.desc"
-msgstr "If specified, a <a href="https://www.php.net/manual/en/reference.pcre.pattern.syntax.php">regular expression</a> describing the IP address(es) from which this API User may connect. Be sure to escape dots (eg: "/10\\.0\\.1\\.150/")."
 
 msgid "required"
 msgstr "Required"
@@ -302,9 +198,6 @@ msgstr "State"
 msgid "status"
 msgstr "Status"
 
-msgid "Type.status"
-msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"
-
 msgid "street"
 msgstr "Street"
 
@@ -325,9 +218,6 @@ msgstr "URL"
 
 msgid "username"
 msgstr "Username"
-
-msgid "ApiUsers.username.desc"
-msgstr "The API User Name must be prefixed with the string \"co_#.\""
 
 msgid "valid_from"
 msgstr "Valid From"
@@ -350,11 +240,133 @@ msgstr "Valid Through ({0})"
 msgid "value"
 msgstr "Value"
 
+msgid "verified"
+msgstr "Verified"
+
+msgid "ApiUsers.privileged.desc"
+msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."
+
+msgid "ApiUsers.remote_ip.desc"
+msgstr "If specified, a <a href="https://www.php.net/manual/en/reference.pcre.pattern.syntax.php">regular expression</a> describing the IP address(es) from which this API User may connect. Be sure to escape dots (eg: "/10\\.0\\.1\\.150/")."
+
+msgid "ApiUsers.username.desc"
+msgstr "The API User Name must be prefixed with the string \"co_#.\""
+
+msgid "AuthenticationEvents.authenticated_identifier"
+msgstr "Authenticated Identifier"
+
+msgid "AuthenticationEvents.authentication_event"
+msgstr "Authentication Event"
+
+msgid "Cos.member.not"
+msgstr "{0} (Not a Member)"
+
+msgid "CoSettings.default_address_type_id"
+msgstr "Default Address Type"
+
+msgid "CoSettings.default_email_address_type_id"
+msgstr "Default Email Address Type"
+
+msgid "CoSettings.default_identifier_type_id"
+msgstr "Default Identifier Type"
+
+msgid "CoSettings.default_name_type_id"
+msgstr "Default Name Type"
+
+msgid "CoSettings.default_pronoun_type_id"
+msgstr "Default Pronoun Type"
+
+msgid "CoSettings.default_telephone_number_type_id"
+msgstr "Default Telephone Number Type"
+
+msgid "CoSettings.default_url_type_id"
+msgstr "Default URL Type"
+
+msgid "CoSettings.permitted_fields_name"
+msgstr "Name Permitted Fields"
+
+msgid "CoSettings.permitted_fields_telephone_number"
+msgstr "Telephone Number Permitted Fields"
+
+msgid "CoSettings.required_fields_address"
+msgstr "Address Required Fields"
+
+msgid "CoSettings.required_fields_name"
+msgstr "Name Required Fields"
+
+msgid "CoSettings.search_global_limit"
+msgstr "Global Search Limit"
+
+msgid "CoSettings.search_global_limited_models"
+msgstr "Limit Global Search Scope"
+
+msgid "CoSettings.search_global_limited_models.desc"
+msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
+
+msgid "GroupMembers.source"
+msgstr "Membership Source"
+
+msgid "GroupMembers.source.direct"
+msgstr "Direct"
+
+msgid "GroupNestings.group_id"
+msgstr "Nested Group"
+
+msgid "GroupNestings.negate"
+msgstr "Negate Nesting"
+
+msgid "GroupNestings.negate.desc"
+msgstr "If true, members of the Nested Group will not be eligible to be a member of the Target Group"
+
+msgid "GroupNestings.target_group_id"
+msgstr "Target Group"
+
+msgid "Groups.desc.admins"
+msgstr "{0} Administrators"
+
+msgid "Groups.desc.members"
+msgstr "{0} Members"
+
+msgid "Groups.desc.members.active"
+msgstr "{0} Active Members"
+
+msgid "Groups.nesting_mode_all"
+msgstr "Require All for Nested Memberships"
+
+msgid "Groups.nesting_mode_all.desc"
+msgstr "For membership in this Group via Nested Groups, require membership in <i>all</i> Nested (Source) Groups to be a member of this Group (instead of <i>any</i>)"
+
+msgid "Groups.open"
+msgstr "Open"
+
+msgid "Groups.open.desc"
+msgstr "Open groups may be self-joined by any Person in the CO"
+
+msgid "Plugins.plugin"
+msgstr "Plugin"
+
+msgid "Plugins.location"
+msgstr "Location"
+
+msgid "TelephoneNumbers.formatted_number"
+msgstr "Telephone Number"
+
+msgid "TelephoneNumbers.number"
+msgstr "Telephone Number"
+
+# This field is for rendering the telephone number into a string (eg: 555 1212 x279)
+msgid "TelephoneNumbers.number.ext"
+msgstr "x"
+
+msgid "Types.edupersonaffiliation.desc"
+# XXX update link to PE wiki?
+msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations">eduPersonAffiliation and Extended Affiliations</a>"
+
+msgid "Types.status.desc"
+msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"
+
 msgid "Types.value"
 msgstr "Database Value"
 
 msgid "Types.value.desc"
 msgstr "Database value for this type, characters must be alphanumeric, dot, or dash"
-
-msgid "verified"
-msgstr "Verified"

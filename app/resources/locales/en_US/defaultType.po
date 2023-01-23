@@ -24,137 +24,152 @@
 
 # Labels for default types when a new CO is created
 
-msgid "Addresses.campus"
+msgid "Addresses.type.campus"
 msgstr "Campus"
 
-msgid "Addresses.home"
+msgid "Addresses.type.home"
 msgstr "Home"
 
-msgid "Addresses.office"
+msgid "Addresses.type.office"
 msgstr "Office"
 
-msgid "Addresses.postal"
+msgid "Addresses.type.postal"
 msgstr "Postal"
 
-msgid "EmailAddresses.delivery"
+msgid "EmailAddresses.type.delivery"
 msgstr "Delivery"
 
-msgid "EmailAddresses.forwarding"
+msgid "EmailAddresses.type.forwarding"
 msgstr "Forwarding"
 
-msgid "EmailAddresses.list"
+msgid "EmailAddresses.type.list"
 msgstr "Mailing List"
 
-msgid "EmailAddresses.official"
+msgid "EmailAddresses.type.official"
 msgstr "Official"
 
-msgid "EmailAddresses.personal"
+msgid "EmailAddresses.type.personal"
 msgstr "Personal"
 
-msgid "EmailAddresses.preferred"
+msgid "EmailAddresses.type.preferred"
 msgstr "Preferred"
 
-msgid "EmailAddresses.recovery"
+msgid "EmailAddresses.type.recovery"
 msgstr "Recovery"
 
-msgid "Identifiers.badge"
+msgid "Identifiers.type.badge"
 msgstr "Badge"
 
-msgid "Identifiers.enterprise"
+msgid "Identifiers.type.enterprise"
 msgstr "Enterprise"
 
-msgid "Identifiers.eppn"
+msgid "Identifiers.type.eppn"
 msgstr "ePPN"
 
-msgid "Identifiers.eptid"
+msgid "Identifiers.type.eptid"
 msgstr "ePTID"
 
-msgid "Identifiers.epuid"
+msgid "Identifiers.type.epuid"
 msgstr "ePUID"
 
-msgid "Identifiers.gid"
+msgid "Identifiers.type.gid"
 msgstr "GID"
 
-msgid "Identifiers.mail"
+msgid "Identifiers.type.mail"
 msgstr "Mail"
 
-msgid "Identifiers.national"
+msgid "Identifiers.type.national"
 msgstr "National"
 
-msgid "Identifiers.network"
+msgid "Identifiers.type.network"
 msgstr "Network"
 
-msgid "Identifiers.oidcsub"
+msgid "Identifiers.type.oidcsub"
 msgstr "OIDC Sub"
 
-msgid "Identifiers.openid"
+msgid "Identifiers.type.openid"
 msgstr "OpenID"
 
-msgid "Identifiers.orcid"
+msgid "Identifiers.type.orcid"
 msgstr "ORCiD"
 
-msgid "Identifiers.provisioningtarget"
+msgid "Identifiers.type.provisioningtarget"
 msgstr "Provisioning Target"
 
-msgid "Identifiers.reference"
+msgid "Identifiers.type.reference"
 msgstr "Match Reference"
 
-msgid "Identifiers.pairwiseid"
+msgid "Identifiers.type.pairwiseid"
 msgstr "SAML Pairwise"
 
-msgid "Identifiers.subjectid"
+msgid "Identifiers.type.subjectid"
 msgstr "SAML Subject"
 
-msgid "Identifiers.sorid"
+msgid "Identifiers.type.sorid"
 msgstr "System of Record"
 
-msgid "Identifiers.uid"
+msgid "Identifiers.type.uid"
 msgstr "UID"
 
-msgid "Names.alternate"
+msgid "Names.type.alternate"
 msgstr "Alternate"
 
-msgid "Names.author"
+msgid "Names.type.author"
 msgstr "Author"
 
-msgid "Names.fka"
+msgid "Names.type.fka"
 msgstr "Formerly Known As"
 
-msgid "Names.official"
+msgid "Names.type.official"
 msgstr "Official"
 
-msgid "Names.preferred"
+msgid "Names.type.preferred"
 msgstr "Preferred"
 
-msgid "PersonRoles.affiliate"
+msgid "PersonRoles.affiliation_type.affiliate"
 msgstr "Affiliate"
 
-msgid "PersonRoles.alum"
+msgid "PersonRoles.affiliation_type.alum"
 msgstr "Alum"
 
-msgid "PersonRoles.employee"
+msgid "PersonRoles.affiliation_type.employee"
 msgstr "Employee"
 
-msgid "PersonRoles.faculty"
+msgid "PersonRoles.affiliation_type.faculty"
 msgstr "Faculty"
 
-msgid "PersonRoles.librarywalkin"
+msgid "PersonRoles.affiliation_type.librarywalkin"
 msgstr "Library Walk-In"
 
-msgid "PersonRoles.member"
+msgid "PersonRoles.affiliation_type.member"
 msgstr "Member"
 
-msgid "PersonRoles.staff"
+msgid "PersonRoles.affiliation_type.staff"
 msgstr "Staff"
 
-msgid "PersonRoles.student"
+msgid "PersonRoles.affiliation_type.student"
 msgstr "Student"
 
 msgid "Pronouns.default"
 msgstr "Default"
 
-msgid "Urls.official"
+msgid "TelephoneNumbers.type.campus"
+msgstr "Campus"
+
+msgid "TelephoneNumbers.type.fax"
+msgstr "Fax"
+
+msgid "TelephoneNumbers.type.home"
+msgstr "Home"
+
+msgid "TelephoneNumbers.type.mobile"
+msgstr "Mobile"
+
+msgid "TelephoneNumbers.type.office"
+msgstr "Office"
+
+msgid "Urls.type.official"
 msgstr "Official"
 
-msgid "Urls.personal"
+msgid "Urls.type.personal"
 msgstr "Personal"

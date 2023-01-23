@@ -10,6 +10,7 @@
     
     "columns": {
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
+      "comment": { "type": "string", "size": 256 },
       "cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
       "description": { "type": "string", "size": 128 },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
@@ -20,6 +21,7 @@
       "name": { "type": "string", "size": 128, "notnull": true },
       "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
       "person_role_id": { "type": "integer", "foreignkey": { "table": "person_roles", "column": "id" } },
+      "plugin": { "type": "string", "size": 80 },
       "status": { "type": "string", "size": 2 },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "valid_from": { "type": "datetime" },
@@ -34,6 +36,19 @@
       },
       "changelog": false,
       "timestamps": false
+    },
+    
+    "plugins": {
+      "columns": {
+        "id": {},
+        "plugin": {},
+        "location": { "type": "string", "size": 32 },
+        "status": {},
+        "comment": {}
+      },
+      "indexes": {
+      },
+      "changelog": false
     },
     
     "cos": {

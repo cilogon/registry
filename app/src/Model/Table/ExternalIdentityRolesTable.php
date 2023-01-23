@@ -71,13 +71,17 @@ class ExternalIdentityRolesTable extends Table {
          ->setProperty('affiliation_type');
     
     $this->hasMany('Addresses')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('AdHocAttributes')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('TelephoneNumbers')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
-         ->setDependent(true);
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->setDisplayField('id');
     
