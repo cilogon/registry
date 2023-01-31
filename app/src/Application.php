@@ -58,13 +58,20 @@ class Application extends BaseApplication
 
         // Load more plugins here
         
-        $Plugins = TableRegistry::getTableLocator()->get('Plugins');
+        try {
+            $Plugins = TableRegistry::getTableLocator()->get('Plugins');
 
-        $activePlugins = $Plugins->find('active')->all();
+            $activePlugins = $Plugins->find('active')->all();
 
-        foreach($activePlugins as $p) {
-            $this->addPlugin($p->plugin);
+            foreach($activePlugins as $p) {
+                $this->addPlugin($p->plugin);
+            }
         }
+        catch(\Cake\Database\Exception\DatabaseException $e) {
+            // Most likely we are performing the initial database setup and
+            // the plugins table is missing.
+        }
+        // Let any other exception bubble up
     }
     
     /**
