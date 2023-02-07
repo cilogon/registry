@@ -28,16 +28,49 @@ msgid "co.Attributes"
 msgstr "Attributes"
 
 msgid "co.configuration"
-msgstr "Config"
+msgstr "Configuration"
+
+msgid "co.configuration.panel.az"
+msgstr "A-Z Listing"
+
+msgid "co.configuration.panel.title"
+msgstr "Configuration"
+
+msgid "co.configuration.panel.personalization"
+msgstr "Personalization"
+
+msgid "co.configuration.panel.personalization.desc"
+msgstr "Dashboards, custom text, and theming"
+
+msgid "co.configuration.panel.platform"
+msgstr "Platform-Wide Settings"
+
+msgid "co.configuration.panel.platform.desc"
+msgstr "These configurations are found only in the COmanage CO"
+
+msgid "co.configuration.panel.setup"
+msgstr "CO Setup"
+
+msgid "co.configuration.panel.setup.desc"
+msgstr "Settings for the current CO"
 
 msgid "co.connections"
 msgstr "Connections"
 
-msgid "co.lifecycle"
-msgstr "Lifecycle"
+msgid "co.connections.panel.title"
+msgstr "Connections"
+
+msgid "co.connections.panel.desc"
+msgstr "Connections to external services: upstream inputs and downstream outputs"
 
 msgid "co.operations"
 msgstr "Operations"
+
+msgid "co.operations.panel.title"
+msgstr "Operations"
+
+msgid "co.operations.panel.desc"
+msgstr "Operational activities"
 
 msgid "co.groups"
 msgstr "Groups"
@@ -61,7 +94,7 @@ msgid "co.people.panel.title"
 msgstr "People"
 
 msgid "co.people.panel.desc"
-msgstr "COmanage Registry is a registry for people. This section contains the basic building blocks for modeling and  managing people in COmanage."
+msgstr "Model and manage people in COmanage Registry"
 
 msgid "co.people.population"
 msgstr "My Population"
@@ -72,11 +105,23 @@ msgstr "Review and manage people in your collaboration (CO Person Records)"
 msgid "co.structure"
 msgstr "Structure"
 
+msgid "co.structure.cous.desc"
+msgstr "Collaborative Organizational Units (COUs) are the primary structural objects used to allow delegation of person management within a CO. COUs attach to a Person Role and imply specific Group memberships."
+
+msgid "co.structure.depts.desc"
+msgstr "Departments represent entities within a CO or COU and can store telephone numbers, email addresses, URLs, identifiers, and sets of people." 
+
+msgid "co.structure.groups.desc"
+msgstr "Groups attach to a Person. By default, any CO Person can create a new CO Group."
+
+msgid "co.structure.orgs.desc"
+msgstr "Organizations are like Departments but represent entities external to the CO."
+
 msgid "co.structure.panel.title"
 msgstr "Structure"
 
 msgid "co.structure.panel.desc"
-msgstr "COmanage registry provides structures for modeling and managing your organization, including COUs, Groups, and Departments."
+msgstr "Groupings for your population"
 
 msgid "co.structure.groups"
 msgstr "Groups"
@@ -86,4 +131,10 @@ msgstr "All Groups"
 
 msgid "co.switch"
 msgstr "Switch CO"
+
+msgid "related.configurations"
+msgstr "Related Configurations"
+
+msgid "related.links"
+msgstr "Related Links"
 

@@ -31,7 +31,12 @@
   $(function() {
     // Focus any designated form element
     $('.focusFirst').focus();
-
+    
+    // USER PANEL
+    $('#user-panel-user-settings').click(function(e) {
+      e.stopPropagation();  
+    });
+    
     // DESKTOP MENU DRAWER BEHAVIOR
     $('#co-menu-collapse').click(function(){
       $('#navigation-drawer').toggleClass('closed');
@@ -42,7 +47,13 @@
     });
     
     $('.menu-panel-toggle').click(function() {
-      $(this).next('.menu-panel').toggleClass('visible');  
+      panel = $(this).next('.menu-panel');
+      if($(panel).hasClass('visible')) {
+        $(panel).removeClass('visible'); 
+      } else {
+        $('.menu-panel').removeClass('visible');
+        $(panel).addClass('visible');
+      }
     });
 
     $('.menu-panel-close').click(function() {
