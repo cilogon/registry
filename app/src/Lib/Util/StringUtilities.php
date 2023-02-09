@@ -46,7 +46,7 @@ class StringUtilities {
   public static function columnKey($modelsName, $c, $tz=null, $useCustomClMdlLabel=false): string {
     if(strpos($c, "_id", strlen($c)-3)) {
       // Key is of the form field_id, use .ct label instead
-      $k = $this->foreignKeyToClassName($c);
+      $k = self::foreignKeyToClassName($c);
 
       return __d('controller', $k, [1]);
     }
