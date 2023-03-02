@@ -61,98 +61,140 @@ if(!empty($banners)) {
   //     the fields (which would be more consistent with how Views render...)
   $flashArgs['vv_banners'] = $banners;
 }
+
+// If subnavigation is present a supertitle and the subnavigation will be placed above
+// the normal page title. The flash messages will be shown up there as well.
+if(!empty($subnav)) {
+  // Include the $flashArgs for the subnavigation element
+  $subnav['flashArgs'] = $flashArgs;
+  // Generate the subnavigation title and tabs
+  print $this->element('subnavigation', $subnav);
+}
 ?>
 
-<?php if(!empty($subnav)): ?>
-  <div id="subnavigation">
-    <div class="supertitle">
-      <h1>
-        <?php if(!empty($vv_supertitle)): ?>
-          <?= $vv_supertitle; ?>
-        <?php elseif(!empty($vv_obj)): ?>
-          <?= $vv_obj->$vv_display_field; ?>
-        <?php endif; ?>
-      </h1>
-    </div>
-    
-    <?php /* Flash Messages are placed below supertitle when subnavigation exists. */ ?>
-    <?= $this->element('flash', $flashArgs); ?>
-    
-    <?= $this->element('subnavigation', $subnav); ?>
-  </div>
-<?php endif; ?>
-
-<div class="pageTitleContainer">
-  <div class="pageTitle">
-    <?php if(empty($subnav)): ?>
-    <h1><?= $vv_title; ?></h1>
-    <?php else: ?>
-      <?php if(
-        // Subnavigation contains an h2 for these entities
-        $vv_primary_link == 'person_role_id'
-        || $vv_primary_link == 'external_identity_id'
-        || $vv_primary_link == 'external_identity_role_id'
-        || $this->request->getParam('controller') == 'PersonRoles'
-        || $this->request->getParam('controller') == 'ExternalIdentities'
-        || $this->request->getParam('controller') == 'ExternalIdentityRoles'): ?>
-        <h3><?= $vv_title; ?></h3>
-      <?php else: ?>
-        <h2><?= $vv_title; ?></h2>
-      <?php endif; ?>
-    <?php endif; ?>
-  </div>
+<?php /** Special case the Person "canvas" **/ ?>
+<?php if($modelsName == 'People' &&  $vv_action == 'edit'): ?>
   <?php
-    // Action list for top menu dropdown / button listing
-    $action_args = array();
-    $action_args['vv_attr_id'] =  $vv_obj->id;
-    
-    foreach(($topLinks ?? []) as $t) {
-      if($vv_permissions[ $t['link']['action'] ]) {
-        // We need to inject $linkFilter, but not overwrite any existing query params
-        if(!empty($t['link']['?'])) {
-          $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
-        } else {
-          $t['link']['?'] = $linkFilter;
-        }
-  
-        $action_args['vv_actions'][] = [
-          'order' => $this->Menu->getMenuOrder($t['order']),
-          'icon' => $this->Menu->getMenuIcon($t['icon']),
-          'url' => $this->Url->build($t['link']),
-          'label' => $t['label'],
-        ];
-      }
+  // Person Attributes to display.
+  $attributes = [
+    'names',
+    'email_addresses',
+    'identifiers',
+    'ad_hoc_attributes',
+    'addresses',
+    'telephone_numbers',
+    'urls',
+    'pronouns'
+  ];
+
+  // Count the number of widgets that will be displayed 
+  $widgetCount = 0;
+  foreach($attributes as $attr) {
+    if(!empty($vv_obj[$attr])) {
+      $widgetCount++;
     }
-  
-    // Delete
-    if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
-      $actionPostBtnArray = ['action' => 'delete', $vv_obj->id];
-      $actionUrl = $this->Url->build(['action' => 'delete', $vv_obj->id]);
-      $action_args['vv_actions'][] = array(
-        'order' => $this->Menu->getMenuOrder('Delete'),
-        'icon' =>  $this->Menu->getMenuIcon('Delete'),
-        'url' => 'javascript:void(0);',
-        'label' => __d('operation', 'delete'),
-        'class' => 'deletebutton nospin',
-        'onclick' => array(
-          'dg_bd_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
-          'dg_post_btn_array' => $actionPostBtnArray,
-          'dg_url' => $actionUrl,
-          'dg_conf_btn' => __d('operation', 'remove'),
-          'dg_cancel_btn' => __d('operation', 'cancel'),
-          'dg_title' => __d('operation', 'remove'),
-          'dg_bd_txt_repl_str' => ''
-        )
-      );
-    }
-  
-    if(!empty($action_args['vv_actions'])) {
-      print '<div class="field-actions top-links">';
-      print $this->element('menuAction', $action_args);
-      print '</div>';
-    }
+  }
+
+  $objId = null;
+  if(!empty($vv_obj)) {
+    $objId = $vv_obj->id;
+  }
   ?>
-</div>
+  <div id="person-canvas" class="co-cards">
+    <!-- Person Attributes -->
+    <div id="person-canvas-attributes-js" class="row row-cols-1 g-4 <?= ($widgetCount > 1) ? 'row-cols-md-2' : ''?>">
+      <?php
+        foreach($attributes as $attr) {
+          if(!empty(($vv_obj[$attr]))) {
+            print $this->element(
+              'mveaJs',
+              [
+                'htmlId' => 'person-canvas-' . $attr . '-js',
+                'parentId' => $objId,
+                'mveaType' => $attr,
+                'entityType' => 'person'
+              ]
+            );
+          }
+        }
+        // XXX Add the DOB as its own special card.
+      ?>
+    </div>
+  </div>
+<?php else: /** normal output **/ ?>
+  <div class="pageTitleContainer">
+    <div class="pageTitle">
+      <?php if(empty($subnav)): ?>
+        <h1><?= $vv_title; ?></h1>
+      <?php else: ?>
+        <?php if(
+          // Subnavigation contains an h2 for these entities, so we need an h3
+          $vv_primary_link == 'person_role_id'
+          || $vv_primary_link == 'external_identity_id'
+          || $vv_primary_link == 'external_identity_role_id'
+          || $this->request->getParam('controller') == 'PersonRoles'
+          || $this->request->getParam('controller') == 'ExternalIdentities'
+          || $this->request->getParam('controller') == 'ExternalIdentityRoles'): ?>
+          <h3><?= $vv_title; ?></h3>
+        <?php else: ?>
+          <h2><?= $vv_title; ?></h2>
+        <?php endif; ?>
+      <?php endif; ?>
+    </div>
+    <?php
+      // Action list for top menu dropdown / button listing
+      $action_args = array();
+      $action_args['vv_attr_id'] =  $vv_obj->id;
+      
+      foreach(($topLinks ?? []) as $t) {
+        // TODO: fix the following test so that cross-model links can exist in top-links (e.g. History Records index)
+        //if($vv_permissions[ $t['link']['action'] ]) {
+          // We need to inject $linkFilter, but not overwrite any existing query params
+          if(!empty($t['link']['?'])) {
+            $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+          } else {
+            $t['link']['?'] = $linkFilter;
+          }
+    
+          $action_args['vv_actions'][] = [
+            'order' => $this->Menu->getMenuOrder($t['order']),
+            'icon' => $this->Menu->getMenuIcon($t['icon']),
+            'url' => $this->Url->build($t['link']),
+            'label' => $t['label'],
+          ];
+        //}
+      }
+    
+      // Delete
+      if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
+        $actionPostBtnArray = ['action' => 'delete', $vv_obj->id];
+        $actionUrl = $this->Url->build(['action' => 'delete', $vv_obj->id]);
+        $action_args['vv_actions'][] = array(
+          'order' => $this->Menu->getMenuOrder('Delete'),
+          'icon' =>  $this->Menu->getMenuIcon('Delete'),
+          'url' => 'javascript:void(0);',
+          'label' => __d('operation', 'delete'),
+          'class' => 'deletebutton nospin',
+          'onclick' => array(
+            'dg_bd_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
+            'dg_post_btn_array' => $actionPostBtnArray,
+            'dg_url' => $actionUrl,
+            'dg_conf_btn' => __d('operation', 'remove'),
+            'dg_cancel_btn' => __d('operation', 'cancel'),
+            'dg_title' => __d('operation', 'remove'),
+            'dg_bd_txt_repl_str' => ''
+          )
+        );
+      }
+    
+      if(!empty($action_args['vv_actions'])) {
+        print '<div class="field-actions top-links">';
+        print $this->element('menuAction', $action_args);
+        print '</div>';
+      }
+    ?>
+  </div>
+<?php endif; /** end Person "canvas" vs. normal output **/?>
 
 <?php if(empty($subnav)): ?>
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>

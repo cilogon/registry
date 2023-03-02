@@ -30,6 +30,7 @@ $indexColumns = [
     'type' => 'link',
     'model' => 'primary_name',
     'field' => 'full_name',
+    'action' => 'edit',
 // XXX see comments in the controller about sorting on given vs family
     'sortable' => 'PrimaryName.family'
   ],
@@ -49,67 +50,57 @@ $rowActions = [
     'controller' => 'names',
     'action' => 'index',
     'icon' => 'account_box',
-    'iconClass' => 'material-icons-outlined',
-    'type' => 'tab'
+    'iconClass' => 'material-icons-outlined'
   ],
   [
     'controller' => 'email_addresses',
     'action' => 'index',
     'icon' => 'email',
-    'iconClass' => 'material-icons-outlined',
-    'type' => 'tab'
+    'iconClass' => 'material-icons-outlined'
   ],
   [
     'controller' => 'identifiers',
     'action' => 'index',
     'icon' => 'fingerprint',
-    'type' => 'tab',
     'class' => 'bottom-border'
   ],
   [
     'controller' => 'person_roles',
     'action' => 'index',
-    'icon' => 'emoji_people',
-    'type' => 'tab'
+    'icon' => 'emoji_people'
   ],
   [
     'controller' => 'external_identities',
     'action' => 'index',
     'icon' => 'system_update_alt',
-    'type' => 'tab',
     'class' => 'bottom-border'
   ],
   [
     'controller' => 'ad_hoc_attributes',
     'action' => 'index',
     'icon' => 'check_box',
-    'iconClass' => 'material-icons-outlined',
-    'type' => 'tab'
+    'iconClass' => 'material-icons-outlined'
   ],
   [
     'controller' => 'addresses',
     'action' => 'index',
     'icon' => 'contact_mail',
-    'iconClass' => 'material-icons-outlined',
-    'type' => 'tab'
+    'iconClass' => 'material-icons-outlined'
   ],
   [
     'controller' => 'history_records',
     'action' => 'index',
-    'icon' => 'history',
-    'type' => 'tab'
+    'icon' => 'history'
   ],
   [
     'controller' => 'telephone_numbers',
     'action' => 'index',
-    'icon' => 'phone',
-    'type' => 'tab'
+    'icon' => 'phone'
   ],
   [
     'controller' => 'urls',
     'action' => 'index',
-    'icon' => 'link',
-    'type' => 'tab'
+    'icon' => 'link'
   ]
 ];
 

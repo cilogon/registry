@@ -331,8 +331,9 @@ class StandardController extends AppController {
     }
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
       $this->Flash->error($e->getMessage());
+      // XXX This redirects to an Exception page because $id is not found.
+      // XXX A 404 with error would be better.
       return $this->generateRedirect((int)$id);
     }
     
@@ -724,8 +725,9 @@ class StandardController extends AppController {
     }
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
-      
       $this->Flash->error($e->getMessage());
+      // XXX This redirects to an Exception page because $id is not found.
+      // XXX A 404 with error would be better.
       return $this->generateRedirect((int)$id);
     }
     
@@ -742,6 +744,9 @@ class StandardController extends AppController {
       // We don't use a trait for this since each table will implement different logic
       
       $this->set('vv_title', __d('operation', 'view.ai', $table->generateDisplayField($obj)));
+      $this->set('vv_supertitle', $table->generateDisplayField($obj));
+      // Pass the display field also into subtitle for dealing with External IDs
+      $this->set('vv_subtitle', $table->generateDisplayField($obj));
     } else {
       // Default view title is the object display field
       $field = $table->getDisplayField();

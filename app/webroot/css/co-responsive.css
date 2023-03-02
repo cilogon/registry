@@ -36,6 +36,11 @@
     right: unset;
     transform: translate(-95%,0);
   }
+  .supertitle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 /* SMALL */
@@ -93,6 +98,15 @@
   }
   ul.form-list li.field-stack textarea {
     margin: 0.5em 0 0.5em 0.5em;
+  }
+  /* PERSON CANVAS / CARDS */
+  .co-cards .field-data-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  #person-canvas-roles .field-data-container {
+    grid-template-columns: 1fr 1fr 2fr auto;
   }
   /* PAGINATION */
   #pagination {

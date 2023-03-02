@@ -129,8 +129,19 @@ class RegistryAuthComponent extends Component
     }
     
     // Perform authorization check
-    
-    if($this->getConfig('apiUser')) {
+
+    // Do we have an authenticated user session?
+
+    // Note we don't stuff anything into the session anymore, the only attribute
+    // is the username, which is actually loaded by login.php.
+
+    $auth = $session->read('Auth');
+
+    // Registry UI is now a hybrid implementation of VUE and CAKEPHP MVC.
+    // In order to allow a logged-in user to reach out to the backend without
+    // the need of an API User, but just with the use of the Session, we will
+    // skip the API user authorization if a user Session is available.
+    if(empty($auth) && $this->getConfig('apiUser')) {
       // There are no unauthenticated API calls, so always require a valid user
       
       try {
@@ -177,16 +188,9 @@ class RegistryAuthComponent extends Component
       if($controller->getName() == 'Pages') {
         return true;
       }
-      
-      // Do we have an authenticated user session?
-      
-      // Note we don't stuff anything into the session anymore, the only attribute
-      // is the username, which is actually loaded by login.php.
-      
-      $auth = $session->read('Auth');
-      
+
       if(!empty($auth['external']['user'])) {
-        // We have a valid user name that is *authenticated* for the current request.
+        // We have a valid username that is *authenticated* for the current request.
         // Note we haven't checked authorization, but this is how the authorization
         // checks can get the authenticated username.
         $controller->set('vv_user', ['username' => $auth['external']['user']]);

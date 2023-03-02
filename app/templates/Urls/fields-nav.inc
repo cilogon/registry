@@ -30,6 +30,6 @@ $topLinks = [];
 
 $subnav = [
   'name' => 'person',
-  'active' => 'attributes',
+  'active' => 'person',
   'subActive' => 'names'
 ];

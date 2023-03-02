@@ -27,9 +27,11 @@
 
 $actionsCount = count($vv_actions);
 $actionsCountClass = $actionsCount > 0 ? ' actions-count-' . $actionsCount : '';
-$actionsMenuClass = 'field-actions-menu dropdown dropleft' . $actionsCountClass;
+$actionsMenuClass = (!empty($vv_actions_class) ? $vv_actions_class : 'field-actions-menu') . ' dropdown dropleft' . $actionsCountClass;
 $actionsMenuUid = md5($vv_attr_id);
-$actionsType = isset($vv_actions_type) ? $vv_actions_type : 'row-actions';
+$actionsType = !empty($vv_actions_type) ? $vv_actions_type : 'row-actions';
+$actionsTitle = !empty($vv_actions_title) ? $vv_actions_title : '';
+$actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
 ?>
 
 <div id="action-menu_<?= $actionsMenuUid; ?>"
@@ -45,7 +47,7 @@ $actionsType = isset($vv_actions_type) ? $vv_actions_type : 'row-actions';
     'title' => __d('field', 'action')
   );
   print $this->Html->link(
-    '<span class="material-icons">settings</span>',
+    '<span class="material-icons">' . $actionsIcon . '</span> ' . $actionsTitle,
     'javascript:void(0);',
     $linkparams
   );
