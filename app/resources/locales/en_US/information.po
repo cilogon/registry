@@ -56,3 +56,9 @@ msgstr "There are no records to display."
 
 msgid "global.title.none"
 msgstr "No title"
+
+msgid "global.value.none"
+msgstr "No value"
+
+msgid "global.visit.link"
+msgstr "Visit link"

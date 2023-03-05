@@ -50,6 +50,19 @@
           <div id="user-panel-cn"><?= $vv_user['username']; ?></div>
           <div id="user-panel-id"><!-- XXX identifier goes here --></div>
         </div>
+        <!-- Density and dark mode controls-->
+        <div id="user-panel-user-settings" class="dropdown">
+          <a class="btn btn-primary btn-sm dropdown-toggle nospin" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Settings
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#"><span class="material-icons">dark_mode</span> Dark mode</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons">density_small</span>Density small</a></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons">density_medium</span>Density medium</a></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons">density_large</span>Density large</a></li>
+          </ul>
+        </div>
         <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>
           <div id="user-panel-switch-co">
             <?= $this->Html->link('<em class="material-icons" aria-hidden="true">transfer_within_a_station</em> ' . __d('menu','co.switch'),

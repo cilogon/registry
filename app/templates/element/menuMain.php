@@ -39,50 +39,33 @@
           $menuItems = [
             [
               'permission' => 'people',
-              'controller' => 'people',
-              'action'     => 'index',
               'icon'       => 'person',
-              'dropdown'   => 'true',
-              'label'      => __d('menu', 'co.people') //,
-              //'panel'      => 'people' // XXX Uncomment this panel setting to enable panel menus
+              'label'      => __d('menu', 'co.people'),
+              'panel'      => 'people'
             ],
             [
               'permission' => 'groups',
               'icon'       => 'group',
-              'dropdown'   => 'true',
               'label' => __d('menu', 'co.structure'),
               'panel'      => 'structure'
             ],
             [
               'permission' => 'configuration',
-              'controller' => 'dashboards',
-              'action'     => 'configuration',
               'icon'       => 'cached',
-              'dropdown'   => 'true',
-              'label' => __d('menu', 'co.lifecycle')
+              'label' => __d('menu', 'co.connections'),
+              'panel'      => 'connections'
             ],
             [
               'permission' => 'configuration',
-              'controller' => 'dashboards',
-              'action'     => 'configuration',
-              'icon'       => 'hub',
-              'dropdown'   => 'true',
-              'label' => __d('menu', 'co.connections')
-            ],
-            [
-              'permission' => 'configuration',
-              'controller' => 'dashboards',
-              'action'     => 'configuration',
               'icon'       => 'play_circle_outline',
-              'dropdown'   => 'true',
-              'label' => __d('menu', 'co.operations')
+              'label' => __d('menu', 'co.operations'),
+              'panel'      => 'operations'
             ],
             [
               'permission' => 'configuration',
-              'controller' => 'dashboards',
-              'action'     => 'configuration',
               'icon'       => 'settings',
-              'label' => __d('menu', 'co.configuration')
+              'label' => __d('menu', 'co.configuration'),
+              'panel'      => 'config'
             ]
           ];
     

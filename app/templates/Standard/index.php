@@ -67,26 +67,16 @@ if(!empty($indexBanners)) {
 if(!empty($banners)) {
   $flashArgs['vv_banners'] = $banners;
 }
+
+// If subnavigation is present a supertitle and the subnavigation will be placed above
+// the normal page title. The flash messages will be shown up there as well.
+if(!empty($subnav)) {
+  // Include the $flashArgs for the subnavigation element
+  $subnav['flashArgs'] = $flashArgs;
+  // Generate the subnavigation title and tabs
+  print $this->element('subnavigation', $subnav);
+}
 ?>
-
-<?php if(!empty($subnav)): ?>
-  <div id="subnavigation">
-    <div class="supertitle">
-      <h1>
-        <?php if(!empty($vv_person_name)): ?>
-          <?= $vv_person_name->full_name; ?>
-        <?php elseif(!empty($vv_bc_parent_obj)): ?>
-          <?= $vv_bc_parent_obj->$vv_bc_parent_displayfield; ?>
-        <?php endif; ?>
-      </h1>
-    </div>
-
-    <?php /* Flash Messages are placed below supertitle when subnavigation exists. */ ?>
-    <?= $this->element('flash', $flashArgs); ?>
-    
-    <?= $this->element('subnavigation', $subnav); ?>
-  </div>
-<?php endif; ?>
 
 <div class="pageTitleContainer">
   <div class="pageTitle">
@@ -94,7 +84,7 @@ if(!empty($banners)) {
       <h1><?= $vv_title; ?></h1>
     <?php else: ?>
       <?php if(
-        // Subnavigation contains an h2 for these entities
+        // Subnavigation contains an h2 for these entities, so we need an h3
         $vv_primary_link == 'person_role_id'
         || $vv_primary_link == 'external_identity_id'
         || $vv_primary_link == 'external_identity_role_id'): ?>
@@ -521,6 +511,8 @@ if(!empty($banners)) {
                         } elseif ($a == 'view') {
                           $linkClass .= ' row-link-view';
                           $readOnlyIcon = ' <em class="material-icons-outlined read-only-icon">edit_off</em>';
+                        } else {
+                          $linkClass .= ' row-link-' . $a;
                         }
                         $args = ['class' => $linkClass];
                         $isFirstLink = false;

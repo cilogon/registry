@@ -216,8 +216,6 @@ body.cos.select #top-bar {
   z-index: 100;
 }
 #top-menu ul {
-  display: flex;
-  column-gap: 2em;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -272,9 +270,6 @@ body.cos.select #top-bar {
   float: left;
   font-size: 5em;
 }
-#user-panel ul {
-  padding-left: 2em;
-}
 #user-panel .co-info-topbox {
   background-color: var(--cmg-color-lightgray-004);
   margin-top: 2em;
@@ -327,6 +322,13 @@ body.cos.select #top-bar {
   font-size: 1.1em;
   display: block;
   padding: 1em;
+}
+#user-panel-user-settings {
+  float: right;
+  margin: 0 1rem 1rem 0;
+}
+#user-panel-user-settings .dropdown-divider {
+  margin: 0 0 0.25rem;
 }
 /* LOGIN & LOGOUT */
 #login {
@@ -451,7 +453,7 @@ ul.form-list li.alert-banner .co-alert {
 }
 #main-menu > li a:hover,
 #main-menu > li a:focus {
-  background-color: var(--cmg-color-lightgray-006);
+  background-color: var(--cmg-color-lightgray-005);
 }
 #main-menu a.selected {
   background-color: var(--cmg-color-lightgray-007);
@@ -481,6 +483,17 @@ ul.form-list li.alert-banner .co-alert {
   background-color: var(--cmg-color-white);
   -webkit-box-shadow: 5px 5px 8px 0px var(--cmg-color-lightgray-003);
   box-shadow: 5px 5px 8px 0px var(--cmg-color-lightgray-003);
+}
+#main-menu .menu-panel a {
+  color: var(--cmg-color-blue-001);
+}
+#main-menu .menu-panel li a:hover,
+#main-menu .menu-panel li a:focus {
+  background-color: transparent !important;
+}
+#main-menu .menu-panel li a:hover .menu-panel-link-text,
+#main-menu .menu-panel li a:focus .menu-panel-link-text {
+  text-decoration: underline;
 }
 .menu-panel.visible {
   display: block;
@@ -513,22 +526,62 @@ ul.form-list li.alert-banner .co-alert {
 #main-menu .menu-panel-primary-link-text {
   flex: 1;
 }
-#main-menu ul.menu-panel-lists ul {
+#main-menu ul.menu-panel-links ul li a {
+  padding: 0.5em 1em;
+  margin: 0;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  line-height: 1.4em;
+}
+#main-menu .menu-panel-links .material-icons, 
+#main-menu .menu-panel-links .material-icons-outlined {
+  font-size: 2.5rem;
+  margin-right: 0.75rem;
+  display: inline;
+  color: var(--cmg-color-gray-002);
+}
+#main-menu .menu-panel-links li {
+  margin-bottom: 1em;
+}
+#main-menu .menu-panel-links-inner .material-icons,
+#main-menu .menu-panel-links-inner .material-icons-outlined {
+  font-size: 1.2em;
+}
+#main-menu .menu-panel-links .menu-panel-links-inner li {
+  margin-bottom: 0;
+}
+.menu-panel-links-desc {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+}
+.menu-panel-link-desc { 
+  color: var(--cmg-color-gray-001);
+}
+.menu-panel .az-link {
+  position: absolute;
+  right: 6em;
+  top: 2em;
+  font-size: 1.1em;
+}
+#main-menu .az-link a {
   padding: 0;
-  margin-left: 1em;
 }
-#main-menu ul.menu-panel-lists ul li {
-  list-style: disc;
-  margin: 0.5em 0 0 0.5em;
+.menu-panel-sidepanel {
+  padding: 0 1em 2em 1.25em;
 }
-#main-menu ul.menu-panel-lists ul li a {
+#main-menu .menu-panel-sidepanel h3 {
+  margin-bottom: 0.5em;
+}
+#main-menu .menu-panel-sidepanel ul li a {
   display: inline;
   padding: 0;
-  color: var(--cmg-color-blue-002);
 }
-#main-menu ul.menu-panel-lists ul li a:hover {
-  text-decoration: underline;
-  background-color: transparent;
+#main-menu .menu-panel-common-items {
+  margin-top: 1rem;
+}
+#main-menu .menu-panel-common-items li {
+  list-style: disc;
 }
 /* CONTENT */
 #breadcrumbs {
@@ -564,6 +617,13 @@ ul.form-list li.alert-banner .co-alert {
 /* SUBNAVIGATION & TABS */
 .supertitle {
   padding: 1em 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1em;
+}
+.supertitle .person-status-badge {
+  margin: 0;
 }
 #subnavigation nav {
   padding: 0.5em 0;
@@ -783,19 +843,23 @@ ul.form-list li.alert-banner .co-alert {
   margin-right: 0.5em;
 }
 /* CO CONFIGURATION DASHBOARD */
-#configuration-menu {
+.config-menu {
   list-style: none;
   padding: 0;
 }
-#configuration-menu a {
+.config-menu a {
   display: inline-block;
   padding: 0.5em;
   text-indent: -0.9em;
   padding-left: 2em;
 }
-#configuration-menu a .material-icons {
+.config-menu a .material-icons {
   color: var(--cmg-color-gray-001);
   margin-right: 0.5em;
+}
+#platform-menu {
+  border-bottom: 1px solid var(--cmg-color-lightgray-006);
+  padding-bottom: 1em;
 }
 /* INDEX ACTION COMMAND MENUS */
 a.action-menu-toggle {
@@ -951,15 +1015,51 @@ table.index-table .form-check {
 :-moz-placeholder {
   opacity: 0.2;
 }
+/* PERSON CANVAS / CARDS */
+#person-actions {
+  display: flex;
+}
+#person-actions .action-menu-toggle {
+  white-space: nowrap;
+}
+#person-canvas-attributes,
+#person-canvas-attributes-js {
+  margin-top: 0;
+  margin-bottom: 2em;
+}
+#person-canvas-attributes-js .badge {
+  margin-right: 0.5em;
+}
+#person-canvas-attributes-js .canvas-url-link {
+  margin-left: 1em;
+}
+#person-canvas-roles {
+  margin-bottom: 2em;
+}
+h2.card-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  line-height: 2rem;
+}
+h2.card-title a {
+  display: block;
+  color: var(--cmg-color-gray-002);
+}
+#main h2.card-title a:hover {
+  text-decoration: none;
+}
+.field-data-container .id-col {
+  text-align: right;
+  padding-right: 1em;
+  color: var(--cmg-color-gray-003);
+  font-size: 0.8em;
+}
 /* DATA LISTS */
-/*** ul.data-list is the main structure for representing data
-in which the field value is to the left, and actions on that
-value are to the right; this is used for canvases and explorers
-where the fields require no (or few) labels.
-see also ul.form-list below. ***/
+ul.data-list {
+  padding-left: 0;
+}
 ul.data-list li {
-  margin: 0 0 2px !important;
-  overflow: hidden;
+  margin: 0 0 2px;
   padding: 2px 0 3px 0;
   background-color: var(--cmg-color-lightgray-003);
 }
@@ -970,11 +1070,7 @@ ul.data-table li {
   background-color: unset;
 }
 .field-data {
-  float: left;
-  padding: 4px 0 0 10px;
-}
-.field-data-alone {
-  padding: 2px 0 2px 10px;
+  padding: 0.25em 0.75em;
 }
 /* FORMS */
 label {
@@ -1071,6 +1167,8 @@ ul.form-list li.field-stack .field-info {
 }
 ul.form-list textarea {
   font-size: 0.9em;
+  width: 100%;
+  height: 4em;
 }
 ul.form-list li.field-stack textarea {
   margin: 0;
@@ -1251,6 +1349,9 @@ ul.form-list .cm-time-picker-vals li {
 p {
   margin: 0 0 1em;
 }
+address {
+  margin-bottom: 0;
+}
 .fieldTitle {
   font-weight: bold;
 }
@@ -1269,6 +1370,22 @@ p {
 }
 .vtop {
   vertical-align: top !important;
+}
+.force-wrap {
+  overflow-wrap: anywhere;
+}
+.text-muted-cmg {
+  color: var(--cmg-color-gray-003) !important;
+}
+.cm-id-display {
+  margin-left: 1em;
+  font-size: 0.9em;
+}
+.smaller {
+  font-size: smaller;
+}
+.invalid-feedback {
+  font-size: 1em;
 }
 .warn-level-a,
 .warn-level-a td {
@@ -1389,7 +1506,7 @@ table.list-mode .read-only-link-container {
   color: var(--cmg-color-gray-003);
   padding: 0 0.5em;
 }
-/* LOADING ANIMATION */
+/* LOADING ANIMATION & SKELETONS */
 @keyframes loading {
   0%   { opacity: 0.3; }
   30%  { opacity: 1.0; }
@@ -1459,6 +1576,9 @@ table.list-mode .read-only-link-container {
 .co-loading-mini span:nth-child(3) {
   animation-delay: 0.4s;
 }
+.skeleton-list li {
+  height: 2.2rem;
+}
 /* BUTTONS */
 .btn {
   text-transform: uppercase;
@@ -1519,27 +1639,28 @@ table.list-mode .read-only-link-container {
 }
 /*Bootstrap badge*/
 .badge {
-  font-size: 0.95em;
   font-weight: normal;
   height: min-content;
   margin-top: auto;
   margin-bottom: auto;
+  line-height: 1.2em;
 }
-.bg-secondary,
-.bg-success,
-.bg-danger,
-.bg-warning,
-.bg-info,
-.bg-light,
-.bg-dark,
-.bg-primary {
-  border: 1px solid transparent;
+.bg-light {
+  color: var(--cmg-color-gray-004);
+}
+.bg-danger {
+  color: var(--cmg-color-white);
+  background-color: var(--cmg-color-red-005);
 }
 .bg-warning {
-  background-color: var(--cmg-color-yellow-001);
+  background-color: var(--cmg-color-yellow-001) !important;
+  color: var(--cmg-color-yellow-002);
 }
 .bg-primary {
   background-color: var(--cmg-color-blue-002);
+}
+.badge.bg-primary {
+  background-color: var(--cmg-color-blue-002) !important;
 }
 .bg-secondary {
   background-color: var(--cmg-color-gray-002);

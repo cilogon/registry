@@ -46,7 +46,7 @@ trait PrimaryLinkTrait {
   private $unkeyedActions = ['add', 'index'];
   
   // Actions where the primary link can be obtained by looking up the record ID
-  private $lookupActions = ['delete', 'edit', 'view'];
+  private $lookupActions = ['delete', 'edit', 'canvas', 'view'];
   
   // Where to redirect on add or edit, can be 'self', 'index', 'pluggableLink', or 'primaryLink'
   // We use null to mean "index unless we're in a plugin context, in which case pluggableLink"

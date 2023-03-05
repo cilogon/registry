@@ -31,7 +31,12 @@
   $(function() {
     // Focus any designated form element
     $('.focusFirst').focus();
-
+    
+    // USER PANEL
+    $('#user-panel-user-settings').click(function(e) {
+      e.stopPropagation();  
+    });
+    
     // DESKTOP MENU DRAWER BEHAVIOR
     $('#co-menu-collapse').click(function(){
       $('#navigation-drawer').toggleClass('closed');
@@ -42,7 +47,13 @@
     });
     
     $('.menu-panel-toggle').click(function() {
-      $(this).next('.menu-panel').toggleClass('visible');  
+      panel = $(this).next('.menu-panel');
+      if($(panel).hasClass('visible')) {
+        $(panel).removeClass('visible'); 
+      } else {
+        $('.menu-panel').removeClass('visible');
+        $(panel).addClass('visible');
+      }
     });
 
     $('.menu-panel-close').click(function() {
@@ -150,18 +161,23 @@
       placeholder: "-- Select --"
     });
 
-    // Generic row click handling for div-based rows
-    $('div.linked-row').click(function(e) {
-      location.href = $(this).find('a.row-link').attr('href');
+    // Generic row click handling
+    // First capture mouse location to test if we're clicking or drag-selecting (for copy)
+    var mouseDownEvent = null;
+    $('table.index-table tr, .linked-row').mousedown(function(e) {
+      mouseDownEvent = e;
+    });
+
+    // Generic row click handling for div-and li based rows
+    $('.linked-row').click(function(e) {
+      url = $(this).find('a.row-link').attr('href');
+      if(Math.abs(e.clientX-mouseDownEvent.clientX) < 5 &&
+        Math.abs(e.clientY-mouseDownEvent.clientY < 5)) {
+        location.href = url;
+      }
     });
 
     // Generic row click handling for index-table rows
-    // First capture mouse location to test if we're clicking or drag-selecting (for copy)
-    var mouseDownEvent = null;
-    $('table.index-table tr').mousedown(function(e) {
-      mouseDownEvent = e;
-    });
-    
     $('table.index-table tr').each(function(e) {
       url = $(this).find('a.row-link').attr('href');
       if(url != undefined && url != '') {

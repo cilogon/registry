@@ -280,7 +280,20 @@ class ApiV2Controller extends AppController {
     if(!empty($link->attr) && !empty($link->value)) {
       $query = $query->where([$this->$modelsName->getAlias().'.'.$link->attr => $link->value]);
     }
-    
+
+    // This will produce a nested object which is very useful for vue integration
+    if($this->request->getQuery('extended') !== null) {
+      $modelContain = [];
+      $associations = $this->$modelsName->associations();
+      foreach($associations->getByType(['BelongsTo']) as $a) {
+        $modelContain[] = $a->getClassName();
+      }
+
+      if(!empty($modelContain)) {
+        $query = $query->contain($modelContain);
+      }
+    }
+
     if($modelsName == 'AuthenticationEvents') {
       // Special case for filtering on authenticated identifier. There is a
       // similar filter in AuthenticationEventsController::beforeFilter.

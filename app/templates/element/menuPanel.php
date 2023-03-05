@@ -25,11 +25,11 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 ?>
-<div class="menu-panel">
+<div class="menu-panel" id="menu-panel-<?= $panel ?>">
   <?php if($panel == 'people'): ?>
     <h2><?= __d('menu','co.people.panel.title') ?></h2>
     <p><?= __d('menu','co.people.panel.desc') ?></p>
-    <div class="menu-panel-content">
+    <div class="menu-panel-content d-flex-md">
       <ul class="menu-panel-links">
         <li>
           <?php
@@ -43,63 +43,87 @@
           );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined">person</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('menu','co.people.population') ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.people.population.desc') ?></div>
             </div>
           </a>
         </li>
-        <?php /* XXX Enable menu items as needed; plugins should fall below these */
-        /*
+        <?php 
+          /* XXX Enable highlighted menu items as needed:
         <li>
           <?php
-          $menuUrl = $this->Url->build(
-            ['plugin'       => null,
-             'controller'   => 'people',
-             'action'       => 'index',
-             '?'            => [
-               'co_id' => $vv_cur_co->id
-             ]]
-          );
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'people',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined">pending_actions</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('menu','co.people.enrollments.pending') ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.people.enrollments.pending.desc') ?></div>
             </div>
           </a>
         </li>
-        <li>
-          <?php
-          $menuUrl = $this->Url->build(
-            ['plugin'       => null,
-             'controller'   => 'people',
-             'action'       => 'index',
-             '?'            => [
-               'co_id' => $vv_cur_co->id
-             ]]
-          );
-          ?>
-          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="menu-panel-primary-link-text">
-              <h3><?= __d('menu','co.people.external.source.records') ?></h3>
-              <div class="menu-panel-link-desc"><?= __d('menu','co.people.external.source.records.desc') ?></div>
-            </div>
-          </a>
-        </li>
         */ ?>
       </ul>
+      
+      <div class="menu-panel-sidepanel">
+        <?php /* XXX if we want a title for the side menu, use an h3 like so:
+        <h3>
+          <?= __d('menu','related.configurations') ?>
+        </h3> */
+        ?>
+        <div class="menu-panel-sidepanel-content">
+          <ul class="menu-panel-links menu-panel-links-inner">
+            <li><a href="#" class="nospin"><em class="material-icons" aria-hidden="true">apps</em> placeholder</a></li>
+            <?php /* Placeholders below. Replace with real links and text replacement:
+            <li><a href="#"><em class="material-icons" aria-hidden="true">lock</em> Authenticators</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">forward</em> Enrollment Flows</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">access_alarm</em> Expiration Policies</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">developer_board</em> Extended Attributes</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">person_pin</em> Identifier Assignments</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">check_circle</em> Identifier Validators</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">cloud_upload</em> Provisioning Targets</a></li>
+            <li><!-- more links here, including plugins --></li>
+            */ ?>
+          </ul>
+        </div>
+      </div>
     </div>
   <?php endif; ?>
   <?php if($panel == 'structure'): ?>
     <h2><?= __d('menu','co.structure.panel.title') ?></h2>
     <p><?= __d('menu','co.structure.panel.desc') ?></p>
     <div class="menu-panel-content">
-      <ul class="menu-panel-lists">
+      <ul class="menu-panel-links">
         <li>
-          <h3><?= __d('menu','co.structure.groups') ?></h3>
-          <ul>
-            <?php
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'cous',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined">groups</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'Cous', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.structure.cous.desc') ?></div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <?php
             $menuUrl = $this->Url->build(
               ['plugin'       => null,
                'controller'   => 'groups',
@@ -108,15 +132,204 @@
                  'co_id' => $vv_cur_co->id
                ]]
             );
-            ?>
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined">people_outline</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'Groups', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.structure.groups.desc') ?></div>
+            </div>
+          </a>
+        </li>
+        <?php 
+          /* XXX Enable highlighted menu items as needed:
+        <li>
+          <a href="#" class="menu-panel-primary-link">
+            <div class="material-icons" aria-hidden="true">business</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'Departments', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.structure.depts.desc') ?></div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-panel-primary-link">
+            <div class="material-icons" aria-hidden="true">account_balance</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'Organizations', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.structure.orgs.desc') ?></div>
+            </div>
+          </a>
+        </li>
+          */ ?>
+      </ul>
+      <div class="menu-panel-sidepanel">
+        <div class="menu-panel-sidepanel-content">
+          <ul class="menu-panel-links menu-panel-links-inner">
+            <li><a href="#" class="nospin"><em class="material-icons" aria-hidden="true">apps</em> placeholder</a></li>
+            <li><!-- more links here, including plugins --></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+  <?php if($panel == 'connections'): ?>
+    <h2><?= __d('menu','co.connections.panel.title') ?></h2>
+    <p><?= __d('menu','co.connections.panel.desc') ?></p>
+    <div class="menu-panel-content">
+      <!-- Primary menu-panel-links go here. Copy the structure from the People panel above. -->
+      <!-- Add the menu-panel-sidepanel here for plugins and other links. Copy the structure from the People panel above. -->
+    </div>
+  <?php endif; ?>
+  <?php if($panel == 'operations'): ?>
+    <h2><?= __d('menu','co.operations.panel.title') ?></h2>
+    <p><?= __d('menu','co.operations.panel.desc') ?></p>
+    <div class="menu-panel-content">
+      <!-- Primary menu-panel-links go here. Copy the structure from the People panel above. -->
+      <!-- Add the menu-panel-sidepanel here for plugins and other links. Copy the structure from the People panel above. -->
+    </div>
+  <?php endif; ?>
+  <?php if($panel == 'config'): ?>
+    <h2><?= __d('menu','co.configuration.panel.title') ?></h2>
+    <div class="az-link">
+      <?= $this->Html->link(
+            __d('menu','co.configuration.panel.az'),
+            [
+              'plugin'       => null,
+              'controller'   => 'dashboards',
+              'action'       => 'configuration',
+              '?'            => [
+               'co_id' => $vv_cur_co->id
+              ]
+            ]
+          );
+      ?>
+    </div>
+    <div class="menu-panel-content">
+      <?php if($vv_cur_co->id == 1): ?>
+        <?php
+          $platformMenuItems = [
+            __d('controller', 'Cos', [99]) => [
+              'icon'          => 'home',
+              'controller'    => 'cos',
+              'action'        => 'index'
+            ],
+            __d('controller', 'Plugins', [99]) => [
+              'icon'          => 'electrical_services',
+              'controller'    => 'plugins',
+              'action'        => 'index'
+            ]
+          ];
+        ?>
+        <ul id="config-panel-platform-menu" class="menu-panel-links">
+          <li>
+            <h3><?= __d('menu','co.configuration.panel.platform') ?></h3>
+            <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.platform.desc') ?></p>
+            <ul class="menu-panel-links-inner">
+              <?php foreach($platformMenuItems as $label => $cfg): ?>
+                <li>
+                  <?php
+                    $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+                      . '<span class="menu-title">' . $label . '</span>';
+                    print $this->Html->link(
+                      $linkContent,
+                      ['plugin'     => null,
+                       'controller' => $cfg['controller'],
+                       'action'     => $cfg['action']],
+                      ['escape' => false]
+                    );
+                  ?>
+                </li>
+              <?php endforeach; // $vv_configuration_menu_items ?>
+            </ul>
+          </li>
+        </ul>
+      <?php endif; // $vv_platform_menu_items ?>
+      <ul class="menu-panel-links">
+        <li>
+          <h3><?= __d('menu','co.configuration.panel.setup') ?></h3>
+          <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.setup.desc') ?></p>
+          <ul class="menu-panel-links-inner">
             <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'co_settings',
+                   'action'       => 'manage',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
               <a href="<?= $menuUrl ?>">
-                <?= __d('menu','co.structure.groups.all') ?>
-              </a>  
+                <em class="material-icons-outlined" aria-hidden="true">settings</em> 
+                <span class="menu-panel-link-text"><?= __d('controller', 'CoSettings', [99]) ?></span>
+              </a>
+            </li>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'api_users',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>">
+                <em class="material-icons" aria-hidden="true">vpn_key</em>
+                <span class="menu-panel-link-text"><?= __d('controller', 'ApiUsers', [99]) ?></span>
+              </a>
+            </li>
+            <?php /* Placeholders below. Replace with real links and text replacement:
+            <li><a href="#"><em class="material-icons" aria-hidden="true">filter_list</em> Data Filters</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">sync</em> External Identity Sources</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">input</em> Pipelines</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">extension</em> Plugins</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">apps</em> Services</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">assignment_late</em> Terms and Conditions</a></li>
+            */ ?>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'types',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>">
+                <em class="material-icons" aria-hidden="true">widgets</em>
+                Types
+              </a>
             </li>
           </ul>
         </li>
       </ul>
+      <ul class="menu-panel-links">
+        <li>
+          <h3><?= __d('menu','co.configuration.panel.personalization') ?></h3>
+          <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.personalization.desc') ?></p>
+          <ul class="menu-panel-links-inner">
+            <?php /* Placeholders below. Replace with real links and text replacement:
+            <li><a href="#"><em class="material-icons" aria-hidden="true">format_list_numbered</em> Attribute Enumerations</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">navigation</em> CO Navigation Links</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">dashboard</em> Dashboards</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">book</em> Dictionaries</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">translate</em> Localizations</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">email</em> Message Templates</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">wallpaper</em> Themes</a></li>
+            */ ?>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="comanage-version">
+      <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
     </div>
   <?php endif; ?>
   <button type="button" class="menu-panel-close btn"><span class="material-icons-outlined">close</span></button>

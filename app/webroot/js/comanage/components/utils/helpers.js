@@ -1,6 +1,5 @@
-<?php
 /**
- * COmanage Registry URLs Index Columns
+ * COmanage Registry JavaScript Component Helpers
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,22 +24,32 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'url' => [
-    'type' => 'link'
-  ],
-  'type_id' => [
-    'type' => 'fk'
-  ]
-];
+/**
+ * Construct human-readable string from language abbreviation code
+ * BC-47 language tags (https://en.wikipedia.org/wiki/IETF_language_tag)
+ * @param abbreviation   {string} Language Abbreviation
+ */
+const constructLanguageString = (abbreviation) => {
+  const regionNameEngish = new Intl.DisplayNames(
+    ['en'], {type: 'language'}
+  );
+  const regionNameLocale = new Intl.DisplayNames(
+    [abbreviation], {type: 'language'}
+  );
 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
-  'delete' => true
-];
+  if(regionNameEngish.of(abbreviation) === regionNameLocale.of(abbreviation)) {
+    return regionNameEngish.of(abbreviation);
+  }
 
-$subnav = [
-  'name' => 'person',
-  'active' => 'person',
-  'subActive' => 'urls'
-];
+  return `${regionNameEngish.of(abbreviation)} (${regionNameLocale.of(abbreviation)})`;
+}
+
+// Snake case to Camel case
+const camelize = (word) => {
+  return word.split("_").map(word => (word[0].toUpperCase() + word.slice(1))).join('')
+}
+
+export {
+  constructLanguageString,
+  camelize
+}

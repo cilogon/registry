@@ -27,6 +27,9 @@
 msgid "activate"
 msgstr "Activate"
 
+msgid "add"
+msgstr "Add"
+
 msgid "add.a"
 msgstr "Add a New {0}"
 

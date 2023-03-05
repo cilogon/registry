@@ -1,6 +1,5 @@
-<?php
 /**
- * COmanage Registry URLs Index Columns
+ * COmanage Registry MVEA Component JavaScript
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,22 +24,38 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'url' => [
-    'type' => 'link'
-  ],
-  'type_id' => [
-    'type' => 'fk'
-  ]
-];
+import MveaItem from './mvea-item.js';
+import {
+  camelize
+} from '../utils/helpers.js';
 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
-  'delete' => true
-];
-
-$subnav = [
-  'name' => 'person',
-  'active' => 'person',
-  'subActive' => 'urls'
-];
+export default {
+  props: {
+    mveas: Object,
+    core: Object,
+    txt: Object
+  },
+  components: {
+    MveaItem
+  },
+  data() {
+    return {
+      mveaTypeLookup: ''
+    }
+  },
+  computed: {
+    mveaModel: function() {
+      return this.mveas?.[camelize(this.core.mveaType)]
+    }
+  },
+  template: `
+    <ul class="cm-mvea fields data-list">
+      <mvea-item 
+        :txt="this.txt"
+        :core="this.core"
+        v-for='mvea in mveaModel'
+        :mvea="mvea">
+      </mvea-item>
+    </ul>
+  `
+}

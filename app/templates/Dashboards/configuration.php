@@ -25,9 +25,16 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 ?>
+
+<div class="pageTitleContainer">
+  <div class="pageTitle">
+    <h1><?= $vv_title; ?></h1>
+  </div>
+</div>
+
 <section class="inner-content">
   <?php if(!empty($vv_platform_menu_items)): ?>
-    <ul id="configuration-menu" class="three-col">
+    <ul id="platform-menu" class="config-menu">
       <?php foreach($vv_platform_menu_items as $label => $cfg): ?>
         <li>
           <?php 
@@ -45,8 +52,7 @@
       <?php endforeach; // $vv_configuration_menu_items ?>
   </ul>
   <?php endif; // $vv_platform_menu_items ?>
-  <hr />
-  <ul id="configuration-menu" class="three-col">
+  <ul id="configuration-menu" class="config-menu">
     <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
       <li>
         <?php 
@@ -66,4 +72,6 @@
   </ul>
 </section>
 
-<?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
+<div class="comanage-version">
+  <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
+</div>

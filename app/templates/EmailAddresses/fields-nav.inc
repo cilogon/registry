@@ -30,6 +30,6 @@ $topLinks = [];
 
 $subnav = [
   'name' => 'person',
-  'active' => 'attributes', // default for person. 'external identities' are special cased
+  'active' => 'person', // default for person. 'external identities' are special cased
   'subActive' => 'email_addresses'
 ];

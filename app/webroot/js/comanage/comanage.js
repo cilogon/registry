@@ -211,3 +211,71 @@ function clearTopSearch(formObj) {
   }
   formObj.submit();
 }
+
+/**
+ * COmanage Registry API AJAX Calls: general function for making an ajax call to Registry API v.2
+ * @param url              {string} API Url
+ * @param method           {string} HTTP Method (GET, POST, PUT, DELETE)
+ * @param dataType         {string} Data type (json, html)
+ * @param data             {Object} [POST or PUT data in JSON]
+ * @param successCallback  {string} [Name of the callback function for success]
+ * @param entityId         {string} [ID used to identify an entity in the DOM]
+ * @param failureCallback  {string} [Name of the callback function for failure]
+ * @param alwaysCallback   {string} [Name of the callback function for always]
+ */
+function callRegistryAPI(
+  url, 
+  method, 
+  dataType,  
+  successCallback= undefined, 
+  failureCallback= undefined,
+  data = undefined,
+  alwaysCallback = undefined,
+  entityId= undefined
+) {
+  var apiUrl = url;
+  var httpMethod = method;
+  var dataType = dataType;
+  var successCallback = successCallback;
+  var failureCallback = failureCallback;
+  var data = data;
+  var alwaysCallback = alwaysCallback;
+  var entityId = entityId;
+  
+  if(data === undefined) {
+    data = '';
+  }
+
+  if(entityId === undefined) {
+    entityId = '';
+  }
+
+  var xhr = $.ajax({
+    url: apiUrl,
+    method: httpMethod,
+    dataType: dataType,
+    data: data,
+    encode: true
+  })
+    .done(function() {
+      if(successCallback != undefined) {
+        successCallback(xhr, entityId);
+      } else {
+        return xhr;
+      }
+    })
+    .fail(function() {
+      if(failureCallback != undefined) {
+        failureCallback(xhr, entityId);
+      } else {
+        return xhr;
+      }
+    })
+    .always(function() {
+      if(alwaysCallback != undefined) {
+        alwaysCallback(xhr, entityId);
+      } else {
+        return xhr;
+      }
+    });
+}

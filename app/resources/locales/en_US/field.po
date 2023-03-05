@@ -29,8 +29,8 @@
 # When adding entries to this file, group non-model specific translations at the top,
 # then model specific translations alphabetically by model.
 
-msgid "action"
-msgstr "Action"
+msgid "actions"
+msgstr "{0,plural,=1{Action} other{Actions}}"
 
 msgid "actor"
 msgstr "Actor"
@@ -162,6 +162,9 @@ msgstr "Plugin"
 msgid "postal_code"
 msgstr "Postal Code"
 
+msgid "primary"
+msgstr "Primary"
+
 msgid "primary_name"
 msgstr "Primary Name"
 
@@ -245,6 +248,9 @@ msgstr "Value"
 
 msgid "verified"
 msgstr "Verified"
+
+msgid "unverified"
+msgstr "Unverified"
 
 msgid "ApiUsers.privileged.desc"
 msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."

@@ -41,6 +41,6 @@ $bulkActions = [
 
 $subnav = [
   'name' => 'person',
-  'active' => 'attributes',
+  'active' => 'person',
   'subActive' => 'telephone_numbers'
 ];

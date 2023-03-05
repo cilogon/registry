@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry URLs Index Columns
+ * COmanage Registry Vue Helper
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,22 +25,50 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'url' => [
-    'type' => 'link'
-  ],
-  'type_id' => [
-    'type' => 'fk'
-  ]
-];
+declare(strict_types = 1);
 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder. 
-  'delete' => true
-];
+namespace App\View\Helper;
 
-$subnav = [
-  'name' => 'person',
-  'active' => 'person',
-  'subActive' => 'urls'
-];
+use Cake\I18n\FrozenTime;
+use Cake\Utility\Inflector;
+use Cake\View\Helper;
+use Cake\I18n\I18n;
+
+class VueHelper extends Helper {
+  private array $locales_list = [
+    'field' => [
+      'login',
+      'primary',
+      'datepicker.hour',
+      'unverified'
+    ],
+    'information' => [
+      'global.value.none',
+      'datepicker.hour'
+    ]
+  ];
+
+  /**
+   * Helper which will produce an array of configured locales
+   *
+   * @param   string  $lang  The language of the locale
+   *
+   * @return array []
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function locales(string $lang = 'en_US'): array {
+
+    I18n::setLocale($lang);
+
+    $locales = [];
+    foreach ($this->locales_list as $domain => $key_list) {
+      foreach ($key_list as $key) {
+        $locales[$key] = __d($domain, $key);
+      }
+    }
+
+    return $locales;
+  }
+
+}

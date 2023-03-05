@@ -225,7 +225,7 @@ if($this->request->getRequestTarget(false) != '/') {
 // XXX This is initially for api_users:generate, not clear how much this does
 // or does not generalize. If we start adding more exceptions here, we should
 // flip the logic and let api_users:generate declare that it wants a link back.
-  if(!in_array($vv_action, ['add', 'edit', 'index', 'view'])
+  if(!in_array($vv_action, ['add', 'edit', 'index', 'canvas', 'view'])
      && !empty($vv_obj->id)
      && !empty($vv_obj->$vv_display_field)) {
     $oaction = ($vv_permissions['edit'] 
