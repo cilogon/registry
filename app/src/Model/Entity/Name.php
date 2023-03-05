@@ -41,6 +41,11 @@ class Name extends Entity {
     'slug' => false, 
   ];
   
+  // Make full name available to the API v2 JSON response
+  protected $_virtual = [
+    'full_name'
+  ];
+
   /**
    * Generate a full (common) name.
    *
