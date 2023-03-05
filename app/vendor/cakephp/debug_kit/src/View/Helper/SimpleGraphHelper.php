@@ -2,16 +2,16 @@
 declare(strict_types=1);
 
 /**
- * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
  * @since         1.0.0
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace DebugKit\View\Helper;
 
@@ -70,10 +70,10 @@ class SimpleGraphHelper extends Helper
         }
 
         return sprintf(
-            '<div class="graph-bar" style="%s"><div class="graph-bar-value" style="%s" title="%s"> </div></div>',
+            '<div class="c-graph-bar" style="%s"><div class="c-graph-bar__value" style="%s" title="%s"> </div></div>',
             "width: {$width}px",
             "margin-left: {$graphOffset}px; width: {$graphValue}px",
-            __d('debug_kit', 'Starting {0}ms into the request, taking {1}ms', $offset, $value)
+            "Starting {$offset}ms into the request, taking {$value}ms"
         );
     }
 }

@@ -22,14 +22,14 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0",
+        "php": ">=7.4.0",
         "ext-intl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
         "cakephp/chronos": "^2.2",
         "composer/ca-bundle": "^1.2",
         "laminas/laminas-diactoros": "^2.2.2",
-        "laminas/laminas-httphandlerrunner": "^1.1",
+        "laminas/laminas-httphandlerrunner": "^1.1 || ^2.0",
         "league/container": "^4.2.0",
         "psr/container": "^1.1 || ^2.0",
         "psr/http-client": "^1.0",
@@ -97,7 +97,7 @@
             "TestPluginTwo\\": "tests/test_app/Plugin/TestPluginTwo/src/",
             "Company\\TestPluginThree\\": "tests/test_app/Plugin/Company/TestPluginThree/src/",
             "Company\\TestPluginThree\\Test\\": "tests/test_app/Plugin/Company/TestPluginThree/tests/",
-            "ParentPlugin\\": "tests/test_app/Plugin/ParentPlugin/src/"
+            "Named\\": "tests/test_app/Plugin/Named/src/"
         }
     },
     "scripts": {
@@ -107,15 +107,15 @@
         ],
         "cs-check": "phpcs --colors --parallel=16 -p src/ tests/",
         "cs-fix": "phpcbf --colors --parallel=16 -p src/ tests/",
-        "phpstan": "phpstan.phar analyse",
-        "psalm": "psalm.phar --show-info=false",
+        "phpstan": "tools/phpstan analyse",
+        "psalm": "tools/psalm --show-info=false",
         "stan": [
             "@phpstan",
             "@psalm"
         ],
         "stan-tests": "phpstan.phar analyze -c tests/phpstan.neon",
         "stan-baseline": "phpstan.phar --generate-baseline",
-        "stan-setup": "cp composer.json composer.backup && composer require --dev symfony/polyfill-php81 phpstan/phpstan:~1.6.0 psalm/phar:~4.22.0 && mv composer.backup composer.json",
+        "stan-setup": "phive install",
         "lowest": "validate-prefer-lowest",
         "lowest-setup": "composer update --prefer-lowest --prefer-stable --prefer-dist --no-interaction && cp composer.json composer.backup && composer require --dev dereuromark/composer-prefer-lowest && mv composer.backup composer.json",
         "test": "phpunit",

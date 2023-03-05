@@ -64,8 +64,7 @@ class CosTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Timestamp');
  
-    // COs are configuration
-    $this->setIsConfigurationTable(true);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
     
@@ -79,6 +78,9 @@ class CosTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('Groups')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('Jobs')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('People')

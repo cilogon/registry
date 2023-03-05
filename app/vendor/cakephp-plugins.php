@@ -7,5 +7,6 @@ return [
         'Cake/TwigView' => $baseDir . '/vendor/cakephp/twig-view/',
         'DebugKit' => $baseDir . '/vendor/cakephp/debug_kit/',
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',
+        'TestWidget' => $baseDir . '/plugins/TestWidget/',
     ],
 ];

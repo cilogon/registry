@@ -54,8 +54,7 @@ class HistoryRecordsTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // History Records are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Artifact);
     
     // Define associations
     $this->belongsTo('ApiUser')

@@ -13,12 +13,17 @@
 namespace Composer\Package\Archiver;
 
 use FilterIterator;
+use Iterator;
 use PharData;
+use SplFileInfo;
 
+/**
+ * @phpstan-extends FilterIterator<string, SplFileInfo, Iterator<string, SplFileInfo>>
+ */
 class ArchivableFilesFilter extends FilterIterator
 {
     /** @var string[] */
-    private $dirs = array();
+    private $dirs = [];
 
     /**
      * @return bool true if the current element is acceptable, otherwise false.
@@ -35,11 +40,6 @@ class ArchivableFilesFilter extends FilterIterator
         return true;
     }
 
-    /**
-     * @param string $sources
-     *
-     * @return void
-     */
     public function addEmptyDir(PharData $phar, string $sources): void
     {
         foreach ($this->dirs as $filepath) {

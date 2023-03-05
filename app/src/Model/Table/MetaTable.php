@@ -43,8 +43,7 @@ class MetaTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Dashboards are configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Metadata);
     
     $this->setDisplayField('upgrade_version');
   }

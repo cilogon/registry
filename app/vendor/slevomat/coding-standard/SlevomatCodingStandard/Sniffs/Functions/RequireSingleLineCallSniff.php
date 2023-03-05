@@ -4,6 +4,7 @@ namespace SlevomatCodingStandard\Sniffs\Functions;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Util\Tokens;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\SniffSettingsHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 use function array_key_exists;
@@ -17,6 +18,7 @@ use function strpos;
 use const T_CLOSURE;
 use const T_CONSTANT_ENCAPSED_STRING;
 use const T_DOUBLE_COLON;
+use const T_DOUBLE_QUOTED_STRING;
 use const T_FN;
 use const T_FUNCTION;
 use const T_NEW;
@@ -42,6 +44,8 @@ class RequireSingleLineCallSniff extends AbstractLineCall
 	 */
 	public function process(File $phpcsFile, $stringPointer): void
 	{
+		$this->maxLineLength = SniffSettingsHelper::normalizeInteger($this->maxLineLength);
+
 		if (!$this->isCall($phpcsFile, $stringPointer)) {
 			return;
 		}
@@ -69,7 +73,7 @@ class RequireSingleLineCallSniff extends AbstractLineCall
 		}
 
 		for ($i = $parenthesisOpenerPointer + 1; $i < $parenthesisCloserPointer; $i++) {
-			if ($tokens[$i]['code'] !== T_CONSTANT_ENCAPSED_STRING) {
+			if ($tokens[$i]['code'] !== T_CONSTANT_ENCAPSED_STRING && $tokens[$i]['code'] !== T_DOUBLE_QUOTED_STRING) {
 				continue;
 			}
 
@@ -148,9 +152,7 @@ class RequireSingleLineCallSniff extends AbstractLineCall
 
 		$phpcsFile->fixer->addContent($parenthesisOpenerPointer, $call);
 
-		for ($i = $parenthesisOpenerPointer + 1; $i < $parenthesisCloserPointer; $i++) {
-			$phpcsFile->fixer->replaceToken($i, '');
-		}
+		FixerHelper::removeBetween($phpcsFile, $parenthesisOpenerPointer, $parenthesisCloserPointer);
 
 		$phpcsFile->fixer->endChangeset();
 	}
@@ -188,13 +190,11 @@ class RequireSingleLineCallSniff extends AbstractLineCall
 
 	private function shouldReportError(int $lineLength): bool
 	{
-		$maxLineLength = SniffSettingsHelper::normalizeInteger($this->maxLineLength);
-
-		if ($maxLineLength === 0) {
+		if ($this->maxLineLength === 0) {
 			return true;
 		}
 
-		return $lineLength <= $maxLineLength;
+		return $lineLength <= $this->maxLineLength;
 	}
 
 }

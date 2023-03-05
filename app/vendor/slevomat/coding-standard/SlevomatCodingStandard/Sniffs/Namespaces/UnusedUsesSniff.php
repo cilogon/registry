@@ -16,6 +16,7 @@ use SlevomatCodingStandard\Helpers\Annotation\VariableAnnotation;
 use SlevomatCodingStandard\Helpers\AnnotationConstantExpressionHelper;
 use SlevomatCodingStandard\Helpers\AnnotationHelper;
 use SlevomatCodingStandard\Helpers\AnnotationTypeHelper;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\NamespaceHelper;
 use SlevomatCodingStandard\Helpers\ReferencedName;
 use SlevomatCodingStandard\Helpers\ReferencedNameHelper;
@@ -45,7 +46,6 @@ class UnusedUsesSniff implements Sniff
 {
 
 	public const CODE_UNUSED_USE = 'UnusedUse';
-	public const CODE_MISMATCHING_CASE = 'MismatchingCaseSensitivity';
 
 	/** @var bool */
 	public $searchAnnotations = false;
@@ -113,18 +113,6 @@ class UnusedUsesSniff implements Sniff
 					continue;
 				}
 
-				if ($fileUnusedNames[$pointerBeforeUseStatements][$uniqueId]->getNameAsReferencedInFile() !== $nameAsReferencedInFile) {
-					$phpcsFile->addError(
-						sprintf(
-							'Case of reference name "%s" and use statement "%s" does not match.',
-							$nameAsReferencedInFile,
-							$fileUnusedNames[$pointerBeforeUseStatements][$uniqueId]->getNameAsReferencedInFile()
-						),
-						$pointer,
-						self::CODE_MISMATCHING_CASE
-					);
-				}
-
 				$allUsedNames[$pointerBeforeUseStatements][$uniqueId] = true;
 			}
 		}
@@ -179,16 +167,6 @@ class UnusedUsesSniff implements Sniff
 							) !== 0
 						) {
 							$allUsedNames[$pointerBeforeUseStatements][$uniqueId] = true;
-
-							if ($matches[1] !== $nameAsReferencedInFile) {
-								foreach ($annotationsByName as $annotation) {
-									$phpcsFile->addError(sprintf(
-										'Case of reference name "%s" and use statement "%s" does not match.',
-										$matches[1],
-										$fileUnusedNames[$pointerBeforeUseStatements][$uniqueId]->getNameAsReferencedInFile()
-									), $annotation->getStartPointer(), self::CODE_MISMATCHING_CASE);
-								}
-							}
 						}
 
 						foreach ($annotationsByName as $annotation) {
@@ -216,16 +194,6 @@ class UnusedUsesSniff implements Sniff
 							}
 
 							$allUsedNames[$pointerBeforeUseStatements][$uniqueId] = true;
-
-							if ($matches[1] === $nameAsReferencedInFile) {
-								continue;
-							}
-
-							$phpcsFile->addError(sprintf(
-								'Case of reference name "%s" and use statement "%s" does not match.',
-								$matches[1],
-								$fileUnusedNames[$pointerBeforeUseStatements][$uniqueId]->getNameAsReferencedInFile()
-							), $annotation->getStartPointer(), self::CODE_MISMATCHING_CASE);
 						}
 
 						/** @var VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|GenericAnnotation $annotation */
@@ -286,16 +254,6 @@ class UnusedUsesSniff implements Sniff
 								}
 
 								$allUsedNames[$pointerBeforeUseStatements][$uniqueId] = true;
-
-								if ($matches[1] === $nameAsReferencedInFile) {
-									continue;
-								}
-
-								$phpcsFile->addError(sprintf(
-									'Case of reference name "%s" and use statement "%s" does not match.',
-									$matches[1],
-									$fileUnusedNames[$pointerBeforeUseStatements][$uniqueId]->getNameAsReferencedInFile()
-								), $annotation->getStartPointer(), self::CODE_MISMATCHING_CASE);
 							}
 						}
 					}
@@ -326,9 +284,9 @@ class UnusedUsesSniff implements Sniff
 				$endPointer = TokenHelper::findNext($phpcsFile, T_SEMICOLON, $unusedUse->getPointer()) + 1;
 
 				$phpcsFile->fixer->beginChangeset();
-				for ($i = $unusedUse->getPointer(); $i <= $endPointer; $i++) {
-					$phpcsFile->fixer->replaceToken($i, '');
-				}
+
+				FixerHelper::removeBetweenIncluding($phpcsFile, $unusedUse->getPointer(), $endPointer);
+
 				$phpcsFile->fixer->endChangeset();
 			}
 		}

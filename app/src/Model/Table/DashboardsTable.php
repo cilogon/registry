@@ -50,8 +50,7 @@ class DashboardsTable extends Table {
     $this->addBehavior('Timestamp');
     $this->addBehavior('Timezone');
     
-    // Dashboards are configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
     $this->belongsTo('Cos');

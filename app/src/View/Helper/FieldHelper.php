@@ -123,7 +123,7 @@ class FieldHelper extends Helper {
     
     $vv_obj = $this->getView()->get('vv_obj');
 
-    if($fieldName == 'plugin') {
+    if($fieldName == 'plugin' && $this->action == 'edit') {
       return $this->statusControl($fieldName, 
                                   $vv_obj->$fieldName, 
                                   [

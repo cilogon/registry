@@ -71,8 +71,7 @@ class EmailAddressesTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Email Addresses are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
     $this->belongsTo('People');

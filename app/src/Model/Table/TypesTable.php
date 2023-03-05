@@ -79,8 +79,7 @@ class TypesTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Types are configuration
-    $this->setIsConfigurationTable(true);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
     $this->belongsTo('Cos');

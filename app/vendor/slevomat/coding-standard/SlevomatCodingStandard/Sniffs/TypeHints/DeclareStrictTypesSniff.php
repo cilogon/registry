@@ -4,6 +4,7 @@ namespace SlevomatCodingStandard\Sniffs\TypeHints;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\SniffSettingsHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 use function sprintf;
@@ -15,7 +16,6 @@ use const T_DECLARE;
 use const T_LNUMBER;
 use const T_OPEN_TAG;
 use const T_STRING;
-use const T_WHITESPACE;
 
 class DeclareStrictTypesSniff implements Sniff
 {
@@ -56,6 +56,10 @@ class DeclareStrictTypesSniff implements Sniff
 	 */
 	public function process(File $phpcsFile, $openTagPointer): void
 	{
+		$this->linesCountBeforeDeclare = SniffSettingsHelper::normalizeInteger($this->linesCountBeforeDeclare);
+		$this->linesCountAfterDeclare = SniffSettingsHelper::normalizeInteger($this->linesCountAfterDeclare);
+		$this->spacesCountAroundEqualsSign = SniffSettingsHelper::normalizeInteger($this->spacesCountAroundEqualsSign);
+
 		if (TokenHelper::findPrevious($phpcsFile, T_OPEN_TAG, $openTagPointer - 1) !== null) {
 			return;
 		}
@@ -128,8 +132,7 @@ class DeclareStrictTypesSniff implements Sniff
 		}
 
 		$strictTypesContent = TokenHelper::getContent($phpcsFile, $strictTypesPointer, $numberPointer);
-		$spacesCountAroundEqualsSign = SniffSettingsHelper::normalizeInteger($this->spacesCountAroundEqualsSign);
-		$format = sprintf('strict_types%1$s=%1$s1', str_repeat(' ', $spacesCountAroundEqualsSign));
+		$format = sprintf('strict_types%1$s=%1$s1', str_repeat(' ', $this->spacesCountAroundEqualsSign));
 		if ($strictTypesContent !== $format) {
 			$fix = $phpcsFile->addFixableError(
 				sprintf(
@@ -143,14 +146,12 @@ class DeclareStrictTypesSniff implements Sniff
 			if ($fix) {
 				$phpcsFile->fixer->beginChangeset();
 				$phpcsFile->fixer->replaceToken($strictTypesPointer, $format);
-				for ($i = $strictTypesPointer + 1; $i <= $numberPointer; $i++) {
-					$phpcsFile->fixer->replaceToken($i, '');
-				}
+				FixerHelper::removeBetweenIncluding($phpcsFile, $strictTypesPointer + 1, $numberPointer);
 				$phpcsFile->fixer->endChangeset();
 			}
 		}
 
-		$pointerBeforeDeclare = TokenHelper::findPreviousExcluding($phpcsFile, T_WHITESPACE, $declarePointer - 1);
+		$pointerBeforeDeclare = TokenHelper::findPreviousNonWhitespace($phpcsFile, $declarePointer - 1);
 
 		$whitespaceBefore = '';
 		if ($pointerBeforeDeclare === $openTagPointer) {
@@ -161,7 +162,6 @@ class DeclareStrictTypesSniff implements Sniff
 			$whitespaceBefore .= TokenHelper::getContent($phpcsFile, $pointerBeforeDeclare + 1, $declarePointer - 1);
 		}
 
-		$requiredLinesCountBeforeDeclare = SniffSettingsHelper::normalizeInteger($this->linesCountBeforeDeclare);
 		if ($this->declareOnFirstLine) {
 			if ($whitespaceBefore !== ' ') {
 				$fix = $phpcsFile->addFixableError(
@@ -172,21 +172,19 @@ class DeclareStrictTypesSniff implements Sniff
 				if ($fix) {
 					$phpcsFile->fixer->beginChangeset();
 					$phpcsFile->fixer->replaceToken($openTagPointer, '<?php ');
-					for ($i = $openTagPointer + 1; $i < $declarePointer; $i++) {
-						$phpcsFile->fixer->replaceToken($i, '');
-					}
+					FixerHelper::removeBetween($phpcsFile, $openTagPointer, $declarePointer);
 					$phpcsFile->fixer->endChangeset();
 				}
 			}
 		} else {
 			$declareOnFirstLine = $tokens[$declarePointer]['line'] === $tokens[$openTagPointer]['line'];
 			$linesCountBefore = $declareOnFirstLine ? 0 : substr_count($whitespaceBefore, $phpcsFile->eolChar) - 1;
-			if ($declareOnFirstLine || $linesCountBefore !== $requiredLinesCountBeforeDeclare) {
+			if ($declareOnFirstLine || $linesCountBefore !== $this->linesCountBeforeDeclare) {
 				$fix = $phpcsFile->addFixableError(
 					sprintf(
 						'Expected %d line%s before declare statement, found %d.',
-						$requiredLinesCountBeforeDeclare,
-						$requiredLinesCountBeforeDeclare === 1 ? '' : 's',
+						$this->linesCountBeforeDeclare,
+						$this->linesCountBeforeDeclare === 1 ? '' : 's',
 						$linesCountBefore
 					),
 					$declarePointer,
@@ -199,10 +197,9 @@ class DeclareStrictTypesSniff implements Sniff
 						$phpcsFile->fixer->replaceToken($openTagPointer, '<?php');
 					}
 
-					for ($i = $pointerBeforeDeclare + 1; $i < $declarePointer; $i++) {
-						$phpcsFile->fixer->replaceToken($i, '');
-					}
-					for ($i = 0; $i <= $requiredLinesCountBeforeDeclare; $i++) {
+					FixerHelper::removeBetween($phpcsFile, $pointerBeforeDeclare, $declarePointer);
+
+					for ($i = 0; $i <= $this->linesCountBeforeDeclare; $i++) {
 						$phpcsFile->fixer->addNewline($pointerBeforeDeclare);
 					}
 					$phpcsFile->fixer->endChangeset();
@@ -212,26 +209,25 @@ class DeclareStrictTypesSniff implements Sniff
 
 		/** @var int $declareSemicolonPointer */
 		$declareSemicolonPointer = TokenHelper::findNextEffective($phpcsFile, $tokens[$declarePointer]['parenthesis_closer'] + 1);
-		$pointerAfterWhitespaceEnd = TokenHelper::findNextExcluding($phpcsFile, T_WHITESPACE, $declareSemicolonPointer + 1);
+		$pointerAfterWhitespaceEnd = TokenHelper::findNextNonWhitespace($phpcsFile, $declareSemicolonPointer + 1);
 		if ($pointerAfterWhitespaceEnd === null) {
 			return;
 		}
 
 		$whitespaceAfter = TokenHelper::getContent($phpcsFile, $declareSemicolonPointer + 1, $pointerAfterWhitespaceEnd - 1);
 
-		$requiredLinesCountAfter = SniffSettingsHelper::normalizeInteger($this->linesCountAfterDeclare);
 		$newLinesAfter = substr_count($whitespaceAfter, $phpcsFile->eolChar);
 		$linesCountAfter = $newLinesAfter > 0 ? $newLinesAfter - 1 : 0;
 
-		if ($linesCountAfter === $requiredLinesCountAfter) {
+		if ($linesCountAfter === $this->linesCountAfterDeclare) {
 			return;
 		}
 
 		$fix = $phpcsFile->addFixableError(
 			sprintf(
 				'Expected %d line%s after declare statement, found %d.',
-				$requiredLinesCountAfter,
-				$requiredLinesCountAfter === 1 ? '' : 's',
+				$this->linesCountAfterDeclare,
+				$this->linesCountAfterDeclare === 1 ? '' : 's',
 				$linesCountAfter
 			),
 			$declarePointer,
@@ -242,12 +238,13 @@ class DeclareStrictTypesSniff implements Sniff
 		}
 
 		$phpcsFile->fixer->beginChangeset();
-		for ($i = $declareSemicolonPointer + 1; $i < $pointerAfterWhitespaceEnd; $i++) {
-			$phpcsFile->fixer->replaceToken($i, '');
-		}
-		for ($i = 0; $i <= $requiredLinesCountAfter; $i++) {
+
+		FixerHelper::removeBetween($phpcsFile, $declareSemicolonPointer, $pointerAfterWhitespaceEnd);
+
+		for ($i = 0; $i <= $this->linesCountAfterDeclare; $i++) {
 			$phpcsFile->fixer->addNewline($declareSemicolonPointer);
 		}
+
 		$phpcsFile->fixer->endChangeset();
 	}
 
@@ -255,8 +252,8 @@ class DeclareStrictTypesSniff implements Sniff
 	{
 		return sprintf(
 			'strict_types%s=%s1',
-			str_repeat(' ', SniffSettingsHelper::normalizeInteger($this->spacesCountAroundEqualsSign)),
-			str_repeat(' ', SniffSettingsHelper::normalizeInteger($this->spacesCountAroundEqualsSign))
+			str_repeat(' ', $this->spacesCountAroundEqualsSign),
+			str_repeat(' ', $this->spacesCountAroundEqualsSign)
 		);
 	}
 

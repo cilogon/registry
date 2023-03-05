@@ -51,7 +51,7 @@ class Xml
      * Building XML from a file path:
      *
      * ```
-     * $xml = Xml::build('/path/to/an/xml/file.xml');
+     * $xml = Xml::build('/path/to/an/xml/file.xml', ['readFile' => true]);
      * ```
      *
      * Building XML from a remote URL:
@@ -453,7 +453,7 @@ class Xml
      * Recursive method to toArray
      *
      * @param \SimpleXMLElement $xml SimpleXMLElement object
-     * @param array $parentData Parent array with data
+     * @param array<string, mixed> $parentData Parent array with data
      * @param string $ns Namespace of current child
      * @param array<string> $namespaces List of namespaces in XML
      * @return void

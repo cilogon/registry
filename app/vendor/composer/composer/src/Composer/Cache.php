@@ -42,13 +42,12 @@ class Cache
     private $readOnly;
 
     /**
-     * @param IOInterface $io
      * @param string      $cacheDir   location of the cache
      * @param string      $allowlist  List of characters that are allowed in path names (used in a regex character class)
      * @param Filesystem  $filesystem optional filesystem instance
      * @param bool        $readOnly   whether the cache is in readOnly mode
      */
-    public function __construct(IOInterface $io, string $cacheDir, string $allowlist = 'a-z0-9.', Filesystem $filesystem = null, bool $readOnly = false)
+    public function __construct(IOInterface $io, string $cacheDir, string $allowlist = 'a-z0-9._', ?Filesystem $filesystem = null, bool $readOnly = false)
     {
         $this->io = $io;
         $this->root = rtrim($cacheDir, '/\\') . '/';
@@ -62,8 +61,6 @@ class Cache
     }
 
     /**
-     * @param bool $readOnly
-     *
      * @return void
      */
     public function setReadOnly(bool $readOnly)
@@ -80,8 +77,6 @@ class Cache
     }
 
     /**
-     * @param string $path
-     *
      * @return bool
      */
     public static function isUsable(string $path)
@@ -98,10 +93,13 @@ class Cache
             $this->enabled = true;
 
             if (
-                (!is_dir($this->root) && !Silencer::call('mkdir', $this->root, 0777, true))
-                || !is_writable($this->root)
+                !$this->readOnly
+                && (
+                    (!is_dir($this->root) && !Silencer::call('mkdir', $this->root, 0777, true))
+                    || !is_writable($this->root)
+                )
             ) {
-                $this->io->writeError('<warning>Cannot create cache directory ' . $this->root . ', or directory is not writable. Proceeding without cache</warning>');
+                $this->io->writeError('<warning>Cannot create cache directory ' . $this->root . ', or directory is not writable. Proceeding without cache. See also cache-read-only config if your filesystem is read-only.</warning>');
                 $this->enabled = false;
             }
         }
@@ -118,8 +116,6 @@ class Cache
     }
 
     /**
-     * @param string $file
-     *
      * @return string|false
      */
     public function read(string $file)
@@ -137,13 +133,12 @@ class Cache
     }
 
     /**
-     * @param string $file
-     * @param string $contents
-     *
      * @return bool
      */
     public function write(string $file, string $contents)
     {
+        $wasEnabled = $this->enabled === true;
+
         if ($this->isEnabled() && !$this->readOnly) {
             $file = Preg::replace('{[^'.$this->allowlist.']}i', '-', $file);
 
@@ -153,17 +148,25 @@ class Cache
             try {
                 return file_put_contents($tempFileName, $contents) !== false && rename($tempFileName, $this->root . $file);
             } catch (\ErrorException $e) {
+                // If the write failed despite isEnabled checks passing earlier, rerun the isEnabled checks to
+                // see if they are still current and recreate the cache dir if needed. Refs https://github.com/composer/composer/issues/11076
+                if ($wasEnabled) {
+                    clearstatcache();
+                    $this->enabled = null;
+                    return $this->write($file, $contents);
+                }
+
                 $this->io->writeError('<warning>Failed to write into cache: '.$e->getMessage().'</warning>', true, IOInterface::DEBUG);
                 if (Preg::isMatch('{^file_put_contents\(\): Only ([0-9]+) of ([0-9]+) bytes written}', $e->getMessage(), $m)) {
                     // Remove partial file.
                     unlink($tempFileName);
 
                     $message = sprintf(
-                        '<warning>Writing %1$s into cache failed after %2$u of %3$u bytes written, only %4$u bytes of free space available</warning>',
+                        '<warning>Writing %1$s into cache failed after %2$u of %3$u bytes written, only %4$s bytes of free space available</warning>',
                         $tempFileName,
                         $m[1],
                         $m[2],
-                        @disk_free_space(dirname($tempFileName))
+                        function_exists('disk_free_space') ? @disk_free_space(dirname($tempFileName)) : 'unknown'
                     );
 
                     $this->io->writeError($message);
@@ -180,9 +183,6 @@ class Cache
 
     /**
      * Copy a file into the cache
-     *
-     * @param string $file
-     * @param string $source
      *
      * @return bool
      */
@@ -206,9 +206,6 @@ class Cache
 
     /**
      * Copy a file out of the cache
-     *
-     * @param string $file
-     * @param string $target
      *
      * @return bool
      */
@@ -248,17 +245,19 @@ class Cache
             return false;
         }
 
+        if (Platform::isInputCompletionProcess()) {
+            return false;
+        }
+
         return !random_int(0, 50);
     }
 
     /**
-     * @param string $file
-     *
      * @return bool
      */
     public function remove(string $file)
     {
-        if ($this->isEnabled()) {
+        if ($this->isEnabled() && !$this->readOnly) {
             $file = Preg::replace('{[^'.$this->allowlist.']}i', '-', $file);
             if (file_exists($this->root . $file)) {
                 return $this->filesystem->unlink($this->root . $file);
@@ -273,7 +272,7 @@ class Cache
      */
     public function clear()
     {
-        if ($this->isEnabled()) {
+        if ($this->isEnabled() && !$this->readOnly) {
             $this->filesystem->emptyDirectory($this->root);
 
             return true;
@@ -283,7 +282,6 @@ class Cache
     }
 
     /**
-     * @param string $file
      * @return int|false
      * @phpstan-return int<0, max>|false
      */
@@ -300,14 +298,11 @@ class Cache
     }
 
     /**
-     * @param int $ttl
-     * @param int $maxSize
-     *
      * @return bool
      */
     public function gc(int $ttl, int $maxSize)
     {
-        if ($this->isEnabled()) {
+        if ($this->isEnabled() && !$this->readOnly) {
             $expire = new \DateTime();
             $expire->modify('-'.$ttl.' seconds');
 
@@ -335,9 +330,26 @@ class Cache
         return false;
     }
 
+    public function gcVcsCache(int $ttl): bool
+    {
+        if ($this->isEnabled()) {
+            $expire = new \DateTime();
+            $expire->modify('-'.$ttl.' seconds');
+
+            $finder = Finder::create()->in($this->root)->directories()->depth(0)->date('until '.$expire->format('Y-m-d H:i:s'));
+            foreach ($finder as $file) {
+                $this->filesystem->removeDirectory($file->getPathname());
+            }
+
+            self::$cacheCollected = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
-     * @param string $file
-     *
      * @return string|false
      */
     public function sha1(string $file)
@@ -353,8 +365,6 @@ class Cache
     }
 
     /**
-     * @param string $file
-     *
      * @return string|false
      */
     public function sha256(string $file)

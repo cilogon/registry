@@ -31,6 +31,7 @@ use Cake\Database\Schema\CachedCollection;
 use Cake\Database\Schema\Collection as SchemaCollection;
 use Cake\Database\Schema\CollectionInterface as SchemaCollectionInterface;
 use Cake\Datasource\ConnectionInterface;
+use Cake\Log\Engine\BaseLog;
 use Cake\Log\Log;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -135,11 +136,14 @@ class Connection implements ConnectionInterface
     {
         $this->_config = $config;
 
-        $driver = '';
-        if (!empty($config['driver'])) {
-            $driver = $config['driver'];
-        }
-        $this->setDriver($driver, $config);
+        $driverConfig = array_diff_key($config, array_flip([
+            'name',
+            'driver',
+            'log',
+            'cacheMetaData',
+            'cacheKeyPrefix',
+        ]));
+        $this->_driver = $this->createDriver($config['driver'] ?? '', $driverConfig);
 
         if (!empty($config['log'])) {
             $this->enableQueryLogging((bool)$config['log']);
@@ -183,24 +187,43 @@ class Connection implements ConnectionInterface
      * @throws \Cake\Database\Exception\MissingDriverException When a driver class is missing.
      * @throws \Cake\Database\Exception\MissingExtensionException When a driver's PHP extension is missing.
      * @return $this
+     * @deprecated 4.4.0 Setting the driver is deprecated. Use the connection config instead.
      */
     public function setDriver($driver, $config = [])
     {
+        deprecationWarning('Setting the driver is deprecated. Use the connection config instead.');
+
+        $this->_driver = $this->createDriver($driver, $config);
+
+        return $this;
+    }
+
+    /**
+     * Creates driver from name, class name or instance.
+     *
+     * @param \Cake\Database\DriverInterface|string $name Driver name, class name or instance.
+     * @param array $config Driver config if $name is not an instance.
+     * @return \Cake\Database\DriverInterface
+     * @throws \Cake\Database\Exception\MissingDriverException When a driver class is missing.
+     * @throws \Cake\Database\Exception\MissingExtensionException When a driver's PHP extension is missing.
+     */
+    protected function createDriver($name, array $config): DriverInterface
+    {
+        $driver = $name;
         if (is_string($driver)) {
             /** @psalm-var class-string<\Cake\Database\DriverInterface>|null $className */
             $className = App::className($driver, 'Database/Driver');
             if ($className === null) {
-                throw new MissingDriverException(['driver' => $driver]);
+                throw new MissingDriverException(['driver' => $driver, 'connection' => $this->configName()]);
             }
             $driver = new $className($config);
         }
+
         if (!$driver->enabled()) {
-            throw new MissingExtensionException(['driver' => get_class($driver), 'name' => $config['name']]);
+            throw new MissingExtensionException(['driver' => get_class($driver), 'name' => $this->configName()]);
         }
 
-        $this->_driver = $driver;
-
-        return $this;
+        return $driver;
     }
 
     /**
@@ -406,7 +429,7 @@ class Connection implements ConnectionInterface
      *
      * @param string $table the table to insert values in
      * @param array $values values to be inserted
-     * @param array<string, string> $types list of associative array containing the types to be used for casting
+     * @param array<int|string, string> $types Array containing the types to be used for casting
      * @return \Cake\Database\StatementInterface
      */
     public function insert(string $table, array $values, array $types = []): StatementInterface
@@ -427,7 +450,7 @@ class Connection implements ConnectionInterface
      * @param string $table the table to update rows from
      * @param array $values values to be updated
      * @param array $conditions conditions to be set for update statement
-     * @param array $types list of associative array containing the types to be used for casting
+     * @param array<string> $types list of associative array containing the types to be used for casting
      * @return \Cake\Database\StatementInterface
      */
     public function update(string $table, array $values, array $conditions = [], array $types = []): StatementInterface
@@ -445,7 +468,7 @@ class Connection implements ConnectionInterface
      *
      * @param string $table the table to delete rows from
      * @param array $conditions conditions to be set for delete statement
-     * @param array $types list of associative array containing the types to be used for casting
+     * @param array<string> $types list of associative array containing the types to be used for casting
      * @return \Cake\Database\StatementInterface
      */
     public function delete(string $table, array $conditions = [], array $types = []): StatementInterface
@@ -897,7 +920,7 @@ class Connection implements ConnectionInterface
             return $this->_logger;
         }
 
-        if (!class_exists(QueryLogger::class)) {
+        if (!class_exists(BaseLog::class)) {
             throw new RuntimeException(
                 'For logging you must either set a logger using Connection::setLogger()' .
                 ' or require the cakephp/log package in your composer config.'

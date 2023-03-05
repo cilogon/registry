@@ -31,14 +31,14 @@ class Config
     public const RELATIVE_PATHS = 1;
 
     /** @var array<string, mixed> */
-    public static $defaultConfig = array(
+    public static $defaultConfig = [
         'process-timeout' => 300,
         'use-include-path' => false,
-        'allow-plugins' => null, // null for BC for now, will become array() after July 2022
+        'allow-plugins' => [],
         'use-parent-dir' => 'prompt',
         'preferred-install' => 'dist',
         'notify-on-install' => true,
-        'github-protocols' => array('https', 'ssh', 'git'),
+        'github-protocols' => ['https', 'ssh', 'git'],
         'gitlab-protocol' => null,
         'vendor-dir' => 'vendor',
         'bin-dir' => '{$vendor-dir}/bin',
@@ -59,39 +59,38 @@ class Config
         'classmap-authoritative' => false,
         'apcu-autoloader' => false,
         'prepend-autoloader' => true,
-        'github-domains' => array('github.com'),
+        'github-domains' => ['github.com'],
         'bitbucket-expose-hostname' => true,
         'disable-tls' => false,
         'secure-http' => true,
-        'secure-svn-domains' => array(),
+        'secure-svn-domains' => [],
         'cafile' => null,
         'capath' => null,
         'github-expose-hostname' => true,
-        'gitlab-domains' => array('gitlab.com'),
+        'gitlab-domains' => ['gitlab.com'],
         'store-auths' => 'prompt',
-        'platform' => array(),
+        'platform' => [],
         'archive-format' => 'tar',
         'archive-dir' => '.',
         'htaccess-protect' => true,
         'use-github-api' => true,
         'lock' => true,
         'platform-check' => 'php-only',
-        // valid keys without defaults (auth config stuff):
-        // bitbucket-oauth
-        // github-oauth
-        // gitlab-oauth
-        // gitlab-token
-        // http-basic
-        // bearer
-    );
+        'bitbucket-oauth' => [],
+        'github-oauth' => [],
+        'gitlab-oauth' => [],
+        'gitlab-token' => [],
+        'http-basic' => [],
+        'bearer' => [],
+    ];
 
     /** @var array<string, mixed> */
-    public static $defaultRepositories = array(
-        'packagist.org' => array(
+    public static $defaultRepositories = [
+        'packagist.org' => [
             'type' => 'composer',
             'url' => 'https://repo.packagist.org',
-        ),
-    );
+        ],
+    ];
 
     /** @var array<string, mixed> */
     private $config;
@@ -103,14 +102,16 @@ class Config
     private $configSource;
     /** @var ConfigSourceInterface */
     private $authConfigSource;
+    /** @var ConfigSourceInterface|null */
+    private $localAuthConfigSource = null;
     /** @var bool */
     private $useEnvironment;
     /** @var array<string, true> */
-    private $warnedHosts = array();
+    private $warnedHosts = [];
     /** @var array<string, true> */
-    private $sslVerifyWarnedHosts = array();
+    private $sslVerifyWarnedHosts = [];
     /** @var array<string, string> */
-    private $sourceOfConfigValue = array();
+    private $sourceOfConfigValue = [];
 
     /**
      * @param bool    $useEnvironment Use COMPOSER_ environment variables to replace config settings
@@ -120,11 +121,6 @@ class Config
     {
         // load defaults
         $this->config = static::$defaultConfig;
-
-        // TODO after July 2022 remove this and update the default value above in self::$defaultConfig + remove note from 06-config.md
-        if (strtotime('2022-07-01') < time()) {
-            $this->config['allow-plugins'] = array();
-        }
 
         $this->repositories = static::$defaultRepositories;
         $this->useEnvironment = (bool) $useEnvironment;
@@ -139,69 +135,64 @@ class Config
         }
     }
 
-    /**
-     * @return void
-     */
     public function setConfigSource(ConfigSourceInterface $source): void
     {
         $this->configSource = $source;
     }
 
-    /**
-     * @return ConfigSourceInterface
-     */
     public function getConfigSource(): ConfigSourceInterface
     {
         return $this->configSource;
     }
 
-    /**
-     * @return void
-     */
     public function setAuthConfigSource(ConfigSourceInterface $source): void
     {
         $this->authConfigSource = $source;
     }
 
-    /**
-     * @return ConfigSourceInterface
-     */
     public function getAuthConfigSource(): ConfigSourceInterface
     {
         return $this->authConfigSource;
+    }
+
+    public function setLocalAuthConfigSource(ConfigSourceInterface $source): void
+    {
+        $this->localAuthConfigSource = $source;
+    }
+
+    public function getLocalAuthConfigSource(): ?ConfigSourceInterface
+    {
+        return $this->localAuthConfigSource;
     }
 
     /**
      * Merges new config values with the existing ones (overriding)
      *
      * @param array{config?: array<string, mixed>, repositories?: array<mixed>} $config
-     * @param string $source
-     *
-     * @return void
      */
     public function merge(array $config, string $source = self::SOURCE_UNKNOWN): void
     {
         // override defaults with given config
         if (!empty($config['config']) && is_array($config['config'])) {
             foreach ($config['config'] as $key => $val) {
-                if (in_array($key, array('bitbucket-oauth', 'github-oauth', 'gitlab-oauth', 'gitlab-token', 'http-basic', 'bearer'), true) && isset($this->config[$key])) {
+                if (in_array($key, ['bitbucket-oauth', 'github-oauth', 'gitlab-oauth', 'gitlab-token', 'http-basic', 'bearer'], true) && isset($this->config[$key])) {
                     $this->config[$key] = array_merge($this->config[$key], $val);
                     $this->setSourceOfConfigValue($val, $key, $source);
-                } elseif (in_array($key, array('allow-plugins'), true) && isset($this->config[$key]) && is_array($this->config[$key])) {
+                } elseif (in_array($key, ['allow-plugins'], true) && isset($this->config[$key]) && is_array($this->config[$key]) && is_array($val)) {
                     // merging $val first to get the local config on top of the global one, then appending the global config,
                     // then merging local one again to make sure the values from local win over global ones for keys present in both
                     $this->config[$key] = array_merge($val, $this->config[$key], $val);
                     $this->setSourceOfConfigValue($val, $key, $source);
-                } elseif (in_array($key, array('gitlab-domains', 'github-domains'), true) && isset($this->config[$key])) {
+                } elseif (in_array($key, ['gitlab-domains', 'github-domains'], true) && isset($this->config[$key])) {
                     $this->config[$key] = array_unique(array_merge($this->config[$key], $val));
                     $this->setSourceOfConfigValue($val, $key, $source);
                 } elseif ('preferred-install' === $key && isset($this->config[$key])) {
                     if (is_array($val) || is_array($this->config[$key])) {
                         if (is_string($val)) {
-                            $val = array('*' => $val);
+                            $val = ['*' => $val];
                         }
                         if (is_string($this->config[$key])) {
-                            $this->config[$key] = array('*' => $this->config[$key]);
+                            $this->config[$key] = ['*' => $this->config[$key]];
                             $this->sourceOfConfigValue[$key . '*'] = $source;
                         }
                         $this->config[$key] = array_merge($this->config[$key], $val);
@@ -273,7 +264,6 @@ class Config
     /**
      * Returns a setting
      *
-     * @param  string            $key
      * @param  int               $flags Options (see class constants)
      * @throws \RuntimeException
      *
@@ -301,6 +291,10 @@ class Config
                     $this->setSourceOfConfigValue($val, $key, $env);
                 }
 
+                if ($key === 'process-timeout') {
+                    return max(0, false !== $val ? (int) $val : $this->config[$key]);
+                }
+
                 $val = rtrim((string) $this->process(false !== $val ? $val : $this->config[$key], $flags), '/\\');
                 $val = Platform::expandPath($val);
 
@@ -308,7 +302,7 @@ class Config
                     return $val;
                 }
 
-                return (($flags & self::RELATIVE_PATHS) == self::RELATIVE_PATHS) ? $val : $this->realpath($val);
+                return (($flags & self::RELATIVE_PATHS) === self::RELATIVE_PATHS) ? $val : $this->realpath($val);
 
             // booleans with env var support
             case 'cache-read-only':
@@ -339,7 +333,7 @@ class Config
 
             // ints without env var support
             case 'cache-ttl':
-                return (int) $this->config[$key];
+                return max(0, (int) $this->config[$key]);
 
             // numbers with kb/mb/gb support, without env var support
             case 'cache-files-maxsize':
@@ -348,7 +342,7 @@ class Config
                         "Could not parse the value of '$key': {$this->config[$key]}"
                     );
                 }
-                $size = $matches[1];
+                $size = (float) $matches[1];
                 if (isset($matches[2])) {
                     switch (strtolower($matches[2])) {
                         case 'g':
@@ -365,15 +359,15 @@ class Config
                     }
                 }
 
-                return $size;
+                return max(0, (int) $size);
 
             // special cases below
             case 'cache-files-ttl':
                 if (isset($this->config[$key])) {
-                    return (int) $this->config[$key];
+                    return max(0, (int) $this->config[$key]);
                 }
 
-                return (int) $this->config['cache-ttl'];
+                return $this->get('cache-ttl');
 
             case 'home':
                 return rtrim($this->process(Platform::expandPath($this->config[$key]), $flags), '/\\');
@@ -381,7 +375,7 @@ class Config
             case 'bin-compat':
                 $value = $this->getComposerEnv('COMPOSER_BIN_COMPAT') ?: $this->config[$key];
 
-                if (!in_array($value, array('auto', 'full', 'proxy', 'symlink'))) {
+                if (!in_array($value, ['auto', 'full', 'proxy', 'symlink'])) {
                     throw new \RuntimeException(
                         "Invalid value for 'bin-compat': {$value}. Expected auto, full or proxy"
                     );
@@ -394,8 +388,9 @@ class Config
                 return $value;
 
             case 'discard-changes':
-                if ($env = $this->getComposerEnv('COMPOSER_DISCARD_CHANGES')) {
-                    if (!in_array($env, array('stash', 'true', 'false', '1', '0'), true)) {
+                $env = $this->getComposerEnv('COMPOSER_DISCARD_CHANGES');
+                if ($env !== false) {
+                    if (!in_array($env, ['stash', 'true', 'false', '1', '0'], true)) {
                         throw new \RuntimeException(
                             "Invalid value for COMPOSER_DISCARD_CHANGES: {$env}. Expected 1, 0, true, false or stash"
                         );
@@ -408,7 +403,7 @@ class Config
                     return $env !== 'false' && (bool) $env;
                 }
 
-                if (!in_array($this->config[$key], array(true, false, 'stash'), true)) {
+                if (!in_array($this->config[$key], [true, false, 'stash'], true)) {
                     throw new \RuntimeException(
                         "Invalid value for 'discard-changes': {$this->config[$key]}. Expected true, false or stash"
                     );
@@ -444,15 +439,13 @@ class Config
     }
 
     /**
-     * @param int $flags
-     *
      * @return array<string, mixed[]>
      */
     public function all(int $flags = 0): array
     {
-        $all = array(
+        $all = [
             'repositories' => $this->getRepositories(),
-        );
+        ];
         foreach (array_keys($this->config) as $key) {
             $all['config'][$key] = $this->get($key, $flags);
         }
@@ -460,10 +453,6 @@ class Config
         return $all;
     }
 
-    /**
-     * @param string $key
-     * @return string
-     */
     public function getSourceOfValue(string $key): string
     {
         $this->get($key);
@@ -473,10 +462,6 @@ class Config
 
     /**
      * @param mixed  $configValue
-     * @param string $path
-     * @param string $source
-     *
-     * @return void
      */
     private function setSourceOfConfigValue($configValue, string $path, string $source): void
     {
@@ -494,17 +479,14 @@ class Config
      */
     public function raw(): array
     {
-        return array(
+        return [
             'repositories' => $this->getRepositories(),
             'config' => $this->config,
-        );
+        ];
     }
 
     /**
      * Checks whether a setting exists
-     *
-     * @param  string $key
-     * @return bool
      */
     public function has(string $key): bool
     {
@@ -526,6 +508,7 @@ class Config
         }
 
         return Preg::replaceCallback('#\{\$(.+)\}#', function ($match) use ($flags) {
+            assert(is_string($match[1]));
             return $this->get($match[1], $flags);
         }, $value);
     }
@@ -534,9 +517,6 @@ class Config
      * Turns relative paths in absolute paths without realpath()
      *
      * Since the dirs might not exist yet we can not call realpath or it will fail.
-     *
-     * @param  string $path
-     * @return string
      */
     private function realpath(string $path): string
     {
@@ -553,8 +533,7 @@ class Config
      * This should be used to read COMPOSER_ environment variables
      * that overload config values.
      *
-     * @param  string      $var
-     * @return string|bool
+     * @return string|false
      */
     private function getComposerEnv(string $var)
     {
@@ -565,11 +544,6 @@ class Config
         return false;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return void
-     */
     private function disableRepoByName(string $name): void
     {
         if (isset($this->repositories[$name])) {
@@ -582,13 +556,10 @@ class Config
     /**
      * Validates that the passed URL is allowed to be used by current config, or throws an exception.
      *
-     * @param string      $url
      * @param IOInterface $io
      * @param mixed[]     $repoOptions
-     *
-     * @return void
      */
-    public function prohibitUrlByConfig(string $url, IOInterface $io = null, array $repoOptions = []): void
+    public function prohibitUrlByConfig(string $url, ?IOInterface $io = null, array $repoOptions = []): void
     {
         // Return right away if the URL is malformed or custom (see issue #5173)
         if (false === filter_var($url, FILTER_VALIDATE_URL)) {
@@ -598,7 +569,7 @@ class Config
         // Extract scheme and throw exception on known insecure protocols
         $scheme = parse_url($url, PHP_URL_SCHEME);
         $hostname = parse_url($url, PHP_URL_HOST);
-        if (in_array($scheme, array('http', 'git', 'ftp', 'svn'))) {
+        if (in_array($scheme, ['http', 'git', 'ftp', 'svn'])) {
             if ($this->get('secure-http')) {
                 if ($scheme === 'svn') {
                     if (in_array($hostname, $this->get('secure-svn-domains'), true)) {
@@ -610,7 +581,7 @@ class Config
 
                 throw new TransportException("Your configuration does not allow connections to $url. See https://getcomposer.org/doc/06-config.md#secure-http for details.");
             }
-            if ($io  !== null) {
+            if ($io !== null) {
                 if (is_string($hostname)) {
                     if (!isset($this->warnedHosts[$hostname])) {
                         $io->writeError("<warning>Warning: Accessing $hostname over $scheme which is an insecure protocol.</warning>");
@@ -646,8 +617,6 @@ class Config
      *     "vendor/bin/long-running-script --watch"
      *   ]
      * }
-     *
-     * @return void
      */
     public static function disableProcessTimeout(): void
     {

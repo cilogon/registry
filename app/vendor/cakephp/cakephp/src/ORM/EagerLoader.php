@@ -91,7 +91,7 @@ class EagerLoader
      * A map of table aliases pointing to the association objects they represent
      * for the query.
      *
-     * @var array
+     * @var array<string, \Cake\ORM\EagerLoadable>
      */
     protected $_joinsMap = [];
 
@@ -706,9 +706,8 @@ class EagerLoader
         /** @psalm-suppress PossiblyNullReference */
         $map = $this->_buildAssociationsMap($map, $this->_matching->normalized($table), true);
         $map = $this->_buildAssociationsMap($map, $this->normalized($table));
-        $map = $this->_buildAssociationsMap($map, $this->_joinsMap);
 
-        return $map;
+        return $this->_buildAssociationsMap($map, $this->_joinsMap);
     }
 
     /**

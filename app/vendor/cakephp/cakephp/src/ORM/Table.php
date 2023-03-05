@@ -20,6 +20,7 @@ use ArrayObject;
 use BadMethodCallException;
 use Cake\Core\App;
 use Cake\Core\Configure;
+use Cake\Core\Exception\CakeException;
 use Cake\Database\Connection;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Database\TypeFactory;
@@ -387,9 +388,11 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
     {
         if ($this->_table === null) {
             $table = namespaceSplit(static::class);
-            $table = substr(end($table), 0, -5);
+            $table = substr(end($table), 0, -5) ?: $this->_alias;
             if (!$table) {
-                $table = $this->getAlias();
+                throw new CakeException(
+                    'You must specify either the `alias` or the `table` option for the constructor.'
+                );
             }
             $this->_table = Inflector::underscore($table);
         }
@@ -419,7 +422,12 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
     {
         if ($this->_alias === null) {
             $alias = namespaceSplit(static::class);
-            $alias = substr(end($alias), 0, -5) ?: $this->getTable();
+            $alias = substr(end($alias), 0, -5) ?: $this->_table;
+            if (!$alias) {
+                throw new CakeException(
+                    'You must specify either the `alias` or the `table` option for the constructor.'
+                );
+            }
             $this->_alias = $alias;
         }
 
@@ -859,9 +867,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
             ));
         }
 
-        $behavior = $this->_behaviors->get($name);
-
-        return $behavior;
+        return $this->_behaviors->get($name);
     }
 
     /**
@@ -1446,7 +1452,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * @param array<string, mixed> $options the original options passed to a finder
      * @param array<string> $keys the keys to check in $options to build matchers from
      * the associated value
-     * @return array
+     * @return array<string, mixed>
      */
     protected function _setFieldMatchers(array $options, array $keys): array
     {
@@ -1498,12 +1504,21 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      */
     public function get($primaryKey, array $options = []): EntityInterface
     {
+        if ($primaryKey === null) {
+            throw new InvalidPrimaryKeyException(sprintf(
+                'Record not found in table "%s" with primary key [NULL]',
+                $this->getTable()
+            ));
+        }
+
         $key = (array)$this->getPrimaryKey();
         $alias = $this->getAlias();
         foreach ($key as $index => $keyname) {
             $key[$index] = $alias . '.' . $keyname;
         }
-        $primaryKey = (array)$primaryKey;
+        if (!is_array($primaryKey)) {
+            $primaryKey = [$primaryKey];
+        }
         if (count($key) !== count($primaryKey)) {
             $primaryKey = $primaryKey ?: [null];
             $primaryKey = array_map(function ($key) {
@@ -1843,6 +1858,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
     public function save(EntityInterface $entity, $options = [])
     {
         if ($options instanceof SaveOptionsBuilder) {
+            deprecationWarning('SaveOptionsBuilder is deprecated. Use a normal array for options instead.');
             $options = $options->toArray();
         }
 
@@ -1852,6 +1868,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
             'checkRules' => true,
             'checkExisting' => true,
             '_primary' => true,
+            '_cleanOnSuccess' => true,
         ]);
 
         if ($entity->hasErrors((bool)$options['associated'])) {
@@ -1871,8 +1888,10 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
                 $this->dispatchEvent('Model.afterSaveCommit', compact('entity', 'options'));
             }
             if ($options['atomic'] || $options['_primary']) {
-                $entity->clean();
-                $entity->setNew(false);
+                if ($options['_cleanOnSuccess']) {
+                    $entity->clean();
+                    $entity->setNew(false);
+                }
                 $entity->setSource($this->getRegistryAlias());
             }
         }
@@ -2167,9 +2186,9 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * any one of the records fails to save due to failed validation or database
      * error.
      *
-     * @param \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> $entities Entities to save.
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities Entities to save.
      * @param \Cake\ORM\SaveOptionsBuilder|\ArrayAccess|array $options Options used when calling Table::save() for each entity.
-     * @return \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface>|false False on failure, entities list on success.
+     * @return iterable<\Cake\Datasource\EntityInterface>|false False on failure, entities list on success.
      * @throws \Exception
      */
     public function saveMany(iterable $entities, $options = [])
@@ -2188,9 +2207,9 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * any one of the records fails to save due to failed validation or database
      * error.
      *
-     * @param \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> $entities Entities to save.
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities Entities to save.
      * @param \ArrayAccess|array $options Options used when calling Table::save() for each entity.
-     * @return \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> Entities list.
+     * @return iterable<\Cake\Datasource\EntityInterface> Entities list.
      * @throws \Exception
      * @throws \Cake\ORM\Exception\PersistenceFailedException If an entity couldn't be saved.
      */
@@ -2200,14 +2219,19 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
     }
 
     /**
-     * @param \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> $entities Entities to save.
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities Entities to save.
      * @param \Cake\ORM\SaveOptionsBuilder|\ArrayAccess|array $options Options used when calling Table::save() for each entity.
      * @throws \Cake\ORM\Exception\PersistenceFailedException If an entity couldn't be saved.
      * @throws \Exception If an entity couldn't be saved.
-     * @return \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> Entities list.
+     * @return iterable<\Cake\Datasource\EntityInterface> Entities list.
      */
     protected function _saveMany(iterable $entities, $options = []): iterable
     {
+        if ($options instanceof SaveOptionsBuilder) {
+            deprecationWarning('SaveOptionsBuilder is deprecated. Use a normal array for options instead.');
+            $options = $options->toArray();
+        }
+
         $options = new ArrayObject(
             (array)$options + [
                 'atomic' => true,
@@ -2215,10 +2239,11 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
                 '_primary' => true,
             ]
         );
+        $options['_cleanOnSuccess'] = false;
 
         /** @var array<bool> $isNew */
         $isNew = [];
-        $cleanup = function ($entities) use (&$isNew): void {
+        $cleanupOnFailure = function ($entities) use (&$isNew): void {
             /** @var array<\Cake\Datasource\EntityInterface> $entities */
             foreach ($entities as $key => $entity) {
                 if (isset($isNew[$key]) && $isNew[$key]) {
@@ -2243,20 +2268,40 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
                     }
                 });
         } catch (Exception $e) {
-            $cleanup($entities);
+            $cleanupOnFailure($entities);
 
             throw $e;
         }
 
         if ($failed !== null) {
-            $cleanup($entities);
+            $cleanupOnFailure($entities);
 
             throw new PersistenceFailedException($failed, ['saveMany']);
         }
 
+        $cleanupOnSuccess = function (EntityInterface $entity) use (&$cleanupOnSuccess) {
+            $entity->clean();
+            $entity->setNew(false);
+
+            foreach (array_keys($entity->toArray()) as $field) {
+                $value = $entity->get($field);
+
+                if ($value instanceof EntityInterface) {
+                    $cleanupOnSuccess($value);
+                } elseif (is_array($value) && current($value) instanceof EntityInterface) {
+                    foreach ($value as $associated) {
+                        $cleanupOnSuccess($associated);
+                    }
+                }
+            }
+        };
+
         if ($this->_transactionCommitted($options['atomic'], $options['_primary'])) {
             foreach ($entities as $entity) {
                 $this->dispatchEvent('Model.afterSaveCommit', compact('entity', 'options'));
+                if ($options['atomic'] || $options['_primary']) {
+                    $cleanupOnSuccess($entity);
+                }
             }
         }
 
@@ -2322,9 +2367,9 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * any one of the records fails to delete due to failed validation or database
      * error.
      *
-     * @param \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> $entities Entities to delete.
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities Entities to delete.
      * @param \ArrayAccess|array $options Options used when calling Table::save() for each entity.
-     * @return \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface>|false Entities list
+     * @return iterable<\Cake\Datasource\EntityInterface>|false Entities list
      *   on success, false on failure.
      * @see \Cake\ORM\Table::delete() for options and events related to this method.
      */
@@ -2346,9 +2391,9 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * any one of the records fails to delete due to failed validation or database
      * error.
      *
-     * @param \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> $entities Entities to delete.
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities Entities to delete.
      * @param \ArrayAccess|array $options Options used when calling Table::save() for each entity.
-     * @return \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> Entities list.
+     * @return iterable<\Cake\Datasource\EntityInterface> Entities list.
      * @throws \Cake\ORM\Exception\PersistenceFailedException
      * @see \Cake\ORM\Table::delete() for options and events related to this method.
      */
@@ -2364,7 +2409,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
     }
 
     /**
-     * @param \Cake\Datasource\ResultSetInterface|array<\Cake\Datasource\EntityInterface> $entities Entities to delete.
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities Entities to delete.
      * @param \ArrayAccess|array $options Options used.
      * @return \Cake\Datasource\EntityInterface|null
      */
@@ -2866,7 +2911,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * You can use the `Model.beforeMarshal` event to modify request data
      * before it is converted into entities.
      *
-     * @param \Traversable|array<\Cake\Datasource\EntityInterface> $entities the entities that will get the
+     * @param iterable<\Cake\Datasource\EntityInterface> $entities the entities that will get the
      * data merged in
      * @param array $data list of arrays to be merged into the entities
      * @param array<string, mixed> $options A list of options for the objects hydration.
@@ -3014,6 +3059,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      *
      * @param array<string, mixed> $options Options to parse by the builder.
      * @return \Cake\ORM\SaveOptionsBuilder
+     * @deprecated 4.4.0 Use a normal array for options instead.
      */
     public function getSaveOptionsBuilder(array $options = []): SaveOptionsBuilder
     {
@@ -3067,7 +3113,7 @@ class Table implements RepositoryInterface, EventListenerInterface, EventDispatc
      * Returns an array that can be used to describe the internal state of this
      * object.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function __debugInfo()
     {

@@ -53,7 +53,7 @@ class Text
      * Generate a random UUID version 4
      *
      * Warning: This method should not be used as a random seed for any cryptographic operations.
-     * Instead, you should use the openssl or mcrypt extensions.
+     * Instead, you should use `Security::randomBytes()` or `Security::randomString()` instead.
      *
      * It should also not be used to create identifiers that have security implications, such as
      * 'unguessable' URL identifiers. Instead, you should use {@link \Cake\Utility\Security::randomBytes()}` for that.
@@ -376,13 +376,6 @@ class Text
             $options = ['width' => $options];
         }
         $options += ['width' => 72, 'wordWrap' => true, 'indent' => null, 'indentAt' => 0];
-
-        if (!empty($options['indentAt']) && $options['indentAt'] === 0) {
-            $indentLength = !empty($options['indent']) ? strlen($options['indent']) : 0;
-            $options['width'] -= $indentLength;
-
-            return self::wrap($text, $options);
-        }
 
         $wrapped = self::wrap($text, $options);
 
@@ -904,9 +897,8 @@ class Text
         }
 
         $excerpt = mb_substr($text, $startPos, $endPos - $startPos);
-        $excerpt = $prepend . $excerpt . $append;
 
-        return $excerpt;
+        return $prepend . $excerpt . $append;
     }
 
     /**
@@ -955,7 +947,7 @@ class Text
      * to the decimal value of the character
      *
      * @param string $string String to convert.
-     * @return array
+     * @return array<int>
      */
     public static function utf8(string $string): array
     {
@@ -1180,8 +1172,7 @@ class Text
         if (is_string($options['replacement']) && $options['replacement'] !== '') {
             $map[sprintf('/[%s]+/mu', $quotedReplacement)] = $options['replacement'];
         }
-        $string = preg_replace(array_keys($map), $map, $string);
 
-        return $string;
+        return preg_replace(array_keys($map), $map, $string);
     }
 }

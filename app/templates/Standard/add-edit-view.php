@@ -46,6 +46,10 @@ if($vv_action == 'edit' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_
   }  
 }
 
+if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-links.inc")) {
+  include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-links.inc");
+} 
+
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
 
@@ -107,14 +111,31 @@ if(!empty($banners)) {
     $action_args['vv_attr_id'] =  $vv_obj->id;
     
     foreach(($topLinks ?? []) as $t) {
-      if($vv_permissions[ $t['link']['action'] ]) {
+      $perm = false;
+
+      if(!empty($t['link']['controller'])) {
+        // We're linking into a related model
+
+        $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
+
+        if(isset($vv_permissions[$linkModel][ $t['link']['action'] ])) {
+          $perm = $vv_permissions[$linkModel][ $t['link']['action'] ];
+        }
+
+        // Inject a link to the current object ID
+        $t['link']['?'][\App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj)] = $vv_obj->id;
+      } else {
+        $perm = $vv_permissions[ $t['link']['action'] ];
+
         // We need to inject $linkFilter, but not overwrite any existing query params
         if(!empty($t['link']['?'])) {
           $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
         } else {
           $t['link']['?'] = $linkFilter;
         }
-  
+      }
+
+      if($perm) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder($t['order']),
           'icon' => $this->Menu->getMenuIcon($t['icon']),

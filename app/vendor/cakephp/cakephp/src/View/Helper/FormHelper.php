@@ -506,9 +506,7 @@ class FormHelper extends Helper
             'action' => $request->getParam('action'),
         ];
 
-        $action = (array)$options['url'] + $actionDefaults;
-
-        return $action;
+        return (array)$options['url'] + $actionDefaults;
     }
 
     /**
@@ -1028,7 +1026,7 @@ class FormHelper extends Helper
      * @param string $fieldName This should be "modelname.fieldname"
      * @param array<string, mixed> $options Each type of input takes different options.
      * @return string Completed form widget.
-     * @link https://book.cakephp.org/4/en/views/helpers/form.html#creating-form-inputs
+     * @link https://book.cakephp.org/4/en/views/helpers/form.html#creating-form-controls
      * @psalm-suppress InvalidReturnType
      * @psalm-suppress InvalidReturnStatement
      */
@@ -1234,9 +1232,7 @@ class FormHelper extends Helper
             $options['type'] = $this->_inputType($fieldName, $options);
         }
 
-        $options = $this->_magicOptions($fieldName, $options, $needsMagicType);
-
-        return $options;
+        return $this->_magicOptions($fieldName, $options, $needsMagicType);
     }
 
     /**
@@ -1294,7 +1290,7 @@ class FormHelper extends Helper
      *
      * @param string $fieldName The name of the field to find options for.
      * @param array<string, mixed> $options Options list.
-     * @return array
+     * @return array<string, mixed>
      */
     protected function _optionsOptions(string $fieldName, array $options): array
     {
@@ -1555,12 +1551,16 @@ class FormHelper extends Helper
     {
         $attributes['options'] = $options;
         $attributes['idPrefix'] = $this->_idPrefix;
+
+        $generatedHiddenId = false;
+        if (!isset($attributes['id'])) {
+            $attributes['id'] = true;
+            $generatedHiddenId = true;
+        }
         $attributes = $this->_initInputField($fieldName, $attributes);
 
         $hiddenField = $attributes['hiddenField'] ?? true;
         unset($attributes['hiddenField']);
-
-        $radio = $this->widget('radio', $attributes);
 
         $hidden = '';
         if ($hiddenField !== false && is_scalar($hiddenField)) {
@@ -1568,8 +1568,13 @@ class FormHelper extends Helper
                 'value' => $hiddenField === true ? '' : (string)$hiddenField,
                 'form' => $attributes['form'] ?? null,
                 'name' => $attributes['name'],
+                'id' => $attributes['id'],
             ]);
         }
+        if ($generatedHiddenId) {
+            unset($attributes['id']);
+        }
+        $radio = $this->widget('radio', $attributes);
 
         return $hidden . $radio;
     }
@@ -2112,6 +2117,13 @@ class FormHelper extends Helper
             'hiddenField' => true,
             'secure' => true,
         ];
+
+        $generatedHiddenId = false;
+        if (!isset($attributes['id'])) {
+            $attributes['id'] = true;
+            $generatedHiddenId = true;
+        }
+
         $attributes = $this->_initInputField($fieldName, $attributes);
         $attributes['options'] = $options;
         $attributes['idPrefix'] = $this->_idPrefix;
@@ -2123,10 +2135,15 @@ class FormHelper extends Helper
                 'value' => '',
                 'secure' => false,
                 'disabled' => $attributes['disabled'] === true || $attributes['disabled'] === 'disabled',
+                'id' => $attributes['id'],
             ];
             $hidden = $this->hidden($fieldName, $hiddenAttributes);
         }
         unset($attributes['hiddenField']);
+
+        if ($generatedHiddenId) {
+            unset($attributes['id']);
+        }
 
         return $hidden . $this->widget('multicheckbox', $attributes);
     }

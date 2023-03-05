@@ -75,6 +75,12 @@ msgstr "{0,plural,=1{History Record} other{History Records}}"
 msgid "Identifiers"
 msgstr "{0,plural,=1{Identifier} other{Identifiers}}"
 
+msgid "JobHistoryRecords"
+msgstr "{0,plural,=1{Job History Record} other{Job History Records}}"
+
+msgid "Jobs"
+msgstr "{0,plural,=1{Job} other{Jobs}}"
+
 msgid "Names"
 msgstr "{0,plural,=1{Name} other{Names}}"
 

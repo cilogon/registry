@@ -79,10 +79,9 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
             throw $this->missingController($request);
         }
 
-        // If the controller has a container definition
-        // add the request as a service.
+        // Get the controller from the container if defined.
+        // The request is in the container by default.
         if ($this->container->has($className)) {
-            $this->container->add(ServerRequest::class, $request);
             $controller = $this->container->get($className);
         } else {
             $controller = $reflection->newInstance($request);
@@ -269,7 +268,7 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
             case 'float':
                 return is_numeric($argument) ? (float)$argument : null;
             case 'int':
-                return ctype_digit($argument) ? (int)$argument : null;
+                return filter_var($argument, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
             case 'bool':
                 return $argument === '0' ? false : ($argument === '1' ? true : null);
             case 'array':
@@ -347,7 +346,7 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
     protected function missingController(ServerRequest $request)
     {
         return new MissingControllerException([
-            'class' => $request->getParam('controller'),
+            'controller' => $request->getParam('controller'),
             'plugin' => $request->getParam('plugin'),
             'prefix' => $request->getParam('prefix'),
             '_ext' => $request->getParam('_ext'),

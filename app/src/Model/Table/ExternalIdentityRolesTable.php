@@ -59,8 +59,7 @@ class ExternalIdentityRolesTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // External Identity Roles are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
     $this->belongsTo('ExternalIdentities');

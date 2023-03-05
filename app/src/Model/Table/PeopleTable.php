@@ -63,8 +63,7 @@ class PeopleTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // CO People are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Primary);
     
     // Define associations
     $this->belongsTo('Cos');
@@ -97,6 +96,9 @@ class PeopleTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('Identifiers')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('JobHistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('PersonRoles')

@@ -60,8 +60,7 @@ class AuthenticationEventsTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Authentication Events are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Artifact);
     
     // Define associations
     // Technically, Authentication Events do not directly foreign key since

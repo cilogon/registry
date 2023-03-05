@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Migrations\Command\Phinx;
 
@@ -54,7 +54,7 @@ class MarkMigrated extends AbstractCommand
      *
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('mark_migrated')
             ->setDescription('Mark a migration as migrated')
@@ -106,13 +106,14 @@ class MarkMigrated extends AbstractCommand
      * @param \Symfony\Component\Console\Output\OutputInterface $output the output object
      * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->setInput($input);
         $this->bootstrap($input, $output);
         $this->output($output);
 
         $migrationPaths = $this->getConfig()->getMigrationPaths();
+        /** @var string $path */
         $path = array_pop($migrationPaths);
 
         if ($this->invalidOnlyOrExclude()) {

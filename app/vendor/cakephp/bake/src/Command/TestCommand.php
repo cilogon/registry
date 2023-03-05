@@ -16,14 +16,13 @@ declare(strict_types=1);
  */
 namespace Bake\Command;
 
-use Bake\Utility\TemplateRenderer;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
-use Cake\Core\Exception\Exception;
+use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
 use Cake\Filesystem\Filesystem;
 use Cake\Http\Response;
@@ -279,32 +278,32 @@ class TestCommand extends BakeCommand
 
         $io->out("\n" . sprintf('Baking test case for %s ...', $fullClassName), 1, Shell::QUIET);
 
-        $renderer = new TemplateRenderer($this->theme);
-        $renderer->set('fixtures', $this->_fixtures);
-        $renderer->set('plugin', $this->plugin);
-        $renderer->set(compact(
-            'subject',
-            'className',
-            'properties',
-            'methods',
-            'type',
-            'fullClassName',
-            'mock',
-            'preConstruct',
-            'postConstruct',
-            'construction',
-            'uses',
-            'baseNamespace',
-            'subNamespace',
-            'namespace'
-        ));
-        $out = $renderer->generate('Bake.tests/test_case');
+        $contents = $this->createTemplateRenderer()
+            ->set('fixtures', $this->_fixtures)
+            ->set('plugin', $this->plugin)
+            ->set(compact(
+                'subject',
+                'className',
+                'properties',
+                'methods',
+                'type',
+                'fullClassName',
+                'mock',
+                'preConstruct',
+                'postConstruct',
+                'construction',
+                'uses',
+                'baseNamespace',
+                'subNamespace',
+                'namespace'
+            ))
+            ->generate('Bake.tests/test_case');
 
         $filename = $this->testCaseFileName($type, $fullClassName);
         $emptyFile = dirname($filename) . DS . '.gitkeep';
         $this->deleteEmptyFile($emptyFile, $io);
-        if ($io->createFile($filename, $out, $args->getOption('force'))) {
-            return $out;
+        if ($io->createFile($filename, $contents, $this->force)) {
+            return $contents;
         }
 
         return false;
@@ -399,12 +398,12 @@ class TestCommand extends BakeCommand
      *
      * @param string $type The type of thing having a test generated.
      * @return string
-     * @throws \Cake\Core\Exception\Exception When invalid object types are requested.
+     * @throws \Cake\Core\Exception\CakeException When invalid object types are requested.
      */
     public function mapType(string $type): string
     {
         if (empty($this->classTypes[$type])) {
-            throw new Exception('Invalid object type: ' . $type);
+            throw new CakeException('Invalid object type: ' . $type);
         }
 
         return $this->classTypes[$type];

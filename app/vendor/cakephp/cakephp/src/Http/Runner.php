@@ -16,6 +16,8 @@ declare(strict_types=1);
  */
 namespace Cake\Http;
 
+use Cake\Routing\Router;
+use Cake\Routing\RoutingApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -55,6 +57,13 @@ class Runner implements RequestHandlerInterface
         $this->queue->rewind();
         $this->fallbackHandler = $fallbackHandler;
 
+        if (
+            $fallbackHandler instanceof RoutingApplicationInterface &&
+            $request instanceof ServerRequest
+        ) {
+            Router::setRequest($request);
+        }
+
         return $this->handle($request);
     }
 
@@ -77,12 +86,10 @@ class Runner implements RequestHandlerInterface
             return $this->fallbackHandler->handle($request);
         }
 
-        $response = new Response([
+        return new Response([
             'body' => 'Middleware queue was exhausted without returning a response '
                 . 'and no fallback request handler was set for Runner',
             'status' => 500,
         ]);
-
-        return $response;
     }
 }

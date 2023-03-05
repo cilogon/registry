@@ -72,6 +72,27 @@ msgstr "All Members"
 msgid "GroupTypeEnum.S"
 msgstr "Standard"
 
+msgid "JobStatusEnum.A"
+msgstr "Assigned"
+
+msgid "JobStatusEnum.CX"
+msgstr "Canceled"
+
+msgid "JobStatusEnum.GO"
+msgstr "In Progress"
+
+msgid "JobStatusEnum.NT"
+msgstr "Notice"
+
+msgid "JobStatusEnum.OK"
+msgstr "Complete"
+
+msgid "JobStatusEnum.Q"
+msgstr "Queued"
+
+msgid "JobStatusEnum.X"
+msgstr "Failed"
+
 msgid "LanguageEnum.af"
 msgstr "Afrikaans"
 

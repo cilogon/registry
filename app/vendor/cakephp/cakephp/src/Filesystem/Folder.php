@@ -617,7 +617,7 @@ class Folder
      *
      * @param string $pathname The directory structure to create. Either an absolute or relative
      *   path. If the path is relative and exists in the process' cwd it will not be created.
-     *   Otherwise relative paths will be prefixed with the current pwd().
+     *   Otherwise, relative paths will be prefixed with the current pwd().
      * @param int|null $mode octal value 0755
      * @return bool Returns TRUE on success, FALSE on failure
      */
@@ -646,13 +646,14 @@ class Folder
         if ($this->create($nextPathname, $mode)) {
             if (!file_exists($pathname)) {
                 $old = umask(0);
-                umask($old);
                 if (mkdir($pathname, $mode, true)) {
                     $this->_messages[] = sprintf('%s created', $pathname);
+                    umask($old);
 
                     return true;
                 }
                 $this->_errors[] = sprintf('%s NOT created', $pathname);
+                umask($old);
 
                 return false;
             }

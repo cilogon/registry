@@ -1,4 +1,4 @@
-<style type="text/css">
+<style>
     html, body {
         height: 100%;
     }
@@ -21,13 +21,13 @@
 <?php if (!empty($part)) : ?>
     <iframe seamless name="messageBody" class="messageBody" src="?part=<?= h($part); ?>&plugin=<?= h($plugin); ?>"></iframe>
 <?php else : ?>
-    <p><?= __d('debug_kit', 'You are trying to preview an email that does not have any content.') ?></p>
+    <p>You are trying to preview an email that does not have any content.</p>
 <?php endif; ?>
 
 <script>
     function formatChanged(form) {
-        var part_name = form.options[form.selectedIndex].value
-        var iframe = document.getElementsByName('messageBody')[0];
+        let part_name = form.options[form.selectedIndex].value
+        let iframe = document.getElementsByName('messageBody')[0];
         iframe.contentWindow.location.replace('?part=' + part_name + '&plugin=<?= h($plugin); ?>');
     }
 </script>

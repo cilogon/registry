@@ -375,9 +375,9 @@ class AppController extends Controller {
     
     $availableCos = [];
     
-    $userInfo = $this->viewBuilder()->getVar('vv_user');
+    $username = $this->RegistryAuth->getAuthenticatedUser();
     
-    if(!empty($userInfo['username'])) {
+    if(!empty($username)) {
       // There are two data sets to look at: the COs the current user is a member
       // of, and (if the current user is a Platform Admin) all other COs. We then
       // bubble the COmanage CO to the top (if present), followed by an alphabetical
@@ -386,7 +386,7 @@ class AppController extends Controller {
       $Cos = TableRegistry::getTableLocator()->get("Cos");
       
       // Pull the set of COs this user is a member of, for rendering via menuMain
-      $memberCos = Hash::sort($Cos->getCosForIdentifier(loginIdentifier: $userInfo['username']), '{n}.name', 'asc');
+      $memberCos = Hash::sort($Cos->getCosForIdentifier(loginIdentifier: $username), '{n}.name', 'asc');
       $allCos = null;
       
       if($this->RegistryAuth->isPlatformAdmin()) {

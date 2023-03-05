@@ -63,8 +63,7 @@ class GroupMembersTable extends Table {
     $this->addBehavior('Timestamp');
     $this->addBehavior('Timezone');
     
-    // Group Members are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
     $this->belongsTo('GroupNestings');

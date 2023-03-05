@@ -150,6 +150,9 @@ msgstr "Order"
 msgid "organization"
 msgstr "Organization"
 
+msgid "parameters"
+msgstr "Parameters"
+
 msgid "parent_id"
 msgstr "Parent"
 
@@ -341,6 +344,57 @@ msgstr "Open"
 
 msgid "Groups.open.desc"
 msgstr "Open groups may be self-joined by any Person in the CO"
+
+msgid "JobHistoryRecords.record_key"
+msgstr "Record Key"
+
+msgid "Jobs.assigned_host"
+msgstr "Assigned Host"
+
+msgid "Jobs.assigned_pid"
+msgstr "Assigned Process ID"
+
+msgid "Jobs.finish_summary"
+msgstr "Finish Summary"
+
+msgid "Jobs.finish_time"
+msgstr "Finished"
+
+msgid "Jobs.percent_complete"
+msgstr "Percent Complete"
+
+msgid "Jobs.register_summary"
+msgstr "Register Summary"
+
+msgid "Jobs.register_time"
+msgstr "Registered"
+
+msgid "Jobs.requeue_interval"
+msgstr "Requeue Interval"
+
+msgid "Jobs.requeue_interval.desc"
+msgstr "After the job successfully completes, it will automatically be requeued to execute after this interval (in seconds). (To stop requeuing, cancel this job.)"
+
+msgid "Jobs.requeued_from_job_id"
+msgstr "Requeued From Job"
+
+msgid "Jobs.retry_interval"
+msgstr "Retry Interval"
+
+msgid "Jobs.retry_interval.desc"
+msgstr "If the job fails, it will automatically be retried after this interval (in seconds). (To stop retrying, cancel this job.)"
+
+msgid "Jobs.start_after_time"
+msgstr "Start After"
+
+msgid "Jobs.start_after_time.desc"
+msgstr "The queued job will not be started until after this time"
+
+msgid "Jobs.start_summary"
+msgstr "Start Summary"
+
+msgid "Jobs.start_time"
+msgstr "Started"
 
 msgid "Plugins.plugin"
 msgstr "Plugin"

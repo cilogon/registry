@@ -40,6 +40,7 @@ use RuntimeException;
  * @deprecated 3.6.0 ShellDispatcher and Shell will be removed in 5.0
  * @method int|bool|null|void main(...$args) Main entry method for the shell.
  */
+#[\AllowDynamicProperties]
 class Shell
 {
     use LocatorAwareTrait;
@@ -136,7 +137,7 @@ class Shell
      * Contains tasks to load and instantiate
      *
      * @var array|bool
-     * @link https://book.cakephp.org/4/en/console-and-shells.html#Shell::$tasks
+     * @link https://book.cakephp.org/4/en/console-commands/shells.html#shell-tasks
      */
     public $tasks = [];
 
@@ -180,7 +181,7 @@ class Shell
      *
      * @param \Cake\Console\ConsoleIo|null $io An io instance.
      * @param \Cake\ORM\Locator\LocatorInterface|null $locator Table locator instance.
-     * @link https://book.cakephp.org/4/en/console-and-shells.html#Shell
+     * @link https://book.cakephp.org/4/en/console-commands/shells.html
      */
     public function __construct(?ConsoleIo $io = null, ?LocatorInterface $locator = null)
     {
@@ -468,7 +469,7 @@ class Shell
         $command = isset($argv[0]) ? Inflector::underscore($argv[0]) : null;
         $this->OptionParser = $this->getOptionParser();
         try {
-            [$this->params, $this->args] = $this->OptionParser->parse($argv);
+            [$this->params, $this->args] = $this->OptionParser->parse($argv, $this->_io);
         } catch (ConsoleException $e) {
             $this->err('Error: ' . $e->getMessage());
 

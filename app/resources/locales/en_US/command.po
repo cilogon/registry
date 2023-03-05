@@ -39,6 +39,36 @@ msgstr "Loading database schema from active plugin {0}"
 msgid "db.schema.plugin.none"
 msgstr "No database schema found for active plugin {0}"
 
+msgid "job.process"
+msgstr "Processing job {0}"
+
+msgid "job.registered"
+msgstr "Registered job {0}"
+
+msgid "job.run.child.done.empty"
+msgstr "No jobs left in the queue, queue runner {0} exiting"
+
+msgid "job.run.child.done.max"
+msgstr "Queue runner {0} reached maximum number of jobs ({1}), exiting"
+
+msgid "job.run.child.request"
+msgstr "Queue runner {0} requesting assignment {1} for CO {2}"
+
+msgid "job.run.child.running"
+msgstr "Queue runner {0} processing job ID {1}"
+
+msgid "job.run.max"
+msgstr "Reached max queue runner count ({0}), waiting for one to exit"
+
+msgid "job.run.piddone"
+msgstr "Queue runner PID {0} completed"
+
+msgid "job.run.start"
+msgstr "Launching queue runner {0} (of {1}) for CO {2}"
+
+msgid "job.run.waiting"
+msgstr "{0,plural,=1{Waiting for the last queue runner to complete} other{Waiting for # queue runners to complete}}"
+
 msgid "opt.admin-family-name"
 msgstr "Family Name of initial platform administrator"
 
@@ -50,6 +80,27 @@ msgstr "Username of initial platform administrator"
 
 msgid "opt.force"
 msgstr "Force a rerun of setup (only if you know what you are doing)"
+
+msgid "opt.job.co_id"
+msgstr "CO ID"
+
+msgid "opt.job.max"
+msgstr "Maximum number of concurrent queue runners (use with -r)"
+
+msgid "opt.job.parallel"
+msgstr "Number of parallel queue runners per CO (use with -r)"
+
+msgid "opt.job.parameters"
+msgstr "Job (plugin) specific parameters"
+
+msgid "opt.job.plugin"
+msgstr "Job (plugin) to run"
+
+msgid "opt.job.run"
+msgstr "Run the Job queue for the specified CO"
+
+msgid "opt.job.synchronous"
+msgstr "Run the requested job synchronously (use with -j)"
 
 msgid "opt.not"
 msgstr "Calculate changes but do not apply"

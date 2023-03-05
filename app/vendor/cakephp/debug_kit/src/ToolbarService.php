@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace DebugKit;
 
@@ -100,9 +100,14 @@ class ToolbarService
      */
     public function isEnabled()
     {
-        $enabled = (bool)Configure::read('debug');
+        if (isset($GLOBALS['__PHPUNIT_BOOTSTRAP'])) {
+            return false;
+        }
+        $enabled = (bool)Configure::read('debug')
+                && !$this->isSuspiciouslyProduction()
+                && php_sapi_name() !== 'phpdbg';
 
-        if ($enabled && !$this->isSuspiciouslyProduction()) {
+        if ($enabled) {
             return true;
         }
         $force = $this->getConfig('forceEnable');
@@ -140,9 +145,8 @@ class ToolbarService
         $isIp = filter_var($host, FILTER_VALIDATE_IP) !== false;
         if ($isIp) {
             $flags = FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
-            $isPublicIp = filter_var($host, FILTER_VALIDATE_IP, $flags) !== false;
 
-            return $isPublicIp;
+            return filter_var($host, FILTER_VALIDATE_IP, $flags) !== false;
         }
 
         // So it's not an IP address. It must be a domain name.
@@ -311,7 +315,7 @@ class ToolbarService
      */
     public function getToolbarUrl()
     {
-        $url = 'js/toolbar.js';
+        $url = 'js/inject-iframe.js';
         $filePaths = [
             str_replace('/', DIRECTORY_SEPARATOR, WWW_ROOT . 'debug_kit/' . $url),
             str_replace('/', DIRECTORY_SEPARATOR, CorePlugin::path('DebugKit') . 'webroot/' . $url),
@@ -356,7 +360,7 @@ class ToolbarService
 
         $url = Router::url('/', true);
         $script = sprintf(
-            '<script id="__debug_kit" data-id="%s" data-url="%s" src="%s"></script>',
+            '<script id="__debug_kit_script" data-id="%s" data-url="%s" type="module" src="%s"></script>',
             $row->id,
             $url,
             Router::url($this->getToolbarUrl())

@@ -107,7 +107,7 @@ trait EntityTrait
      * not defined in the map will take its value. For example, `'*' => true`
      * means that any field not defined in the map will be accessible by default
      *
-     * @var array<bool>
+     * @var array<string, bool>
      */
     protected $_accessible = ['*' => true];
 
@@ -279,12 +279,12 @@ trait EntityTrait
         }
 
         $value = null;
-        $method = static::_accessor($field, 'get');
 
         if (isset($this->_fields[$field])) {
             $value = &$this->_fields[$field];
         }
 
+        $method = static::_accessor($field, 'get');
         if ($method) {
             $result = $this->{$method}($value);
 
@@ -1071,7 +1071,7 @@ trait EntityTrait
     /**
      * Get a list of invalid fields and their data for errors upon validation/patching
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getInvalid(): array
     {
@@ -1096,7 +1096,7 @@ trait EntityTrait
      * This value could not be patched into the entity and is simply copied into the _invalid property for debugging
      * purposes or to be able to log it away.
      *
-     * @param array $fields The values to set.
+     * @param array<string, mixed> $fields The values to set.
      * @param bool $overwrite Whether to overwrite pre-existing values for $field.
      * @return $this
      */

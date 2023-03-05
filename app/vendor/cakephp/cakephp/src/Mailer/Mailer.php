@@ -131,6 +131,7 @@ use InvalidArgumentException;
  * @method array|string getBody(?string $type = null) Get generated message body as array.
  *   {@see \Cake\Mailer\Message::getBody()}
  */
+#[\AllowDynamicProperties]
 class Mailer implements EventListenerInterface
 {
     use ModelAwareTrait;
@@ -457,6 +458,12 @@ class Mailer implements EventListenerInterface
         if (array_key_exists('viewVars', $config)) {
             $this->viewBuilder()->setVars($config['viewVars']);
             unset($config['viewVars']);
+        }
+        if (isset($config['autoLayout'])) {
+            if ($config['autoLayout'] === false) {
+                $this->viewBuilder()->disableAutoLayout();
+            }
+            unset($config['autoLayout']);
         }
 
         if (isset($config['log'])) {

@@ -75,8 +75,7 @@ class NamesTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Timestamp');
     
-    // Names are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
     $this->belongsTo('People');

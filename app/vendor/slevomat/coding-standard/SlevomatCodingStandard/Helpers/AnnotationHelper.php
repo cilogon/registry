@@ -8,12 +8,14 @@ use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprNode;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\InvalidTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\TemplateTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\CallableTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\ConditionalTypeForParameterNode;
 use PHPStan\PhpDocParser\Ast\Type\ConditionalTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\ConstTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
@@ -30,8 +32,10 @@ use SlevomatCodingStandard\Helpers\Annotation\ImplementsAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\MethodAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\MixinAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\ParameterAnnotation;
+use SlevomatCodingStandard\Helpers\Annotation\ParameterOutAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\PropertyAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\ReturnAnnotation;
+use SlevomatCodingStandard\Helpers\Annotation\SelfOutAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\TemplateAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\ThrowsAnnotation;
 use SlevomatCodingStandard\Helpers\Annotation\TypeAliasAnnotation;
@@ -63,9 +67,68 @@ class AnnotationHelper
 
 	public const PREFIXES = ['psalm', 'phpstan'];
 
+	private const MAPPING = [
+		'@param' => ParameterAnnotation::class,
+		'@psalm-param' => ParameterAnnotation::class,
+		'@phpstan-param' => ParameterAnnotation::class,
+		'@return' => ReturnAnnotation::class,
+		'@psalm-return' => ReturnAnnotation::class,
+		'@phpstan-return' => ReturnAnnotation::class,
+		'@var' => VariableAnnotation::class,
+		'@psalm-var' => VariableAnnotation::class,
+		'@phpstan-var' => VariableAnnotation::class,
+		'@throws' => ThrowsAnnotation::class,
+		'@phpstan-throws' => ThrowsAnnotation::class,
+		'@property' => PropertyAnnotation::class,
+		'@psalm-property' => PropertyAnnotation::class,
+		'@phpstan-property' => PropertyAnnotation::class,
+		'@property-read' => PropertyAnnotation::class,
+		'@psalm-property-read' => PropertyAnnotation::class,
+		'@phpstan-property-read' => PropertyAnnotation::class,
+		'@property-write' => PropertyAnnotation::class,
+		'@psalm-property-write' => PropertyAnnotation::class,
+		'@phpstan-property-write' => PropertyAnnotation::class,
+		'@method' => MethodAnnotation::class,
+		'@psalm-method' => MethodAnnotation::class,
+		'@phpstan-method' => MethodAnnotation::class,
+		'@template' => TemplateAnnotation::class,
+		'@psalm-template' => TemplateAnnotation::class,
+		'@phpstan-template' => TemplateAnnotation::class,
+		'@template-covariant' => TemplateAnnotation::class,
+		'@psalm-template-covariant' => TemplateAnnotation::class,
+		'@phpstan-template-covariant' => TemplateAnnotation::class,
+		'@extends' => ExtendsAnnotation::class,
+		'@template-extends' => ExtendsAnnotation::class,
+		'@phpstan-extends' => ExtendsAnnotation::class,
+		'@implements' => ImplementsAnnotation::class,
+		'@template-implements' => ImplementsAnnotation::class,
+		'@phpstan-implements' => ImplementsAnnotation::class,
+		'@use' => UseAnnotation::class,
+		'@template-use' => UseAnnotation::class,
+		'@phpstan-use' => UseAnnotation::class,
+		'@psalm-type' => TypeAliasAnnotation::class,
+		'@phpstan-type' => TypeAliasAnnotation::class,
+		'@psalm-import-type' => TypeImportAnnotation::class,
+		'@phpstan-import-type' => TypeImportAnnotation::class,
+		'@mixin' => MixinAnnotation::class,
+		'@phpstan-assert' => AssertAnnotation::class,
+		'@phpstan-assert-if-true' => AssertAnnotation::class,
+		'@phpstan-assert-if-false' => AssertAnnotation::class,
+		'@psalm-assert' => AssertAnnotation::class,
+		'@psalm-assert-if-true' => AssertAnnotation::class,
+		'@psalm-assert-if-false' => AssertAnnotation::class,
+		'@param-out' => ParameterOutAnnotation::class,
+		'@psalm-param-out' => ParameterOutAnnotation::class,
+		'@phpstan-param-out' => ParameterOutAnnotation::class,
+		'@psalm-self-out' => SelfOutAnnotation::class,
+		'@phpstan-self-out' => SelfOutAnnotation::class,
+		'@psalm-this-out' => SelfOutAnnotation::class,
+		'@phpstan-this-out' => SelfOutAnnotation::class,
+	];
+
 	/**
 	 * @internal
-	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|TypeAliasAnnotation|TypeImportAnnotation|AssertAnnotation $annotation
+	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|TypeAliasAnnotation|TypeImportAnnotation|AssertAnnotation|ParameterOutAnnotation|SelfOutAnnotation $annotation
 	 * @return TypeNode[]
 	 */
 	public static function getAnnotationTypes(Annotation $annotation): array
@@ -75,6 +138,14 @@ class AnnotationHelper
 		if ($annotation instanceof MethodAnnotation) {
 			if ($annotation->getMethodReturnType() !== null) {
 				$annotationTypes[] = $annotation->getMethodReturnType();
+			}
+			foreach ($annotation->getMethodTemplateTypes() as $methodTemplateType) {
+				if ($methodTemplateType->bound !== null) {
+					$annotationTypes[] = $methodTemplateType->bound;
+				}
+				if ($methodTemplateType->default !== null) {
+					$annotationTypes[] = $methodTemplateType->default;
+				}
 			}
 			foreach ($annotation->getMethodParameters() as $methodParameterAnnotation) {
 				if ($methodParameterAnnotation->type === null) {
@@ -87,9 +158,12 @@ class AnnotationHelper
 			if ($annotation->getBound() !== null) {
 				$annotationTypes[] = $annotation->getBound();
 			}
+			if ($annotation->getDefault() !== null) {
+				$annotationTypes[] = $annotation->getDefault();
+			}
 		} elseif ($annotation instanceof TypeImportAnnotation) {
 			$annotationTypes[] = $annotation->getImportedFrom();
-		} else {
+		} elseif ($annotation->getType() !== null) {
 			$annotationTypes[] = $annotation->getType();
 		}
 
@@ -98,7 +172,7 @@ class AnnotationHelper
 
 	/**
 	 * @internal
-	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation $annotation
+	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|ParameterOutAnnotation|SelfOutAnnotation $annotation
 	 * @return ConstExprNode[]
 	 */
 	public static function getAnnotationConstantExpressions(Annotation $annotation): array
@@ -126,7 +200,7 @@ class AnnotationHelper
 
 	/**
 	 * @internal
-	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation $annotation
+	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|ParameterOutAnnotation|SelfOutAnnotation $annotation
 	 */
 	public static function fixAnnotationType(File $phpcsFile, Annotation $annotation, TypeNode $typeNode, TypeNode $fixedTypeNode): string
 	{
@@ -137,7 +211,7 @@ class AnnotationHelper
 
 	/**
 	 * @internal
-	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation $annotation
+	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|ParameterOutAnnotation|SelfOutAnnotation $annotation
 	 */
 	public static function fixAnnotationConstantFetchNode(
 		File $phpcsFile,
@@ -193,7 +267,7 @@ class AnnotationHelper
 	}
 
 	/**
-	 * @return (VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|GenericAnnotation)[]
+	 * @return (VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|GenericAnnotation|ParameterOutAnnotation|SelfOutAnnotation)[]
 	 */
 	public static function getAnnotationsByName(File $phpcsFile, int $pointer, string $annotationName): array
 	{
@@ -203,7 +277,7 @@ class AnnotationHelper
 	}
 
 	/**
-	 * @return (VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|GenericAnnotation)[][]
+	 * @return (VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|AssertAnnotation|GenericAnnotation|ParameterOutAnnotation|SelfOutAnnotation)[][]
 	 */
 	public static function getAnnotations(File $phpcsFile, int $pointer): array
 	{
@@ -279,7 +353,7 @@ class AnnotationHelper
 					$annotationName = $tokens[$annotationStartPointer]['content'];
 					$annotationParameters = null;
 					$annotationContent = null;
-					if (preg_match('~^(@[-a-zA-Z\\\\:]+)(?:\((.*)\))?(?:\\s+(.+))?($)~s', trim($annotationCode), $matches) !== 0) {
+					if (preg_match('~^(@[-a-zA-Z\\\\:]+)(?:\((.*)\))?(?:\\s+(.+))?(,|$)~s', trim($annotationCode), $matches) !== 0) {
 						$annotationName = $matches[1];
 						$annotationParameters = trim($matches[2]);
 						if ($annotationParameters === '') {
@@ -291,60 +365,8 @@ class AnnotationHelper
 						}
 					}
 
-					$mapping = [
-						'@param' => ParameterAnnotation::class,
-						'@psalm-param' => ParameterAnnotation::class,
-						'@phpstan-param' => ParameterAnnotation::class,
-						'@return' => ReturnAnnotation::class,
-						'@psalm-return' => ReturnAnnotation::class,
-						'@phpstan-return' => ReturnAnnotation::class,
-						'@var' => VariableAnnotation::class,
-						'@psalm-var' => VariableAnnotation::class,
-						'@phpstan-var' => VariableAnnotation::class,
-						'@throws' => ThrowsAnnotation::class,
-						'@phpstan-throws' => ThrowsAnnotation::class,
-						'@property' => PropertyAnnotation::class,
-						'@psalm-property' => PropertyAnnotation::class,
-						'@phpstan-property' => PropertyAnnotation::class,
-						'@property-read' => PropertyAnnotation::class,
-						'@psalm-property-read' => PropertyAnnotation::class,
-						'@phpstan-property-read' => PropertyAnnotation::class,
-						'@property-write' => PropertyAnnotation::class,
-						'@psalm-property-write' => PropertyAnnotation::class,
-						'@phpstan-property-write' => PropertyAnnotation::class,
-						'@method' => MethodAnnotation::class,
-						'@psalm-method' => MethodAnnotation::class,
-						'@phpstan-method' => MethodAnnotation::class,
-						'@template' => TemplateAnnotation::class,
-						'@psalm-template' => TemplateAnnotation::class,
-						'@phpstan-template' => TemplateAnnotation::class,
-						'@template-covariant' => TemplateAnnotation::class,
-						'@psalm-template-covariant' => TemplateAnnotation::class,
-						'@phpstan-template-covariant' => TemplateAnnotation::class,
-						'@extends' => ExtendsAnnotation::class,
-						'@template-extends' => ExtendsAnnotation::class,
-						'@phpstan-extends' => ExtendsAnnotation::class,
-						'@implements' => ImplementsAnnotation::class,
-						'@template-implements' => ImplementsAnnotation::class,
-						'@phpstan-implements' => ImplementsAnnotation::class,
-						'@use' => UseAnnotation::class,
-						'@template-use' => UseAnnotation::class,
-						'@phpstan-use' => UseAnnotation::class,
-						'@psalm-type' => TypeAliasAnnotation::class,
-						'@phpstan-type' => TypeAliasAnnotation::class,
-						'@psalm-import-type' => TypeImportAnnotation::class,
-						'@phpstan-import-type' => TypeImportAnnotation::class,
-						'@mixin' => MixinAnnotation::class,
-						'@phpstan-assert' => AssertAnnotation::class,
-						'@phpstan-assert-if-true' => AssertAnnotation::class,
-						'@phpstan-assert-if-false' => AssertAnnotation::class,
-						'@psalm-assert' => AssertAnnotation::class,
-						'@psalm-assert-if-true' => AssertAnnotation::class,
-						'@psalm-assert-if-false' => AssertAnnotation::class,
-					];
-
-					if (array_key_exists($annotationName, $mapping)) {
-						$className = $mapping[$annotationName];
+					if (array_key_exists($annotationName, self::MAPPING)) {
+						$className = self::MAPPING[$annotationName];
 
 						$parsedContent = null;
 						if ($annotationContent !== null) {
@@ -383,7 +405,9 @@ class AnnotationHelper
 		?TypeHint $typeHint,
 		Annotation $annotation,
 		array $traversableTypeHints,
-		bool $enableUnionTypeHint = false
+		bool $enableUnionTypeHint = false,
+		bool $enableIntersectionTypeHint = false,
+		bool $enableStandaloneNullTrueFalseTypeHints = false
 	): bool
 	{
 		if ($annotation->isInvalid()) {
@@ -396,6 +420,10 @@ class AnnotationHelper
 
 		if ($annotation->hasDescription()) {
 			return false;
+		}
+
+		if ($annotation->getType() === null) {
+			return true;
 		}
 
 		if (TypeHintHelper::isTraversableType(
@@ -420,6 +448,10 @@ class AnnotationHelper
 						&& TypeHintHelper::isUnofficialUnionTypeHint($annotation->getType()->name)
 					)
 				)
+			)
+			|| (
+				$enableIntersectionTypeHint
+				&& $annotation->getType() instanceof IntersectionTypeNode
 			)
 		) {
 			$annotationTypeHint = AnnotationTypeHelper::export($annotation->getType());
@@ -454,15 +486,22 @@ class AnnotationHelper
 		/** @var GenericTypeNode|IdentifierTypeNode|ThisTypeNode $annotationTypeNode */
 		$annotationTypeNode = $annotation->getType();
 
-		if (
-			$annotationTypeNode instanceof IdentifierTypeNode
-			&& in_array(
+		if ($annotationTypeNode instanceof IdentifierTypeNode) {
+			if (in_array(
 				strtolower($annotationTypeNode->name),
-				['true', 'false', 'class-string', 'trait-string', 'callable-string', 'numeric-string'],
+				['true', 'false', 'null'],
 				true
-			)
-		) {
-			return false;
+			)) {
+				return $enableStandaloneNullTrueFalseTypeHints;
+			}
+
+			if (in_array(
+				strtolower($annotationTypeNode->name),
+				['class-string', 'trait-string', 'callable-string', 'numeric-string', 'non-empty-string', 'literal-string', 'positive-int', 'negative-int'],
+				true
+			)) {
+				return false;
+			}
 		}
 
 		$annotationTypeHint = AnnotationTypeHelper::getTypeHintFromOneType($annotationTypeNode);
@@ -475,7 +514,7 @@ class AnnotationHelper
 	}
 
 	/**
-	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|TypeAliasAnnotation|TypeImportAnnotation|AssertAnnotation $annotation
+	 * @param VariableAnnotation|ParameterAnnotation|ReturnAnnotation|ThrowsAnnotation|PropertyAnnotation|MethodAnnotation|TemplateAnnotation|ExtendsAnnotation|ImplementsAnnotation|UseAnnotation|MixinAnnotation|TypeAliasAnnotation|TypeImportAnnotation|AssertAnnotation|ParameterOutAnnotation|SelfOutAnnotation $annotation
 	 */
 	private static function fixAnnotation(Annotation $annotation, TypeNode $typeNode, TypeNode $fixedTypeNode): Annotation
 	{
@@ -484,6 +523,13 @@ class AnnotationHelper
 
 			if ($fixedContentNode->returnType !== null) {
 				$fixedContentNode->returnType = AnnotationTypeHelper::change($fixedContentNode->returnType, $typeNode, $fixedTypeNode);
+			}
+			foreach ($fixedContentNode->templateTypes as $templateTypeNo => $templateTypeNode) {
+				$fixedContentNode->templateTypes[$templateTypeNo] = self::fixTemplateTagValueNode(
+					$templateTypeNode,
+					$typeNode,
+					$fixedTypeNode
+				);
 			}
 			foreach ($fixedContentNode->parameters as $parameterNo => $parameterNode) {
 				if ($parameterNode->type === null) {
@@ -498,8 +544,7 @@ class AnnotationHelper
 				);
 			}
 		} elseif ($annotation instanceof TemplateAnnotation) {
-			$fixedContentNode = clone $annotation->getContentNode();
-			$fixedContentNode->bound = AnnotationTypeHelper::change($annotation->getBound(), $typeNode, $fixedTypeNode);
+			$fixedContentNode = self::fixTemplateTagValueNode($annotation->getContentNode(), $typeNode, $fixedTypeNode);
 		} elseif ($annotation instanceof TypeImportAnnotation) {
 			$fixedContentNode = clone $annotation->getContentNode();
 			/** @var IdentifierTypeNode $fixedType */
@@ -528,6 +573,24 @@ class AnnotationHelper
 			$annotation->getContent(),
 			$fixedContentNode
 		);
+	}
+
+	private static function fixTemplateTagValueNode(
+		TemplateTagValueNode $node,
+		TypeNode $typeNode,
+		TypeNode $fixedTypeNode
+	): TemplateTagValueNode
+	{
+		$fixedNode = clone $node;
+
+		if ($fixedNode->bound !== null) {
+			$fixedNode->bound = AnnotationTypeHelper::change($node->bound, $typeNode, $fixedTypeNode);
+		}
+		if ($fixedNode->default !== null) {
+			$fixedNode->default = AnnotationTypeHelper::change($node->default, $typeNode, $fixedTypeNode);
+		}
+
+		return $fixedNode;
 	}
 
 	private static function fix(File $phpcsFile, Annotation $annotation, Annotation $fixedAnnotation): string

@@ -65,8 +65,7 @@ class GroupsTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Groups are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Primary);
     
     // Define associations
     $this->belongsTo('Cos');

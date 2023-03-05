@@ -182,7 +182,7 @@ class StringTemplate
             }
 
             $template = str_replace('%', '%%', $template);
-            preg_match_all('#\{\{([\w\._]+)\}\}#', $template, $matches);
+            preg_match_all('#\{\{([\w\.]+)\}\}#', $template, $matches);
             $this->_compiled[$name] = [
                 str_replace($matches[0], '%s', $template),
                 $matches[1],
@@ -373,8 +373,6 @@ class StringTemplate
 
         $class = array_unique(array_merge($class, $newClass));
 
-        $input = Hash::insert($input, $useIndex, $class);
-
-        return $input;
+        return Hash::insert($input, $useIndex, $class);
     }
 }

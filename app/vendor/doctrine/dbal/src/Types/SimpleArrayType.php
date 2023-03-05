@@ -3,6 +3,7 @@
 namespace Doctrine\DBAL\Types;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\Deprecations\Deprecation;
 
 use function count;
 use function explode;
@@ -28,6 +29,10 @@ class SimpleArrayType extends Type
 
     /**
      * {@inheritdoc}
+     *
+     * @param mixed $value
+     *
+     * @return string|null
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -40,6 +45,10 @@ class SimpleArrayType extends Type
 
     /**
      * {@inheritdoc}
+     *
+     * @param mixed $value
+     *
+     * @return list<string>
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
@@ -62,9 +71,18 @@ class SimpleArrayType extends Type
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
+        Deprecation::triggerIfCalledFromOutside(
+            'doctrine/dbal',
+            'https://github.com/doctrine/dbal/pull/5509',
+            '%s is deprecated.',
+            __METHOD__,
+        );
+
         return true;
     }
 }

@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Migrations;
 
@@ -211,7 +211,7 @@ class Migrations
     /**
      * Marks a migration as migrated
      *
-     * @param int $version The version number of the migration to mark as migrated
+     * @param string|null $version The version number of the migration to mark as migrated
      * @param array $options Options to pass to the command
      * Available options are :
      *
@@ -325,7 +325,10 @@ class Migrations
             $manager->resetSeeds();
         }
 
-        return call_user_func_array([$manager, $method], $params);
+        /** @var callable $callable */
+        $callable = [$manager, $method];
+
+        return call_user_func_array($callable, $params);
     }
 
     /**

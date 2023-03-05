@@ -798,7 +798,7 @@ method to define your own sequence of seeders execution::
 
     class DatabaseSeed extends AbstractSeed
     {
-        public function run()
+        public function run(): void
         {
             $this->call('AnotherSeed');
             $this->call('YetAnotherSeed');
@@ -981,6 +981,24 @@ pass them to the method::
     // This one with the "default" connection
     $migrate = $migrations->migrate(['connection' => 'default']);
 
+Feature Flags
+=============
+
+Migrations uses Phinx, which has some feature flags that are disabled by default for now, but
+can enabled if you want them to:
+
+* ``unsigned_primary_keys``: Should Phinx create primary keys as unsigned integers? (default: ``false``)
+* ``column_null_default``: Should Phinx create columns as null by default? (default: ``false``)
+
+Set them via Configure to enable (e.g. in ``config/app.php``)::
+
+    'Migrations' => [
+        'unsigned_primary_keys' => true,
+        'column_null_default' => true,
+    ],
+
+For details see `Phinx docs<https://book.cakephp.org/phinx/0/en/configuration.html#feature-flags>`__.
+
 Tips and tricks
 ===============
 
@@ -1127,8 +1145,16 @@ method. In your migration file, you can do the following::
     {
         $this->table('old_table_name')
             ->rename('new_table_name')
-            ->save();
+            ->update();
     }
+
+    public function down()
+    {
+        $this->table('new_table_name')
+            ->rename('old_table_name')
+            ->update();
+    }
+
 
 Skipping the ``schema.lock`` file generation
 --------------------------------------------

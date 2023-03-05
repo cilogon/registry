@@ -9,15 +9,17 @@ namespace Phinx\Console\Command;
 
 use DateTime;
 use Exception;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+#[AsCommand(name: 'migrate')]
 class Migrate extends AbstractCommand
 {
     /**
-     * @var string
+     * @var string|null
      */
     protected static $defaultName = 'migrate';
 
@@ -26,7 +28,7 @@ class Migrate extends AbstractCommand
      *
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
@@ -57,11 +59,12 @@ EOT
      * @param \Symfony\Component\Console\Output\OutputInterface $output Output
      * @return int integer 0 on success, or an error code.
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->bootstrap($input, $output);
 
         $version = $input->getOption('target');
+        /** @var string|null $environment */
         $environment = $input->getOption('environment');
         $date = $input->getOption('date');
         $fake = (bool)$input->getOption('fake');
@@ -116,9 +119,6 @@ EOT
             if ($date !== null) {
                 $this->getManager()->migrateToDateTime($environment, new DateTime($date), $fake);
             } else {
-                if ($version) {
-                    $version = (int)$version;
-                }
                 $this->getManager()->migrate($environment, $version, $fake);
             }
             $end = microtime(true);

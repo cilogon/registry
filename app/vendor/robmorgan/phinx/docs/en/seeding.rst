@@ -44,7 +44,7 @@ It is based on a skeleton template:
              * More information on writing seeders is available here:
              * http://docs.phinx.org/en/latest/seeding.html
              */
-            public function run()
+            public function run() : void
             {
 
             }
@@ -75,6 +75,14 @@ The Init Method
 The ``init()`` method is run by Phinx before the run method if it exists. This
 can be used to initialize properties of the Seed class before using run.
 
+The Should Execute Method
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``shouldExecute()`` method is run by Phinx before executing the seed.
+This can be used to prevent the seed from being executed at this time. It always
+returns true by default. You can override it in your custom ``AbstractSeed``
+implementation.
+
 Foreign Key Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -99,7 +107,7 @@ current seeder:
                 ];
             }
 
-            public function run()
+            public function run() : void
             {
                 // Seed the shopping cart  after the `UserSeeder` and
                 // `ShopItemSeeder` have been run.
@@ -129,7 +137,7 @@ within your seed class and then use the `insert()` method to insert data:
 
         class PostsSeeder extends AbstractSeed
         {
-            public function run()
+            public function run() : void
             {
                 $data = [
                     [
@@ -152,47 +160,6 @@ within your seed class and then use the `insert()` method to insert data:
     You must call the `saveData()` method to commit your data to the table. Phinx
     will buffer data until you do so.
 
-Integrating with the Faker library
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-It's trivial to use the awesome
-`Faker library <https://github.com/fzaninotto/Faker>`_ in your seed classes.
-Simply install it using Composer:
-
-.. code-block:: bash
-
-        $ composer require fzaninotto/faker
-
-Then use it in your seed classes:
-
-.. code-block:: php
-
-        <?php
-
-        use Phinx\Seed\AbstractSeed;
-
-        class UserSeeder extends AbstractSeed
-        {
-            public function run()
-            {
-                $faker = Faker\Factory::create();
-                $data = [];
-                for ($i = 0; $i < 100; $i++) {
-                    $data[] = [
-                        'username'      => $faker->userName,
-                        'password'      => sha1($faker->password),
-                        'password_salt' => sha1('foo'),
-                        'email'         => $faker->email,
-                        'first_name'    => $faker->firstName,
-                        'last_name'     => $faker->lastName,
-                        'created'       => date('Y-m-d H:i:s'),
-                    ];
-                }
-
-                $this->table('users')->insert($data)->saveData();
-            }
-        }
-
 Truncating Tables
 -----------------
 
@@ -207,7 +174,7 @@ SQL `TRUNCATE` command:
 
         class UserSeeder extends AbstractSeed
         {
-            public function run()
+            public function run() : void
             {
                 $data = [
                     [

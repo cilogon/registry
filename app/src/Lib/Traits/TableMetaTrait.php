@@ -30,33 +30,44 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\Utility\Inflector;
+use App\Lib\Enum\TableTypeEnum;
 
 trait TableMetaTrait {
-  // Does this Table represent Registry objects or configuration?
-  private $confTable = false;
+  // What type of Table is this?
+  private $tableType = null;
   
   /**
-   * Determine if this Table represents Registry configuration (vs objects).
+   * Determine if this Table represents Registry artifacts.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool True if this Table represents artifact data, false otherwise
+   */
+  
+  public function isArtifactTable() {
+    return $this->tableType === TableTypeEnum::Artifact;
+  }
+  
+  /**
+   * Determine if this Table represents Registry configuration.
    *
    * @since  COmanage Registry v5.0.0
    * @return bool True if this Table represents Configuration data, false otherwise
    */
   
-  public function getIsConfigurationTable() {
-    return $this->confTable;
+  public function isConfigurationTable() {
+    return $this->tableType === TableTypeEnum::Configuration;
   }
   
   /**
-   * Set if this Table represents Registry configuration (vs objects).
-   *
+   * Set the type of this Table.
+   * 
    * @since  COmanage Registry v5.0.0
-   * @param  array $vars Array of auto view variables
+   * @param  TableTypeEnum $tableType Table Type
    */
-  
-  public function setIsConfigurationTable(bool $confTable) {
-    $this->confTable = $confTable;
-  }
 
+  public function setTableType(string $tableType) {
+    $this->tableType = $tableType;
+  }
 
   /**
    * Filter metadata fields.

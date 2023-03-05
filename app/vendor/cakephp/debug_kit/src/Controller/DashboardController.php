@@ -2,15 +2,15 @@
 declare(strict_types=1);
 
 /**
- * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace DebugKit\Controller;
 
@@ -62,6 +62,7 @@ class DashboardController extends DebugKitController
     public function reset()
     {
         $this->request->allowMethod('post');
+        /** @var \DebugKit\Model\Table\RequestsTable $requestsModel */
         $requestsModel = $this->fetchTable('DebugKit.Requests');
 
         $requestsModel->Panels->deleteAll('1=1');

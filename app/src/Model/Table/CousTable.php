@@ -59,8 +59,7 @@ class CousTable extends Table {
     $this->addBehavior('Timestamp');
     $this->addBehavior('Tree');
     
-    // COUs are configuration
-    $this->setIsConfigurationTable(true);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
     $this->belongsTo('Cos');

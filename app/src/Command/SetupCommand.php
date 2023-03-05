@@ -45,7 +45,7 @@ class SetupCommand extends Command
    * @param   ConsoleOptionParser  $parser  Console Option Parser
    *
    * @return ConsoleOptionParser         Console Option Parser
-   * @since  COmanage Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    */
 
   public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser

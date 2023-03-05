@@ -62,8 +62,7 @@ class ApiUsersTable extends Table {
     $this->addBehavior('Timestamp');
     $this->addBehavior('Timezone');
     
-    // ApiUsers are configuration
-    $this->setIsConfigurationTable(true);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
     $this->belongsTo('Cos');

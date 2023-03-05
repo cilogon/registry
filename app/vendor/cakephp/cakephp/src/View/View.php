@@ -70,6 +70,7 @@ use Throwable;
  * @property \Cake\View\Helper\UrlHelper $Url
  * @property \Cake\View\ViewBlock $Blocks
  */
+#[\AllowDynamicProperties]
 class View implements EventDispatcherInterface
 {
     use CellTrait {
@@ -314,6 +315,14 @@ class View implements EventDispatcherInterface
     public const PLUGIN_TEMPLATE_FOLDER = 'plugin';
 
     /**
+     * The magic 'match-all' content type that views can use to
+     * behave as a fallback during content-type negotiation.
+     *
+     * @var string
+     */
+    public const TYPE_MATCH_ALL = '_match_all_';
+
+    /**
      * Constructor
      *
      * @param \Cake\Http\ServerRequest|null $request Request instance.
@@ -363,6 +372,36 @@ class View implements EventDispatcherInterface
      */
     public function initialize(): void
     {
+        $this->setContentType();
+    }
+
+    /**
+     * Set the response content-type based on the view's contentType()
+     *
+     * @return void
+     */
+    protected function setContentType(): void
+    {
+        $viewContentType = $this->contentType();
+        if (!$viewContentType || $viewContentType == static::TYPE_MATCH_ALL) {
+            return;
+        }
+        $response = $this->getResponse();
+        $responseType = $response->getHeaderLine('Content-Type');
+        if ($responseType === '' || substr($responseType, 0, 9) === 'text/html') {
+            $response = $response->withType($viewContentType);
+        }
+        $this->setResponse($response);
+    }
+
+    /**
+     * Mime-type this view class renders as.
+     *
+     * @return string Either the content type or '' which means no type.
+     */
+    public static function contentType(): string
+    {
+        return '';
     }
 
     /**
@@ -1562,8 +1601,8 @@ class View implements EventDispatcherInterface
         $templatePaths = App::path(static::NAME_TEMPLATE);
         $pluginPaths = $themePaths = [];
         if (!empty($plugin)) {
-            for ($i = 0, $count = count($templatePaths); $i < $count; $i++) {
-                $pluginPaths[] = $templatePaths[$i]
+            foreach ($templatePaths as $templatePath) {
+                $pluginPaths[] = $templatePath
                     . static::PLUGIN_TEMPLATE_FOLDER
                     . DIRECTORY_SEPARATOR
                     . $plugin
@@ -1576,16 +1615,14 @@ class View implements EventDispatcherInterface
             $themePaths[] = Plugin::templatePath(Inflector::camelize($this->theme));
 
             if ($plugin) {
-                for ($i = 0, $count = count($themePaths); $i < $count; $i++) {
-                    array_unshift(
-                        $themePaths,
-                        $themePaths[$i]
-                            . static::PLUGIN_TEMPLATE_FOLDER
-                            . DIRECTORY_SEPARATOR
-                            . $plugin
-                            . DIRECTORY_SEPARATOR
-                    );
-                }
+                array_unshift(
+                    $themePaths,
+                    $themePaths[0]
+                        . static::PLUGIN_TEMPLATE_FOLDER
+                        . DIRECTORY_SEPARATOR
+                        . $plugin
+                        . DIRECTORY_SEPARATOR
+                );
             }
         }
 

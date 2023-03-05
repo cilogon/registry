@@ -110,6 +110,7 @@
             "We don't really need an index, but DBAL will create one for all foreign keys if none exists",
             "typeIsDefault will make queries using these columns, but rarely and won't usually have enough rows to need the index"
           ],
+          "needed": false,
           "columns": [ "default_name_type_id" ]
         },
         "co_settings_i3": { "columns": [ "default_email_address_type_id" ] },
@@ -166,9 +167,7 @@
         "cous_i1": { "columns": [ "co_id" ] },
         "cous_i2": { "columns": [ "name" ] },
         "cous_i3": { "columns": [ "co_id", "name" ] },
-        "cous_i4": {
-          "comment": "We don't really need an index, but DBAL will create one for all foreign keys if none exists",
-          "columns": [ "parent_id" ]
+        "cous_i4": { "needed": false, "columns": [ "parent_id" ]
         }
       }
     },
@@ -273,7 +272,7 @@
         "groups_i2": { "columns": [ "co_id", "name" ] },
         "groups_i3": { "columns": [ "co_id", "group_type" ] },
         "groups_i4": { "columns": [ "cou_id", "group_type" ] },
-        "groups_i5": { "columns": [ "cou_id" ], "comment": "Not really needed but DBAL autogenerates"}
+        "groups_i5": { "needed": false, "columns": [ "cou_id" ]}
       }
     },
     
@@ -475,6 +474,55 @@
         "history_records_i5": { "columns": [ "external_identity_role_id" ] },
         "history_records_i6": { "columns": [ "group_id" ] },
         "history_records_i7": { "columns": [ "actor_api_user_id" ] }
+      }
+    },
+
+    "jobs": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "plugin": {},
+        "parameters": { "type": "text" },
+        "requeue_interval": { "type": "integer" },
+        "retry_interval": { "type": "integer" },
+        "requeued_from_job_id": { "type": "integer", "foreignkey": { "table": "jobs", "column": "id" }},
+        "status": {},
+        "assigned_host": { "type": "string", "size": 64 },
+        "assigned_pid": { "type": "integer" },
+        "register_summary": { "type": "string", "size": 256 },
+        "start_summary": { "type": "string", "size": 256 },
+        "finish_summary": { "type": "string", "size": 256 },
+        "register_time": { "type": "datetime" },
+        "start_after_time": { "type": "datetime" },
+        "start_time": { "type": "datetime" },
+        "finish_time": { "type": "datetime" }, 
+        "percent_complete": { "type": "integer" }
+      },
+      "indexes": {
+        "jobs_i1": { "columns": [ "co_id" ] },
+        "jobs_i3": { "columns": [ "assigned_host", "assigned_pid" ] },
+        "jobs_i4": { "needed": false, "columns": [ "requeued_from_job_id" ] }
+      },
+      "skip-indexes-for-now": {
+        "jobs_i2": { "columns": [ "co_id", "plugin", "parameters", "status" ] }
+      }
+    },
+
+    "job_history_records": {
+      "columns": {
+        "id": {},
+        "job_id": { "type": "integer", "foreignkey": { "table": "jobs", "column": "id" }},
+        "record_key": { "type": "string", "size": 64 },
+        "person_id": {},
+        "external_identity_id": {},
+        "comment": {},
+        "status": {}
+      },
+      "indexes": {
+        "job_history_records_i1": { "columns": [ "job_id" ] },
+        "job_history_records_i2": { "columns": [ "person_id" ] },
+        "job_history_records_i3": { "columns": [ "external_identity_id" ] },
+        "job_history_records_i4": { "columns": [ "job_id", "record_key" ] }
       }
     }
   },

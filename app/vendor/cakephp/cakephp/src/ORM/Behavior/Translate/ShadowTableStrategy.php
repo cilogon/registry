@@ -537,7 +537,10 @@ class ShadowTableStrategy implements TranslateStrategyInterface
     public function groupTranslations($results): CollectionInterface
     {
         return $results->map(function ($row) {
-            $translations = (array)$row['_i18n'];
+            if (!($row instanceof EntityInterface)) {
+                return $row;
+            }
+            $translations = (array)$row->get('_i18n');
             if (empty($translations) && $row->get('_translations')) {
                 return $row;
             }
@@ -593,7 +596,7 @@ class ShadowTableStrategy implements TranslateStrategyInterface
     /**
      * Lazy define and return the main table fields.
      *
-     * @return array
+     * @return array<string>
      */
     protected function mainFields()
     {
@@ -613,7 +616,7 @@ class ShadowTableStrategy implements TranslateStrategyInterface
     /**
      * Lazy define and return the translation table fields.
      *
-     * @return array
+     * @return array<string>
      */
     protected function translatedFields()
     {

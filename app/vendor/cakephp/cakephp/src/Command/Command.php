@@ -30,6 +30,7 @@ use Cake\ORM\Locator\LocatorAwareTrait;
  * Includes traits that integrate logging
  * and ORM models to console commands.
  */
+#[\AllowDynamicProperties]
 class Command extends BaseCommand
 {
     use LocatorAwareTrait;
@@ -67,3 +68,10 @@ class Command extends BaseCommand
     {
     }
 }
+
+// phpcs:disable
+class_alias(
+    'Cake\Command\Command',
+    'Cake\Console\Command'
+);
+// phpcs:enable

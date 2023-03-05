@@ -8,14 +8,16 @@
 namespace Phinx\Console\Command;
 
 use InvalidArgumentException;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(name: 'breakpoint')]
 class Breakpoint extends AbstractCommand
 {
     /**
-     * @var string
+     * @var string|null
      */
     protected static $defaultName = 'breakpoint';
 
@@ -24,7 +26,7 @@ class Breakpoint extends AbstractCommand
      *
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
@@ -56,10 +58,11 @@ EOT
      * @throws \InvalidArgumentException
      * @return int integer 0 on success, or an error code.
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->bootstrap($input, $output);
 
+        /** @var string|null $environment */
         $environment = $input->getOption('environment');
         $version = (int)$input->getOption('target') ?: null;
         $removeAll = $input->getOption('remove-all');

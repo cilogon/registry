@@ -55,7 +55,6 @@ class Platform
     /**
      * getenv() equivalent but reads from the runtime global variables first
      *
-     * @param  string $name
      * @return string|false
      */
     public static function getEnv(string $name)
@@ -72,10 +71,6 @@ class Platform
 
     /**
      * putenv() equivalent but updates the runtime global variables too
-     *
-     * @param  string $name
-     * @param  string $value
-     * @return void
      */
     public static function putEnv(string $name, string $value): void
     {
@@ -86,9 +81,6 @@ class Platform
 
     /**
      * putenv('X') equivalent but updates the runtime global variables too
-     *
-     * @param  string $name
-     * @return void
      */
     public static function clearEnv(string $name): void
     {
@@ -98,9 +90,6 @@ class Platform
 
     /**
      * Parses tildes and environment variables in paths.
-     *
-     * @param  string $path
-     * @return string
      */
     public static function expandPath(string $path): string
     {
@@ -108,9 +97,11 @@ class Platform
             return self::getUserDirectory() . substr($path, 1);
         }
 
-        return Preg::replaceCallback('#^(\$|(?P<percent>%))(?P<var>\w++)(?(percent)%)(?P<path>.*)#', function ($matches): string {
+        return Preg::replaceCallback('#^(\$|(?P<percent>%))(?P<var>\w++)(?(percent)%)(?P<path>.*)#', static function ($matches): string {
+            assert(is_string($matches['var']));
+
             // Treat HOME as an alias for USERPROFILE on Windows for legacy reasons
-            if (Platform::isWindows() && $matches['var'] == 'HOME') {
+            if (Platform::isWindows() && $matches['var'] === 'HOME') {
                 return (Platform::getEnv('HOME') ?: Platform::getEnv('USERPROFILE')) . $matches['path'];
             }
 
@@ -176,7 +167,6 @@ class Platform
     }
 
     /**
-     * @param  string $str
      * @return int    return a guaranteed binary length of the string, regardless of silly mbstring configs
      */
     public static function strlen(string $str): int
@@ -195,17 +185,19 @@ class Platform
 
     /**
      * @param  ?resource $fd Open file descriptor or null to default to STDOUT
-     * @return bool
      */
     public static function isTty($fd = null): bool
     {
         if ($fd === null) {
             $fd = defined('STDOUT') ? STDOUT : fopen('php://stdout', 'w');
+            if ($fd === false) {
+                return false;
+            }
         }
 
         // detect msysgit/mingw and assume this is a tty because detection
         // does not work correctly, see https://github.com/composer/composer/issues/9690
-        if (in_array(strtoupper(self::getEnv('MSYSTEM') ?: ''), array('MINGW32', 'MINGW64'), true)) {
+        if (in_array(strtoupper(self::getEnv('MSYSTEM') ?: ''), ['MINGW32', 'MINGW64'], true)) {
             return true;
         }
 
@@ -226,8 +218,13 @@ class Platform
     }
 
     /**
-     * @return void
+     * @return bool Whether the current command is for bash completion
      */
+    public static function isInputCompletionProcess(): bool
+    {
+        return '_complete' === ($_SERVER['argv'][1] ?? null);
+    }
+
     public static function workaroundFilesystemIssues(): void
     {
         if (self::isVirtualBoxGuest()) {
@@ -239,8 +236,6 @@ class Platform
      * Attempts detection of VirtualBox guest VMs
      *
      * This works based on the process' user being "vagrant", the COMPOSER_RUNTIME_ENV env var being set to "virtualbox", or lsmod showing the virtualbox guest additions are loaded
-     *
-     * @return bool
      */
     private static function isVirtualBoxGuest(): bool
     {

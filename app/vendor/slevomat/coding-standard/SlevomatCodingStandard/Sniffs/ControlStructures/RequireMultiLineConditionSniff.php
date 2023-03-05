@@ -35,6 +35,8 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 	 */
 	public function process(File $phpcsFile, $controlStructurePointer): void
 	{
+		$this->minLineLength = SniffSettingsHelper::normalizeInteger($this->minLineLength);
+
 		if ($this->shouldBeSkipped($phpcsFile, $controlStructurePointer)) {
 			return;
 		}
@@ -102,7 +104,7 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 		$phpcsFile->fixer->beginChangeset();
 
 		if (!$conditionStartsOnNewLine) {
-			FixerHelper::cleanWhitespaceBefore($phpcsFile, $conditionStartPointer);
+			FixerHelper::removeWhitespaceBefore($phpcsFile, $conditionStartPointer);
 			$phpcsFile->fixer->addContentBefore($conditionStartPointer, $phpcsFile->eolChar . $conditionIndentation);
 		}
 
@@ -118,14 +120,14 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 				$innerConditionLevel++;
 
 				if ($containsBooleanOperator) {
-					FixerHelper::cleanWhitespaceAfter($phpcsFile, $i);
+					FixerHelper::removeWhitespaceAfter($phpcsFile, $i);
 
 					$phpcsFile->fixer->addContent(
 						$i,
 						$phpcsFile->eolChar . IndentationHelper::addIndentation($conditionIndentation, $innerConditionLevel)
 					);
 
-					FixerHelper::cleanWhitespaceBefore($phpcsFile, $tokens[$i]['parenthesis_closer']);
+					FixerHelper::removeWhitespaceBefore($phpcsFile, $tokens[$i]['parenthesis_closer']);
 
 					$phpcsFile->fixer->addContentBefore(
 						$tokens[$i]['parenthesis_closer'],
@@ -153,19 +155,19 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 			if ($this->booleanOperatorOnPreviousLine) {
 				$phpcsFile->fixer->addContent($i, $phpcsFile->eolChar . $innerConditionIndentation);
 
-				FixerHelper::cleanWhitespaceAfter($phpcsFile, $i);
+				FixerHelper::removeWhitespaceAfter($phpcsFile, $i);
 
 				continue;
 
 			}
 
-			FixerHelper::cleanWhitespaceBefore($phpcsFile, $i);
+			FixerHelper::removeWhitespaceBefore($phpcsFile, $i);
 
 			$phpcsFile->fixer->addContentBefore($i, $phpcsFile->eolChar . $innerConditionIndentation);
 		}
 
 		if (!$conditionEndsOnNewLine) {
-			FixerHelper::cleanWhitespaceAfter($phpcsFile, $conditionEndPointer);
+			FixerHelper::removeWhitespaceAfter($phpcsFile, $conditionEndPointer);
 			$phpcsFile->fixer->addContent($conditionEndPointer, $phpcsFile->eolChar . $controlStructureIndentation);
 		}
 
@@ -174,10 +176,8 @@ class RequireMultiLineConditionSniff extends AbstractLineCondition
 
 	private function shouldReportError(int $lineLength, int $conditionLinesCount, int $booleanOperatorPointersCount): bool
 	{
-		$minLineLength = SniffSettingsHelper::normalizeInteger($this->minLineLength);
-
 		if ($conditionLinesCount === 1) {
-			return $minLineLength === 0 || $lineLength >= $minLineLength;
+			return $this->minLineLength === 0 || $lineLength >= $this->minLineLength;
 		}
 
 		return $this->alwaysSplitAllConditionParts

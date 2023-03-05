@@ -5,6 +5,7 @@ namespace SlevomatCodingStandard\Sniffs\Classes;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use SlevomatCodingStandard\Helpers\ClassHelper;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\SniffSettingsHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 use function assert;
@@ -18,7 +19,9 @@ use const T_FUNCTION;
 use const T_PRIVATE;
 use const T_PROTECTED;
 use const T_PUBLIC;
+use const T_READONLY;
 use const T_SEMICOLON;
+use const T_STATIC;
 use const T_USE;
 use const T_VAR;
 use const T_VARIABLE;
@@ -51,6 +54,11 @@ abstract class AbstractPropertyAndConstantSpacing implements Sniff
 	 */
 	public function process(File $phpcsFile, $pointer): int
 	{
+		$this->minLinesCountBeforeWithComment = SniffSettingsHelper::normalizeInteger($this->minLinesCountBeforeWithComment);
+		$this->maxLinesCountBeforeWithComment = SniffSettingsHelper::normalizeInteger($this->maxLinesCountBeforeWithComment);
+		$this->minLinesCountBeforeWithoutComment = SniffSettingsHelper::normalizeInteger($this->minLinesCountBeforeWithoutComment);
+		$this->maxLinesCountBeforeWithoutComment = SniffSettingsHelper::normalizeInteger($this->maxLinesCountBeforeWithoutComment);
+
 		$tokens = $phpcsFile->getTokens();
 
 		$classPointer = ClassHelper::getClassPointer($phpcsFile, $pointer);
@@ -70,7 +78,7 @@ abstract class AbstractPropertyAndConstantSpacing implements Sniff
 			return $nextFunctionPointer ?? $firstOnLinePointer;
 		}
 
-		$types = [T_COMMENT, T_DOC_COMMENT_OPEN_TAG, T_ATTRIBUTE, T_CONST, T_VAR, T_PUBLIC, T_PROTECTED, T_PRIVATE, T_USE];
+		$types = [T_COMMENT, T_DOC_COMMENT_OPEN_TAG, T_ATTRIBUTE, T_CONST, T_VAR, T_PUBLIC, T_PROTECTED, T_PRIVATE, T_READONLY, T_STATIC, T_USE];
 		$nextPointer = TokenHelper::findNext($phpcsFile, $types, $firstOnLinePointer + 1, $tokens[$classPointer]['scope_closer']);
 
 		if (!$this->isNextMemberValid($phpcsFile, $nextPointer)) {
@@ -79,11 +87,11 @@ abstract class AbstractPropertyAndConstantSpacing implements Sniff
 
 		$linesBetween = $tokens[$nextPointer]['line'] - $tokens[$semicolonPointer]['line'] - 1;
 		if (in_array($tokens[$nextPointer]['code'], [T_DOC_COMMENT_OPEN_TAG, T_COMMENT, T_ATTRIBUTE], true)) {
-			$minExpectedLines = SniffSettingsHelper::normalizeInteger($this->minLinesCountBeforeWithComment);
-			$maxExpectedLines = SniffSettingsHelper::normalizeInteger($this->maxLinesCountBeforeWithComment);
+			$minExpectedLines = $this->minLinesCountBeforeWithComment;
+			$maxExpectedLines = $this->maxLinesCountBeforeWithComment;
 		} else {
-			$minExpectedLines = SniffSettingsHelper::normalizeInteger($this->minLinesCountBeforeWithoutComment);
-			$maxExpectedLines = SniffSettingsHelper::normalizeInteger($this->maxLinesCountBeforeWithoutComment);
+			$minExpectedLines = $this->minLinesCountBeforeWithoutComment;
+			$maxExpectedLines = $this->maxLinesCountBeforeWithoutComment;
 		}
 
 		if ($linesBetween >= $minExpectedLines && $linesBetween <= $maxExpectedLines) {
@@ -97,6 +105,7 @@ abstract class AbstractPropertyAndConstantSpacing implements Sniff
 
 		if ($linesBetween > $maxExpectedLines) {
 			$lastPointerOnLine = TokenHelper::findLastTokenOnLine($phpcsFile, $semicolonPointer);
+			$firstPointerOnNextLine = TokenHelper::findFirstTokenOnLine($phpcsFile, $nextPointer);
 
 			$phpcsFile->fixer->beginChangeset();
 
@@ -104,9 +113,7 @@ abstract class AbstractPropertyAndConstantSpacing implements Sniff
 				$phpcsFile->fixer->addContent($lastPointerOnLine, str_repeat($phpcsFile->eolChar, $maxExpectedLines));
 			}
 
-			for ($i = $lastPointerOnLine + 1; $i < TokenHelper::findFirstTokenOnLine($phpcsFile, $nextPointer); $i++) {
-				$phpcsFile->fixer->replaceToken($i, '');
-			}
+			FixerHelper::removeBetween($phpcsFile, $lastPointerOnLine, $firstPointerOnNextLine);
 
 			$phpcsFile->fixer->endChangeset();
 		} else {

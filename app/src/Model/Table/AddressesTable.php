@@ -70,8 +70,7 @@ class AddressesTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
-    // Addesses are not configuration
-    $this->setIsConfigurationTable(false);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
     $this->belongsTo('People');

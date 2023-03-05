@@ -7,6 +7,7 @@ use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
 use SlevomatCodingStandard\Helpers\ClassHelper;
 use SlevomatCodingStandard\Helpers\DocCommentHelper;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\FunctionHelper;
 use SlevomatCodingStandard\Helpers\PropertyHelper;
 use SlevomatCodingStandard\Helpers\SniffSettingsHelper;
@@ -29,6 +30,7 @@ use function strtolower;
 use const T_ABSTRACT;
 use const T_CLOSE_CURLY_BRACKET;
 use const T_CONST;
+use const T_ENUM_CASE;
 use const T_FINAL;
 use const T_FUNCTION;
 use const T_OPEN_CURLY_BRACKET;
@@ -73,6 +75,7 @@ class ClassStructureSniff implements Sniff
 	private const GROUP_PROTECTED_STATIC_FINAL_METHODS = 'protected static final methods';
 	private const GROUP_PRIVATE_METHODS = 'private methods';
 	private const GROUP_PRIVATE_STATIC_METHODS = 'private static methods';
+	private const GROUP_ENUM_CASES = 'enum cases';
 
 	private const GROUP_SHORTCUT_CONSTANTS = 'constants';
 	private const GROUP_SHORTCUT_PROPERTIES = 'properties';
@@ -180,9 +183,6 @@ class ClassStructureSniff implements Sniff
 	/** @var string[] */
 	public $groups = [];
 
-	/** @var bool */
-	public $enableFinalMethods = false;
-
 	/** @var array<string, int>|null */
 	private $normalizedGroups;
 
@@ -266,7 +266,7 @@ class ClassStructureSniff implements Sniff
 	private function findNextGroup(File $phpcsFile, int $pointer, array $rootScopeToken): ?array
 	{
 		$tokens = $phpcsFile->getTokens();
-		$groupTokenTypes = [T_USE, T_CONST, T_VARIABLE, T_FUNCTION];
+		$groupTokenTypes = [T_USE, T_ENUM_CASE, T_CONST, T_VARIABLE, T_FUNCTION];
 
 		$currentTokenPointer = $pointer;
 		while (true) {
@@ -321,6 +321,8 @@ class ClassStructureSniff implements Sniff
 		switch ($tokens[$pointer]['code']) {
 			case T_USE:
 				return self::GROUP_USES;
+			case T_ENUM_CASE:
+				return self::GROUP_ENUM_CASES;
 			case T_CONST:
 				switch ($this->getVisibilityForToken($phpcsFile, $pointer)) {
 					case T_PUBLIC:
@@ -354,13 +356,13 @@ class ClassStructureSniff implements Sniff
 
 				switch ($visibility) {
 					case T_PUBLIC:
-						if ($this->enableFinalMethods && $isFinal) {
+						if ($isFinal) {
 							return $isStatic ? self::GROUP_PUBLIC_STATIC_FINAL_METHODS : self::GROUP_PUBLIC_FINAL_METHODS;
 						}
 
 						return $isStatic ? self::GROUP_PUBLIC_STATIC_METHODS : self::GROUP_PUBLIC_METHODS;
 					case T_PROTECTED:
-						if ($this->enableFinalMethods && $isFinal) {
+						if ($isFinal) {
 							return $isStatic ? self::GROUP_PROTECTED_STATIC_FINAL_METHODS : self::GROUP_PROTECTED_FINAL_METHODS;
 						}
 
@@ -464,27 +466,22 @@ class ClassStructureSniff implements Sniff
 		int $nextGroupMemberPointer
 	): void
 	{
-		$tokens = $file->getTokens();
-
 		$previousMemberEndPointer = $this->findPreviousMemberEndPointer($file, $groupFirstMemberPointer);
 
 		$groupStartPointer = $this->findGroupStartPointer($file, $groupFirstMemberPointer, $previousMemberEndPointer);
 		$groupEndPointer = $this->findGroupEndPointer($file, $groupLastMemberPointer);
+		$groupContent = TokenHelper::getContent($file, $groupStartPointer, $groupEndPointer);
 
 		$nextGroupMemberStartPointer = $this->findGroupStartPointer($file, $nextGroupMemberPointer);
 
 		$file->fixer->beginChangeset();
 
-		$content = '';
-		for ($i = $groupStartPointer; $i <= $groupEndPointer; $i++) {
-			$content .= $tokens[$i]['content'];
-			$file->fixer->replaceToken($i, '');
-		}
+		FixerHelper::removeBetweenIncluding($file, $groupStartPointer, $groupEndPointer);
 
 		$linesBetween = $this->removeBlankLinesAfterMember($file, $previousMemberEndPointer, $groupStartPointer);
 
 		$newLines = str_repeat($file->eolChar, $linesBetween);
-		$file->fixer->addContentBefore($nextGroupMemberStartPointer, $content . $newLines);
+		$file->fixer->addContentBefore($nextGroupMemberStartPointer, $groupContent . $newLines);
 
 		$file->fixer->endChangeset();
 	}
@@ -556,6 +553,7 @@ class ClassStructureSniff implements Sniff
 		if ($this->normalizedGroups === null) {
 			$supportedGroups = [
 				self::GROUP_USES,
+				self::GROUP_ENUM_CASES,
 				self::GROUP_PUBLIC_CONSTANTS,
 				self::GROUP_PROTECTED_CONSTANTS,
 				self::GROUP_PRIVATE_CONSTANTS,
@@ -584,16 +582,6 @@ class ClassStructureSniff implements Sniff
 				self::GROUP_PRIVATE_STATIC_METHODS,
 				self::GROUP_MAGIC_METHODS,
 			];
-
-			if (!$this->enableFinalMethods) {
-				foreach ($supportedGroups as $supportedGroupNo => $supportedGroupName) {
-					if (!in_array($supportedGroupName, self::SHORTCUTS[self::GROUP_SHORTCUT_FINAL_METHODS], true)) {
-						continue;
-					}
-
-					unset($supportedGroups[$supportedGroupNo]);
-				}
-			}
 
 			$normalizedGroupsWithShortcuts = [];
 			$order = 1;

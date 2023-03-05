@@ -68,8 +68,7 @@ class CoSettingsTable extends Table {
     $this->addBehavior('Changelog');
     $this->addBehavior('Timestamp');
     
-    // CO Settings are (a special type of) configuration
-    $this->setIsConfigurationTable(true);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
     $this->belongsTo('Cos');

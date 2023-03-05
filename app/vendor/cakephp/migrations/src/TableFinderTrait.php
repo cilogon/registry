@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Migrations;
 
@@ -68,13 +68,12 @@ trait TableFinderTrait
 
             foreach ($tableNamesInModel as $num => $table) {
                 if (strpos($table, '.') !== false) {
-                    $splitted = array_reverse(explode('.', $table, 2));
+                    $split = array_reverse(explode('.', $table, 2));
 
-                    $config = ConnectionManager::getConfig($this->connection);
+                    $config = (array)ConnectionManager::getConfig($this->connection);
                     $key = isset($config['schema']) ? 'schema' : 'database';
-                    /** @psalm-suppress PossiblyNullArrayAccess */
-                    if ($config[$key] === $splitted[1]) {
-                        $table = $splitted[0];
+                    if ($config[$key] === $split[1]) {
+                        $table = $split[0];
                     }
                 }
 

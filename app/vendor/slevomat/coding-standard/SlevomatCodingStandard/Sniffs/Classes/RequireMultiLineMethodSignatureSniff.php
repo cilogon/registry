@@ -4,6 +4,7 @@ namespace SlevomatCodingStandard\Sniffs\Classes;
 
 use Exception;
 use PHP_CodeSniffer\Files\File;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\FunctionHelper;
 use SlevomatCodingStandard\Helpers\IndentationHelper;
 use SlevomatCodingStandard\Helpers\SniffSettingsHelper;
@@ -13,7 +14,6 @@ use function preg_match;
 use function sprintf;
 use function strlen;
 use const T_COMMA;
-use const T_WHITESPACE;
 
 class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 {
@@ -41,6 +41,8 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 	 */
 	public function process(File $phpcsFile, $methodPointer): void
 	{
+		$this->minLineLength = SniffSettingsHelper::normalizeInteger($this->minLineLength);
+
 		if (!FunctionHelper::isMethod($phpcsFile, $methodPointer)) {
 			return;
 		}
@@ -76,8 +78,7 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 			return;
 		}
 
-		$minLineLength = SniffSettingsHelper::normalizeInteger($this->minLineLength);
-		if ($minLineLength !== 0 && strlen($signatureWithoutTabIndentation) < $minLineLength) {
+		if ($this->minLineLength !== 0 && strlen($signatureWithoutTabIndentation) < $this->minLineLength) {
 			return;
 		}
 
@@ -103,13 +104,8 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 			}
 
 			$phpcsFile->fixer->addContent($pointerBeforeParameter, $phpcsFile->eolChar . IndentationHelper::addIndentation($indentation));
-			for ($i = $pointerBeforeParameter + 1; $i < $parameter['token']; $i++) {
-				if ($tokens[$i]['code'] !== T_WHITESPACE) {
-					break;
-				}
 
-				$phpcsFile->fixer->replaceToken($i, '');
-			}
+			FixerHelper::removeWhitespaceAfter($phpcsFile, $pointerBeforeParameter);
 		}
 
 		$phpcsFile->fixer->addContentBefore($tokens[$methodPointer]['parenthesis_closer'], $phpcsFile->eolChar . $indentation);

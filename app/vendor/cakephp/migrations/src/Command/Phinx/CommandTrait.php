@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Migrations\Command\Phinx;
 
@@ -28,9 +28,9 @@ trait CommandTrait
      *
      * @param \Symfony\Component\Console\Input\InputInterface $input the input object
      * @param \Symfony\Component\Console\Output\OutputInterface $output the output object
-     * @return int|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->beforeExecute($input, $output);
 
@@ -61,7 +61,7 @@ trait CommandTrait
      * @param \Symfony\Component\Console\Output\OutputInterface $output the output object
      * @return void
      */
-    public function bootstrap(InputInterface $input, OutputInterface $output)
+    public function bootstrap(InputInterface $input, OutputInterface $output): void
     {
         parent::bootstrap($input, $output);
         $name = $this->getConnectionName($input);
@@ -91,7 +91,7 @@ trait CommandTrait
      * @param \Symfony\Component\Console\Input\InputInterface $input the input object
      * @return void
      */
-    public function setInput(InputInterface $input)
+    public function setInput(InputInterface $input): void
     {
         $this->input = $input;
     }

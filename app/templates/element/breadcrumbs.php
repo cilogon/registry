@@ -70,7 +70,11 @@ if($this->request->getRequestTarget(false) != '/') {
     );
   }
 
-  if(!empty($vv_primary_link_obj->plugin)) {
+  if(!empty($vv_primary_link_obj->plugin)
+     // JobHistoryRecords have Jobs as their primary link, which define a plugin
+     // but aren't standard Pluggable Models, so we exempt them here. If this
+     // becomes a pattern we should annotate something instead.
+     && $modelsName != 'JobHistoryRecords') {
     // We're in a plugin. Insert a link back to the pluggable object.
 
     $plModelsName = \App\Lib\Util\StringUtilities::entityToClassName($vv_primary_link_obj);
@@ -118,7 +122,7 @@ if($this->request->getRequestTarget(false) != '/') {
       $vv_bc_parent_obj->$vv_bc_parent_displayfield,
       ['plugin'     => null,
        'controller' => $parentController,
-       'action'     => 'edit',
+       'action'     => $vv_bc_parent_obj->isReadOnly() ? 'view' : 'edit',
        $vv_bc_parent_obj->id]
     );
   }
@@ -196,8 +200,8 @@ if($this->request->getRequestTarget(false) != '/') {
   
   if($vv_action != 'index'
      && !($modelsName == 'Dashboards' && $vv_action == 'configuration')
-     // Plugin breadcrumbs are handled above
-     && empty($vv_primary_link_obj->plugin)) {
+     // Plugin breadcrumbs are handled above, but see above note re JobHistoryRecords
+     && (empty($vv_primary_link_obj->plugin) || $modelsName == 'JobHistoryRecords')) {
     // Default parent is index, to which we might need to append the Primary Link ID
     
     $target = [

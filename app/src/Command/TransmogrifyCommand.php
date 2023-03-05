@@ -315,6 +315,29 @@ class TransmogrifyCommand extends Command {
         'co_email_list_id' => null,
         'co_service_id' => null
       ]
+    ],
+    'jobs' => [
+      'source' => 'cm_co_jobs',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'job_type' => 'plugin',
+        'job_mode' => null,
+        'queue_time' => 'register_time',
+        'complete_time' => 'finish_time',
+        'job_type_fk' => null,
+        'job_params' => 'parameters',
+        'requeued_from_co_job_id' => 'requeued_from_job_id'
+      ],
+      'preRow' => 'filterJobs'
+    ],
+    'job_history_records' => [
+      'source' => 'cm_co_job_history_records',
+      'displayField' => 'id',
+      'fieldMap' => [
+        'co_job_id' => 'job_id',
+        'co_person_id' => 'person_id',
+        'org_identity_id' => 'external_identity_id'
+      ]
     ]
   ];
   
@@ -641,6 +664,28 @@ class TransmogrifyCommand extends Command {
     }
   }
   
+  /**
+   * Filter Jobs.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $origRow Row of table data (original data)
+   * @param  array $row     Row of table data (post fixes)
+   * @throws InvalidArgumentException
+   */
+  
+  protected function filterJobs(array $origRow, array $row) {
+    // We don't update any of the attributes, but for rows with unsupported data
+    // we throw an exception so they don't transmogrify.
+
+    if($row['status'] == 'GO' || $row['status'] == 'Q') {
+      throw new \InvalidArgumentException("Job is Queued or In Progress");
+    }
+
+    if($row['job_type'] == 'EX' || $row['job_type'] == 'OS') {
+      throw new \InvalidArgumentException("Legacy Job types cannot be transmogrified");
+    }
+  }
+
   /**
    * Find the CO for a row of table data, based on a foreign key.
    *

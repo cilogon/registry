@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Migrations;
 
@@ -36,19 +36,20 @@ class Plugin extends BasePlugin
     protected $routesEnabled = false;
 
     /**
-     * @var array
+     * @var array<string>
+     * @psalm-var array<class-string<\Cake\Console\BaseCommand>>
      */
     protected $migrationCommandsList = [
-        Command\MigrationsCommand::class,
-        Command\MigrationsCreateCommand::class,
-        Command\MigrationsDumpCommand::class,
-        Command\MigrationsMarkMigratedCommand::class,
-        Command\MigrationsMigrateCommand::class,
-        Command\MigrationsCacheBuildCommand::class,
-        Command\MigrationsCacheClearCommand::class,
-        Command\MigrationsRollbackCommand::class,
-        Command\MigrationsSeedCommand::class,
-        Command\MigrationsStatusCommand::class,
+        \Migrations\Command\MigrationsCommand::class,
+        \Migrations\Command\MigrationsCreateCommand::class,
+        \Migrations\Command\MigrationsDumpCommand::class,
+        \Migrations\Command\MigrationsMarkMigratedCommand::class,
+        \Migrations\Command\MigrationsMigrateCommand::class,
+        \Migrations\Command\MigrationsCacheBuildCommand::class,
+        \Migrations\Command\MigrationsCacheClearCommand::class,
+        \Migrations\Command\MigrationsRollbackCommand::class,
+        \Migrations\Command\MigrationsSeedCommand::class,
+        \Migrations\Command\MigrationsStatusCommand::class,
     ];
 
     /**

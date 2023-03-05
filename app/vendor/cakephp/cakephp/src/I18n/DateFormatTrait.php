@@ -16,7 +16,9 @@ declare(strict_types=1);
  */
 namespace Cake\I18n;
 
+use Cake\Chronos\ChronosInterface;
 use Cake\Chronos\DifferenceFormatterInterface;
+use Cake\Core\Exception\CakeException;
 use Closure;
 use DateTime;
 use DateTimeZone;
@@ -287,7 +289,7 @@ trait DateFormatTrait
      *
      * The format should be either the formatting constants from IntlDateFormatter as
      * described in (https://secure.php.net/manual/en/class.intldateformatter.php) or a pattern
-     * as specified in (http://www.icu-project.org/apiref/icu4c/classSimpleDateFormat.html#details)
+     * as specified in (https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/classSimpleDateFormat.html#details)
      *
      * It is possible to provide an array of 2 constants. In this case, the first position
      * will be used for formatting the date part of the object and the second position
@@ -359,6 +361,9 @@ trait DateFormatTrait
             null,
             $pattern
         );
+        if (!$formatter) {
+            throw new CakeException('Unable to create IntlDateFormatter instance');
+        }
         $formatter->setLenient(static::$lenientParsing);
 
         $time = $formatter->parse($time);
@@ -477,6 +482,34 @@ trait DateFormatTrait
     public static function setDiffFormatter(DifferenceFormatterInterface $formatter): void
     {
         static::$diffFormatter = $formatter;
+    }
+
+    /**
+     * Get the difference in a human readable format.
+     *
+     * When comparing a value in the past to default now:
+     * 1 hour ago
+     * 5 months ago
+     *
+     * When comparing a value in the future to default now:
+     * 1 hour from now
+     * 5 months from now
+     *
+     * When comparing a value in the past to another value:
+     * 1 hour before
+     * 5 months before
+     *
+     * When comparing a value in the future to another value:
+     * 1 hour after
+     * 5 months after
+     *
+     * @param \Cake\Chronos\ChronosInterface|null $other The datetime to compare with.
+     * @param bool $absolute removes time difference modifiers ago, after, etc
+     * @return string
+     */
+    public function diffForHumans(?ChronosInterface $other = null, bool $absolute = false): string
+    {
+        return static::getDiffFormatter()->diffForHumans($this, $other, $absolute);
     }
 
     /**

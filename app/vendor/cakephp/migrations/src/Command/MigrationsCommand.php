@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Migrations\Command;
 
@@ -26,12 +26,12 @@ use Symfony\Component\Console\Output\ConsoleOutput;
  * console actions so that database configuration already defined
  * for the application can be reused.
  *
- * @property \Migrations\Shell\Task\CreateTask $Create
- * @property \Migrations\Shell\Task\DumpTask $Dump
- * @property \Migrations\Shell\Task\MarkMigratedTask $MarkMigrated
- * @property \Migrations\Shell\Task\MigrateTask $Migrate
- * @property \Migrations\Shell\Task\RollbackTask $Rollback
- * @property \Migrations\Shell\Task\StatusTask $Status
+ * @property \Migrations\Command\Phinx\Create $Create
+ * @property \Migrations\Command\Phinx\Dump $Dump
+ * @property \Migrations\Command\Phinx\MarkMigrated $MarkMigrated
+ * @property \Migrations\Command\Phinx\Migrate $Migrate
+ * @property \Migrations\Command\Phinx\Rollback $Rollback
+ * @property \Migrations\Command\Phinx\Status $Status
  */
 class MigrationsCommand extends Command
 {
@@ -72,7 +72,7 @@ class MigrationsCommand extends Command
      */
     public function getOptionParser(): ConsoleOptionParser
     {
-        if (parent::defaultName() === 'migrations') {
+        if ($this->defaultName() === 'migrations') {
             return parent::getOptionParser();
         }
         $parser = parent::getOptionParser();

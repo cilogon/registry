@@ -168,7 +168,7 @@ class FixtureHelper
             } catch (PDOException $exception) {
                 $message = sprintf(
                     'Unable to insert rows for table `%s`.'
-                        . " Fixture records might have invalid data or unknown contraints.\n%s",
+                        . " Fixture records might have invalid data or unknown constraints.\n%s",
                     $fixture->sourceName(),
                     $exception->getMessage()
                 );
@@ -272,7 +272,7 @@ class FixtureHelper
      *
      * @param \Cake\Database\Connection $connection Database connection
      * @param \Cake\Datasource\FixtureInterface $fixture Database fixture
-     * @return array
+     * @return array<string>
      */
     protected function getForeignReferences(Connection $connection, FixtureInterface $fixture): array
     {

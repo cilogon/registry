@@ -48,8 +48,9 @@ trait PrimaryLinkTrait {
   // Actions where the primary link can be obtained by looking up the record ID
   private $lookupActions = ['delete', 'edit', 'view'];
   
-  // Where to redirect on add or edit, can be 'self', 'index', or 'primaryLink'
-  private $redirectGoal = 'index';
+  // Where to redirect on add or edit, can be 'self', 'index', 'pluggableLink', or 'primaryLink'
+  // We use null to mean "index unless we're in a plugin context, in which case pluggableLink"
+  private $redirectGoal = null;
   
   // Accept the current CO ID?
   private $acceptCoId = false;
@@ -236,7 +237,7 @@ trait PrimaryLinkTrait {
    * @return string Redirect goal
    */
   
-  public function getRedirectGoal(): string {
+  public function getRedirectGoal(): ?string {
     return $this->redirectGoal;
   }
   
@@ -465,12 +466,12 @@ trait PrimaryLinkTrait {
    * Set the redirect goal for this table. 
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string $goal  Redirect goal ('index', 'primaryLink', 'self')
+   * @param  string $goal  Redirect goal ('index', 'pluggableLink', 'primaryLink', 'self')
    * @throws InvalidArgumentException
    */
   
   public function setRedirectGoal(string $goal) {
-    if(!in_array($goal, ['index', 'primaryLink', 'self'])) {
+    if(!in_array($goal, ['index', 'pluggableLink', 'primaryLink', 'self'])) {
       throw new \InvalidArgumentException(__d('error', 'invalid', [$goal]));
     }
     

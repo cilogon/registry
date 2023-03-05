@@ -76,8 +76,7 @@ class PluginsTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Timestamp');
  
-    // Plugins are configuration
-    $this->setIsConfigurationTable(true);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Metadata);
     
     $this->setDisplayField('plugin');
     
@@ -366,16 +365,22 @@ class PluginsTable extends Table {
         $tableName = Inflector::pluralize(Inflector::classify($type));
         $table = TableRegistry::getTableLocator()->get($tableName);
 
-        // We don't actually need $entryPoints here, we just wanted to make sure
-        // the plugin implements at least one Entry Point for this $type.
-        $r = $table->pluginInUse($entity->plugin);
+        // This rule only applies to _configuration_ objects, so (eg) Jobs
+        // (which are artifacts) can continue to reference a Plugin after
+        // it has been suspended. Note that if a Plugin is polymorphic, this
+        // rule still applies to the Configuration based Entry Point Models.
+        if($table->isConfigurationTable()) {
+          // We don't actually need $entryPoints here, we just wanted to make sure
+          // the plugin implements at least one Entry Point for this $type.
+          $r = $table->pluginInUse($entity->plugin);
 
-        if(!empty($r) && count($r) > 0) {
-          // There could be other plugin types in use, but that's probably the
-          // exception and anyway just returning a single error will be sufficient
-          // for now
+          if(!empty($r) && count($r) > 0) {
+            // There could be other plugin types in use, but that's probably the
+            // exception and anyway just returning a single error will be sufficient
+            // for now
 
-          return __d('error', 'Plugins.inuse', [count($r), $type, $r->first()->name, $r->first()->co_id]);
+            return __d('error', 'Plugins.inuse', [count($r), $type, $r->first()->name, $r->first()->co_id]);
+          }
         }
       }
     }

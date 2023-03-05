@@ -28,14 +28,12 @@ class Filesystem
     /** @var ?ProcessExecutor */
     private $processExecutor;
 
-    public function __construct(ProcessExecutor $executor = null)
+    public function __construct(?ProcessExecutor $executor = null)
     {
         $this->processExecutor = $executor;
     }
 
     /**
-     * @param string $file
-     *
      * @return bool
      */
     public function remove(string $file)
@@ -54,7 +52,6 @@ class Filesystem
     /**
      * Checks if a directory is empty
      *
-     * @param  string $dir
      * @return bool
      */
     public function isDirEmpty(string $dir)
@@ -69,9 +66,6 @@ class Filesystem
     }
 
     /**
-     * @param string $dir
-     * @param bool   $ensureDirectoryExists
-     *
      * @return void
      */
     public function emptyDirectory(string $dir, bool $ensureDirectoryExists = true)
@@ -103,7 +97,6 @@ class Filesystem
      * Uses the process component if proc_open is enabled on the PHP
      * installation.
      *
-     * @param  string            $directory
      * @throws \RuntimeException
      * @return bool
      */
@@ -138,7 +131,6 @@ class Filesystem
      * Uses the process component if proc_open is enabled on the PHP
      * installation.
      *
-     * @param  string            $directory
      * @throws \RuntimeException
      * @return PromiseInterface
      */
@@ -172,9 +164,6 @@ class Filesystem
     }
 
     /**
-     * @param string $directory
-     * @param bool   $fallbackToPhp
-     *
      * @return bool|null Returns null, when no edge case was hit. Otherwise a bool whether removal was successful
      */
     private function removeEdgeCases(string $directory, bool $fallbackToPhp = true): ?bool
@@ -213,7 +202,6 @@ class Filesystem
      * before directories, creating a single non-recursive loop
      * to delete files/directories in the correct order.
      *
-     * @param  string $directory
      * @return bool
      */
     public function removeDirectoryPhp(string $directory)
@@ -252,8 +240,6 @@ class Filesystem
     }
 
     /**
-     * @param string $directory
-     *
      * @return void
      */
     public function ensureDirectoryExists(string $directory)
@@ -275,7 +261,6 @@ class Filesystem
     /**
      * Attempts to unlink a file and in case of failure retries after 350ms on windows
      *
-     * @param  string            $path
      * @throws \RuntimeException
      * @return bool
      */
@@ -306,7 +291,6 @@ class Filesystem
     /**
      * Attempts to rmdir a file and in case of failure retries after 350ms on windows
      *
-     * @param  string            $path
      * @throws \RuntimeException
      * @return bool
      */
@@ -340,9 +324,6 @@ class Filesystem
      * Some systems can't rename and also don't have proc_open,
      * which requires this solution.
      *
-     * @param string $source
-     * @param string $target
-     *
      * @return void
      */
     public function copyThenRemove(string $source, string $target)
@@ -360,8 +341,6 @@ class Filesystem
     /**
      * Copies a file or directory from $source to $target.
      *
-     * @param  string $source
-     * @param  string $target
      * @return bool
      */
     public function copy(string $source, string $target)
@@ -388,9 +367,6 @@ class Filesystem
     }
 
     /**
-     * @param string $source
-     * @param string $target
-     *
      * @return void
      */
     public function rename(string $source, string $target)
@@ -438,8 +414,6 @@ class Filesystem
     /**
      * Returns the shortest path from $from to $to
      *
-     * @param  string                    $from
-     * @param  string                    $to
      * @param  bool                      $directories if true, the source/target are considered to be directories
      * @throws \InvalidArgumentException
      * @return string
@@ -466,13 +440,19 @@ class Filesystem
             $commonPath = strtr(\dirname($commonPath), '\\', '/');
         }
 
-        if (0 !== strpos($from, $commonPath) || '/' === $commonPath) {
+        // no commonality at all
+        if (0 !== strpos($from, $commonPath)) {
             return $to;
         }
 
         $commonPath = rtrim($commonPath, '/') . '/';
         $sourcePathDepth = substr_count((string) substr($from, \strlen($commonPath)), '/');
         $commonPathCode = str_repeat('../', $sourcePathDepth);
+
+        // allow top level /foo & /bar dirs to be addressed relatively as this is common in Docker setups
+        if ('/' === $commonPath && $sourcePathDepth > 1) {
+            return $to;
+        }
 
         $result = $commonPathCode . substr($to, \strlen($commonPath));
         if (\strlen($result) === 0) {
@@ -485,10 +465,7 @@ class Filesystem
     /**
      * Returns PHP code that, when executed in $from, will return the path to $to
      *
-     * @param  string                    $from
-     * @param  string                    $to
      * @param  bool                      $directories if true, the source/target are considered to be directories
-     * @param  bool                      $staticCode
      * @throws \InvalidArgumentException
      * @return string
      */
@@ -510,15 +487,22 @@ class Filesystem
             $commonPath = strtr(\dirname($commonPath), '\\', '/');
         }
 
-        if (0 !== strpos($from, $commonPath) || '/' === $commonPath || '.' === $commonPath) {
+        // no commonality at all
+        if (0 !== strpos($from, $commonPath) || '.' === $commonPath) {
             return var_export($to, true);
         }
 
         $commonPath = rtrim($commonPath, '/') . '/';
-        if (strpos($to, $from.'/') === 0) {
+        if (str_starts_with($to, $from.'/')) {
             return '__DIR__ . '.var_export((string) substr($to, \strlen($from)), true);
         }
         $sourcePathDepth = substr_count((string) substr($from, \strlen($commonPath)), '/') + (int) $directories;
+
+        // allow top level /foo & /bar dirs to be addressed relatively as this is common in Docker setups
+        if ('/' === $commonPath && $sourcePathDepth > 1) {
+            return var_export($to, true);
+        }
+
         if ($staticCode) {
             $commonPathCode = "__DIR__ . '".str_repeat('/..', $sourcePathDepth)."'";
         } else {
@@ -532,7 +516,6 @@ class Filesystem
     /**
      * Checks if the given path is absolute
      *
-     * @param  string $path
      * @return bool
      */
     public function isAbsolutePath(string $path)
@@ -569,7 +552,7 @@ class Filesystem
      */
     public function normalizePath(string $path)
     {
-        $parts = array();
+        $parts = [];
         $path = strtr($path, '\\', '/');
         $prefix = '';
         $absolute = '';
@@ -581,7 +564,7 @@ class Filesystem
         }
 
         // extract a prefix being a protocol://, protocol:, protocol://drive: or simply drive:
-        if (Preg::isMatch('{^( [0-9a-z]{2,}+: (?: // (?: [a-z]: )? )? | [a-z]: )}ix', $path, $match)) {
+        if (Preg::isMatchStrictGroups('{^( [0-9a-z]{2,}+: (?: // (?: [a-z]: )? )? | [a-z]: )}ix', $path, $match)) {
             $prefix = $match[1];
             $path = substr($path, \strlen($prefix));
         }
@@ -603,7 +586,10 @@ class Filesystem
         }
 
         // ensure c: is normalized to C:
-        $prefix = Preg::replaceCallback('{(^|://)[a-z]:$}i', function (array $m) { return strtoupper($m[0]); }, $prefix);
+        $prefix = Preg::replaceCallback('{(^|://)[a-z]:$}i', static function (array $m) {
+            assert(is_string($m[0]));
+            return strtoupper($m[0]);
+        }, $prefix);
 
         return $prefix.$absolute.implode('/', $parts);
     }
@@ -613,7 +599,6 @@ class Filesystem
      *
      * And other possible unforeseen disasters, see https://github.com/composer/composer/pull/9422
      *
-     * @param  string $path
      * @return string
      */
     public static function trimTrailingSlash(string $path)
@@ -628,7 +613,6 @@ class Filesystem
     /**
      * Return if the given path is local
      *
-     * @param  string $path
      * @return bool
      */
     public static function isLocalPath(string $path)
@@ -637,8 +621,6 @@ class Filesystem
     }
 
     /**
-     * @param string $path
-     *
      * @return string
      */
     public static function getPlatformPath(string $path)
@@ -656,7 +638,6 @@ class Filesystem
      * This will also check for readability by reading the file as is_readable can not be trusted on network-mounts
      * and \\wsl$ paths. See https://github.com/composer/composer/issues/8231 and https://bugs.php.net/bug.php?id=68926
      *
-     * @param  string $path
      * @return bool
      */
     public static function isReadable(string $path)
@@ -678,8 +659,6 @@ class Filesystem
     }
 
     /**
-     * @param string $directory
-     *
      * @return int
      */
     protected function directorySize(string $directory)
@@ -713,10 +692,6 @@ class Filesystem
      * delete symbolic link implementation (commonly known as "unlink()")
      *
      * symbolic links on windows which link to directories need rmdir instead of unlink
-     *
-     * @param string $path
-     *
-     * @return bool
      */
     private function unlinkImplementation(string $path): bool
     {
@@ -754,8 +729,6 @@ class Filesystem
     /**
      * return true if that directory is a symlink.
      *
-     * @param string $directory
-     *
      * @return bool
      */
     public function isSymlinkedDirectory(string $directory)
@@ -769,11 +742,6 @@ class Filesystem
         return is_link($resolved);
     }
 
-    /**
-     * @param string $directory
-     *
-     * @return bool
-     */
     private function unlinkSymlinkedDirectory(string $directory): bool
     {
         $resolved = $this->resolveSymlinkedDirectorySymlink($directory);
@@ -805,9 +773,6 @@ class Filesystem
 
     /**
      * Creates an NTFS junction.
-     *
-     * @param string $target
-     * @param string $junction
      *
      * @return void
      */
@@ -872,7 +837,6 @@ class Filesystem
     /**
      * Removes a Windows NTFS junction.
      *
-     * @param  string $junction
      * @return bool
      */
     public function removeJunction(string $junction)
@@ -889,9 +853,6 @@ class Filesystem
     }
 
     /**
-     * @param string $path
-     * @param string $content
-     *
      * @return int|false
      */
     public function filePutContentsIfModified(string $path, string $content)
@@ -906,9 +867,6 @@ class Filesystem
 
     /**
      * Copy file using stream_copy_to_stream to work around https://bugs.php.net/bug.php?id=6463
-     *
-     * @param string $source
-     * @param string $target
      *
      * @return void
      */

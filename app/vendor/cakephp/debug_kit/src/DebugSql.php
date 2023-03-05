@@ -2,16 +2,16 @@
 declare(strict_types=1);
 
 /**
- * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
  * @since         DebugKit 3.11.4
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace DebugKit;
 
@@ -73,7 +73,7 @@ TEXT;
 
         $sql = (string)$query;
         if ($showValues) {
-            $sql = static::interpolate($sql, $query->getValueBinder()->bindings());
+            $sql = self::interpolate($sql, $query->getValueBinder()->bindings());
         }
 
         /** @var array $trace */
@@ -92,16 +92,16 @@ TEXT;
             $file = str_replace($search, '', $file);
         }
 
-        $template = static::$templateHtml;
+        $template = self::$templateHtml;
         $sqlHighlight = true;
         if ((PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') || $showHtml === false) {
-            $template = static::$templateText;
+            $template = self::$templateText;
             $sqlHighlight = false;
             if ($file && $line) {
                 $lineInfo = sprintf('%s (line %s)', $file, $line);
             }
         }
-        if ($showHtml === null && $template !== static::$templateText) {
+        if ($showHtml === null && $template !== self::$templateText) {
             $showHtml = true;
         }
 
@@ -113,7 +113,7 @@ TEXT;
         );
 
         if ($showHtml) {
-            $template = static::$templateHtml;
+            $template = self::$templateHtml;
             if ($file && $line) {
                 $lineInfo = sprintf('<span><strong>%s</strong> (line <strong>%s</strong>)</span>', $file, $line);
             }

@@ -13,7 +13,6 @@
 namespace Composer\Repository\Vcs;
 
 use Composer\Pcre\Preg;
-use Composer\Util\Platform;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\Filesystem;
 use Composer\Util\Url;
@@ -49,7 +48,7 @@ class GitDriver extends VcsDriver
             $this->repoDir = $this->url;
             $cacheUrl = realpath($this->url);
         } else {
-            if (!Cache::isUsable((string) $this->config->get('cache-vcs-dir'))) {
+            if (!Cache::isUsable($this->config->get('cache-vcs-dir'))) {
                 throw new \RuntimeException('GitDriver requires a usable cache directory, and it looks like you set it to be disabled');
             }
 
@@ -95,17 +94,19 @@ class GitDriver extends VcsDriver
             $this->rootIdentifier = 'master';
 
             $gitUtil = new GitUtil($this->io, $this->config, $this->process, new Filesystem());
-            $defaultBranch = $gitUtil->getMirrorDefaultBranch($this->url, $this->repoDir, Filesystem::isLocalPath($this->url));
-            if ($defaultBranch !== null) {
-                return $this->rootIdentifier = $defaultBranch;
+            if (!Filesystem::isLocalPath($this->url)) {
+                $defaultBranch = $gitUtil->getMirrorDefaultBranch($this->url, $this->repoDir, false);
+                if ($defaultBranch !== null) {
+                    return $this->rootIdentifier = $defaultBranch;
+                }
             }
 
-            // select currently checked out branch if master is not available
+            // select currently checked out branch as default branch
             $this->process->execute('git branch --no-color', $output, $this->repoDir);
             $branches = $this->process->splitLines($output);
             if (!in_array('* master', $branches)) {
                 foreach ($branches as $branch) {
-                    if ($branch && Preg::isMatch('{^\* +(\S+)}', $branch, $match)) {
+                    if ($branch && Preg::isMatchStrictGroups('{^\* +(\S+)}', $branch, $match)) {
                         $this->rootIdentifier = $match[1];
                         break;
                     }
@@ -129,7 +130,7 @@ class GitDriver extends VcsDriver
      */
     public function getSource(string $identifier): array
     {
-        return array('type' => 'git', 'url' => $this->getUrl(), 'reference' => $identifier);
+        return ['type' => 'git', 'url' => $this->getUrl(), 'reference' => $identifier];
     }
 
     /**
@@ -178,7 +179,7 @@ class GitDriver extends VcsDriver
     public function getTags(): array
     {
         if (null === $this->tags) {
-            $this->tags = array();
+            $this->tags = [];
 
             $this->process->execute('git show-ref --tags --dereference', $output, $this->repoDir);
             foreach ($output = $this->process->splitLines($output) as $tag) {
@@ -197,12 +198,12 @@ class GitDriver extends VcsDriver
     public function getBranches(): array
     {
         if (null === $this->branches) {
-            $branches = array();
+            $branches = [];
 
             $this->process->execute('git branch --no-color --no-abbrev -v', $output, $this->repoDir);
             foreach ($this->process->splitLines($output) as $branch) {
                 if ($branch && !Preg::isMatch('{^ *[^/]+/HEAD }', $branch)) {
-                    if (Preg::isMatch('{^(?:\* )? *(\S+) *([a-f0-9]+)(?: .*)?$}', $branch, $match) && $match[1][0] !== '-') {
+                    if (Preg::isMatchStrictGroups('{^(?:\* )? *(\S+) *([a-f0-9]+)(?: .*)?$}', $branch, $match) && $match[1][0] !== '-') {
                         $branches[$match[1]] = $match[2];
                     }
                 }
@@ -245,7 +246,7 @@ class GitDriver extends VcsDriver
         GitUtil::cleanEnv();
 
         try {
-            $gitUtil->runCommand(function ($url): string {
+            $gitUtil->runCommand(static function ($url): string {
                 return 'git ls-remote --heads -- ' . ProcessExecutor::escape($url);
             }, $url, sys_get_temp_dir());
         } catch (\RuntimeException $e) {

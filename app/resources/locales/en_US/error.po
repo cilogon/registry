@@ -100,6 +100,9 @@ msgstr "Cannot read file {0}"
 msgid "flash"
 msgstr "{0}: {1}"
 
+msgid "Cos.active"
+msgstr "Requested CO {0} is not active"
+
 msgid "GroupNestings.active"
 msgstr "Group {0} is not active and so cannot be nested"
 
@@ -151,6 +154,30 @@ msgstr "{0} must be provided"
 msgid "invalid"
 msgstr "Invalid value \"{0}\""
 
+msgid "Jobs.failed.abnormal"
+msgstr "The Job terminated unexpectedly"
+
+msgid "Jobs.plugin.parameter.int"
+msgstr "Provided value is not an integer"
+
+msgid "Jobs.plugin.parameter.invalid"
+msgstr "Invalid parameter"
+
+msgid "Jobs.plugin.parameter.required"
+msgstr "Required parameter not provided"
+
+msgid "Jobs.plugin.parameter.type"
+msgstr "Unknown parameter type {0}"
+
+msgid "Jobs.registered.already"
+msgstr "A Job is already registered for this plugin ({0}) with these parameters"
+
+msgid "Jobs.status.invalid"
+msgstr "Job {0} is not in {1} status and cannot be set to {2} (Job is {3})"
+
+msgid "Jobs.status.invalid.cancel"
+msgstr "Job {0} is not in a cancelable status (Job is {1})"
+
 msgid "Names.minimum"
 msgstr "At least one name is required"
 
@@ -177,6 +204,9 @@ msgstr "Page number must be an integer"
 
 msgid "perm"
 msgstr "Permission Denied"
+
+msgid "Plugins.inactive"
+msgstr "The plugin {0} is not active"
 
 msgid "Plugins.inuse"
 msgstr "{0,plural,=1{Plugin in use for {1} \"{2}\" in CO {3}} other{Plugin in use for {1} \"{2}\" in CO {3} and others}}"

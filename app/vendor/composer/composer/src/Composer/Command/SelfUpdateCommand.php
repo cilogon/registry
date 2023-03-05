@@ -24,8 +24,8 @@ use Composer\IO\IOInterface;
 use Composer\Downloader\FilesystemException;
 use Composer\Downloader\TransportException;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
+use Composer\Console\Input\InputOption;
+use Composer\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -39,16 +39,13 @@ class SelfUpdateCommand extends BaseCommand
     private const HOMEPAGE = 'getcomposer.org';
     private const OLD_INSTALL_EXT = '-old.phar';
 
-    /**
-     * @return void
-     */
     protected function configure(): void
     {
         $this
             ->setName('self-update')
-            ->setAliases(array('selfupdate'))
-            ->setDescription('Updates composer.phar to the latest version.')
-            ->setDefinition(array(
+            ->setAliases(['selfupdate'])
+            ->setDescription('Updates composer.phar to the latest version')
+            ->setDefinition([
                 new InputOption('rollback', 'r', InputOption::VALUE_NONE, 'Revert to an older installation of composer'),
                 new InputOption('clean-backups', null, InputOption::VALUE_NONE, 'Delete old backups during an update. This makes the current version of composer the only backup available after the update'),
                 new InputArgument('version', InputArgument::OPTIONAL, 'The version to update to'),
@@ -61,7 +58,7 @@ class SelfUpdateCommand extends BaseCommand
                 new InputOption('2', null, InputOption::VALUE_NONE, 'Force an update to the stable channel, but only use 2.x versions'),
                 new InputOption('2.2', null, InputOption::VALUE_NONE, 'Force an update to the stable channel, but only use 2.2.x LTS versions'),
                 new InputOption('set-channel-only', null, InputOption::VALUE_NONE, 'Only store the channel as the default one and then exit'),
-            ))
+            ])
             ->setHelp(
                 <<<EOT
 The <info>self-update</info> command checks getcomposer.org for newer
@@ -69,7 +66,7 @@ versions of composer and if found, installs the latest.
 
 <info>php composer.phar self-update</info>
 
-Read more at https://getcomposer.org/doc/03-cli.md#self-update-selfupdate-
+Read more at https://getcomposer.org/doc/03-cli.md#self-update-selfupdate
 EOT
             )
         ;
@@ -80,6 +77,10 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if ($_SERVER['argv'][0] === 'Standard input code') {
+            return 1;
+        }
+
         // trigger autoloading of a few classes which may be needed when verifying/swapping the phar file
         // to ensure we do not try to load them from the new phar, see https://github.com/composer/composer/issues/10252
         class_exists('Composer\Util\Platform');
@@ -103,7 +104,7 @@ EOT
         foreach (Versions::CHANNELS as $channel) {
             if ($input->getOption($channel)) {
                 $requestedChannel = $channel;
-                $versionsUtil->setChannel($channel);
+                $versionsUtil->setChannel($channel, $io);
                 break;
             }
         }
@@ -357,7 +358,6 @@ TAGSPUBKEY
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     protected function fetchKeys(IOInterface $io, Config $config): void
@@ -368,7 +368,7 @@ TAGSPUBKEY
 
         $io->write('Open <info>https://composer.github.io/pubkeys.html</info> to find the latest keys');
 
-        $validator = function ($value): string {
+        $validator = static function ($value): string {
             if (!Preg::isMatch('{^-----BEGIN PUBLIC KEY-----$}', trim($value))) {
                 throw new \UnexpectedValueException('Invalid input');
             }
@@ -406,9 +406,6 @@ TAGSPUBKEY
     }
 
     /**
-     * @param string $rollbackDir
-     * @param string $localFilename
-     * @return int
      * @throws FilesystemException
      */
     protected function rollback(OutputInterface $output, string $rollbackDir, string $localFilename): int
@@ -445,7 +442,7 @@ TAGSPUBKEY
      * @throws FilesystemException If the file cannot be moved
      * @return bool                Whether the phar is valid and has been moved
      */
-    protected function setLocalPhar(string $localFilename, string $newFilename, string $backupTarget = null): bool
+    protected function setLocalPhar(string $localFilename, string $newFilename, ?string $backupTarget = null): bool
     {
         $io = $this->getIO();
         $perms = @fileperms($localFilename);
@@ -494,12 +491,6 @@ TAGSPUBKEY
         }
     }
 
-    /**
-     * @param string $rollbackDir
-     * @param string|null $except
-     *
-     * @return void
-     */
     protected function cleanBackups(string $rollbackDir, ?string $except = null): void
     {
         $finder = $this->getOldInstallationFinder($rollbackDir);
@@ -529,10 +520,6 @@ TAGSPUBKEY
         return null;
     }
 
-    /**
-     * @param string $rollbackDir
-     * @return Finder
-     */
     protected function getOldInstallationFinder(string $rollbackDir): Finder
     {
         return Finder::create()
@@ -579,8 +566,6 @@ TAGSPUBKEY
 
     /**
      * Returns true if this is a non-admin Windows user account
-     *
-     * @return bool
      */
     protected function isWindowsNonAdminUser(): bool
     {
@@ -611,7 +596,7 @@ TAGSPUBKEY
         $helpMessage = 'Please run the self-update command as an Administrator.';
         $question = 'Complete this operation with Administrator privileges [<comment>Y,n</comment>]? ';
 
-        if (!$io->askConfirmation($question, false)) {
+        if (!$io->askConfirmation($question, true)) {
             $io->writeError('<warning>Operation cancelled. '.$helpMessage.'</warning>');
 
             return false;
