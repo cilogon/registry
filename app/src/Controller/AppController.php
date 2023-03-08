@@ -84,9 +84,6 @@ class AppController extends Controller {
     $RuleBuilderEventListener = new RuleBuilderEventListener();
     EventManager::instance()->on($RuleBuilderEventListener);
     
-    // We use Paginator in the REST API as well
-    $this->loadComponent('Paginator');
-    
     if(!$this->request->is('restful')) {
       // Initialization for non-RESTful
       $this->loadComponent('Flash');
