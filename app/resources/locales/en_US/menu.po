@@ -72,6 +72,12 @@ msgstr "Operations"
 msgid "co.operations.panel.desc"
 msgstr "Operational activities"
 
+msgid "co.operations.jobs.desc"
+msgstr "Manage this CO's asynchronous process queue"
+
+msgid "co.operations.reports.desc"
+msgstr "Create, view, and export reports"
+
 msgid "co.groups"
 msgstr "Groups"
 
@@ -94,7 +100,7 @@ msgid "co.people.panel.title"
 msgstr "People"
 
 msgid "co.people.panel.desc"
-msgstr "Model and manage people in COmanage Registry"
+msgstr "Model people and manage person lifecycles"
 
 msgid "co.people.population"
 msgstr "My Population"

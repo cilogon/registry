@@ -185,7 +185,46 @@
     <h2><?= __d('menu','co.operations.panel.title') ?></h2>
     <p><?= __d('menu','co.operations.panel.desc') ?></p>
     <div class="menu-panel-content">
-      <!-- Primary menu-panel-links go here. Copy the structure from the People panel above. -->
+      <!-- Primary menu-panel-links -->
+      <ul class="menu-panel-links">
+        <li>
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'jobs',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined">assignment</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'Jobs', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.operations.jobs.desc') ?></div>
+            </div>
+          </a>
+        </li><li>
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'reports',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined">summarize</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'Reports', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.operations.reports.desc') ?></div>
+            </div>
+          </a>
+        </li>
+      </ul>  
       <!-- Add the menu-panel-sidepanel here for plugins and other links. Copy the structure from the People panel above. -->
     </div>
   <?php endif; ?>
