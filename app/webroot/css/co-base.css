@@ -1175,6 +1175,9 @@ ul.form-list li.field-stack textarea {
   width: 100%;
   resize: vertical;
 }
+ul.form-list .field-suppliment {
+  font-size: 0.9em;
+}
 .checkbox {
   margin-bottom: 0.5em;
 }

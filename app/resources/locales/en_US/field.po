@@ -312,6 +312,9 @@ msgstr "Limit Global Search Scope"
 msgid "CoSettings.search_global_limited_models.desc"
 msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
+msgid "format"
+msgstr "format"
+
 msgid "GroupMembers.source"
 msgstr "Membership Source"
 

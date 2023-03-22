@@ -99,6 +99,10 @@ class FieldHelper extends Helper {
     
     // Specify a class on the <li> form control wrapper
     $liClass = $cssClass;
+    
+    // Collect any supplemental markup and/or JavaScript to pass along for field construction.
+    // Suppliment is an array: supplement['beforeField' => 'string', 'afterField' => 'string'].
+    $fieldSupplement = !empty($config['supplement']) ? $config['supplement'] : [];
 
     // Remove prefix from field value
     if(isset($config['prefix'], $this->getView()->get('vv_obj')->$fieldName)) {
@@ -154,8 +158,8 @@ class FieldHelper extends Helper {
     return $this->startLine($liClass)
            . $this->formNameDiv($fieldName, $labelText)
            . ( !empty($config['prefix']) ?
-                 $this->formInfoWithPrefixDiv($controlCode, $config['prefix']) :
-                 $this->formInfoDiv($controlCode) )
+                 $this->formInfoWithPrefixDiv($controlCode, $config['prefix'], $fieldSupplement) :
+                 $this->formInfoDiv($controlCode, $fieldSupplement) )
            . $this->endLine();
   }
   
@@ -275,10 +279,18 @@ class FieldHelper extends Helper {
    * @return string           Form Info HTML
    */
   
-  protected function formInfoDiv(string $content): string {
-    return '<div class="field-info">
-      ' . $content . '
-    </div>';
+  protected function formInfoDiv(string $content, array $supplement): string {
+    $div  = '<div class="field-info">' . PHP_EOL;
+    if(!empty($supplement['beforeField'])) {
+      $div .= $supplement['beforeField'] . PHP_EOL;
+    }
+    $div .= $content . PHP_EOL;
+    if(!empty($supplement['afterField'])) {
+      $div .= $supplement['afterField'] . PHP_EOL;  
+    }
+    $div .= '</div>' . PHP_EOL;
+    
+    return $div;
   }
 
   /**
@@ -290,14 +302,21 @@ class FieldHelper extends Helper {
    * @return string           Form Info HTML
    */
 
-  protected function formInfoWithPrefixDiv(string $context, string $prefix): string {
-    $div =  '<div class="field-info">' . PHP_EOL
-      . '<div class="input-group mb-3">' . PHP_EOL
-      . '<div class="input-group-prepend">' . PHP_EOL
-      . '<span class="input-group-text" id="basic-addon3">' . $prefix . '</span>'
-      . '</div>' . PHP_EOL
-      . $context
-      . '</div></div>';
+  protected function formInfoWithPrefixDiv(string $context, string $prefix, array $supplement): string {
+    $div  = '<div class="field-info">' . PHP_EOL;
+    if(!empty($supplement['beforeField'])) {
+      $div .= $supplement['beforeField'] . PHP_EOL;
+    }
+    $div .= '<div class="input-group mb-3">' . PHP_EOL;
+    $div .= '<div class="input-group-prepend">' . PHP_EOL;
+    $div .= '<span class="input-group-text" id="basic-addon3">' . $prefix . '</span>';
+    $div .= '</div>' . PHP_EOL;
+    $div .= $context;
+    $div .= '</div>';
+    if(!empty($supplement['afterField'])) {
+      $div .= $supplement['afterField'] . PHP_EOL;
+    }
+    $div .= '</div>';
 
     return $div;
   }
