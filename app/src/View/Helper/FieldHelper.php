@@ -390,9 +390,7 @@ class FieldHelper extends Helper {
     
     return '<div class="field-name">
       <div class="field-title">'
-      . ($this->editable 
-         ? $this->Form->label($fn, $label)
-         : $label) 
+      . $this->Form->label($fn, $label)
       . ($this->editable
            && in_array($fn, $this->reqFields)
          ? ' <span class="required">*</span>' 
