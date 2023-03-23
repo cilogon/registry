@@ -86,7 +86,7 @@
                                'action'     => 'select',
                                'plugin'     => false],
                               ['escape'     => false,
-                               'id'         => 'login',
+                               'id'         => 'login-button',
                                'class'      => 'btn btn-small']);
     }
   ?>

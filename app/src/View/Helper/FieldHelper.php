@@ -99,10 +99,17 @@ class FieldHelper extends Helper {
     
     // Specify a class on the <li> form control wrapper
     $liClass = $cssClass;
+  
+    // Get the field type from the map of fields (e.g. 'boolean', 'string', 'timestamp')
+    $fieldMap = $this->getView()->get('vv_field_types');
+    $fieldType = $fieldMap[$fieldName];
     
     // Collect any supplemental markup and/or JavaScript to pass along for field construction.
     // Suppliment is an array: supplement['beforeField' => 'string', 'afterField' => 'string'].
     $fieldSupplement = !empty($config['supplement']) ? $config['supplement'] : [];
+  
+    // For special fields that should not include <label> markup, allow fields to make the label text only
+    $labelIsTextOnly = !empty($config['labelIsTextOnly']) ? $config['labelIsTextOnly'] : false;
 
     // Remove prefix from field value
     if(isset($config['prefix'], $this->getView()->get('vv_obj')->$fieldName)) {
@@ -120,6 +127,13 @@ class FieldHelper extends Helper {
       // if the field is required. This makes it clear when a value need to be set.
       // Note this will be ignored for non-select controls.
       $coptions['empty'] = true;
+    }
+  
+    // A boolean field is a checkbox. Set the label and class to improve rendering
+    // and accessibility.
+    if($fieldType == 'boolean') {
+      $coptions['label'] = $labelText;
+      $coptions['class'] = 'form-check-input';
     }
     
     // Generate the form control or pass along the markup generated in a wrapper function
@@ -156,7 +170,7 @@ class FieldHelper extends Helper {
     }
     
     return $this->startLine($liClass)
-           . $this->formNameDiv($fieldName, $labelText)
+           . $this->formNameDiv($fieldName, $labelText, $fieldType, $labelIsTextOnly)
            . ( !empty($config['prefix']) ?
                  $this->formInfoWithPrefixDiv($controlCode, $config['prefix'], $fieldSupplement) :
                  $this->formInfoDiv($controlCode, $fieldSupplement) )
@@ -275,8 +289,9 @@ class FieldHelper extends Helper {
    * Generate a form info (control, value) box.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string  $content Content HTML
-   * @return string           Form Info HTML
+   * @param  string  $content    Content HTML
+   * @param  string  $supplement Supplemental markup to place before and/or after the field control 
+   * @return string              Form Info HTML
    */
   
   protected function formInfoDiv(string $content, array $supplement): string {
@@ -297,9 +312,10 @@ class FieldHelper extends Helper {
    * Generate a form info (control, value) box with a non editable prefix.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string  $content Content HTML
-   * @param  string  $prefix  Prefix value
-   * @return string           Form Info HTML
+   * @param  string  $content    Content HTML
+   * @param  string  $prefix     Prefix value
+   * @param  string  $supplement Supplemental markup to place before and/or after the field control
+   * @return string              Form Info HTML
    */
 
   protected function formInfoWithPrefixDiv(string $context, string $prefix, array $supplement): string {
@@ -327,10 +343,12 @@ class FieldHelper extends Helper {
    * @since  COmanage Registry v5.0.0
    * @param  string  $fieldName Form field
    * @param  string  $labelText Label text (fieldName language key used by default)
+   * @param  string  $fieldType Type of field (string, boolean, timestamp, etc)
+   * @param  boolean $labelIsTextOnly True if label should be text only. Otherwise false.
    * @return string             Form Name HTML
    */
   
-  protected function formNameDiv(string $fieldName, string $labelText=null): string {
+  protected function formNameDiv(string $fieldName, string $labelText=null, string $fieldType, bool $labelIsTextOnly=false): string {
     $label = $labelText;
     $desc = null;
     
@@ -390,7 +408,9 @@ class FieldHelper extends Helper {
     
     return '<div class="field-name">
       <div class="field-title">'
-      . $this->Form->label($fn, $label)
+      . (!($labelIsTextOnly) && ($fieldType != 'boolean')
+         ? $this->Form->label($fn, $label)
+         : $label) 
       . ($this->editable
            && in_array($fn, $this->reqFields)
          ? ' <span class="required">*</span>' 
@@ -408,13 +428,15 @@ class FieldHelper extends Helper {
    * @param  string  $status    Status text
    * @param  array   $link      Link information, including 'url', 'label', 'class', 'confirm'
    * @param  string  $labelText Label text (fieldName language key used by default)
+   * @param  array   $config    Custom FormHelper configuration options
    * @return string
    */
   
   public function statusControl(string $fieldName, 
                                 string $status, 
                                 array $link=[], 
-                                string $labelText=null): string {
+                                string $labelText=null,
+                                array $config=[]): string {
     $linkHtml = $status;
     
     if($link) {
@@ -439,9 +461,12 @@ class FieldHelper extends Helper {
         );
       }
     }
+  
+    // For special fields that should not include <label> markup, allow fields to make the label text only
+    $labelIsTextOnly = !empty($config['labelIsTextOnly']) ? $config['labelIsTextOnly'] : false;
      
     return $this->startLine()
-           . $this->formNameDiv($fieldName, $labelText)
+           . $this->formNameDiv($fieldName, $labelText, 'string', $labelIsTextOnly)
            . $linkHtml
            . $this->endLine();
   }

@@ -331,7 +331,7 @@ body.cos.select #top-bar {
   margin: 0 0 0.25rem;
 }
 /* LOGIN & LOGOUT */
-#login {
+#login-button {
   display: inline-block;
   padding: 0.25em 1em;
   text-decoration: none;
@@ -1178,19 +1178,8 @@ ul.form-list li.field-stack textarea {
 ul.form-list .field-suppliment {
   font-size: 0.9em;
 }
-.checkbox {
-  margin-bottom: 0.5em;
-}
-.checkbox input {
-  float: left;
-  margin: 4px 4px 0 0;
-}
-.checkbox label {
-  margin-left: 1.5em;
-  display: block;
-}
-.checkbox label::first-line {
-  margin-left: 0;
+.checkbox label input {
+  margin-right: 0.5em;
 }
 .checkbox .subfield {
   margin-left: 1.5em;

@@ -36,6 +36,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   // We link to the "Generate" button on edit only
   $generateLink = [];
+  $config = [];
   
   if(!empty($vv_obj->id)) {
     $generateLink = [
@@ -45,14 +46,18 @@ if($vv_action == 'add' || $vv_action == 'edit') {
         $vv_obj->id
       ],
      'label' => __d('operation', 'api.key.generate'),
-     'class' => 'provisionbutton',
+     'class' => 'provisionbutton nospin',
      'confirm' => __d('operation', 'api.key.generate.confirm')
     ];
+    
+    $config = ['labelIsTextOnly' => true];
   }
   
   print $this->Field->statusControl('api_key',
                                     !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
-                                    $generateLink);
+                                    $generateLink,
+                                    null,
+                                    $config);
   
   print $this->Field->control('status', ['empty' => false]);
   
