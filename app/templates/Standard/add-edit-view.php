@@ -71,6 +71,10 @@ if(!empty($banners)) {
 if(!empty($subnav)) {
   // Include the $flashArgs for the subnavigation element
   $subnav['flashArgs'] = $flashArgs;
+  if(!empty($topLinks) && ($modelsName == 'People' &&  $vv_action == 'edit')) {
+    // We are in Person canvas mode: pass along the top links for building the Actions menu.
+    $subnav['topLinks'] = $topLinks;
+  }
   // Generate the subnavigation title and tabs
   print $this->element('subnavigation', $subnav);
 }
@@ -79,53 +83,10 @@ if(!empty($subnav)) {
 <?php /** Special case the Person "canvas" **/ ?>
 <?php if($modelsName == 'People' &&  $vv_action == 'edit'): ?>
   <?php
-  // Person Attributes to display.
-  $attributes = [
-    'names',
-    'email_addresses',
-    'identifiers',
-    'ad_hoc_attributes',
-    'addresses',
-    'telephone_numbers',
-    'urls',
-    'pronouns'
-  ];
-
-  // Count the number of widgets that will be displayed 
-  $widgetCount = 0;
-  foreach($attributes as $attr) {
-    if(!empty($vv_obj[$attr])) {
-      $widgetCount++;
-    }
-  }
-
-  $objId = null;
-  if(!empty($vv_obj)) {
-    $objId = $vv_obj->id;
-  }
+    // The person canvas has $addMenuLinks defined in templates/People/fields-nav.inc config. 
+    print $this->element('personCanvas', ['vv_add_menu_links' => $addMenuLinks]); 
   ?>
-  <div id="person-canvas" class="co-cards">
-    <!-- Person Attributes -->
-    <div id="person-canvas-attributes-js" class="row row-cols-1 g-4 <?= ($widgetCount > 1) ? 'row-cols-md-2' : ''?>">
-      <?php
-        foreach($attributes as $attr) {
-          if(!empty(($vv_obj[$attr]))) {
-            print $this->element(
-              'mveaJs',
-              [
-                'htmlId' => 'person-canvas-' . $attr . '-js',
-                'parentId' => $objId,
-                'mveaType' => $attr,
-                'entityType' => 'person'
-              ]
-            );
-          }
-        }
-        // XXX Add the DOB as its own special card.
-      ?>
-    </div>
-  </div>
-<?php else: /** normal output **/ ?>
+<?php else: /** Normal output **/ ?>
   <div class="pageTitleContainer">
     <div class="pageTitle">
       <?php if(empty($subnav)): ?>

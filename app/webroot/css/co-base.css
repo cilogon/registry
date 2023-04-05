@@ -1022,6 +1022,12 @@ table.index-table .form-check {
 #person-actions .action-menu-toggle {
   white-space: nowrap;
 }
+.person-actions-add-menu-container {
+  float: right;
+}
+#person-canvas {
+  clear: both;
+}
 #person-canvas-attributes,
 #person-canvas-attributes-js {
   margin-top: 0;

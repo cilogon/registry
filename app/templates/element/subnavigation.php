@@ -96,97 +96,8 @@ if(!empty($vv_supertitle)) {
     </div>
     
     <?php if($name == 'person'): ?>
-      <!-- Specialty person dropdown menus - ADD and global actions -->
+      <!-- Specialty person dropdown menus - global actions -->
       <nav id="person-actions">
-        <?php
-          // Build the Add menu
-          $action_args = array();
-          $action_args['vv_attr_id'] =  $curId;
-          $action_args['vv_actions_type'] = 'person-actions-add-menu';
-          $action_args['vv_actions_title'] = __d('operation','add');
-          $action_args['vv_actions_icon'] = 'add_circle';
-          $action_args['vv_actions_class'] = 'person-actions-add-menu';
-          $actionOrderDefault = $this->Menu->getMenuOrder('Default');
-          $personAddMenuActions = [
-            [
-              'controller' => 'names',
-              'action' => 'add',
-              'icon' => 'account_box',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'email_addresses',
-              'action' => 'add',
-              'icon' => 'email',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'identifiers',
-              'action' => 'add',
-              'icon' => 'fingerprint'
-            ],
-            [
-              'controller' => 'person_roles',
-              'action' => 'add',
-              'icon' => 'emoji_people'
-            ],
-            [
-              'controller' => 'ad_hoc_attributes',
-              'action' => 'add',
-              'icon' => 'check_box',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'addresses',
-              'action' => 'add',
-              'icon' => 'contact_mail',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'history_records',
-              'action' => 'add',
-              'icon' => 'history'
-            ],
-            [
-              'controller' => 'telephone_numbers',
-              'action' => 'add',
-              'icon' => 'phone'
-            ],
-            [
-              'controller' => 'urls',
-              'action' => 'add',
-              'icon' => 'link'
-            ]
-          ];
-          foreach(($personAddMenuActions ?? []) as $a) {
-            $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
-            $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
-            $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
-            $actionClass = !empty($a['class']) ? $a['class'] : '';
-            $actionUrl = $this->Url->build(
-              [
-                'controller' => $a['controller'],
-                'action' => $a['action'],
-                '?' => [
-                  'person_id' => $curId
-                ]
-              ]
-            );
-            $actionLabel = __d('controller', Cake\Utility\Inflector::camelize($a['controller']), [1]);
-            $action_args['vv_actions'][] = [
-              'order' => $actionOrder,
-              'icon' => $actionIcon,
-              'iconClass' => $actionIconClass,
-              'url' => $actionUrl,
-              'class' => $actionClass,
-              'label' => $actionLabel
-            ];
-          }
-        ?>
-        <div class="field-actions person-actions-add-menu-container">
-          <?= $this->element('menuAction', $action_args) ?>
-        </div>
-            
         <?php
           // Build the global Person Actions menu
           $action_args = array();
@@ -195,22 +106,16 @@ if(!empty($vv_supertitle)) {
           $action_args['vv_actions_title'] = __d('field','actions',[99]);
           $action_args['vv_actions_icon'] = 'settings';
           $action_args['vv_actions_class'] = 'person-actions-menu';
-          // history records
-          $actionUrl = $this->Url->build(
-            [
-              'controller' => 'history_records',
-              'action' => 'index',
-              '?' => [
-                'person_id' => $curId
-              ]
-            ]
-          );
-          $action_args['vv_actions'][] = array(
-            'order' => $this->Menu->getMenuOrder('Default'),
-            'icon' => 'history',
-            'url' => $actionUrl,
-            'label' => __d('operation', 'HistoryRecords')
-          );
+          if(!empty($topLinks)) {
+            foreach ($topLinks as $action) {
+              $action_args['vv_actions'][] = array(
+                'order' => $this->Menu->getMenuOrder($action['order']),
+                'icon' => $action['icon'],
+                'url' => $this->Url->build($action['link']),
+                'label' => $action['label']
+              );
+            }
+          }
           // delete
           $actionPostBtnArray = ['action' => 'delete', $curId];
           $actionUrl = $this->Url->build(['action' => 'delete', $curId]);
