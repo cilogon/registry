@@ -1,6 +1,5 @@
-<?php
 /**
- * COmanage Registry Vue Helper
+ * COmanage Registry MVEA Modal JavaScript
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,53 +24,26 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
-
-namespace App\View\Helper;
-
-use Cake\I18n\FrozenTime;
-use Cake\Utility\Inflector;
-use Cake\View\Helper;
-use Cake\I18n\I18n;
-
-class VueHelper extends Helper {
-  private array $locales_list = [
-    'field' => [
-      'login',
-      'primary',
-      'datepicker.hour',
-      'unverified'
-    ],
-    'information' => [
-      'global.value.none',
-      'datepicker.hour'
-    ],
-    'operation' => [
-      'close'
-    ]
-  ];
-
-  /**
-   * Helper which will produce an array of configured locales
-   *
-   * @param   string  $lang  The language of the locale
-   *
-   * @return array []
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function locales(string $lang = 'en_US'): array {
-
-    I18n::setLocale($lang);
-
-    $locales = [];
-    foreach ($this->locales_list as $domain => $key_list) {
-      foreach ($key_list as $key) {
-        $locales[$key] = __d($domain, $key);
-      }
-    }
-
-    return $locales;
-  }
-
+export default {
+  props: {
+    modal: Object,
+    core: Object,
+    txt: Object
+  },
+  template: `
+    <div className="modal fade mvea-modal" id="mvea-modal" aria-labelledby="mvea-modal-title" tabIndex="-1" aria-hidden="true">
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2 class="modal-title" id="mvea-modal-title">{{ this.modal.title }}</h2>
+            <button type="button" className="btn-close nospin" data-bs-dismiss="modal"
+                    :aria-label="txt.close"></button>
+          </div>
+          <div id="mvea-modal-text" className="modal-body">
+            <iframe :src="this.modal.url"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
 }

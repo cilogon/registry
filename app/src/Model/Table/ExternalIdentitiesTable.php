@@ -110,14 +110,15 @@ class ExternalIdentitiesTable extends Table {
 // XXX does some of this stuff really belong in the controller?
     $this->setEditContains([
       'PrimaryName',
-/*      'Addresses',
+      'Addresses',
       'AdHocAttributes',
       'EmailAddresses',
       'Identifiers',
       'Names',
-      'PersonRoles',
+      //'ExternalIdentityRoles',
+      'Pronouns',
       'TelephoneNumbers',
-      'Urls'*/
+      'Urls'
     ]);
     $this->setIndexContains(['PrimaryName']);
 

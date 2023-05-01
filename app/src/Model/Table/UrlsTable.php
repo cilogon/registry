@@ -54,6 +54,26 @@ class UrlsTable extends Table {
   ];
   
   /**
+   * Provide the default layout
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string  Type of redirect
+   */
+  public function getLayout(): string {
+    return "iframe";
+  }
+  
+  /**
+   * Provide the default redirect goal
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string  Type of redirect
+   */
+  public function getRedirectGoal(): string {
+    return "self";
+  }
+  
+  /**
    * Perform Cake Model initialization.
    *
    * @since  COmanage Registry v5.0.0

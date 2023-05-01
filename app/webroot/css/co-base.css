@@ -50,7 +50,7 @@ h1.loginMsg {
 }
 h2 {
   font-size: 2em;
-  line-height: 2.5em;
+  line-height: 2em;
   margin: 0;
 }
 h3 {
@@ -628,6 +628,12 @@ ul.form-list li.alert-banner .co-alert {
 #subnavigation nav {
   padding: 0.5em 0;
 }
+#cm-person-subnav-tabs {
+  margin-bottom: 1.5em;
+}
+#cm-person-subnav-links {
+  margin-top: -2em;
+}
 .cm-subnav-tabs .nav-link {
   text-transform: uppercase;
   padding: 1em 1.5em;
@@ -1022,24 +1028,31 @@ table.index-table .form-check {
 #person-actions .action-menu-toggle {
   white-space: nowrap;
 }
-.person-actions-add-menu-container {
+#mvea-add-menu-container {
   float: right;
+  margin: 1em 0 0;
 }
-#person-canvas {
+#mvea-canvas {
   clear: both;
 }
-#person-canvas-attributes,
-#person-canvas-attributes-js {
+#mvea-canvas-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 3em 0 -0.5em;
+}
+#mvea-canvas-attributes,
+#mvea-canvas-attributes-js {
   margin-top: 0;
   margin-bottom: 2em;
 }
-#person-canvas-attributes-js .badge {
+#mvea-canvas-attributes-js .badge {
   margin-right: 0.5em;
 }
-#person-canvas-attributes-js .canvas-url-link {
+#mvea-canvas-attributes-js .canvas-url-link {
   margin-left: 1em;
 }
-#person-canvas-roles {
+#mvea-canvas-roles {
   margin-bottom: 2em;
 }
 h2.card-title {
@@ -1337,6 +1350,36 @@ ul.form-list .cm-time-picker-vals li {
 }
 #dialog .modal-footer {
   border-top: none;
+}
+/* MVEA MODAL */
+.mvea-modal .modal-dialog {
+  max-width: 90vw;
+}
+.mvea-modal .modal-header {
+  padding: 0.5rem 1rem;
+  background-color: var(--cmg-color-lightgray-004);
+  border-bottom: none;
+}
+.mvea-modal .modal-content {
+  height: 80vh;
+}
+.mvea-modal .modal-body {
+  padding-top: 0;
+}
+.mvea-modal iframe {
+  width: 100%;
+  height: 100%;
+}
+#comanage-iframe-wrapper #subnavigation .supertitle-container,
+#comanage-iframe-wrapper #subnavigation #cm-person-subnav-tabs,
+#comanage-iframe-wrapper #subnavigation #cm-person-subnav-links {
+  display: none;  
+}
+#comanage-iframe-wrapper #content {
+  padding: 1rem 2em 0;
+}
+#comanage-iframe-wrapper .pageTitleContainer {
+  margin: 1em 0;
 }
 /* GENERAL */
 .hidden,

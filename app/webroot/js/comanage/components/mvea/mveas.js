@@ -48,6 +48,11 @@ export default {
       return this.mveas?.[camelize(this.core.mveaType)]
     }
   },
+  methods: {
+    refresh() {
+      this.$parent.refreshComponent();
+    }
+  },
   template: `
     <ul class="cm-mvea fields data-list">
       <mvea-item 

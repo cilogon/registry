@@ -204,6 +204,17 @@
         });
       }
     });
+    
+    // Person canvas "Add" links
+    // Launch the MVEA modal window, load the Add url, and refresh the appropriate component when done.
+    $('#mvea-add-menu-container ul a').click(function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var title = $(this).find('.action-link-text').text();
+      var url = $(this).prop('href');
+      var componentRef = 'mvea' + $(this).data('cm-mveatype');
+      window.cmMveaModal.launch(title,url,componentRef);
+    });
 
     // Bulk edit switch
     $('#bulk-edit-switch').click(function() {

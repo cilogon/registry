@@ -83,15 +83,7 @@ if(!empty($subnav)) {
     <?php if(empty($subnav)): ?>
       <h1><?= $vv_title; ?></h1>
     <?php else: ?>
-      <?php if(
-        // Subnavigation contains an h2 for these entities, so we need an h3
-        $vv_primary_link == 'person_role_id'
-        || $vv_primary_link == 'external_identity_id'
-        || $vv_primary_link == 'external_identity_role_id'): ?>
-        <h3><?= $vv_title; ?></h3>
-      <?php else: ?>
-        <h2><?= $vv_title; ?></h2>
-      <?php endif; ?>
+      <h2><?= $vv_title; ?></h2>
     <?php endif; ?>
   </div>
 

@@ -24,9 +24,6 @@
 
 # Menu Messages
 
-msgid "co.Attributes"
-msgstr "Attributes"
-
 msgid "co.configuration"
 msgstr "Configuration"
 

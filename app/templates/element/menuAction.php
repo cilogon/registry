@@ -61,10 +61,18 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
   ?>
   <ul id="action-list_<?= $actionsMenuUid; ?>" class="dropdown-menu nospin">
     <?php foreach($vv_actions as $action): ?>
+      <?php 
+        $actionDataAttrs = '';
+        if(!empty($action['dataAttrs'])) {
+          foreach($action['dataAttrs'] as $dataAttr) {
+            $actionDataAttrs = ' ' . $dataAttr[0] . '="' . $dataAttr[1] . '"';
+          }
+        } 
+      ?>
       <li class="action-list-item">
         <?php $actionCssClass = (!empty($action['class'])) ? "dropdown-item " . $action['class'] : "dropdown-item"; ?>
         <?php if(empty($action['onclick'])): ?>
-          <a class="<?= $actionCssClass; ?>" href="<?= $action['url']; ?>">
+          <a class="<?= $actionCssClass; ?>" href="<?= $action['url']; ?>"<?= !(empty($actionDataAttrs)) ? $actionDataAttrs : '' ?>>
             <?php if(!empty($action['icon'])): ?>
               <?php if(!empty($action['iconClass'])): ?>
                 <em class="<?= $action['iconClass']; ?>"><?= $action['icon']; ?></em>
@@ -72,7 +80,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
                 <em class="material-icons"><?= $action['icon']; ?></em>
               <?php endif; ?>
             <?php endif; ?>
-            <?= $action['label']; ?>
+            <span class="action-link-text"><?= $action['label']; ?></span>
           </a>
         <?php else: ?>
           <?php

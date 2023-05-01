@@ -36,7 +36,6 @@ export default {
   },
   computed: {
     mveaLink: function() {
-      // For now, link to the underlying PHP form. We will change this behavior as we develop the JS forms.
       return this.core.webroot + this.core.mveaController + '/edit/' + this.mvea.id;
     }
   },
@@ -45,7 +44,11 @@ export default {
       return constructLanguageString(lang)
     },
     followRowLink() {
-      location.href = this.mveaLink;
+      //location.href = this.mveaLink;
+      this.$nextTick(() => {
+        var componentReference = 'mvea' + this.core.mveaType;
+        this.$parent.$parent.launchModal(this.core.mveaTitle, this.mveaLink, componentReference);
+      });
     }
   },
   mounted() {
@@ -55,7 +58,7 @@ export default {
     <!-- Names -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'names'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link">
+        <a :href="mveaLink" class="row-link" @click.prevent>
           <!-- If there is a display name use it. Otherwise, check language and produce right-to-left 
             order or left-to-right order. This approach is similar to Model/Entity/Name.php::_getFullName(). 
             XXX We expect to get the full_name out of the API, so remove this logic when we have the full name. 
@@ -81,7 +84,7 @@ export default {
     <!-- Email Addresses -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'email_addresses'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link">{{ this.mvea.mail }}</a>                                              
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.mail }}</a>                                              
       </div>
       <div class="field-data data-label">
         <span v-if="!(this.mvea.verified)" class="mr-1 badge bg-warning unverified">{{ this.txt.unverified }}</span>
@@ -91,7 +94,7 @@ export default {
     <!-- Identifiers -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'identifiers'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="nospin">{{ this.mvea.identifier }}</a>                                              
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.identifier }}</a>                                              
       </div>
       <div class="field-data data-label">
         <span v-if="this.mvea.login" class="mr-1 badge bg-outline-secondary login">{{ this.txt.login }}</span>
@@ -101,7 +104,7 @@ export default {
     <!-- Ad Hoc Attributes -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'ad_hoc_attributes'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link">{{ this.mvea.value != '' ? this.mvea.value : this.txt["global.value.none"] }}</a>
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.value != '' ? this.mvea.value : this.txt["global.value.none"] }}</a>
       </div>
       <div v-if="this.mvea.tag != ''" class="field-data data-label">
         <span class="mr-1 badge bg-light ad-hoc">{{ this.mvea.tag }}</span>
@@ -111,7 +114,7 @@ export default {
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'addresses'" @click="followRowLink">
       <div class="field-data force-wrap">
         <address>
-          <a :href="mveaLink" class="row-link">{{ this.mvea.room }} {{ this.mvea.street }}</a>
+          <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.room }} {{ this.mvea.street }}</a>
           <span v-if="this.mvea.locality != '' || this.mvea.state != ''" class="addr-locality-state">
             <br>{{ this.mvea.locality }}{{ this.mvea.locality != '' && this.mvea.state != '' ? ', ' : ''}}{{ this.mvea.state }}
           </span>
@@ -127,7 +130,7 @@ export default {
     <!-- Telephone Numbers -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'telephone_numbers'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link">{{ this.mvea.country_code }} {{ this.mvea.area_code }} {{ this.mvea.number }}</a>                                              
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.country_code }} {{ this.mvea.area_code }} {{ this.mvea.number }}</a>                                              
       </div>
       <div class="field-data data-label">
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>
@@ -136,7 +139,7 @@ export default {
     <!-- Urls -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'urls'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link">{{ this.mvea.description != '' ? this.mvea.description : this.mvea.url }}</a>   
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.description != '' ? this.mvea.description : this.mvea.url }}</a>   
         <a :href="this.mvea.url" class="canvas-url-link" :title="this.txt['global.visit.link']"><span class="material-icons">north_east</span></a>
       </div>
       <div class="field-data data-label">
@@ -146,7 +149,7 @@ export default {
     <!-- Pronouns -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'pronouns'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link">{{ this.mvea.type_id }}</a>                                              
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.type_id }}</a>                                              
       </div>
       <div class="field-data data-label">
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>

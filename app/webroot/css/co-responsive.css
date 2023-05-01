@@ -52,7 +52,7 @@
   }
   h2 {
     font-size: 2em;
-    line-height: 2em;
+    line-height: 1.2em;
   }
   #logout {
     display: block;
@@ -105,7 +105,7 @@
     grid-template-columns: 1fr 1fr;
     align-items: center;
   }
-  #person-canvas-roles .field-data-container {
+  #mvea-canvas-roles .field-data-container {
     grid-template-columns: 1fr 1fr 2fr auto;
   }
   /* PAGINATION */

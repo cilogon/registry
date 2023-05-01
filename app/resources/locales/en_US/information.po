@@ -51,6 +51,12 @@ msgstr "Active, Cannot Be Disabled"
 msgid "plugin.inactive"
 msgstr "Inactive"
 
+msgid "global.attribute.modal"
+msgstr "Attribute Modal"
+
+msgid "global.attributes"
+msgstr "Attributes"
+
 msgid "global.records.none"
 msgstr "There are no records to display."
 

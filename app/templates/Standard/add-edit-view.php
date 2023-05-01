@@ -80,102 +80,83 @@ if(!empty($subnav)) {
 }
 ?>
 
-<?php /** Special case the Person "canvas" **/ ?>
-<?php if($modelsName == 'People' &&  $vv_action == 'edit'): ?>
-  <?php
-    // The person canvas has $addMenuLinks defined in templates/People/fields-nav.inc config. 
-    print $this->element('personCanvas', ['vv_add_menu_links' => $addMenuLinks]); 
-  ?>
-<?php else: /** Normal output **/ ?>
-  <div class="pageTitleContainer">
-    <div class="pageTitle">
-      <?php if(empty($subnav)): ?>
-        <h1><?= $vv_title; ?></h1>
-      <?php else: ?>
-        <?php if(
-          // Subnavigation contains an h2 for these entities, so we need an h3
-          $vv_primary_link == 'person_role_id'
-          || $vv_primary_link == 'external_identity_id'
-          || $vv_primary_link == 'external_identity_role_id'
-          || $this->request->getParam('controller') == 'PersonRoles'
-          || $this->request->getParam('controller') == 'ExternalIdentities'
-          || $this->request->getParam('controller') == 'ExternalIdentityRoles'): ?>
-          <h3><?= $vv_title; ?></h3>
-        <?php else: ?>
-          <h2><?= $vv_title; ?></h2>
-        <?php endif; ?>
-      <?php endif; ?>
-    </div>
-    <?php
-      // Action list for top menu dropdown / button listing
-      $action_args = array();
-      $action_args['vv_attr_id'] =  $vv_obj->id;
-      
-      foreach(($topLinks ?? []) as $t) {
-        $perm = false;
-
-        if(!empty($t['link']['controller'])) {
-          // We're linking into a related model
-
-          $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
-
-          if(isset($vv_permissions[$linkModel][ $t['link']['action'] ])) {
-            $perm = $vv_permissions[$linkModel][ $t['link']['action'] ];
-          }
-
-          // Inject a link to the current object ID
-          $t['link']['?'][\App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj)] = $vv_obj->id;
-        } else {
-          $perm = $vv_permissions[ $t['link']['action'] ];
-
-          // We need to inject $linkFilter, but not overwrite any existing query params
-          if(!empty($t['link']['?'])) {
-            $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
-          } else {
-            $t['link']['?'] = $linkFilter;
-          }
-        }
-
-        if($perm) {
-          $action_args['vv_actions'][] = [
-            'order' => $this->Menu->getMenuOrder($t['order']),
-            'icon' => $this->Menu->getMenuIcon($t['icon']),
-            'url' => $this->Url->build($t['link']),
-            'label' => $t['label'],
-          ];
-        }
-      }
-    
-      // Delete
-      if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
-        $actionPostBtnArray = ['action' => 'delete', $vv_obj->id];
-        $actionUrl = $this->Url->build(['action' => 'delete', $vv_obj->id]);
-        $action_args['vv_actions'][] = array(
-          'order' => $this->Menu->getMenuOrder('Delete'),
-          'icon' =>  $this->Menu->getMenuIcon('Delete'),
-          'url' => 'javascript:void(0);',
-          'label' => __d('operation', 'delete'),
-          'class' => 'deletebutton nospin',
-          'onclick' => array(
-            'dg_bd_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
-            'dg_post_btn_array' => $actionPostBtnArray,
-            'dg_url' => $actionUrl,
-            'dg_conf_btn' => __d('operation', 'remove'),
-            'dg_cancel_btn' => __d('operation', 'cancel'),
-            'dg_title' => __d('operation', 'remove'),
-            'dg_bd_txt_repl_str' => ''
-          )
-        );
-      }
-    
-      if(!empty($action_args['vv_actions'])) {
-        print '<div class="field-actions top-links">';
-        print $this->element('menuAction', $action_args);
-        print '</div>';
-      }
-    ?>
+<div class="pageTitleContainer">
+  <div class="pageTitle">
+    <?php if(empty($subnav)): ?>
+      <h1><?= $vv_title; ?></h1>
+    <?php else: ?>
+      <h2><?= $vv_title; ?></h2>
+    <?php endif; ?>
   </div>
-<?php endif; /** end Person "canvas" vs. normal output **/?>
+  <?php
+    // Action list for top menu dropdown / button listing
+    $action_args = array();
+    $action_args['vv_attr_id'] =  $vv_obj->id;
+    
+    foreach(($topLinks ?? []) as $t) {
+      $perm = false;
+
+      if(!empty($t['link']['controller'])) {
+        // We're linking into a related model
+
+        $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
+
+        if(isset($vv_permissions[$linkModel][ $t['link']['action'] ])) {
+          $perm = $vv_permissions[$linkModel][ $t['link']['action'] ];
+        }
+
+        // Inject a link to the current object ID
+        $t['link']['?'][\App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj)] = $vv_obj->id;
+      } else {
+        $perm = $vv_permissions[ $t['link']['action'] ];
+
+        // We need to inject $linkFilter, but not overwrite any existing query params
+        if(!empty($t['link']['?'])) {
+          $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+        } else {
+          $t['link']['?'] = $linkFilter;
+        }
+      }
+
+      if($perm) {
+        $action_args['vv_actions'][] = [
+          'order' => $this->Menu->getMenuOrder($t['order']),
+          'icon' => $this->Menu->getMenuIcon($t['icon']),
+          'url' => $this->Url->build($t['link']),
+          'label' => $t['label'],
+        ];
+      }
+    }
+  
+    // Delete
+    if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
+      $actionPostBtnArray = ['action' => 'delete', $vv_obj->id];
+      $actionUrl = $this->Url->build(['action' => 'delete', $vv_obj->id]);
+      $action_args['vv_actions'][] = array(
+        'order' => $this->Menu->getMenuOrder('Delete'),
+        'icon' =>  $this->Menu->getMenuIcon('Delete'),
+        'url' => 'javascript:void(0);',
+        'label' => __d('operation', 'delete'),
+        'class' => 'deletebutton nospin',
+        'onclick' => array(
+          'dg_bd_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
+          'dg_post_btn_array' => $actionPostBtnArray,
+          'dg_url' => $actionUrl,
+          'dg_conf_btn' => __d('operation', 'remove'),
+          'dg_cancel_btn' => __d('operation', 'cancel'),
+          'dg_title' => __d('operation', 'remove'),
+          'dg_bd_txt_repl_str' => ''
+        )
+      );
+    }
+  
+    if(!empty($action_args['vv_actions'])) {
+      print '<div class="field-actions top-links">';
+      print $this->element('menuAction', $action_args);
+      print '</div>';
+    }
+  ?>
+</div>
 
 <?php if(empty($subnav)): ?>
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
@@ -242,5 +223,16 @@ if($vv_action == 'add' || $vv_action == 'edit') {
 print $this->Form->end();
 
 print $this->Field->endControlSet();
+
+/** MVEA Canvas output **/
+if($vv_action != 'add' && !empty($mveas)) {
+  // Pass along the $mveas and any $addMenuLinks defined in templates/.../fields-nav.inc config. 
+  print $this->element('mveaCanvas',
+    [
+      'vv_mveas' => $mveas,
+      'vv_add_menu_links' => !empty($addMenuLinks) ? $addMenuLinks : '',
+      'vv_entity_type' => $mveasEntityType
+    ]);
+}  
 
 // XXX insert changelog metadata (+nav? or maybe we should have a dedicate index view that shows all records in revision order?)

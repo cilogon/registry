@@ -25,9 +25,23 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'names',
+  'email_addresses',
+  'identifiers',
+  'ad_hoc_attributes',
+  'addresses',
+  'telephone_numbers',
+  'urls',
+  'pronouns'
+];
 
-// Output for $topLinks from this specific configuration is presented in the Person canvas "Actions" menu.   
+// Name the MVEAs Entity Type
+$mveasEntityType = "person";  
+  
+// Output for $topLinks from this specific configuration is presented in the mveaCanvas.php "Actions" menu.   
 $topLinks = [
   [
     'icon' => 'history',
@@ -44,8 +58,7 @@ $topLinks = [
 ];
   
 // $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
-// it is a page-global menu used for adding MVEAs to the person canvas and is given special treatment in
-// element/personCanvas.php.
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
 $addMenuLinks = [
   [
     'controller' => 'names',

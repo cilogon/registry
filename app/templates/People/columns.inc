@@ -47,24 +47,6 @@ $topLinks = [];
 // $rowActions appear as row-level menu items in the index view gear icon
 $rowActions = [
   [
-    'controller' => 'names',
-    'action' => 'index',
-    'icon' => 'account_box',
-    'iconClass' => 'material-icons-outlined'
-  ],
-  [
-    'controller' => 'email_addresses',
-    'action' => 'index',
-    'icon' => 'email',
-    'iconClass' => 'material-icons-outlined'
-  ],
-  [
-    'controller' => 'identifiers',
-    'action' => 'index',
-    'icon' => 'fingerprint',
-    'class' => 'bottom-border'
-  ],
-  [
     'controller' => 'person_roles',
     'action' => 'index',
     'icon' => 'emoji_people'
@@ -76,31 +58,9 @@ $rowActions = [
     'class' => 'bottom-border'
   ],
   [
-    'controller' => 'ad_hoc_attributes',
-    'action' => 'index',
-    'icon' => 'check_box',
-    'iconClass' => 'material-icons-outlined'
-  ],
-  [
-    'controller' => 'addresses',
-    'action' => 'index',
-    'icon' => 'contact_mail',
-    'iconClass' => 'material-icons-outlined'
-  ],
-  [
     'controller' => 'history_records',
     'action' => 'index',
     'icon' => 'history'
-  ],
-  [
-    'controller' => 'telephone_numbers',
-    'action' => 'index',
-    'icon' => 'phone'
-  ],
-  [
-    'controller' => 'urls',
-    'action' => 'index',
-    'icon' => 'link'
   ]
 ];
 
