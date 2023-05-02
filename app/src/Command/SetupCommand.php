@@ -160,7 +160,7 @@ class SetupCommand extends Command
     
     $person->person_roles = [$coTable->People->PersonRoles->newEntity([
       'affiliation_type_id'   => $coTable->Types->getTypeId(coId:       $co_id, 
-                                                            attribute:  'PersonRoles.affiliation',
+                                                            attribute:  'PersonRoles.affiliation_type',
                                                             value:      'staff'),
       'title'                 => __d('command', 'se.person_role.title'),
       'status'                => SuspendableStatusEnum::Active
