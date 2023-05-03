@@ -47,7 +47,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
     'title' => __d('field', 'action')
   );
   print $this->Html->link(
-    '<span class="material-icons">' . $actionsIcon . '</span> ' . $actionsTitle,
+    '<span class="material-icons" aria-hidden="true">' . $actionsIcon . '</span> ' . $actionsTitle,
     'javascript:void(0);',
     $linkparams
   );
@@ -75,9 +75,9 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
           <a class="<?= $actionCssClass; ?>" href="<?= $action['url']; ?>"<?= !(empty($actionDataAttrs)) ? $actionDataAttrs : '' ?>>
             <?php if(!empty($action['icon'])): ?>
               <?php if(!empty($action['iconClass'])): ?>
-                <em class="<?= $action['iconClass']; ?>"><?= $action['icon']; ?></em>
+                <em class="<?= $action['iconClass']; ?>" aria-hidden="true"><?= $action['icon']; ?></em>
               <?php else: ?>
-                <em class="material-icons"><?= $action['icon']; ?></em>
+                <em class="material-icons" aria-hidden="true"><?= $action['icon']; ?></em>
               <?php endif; ?>
             <?php endif; ?>
             <span class="action-link-text"><?= $action['label']; ?></span>
@@ -102,7 +102,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
               <?php if(!empty($action['icon_class'])): ?>
                 <em class="<?= $action['icon_class']; ?>"><?= $action['icon']; ?></em>
               <?php else: ?>
-                <em class="material-icons"><?= $action['icon']; ?></em>
+                <em class="material-icons" aria-hidden="true"><?= $action['icon']; ?></em>
               <?php endif; ?>
             <?php endif; ?>
             <?= $action['label']; ?>

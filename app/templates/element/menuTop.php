@@ -29,11 +29,17 @@
 <?php if(!empty($vv_user)): ?>
   <ul>
     <li id="top-menu-user">
-      <button type="button" class="dropdown-toggle top-menu-button" id="user-panel-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <button type="button" 
+              class="dropdown-toggle top-menu-button" 
+              id="user-panel-toggle" 
+              data-bs-toggle="dropdown" 
+              aria-haspopup="true" 
+              aria-expanded="false"
+              aria-label="<?= __d('menu','menu.user') ?>">
         <span class="top-menu-link-text">
           <?= $vv_user['username']; ?>
         </span>
-        <em class="material-icons icon-adjust">person</em>
+        <em class="material-icons icon-adjust" aria-hidden="true">person</em>
       </button>
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
@@ -46,7 +52,7 @@
           ?>
         </div>
         <div id="user-panel-user-info">
-          <em class="material-icons">person</em>
+          <em class="material-icons" aria-hidden="true">person</em>
           <div id="user-panel-cn"><?= $vv_user['username']; ?></div>
           <div id="user-panel-id"><!-- XXX identifier goes here --></div>
         </div>
@@ -56,11 +62,11 @@
             Settings
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#"><span class="material-icons">dark_mode</span> Dark mode</a></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">dark_mode</span> Dark mode</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#"><span class="material-icons">density_small</span>Density small</a></li>
-            <li><a class="dropdown-item" href="#"><span class="material-icons">density_medium</span>Density medium</a></li>
-            <li><a class="dropdown-item" href="#"><span class="material-icons">density_large</span>Density large</a></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">density_small</span>Density small</a></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">density_medium</span>Density medium</a></li>
+            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">density_large</span>Density large</a></li>
           </ul>
         </div>
         <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>

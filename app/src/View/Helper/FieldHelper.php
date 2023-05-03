@@ -413,7 +413,8 @@ class FieldHelper extends Helper {
          : $label) 
       . ($this->editable
            && in_array($fn, $this->reqFields)
-         ? ' <span class="required">*</span>' 
+         ? ' <span class="required" aria-hidden="true">*</span>'
+         . '<span class="visually-hidden">' . __d('field','required') . '</span>' 
          : '') . '
       </div>
       ' . ($desc ? '<span class="field-desc">' . $desc . '</span>' : "") .'

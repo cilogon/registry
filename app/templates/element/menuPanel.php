@@ -43,7 +43,7 @@
           );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined">person</div>
+            <div class="material-icons-outlined" aria-hidden="true">person</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('menu','co.people.population') ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.people.population.desc') ?></div>
@@ -64,7 +64,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined">pending_actions</div>
+            <div class="material-icons-outlined" aria-hidden="true">pending_actions</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('menu','co.people.enrollments.pending') ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.people.enrollments.pending.desc') ?></div>
@@ -115,7 +115,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined">groups</div>
+            <div class="material-icons-outlined" aria-hidden="true">groups</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Cous', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.structure.cous.desc') ?></div>
@@ -134,7 +134,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined">people_outline</div>
+            <div class="material-icons-outlined" aria-hidden="true">people_outline</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Groups', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.structure.groups.desc') ?></div>
@@ -199,7 +199,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined">assignment</div>
+            <div class="material-icons-outlined" aria-hidden="true">assignment</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Jobs', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.operations.jobs.desc') ?></div>
@@ -217,7 +217,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined">summarize</div>
+            <div class="material-icons-outlined" aria-hidden="true">summarize</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Reports', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.operations.reports.desc') ?></div>

@@ -135,6 +135,9 @@ msgstr "All Groups"
 msgid "co.switch"
 msgstr "Switch CO"
 
+msgid "menu.user"
+msgstr "User Menu"
+
 msgid "related.configurations"
 msgstr "Related Configurations"
 
