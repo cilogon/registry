@@ -40,15 +40,11 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
 // Include subnavigation structures on add/edit/view pages
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc
 // When subnav exists, include on all Edit views and on Add/View for items with a parent.
-if($vv_action == 'edit' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
+if($vv_action != 'add' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
   if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc")) {
     include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc");
   }  
 }
-
-if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-links.inc")) {
-  include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-links.inc");
-} 
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
