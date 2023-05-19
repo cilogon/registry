@@ -351,49 +351,72 @@ return [
     /**
      * Configures logging options
      */
-    'Log' => [
-        'debug' => [
-            'className' => 'Cake\Log\Engine\FileLog',
-            'path' => LOGS,
-            'file' => 'debug',
-            'url' => env('LOG_DEBUG_URL', null),
-            'scopes' => false,
-            'levels' => ['notice', 'info', 'debug'],
-        ],
-        'error' => [
-            'className' => 'Cake\Log\Engine\FileLog',
-            'path' => LOGS,
-            'file' => 'error',
-            'url' => env('LOG_ERROR_URL', null),
-            'scopes' => false,
-            'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
-        ],
-        // To enable this dedicated query log, you need set your datasource's log flag to true
-        'queries' => [
-            'className' => 'Cake\Log\Engine\FileLog',
-            'path' => LOGS,
-            'file' => 'queries',
-            'url' => env('LOG_QUERIES_URL', null),
-            'scopes' => ['queriesLog'],
-        ],
-        // We define a trace level for what is really debugging, except debug level
-        // will write to stdout instead of the log when debug=true
-        'trace' => [
-            'className' => 'Cake\Log\Engine\FileLog',
-            'path' => LOGS,
-            'file' => 'trace',
-            'url' => env('LOG_TRACE_URL', null),
-            'scopes' => ['trace'],
-        ],
-        // We define a rules level to record application rule execution
-        'rule' => [
-            'className' => 'Cake\Log\Engine\FileLog',
-            'path' => LOGS,
-            'file' => 'rule',
-            'url' => env('LOG_TRACE_URL', null),
-            'scopes' => ['rule'],
-        ]
-    ],
+    'Log' => null !== env('COMANAGE_REGISTRY_CONTAINER', null)
+             // Configuration for container deployments
+             ? [
+                 'debug' => [
+                     'className' => 'Cake\Log\Engine\ConsoleLog',
+                     'stream' => 'php://stdout',
+                     'outputAs' => 0,
+                     'scopes' => false,
+                     'levels' => ['notice', 'info', 'debug'],
+                 ],
+                 'error' => [
+                     'className' => 'Cake\Log\Engine\ConsoleLog',
+                     'stream' => 'php://stderr',
+                     'outputAs' => 0,
+                     'scopes' => false,
+                     'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
+                 ],
+                 'queries' => [
+                     'className' => 'Cake\Log\Engine\ConsoleLog',
+                     'stream' => 'php://stdout',
+                     'outputAs' => 0,
+                     'scopes' => ['queriesLog']
+                 ],
+                 'trace' => [
+                     'className' => 'Cake\Log\Engine\ConsoleLog',
+                     'stream' => 'php://stdout',
+                     'outputAs' => 0,
+                     'scopes' => ['trace'],
+                 ]
+             ]
+             // Configuration for tranditional deployments
+             : [
+                 'debug' => [
+                     'className' => 'Cake\Log\Engine\FileLog',
+                     'path' => LOGS,
+                     'file' => 'debug',
+                     'url' => env('LOG_DEBUG_URL', null),
+                     'scopes' => false,
+                     'levels' => ['notice', 'info', 'debug'],
+                 ],
+                 'error' => [
+                     'className' => 'Cake\Log\Engine\FileLog',
+                     'path' => LOGS,
+                     'file' => 'error',
+                     'url' => env('LOG_ERROR_URL', null),
+                     'scopes' => false,
+                     'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
+                 ],
+                 // To enable this dedicated query log, you need set your datasource's log flag to true
+                 'queries' => [
+                     'className' => 'Cake\Log\Engine\FileLog',
+                     'path' => LOGS,
+                     'file' => 'queries',
+                     'url' => env('LOG_QUERIES_URL', null),
+                     'scopes' => ['queriesLog'],
+                 ],
+                 // We define a trace level for what is really debugging, except debug level
+                 // will write to stdout instead of the log when debug=true
+                 'trace' => [
+                     'className' => 'Cake\Log\Engine\FileLog',
+                     'path' => LOGS,
+                     'file' => 'trace',
+                     'url' => env('LOG_TRACE_URL', null),
+                     'scopes' => ['trace'],
+                 ]
+               ],
 
     /**
      * Session configuration.
