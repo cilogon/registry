@@ -132,6 +132,15 @@ msgstr "COmanage Platform Administrator"
 msgid "se.salt"
 msgstr "Generating salt file {0}"
 
+msgid "opt.test.database.ok"
+msgstr "Database connection established"
+
+msgid "opt.test.database.source"
+msgstr "For database test, the datasource to use"
+
+msgid "opt.test.test"
+msgstr "Test to perform"
+
 msgid "tm.epilog"
 msgstr "An optional, space separated list of tables to transmogrify may be specified"
 

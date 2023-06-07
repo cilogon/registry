@@ -45,6 +45,9 @@ class FieldHelper extends Helper {
   // Our current model name
   protected $modelName = null;
   
+  // The plugin we are rendering within, if set
+  protected $pluginName = null;
+  
   // The list of required fields
   protected $reqFields = [];
   
@@ -130,7 +133,7 @@ class FieldHelper extends Helper {
                                     'label' => __d('operation', 'configure.plugin'),
                                     'url' => [
                                       'plugin'      => null,
-                                      'controller'  => 'reports',
+                                      'controller'  => StringUtilities::entityToClassname($vv_obj),
                                       'action'      => 'configure',
                                       $vv_obj->id
                                     ]
@@ -332,25 +335,54 @@ class FieldHelper extends Helper {
     
     // First try to autogenerate the field label (if we weren't given one).
     
+    $pluginDomain = (!empty($this->pluginName)
+                      ? Inflector::underscore($this->pluginName)
+                      : null);
+    
     if(!$label) {
       // We autogenerate field labels and descriptions from the field name.
-      // Fields of the form foo_id map to the singular form of registry.ct.foos.
-      // All others map first to registry.fd.Model.foo, then to registry.fd.foo
-      // if no Model specific key is found.
       
-      $label = __d('field', $mn.".".$fn);
-      
-      if($label == $mn.".".$fn) {
-        // Model specific label not found, try again
-        
-        $f = null;
-        
-        if(preg_match('/^(.*?)_id$/', $fn, $f)) {
-          // Map foreign keys (foo_id) to the controller label
-          $label = __d('controller', Inflector::camelize(Inflector::pluralize($f[1])), [1]);
+      // We loop over the field generation logic twice, first for a plugin
+      // context (if set) and then generally (if no plugin localization was found).
+
+      // We use $core as the variable for this loop, so the rest of the code
+      // is easier to read (!$core = plugin)
+      for($core = 0;$core < 2;$core++) {
+        if(!$core && empty($this->pluginName)) {
+          // No plugin set, just go to the core field checks
+          continue;
+        }
+
+        // Is there a model specific key? For plugins, this will be in field.Model.Field
+
+        $key = (!$core ? "field." : "") . "$mn.$fn";
+        $label = __d(($core ? 'field' : $pluginDomain), $key);
+
+        if($label == $key) {
+          // Model specific label not found, try again for a general label
+
+          $f = null;
+
+          if(preg_match('/^(.*?)_id$/', $fn, $f)) {
+            // Map foreign keys (foo_id) to the controller label
+            $key = (!$core ? "controller." : "") . Inflector::camelize(Inflector::pluralize($f[1]));
+            $label = __d(($core ? 'controller' : $pluginDomain), $key, [1]);
+
+            if($key != $label) {
+              break;
+            }
+          } else {
+            // Just look up the key
+            $key = (!$core ? "field." : "") . $fn;
+            $label = __d(($core ? 'field' : $pluginDomain), $key);
+
+            if($key != $label) {
+              break;
+            }
+          }
         } else {
-          // Just look up the key
-          $label = __d('field', $fn);
+          // If we found a key, break the loop
+          break;
         }
       }
     }
@@ -358,15 +390,21 @@ class FieldHelper extends Helper {
     // We try to automagically determine if a description for the field exists by
     // looking for the corresponding .desc language translation.
     
-    $desc = __d('field', $mn.".".$fn.".desc");
-    
-    if($desc == $mn.".".$fn.".desc") {
-      $desc = __d('field', $fn.".desc");
-    }
-    
-    // If the description is the literal key we just generated, there is no description
-    if($desc == $fn.".desc") {
-      $desc = null;
+    for($core = 0;$core < 2;$core++) {
+      if(!$core && empty($this->pluginName)) {
+        // No plugin set, just go to the core field checks
+        continue;
+      }
+
+      $key = (!$core ? "field." : "") . "$mn.$fn.desc";
+      $desc = __d(($core ? 'field' : $pluginDomain), $key);
+
+      // If the description is the literal key we just generated, there is no description
+      if($desc == $key) {
+        $desc = null;
+      } else {
+        break;
+      }
     }
     
     return '<div class="field-name">
@@ -444,14 +482,16 @@ class FieldHelper extends Helper {
   public function startControlSet(string $modelName, 
                                   string $action, 
                                   bool $editable, 
-                                  array $reqFields, 
-                                  $entity=null): string {
+                                  array $reqFields,
+                                  $entity=null,
+                                  ?string $pluginName=null): string {
     $this->editable = $editable;
     $this->modelName = $modelName;
+    $this->pluginName = $pluginName;
     $this->reqFields = $reqFields;
     $this->entity = $entity;
     $this->action = $action;
-    
+
     return '<ul id="' . $action . '_' . $modelName . '" class="fields form-list">' . "\n";
   }
   

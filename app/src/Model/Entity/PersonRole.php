@@ -51,4 +51,22 @@ class PersonRole extends Entity {
   public function isActive(): bool {
     return in_array($this->status, [StatusEnum::Active, StatusEnum::GracePeriod]);
   }
+
+  /**
+   * Determine if this Person Role is valid. A valid record isActive() AND also
+   * has validity dates that are current.
+   * 
+   * @since  COmange Registry v5.0.0
+   * @return bool   true if the Person Role is valid, false otherwise
+   */
+
+  public function isValid(): bool {
+    // AR-PersonRole-3 A Person Role is considered valid (and provisionable) if
+    // (1) the Person Role is in Active or Grace Period status,
+    // (2) the valid from date is unspecified or in the past, and
+    // (3) the valid through date is unspecified or in the future.
+    return $this->isActive()
+           && (!$this->valid_from || $this->valid_from->isPast())
+           && (!$this->valid_through || $this->valid_through->isFuture());
+  }
 }

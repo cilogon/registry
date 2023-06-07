@@ -37,11 +37,14 @@ use Cake\Validation\Validator;
 use \App\Lib\Enum\EduPersonAffiliationEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
+
 class TypesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -263,6 +266,35 @@ class TypesTable extends Table {
     return $type->value;
   }
   
+  /**
+   * Marshal object data for provisioning.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id  Entity ID
+   * @return array    An array of provisionable data and eligibility
+   */
+
+  public function marshalProvisioningData(int $id): array {
+    $ret = [];
+    // We need the archived record on delete to properly deprovision
+    $ret['data'] = $this->get($id, ['archived' => true]);
+
+    // Provisioning Eligibility is
+    // - Deleted if the changelog deleted flag is true
+    // - Eligible if status is Active
+    // - Ineligible otherwise
+
+    $ret['eligibility'] = ProvisioningEligibilityEnum::Ineligible;
+
+    if($ret['data']->deleted) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Deleted;
+    } elseif($ret['data']->status == SuspendableStatusEnum::Active) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Eligible;
+    }
+
+    return $ret;
+  }
+
   /**
    * Determine if this type is in use.
    *

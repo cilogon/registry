@@ -38,6 +38,57 @@ use Cake\Utility\Inflector;
 
 class DashboardsController extends StandardController {
   /**
+   * Perform Controller initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    // Configure breadcrumb rendering
+    $this->Breadcrumb->skipConfig([
+      '/^\/dashboards\/artifacts/',
+      '/^\/dashboards\/dashboard/',
+      '/^\/dashboards\/registries/'
+    ]);
+    // There is currently no inventory of dashboards, so we skip parents
+    // for configuration, dashboard, and registries actions
+    $this->Breadcrumb->skipParents(['/^\/dashboards/']);
+  }
+  
+  /**
+   * Render the CO Registries Dashboard.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function artifacts() {
+    $cur_co = $this->getCO();
+    
+    $this->set('vv_title', __d('menu', 'artifacts', [$cur_co->name]));
+    
+    // Construct the set of primary registry objects, which
+    // we want to order by the localized text string.
+    
+    // We're assuming that the permission for each of these items is the same as for
+    // registries() itself, ie: CMP or CO Admin. But plausibly some of this stuff
+    // could be delegated to (eg) a COU Admin at some point...
+    
+    $artifactMenuItems = [
+      __d('controller', 'Jobs', [99]) => [
+        'icon'          => 'assignment',
+        'controller'    => 'jobs',
+        'action'        => 'index'
+      ]
+    ];
+    
+    ksort($artifactMenuItems);
+    
+    $this->set('vv_artifacts_menu_items', $artifactMenuItems);
+  }
+
+  /**
    * Render the CO Configuration Dashboard.
    *
    * @since  COmanage Registry v5.0.0
@@ -64,6 +115,12 @@ class DashboardsController extends StandardController {
       __d('controller', 'Cous', [99]) => [
         'icon'          => 'people_outline',
         'controller'    => 'cous',
+        'action'        => 'index'
+      ],
+      // XXX External Identity Sources should use "cloud_download" for the icon
+      __d('controller', 'ProvisioningTargets', [99]) => [
+        'icon'          => 'cloud_upload',
+        'controller'    => 'provisioning_targets',
         'action'        => 'index'
       ],
       __d('controller', 'Reports', [99]) => [
@@ -126,6 +183,47 @@ class DashboardsController extends StandardController {
   
   public function dashboard(?int $id=null) {
     // XXX placeholder
+  }
+
+  /**
+   * Render the CO Registries Dashboard.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function registries() {
+    $cur_co = $this->getCO();
+    
+    $this->set('vv_title', __d('menu', 'registries', [$cur_co->name]));
+    
+    // Construct the set of primary registry objects, which
+    // we want to order by the localized text string.
+    
+    // We're assuming that the permission for each of these items is the same as for
+    // registries() itself, ie: CMP or CO Admin. But plausibly some of this stuff
+    // could be delegated to (eg) a COU Admin at some point...
+    
+    $registryMenuItems = [
+      __d('controller', 'Groups', [99]) => [
+        'icon'          => 'people',
+        'controller'    => 'groups',
+        'action'        => 'index'
+      ],
+      __d('controller', 'People', [99]) => [
+        'icon'          => 'person',
+        'controller'    => 'people',
+        'action'        => 'index'
+      ],
+      __d('controller', 'Servers', [99]) => [
+        'icon'          => 'computer',
+        'controller'    => 'servers',
+        'action'        => 'index'
+      ]
+    ];
+    
+    ksort($registryMenuItems);
+    
+    $this->set('vv_registries_menu_items', $registryMenuItems);
   }
 
   /**

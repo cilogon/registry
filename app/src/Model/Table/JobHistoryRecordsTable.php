@@ -67,7 +67,6 @@ class JobHistoryRecordsTable extends Table {
     $this->setDisplayField('comment');
     
     $this->setPrimaryLink(['job_id']);
-    $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     
     $this->setAutoViewVars([
@@ -91,7 +90,7 @@ class JobHistoryRecordsTable extends Table {
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
-        'add' =>      false, //['platformAdmin', 'coAdmin'],
+        'add' =>      false,
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);

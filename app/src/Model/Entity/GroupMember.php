@@ -37,4 +37,14 @@ class GroupMember extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+
+  /**
+   * Determine if this Group Membership is valid, meaning it has validity dates
+   * that are current.
+   */
+
+  public function isValid(): bool {
+    return (!$this->valid_from || $this->valid_from->isPast())
+           && (!$this->valid_through || $this->valid_through->isFuture());
+  }
 }

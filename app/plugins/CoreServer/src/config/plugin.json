@@ -1,0 +1,25 @@
+{
+  "types": {
+    "server": [
+      "SqlServers"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "sql_servers": {
+        "columns": {
+          "id": {},
+          "server_id": {},
+          "type": { "type": "string", "size": 2 },
+          "hostname": { "type": "string", "size": 128 },
+          "databas": { "type": "string", "size": 128 },
+          "username": { "type": "string", "size": 128 },
+          "password": { "type": "string", "size": 80 }
+        },
+        "indexes": {
+          "sql_servers_i1": { "columns": [ "server_id" ]}
+        }
+      }
+    }
+  }
+}

@@ -30,7 +30,22 @@ use Cake\View\Exception\MissingTemplateException;
  * @link https://book.cakephp.org/4/en/controllers/pages-controller.html
  */
 class PagesController extends AppController
-{
+{   
+    /**
+     * Perform Cake Model initialization.
+     *
+     * @since  COmanage Registry v5.0.0
+     * @param  array  $config Configuration options passed to constructor
+     */
+
+    public function initialize(): void
+    {
+        parent::initialize();
+
+        // Configure breadcrumb rendering
+        $this->Breadcrumb->skipAll(['/^\/$/']);
+    }
+
     /**
      * Displays a view
      *

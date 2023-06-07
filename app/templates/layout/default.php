@@ -168,13 +168,9 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
         <main id="main">
           <div id="content">
             <div id="content-inner">
-              <?php if(!($isCoSelectView || $isDashboard)): ?>
-                <!-- insert breadcrumbs on all but the front page ("Select Collaborations")
-                     and Dashboards (including the CO landing page) -->
-                <div id="breadcrumbs">
-                  <?= $this->element('breadcrumbs') ?>
-                </div>
-              <?php endif; ?>
+              <div id="breadcrumbs">
+                <?= $this->element('breadcrumbs') ?>
+              </div>
 
               <!-- insert the anchor that is the target of accessible "skip to content" link -->
               <a id="content-start"></a>

@@ -93,8 +93,9 @@ msgstr "OpenID"
 msgid "Identifiers.type.orcid"
 msgstr "ORCiD"
 
+# This is coded as "provisioningtarget" for compatibility with v4
 msgid "Identifiers.type.provisioningtarget"
-msgstr "Provisioning Target"
+msgstr "Provisioning Key"
 
 msgid "Identifiers.type.reference"
 msgstr "Match Reference"

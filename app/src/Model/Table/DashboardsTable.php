@@ -59,7 +59,13 @@ class DashboardsTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-    $this->setAllowUnkeyedPrimaryCO(['configuration', 'dashboard', 'search']);
+    $this->setAllowUnkeyedPrimaryCO([
+      'artifacts',
+      'configuration',
+      'dashboard',
+      'registries',
+      'search']
+    );
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
@@ -71,9 +77,11 @@ class DashboardsTable extends Table {
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
+        'artifacts'     => ['platformAdmin', 'coAdmin'],
         'configuration' => ['platformAdmin', 'coAdmin'],
         // XXX CFM-230 This needs to be updated for actual Dashboard permissions
         'dashboard'     => ['platformAdmin', 'coAdmin', 'coMember'],
+        'registries'    => ['platformAdmin', 'coAdmin'],
         'search'        => ['platformAdmin', 'coAdmin']
   /*      'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']*/

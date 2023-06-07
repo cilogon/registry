@@ -73,6 +73,7 @@ trait ValidationTrait {
    * @param  TableSchemaInterface $schema    Cake Schema
    * @param  string               $field     Field name
    * @param  bool                 $required  Whether this field is required
+   * @param  string               $prefix    Require the value to start with $prefix
    * @return Validator            Cake Validator
    */
   

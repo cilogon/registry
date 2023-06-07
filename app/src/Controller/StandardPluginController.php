@@ -37,6 +37,74 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 
 class StandardPluginController extends StandardController {
   /**
+   * Callback run prior to the request action.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
+   */
+
+  public function beforeFilter(\Cake\Event\EventInterface $event) {
+    // $this->name = Models
+    $modelsName = $this->name;
+
+    if(!$this->request->is('restful')) {
+      // Provide additional hints to BreadcrumbsComponent. This needs to be here
+      // and not in beforeRender because the component beforeRender will run first.
+      
+      // This is all we need where person_id is the primary link, but for MVEAs
+      // that are more deeply linked (to person_role_id, external_identity_id,
+      // or external_identity_role_id) we need to look up the further links.
+      $primaryLink = $this->getPrimaryLink(true);
+
+      $this->Breadcrumb->skipParents(['/^\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\/edit\//']);
+
+      if($primaryLink->attr == 'server_id') {
+        // Servers shouldn't show up as configuration, so automatically hide it
+        // eg for server plugins
+        $this->Breadcrumb->skipConfig(['/^\//']);
+      }
+
+      $this->Breadcrumb->injectPrimaryLink($primaryLink);
+    }
+    
+    return parent::beforeFilter($event);
+  }
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   */
+
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    // $this->name = Models (ie: from ModelsTable, eg FileProvisionersTable)
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+
+    $link = $this->getPrimaryLink(true);
+    
+    if(!empty($link->value)) {
+      $parentClassName = StringUtilities::foreignKeyToClassName($link->attr);
+      
+      $parentObj = $table->$parentClassName->get($link->value);
+      $parentDisplayField = $table->$parentClassName->getDisplayField();
+
+      $this->set('vv_bc_parent_obj', $parentObj);
+      $this->set('vv_bc_parent_displayfield', $parentDisplayField);
+      
+      // Override the title set in StandardController. Since that was set in edit()
+      // which is called before the rendering hooks, this title will take precedence.
+
+      $this->set('vv_title', __d('operation', 'configure.a', $parentObj->$parentDisplayField));
+    }
+
+    return parent::beforeRender($event);
+  }
+
+  /**
    * Determine the filesystem path to a file within a plugin.
    * 
    * @since  COmanage Registry v5.0.0

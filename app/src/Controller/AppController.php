@@ -78,6 +78,9 @@ class AppController extends Controller {
     // COmanage specific component that handles authn/z processintg
     $this->loadComponent('RegistryAuth');
     
+    // Breadcrumb Manager
+    $this->loadComponent('Breadcrumb');
+    
     $ChangelogEventListener = new ChangelogEventListener($this->RegistryAuth);
     EventManager::instance()->on($ChangelogEventListener);
     
@@ -145,13 +148,6 @@ class AppController extends Controller {
       $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions($this->getCOID()));
     }
     
-    // For breadcrumbs, do we have a target model, and if so is it a configuration
-    // model (eg: ApiUsers) or an object model (eg: CoPeople)?
-    if(isset($this->$modelsName) // May not be set under certain error conditions
-       && method_exists($this->$modelsName, "getIsConfigurationTable")) {
-      $this->set('vv_is_configuration_model', $this->$modelsName->getIsConfigurationTable());
-    }
-    
     return parent::beforeRender($event);
   }
   
@@ -194,7 +190,7 @@ class AppController extends Controller {
    * @throws \RuntimeException
    */
   
-  protected function getPrimaryLink(bool $lookup=false) {
+  public function getPrimaryLink(bool $lookup=false) {
     // Did we already figure this out? (But only if $lookup)
     if($lookup && isset($this->cur_pl->value)) {
       return $this->cur_pl;

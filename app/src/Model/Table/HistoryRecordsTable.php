@@ -77,7 +77,6 @@ class HistoryRecordsTable extends Table {
 // XXX note primary link is external_identity_id when set...
 // or the other fields as we add them
     $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
-    $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     
 // XXX does some of this stuff really belong in the controller?

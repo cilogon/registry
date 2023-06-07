@@ -43,6 +43,19 @@ class CosController extends StandardController {
   ];
   
   /**
+   * Perform Controller initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    // Configure breadcrumb rendering
+    $this->Breadcrumb->skipAll(['/^\/cos\/select/']);
+  }
+
+  /**
    * Callback run prior to the view rendering.
    *
    * @since  COmanage Registry v5.0.0

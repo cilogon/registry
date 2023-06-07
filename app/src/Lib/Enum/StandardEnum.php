@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Enum;
 
+use Cake\Utility\Inflector;
 use ReflectionClass;
 
 class StandardEnum {
@@ -47,10 +48,20 @@ class StandardEnum {
     
     $consts = $reflect->getConstants();
     
-    $className = substr(strrchr(get_called_class(), '\\'), 1);
-    
-    foreach(array_values($consts) as $key) {
-      $ret[$key] = __d('enumeration', $className.'.'.$key);
+    // get_called_class() will return something like App\Lib\Enum\StatusEnum
+    // or CoreServer\Lib\Enum\RdbmsTypeEnum
+    $classBits = explode('\\', get_called_class(), 4);
+
+    if($classBits[0] == 'App') {
+      foreach(array_values($consts) as $key) {
+        $ret[$key] = __d('enumeration', $classBits[3].'.'.$key);
+      }
+    } else {
+      $pluginDomain = Inflector::underscore($classBits[0]);
+
+      foreach(array_values($consts) as $key) {
+        $ret[$key] = __d($pluginDomain, 'enumeration.'.$classBits[3].'.'.$key);
+      }
     }
     
     return $ret;

@@ -96,6 +96,15 @@ msgstr "{0,plural,=1{Pronoun Preference} other{Pronouns}}"
 msgid "Plugins"
 msgstr "{0,plural,=1{Plugin} other{Plugins}}"
 
+msgid "ProvisioningHistoryRecords"
+msgstr "{0,plural,=1{Provisioning History Record} other{Provisioning History Records}}"
+
+msgid "ProvisioningTargets"
+msgstr "{0,plural,=1{Provisioning Target} other{Provisioning Targets}}"
+
+msgid "Servers"
+msgstr "{0,plural,=1{Server} other{Servers}}"
+
 msgid "TelephoneNumbers"
 msgstr "{0,plural,=1{Telephone Number} other{Telephone Numbers}}"
 

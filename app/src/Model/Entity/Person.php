@@ -51,4 +51,15 @@ class Person extends Entity {
   public function isActive(): bool {
     return in_array($this->status, [StatusEnum::Active, StatusEnum::GracePeriod]);
   }
+  
+  /**
+   * Determine if this Person is Locked).
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool   true if Person is Active or GracePeriod, false otherwise
+   */
+  
+  public function isLocked(): bool {
+    return $this->status == StatusEnum::Locked;
+  }
 }

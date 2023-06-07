@@ -35,6 +35,11 @@
         </span>
         <em class="material-icons icon-adjust">person</em>
       </button>
+      <?php 
+        // If you're debugging $vv_available_cos being null, you probably forgot
+        // to call parent::beforeFilter in your controller's beforeFilter()
+        if(!empty($vv_available_cos)): 
+      ?>
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
@@ -74,9 +79,10 @@
           </div>  
         <?php endif; ?>
       </div>
+      <?php endif; // vv_available_cos ?>
     </li>
   </ul>
-<?php endif; ?>
+<?php endif; // vv_user ?>
 
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
   <?php

@@ -31,6 +31,7 @@ namespace App\Controller;
 
 use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
+use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Util\StringUtilities;
 
@@ -60,6 +61,12 @@ class StandardController extends AppController {
         if($table->save($obj)) {
           $this->Flash->success(__d('result', 'saved'));
           
+          // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+          if(method_exists($table, "requestProvisioning")) {
+            $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
+            $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
+          }
+
           // If this is a Pluggable Model, instantiate the plugin and redirect
           // into the Entry Point Model
           if(!empty($obj->plugin) && method_exists($this, "instantiatePlugin")) {
@@ -209,6 +216,14 @@ class StandardController extends AppController {
         $this->Flash->success(__d('result', 'deleted'));
       }
       
+      // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+      // In general, tables should check that they were passed a deleted
+      // record and martial data/set eligibility appropriately
+      if(method_exists($table, "requestProvisioning")) {
+        $this->llog('rule', "AR-GMR-5 Requesting provisioning for deleted entity $modelsName " . $obj->id);
+        $table->requestProvisioning(id: (int)$id, context: ProvisioningContextEnum::Automatic);
+      }
+
       // Return to index since there is no delete view
       return $this->generateRedirect(null);
     }
@@ -313,6 +328,12 @@ class StandardController extends AppController {
         if($table->save($saveObj)) {
           $this->Flash->success(__d('result', 'saved'));
           
+          // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+          if(method_exists($table, "requestProvisioning")) {
+            $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
+            $table->requestProvisioning(id: (int)$id, context: ProvisioningContextEnum::Automatic);
+          }
+
           return $this->generateRedirect((int)$id); 
         }
         
@@ -593,8 +614,13 @@ class StandardController extends AppController {
             $this->set($vvar, array_combine($avv['array'], $avv['array']));
             break;
           case 'enum':
-            // We just want the localized text strings for the defined constants
+            // We just want the localized text strings for the defined constants.
             $class = '\\App\\Lib\\Enum\\'.$avv['class'];
+            // We support plugin notation for plugin defined enumerations.
+            if(strstr($avv['class'], ".")) {
+              $bits = explode('.', $avv['class'], 2);
+              $class = '\\'.$bits[0].'\\Lib\\Enum\\'.$bits[1];
+            }
             $this->set($vvar, $class::getLocalizedConsts());
             break;
           // "auxiliary" and "select" do basically the same thing, but the former
@@ -696,10 +722,55 @@ class StandardController extends AppController {
   }
 
   /**
+   * Handle a provisioning request for a Standard object.  
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $id Object ID
+   */
+
+  public function provision($id) {
+    // $this->name = Models
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+    // $tableName = models
+    $tableName = $table->getTable();
+
+    // Note that only Primary Models support provisioning, but those that
+    // don't won't have permission to execute this function.
+    
+    try {
+      $table->requestProvisioning(
+        id: (int)$id,
+        context: ProvisioningContextEnum::Manual,
+        provisioningTargetId: (int)$this->getRequest()->getQuery('provisioning_target_id')
+      );
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
+
+    // We don't render any flash messages since they could get complex
+    // depending on what was provisioned, so instead we redirect into the
+    // provisioning status index for the object.
+    // Redirect to the provisioning status view
+
+    $redirect = [
+      'controller' => 'ProvisioningTargets',
+      'action' => 'status',
+      '?' => [
+        StringUtilities::tableToForeignKey($table) => $id
+      ]
+    ];
+
+    return $this->redirect($redirect);
+  }
+
+  /**
    * Handle a view action for a Standard object.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  Integer $id Object ID
+   * @param  string $id Object ID
    */
   
   public function view($id = null) {

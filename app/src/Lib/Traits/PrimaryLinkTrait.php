@@ -200,7 +200,11 @@ trait PrimaryLinkTrait {
     // should be set. Return the first one we find.
     foreach(array_keys($this->primaryLinks) as $plKey) {
       if(!empty($obj->$plKey)) {
-        return (object)['attr' => $plKey, 'value' => $obj->$plKey];
+        return (object)[
+          'attr'  => $plKey,
+          'value' => $obj->$plKey,
+          'co_id' => $this->calculateCoForRecord($obj)
+        ];
       }
     }
     
@@ -407,7 +411,7 @@ trait PrimaryLinkTrait {
    * Set whether the primary link can be resolved via the object ID in the URL.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  boolean $allowEmpty true if the primary link can be resolved via the URL ID
+   * @param  array   $actions   Actions where the primary link can be obtained by looking up the record ID
    */
   
   public function setAllowLookupPrimaryLink(array $actions) {

@@ -33,7 +33,7 @@
 
     var attr = document.getElementById('attribute').value;
     
-    if(attr == 'PersonRole.affiliation') {
+    if(attr == 'PersonRoles.affiliation_type') {
       $("#edupersonaffiliation").closest('li').show('fade');
     } else {
       $("#edupersonaffiliation").closest('li').hide('fade');

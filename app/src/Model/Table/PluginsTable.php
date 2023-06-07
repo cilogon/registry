@@ -242,6 +242,28 @@ class PluginsTable extends Table {
   }
 
   /**
+   * Read the value for a configuration key for a plugin, which must be Active.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $plugin Plugin name
+   * @param  string $key    Configuration key
+   * @param  array          Array of configuration information
+   */
+
+  public function getPluginConfig(string $plugin, string $key) {
+    // While most calls to this table accept a plugin object, this one takes
+    // a string to simplify code that needs a value out of plugin.json.
+    $pObj = $this->find()
+                 ->where([
+                   'plugin'  => $plugin,
+                   'status'  => SuspendableStatusEnum::Active
+                 ])
+                 ->firstOrFail();
+
+    return $this->readPluginConfig($pObj, $key);
+  }
+
+  /**
    * Obtain the Entry Point Models implemented by a plugin for a specific plugin type.
    * 
    * @since  COmanage Registry v5.0.0
@@ -302,9 +324,9 @@ class PluginsTable extends Table {
       return $fileName;
     }
 
-    $this->llog('error', "Could not find $plugin");
+    $this->llog('error', "Could not find $fileName");
     
-    throw new \InvalidArgumentException("Could not find $plugin");
+    throw new \InvalidArgumentException("Could not find $fileName");
   }
 
   /**
@@ -439,7 +461,7 @@ class PluginsTable extends Table {
 
     // Create an array of the already registered plugins
     foreach($registered as $rp) {
-      $registeredIndex[$rp->plugin] = $rp->location;
+      $registeredIndex[$rp->plugin] = $rp;
     }
 
     // Insert rows for any plugin not currently in the Registry.
@@ -450,6 +472,7 @@ class PluginsTable extends Table {
     foreach(array_keys($plugins) as $pluginType) {
       foreach($plugins[$pluginType] as $p) {
         if(!isset($registeredIndex[$p])) {
+          // This is a new plugin
           $obj = $this->newEntity([
             'plugin'    => $p,
             'location'  => $pluginType,
@@ -461,6 +484,24 @@ class PluginsTable extends Table {
           ]);
 
           $this->saveOrFail($obj);
+        } elseif($registeredIndex[$p]->location != $pluginIndex[$p]) {
+          // The plugin location moved. This won't typically happen, but might
+          // if a developer moves a plugin around.
+
+          $rp = $registeredIndex[$p];
+
+          if($rp->location == PluginLocationEnum::Core) {
+            // If the old location was core, update the comment but leave the plugin as active
+            $rp->comment = __d('information', 'plugin.active');
+          } elseif($pluginIndex[$p] == PluginLocationEnum::Core) {
+            // If the new location is core, make sure the plugin is active
+            $rp->status = SuspendableStatusEnum::Active;
+            $rp->comment = __d('information', 'plugin.active.only');
+          }
+
+          $rp->location = $pluginIndex[$p];
+
+          $this->saveOrFail($rp);
         }
       }
     }

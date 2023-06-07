@@ -37,6 +37,7 @@ use Cake\Validation\Validator;
 use \App\Lib\Util\PaginatedSqlIterator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
@@ -48,6 +49,7 @@ class GroupsTable extends Table {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
@@ -86,11 +88,14 @@ class GroupsTable extends Table {
     $this->hasMany('Identifiers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    
+    $this->hasMany('ProvisioningHistoryRecords')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+
     $this->setDisplayField('name');
     
     $this->setPrimaryLink('co_id');
-    $this->setAllowLookupPrimaryLink(['reconcile']);
+    $this->setAllowLookupPrimaryLink(['provision', 'reconcile']);
     $this->setRequiresCO(true);
     
     $this->setAutoViewVars([
@@ -110,6 +115,7 @@ class GroupsTable extends Table {
       'entity' => [
         'delete' =>     ['platformAdmin', 'coAdmin'],
         'edit' =>       ['platformAdmin', 'coAdmin'],
+        'provision' =>  ['platformAdmin', 'coAdmin'],
         'reconcile' =>  ['platformAdmin', 'coAdmin'],
         'view' =>       ['platformAdmin', 'coAdmin']
       ],
@@ -130,7 +136,8 @@ class GroupsTable extends Table {
         'GroupNestings',
         'GroupOwners',
         'HistoryRecords',
-        'Identifiers'
+        'Identifiers',
+        'ProvisioningTargets'
       ]
     ]);
   }
@@ -368,6 +375,88 @@ class GroupsTable extends Table {
     return true;
   }
   
+  /**
+   * Marshal object data for provisioning.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id  Entity ID
+   * @return array    An array of provisionable data and eligibility
+   */
+
+  public function marshalProvisioningData(int $id): array {
+    $ret = [];
+
+    $ret['data'] = $this->get($id, [
+      // We need archives for handling deleted records
+      'archived' => 'true',
+      'contain' => [
+        'GroupMembers',
+        'Identifiers'
+      ]
+    ]);
+    
+    // Provisioning Eligibility is
+    // - Deleted if the changelog deleted flag is true
+    // - Eligible if the status is Active
+    // - Ineligible otherwise
+
+    $ret['eligibility'] = ProvisioningEligibilityEnum::Ineligible;
+
+    // We filter various attributes depending on the status of the record.
+
+    if($ret['data']->deleted) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Deleted;
+
+      // For deleted or archived records, we remove all Group Members,
+      // but we leave the Identifiers in place.
+
+      $ret['data']->group_members = [];
+    } elseif($ret['data']->status == SuspendableStatusEnum::Active) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Eligible;
+
+      // For Eligible, we still need to remove Group Memberships that are
+      // invalid, and Identifiers that are suspended.
+
+      $groupMembers = [];
+
+      foreach($ret['data']->group_members as $gm) {
+        if($gm->isValid()) {
+          $groupMembers[] = $gm;
+        }
+      }
+
+      $ret['data']->group_members = $groupMembers;
+
+      $identifiers = [];
+
+      foreach($ret['data']->identifiers as $id) {
+        if($id->status == SuspendableStatusEnum::Active) {
+          $identifiers[] = $id;
+        }
+      }
+
+      $ret['data']->identifiers = $identifiers;
+    } else {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Ineligible;
+      // For Ineligible records, we remove the group memberships, and
+      // any suspended Identifiers.
+
+      $ret['data']->group_members = [];
+      
+      $identifiers = [];
+
+      foreach($ret['data']->identifiers as $id) {
+        if($id->status == SuspendableStatusEnum::Active) {
+          $identifiers[] = $id;
+        }
+      }
+
+      $ret['data']->identifiers = $identifiers;
+    }
+
+    return $ret;
+  }
+
   /**
    * Reconcile the members of an automatic or nested Group.
    *

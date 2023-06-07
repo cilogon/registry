@@ -34,6 +34,19 @@ use Cake\Log\Log;
 
 class CoSettingsController extends StandardController {
   /**
+   * Perform Controller initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+    
+    // Configure breadcrumb rendering
+    $this->Breadcrumb->skipParents(['/^\/co-settings\/edit/']);
+  }
+
+  /**
    * Manage CO Settings.
    *
    * @since  COmanage Registry v5.0.0

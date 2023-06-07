@@ -24,6 +24,9 @@
 
 # Menu Messages
 
+msgid "artifacts"
+msgstr "Available {0} Artifacts"
+
 msgid "co.Attributes"
 msgstr "Attributes"
 
@@ -138,9 +141,11 @@ msgstr "All Groups"
 msgid "co.switch"
 msgstr "Switch CO"
 
+msgid "registries"
+msgstr "Available {0} Registries"
+
 msgid "related.configurations"
 msgstr "Related Configurations"
 
 msgid "related.links"
 msgstr "Related Links"
-

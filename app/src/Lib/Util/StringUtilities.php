@@ -120,6 +120,27 @@ class StringUtilities {
   }
 
   /**
+   * Localize a controller name, accounting for plugins.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $controllerName Name of controller to localize
+   * @param  string $pluginName     Plugin name, if appropriate
+   * @param  bool   $plural         Whether to use plural localization
+   * @return string                 Localized text string
+   */
+  
+  public static function localizeController(string $controllerName, ?string $pluginName, bool $plural=false): string {
+    if($pluginName) {
+      // Localize via plugin
+      return __d(Inflector::underscore($pluginName), 'controller.'.$controllerName, [$plural ? 99 : 1]);
+    } else {
+      // Standard localization
+
+      return __d('controller', $modelsName, [$plural ? 99 : 1]);
+    }
+  }
+
+  /**
    * Determine the model component of a Plugin path.
    * 
    * @since  COmanage Registry v5.0.0
@@ -159,6 +180,21 @@ class StringUtilities {
     $classPath = $table->getEntityClass();
 
     return substr($classPath, strrpos($classPath, '\\')+1);
+  }
+
+  /**
+   * Determine the foreign key name to point to a Cake Entity (eg: foo_id for FooTable).
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity Entity
+   * @return string         Foreign key name
+   */
+
+  public static function tableToForeignKey($table): string {
+    // $classPath will be something like App\Model\Entity\Name, but we want to return "name_id"
+    $classPath = $table->getEntityClass();
+
+    return Inflector::underscore(Inflector::singularize(substr($classPath, strrpos($classPath, '\\')+1))) . "_id";
   }
 
   // The following two utilities provide base64 encoding and decoding for

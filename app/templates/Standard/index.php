@@ -50,7 +50,11 @@ $recordsExist = false;
 $linkActions = ['edit', 'view'];
 
 // Read the index configuration ($indexColumns) and the associated actions for this model
-include(ROOT . DS . "templates" . DS . $modelsName . DS . "columns.inc");
+$incFile = ROOT . DS . "templates" . DS . $modelsName . DS . "columns.inc";
+if(!is_readable($incFile)) {
+  throw new \InvalidArgumentException("$incFile is not readable");
+}
+include($incFile);
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];

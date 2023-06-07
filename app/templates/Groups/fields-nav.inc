@@ -38,9 +38,22 @@ $topLinks = [
     'class' => ''
   ],
   [
+    'icon' => 'cloud_sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'provisioning.status'),
+    'link' => [
+      'controller' => 'provisioning_targets',
+      'action' => 'status',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
     'icon' => 'history',
     'order' => 'Default',
-    'label' => __d('operation', 'HistoryRecords'),
+    'label' => __d('controller', 'HistoryRecords', [99]),
     'link' => [
       'controller' => 'history_records',
       'action' => 'index',

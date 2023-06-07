@@ -209,7 +209,23 @@ if(!empty($vv_supertitle)) {
             'order' => $this->Menu->getMenuOrder('Default'),
             'icon' => 'history',
             'url' => $actionUrl,
-            'label' => __d('operation', 'HistoryRecords')
+            'label' => __d('controller', 'HistoryRecords', [99])
+          );
+          // provisioning actions
+          $actionUrl = $this->Url->build(
+            [
+              'controller' => 'provisioning_targets',
+              'action' => 'status',
+              '?' => [
+                'person_id' => $curId
+              ]
+            ]
+          );
+          $action_args['vv_actions'][] = array(
+            'order' => $this->Menu->getMenuOrder('Default'),
+            'icon' => 'cloud_sync',
+            'url' => $actionUrl,
+            'label' => __d('operation', 'provisioning.status')
           );
           // delete
           $actionPostBtnArray = ['action' => 'delete', $curId];

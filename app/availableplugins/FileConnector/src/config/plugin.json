@@ -1,0 +1,21 @@
+{
+  "types": {
+    "provisioner": [
+      "FileProvisioners"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "file_provisioners": {
+        "columns": {
+          "id": {},
+          "provisioning_target_id": {},
+          "filename": { "type": "string", "size": 128 }
+        },
+        "indexes": {
+          "file_provisioners_i1": { "columns": [ "provisioning_target_id" ]}
+        }
+      }
+    }
+  }
+}

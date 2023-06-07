@@ -30,10 +30,23 @@ $topLinks = [
   [
     'icon' => 'history',
     'order' => 'Default',
-    'label' => __d('operation', 'HistoryRecords'),
+    'label' => __d('controller', 'HistoryRecords', [99]),
     'link' => [
       'controller' => 'history_records',
       'action' => 'index',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'cloud_sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'provisioning.status'),
+    'link' => [
+      'controller' => 'provisioning_targets',
+      'action' => 'status',
       '?' => [
         'person_id' => $vv_obj->id
       ]

@@ -57,6 +57,9 @@ msgstr "Close"
 msgid "confirm"
 msgstr "Confirm"
 
+msgid "configure.a"
+msgstr "Configure {0}"
+
 msgid "configure.plugin"
 msgstr "Configure Plugin"
 
@@ -116,6 +119,12 @@ msgstr "Previous"
 
 msgid "primary"
 msgstr "Make Primary"
+
+msgid "provision"
+msgstr "Provision Now"
+
+msgid "provisioning.status"
+msgstr "Provisioning Status"
 
 msgid "Types.restore"
 msgstr "Add/Restore Default Types"

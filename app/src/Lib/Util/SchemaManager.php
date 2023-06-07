@@ -65,14 +65,15 @@ class SchemaManager {
    * Construct a new SchemaManager.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  ConsoleIo $io  Cake ConsoleIo object
+   * @param  ConsoleIo  $io         Cake ConsoleIo object
+   * @param  string     $connection Database connection name
    */
 
-  public function __construct(?ConsoleIo $io=null) {
+  public function __construct(?ConsoleIo $io=null, string $connection='default') {
     if($io) $this->io = $io;
 
     // Use the ConnectionManager to get the database config to pass to DBAL.
-    $db = ConnectionManager::get('default');
+    $db = ConnectionManager::get($connection);
     
     // $db is a ConnectionInterface object
     $cfg = $db->config();
@@ -100,12 +101,18 @@ class SchemaManager {
    * Apply a schema file.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  string $schemaFile Schema file to apply
-   * @param  bool   $parseOnly  If true, attempt to parse the file only, but perform no other actions
-   * @param  bool   $diffOnly   If true, generate a diff against the current database state, but do not apply it
+   * @param  string $schemaFile   Schema file to apply
+   * @param  bool   $parseOnly    If true, attempt to parse the file only, but perform no other actions
+   * @param  bool   $diffOnly     If true, generate a diff against the current database state, but do not apply it
+   * @param  string $tablePrefix  String to prefix to table names
    */
 
-  public function applySchemaFile(string $schemaFile, bool $parseOnly=false, bool $diffOnly=false) {
+  public function applySchemaFile(
+    string  $schemaFile,
+    bool    $parseOnly=false,
+    bool    $diffOnly=false,
+    string  $tablePrefix=""
+  ) {
     if(!is_readable($schemaFile)) {
       throw new \RuntimeException(__d('error', 'file', [$schemaFile]));
     }
@@ -141,16 +148,17 @@ class SchemaManager {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  object $schemaObject Schema object
+   * @param  string $tablePrefix  String to prefix to table names
    */
 
-  public function applySchemaObject(object $schemaObject) {
+  public function applySchemaObject(object $schemaObject, string $tablePrefix="") {
     if(!$this->columnLibrary) {
       // We need the column library from the core config
       $this->applySchemaFile(schemaFile: ROOT . DS . 'config' . DS . 'schema' . DS . 'schema.json',
                              parseOnly: true);
     }
 
-    $this->processSchema(schemaConfig: $schemaObject);
+    $this->processSchema(schemaConfig: $schemaObject, tablePrefix: $tablePrefix);
   }
 
   /**
@@ -159,15 +167,20 @@ class SchemaManager {
    * @since  COmanage Registry v5.0.0
    * @param  object $schemaConfig Schema object
    * @param  bool   $diffOnly     If true, generate a diff against the current database state, but do not apply it
+   * @param  string $tablePrefix  String to prefix to table names
    */
 
-  protected function processSchema(object $schemaConfig, bool $diffOnly=false) {
+  protected function processSchema(
+    object  $schemaConfig,
+    bool    $diffOnly=false,
+    string  $tablePrefix=""
+  ) {
     $schema = new Schema();
     
     // Walk through $schemaConfig and build our schema in DBAL format.
     
     foreach($schemaConfig->tables as $tName => $tCfg) {
-      $table = $schema->createTable($tName);
+      $table = $schema->createTable($tablePrefix.$tName);
       
       foreach($tCfg->columns as $cName => $cCfg) {
         // We allow "inherited" definitions from the fieldLibrary, so merge together
@@ -206,13 +219,13 @@ class SchemaManager {
         }
         
         if(isset($colCfg->foreignkey)) {
-          $table->addForeignKeyConstraint($colCfg->foreignkey->table,
+          $table->addForeignKeyConstraint($tablePrefix.$colCfg->foreignkey->table,
                                           [$cName],
                                           [$colCfg->foreignkey->column],
                                           [],
                                           // We name our foreign keys the same way they
                                           // were previously named by adodb
-                                          $tName . "_" . $cName . "_fkey");
+                                          $tablePrefix.$tName . "_" . $cName . "_fkey");
         }
       }
       
@@ -229,8 +242,8 @@ class SchemaManager {
           
           // Insert a foreign key to this model and index it
           $table->addColumn($mColumn, "integer", ['notnull' => false]);
-          $table->addForeignKeyConstraint($fkTable, [$mColumn], ['id'], [], $tName . "_" . $mColumn . "_fkey");
-          $table->addIndex([$mColumn], $tName . "_im" . $i++);
+          $table->addForeignKeyConstraint($tablePrefix.$fkTable, [$mColumn], ['id'], [], $tablePrefix.$tName . "_" . $mColumn . "_fkey");
+          $table->addIndex([$mColumn], $tablePrefix.$tName . "_im" . $i++);
         }
       }
       
@@ -255,12 +268,12 @@ class SchemaManager {
       // an Org Identity Source, so we need a foreign key into ourself.
       
       if(isset($tCfg->sourced) && $tCfg->sourced) {
-        $sColumn = "source_" . \Cake\Utility\Inflector::singularize($tName) . "_id";
+        $sColumn = "source_" . $tablePrefix.\Cake\Utility\Inflector::singularize($tName) . "_id";
         
         // Insert a foreign key to this model and index it
         $table->addColumn($sColumn, "integer", ['notnull' => false]);
-        $table->addForeignKeyConstraint($table, [$sColumn], ['id'], [], $tName . "_" . $sColumn . "_fkey");
-        $table->addIndex([$sColumn], $tName . "_im" . $i++);
+        $table->addForeignKeyConstraint($tablePrefix.$tName, [$sColumn], ['id'], [], $tablePrefix.$tName . "_" . $sColumn . "_fkey");
+        $table->addIndex([$sColumn], $tablePrefix.$tName . "_im" . $i++);
       }
       
       // Default is to insert timestamp and changelog fields, unless disabled
@@ -280,7 +293,7 @@ class SchemaManager {
         $table->addColumn("actor_identifier", "string", ['length' => 256, 'notnull' => false]);
         
         $table->addForeignKeyConstraint($table, [$clColumn], ['id'], [], $tName . "_" . $clColumn . "_fkey");
-        $table->addIndex([$clColumn], $tName . "_icl", [], []);
+        $table->addIndex([$clColumn], $tablePrefix.$tName . "_icl", [], []);
       }
     }
     
@@ -330,6 +343,7 @@ class SchemaManager {
     }
     catch(\Exception $e) {
       if($this->io) $this->io->out($e->getMessage());
+      else throw new \RuntimeException($e->getMessage());
     }
     
     // We might run bin/cake schema_cache clear or

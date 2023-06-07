@@ -35,6 +35,9 @@ use Cake\Utility\Inflector;
 use App\Lib\Util\StringUtilities;
 
 trait PluggableModelTrait {
+  // The set of plugin entry point models used in configurations for this model
+  protected $_pluginModels = [];
+
   /**
    * Determine the plugin type used by this Pluggable Model. This is the lowercased
    * singular prefix of the Pluggable Model Table name. eg: For "ReportsTable" the
@@ -73,7 +76,7 @@ trait PluggableModelTrait {
     // models that do not represent Cake Tables, we can't use the TableLocator here,
     // we just use plain PHP "new".
 
-    $pluginClassName = "\\" . $pluginName . "\\" . $path . "\\" . $pluginModel;
+    $pluginClassName = "\\" . $pluginName . $path . "\\" . $pluginModel;
     $pClass = new $pluginClassName();
 
     return $pClass;
@@ -111,12 +114,22 @@ trait PluggableModelTrait {
                    ->all();
 
     foreach($models as $m) {
-      $this->hasMany($m->plugin)
+      // In general, a model with a "plugin" field has a 1-1 relation
+      // with the instantiated plugin configuration. eg: One instance
+      // of a Server has exactly one SqlServer associated with it.
+      $this->hasOne($m->plugin)
            ->setDependent(true)
            ->setCascadeCallbacks(true);
+      
+      // Cache the list of entry points that we found
+      $this->_pluginModels[] = $m->plugin;
     }
 
-    if($this->isConfigurationTable()) {
+    // isArtifactTable() might not be the exact right test here...
+    // for now, we only want to exclude Jobs (since there's nothing
+    // to configure) but this may change.
+
+    if(!$this->isArtifactTable()) {
       $this->setAllowLookupPrimaryLink(['configure']);
     }
   }

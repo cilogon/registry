@@ -36,6 +36,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
+use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
 class ApiV2Controller extends AppController {
@@ -94,6 +95,12 @@ class ApiV2Controller extends AppController {
         
         if($this->$modelsName->saveOrFail($obj)) {
           $results[] = ['id' => $obj->id];
+
+          // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+          if(method_exists($table, "requestProvisioning")) {
+            $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
+            $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
+          }
         }
       }
       catch(\Exception $e) {
@@ -146,6 +153,16 @@ class ApiV2Controller extends AppController {
 //     note similar logic in StandardController
       $this->$modelsName->deleteOrFail($obj);
       
+      if(method_exists($obj, "isReadOnly") && $obj->isReadOnly()) {
+        throw new BadRequestException(__d('error', 'edit.readonly'));
+      }
+
+      // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+      if(method_exists($table, "requestProvisioning")) {
+        $this->llog('rule', "AR-GMR-5 Requesting provisioning for deleted entity $modelsName " . $obj->id);
+        $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
+      }
+
       // Render an empty view
       $this->render('/Standard/api/v2/json/delete');
     }
@@ -189,6 +206,12 @@ class ApiV2Controller extends AppController {
       $obj = $this->$modelsName->patchEntity($obj, $json[$modelsName]);
       
       $this->$modelsName->saveOrFail($obj);
+
+      // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+      if(method_exists($table, "requestProvisioning")) {
+        $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
+        $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
+      }
 
       // Let the view render
       $this->render('/Standard/api/v2/json/add-edit');

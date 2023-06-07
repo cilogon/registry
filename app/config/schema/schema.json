@@ -19,9 +19,13 @@
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
       "language": { "type": "string", "size": 16 },
       "name": { "type": "string", "size": 128, "notnull": true },
+      "ordr": { "type": "integer" },
       "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
       "person_role_id": { "type": "integer", "foreignkey": { "table": "person_roles", "column": "id" } },
       "plugin": { "type": "string", "size": 80 },
+      "provisioning_target_id": { "type": "integer", "foreignkey": { "table": "provisioning_targets", "column": "id" }, "notnull": true },
+      "report_id": { "type": "integer", "foreignkey": { "table": "reports", "column": "id" }, "notnull": true },
+      "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": true },
       "status": { "type": "string", "size": 2 },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "valid_from": { "type": "datetime" },
@@ -202,7 +206,7 @@
         "id": {},
         "person_id": { "notnull": true },
         "status": {},
-        "ordr": { "type": "integer" },
+        "ordr": {},
         "cou_id": {},
         "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "title": { "type": "string", "size": 128 },
@@ -239,7 +243,7 @@
         "id": {},
         "external_identity_id": { "notnull": true },
         "status": {},
-        "ordr": { "type": "integer" },
+        "ordr": {},
         "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "title": { "type": "string", "size": 128 },
         "organization": { "type": "string", "size": 128 },
@@ -391,18 +395,55 @@
       "sourced": true
     },
     
+    "provisioning_targets": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "provisioning_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
+        "retry_interval": { "type": "integer" },
+        "ordr": {}
+      },
+      "indexes": {
+        "provisioning_targets_i1": { "columns": [ "co_id" ]},
+        "provisioning_targets_i2": { "needed": false, "columns": [ "provisioning_group_id" ] }
+      }
+    },
+    
+    "provisioning_history_records": {
+      "columns": {
+        "id": {},
+        "provisioning_target_id": {},
+        "subject_model": { "type": "string", "size": 80 },
+        "subjectid": { "type": "integer", "comment": "This is a foreign key, but not at the database level" },
+        "person_id": {},
+        "group_id": {},
+        "status": {},
+        "comment": {}
+      },
+      "indexes": {
+        "provisioning_history_records_i1": { "columns": [ "provisioning_target_id" ] },
+        "provisioning_history_records_i2": { "columns": [ "person_id" ] },
+        "provisioning_history_records_i3": { "columns": [ "group_id" ] }
+      }
+    },
+
     "identifiers": {
       "columns": {
         "id": {},
         "identifier": { "type": "string", "size": 512 },
         "type_id": {},
         "login": { "type": "boolean" },
-        "status": {}
+        "status": {},
+        "provisioning_target_id": { "notnull": false }
       },
       "indexes": {
         "identifiers_i1": { "columns": [ "identifier", "type_id", "person_id" ] },
         "identifiers_i2": { "columns": [ "identifier", "type_id", "external_identity_id" ] },
-        "identifiers_i3": { "columns": [ "type_id" ] }
+        "identifiers_i3": { "columns": [ "type_id" ] },
+        "identifiers_i4": { "needed": false, "columns": [ "provisioning_target_id" ] }
       },
       "mvea": [ "person", "external_identity", "group" ],
       "sourced": true
@@ -523,6 +564,19 @@
         "job_history_records_i2": { "columns": [ "person_id" ] },
         "job_history_records_i3": { "columns": [ "external_identity_id" ] },
         "job_history_records_i4": { "columns": [ "job_id", "record_key" ] }
+      }
+    },
+
+    "servers": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {}
+      },
+      "indexes": {
+        "servers_i1": { "columns": [ "co_id" ] }
       }
     }
   },

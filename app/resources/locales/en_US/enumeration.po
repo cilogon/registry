@@ -249,6 +249,36 @@ msgstr "Country Code, Area Code, Number"
 msgid "PermittedTelephoneNumberFieldsEnum.country_code,area_code,number,extension"
 msgstr "Country Code, Area Code, Number, Extension"
 
+msgid "ProvisionerModeEnum.A"
+msgstr "Immediate"
+
+msgid "ProvisionerModeEnum.E"
+msgstr "Enrollment Only"
+
+msgid "ProvisionerModeEnum.M"
+msgstr "Manual"
+
+msgid "ProvisionerModeEnum.Q"
+msgstr "Queue"
+
+msgid "ProvisionerModeEnum.QE"
+msgstr "Queue on Error"
+
+msgid "ProvisionerModeEnum.X"
+msgstr "Disabled"
+
+msgid "ProvisioningStatusEnum.N"
+msgstr "Not Provisioned"
+
+msgid "ProvisioningStatusEnum.P"
+msgstr "Provisioned"
+
+msgid "ProvisioningStatusEnum.Q"
+msgstr "Queued"
+
+msgid "ProvisioningStatusEnum.X"
+msgstr "Unknown"
+
 msgid "RequiredAddressFieldsEnum.country"
 msgstr "Country"
 

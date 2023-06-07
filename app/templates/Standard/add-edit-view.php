@@ -34,6 +34,9 @@ $modelsName = $this->name;
 // XXX backport to match?
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
 
+// $vv_template_path will be set for plugins
+$templatePath = $vv_template_path ?? ROOT . DS . "templates" . DS . $modelsName;
+
 // If you're looking to set a custom $vv_title, you might be able to use
 // generateDisplayField() on the Table instead
 
@@ -41,14 +44,14 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc
 // When subnav exists, include on all Edit views and on Add/View for items with a parent.
 if($vv_action == 'edit' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
-  if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc")) {
-    include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-nav.inc");
+  if(file_exists($templatePath . DS . "fields-nav.inc")) {
+    include($templatePath . DS . "fields-nav.inc");
   }  
 }
 
-if(file_exists(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-links.inc")) {
-  include(ROOT . DS . "templates" . DS . $modelsName . DS . "fields-links.inc");
-} 
+if(file_exists($templatePath . DS . "fields-links.inc")) {
+  include($templatePath . DS . "fields-links.inc");
+}
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
@@ -238,11 +241,14 @@ if(!empty($vv_primary_link)) {
   }
 }
 
-print $this->Field->startControlSet($this->name, 
-                                    $vv_action,
-                                    // XXX We need a model specific mechanism to disable read-only
-                                    ($vv_action == 'add' || $vv_action == 'edit'),
-                                    $vv_required_fields);
+print $this->Field->startControlSet(
+  modelName: $this->name,
+  action: $vv_action,
+  // XXX We need a model specific mechanism to disable read-only
+  editable: ($vv_action == 'add' || $vv_action == 'edit'),
+  reqFields: $vv_required_fields,
+  pluginName: $this->getPlugin()
+);
 
 // We allow the fields.inc file to be specified for Controllers that have more
 // complicated/non-default actions.

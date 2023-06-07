@@ -35,6 +35,8 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Util\PaginatedSqlIterator;
 
 class PeopleTable extends Table {
@@ -45,6 +47,7 @@ class PeopleTable extends Table {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -107,6 +110,9 @@ class PeopleTable extends Table {
     $this->hasMany('Pronouns')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('ProvisioningHistoryRecords')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('TelephoneNumbers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -120,6 +126,7 @@ class PeopleTable extends Table {
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['provision']);
     
 // XXX does some of this stuff really belong in the controller?
     $this->setEditContains([
@@ -150,10 +157,10 @@ class PeopleTable extends Table {
       // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
       'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'canvas' =>   ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'delete'    => ['platformAdmin', 'coAdmin'],
+        'edit'      => ['platformAdmin', 'coAdmin'],
+        'provision' => ['platformAdmin', 'coAdmin'],
+        'view'      => ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
@@ -170,6 +177,7 @@ class PeopleTable extends Table {
         'HistoryRecords',
         'Identifiers',
         'PersonRoles',
+        'ProvisioningTargets',
         'TelephoneNumbers',
         'Urls'
       ]
@@ -208,27 +216,6 @@ class PeopleTable extends Table {
   }
 
   /**
-   * Callback after model save.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface  $event   Event
-   * @param  EntityInterface $entity  Entity (ie: Co)
-   * @param  ArrayObject     $options Save options
-   * @return bool                     True on success
-   */
-    
-  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    $this->recordHistory($entity);
-    
-    // XXX implement this eventually?
-    //$provision = (isset($options['provision']) ? $options['provision'] : true);
-    
-    $this->reconcileCoMembersGroupMemberships($entity);
-    
-    return true;
-  }
-  
-  /**
    * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
@@ -261,6 +248,177 @@ class PeopleTable extends Table {
     return new PaginatedSqlIterator($this, $conditions);
   }
   
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    $this->recordHistory($entity);
+    
+    // XXX implement this eventually?
+    //$provision = (isset($options['provision']) ? $options['provision'] : true);
+    
+    $this->reconcileCoMembersGroupMemberships($entity);
+    
+    return true;
+  }
+  
+  /**
+   * Marshal object data for provisioning.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id  Entity ID
+   * @return array    An array of provisionable data and eligibility
+   */
+
+  public function marshalProvisioningData(int $id): array {
+    $ret = [];
+
+    $ret['data'] = $this->get($id, [
+      // We need archives for handling deleted records
+      'archived' => 'true',
+      'contain' => [
+        'PrimaryName' => [ 'Types' ],
+        'Addresses' => [ 'Types' ],
+        'AdHocAttributes',
+        'EmailAddresses' => [ 'Types' ],
+        'ExternalIdentities' => [
+          'PrimaryName' => [ 'Types' ],
+          'Addresses' => [ 'Types' ],
+          'AdHocAttributes',
+          'EmailAddresses' => [ 'Types' ],
+          'ExternalIdentityRoles' => [
+            'Addresses' => [ 'Types' ],
+            'AdHocAttributes',
+            'TelephoneNumbers' => [ 'Types' ],
+            'Types'
+          ],
+          'Identifiers' => [ 'Types' ],
+          'Names' => [ 'Types' ],
+          'Pronouns',
+          'TelephoneNumbers' => [ 'Types' ],
+          'Urls' => [ 'Types' ]
+        ],
+        'GroupMembers' => [ 'Groups' ],
+        'GroupOwners' => [ 'Groups' ],
+        'Identifiers' => [ 'Types' ],
+        'Names' => [ 'Types' ],
+        'PersonRoles' => [
+          'Addresses' => [ 'Types' ],
+          'AdHocAttributes',
+          'Cous',
+          'ManagerPeople' => [ 'PrimaryName' ],
+          'SponsorPeople' => [ 'PrimaryName' ],
+          'TelephoneNumbers' => [ 'Types' ],
+          'Types'
+        ],
+        'Pronouns',
+        'TelephoneNumbers' => [ 'Types' ],
+        'Urls' => [ 'Types' ]
+      ]
+    ]);
+
+    // Provisioning Eligibility is
+    // - Deleted if the changelog deleted flag is true OR status is Archived
+    // - Eligible if entity->isActive()
+    // - Ineligible otherwise
+
+    // Most statuses don't provision anything
+    $ret['eligibility'] = ProvisioningEligibilityEnum::Deleted;
+
+    // We filter various attributes depending on the status of the record.
+
+    if($ret['data']->deleted || $ret['data']->status == StatusEnum::Archived) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Deleted;
+
+      // For deleted or archived records, we remove everything except names
+      // and identifiers, which might be useful for error reporting and record keeping.
+      // Unlike Ineligible, we *don't* keep the All Members groups.
+
+      $ret['data']->ad_hoc_attributes = [];
+      $ret['data']->addresses = [];
+      $ret['data']->email_addresses = [];
+      $ret['data']->external_identities = [];
+      $ret['data']->group_members = [];
+      $ret['data']->group_owners = [];
+      $ret['data']->person_roles = [];
+      $ret['data']->pronouns = [];
+      $ret['data']->telephone_numbers = [];
+      $ret['data']->urls = [];
+    } elseif($ret['data']->isActive()) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Eligible;
+
+      // For Eligible, we still need to remove Person Roles and Group Memberships
+      // that are invalid, and Identifiers that are suspended.
+
+      $personRoles = [];
+
+      foreach($ret['data']->person_roles as $pr) {
+        if($pr->isValid()) {
+          $personRoles[] = $pr;
+        }
+      }
+
+      $ret['data']->person_roles = $personRoles;
+
+      $groupMembers = [];
+
+      foreach($ret['data']->group_members as $gm) {
+        if($gm->isValid()) {
+          $groupMembers[] = $gm;
+        }
+      }
+
+      $ret['data']->group_members = $groupMembers;
+
+      $identifiers = [];
+
+      foreach($ret['data']->identifiers as $id) {
+        if($id->status == SuspendableStatusEnum::Active) {
+          $identifiers[] = $id;
+        }
+      }
+
+      $ret['data']->identifiers = $identifiers;
+    } else {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Ineligible;
+      // For Ineligible records, we remove the items that may be used for eligibilities,
+      // specifically group memberships/ownerships and PersonRoles. We leave the
+      // All Members group in place. We also remove any suspended Identifiers.
+
+      $groupMembers = [];
+
+      foreach($ret['data']->group_members as $gm) {
+        if($gm->group->isAllMembers()) {
+          $groupMembers[] = $gm;
+        }
+      }
+
+      $ret['data']->group_members = $groupMembers;
+
+      $identifiers = [];
+
+      foreach($ret['data']->identifiers as $id) {
+        if($id->status == SuspendableStatusEnum::Active) {
+          $identifiers[] = $id;
+        }
+      }
+
+      $ret['data']->identifiers = $identifiers;
+
+      $ret['data']->group_owners = [];
+      $ret['data']->person_roles = [];
+    }
+
+    return $ret;
+  }
+
   /**
    * Reconcile memberships in CO members groups based on the Person entity.
    *

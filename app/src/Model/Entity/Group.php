@@ -40,10 +40,21 @@ class Group extends Entity {
   ];
   
   /**
+   * Determine if this is the All Members group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool true if this is the All Members group, false otherwise.
+   */
+  
+  public function isAllMembers(): bool {
+    return $this->group_type == GroupTypeEnum::AllMembers;
+  }
+
+  /**
    * Determine if this is an automatic group.
    *
    * @since  COmanage Registry v5.0.0
-   * @return bool true if this is not an automatic group, false otherwise.
+   * @return bool true if this is an automatic group, false otherwise.
    */
   
   public function isAutomatic(): bool {

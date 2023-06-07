@@ -35,12 +35,15 @@ use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
+
 class CousTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -63,13 +66,18 @@ class CousTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
+    // AR-COU-2 A COU may not be deleted if it has any children.
     $this->belongsTo('Cous')
          ->setForeignKey('parent_id')
          // Property is set so ruleValidateCO can find it. We don't use the
          // _id suffix to match Cake's default pattern.
          ->setProperty('parent');
     
-    $this->hasMany('Groups');
+    // AR-COU-6 If a COU is deleted, the special groups associated with the COU will also be deleted.
+    $this->hasMany('Groups')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    // AR-COU-1 A COU may not be deleted if it has any members.
     $this->hasMany('PersonRoles');
     
     $this->setDisplayField('name');
@@ -142,7 +150,6 @@ class CousTable extends Table {
       }
     }
 
-
     if($entity->isNew() && !empty($entity->id)) {
       // Run setup for new COU
       
@@ -152,6 +159,32 @@ class CousTable extends Table {
     return true;
   }
   
+  /**
+   * Marshal object data for provisioning.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id  Entity ID
+   * @return array    An array of provisionable data and eligibility
+   */
+
+  public function marshalProvisioningData(int $id): array {
+    $ret = [];
+    // We need the archived record on delete to properly deprovision
+    $ret['data'] = $this->get($id, ['archived' => true]);
+
+    // Provisioning Eligibility is
+    // - Deleted if the changelog deleted flag is true
+    // - Eligible otherwise (COUs don't currently have a suspended status)
+
+    $ret['eligibility'] = ProvisioningEligibilityEnum::Eligible;
+
+    if($ret['data']->deleted) {
+      $ret['eligibility'] = ProvisioningEligibilityEnum::Deleted;
+    }
+
+    return $ret;
+  }
+
   /**
    * Assemble the set of potential parent COUs.
    *

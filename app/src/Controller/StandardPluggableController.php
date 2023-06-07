@@ -57,7 +57,7 @@ class StandardPluggableController extends StandardController {
 
     $pluginTable = $this->getTableLocator()->get($parentObj->plugin);
     $pluginObj = $pluginTable->find()
-                             ->where(['report_id' => $parentId])
+                             ->where([StringUtilities::tableToForeignKey($table) => $parentId])
                              ->firstOrFail();
     
     return $this->redirect([
@@ -85,8 +85,11 @@ class StandardPluggableController extends StandardController {
     // For now, we just populate the foreign key from the instantiated plugin
     // to its parent object, but we might want to allow the plugin model to
     // set some default values.
+    $created = new \Datetime('now');
+
     $iValues = [
-      $parentKey => $obj->id
+      $parentKey  => $obj->id,
+      'created'   => $created->format('Y-m-d H:i:s')
     ];
 
     $pTable = $this->getTableLocator()->get($obj->plugin);

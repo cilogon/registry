@@ -77,7 +77,7 @@ class JobsTable extends Table {
     
     $this->hasMany('JobHistoryRecords')
          ->setDependent(true)
-         ->setCascadeCallbacks(true);;
+         ->setCascadeCallbacks(true);
 
     $this->setPluginRelations();
     

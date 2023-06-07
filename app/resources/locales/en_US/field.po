@@ -216,6 +216,9 @@ msgstr "(Jr, III, etc)"
 msgid "tag"
 msgstr "Tag"
 
+msgid "timestamp"
+msgstr "Timestamp"
+
 msgid "title"
 msgstr "Title"
 
@@ -407,6 +410,30 @@ msgstr "Plugin"
 
 msgid "Plugins.location"
 msgstr "Location"
+
+msgid "ProvisioningHistoryRecords.subject_model"
+msgstr "Subject Object Type"
+
+msgid "ProvisioningHistoryRecords.subjectid"
+msgstr "Subject Object ID"
+
+msgid "ProvisioningTargets.ordr.desc"
+msgstr "The order in which this provisioner will be run when provisioning occurs (leave blank to run after all current provisioners)"
+
+msgid "ProvisioningTargets.provisioning_group_id"
+msgstr "Provisioning Group"
+
+msgid "ProvisioningTargets.provisioning_group_id.desc"
+msgstr "If set, only members of the specified Group will be provisioned to this target"
+
+msgid "ProvisioningTargets.retry_interval"
+msgstr "Retry Interval"
+
+msgid "ProvisioningTargets.retry_interval.desc"
+msgstr "If the provisioning action fails, it will be automatically retried after this interval (in seconds), default is 900 seconds. Set to 0 to not try again. (To stop retrying, cancel the job in the Job Queue.)"
+
+msgid "ProvisioningTargets.status"
+msgstr "Provisioning Mode"
 
 msgid "TelephoneNumbers.formatted_number"
 msgstr "Telephone Number"
