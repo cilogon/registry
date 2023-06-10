@@ -136,7 +136,8 @@ class PeopleTable extends Table {
       'EmailAddresses',
       'Identifiers',
       'Names',
-      'PersonRoles',
+      //'PersonRoles',
+      'Pronouns',
       'TelephoneNumbers',
       'Urls'
     ]);

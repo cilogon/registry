@@ -45,6 +45,9 @@ class VueHelper extends Helper {
     'information' => [
       'global.value.none',
       'datepicker.hour'
+    ],
+    'operation' => [
+      'close'
     ]
   ];
 

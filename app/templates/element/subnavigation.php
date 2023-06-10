@@ -95,98 +95,10 @@ if(!empty($vv_supertitle)) {
       <?php endif; ?>
     </div>
     
+    <?php /* XXX Turn off the global actions menu but leave it here for now. We may restore it for a different purpose later.
     <?php if($name == 'person'): ?>
-      <!-- Specialty person dropdown menus - ADD and global actions -->
+      <!-- Specialty person dropdown menus - global actions -->
       <nav id="person-actions">
-        <?php
-          // Build the Add menu
-          $action_args = array();
-          $action_args['vv_attr_id'] =  $curId;
-          $action_args['vv_actions_type'] = 'person-actions-add-menu';
-          $action_args['vv_actions_title'] = __d('operation','add');
-          $action_args['vv_actions_icon'] = 'add_circle';
-          $action_args['vv_actions_class'] = 'person-actions-add-menu';
-          $actionOrderDefault = $this->Menu->getMenuOrder('Default');
-          $personAddMenuActions = [
-            [
-              'controller' => 'names',
-              'action' => 'add',
-              'icon' => 'account_box',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'email_addresses',
-              'action' => 'add',
-              'icon' => 'email',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'identifiers',
-              'action' => 'add',
-              'icon' => 'fingerprint'
-            ],
-            [
-              'controller' => 'person_roles',
-              'action' => 'add',
-              'icon' => 'emoji_people'
-            ],
-            [
-              'controller' => 'ad_hoc_attributes',
-              'action' => 'add',
-              'icon' => 'check_box',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'addresses',
-              'action' => 'add',
-              'icon' => 'contact_mail',
-              'iconClass' => 'material-icons-outlined'
-            ],
-            [
-              'controller' => 'history_records',
-              'action' => 'add',
-              'icon' => 'history'
-            ],
-            [
-              'controller' => 'telephone_numbers',
-              'action' => 'add',
-              'icon' => 'phone'
-            ],
-            [
-              'controller' => 'urls',
-              'action' => 'add',
-              'icon' => 'link'
-            ]
-          ];
-          foreach(($personAddMenuActions ?? []) as $a) {
-            $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
-            $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
-            $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
-            $actionClass = !empty($a['class']) ? $a['class'] : '';
-            $actionUrl = $this->Url->build(
-              [
-                'controller' => $a['controller'],
-                'action' => $a['action'],
-                '?' => [
-                  'person_id' => $curId
-                ]
-              ]
-            );
-            $actionLabel = __d('controller', Cake\Utility\Inflector::camelize($a['controller']), [1]);
-            $action_args['vv_actions'][] = [
-              'order' => $actionOrder,
-              'icon' => $actionIcon,
-              'iconClass' => $actionIconClass,
-              'url' => $actionUrl,
-              'class' => $actionClass,
-              'label' => $actionLabel
-            ];
-          }
-        ?>
-        <div class="field-actions person-actions-add-menu-container">
-          <?= $this->element('menuAction', $action_args) ?>
-        </div>
-            
         <?php
           // Build the global Person Actions menu
           $action_args = array();
@@ -195,38 +107,16 @@ if(!empty($vv_supertitle)) {
           $action_args['vv_actions_title'] = __d('field','actions',[99]);
           $action_args['vv_actions_icon'] = 'settings';
           $action_args['vv_actions_class'] = 'person-actions-menu';
-          // history records
-          $actionUrl = $this->Url->build(
-            [
-              'controller' => 'history_records',
-              'action' => 'index',
-              '?' => [
-                'person_id' => $curId
-              ]
-            ]
-          );
-          $action_args['vv_actions'][] = array(
-            'order' => $this->Menu->getMenuOrder('Default'),
-            'icon' => 'history',
-            'url' => $actionUrl,
-            'label' => __d('controller', 'HistoryRecords', [99])
-          );
-          // provisioning actions
-          $actionUrl = $this->Url->build(
-            [
-              'controller' => 'provisioning_targets',
-              'action' => 'status',
-              '?' => [
-                'person_id' => $curId
-              ]
-            ]
-          );
-          $action_args['vv_actions'][] = array(
-            'order' => $this->Menu->getMenuOrder('Default'),
-            'icon' => 'cloud_sync',
-            'url' => $actionUrl,
-            'label' => __d('operation', 'provisioning.status')
-          );
+          if(!empty($topLinks)) {
+            foreach ($topLinks as $action) {
+              $action_args['vv_actions'][] = array(
+                'order' => $this->Menu->getMenuOrder($action['order']),
+                'icon' => $action['icon'],
+                'url' => $this->Url->build($action['link']),
+                'label' => $action['label']
+              );
+            }
+          }
           // delete
           $actionPostBtnArray = ['action' => 'delete', $curId];
           $actionUrl = $this->Url->build(['action' => 'delete', $curId]);
@@ -256,6 +146,7 @@ if(!empty($vv_supertitle)) {
         </div>
       </nav>
     <?php endif; // person-actions ?>
+      */ ?>
   </div>
 
   <?php /* Flash Messages are placed below supertitle when subnavigation exists. */ ?>
@@ -425,51 +316,21 @@ if(!empty($vv_supertitle)) {
       <?php endif; // group ?>
     </ul>
   </nav>
-    
-  <?php if(!empty($subActive) && !($curController == 'PersonRoles' && $curAction == 'add')): ?>
-  <!-- Second Level Subnavigation Links -->
+
+  <?php if(!empty($subActive) && $isExternalId): ?>
+    <!-- Second Level Subnavigation Links -->
     <?php
       $parentId = $curId;
       $curId = $this->request->getQuery($vv_primary_link);
-      if($isPersonRole || $isExternalId) {
-        if($isExternalId && !empty($vv_ei_id)) {
-          $curId = $vv_ei_id;
-        }
-        // We display the role or external identity name above the subnav to show the hierarchy.
-        // We also use this structure to set the second-level $linkFilter
-        print '<h2>';
-        if(!empty($vv_ei_name)) {
-          // We have an external identity name
-          print $vv_ei_name->full_name;
-          $linkFilter = ['external_identity_id' => $curId];
-        } elseif(!empty($vv_person_role)) {
-          // We have a person role
-          print $vv_person_role;
-          $linkFilter = ['person_role_id' => $curId];
-        } elseif(!empty($vv_obj)) {
-          // We are editing/viewing an object
-          if(!empty($vv_obj->title)) {
-            print $vv_obj->title;
-          } elseif (!empty($vv_subtitle)) {
-            print $vv_subtitle;
-          } else {
-            print print __d('information','global.title.none');
-          }
-          // Set up $linkFilter for edit/view on Roles and External Identities
-          $curId = $vv_obj->id;
-          if($curController == 'PersonRoles') {
-            $linkFilter = ['person_role_id' => $curId];
-          }
-          if($curController == 'ExternalIdentities') {
-            $linkFilter = ['external_identity_id' => $curId];
-          }
-        } else {
-          // We shouldn't get here, but have a deafult in case.
-          print __d('information','global.title.none');
-        }
-        print '</h2>'; 
-      }
+      if(!empty($vv_ei_id)) {
+        $curId = $vv_ei_id;
+        $linkFilter = ['external_identity_id' => $curId];
+      } elseif(!empty($vv_obj)) {
+        $curId = $vv_obj->id;
+        $linkFilter = ['external_identity_id' => $curId];
+      } 
     ?>
+    <?php if($isExternalId): ?>
     <nav id="cm-<?= $name ?>-subnav-links" class="cm-subnav-links">
       <ul class="list-inline">
         <?php if($name == 'person'): ?>
@@ -502,73 +363,13 @@ if(!empty($vv_supertitle)) {
               );
             ?>
           </li>
-          <?php if(!$isPersonRole): ?>
-            <li class="list-inline-item">
-              <?php
-                // Names
-                $linkClass = ($subActive == 'names') ? 'nav-link active' : 'nav-link';
-                print $this->Html->link(
-                  __d('controller', 'Names', [99]),
-                  [ 'controller' => 'names',
-                    'action' => 'index',
-                    '?' => $linkFilter
-                  ],
-                  ['class' => $linkClass]
-                );
-              ?>
-            </li>
-            <li class="list-inline-item">
-              <?php
-                // Email Addresses
-                $linkClass = ($subActive == 'email_addresses') ? 'nav-link active' : 'nav-link';
-                print $this->Html->link(
-                  __d('controller', 'EmailAddresses', [99]),
-                  [ 'controller' => 'email_addresses',
-                    'action' => 'index',
-                    '?' => $linkFilter
-                  ],
-                  ['class' => $linkClass]
-                );
-              ?>  
-            </li>
-            <li class="list-inline-item">
-              <?php
-                // Identifiers
-                $linkClass = ($subActive == 'identifiers') ? 'nav-link active' : 'nav-link';
-                print $this->Html->link(
-                  __d('controller', 'Identifiers', [99]),
-                  [ 'controller' => 'identifiers',
-                    'action' => 'index',
-                    '?' => $linkFilter
-                  ],
-                  ['class' => $linkClass]
-                );
-              ?>
-            </li>
-            <?php if($isExternalId): ?>
-              <li class="list-inline-item">
-                <?php
-                  // External Identity Roles
-                  $linkClass = ($subActive == 'external_identity_roles' ||  $isExternalIdRole) ? 'nav-link active' : 'nav-link';
-                  print $this->Html->link(
-                    __d('controller', 'ExternalIdentityRoles', [99]),
-                    [ 'controller' => 'external_identity_roles',
-                      'action' => 'index',
-                      '?' => $linkFilter
-                    ],
-                    ['class' => $linkClass]
-                  );
-                ?>
-              </li>
-            <?php endif; ?>
-          <?php endif; ?>
           <li class="list-inline-item">
             <?php
-              // Ad-Hoc Attributes
-              $linkClass = ($subActive == 'ad_hoc_attributes' && !($isExternalIdRole)) ? 'nav-link active' : 'nav-link';
+              // External Identity Roles
+              $linkClass = ($subActive == 'external_identity_roles' ||  $isExternalIdRole) ? 'nav-link active' : 'nav-link';
               print $this->Html->link(
-                __d('controller', 'AdHocAttributes', [99]),
-                [ 'controller' => 'ad_hoc_attributes',
+                __d('controller', 'ExternalIdentityRoles', [99]),
+                [ 'controller' => 'external_identity_roles',
                   'action' => 'index',
                   '?' => $linkFilter
                 ],
@@ -576,63 +377,6 @@ if(!empty($vv_supertitle)) {
               );
             ?>
           </li>
-          <li class="list-inline-item">
-            <?php
-              // Addresses
-              $linkClass = ($subActive == 'addresses' && !($isExternalIdRole)) ? 'nav-link active' : 'nav-link';
-              print $this->Html->link(
-                __d('controller', 'Addresses', [99]),
-                [ 'controller' => 'addresses',
-                  'action' => 'index',
-                  '?' => $linkFilter
-                ],
-                ['class' => $linkClass]
-              );
-            ?>
-          </li>
-          <li class="list-inline-item">
-            <?php
-              // Telephone Numbers
-              $linkClass = ($subActive == 'telephone_numbers' && !($isExternalIdRole)) ? 'nav-link active' : 'nav-link';
-              print $this->Html->link(
-                __d('controller', 'TelephoneNumbers', [99]),
-                [ 'controller' => 'telephone_numbers',
-                  'action' => 'index',
-                  '?' => $linkFilter
-                ],
-                ['class' => $linkClass]
-              );
-            ?>
-          </li>
-          <?php if(!$isPersonRole): ?>
-            <li class="list-inline-item">
-              <?php
-                // URLs
-                $linkClass = ($subActive == 'urls') ? 'nav-link active' : 'nav-link';
-                print $this->Html->link(
-                  __d('controller', 'Urls', [99]),
-                  [ 'controller' => 'urls',
-                    'action' => 'index',
-                    '?' => $linkFilter
-                  ],
-                  ['class' => $linkClass]
-                );
-              ?>
-            </li>
-            <li class="list-inline-item">
-              <?php
-                // Pronouns
-                $linkClass = ($subActive == 'pronouns') ? 'nav-link active' : 'nav-link';
-                print $this->Html->link(
-                  __d('controller', 'Pronouns', [99]),
-                  [ 'controller' => 'pronouns',
-                    'action' => 'index',
-                    '?' => $linkFilter
-                  ],
-                  ['class' => $linkClass]
-                );
-              ?>
-            </li>
           <?php endif; ?>
         <?php endif; // person subnav ?>
       </ul>
@@ -724,7 +468,7 @@ if(!empty($vv_supertitle)) {
           </ul>  
         </nav>
       </div>
-    <?php endif; // external identity 2nd level subnav ?>
-  <?php endif; // 2nd level subnav ?>
+    <?php endif; // end $isExternalIdRole ?>
+  <?php endif; // end  $isExternalId ?>
 </div>
   

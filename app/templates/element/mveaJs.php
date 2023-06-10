@@ -47,8 +47,10 @@ $vueHelper = $this->loadHelper('Vue');
 <script type="module">
   <?php if(Cake\Core\Configure::read('debug')): ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>?time=<?= time() ?>";
+    import MveaModal from "<?= $this->Url->script('comanage/components/mvea/mvea-modal.js') ?>?time=<?= time() ?>";
   <?php else: ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>";
+    import MveaModal from "<?= $this->Url->script('comanage/components/mvea/mvea-modal.js') ?>";
   <?php endif; ?>
   
   const app = Vue.createApp({
@@ -60,6 +62,7 @@ $vueHelper = $this->loadHelper('Vue');
           parentId: '<?= $parentId ?>',
           mveaType: '<?= $mveaType ?>',
           mveaController: '<?= Cake\Utility\Inflector::dasherize($mveaController) ?>',
+          mveaTitle: '<?= $title ?>',
           webroot: '<?= $this->request->getAttribute('webroot') ?>'
         },
         txt: JSON.parse('<?= json_encode($vueHelper->locales()) ?>'),
@@ -100,19 +103,26 @@ $vueHelper = $this->loadHelper('Vue');
         this.successTxt = '';
         if(xhr.statusText != undefined && xhr.statusText != '') {
           this.setError(xhr.statusText)
-          console.log('Status Code:', xhr.status)
+          console.log('Status Code: ', xhr.status)
         } else {
           console.error(xhr);
           this.setError(this.txt.error500);
         }
+      },
+      launchModal(title,url,componentRef) {
+        window.cmMveaModal.launch(title,url,componentRef);
+      },
+      refreshComponent() {
+        this.getMveas('<?= $mveaType ?>', '<?= $entityType ?>');
       }
     },
     created() {
-      this.getMveas('<?= $mveaType ?>', '<?= $entityType ?>');
+      this.refreshComponent();
     }
   });
 
-  app.mount("#<?= $htmlId ?>");
+  // Mount the component and provide a global reference for this app instance.
+  window.mvea<?= $mveaType ?> = app.mount("#<?= $htmlId ?>");
 </script>
 
 <div id="<?= $htmlId ?>" class="col cm-mvea-col">

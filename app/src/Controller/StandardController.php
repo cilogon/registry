@@ -173,6 +173,11 @@ class StandardController extends AppController {
     }
 
     $this->set('vv_template_path', $vv_template_path);
+  
+    // Check to see if the model names a specific layout
+    if(method_exists($table, "getLayout")) {
+       $this->viewBuilder()->setLayout($table->getLayout());
+    }
 
     return parent::beforeRender($event);
   }

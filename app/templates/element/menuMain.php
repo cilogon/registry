@@ -102,7 +102,7 @@
     </ul>
   </nav>
   <button id="co-menu-collapse">
-    <em class="material-icons-outlined co-menu-collapse-icon">
+    <em class="material-icons-outlined co-menu-collapse-icon" aria-hidden="true">
       expand_circle_down
     </em>
     <div class="co-menu-collapse-text">close</div>

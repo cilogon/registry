@@ -90,7 +90,7 @@ $hasActiveFilters = false;
 <div id="<?= $modelName . ucfirst($this->request->getParam('action')); ?>Search" class="top-filters">
   <fieldset>
     <legend id="top-filters-toggle">
-      <em class="material-icons">search</em>
+      <em class="material-icons" aria-hidden="true">search</em>
       <?= __d('operation', 'filter'); ?>
 
       <?php if(!empty($search_params)):?>
@@ -115,7 +115,7 @@ $hasActiveFilters = false;
               (is_array($search_params[$key]) ? 'Range' : $search_params[$key]);
           ?>
           <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" data-identifier="<?= $data_identifier ?>" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
-             <em class="material-icons">cancel</em>
+             <em class="material-icons" aria-hidden="true">cancel</em>
              <span class="top-filters-active-filter-title">
                <?= $vv_searchable_attributes[$key]['label'] ?>
              </span>

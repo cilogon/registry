@@ -141,6 +141,9 @@ msgstr "All Groups"
 msgid "co.switch"
 msgstr "Switch CO"
 
+msgid "menu.user"
+msgstr "User Menu"
+
 msgid "registries"
 msgstr "Available {0} Registries"
 
