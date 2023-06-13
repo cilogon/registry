@@ -38,36 +38,33 @@ if($vv_action == 'view') {
     );
   }
   
-  $fieldSupplement = 
-    [
-      'beforeField' => '
-        <div class="field-suppliment">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="format-toggle">
-            <label class="form-check-label" for="format-toggle">' .
-              __d('field','format')
-            . '</label>
-          </div>
-        </div>
-      ',
-      'afterField' => '
-        <script>
-          parametersValue = $("#parameters").val();
-          parametersJSON = JSON.parse(parametersValue);
-          $("#format-toggle").click(function() {
-            if($(this).is(":checked")) {         
-              $("#parameters").val(JSON.stringify(parametersJSON, null, 4));
-              paramsHeight = Object.keys(parametersJSON).length + 6 + "em";
-              $("#parameters").css("height",paramsHeight);
-            } else {
-              $("#parameters").val(parametersValue);
-              $("#parameters").css("height","4em");
-            }
-          });
-        </script>
-      '
-    ];
-  print $this->Field->control('parameters', [], null, ['supplement' => $fieldSupplement]);
+  $beforeField = '
+    <div class="field-suppliment">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="format-toggle">
+        <label class="form-check-label" for="format-toggle">' .
+          __d('field','format')
+        . '</label>
+      </div>
+    </div>
+  ';
+  $afterField = '
+    <script>
+      parametersValue = $("#parameters").val();
+      parametersJSON = JSON.parse(parametersValue);
+      $("#format-toggle").click(function() {
+        if($(this).is(":checked")) {         
+          $("#parameters").val(JSON.stringify(parametersJSON, null, 4));
+          paramsHeight = Object.keys(parametersJSON).length + 6 + "em";
+          $("#parameters").css("height",paramsHeight);
+        } else {
+          $("#parameters").val(parametersValue);
+          $("#parameters").css("height","4em");
+        }
+      });
+    </script>
+  ';
+  print $this->Field->control('parameters', beforeField: $beforeField, afterField: $afterField);
 
   print $this->Field->control('register_time');
 

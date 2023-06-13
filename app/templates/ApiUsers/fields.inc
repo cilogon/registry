@@ -32,11 +32,11 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   }
   
   // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
-  print $this->Field->control('username', [], null, ['prefix' => "co_" . $vv_cur_co->id .'.']);
+  print $this->Field->control('username', prefix: 'co_' . $vv_cur_co->id . '.');
   
   // We link to the "Generate" button on edit only
   $generateLink = [];
-  $config = [];
+  $labelIsTextOnly = false;
   
   if(!empty($vv_obj->id)) {
     $generateLink = [
@@ -50,14 +50,13 @@ if($vv_action == 'add' || $vv_action == 'edit') {
      'confirm' => __d('operation', 'api.key.generate.confirm')
     ];
     
-    $config = ['labelIsTextOnly' => true];
+    $labelIsTextOnly = true;
   }
   
   print $this->Field->statusControl('api_key',
                                     !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
                                     $generateLink,
-                                    null,
-                                    $config);
+                                    labelIsTextOnly: $labelIsTextOnly);
   
   print $this->Field->control('status', ['empty' => false]);
   

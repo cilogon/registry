@@ -27,7 +27,7 @@
 
 // This view does not currently support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('affiliation_type_id', [], __d('field', 'affiliation'));
+  print $this->Field->control('affiliation_type_id', labelText: __d('field', 'affiliation'));
   
   print $this->Field->control('status', ['empty' => false]);
   
@@ -40,9 +40,9 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('department');
   
 // XXX need to clarify this is an _identifier_ not an actual Person FK
-  print $this->Field->control('sponsor_identifier', [], __d('field', 'sponsor'));
+  print $this->Field->control('sponsor_identifier', labelText: __d('field', 'sponsor'));
   
-  print $this->Field->control('manager_identifier', [], __d('field', 'manager'));
+  print $this->Field->control('manager_identifier', labelText: __d('field', 'manager'));
   
   print $this->Field->dateControl('valid_from');
   
