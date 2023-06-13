@@ -415,6 +415,7 @@ ul.form-list li.alert-banner .co-alert {
   position: absolute;
   z-index: 20;
   border-right: 1px solid var(--cmg-color-lightgray-006);
+  border-bottom: 1px solid var(--cmg-color-lightgray-006);
   background-color: var(--cmg-color-white);
 }
 #navigation-drawer.visible {
@@ -550,6 +551,23 @@ ul.form-list li.alert-banner .co-alert {
 }
 #main-menu .menu-panel-links .menu-panel-links-inner li {
   margin-bottom: 0;
+}
+#advanced-menu {
+  margin: 1em 0;
+  padding: 0;
+}
+#advanced-menu li {
+  list-style: none;
+  text-align: center;
+  font-size: 0.9em;
+}
+#advanced-menu li a {
+  display: block;
+  padding: 0.5em 0;
+  color: var(--cmg-color-gray-003);
+}
+#advanced-menu .menu-title-char {
+  display: none;
 }
 .menu-panel-links-desc {
   margin-top: 0.5em;

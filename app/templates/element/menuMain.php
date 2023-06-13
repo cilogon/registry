@@ -28,7 +28,7 @@
 // The following menu will only render if we have a user and CO (see default.ctp)
 ?>
 <div id="navigation-drawer">
-  <nav id="navigation" aria-label="main menu">
+  <nav id="navigation" aria-label="<?= __d('menu','menu.main') ?>">
     <ul id="main-menu">
       <?php
         if(!empty($vv_cur_co)) {
@@ -101,10 +101,60 @@
       ?>
     </ul>
   </nav>
-  <button id="co-menu-collapse">
-    <em class="material-icons-outlined co-menu-collapse-icon" aria-hidden="true">
-      expand_circle_down
-    </em>
-    <div class="co-menu-collapse-text">close</div>
-  </button>
+  <nav id="navigation-bottom" aria-label="<?= __d('menu','menu.advanced') ?>">
+    <ul id="advanced-menu">
+      <?php
+        if(!empty($vv_cur_co)) {
+          $menuItems = [
+            [
+              'permission' => 'configuration',
+              'label' => __d('menu', 'co.registries'),
+              'char' => __d('menu', 'co.registries.char'),
+              'controller' => 'dashboards',
+              'action' => 'registries'
+            ],
+            [
+              'permission' => 'configuration',
+              'label' => __d('menu', 'co.artifacts'),
+              'char' => __d('menu', 'co.artifacts.char'),
+              'controller' => 'dashboards',
+              'action' => 'artifacts'
+            ],
+            [
+              'permission' => 'configuration',
+              'label' => __d('menu', 'co.configuration.az'),
+              'char' => __d('menu', 'co.configuration.char'),
+              'controller' => 'dashboards',
+              'action' => 'configuration'
+            ]
+          ];
+
+          foreach($menuItems as $m) {
+            if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
+              $linkContent = '<span class="menu-title-char" aria-hidden="true">' . $m['char'] . '</span>'
+                . '<span class="menu-title">' . $m['label'] . '</span>';
+              print '<li>';
+              print $this->Html->link(
+                $linkContent,
+                ['plugin'       => null,
+                 'controller'   => $m['controller'],
+                 'action'       => $m['action'],
+                 '?'            => [
+                   'co_id' => $vv_cur_co->id
+                 ]],
+                ['escape' => false, 'title' => $m['label']]
+              );
+              print '</li>';
+            }
+          }
+        }
+      ?>
+    </ul>
+    <button id="co-menu-collapse" aria-label="<?= __d('menu','menu.toggle') ?>">
+      <em class="material-icons-outlined co-menu-collapse-icon" aria-hidden="true">
+        expand_circle_down
+      </em>
+      <div class="co-menu-collapse-text">close</div>
+    </button>
+  </nav>
 </div>

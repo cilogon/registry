@@ -27,11 +27,23 @@
 msgid "artifacts"
 msgstr "Available {0} Artifacts"
 
+msgid "co.artifacts"
+msgstr "Artifacts"
+
+msgid "co.artifacts.char"
+msgstr "A"
+
 msgid "co.Attributes"
 msgstr "Attributes"
 
 msgid "co.configuration"
 msgstr "Configuration"
+
+msgid "co.configuration.az"
+msgstr "A-Z Config"
+
+msgid "co.configuration.char"
+msgstr "C"
 
 msgid "co.configuration.panel.az"
 msgstr "A-Z Listing"
@@ -111,6 +123,12 @@ msgstr "My Population"
 msgid "co.people.population.desc"
 msgstr "Review and manage people in your collaboration (CO Person Records)"
 
+msgid "co.registries"
+msgstr "Registries"
+
+msgid "co.registries.char"
+msgstr "R"
+
 msgid "co.structure"
 msgstr "Structure"
 
@@ -141,8 +159,17 @@ msgstr "All Groups"
 msgid "co.switch"
 msgstr "Switch CO"
 
+msgid "menu.advanced"
+msgstr "Advanced Menu"
+
+msgid "menu.main"
+msgstr "Main Menu"
+
 msgid "menu.user"
 msgstr "User Menu"
+
+msgid "menu.toggle"
+msgstr "Toggle menu collapse button"
 
 msgid "registries"
 msgstr "Available {0} Registries"
