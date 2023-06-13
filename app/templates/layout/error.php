@@ -41,6 +41,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 <html lang="<?= __('registry.meta.lang'); ?>">
   <head>
     <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . PHP_EOL ?>
+    <?= $this->Html->meta('color-scheme', 'light dark') . PHP_EOL ?>
     <?= $this->Html->charset() ?>
     
     <title><?= $this->fetch('title') ?></title>

@@ -67,11 +67,11 @@
             Settings
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">dark_mode</span> Dark mode</a></li>
+            <li><a class="dropdown-item nospin" href="#" id="dark-mode-toggle"><span class="material-icons" aria-hidden="true">dark_mode</span><?= __d('menu','menu.darkmode'); ?></a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">density_small</span>Density small</a></li>
-            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">density_medium</span>Density medium</a></li>
-            <li><a class="dropdown-item" href="#"><span class="material-icons" aria-hidden="true">density_large</span>Density large</a></li>
+            <li><a class="dropdown-item nospin" href="#"><span class="material-icons" aria-hidden="true">density_small</span><?= __d('menu','menu.density.small'); ?></a></li>
+            <li><a class="dropdown-item nospin" href="#"><span class="material-icons" aria-hidden="true">density_medium</span><?= __d('menu','menu.density.medium'); ?></a></li>
+            <li><a class="dropdown-item nospin" href="#"><span class="material-icons" aria-hidden="true">density_large</span><?= __d('menu','menu.density.large'); ?></a></li>
           </ul>
         </div>
         <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>

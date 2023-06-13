@@ -27,71 +27,76 @@
  * how they are used. Colors are mostly listed in order of prominence: the most pronounced colors
  * are represented by the lowest numbers. The order is otherwise arbitrary and new colors can
  * be added by appending to the list and incrementing the number.
+ *
+ * Dark mode: the body.dark-mode class will override the defaults (see the lower half of this file). 
+ * :root sets the global defaults. body.dark-mode sets the dark mode defaults.  
  */
 
+/* COmanage Light Color Scheme (default) */
 :root {
-  /* Blues */
-  --cmg-color-blue-001: #06c;        /* primary hyperlink color, spinner; accessible on backgrounds down to #e7e7e7 */
-  --cmg-color-blue-002: #115791;     /* Registry v5.x banner color, submit buttons, .btn-primary, 
-                                        primary hyperlink hover color; pagination; accessible on backgrounds down to #c9c9c9 */
-  --cmg-color-blue-003: #9fc6e2;     /* spinner  */
-  --cmg-color-blue-004: #17a2b8;     /* info badge; XXX check for deprecated */
-  --cmg-color-blue-005: #0B3556;     /* alert: info text color */
-  --cmg-color-blue-006: #d4ecff;     /* search bar active */
+  /* Basics */
+  --cmg-color-body-bg: #fff;         /* Body background color (white) */
+  --cmg-color-body-txt: #222;        /* Body text color (dark gray) */
+  --cmg-color-headings: #444;        /* Headings color, material icons, de-emphasized links (dark gray) */
+  --cmg-color-txt-soft: #666;        /* Disabled text or form fields (medium gray) - the lightest gray accessible on white */
+  --cmg-color-txt-inverse: #fff;     /* Default color for inverted text (i.e. on dark backgrounds) */
 
-  /* Dark Grays */
-  --cmg-color-gray-001: #222;        /* body text */
-  --cmg-color-gray-002: #444;        /* headings text */
-  --cmg-color-gray-003: #666;        /* disabled text or form fields */
-  --cmg-color-gray-004: #212529;     /* badge light */
-
-  /* Light Grays */
-  --cmg-color-lightgray-001: #fafafa; /* background color */
-  --cmg-color-lightgray-002: #f8f8f8; /* background color */
-  --cmg-color-lightgray-003: #f5f5f5; /* background color */
-  --cmg-color-lightgray-004: #f2f2f2; /* background color */
-  --cmg-color-lightgray-005: #eee;    /* background color */
-  --cmg-color-lightgray-006: #ddd;    /* border color */
-  --cmg-color-lightgray-007: #ccc;    /* border color */
-  --cmg-color-lightgray-008: #bbb;    /* border color */
-  --cmg-color-lightgray-009: #ededed; /* data-list background color */
-  --cmg-color-lightgray-010: #e8e8e8; /* co-grid background color */
-  --cmg-color-lightgray-011: #fcfcfc; /* action dropdown menu background color */
+  /* Banner and Spinner */
+  --cmg-color-banner: #115791;       /* Registry v5.x banner color (blue) */
+  --cmg-color-spinner: #9fc6e2;      /* spinner / loading animation (blue) */
   
-  /* Greens */
-  --cmg-color-green-001: #b4ffba;     /* alert: success */
-  --cmg-color-green-002: #28a745;     /* alert: success text color, badge outline */
-  --cmg-color-green-003: #acf4b2;     /* alert: success border color */
-  --cmg-color-green-004: #dfd;        /* highlight: matching fields for reconciliation */
+  /* Links (primary) */
+  --cmg-color-link: #06c;            /* primary hyperlink color (blue); accessible on backgrounds down to #e7e7e7 */
+  --cmg-color-link-hover: #115791;   /* primary hyperlink hover color (blue); accessible on backgrounds down to #c9c9c9 */
 
-  /* Yellows */
-  --cmg-color-yellow-001: #fffeb4;    /* alert: warning */
-  --cmg-color-yellow-002: #41412e;    /* alert: warning text color */
-  --cmg-color-yellow-003: #f6f5ae;    /* alert: warning border color */
-  --cmg-color-yellow-004: #ffd;       /* forms: focused input */
+  /* Buttons */
+  --cmg-color-btn-bg-001: #115791;   /* primary button background color (blue), submit buttons, .btn-primary, pagination */
+  --cmg-color-btn-bg-002: #000;      /* primary button hover color (black) */
+  --cmg-color-btn-bg-003: #444;      /* common background color (gray) */
+  --cmg-color-btn-004: #c33;         /* button (red) */
   
-  /* Reds */
-  --cmg-color-red-001: #ffd4d4;       /* alert: danger */
-  --cmg-color-red-002: #c00;          /* forms: error icons */
-  --cmg-color-red-003: #e33;          /* title for deleted/archived */
-  --cmg-color-red-004: #c33;          /* button */
-  --cmg-color-red-005: #dc3545;       /* danger badge */
-  --cmg-color-red-006: #842029;       /* alert: danger text color */
-  --cmg-color-red-007: #f8cece;       /* alert: danger border color */
+  /* General Background and Border Colors (Grayscale) */
+  --cmg-color-bg-001: #fafafa; /* background color */
+  --cmg-color-bg-002: #f8f8f8; /* background color */
+  --cmg-color-bg-003: #f5f5f5; /* background color */
+  --cmg-color-bg-004: #f2f2f2; /* background color */
+  --cmg-color-bg-005: #eee;    /* background color */
+  --cmg-color-bg-006: #ddd;    /* border color */
+  --cmg-color-bg-007: #ccc;    /* border color */
+  --cmg-color-bg-008: #bbb;    /* border color */
+  --cmg-color-bg-009: #ededed; /* data-list background color */
+  
+  /* Highlights: Alerts, Notices, and Badges */
+  --cmg-color-highlight-001: #c00;    /* forms: required and error icons (red) */
+  --cmg-color-highlight-002: #ffd;    /* forms: focused input (yellow) */
+  
+  --cmg-color-highlight-003: #0B3556; /* alert: info text color (blue) */
+  --cmg-color-highlight-004: #d4ecff; /* search bar active (blue) */
+  --cmg-color-highlight-005: #212529; /* badge light (light gray) */
 
-  /* White and Black */
-  --cmg-color-white: #fff;            /* white */
-  --cmg-color-black: #000;            /* black */
+  --cmg-color-highlight-006: #b4ffba; /* alert: success (green) */
+  --cmg-color-highlight-007: #0f5132; /* alert: success text color, badge outline (green) */
+  --cmg-color-highlight-008: #acf4b2; /* alert: success border color (green) */
+
+  --cmg-color-highlight-009: #fffeb4; /* alert: warning (yellow) */
+  --cmg-color-highlight-010: #41412e; /* alert: warning text color (yellow) */
+  --cmg-color-highlight-011: #f6f5ae; /* alert: warning border color (yellow) */
+
+  --cmg-color-highlight-012: #ffd4d4; /* alert: danger (red) */
+  --cmg-color-highlight-013: #e33;    /* title for deleted/archived (red) */
+  --cmg-color-highlight-014: #dc3545; /* danger badge (red) */
+  --cmg-color-highlight-015: #842029; /* alert: danger text color (red) */
+  --cmg-color-highlight-016: #f8cece; /* alert: danger border color (red) */
   
-  /* Duet Date Picker Colors */
-  --duet-color-primary: #06c;
-  --duet-color-text: #222;
-  --duet-color-text-active: #fff;
-  --duet-color-placeholder: #666;
-  --duet-color-button: #f5f5f5;
-  --duet-color-surface: #fff;
+  /* Duet Date Picker Colors & Settings */
+  --duet-color-primary: var(--cmg-color-btn-bg-001);
+  --duet-color-text: var(--cmg-color-body-txt);
+  --duet-color-text-active: var(--cmg-color-txt-inverse);
+  --duet-color-placeholder: var(--cmg-color-txt-soft);
+  --duet-color-button: var(--cmg-color-bg-003);
+  --duet-color-surface: var(--cmg-color-body-bg);
   --duet-color-overlay: rgba(0, 0, 0, 0.8);
-  --duet-color-border: #222;
+  --duet-color-border: var(--cmg-color-body-txt);
 
   --duet-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --duet-font-normal: 400;
@@ -99,4 +104,64 @@
 
   --duet-radius: 4px;
   --duet-z-index: 600;
+}
+
+/* COmange Dark Color Scheme */
+html.dark-mode {
+  /* Basics */
+  --cmg-color-body-bg: #121212;      /* Body background color (very dark gray) */
+  --cmg-color-body-txt: #96969b;     /* Body text color (light gray) */
+  --cmg-color-headings: #a6a6ab;     /* Headings color, material icons, de-emphasized links (light gray) */
+  --cmg-color-txt-soft: #888;        /* Disabled text or form fields (light gray) */
+  --cmg-color-txt-inverse: #ddd;     /* Default color for inverted text (i.e. on dark backgrounds) - this remains similar */
+
+  /* Banner and Spinner */
+  --cmg-color-banner: #22222a;       /* Registry v5.x banner color (dark gray/blue) */
+  --cmg-color-spinner: #4880bb;      /* spinner / loading animation (blue) */
+
+  /* Links (primary) */
+  --cmg-color-link: #6392C5;         /* primary hyperlink color (a less saturated blue); */
+  --cmg-color-link-hover: #4880bb;   /* primary hyperlink hover color (blue); */
+
+  /* Buttons */
+  --cmg-color-btn-bg-001: #0d4573;   /* primary button background color (blue), submit buttons, .btn-primary, pagination */
+  --cmg-color-btn-bg-002: #333;      /* primary button hover color (black) */
+  --cmg-color-btn-bg-003: #eee;      /* common background color (gray) */
+  --cmg-color-btn-004: #c33;         /* button (red) */
+
+  /* General Background and Border Colors (Grayscale) */
+  --cmg-color-bg-001: #121212; /* background color */
+  --cmg-color-bg-002: #151515; /* background color */
+  --cmg-color-bg-003: #181818; /* background color */
+  --cmg-color-bg-004: #1a1a1a; /* background color */
+  --cmg-color-bg-005: #222;    /* background color */
+  --cmg-color-bg-006: #333;    /* border color */
+  --cmg-color-bg-007: #444;    /* border color */
+  --cmg-color-bg-008: #555;    /* border color */
+  --cmg-color-bg-009: #222;    /* data-list background color */
+
+  /* Highlights: Alerts, Notices, and Badges */
+  --cmg-color-highlight-001: #bc6262; /* forms: required and error icons (red) */
+  --cmg-color-highlight-002: #242400;    /* forms: focused input (yellow) */
+
+  --cmg-color-highlight-003: #0B3556; /* alert: info text color (blue) */
+  --cmg-color-highlight-004: #d4ecff; /* search bar active (blue) */
+  --cmg-color-highlight-005: #ccc;    /* badge light (light gray) */
+
+  --cmg-color-highlight-006: #97BF97; /* alert: success (green) */
+  --cmg-color-highlight-007: #0f5132; /* alert: success text color, badge outline (green) */
+  --cmg-color-highlight-008: #0f5132; /* alert: success border color (green) */
+
+  --cmg-color-highlight-009: #fffeb4; /* alert: warning (yellow) */
+  --cmg-color-highlight-010: #41412e; /* alert: warning text color (yellow) */
+  --cmg-color-highlight-011: #f6f5ae; /* alert: warning border color (yellow) */
+
+  --cmg-color-highlight-012: #ffd4d4; /* alert: danger (red) */
+  --cmg-color-highlight-013: #e33;    /* title for deleted/archived (red) */
+  --cmg-color-highlight-014: #dc3545; /* danger badge (red) */
+  --cmg-color-highlight-015: #842029; /* alert: danger text color (red) */
+  --cmg-color-highlight-016: #f8cece; /* alert: danger border color (red) */
+  
+  /* Bootstrap Overrides for Dark Mode */
+  --bs-light-rgb: #151515;
 }

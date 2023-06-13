@@ -28,4 +28,6 @@
 // XXX This is a placeholder
 ?>
 
-Please select an action from the menu.
+<div id="introduction">
+  <p><?= __d('menu','menu.introduction') ?></p>
+</div>

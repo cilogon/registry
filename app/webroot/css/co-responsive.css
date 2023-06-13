@@ -54,10 +54,6 @@
     font-size: 2em;
     line-height: 1.2em;
   }
-  #logout {
-    display: block;
-    color: var(--cmg-color-white);
-  }
   #top-menu .top-menu-link-text {
     display: inline;
   }
@@ -165,7 +161,7 @@
     font-size: 1em;
     background-color: transparent;
     border: none;
-    border-right: 1px solid var(--cmg-color-lightgray-006);
+    border-right: 1px solid var(--cmg-color-bg-006);
     padding: 0.5em 0.2em;
   }
   #global-search form {
@@ -189,7 +185,7 @@
     border-radius: 3px;
   }
   #global-search button.btn-link {
-    color: var(--cmg-color-gray-001);
+    color: var(--cmg-color-body-txt);
     text-decoration: none;
   }
   #global-search button.btn-link:hover {
@@ -200,7 +196,7 @@
   }
   #global-search #global-search-clear {
     padding: 0 0.75em;
-    border-right: 1px dashed var(--cmg-color-lightgray-006);
+    border-right: 1px dashed var(--cmg-color-bg-006);
   }
   /* SEARCH RESULTS */
   #search-results ul.search-results-group {
@@ -210,7 +206,7 @@
     z-index: 30;
   }
   body.title-hidden #top-menu a.topMenu {
-    color: #222;
+    color: var(--cmg-color-body-txt);
   }
   /* MAIN MENU */
   #navigation-drawer {
@@ -243,7 +239,7 @@
     padding: 1rem;
     background-color: transparent;
     border: none;
-    color: var(--cmg-color-gray-003);
+    color: var(--cmg-color-txt-003);
   }
   #co-menu-collapse .co-menu-collapse-icon {
     transform: rotate(90deg);
@@ -268,8 +264,8 @@
     padding: 1rem 1.5rem;
     width: 80vw;
     min-height: 520px;
-    border-right: 1px solid var(--cmg-color-lightgray-006);
-    border-bottom: 1px solid var(--cmg-color-lightgray-006);
+    border-right: 1px solid var(--cmg-color-bg-006);
+    border-bottom: 1px solid var(--cmg-color-bg-006);
   }
   .menu-panel-content {
     display: flex;
@@ -283,7 +279,7 @@
   .menu-panel-sidepanel {
     padding: 0 2em 1em 3em;
     margin-top: 0.5em;
-    border-left: 1px solid var(--cmg-color-lightgray-006);
+    border-left: 1px solid var(--cmg-color-bg-006);
     width: 30%;
   }
   .menu-panel .comanage-version {
@@ -380,7 +376,7 @@
     padding: 0 0.5em;
   }
   #main .field-actions.top-links  a.dropdown-item:hover {
-    color: var(--cmg-color-blue-001);
+    color: var(--cmg-color-link);
     text-decoration: underline;
   }
   .field-actions.top-links  a.dropdown-item:hover {

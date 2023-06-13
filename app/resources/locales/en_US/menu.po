@@ -162,8 +162,26 @@ msgstr "Switch CO"
 msgid "menu.advanced"
 msgstr "Advanced Menu"
 
+msgid "menu.darkmode"
+msgstr "Dark mode"
+
+msgid "menu.density.small"
+msgstr "Density small"
+
+msgid "menu.density.medium"
+msgstr "Density medium"
+
+msgid "menu.density.large"
+msgstr "Density large"
+
+msgid "menu.introduction"
+msgstr "Please select an action from the menu."
+
 msgid "menu.main"
 msgstr "Main Menu"
+
+msgid "menu.settings"
+msgstr "Settings"
 
 msgid "menu.user"
 msgstr "User Menu"

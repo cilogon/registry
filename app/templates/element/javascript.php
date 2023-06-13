@@ -154,13 +154,14 @@
     $("select").addClass("form-select");
 
     // Use select2 library everywhere except
+    // XXX TODO: Find a replacement for Select2 - it is not accessible.
     // - duet-date
-    $("select").not("#limit").not(".duet-date__select--month").not(".duet-date__select--year").select2({
-      width: '100%',
-      tags: true,
-      placeholder: "-- Select --",
-      allowClear: true
-    });
+    // $("select").not("#limit").not(".duet-date__select--month").not(".duet-date__select--year").select2({
+    //   width: '100%',
+    //   tags: true,
+    //   placeholder: "-- Select --",
+    //   allowClear: true
+    // });
 
     // Generic row click handling
     // First capture mouse location to test if we're clicking or drag-selecting (for copy)
@@ -251,6 +252,20 @@
       }
 
     });
+    
+    // SETTINGS (from User Menu)
+    // Dark Mode toggle
+    $("#dark-mode-toggle").click(function(e) {
+      e.preventDefault();
+      $('html').toggleClass('dark-mode');
+    });
+    
+    // Test for dark mode OS preference, and add the 'dark-mode' body class by default if it is present.
+    // XXX TODO: Replace this with setting an application variable (when available) so we do not flash the light color briefly on each page load
+    const darkModeOsEnabled = window.matchMedia("(prefers-color-scheme: dark)");
+    if(darkModeOsEnabled.matches) {
+      $('html').addClass('dark-mode');
+    }
     
   });
 
