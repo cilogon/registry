@@ -88,6 +88,16 @@
         $(this).removeClass('hasValue');
       }
     });
+
+    // DUET DATEPICKER
+    // We use the accessible Duet Datepicker only for its picker - never for its
+    // input fields. Strip out the Duet input fields if they exist so the forms never
+    // attempt to submit them. This will also fix any issues with missing labels.
+    let dateWidgetInputs = document.querySelectorAll('duet-date-picker input');
+    // Remove all the Vue related fields
+    Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
+      el.parentNode.removeChild(el);
+    });
     
     // TOP FILTER FORM
     // Send only non-empty fields in the form
@@ -126,13 +136,6 @@
         let ident_to_snake = ident.replace(/_/g, "-");
         let filterId = '#' + ident_to_snake;
         $(filterId).val("");
-      });
-
-      // Remove the Vue date fields if exist
-      let dateWidgetInputs = document.querySelectorAll('duet-date-picker input');
-      // Remove all the Vue related fields
-      Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
-        el.parentNode.removeChild(el);
       });
 
       $(this).closest('form').submit();
