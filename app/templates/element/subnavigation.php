@@ -73,12 +73,12 @@ if(!empty($vv_obj)) {
 }
 
 $supertitle = __d('information','global.title.none');
-if(!empty($vv_supertitle)) {
+if(!empty($vv_person_name)) {
+  $supertitle = $vv_person_name->full_name;
+} elseif(!empty($vv_supertitle)) {
   $supertitle = $vv_supertitle;
 } elseif(!empty($vv_obj)) {
   $supertitle = $vv_obj->$vv_display_field;
-} elseif(!empty($vv_person_name)) {
-  $supertitle = $vv_person_name->full_name;
 } elseif(!empty($vv_bc_parent_obj)) {
   $supertitle = $vv_bc_parent_obj->$vv_bc_parent_displayfield;
 }
