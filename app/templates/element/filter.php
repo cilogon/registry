@@ -170,10 +170,8 @@ $hasActiveFilters = false;
           print $this->Form->control($key, $formParams);
         }
       ?>
-      </div>
       <?php if(!empty($field_booleans_columns)): ?>
         <div class="top-search-checkboxes input">
-          <div class="top-search-checkbox-label">On-Off</div>
           <div class="top-search-checkbox-fields">
             <?php foreach($field_booleans_columns as $key => $options): ?>
               <div class="form-check form-check-inline">
@@ -192,13 +190,16 @@ $hasActiveFilters = false;
           </div>
         </div>
       <?php endif; ?>
+      </div>
+      
       <?php if(!empty($field_datetime_columns)): ?>
+        <div class="top-filters-fields-subgroups">
         <?php foreach($field_datetime_columns as $key => $options): ?>
           <div class="input">
             <div class="top-search-date-label"><?= Inflector::humanize($key) ?></div>
-            <div class="top-filters-fields-subgroups">
+            <div class="top-filters-fields-dates">
               <!--     Start at       -->
-              <div class="top-search-date-fields">
+              <div class="top-search-start-date">
                 <div class="d-flex">
                   <?php
                   // A datetime field will be rendered as plain text input with adjacent date and time pickers
@@ -232,7 +233,7 @@ $hasActiveFilters = false;
                 </div>
               </div>
               <!--     Ends at       -->
-              <div class="top-search-checkbox-fields">
+              <div class="top-search-end-date">
                 <div class="d-flex">
                   <?php
                   // A datetime field will be rendered as plain text input with adjacent date and time pickers
@@ -268,6 +269,7 @@ $hasActiveFilters = false;
             </div>
           </div>
         <?php endforeach; ?>
+        </div>
       <?php endif; ?>
 
       <?php $rebalanceColumns = ((count($vv_searchable_attributes)) % 2 != 0) ? ' class="tss-rebalance"' : ''; ?>

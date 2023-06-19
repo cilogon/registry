@@ -322,16 +322,14 @@
     grid-template-columns: 1fr 1fr;
     column-gap: 1em;
     padding: 0 0.5em;
+    align-items: center;
   }
   .top-search-checkboxes {
-    padding: 0 0.5em;
+    padding: 0.5em 0 0;
   }
   #top-filters-submit.tss-rebalance {
     margin-top: -3.5em;
     position: relative;
-  }
-  .top-search-date-label {
-    padding: 0 0.5em;
   }
   /* CO CONFIGURATION DASHBOARD */
   .config-menu {

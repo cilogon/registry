@@ -837,6 +837,15 @@ ul.form-list li.alert-banner .co-alert {
 .top-filters .top-filters-checkboxes {
   margin-top: 0.5em;
 }
+.top-filters-fields-dates {
+  padding: 1.25em 1em 0.5em;
+  border: 1px solid var(--cmg-color-bg-006);
+  border-radius: 4px;
+  margin-bottom: 1em;
+}
+.top-search-date-label {
+  padding: 1em 0 0.25em;
+}
 .top-filters .filter-clear-all-button {
   font-size: 0.9em;
   width: auto;
