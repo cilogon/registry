@@ -138,7 +138,15 @@ $hasActiveFilters = false;
       <?php
         $field_booleans_columns = [];
         $field_datetime_columns = [];
-
+        
+        if(!empty($columnKeys)) {
+          // To make our filters consistently ordered with the index columns, sort the $vv_searchable_attributes
+          // by the columns.inc $indexColumns keys (passed in to this View element as "$columnKeys"). The fields found
+          // in columns.inc will be placed first in the resulting array. Throw out any fields from $columnKeys that didn't
+          // exist in the original $vv_searchable_attributes array.
+          $vv_searchable_attributes = array_intersect_key(array_replace(array_flip($columnKeys), $vv_searchable_attributes), $vv_searchable_attributes);
+        }
+        
         foreach($vv_searchable_attributes as $key => $options) {
           if($options['type'] == 'boolean') {
             $field_booleans_columns[$key] = $options;

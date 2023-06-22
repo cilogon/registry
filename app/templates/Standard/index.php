@@ -153,7 +153,14 @@ if(!empty($subnav)) {
   
 <!-- Search block -->
 <?php if(isset($vv_searchable_attributes)): ?>
-  <?= $this->element('filter'); ?>
+  <?php 
+    $filterArgs = array();
+    if(!empty($indexColumns)) {
+      // The keys of the $indexColumns are passed to the filters for sorting
+      $filterArgs['columnKeys'] = array_keys($indexColumns);  
+    }
+  ?>
+  <?= $this->element('filter', $filterArgs); ?>
 <?php endif; ?>
 
 <!-- Index table -->
