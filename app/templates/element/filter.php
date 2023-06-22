@@ -32,6 +32,8 @@ use Cake\Utility\Inflector;
 $modelsName = $this->name;
 // $modelName = Model
 $modelName = Inflector::singularize($modelsName);
+// $columns = the passed parameter $indexColumns as found in columns.inc; provides overrides for labels and sorting. 
+$columns = $indexColumns;
 
 // Get the query string and separate the search params from the non-search params
 $query = $this->request->getQueryParams();
@@ -115,13 +117,15 @@ $hasActiveFilters = false;
               (is_array($search_params[$key]) ? 'Range' : $search_params[$key]);
           ?>
           <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" data-identifier="<?= $data_identifier ?>" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
-             <em class="material-icons" aria-hidden="true">cancel</em>
-             <span class="top-filters-active-filter-title">
-               <?= $vv_searchable_attributes[$key]['label'] ?>
-             </span>
-             <span class="top-filters-active-filter-value">
-               <?= filter_var($button_label, FILTER_SANITIZE_SPECIAL_CHARS); ?>
-             </span>
+            <em class="material-icons" aria-hidden="true">cancel</em>
+            <span class="top-filters-active-filter-title">
+              <?= !empty($columns[$key]['label']) ? $columns[$key]['label'] : $vv_searchable_attributes[$key]['label'] ?>
+            </span>
+            <?php if($vv_searchable_attributes[$key]['type'] != 'boolean'): ?>
+              <span class="top-filters-active-filter-value">
+                <?= filter_var($button_label, FILTER_SANITIZE_SPECIAL_CHARS); ?>
+              </span>
+            <?php endif; ?>
           </button>
         <?php endforeach; ?>
           <?php if($hasActiveFilters): ?>
@@ -139,12 +143,12 @@ $hasActiveFilters = false;
         $field_booleans_columns = [];
         $field_datetime_columns = [];
         
-        if(!empty($columnKeys)) {
+        if(!empty($columns)) {
           // To make our filters consistently ordered with the index columns, sort the $vv_searchable_attributes
-          // by the columns.inc $indexColumns keys (passed in to this View element as "$columnKeys"). The fields found
-          // in columns.inc will be placed first in the resulting array. Throw out any fields from $columnKeys that didn't
-          // exist in the original $vv_searchable_attributes array.
-          $vv_searchable_attributes = array_intersect_key(array_replace(array_flip($columnKeys), $vv_searchable_attributes), $vv_searchable_attributes);
+          // by the keys of columns.inc $indexColumns (passed in to this View element as $indexColumns and referenced
+          // as "$columns"). The fields found in $columns will be placed first in the resulting array.
+          // The result should only include fields that exist in the original $vv_searchable_attributes array.
+          $vv_searchable_attributes = array_intersect_key(array_replace(array_flip(array_keys($columns)), $vv_searchable_attributes), $vv_searchable_attributes);
         }
         
         foreach($vv_searchable_attributes as $key => $options) {
@@ -156,7 +160,7 @@ $hasActiveFilters = false;
             continue;
           }
           $formParams = [
-            'label' => $options['label'],
+            'label' => !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label'],
             // The default type is text, but we might convert to select below
             'type' => 'text',
             'value' => (!empty($query[$key]) ? $query[$key] : ''),
@@ -184,7 +188,7 @@ $hasActiveFilters = false;
             <?php foreach($field_booleans_columns as $key => $options): ?>
               <div class="form-check form-check-inline">
                 <?php
-                  print $this->Form->label($key);
+                  print $this->Form->label(!empty($columns[$key]['label']) ? $columns[$key]['label'] : $key);
                   print $this->Form->checkbox($key, [
                     'id' => str_replace("_", "-", $key),
                     'class' => 'form-check-input',
@@ -204,7 +208,9 @@ $hasActiveFilters = false;
         <div class="top-filters-fields-subgroups">
         <?php foreach($field_datetime_columns as $key => $options): ?>
           <div class="input">
-            <div class="top-search-date-label"><?= Inflector::humanize($key) ?></div>
+            <div class="top-search-date-label">
+              <?= !empty($columns[$key]['label']) ? $columns[$key]['label'] : Inflector::humanize($key) ?>
+            </div>
             <div class="top-filters-fields-dates">
               <!--     Start at       -->
               <div class="top-search-start-date">
@@ -216,7 +222,7 @@ $hasActiveFilters = false;
                   $starts_field = $key . "_starts_at";
                   $coptions = [];
                   $coptions['class'] = 'form-control datepicker';
-                  $coptions['label'] = 'Starts at:';
+                  $coptions['label'] = __d('field','starts_at');
                   $coptions['required'] = false;
                   $coptions['placeholder'] = '';
 //                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
@@ -235,7 +241,7 @@ $hasActiveFilters = false;
                     'pickerDate' => $pickerDate
                   ];
                   // Create a text field to hold our value.
-                  print $this->Form->label($starts_field, 'Starts at:', ['class' => 'filter-datepicker-lbl']);
+                  print $this->Form->label($starts_field, __d('field','starts_at'), ['class' => 'filter-datepicker-lbl']);
                   print $this->Form->text($starts_field, $coptions) . $this->element('datePicker', $date_args);
                   ?>
                 </div>
@@ -253,7 +259,7 @@ $hasActiveFilters = false;
                   $coptions['required'] = false;
                   $coptions['placeholder'] = ''; // todo: Make this configurable
 //                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
-                  $coptions['label'] = 'Ends at:';
+                  $coptions['label'] = __d('field','ends_at');
                   $coptions['id'] = str_replace("_", "-", $ends_field);
 
                   $pickerDate = '';
@@ -269,7 +275,7 @@ $hasActiveFilters = false;
                     'pickerDate' => $pickerDate
                   ];
                   // Create a text field to hold our value.
-                  print $this->Form->label($ends_field, 'Ends at:', ['class' => 'filter-datepicker-lbl']);
+                  print $this->Form->label($ends_field, __d('field','ends_at'), ['class' => 'filter-datepicker-lbl']);
                   print $this->Form->text($ends_field, $coptions) . $this->element('datePicker', $date_args);
                   ?>
                 </div>

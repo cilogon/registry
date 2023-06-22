@@ -156,8 +156,8 @@ if(!empty($subnav)) {
   <?php 
     $filterArgs = array();
     if(!empty($indexColumns)) {
-      // The keys of the $indexColumns are passed to the filters for sorting
-      $filterArgs['columnKeys'] = array_keys($indexColumns);  
+      // The $indexColumns are passed to the filters for labels and sorting
+      $filterArgs['indexColumns'] = $indexColumns;
     }
   ?>
   <?= $this->element('filter', $filterArgs); ?>

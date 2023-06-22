@@ -876,8 +876,8 @@ ul.form-list li.alert-banner .co-alert {
   background-color: var(--cmg-color-bg-006);
   color: var(--cmg-color-btn-bg-002) !important;
 }
-.top-filters-active-filter-title::after {
-  content: ": ";
+.top-filters-active-filter-value::before {
+  content: ":";
 }
 .top-filters-active-filter-title.no-value::after {
   content: none;

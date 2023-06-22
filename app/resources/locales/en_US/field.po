@@ -95,6 +95,9 @@ msgstr "Display Name"
 msgid "edupersonaffiliation"
 msgstr "eduPersonAffiliation"
 
+msgid "ends_at"
+msgstr "Ends at:"
+
 msgid "extension"
 msgstr "Extension"
 
@@ -197,6 +200,9 @@ msgstr "Search..."
 
 msgid "sponsor"
 msgstr "Sponsor"
+
+msgid "starts_at"
+msgstr "Starts at:"
 
 msgid "state"
 msgstr "State"
