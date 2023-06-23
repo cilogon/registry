@@ -52,6 +52,24 @@ trait PluggableModelTrait {
   }
 
   /**
+   * Obtain the list of plugin relations, suitable for passing to contains().
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @return array          Array of strings of model names
+   */
+
+  public function getPluginRelations(): array {
+    // _pluginModels is an array with entries of the form Plugin.Model
+    // (eg: SqlConnector.SqlProvisioners) but we want to return an array 
+    // of just the Models for use in contains().
+
+    return array_map(
+      function($v) { $bits = explode('.', $v); return $bits[1] ;},
+      $this->_pluginModels
+    );
+  }
+
+  /**
    * Instantiate a plugin model that is NOT a Cake Table model.
    * 
    * @since  COmanage Registry v5.0.0

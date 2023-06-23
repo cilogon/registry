@@ -365,7 +365,7 @@ class SqlProvisionersTable extends Table {
 
     return $this->syncEntity(
       $provisioningTarget,
-      $entityName,
+      $className,
       $data,
       $eligibility
     );

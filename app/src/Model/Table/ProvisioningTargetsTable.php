@@ -44,6 +44,7 @@ class ProvisioningTargetsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PluggableModelTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
@@ -151,9 +152,9 @@ class ProvisioningTargetsTable extends Table {
     }
 
     $targets = $query->order(['ProvisioningTargets.ordr' => 'ASC'])
-                     ->contain($this->getContainableModels())
+                     ->contain($this->getPluginRelations())
                      ->all();
-
+    
     foreach($targets as $t) {
       // Compare our $context against the target's $status. There are three possible
       // contexts, with their corresponding provisionable statuses:
