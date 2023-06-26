@@ -161,17 +161,38 @@ $hasActiveFilters = false;
           }
           
           if($options['type'] == 'date') {
-            // date picker
-            $formParams = [
-              'label' => !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label'],
-              'type' => 'text', // date inputs must be text for accessibility reasons for now.
-              'value' => (!empty($query[$key]) ? $query[$key] : ''),
-              'required' => false,
-              'pattern' => '\d{4}-\d{2}-\d{2}',
-              'placeholder' => 'YYYY-MM-DD',
-              'title' => __d('field','datepicker.enterDate'),
-              'class' => 'form-control datepicker'
+            // Date fields use a date picker (e.g. DOB)
+            // (Note that timestamps are handled specially. See below.)
+            $opts = [];
+            $opts['type'] = 'text'; // date inputs must be text for accessibility reasons for now.
+            $opts['required'] = false;
+            $opts['pattern'] = '\d{4}-\d{2}-\d{2}';
+            $opts['placeholder'] = 'YYYY-MM-DD';
+            $opts['title'] = __d('field','datepicker.enterDate');
+            $opts['class'] = 'form-control datepicker';
+            $opts['id'] = str_replace("_", "-", $key);
+
+            $date = \Cake\I18n\FrozenTime::parseDate(date("Y-m-d"),'yyyy-MM-dd');
+            if(!empty($query[$key])) {
+              $date = \Cake\I18n\FrozenTime::parseDate($query[$key],'yyyy-MM-dd');
+              $opts['value'] = $date->i18nFormat("yyyy-MM-dd");
+            }
+            $pickerDate = $date->i18nFormat("yyyy-MM-dd");
+            $pickerFloor = $date->subYears(100)->i18nFormat("yyyy-MM-dd");
+            
+            $date_args = [
+              'fieldName' => $key,
+              'pickerDate' => $pickerDate,
+              'pickerType' => \App\Lib\Enum\DateTypeEnum::DateOnly,
+              'pickerFloor' => $pickerFloor
             ];
+            // Create a text field to hold our date value.
+            print '<div class="top-filters-fields-date">';
+            print $this->Form->label($key, !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label']);
+            print '<div class="d-flex">';
+            print $this->Form->text($key, $opts) . $this->element('datePicker', $date_args);
+            print '</div>';
+            print '</div>';
           } else {
             // text input
             $formParams = [
@@ -196,7 +217,9 @@ $hasActiveFilters = false;
             $formParams['empty'] = true;
           }
 
-          print $this->Form->control($key, $formParams);
+          if($options['type'] != 'date') {
+            print $this->Form->control($key, $formParams);
+          }
         }
       ?>
       <?php if(!empty($field_booleans_columns)): ?>

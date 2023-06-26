@@ -894,6 +894,9 @@ ul.form-list li.alert-banner .co-alert {
   white-space: nowrap;
   margin-right: 0.5em;
 }
+.top-filters-fields-date .duet-date__toggle {
+  margin-top: -3px;
+}
 /* CO CONFIGURATION DASHBOARD */
 .config-menu {
   list-style: none;
