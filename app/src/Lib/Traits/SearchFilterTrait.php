@@ -90,6 +90,9 @@ trait SearchFilterTrait {
       $sub = true;
     } elseif(in_array($this->searchFilters[$attribute]['type'], $search_types, true)) {
       return $query->where([$attribute => $search]);
+    } elseif($this->searchFilters[$attribute]['type'] == "date") {
+      // Parse the date string with FrozenTime to improve error handling
+      return $query->where([$attribute => FrozenTime::parseDate($search, 'y-M-d')]);
     } elseif( $this->searchFilters[$attribute]['type'] == "timestamp") {
       // Date between dates
       if(!empty($search[0])

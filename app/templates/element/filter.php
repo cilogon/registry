@@ -159,14 +159,31 @@ $hasActiveFilters = false;
             $field_datetime_columns[$key] = $options;
             continue;
           }
-          $formParams = [
-            'label' => !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label'],
-            // The default type is text, but we might convert to select below
-            'type' => 'text',
-            'value' => (!empty($query[$key]) ? $query[$key] : ''),
-            'required' => false,
-          ];
-
+          
+          if($options['type'] == 'date') {
+            // date picker
+            $formParams = [
+              'label' => !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label'],
+              'type' => 'text', // date inputs must be text for accessibility reasons for now.
+              'value' => (!empty($query[$key]) ? $query[$key] : ''),
+              'required' => false,
+              'pattern' => '\d{4}-\d{2}-\d{2}',
+              'placeholder' => 'YYYY-MM-DD',
+              'title' => __d('field','datepicker.enterDate'),
+              'class' => 'form-control datepicker'
+            ];
+          } else {
+            // text input
+            $formParams = [
+              'label' => !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label'],
+              // The default type is text, but we might convert to select below
+              'type' => 'text',
+              'value' => (!empty($query[$key]) ? $query[$key] : ''),
+              'required' => false,
+              'class' => 'form-control'
+            ];
+          }
+          
           // The populated variables are in plural while the column names are singular
           // Convention: It is a prerequisite that the vvar should be the plural of the column name
           $populated_vvar = Inflector::pluralize($key);
@@ -226,6 +243,8 @@ $hasActiveFilters = false;
                   $coptions['required'] = false;
                   $coptions['placeholder'] = '';
 //                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+                  $coptions['pattern'] = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
+                  $coptions['title'] = __d('field','datepicker.enterDateTime');
                   $coptions['id'] = str_replace("_", "-", $starts_field);
 
                   $pickerDate = '';
@@ -259,6 +278,8 @@ $hasActiveFilters = false;
                   $coptions['required'] = false;
                   $coptions['placeholder'] = ''; // todo: Make this configurable
 //                  $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+                  $coptions['pattern'] = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
+                  $coptions['title'] = __d('field','datepicker.enterDateTime');
                   $coptions['label'] = __d('field','ends_at');
                   $coptions['id'] = str_replace("_", "-", $ends_field);
 
