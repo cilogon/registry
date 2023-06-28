@@ -1585,7 +1585,7 @@ tr.noborder td {
 td.indented {
   border-left: 3em solid var(--cmg-color-body-bg);
 }
-table.index-table tr:hover td {
+tr.linked-row:hover td {
   background-color: var(--cmg-color-bg-001);
   cursor: pointer;
 }

@@ -76,6 +76,27 @@ class PluginsController extends StandardController {
 
     return $this->redirect(['action' => 'index']);
   }
+  
+  /**
+   * Callback run prior to the view rendering.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   */
+  
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    // In order to get the sidebar to render we need to set the current CO,
+    // which for plugins is the COmanage CO.
+    $CosTable = $this->fetchTable('Cos');
+    $this->set('vv_cur_co', $CosTable->find('COmanageCO')->firstOrFail());
+    
+    // The Plugins table is a "meta" table rather than configuration, but we should load the 
+    // "configuration" breadcrumb. Override vv_bc_configuration_link to be true so that the
+    // breadcrumb renders.  
+    $this->set('vv_bc_configuration_link', true);
+    
+    return parent::beforeRender($event);
+  }
 
   /**
    * Deactivate a Plugin.

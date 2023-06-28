@@ -363,7 +363,9 @@ if(!empty($subnav)) {
                 break;
               case 'datetime':
     // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-                print !empty($entity->$col) ? $this->Time->nice($entity->$col, $vv_tz) . $suffix : "";
+                if(!empty($entity->$col)) {
+                  print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
+                }
                 break;
               case 'enum':
                 if($entity->$col) {
@@ -427,38 +429,6 @@ if(!empty($subnav)) {
                 $fn = $cfg['function'];
                 print $fn($entity);
                 break;
-              case 'datetime':
-    // XXX dates can be rendered as eg $entity->created->format(DATE_RFC850);
-                if(!empty($entity->$col)) {
-                  print $this->Time->nice($entity->$col, $vv_tz) . $suffix;
-                }
-                break;
-              case 'enum':
-                if($entity->$col) {
-                  // XXX Need to add badging - see index.php in Match
-                  print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
-                }
-                break;
-              case 'fk':
-                // Assuming $col is of the form foo_id, look to see if the corresponding
-                // AutoViewVar $foos is set, and if so render the lookup value instead
-                $f = null;
-                if(preg_match('/^(.*?)_id$/', $col, $f)) {
-                  $avv = Inflector::variable(Inflector::pluralize($f[1]));
-                  
-                  if(!empty(${$avv}[$entity->$col])) {
-                    // We found the viewvar (eg: $foos), and it has a corresponding value
-                    // (eg: $foos[3]), so render it
-                    print ${$avv}[$entity->$col]. $suffix;  // XXX filter_var?
-                  } else {
-                    // No match, just render the value
-                    print $entity->$col. $suffix;
-                  }
-                } else {
-                  // Just print the value
-                  print $entity->$col. $suffix;
-                }
-                break;
               case 'link':
               case 'relatedLink':
               case 'echo':
@@ -505,8 +475,9 @@ if(!empty($subnav)) {
                   foreach($tryActions as $a) {
                     // Does this user have permission for this action?
                     if($vv_permission_set[$entity->id][$a]) {
+                      // Handle $isFirstLink
                       $args = [];
-                      $readOnlyIcon = '';                       
+                      $readOnlyIcon = '';
                       if($isFirstLink) {
                         $linkClass = 'row-link';
                         if($a == 'edit') {
@@ -547,6 +518,7 @@ if(!empty($subnav)) {
   // XXX we actually need to know the permissions on the target (ie: actor person)
                       if(true || 
                          $vv_permission_set[$entity->id][$a]) {
+                        // Handle $isFirstLink
                         $args = [];
                         $readOnlyIcon = '';
                         if($isFirstLink) {
@@ -579,6 +551,7 @@ if(!empty($subnav)) {
                 if(!$linked) {
                   // Just echo the value
                   print $label;
+                  $isFirstLink = false;
                 }
                 break;
             }
