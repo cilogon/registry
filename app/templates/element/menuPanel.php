@@ -176,9 +176,50 @@
   <?php if($panel == 'connections'): ?>
     <h2><?= __d('menu','co.connections.panel.title') ?></h2>
     <p><?= __d('menu','co.connections.panel.desc') ?></p>
-    <div class="menu-panel-content">
-      <!-- Primary menu-panel-links go here. Copy the structure from the People panel above. -->
-      <!-- Add the menu-panel-sidepanel here for plugins and other links. Copy the structure from the People panel above. -->
+    <div class="menu-panel-content d-flex-md">
+      <!-- Primary menu-panel-links -->
+      <ul class="menu-panel-links">
+        <li>
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'provisioning_targets',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined" aria-hidden="true">cloud_upload</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller','ProvisioningTargets', [2]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.connections.provisioning_targets.desc') ?></div>
+            </div>
+          </a>
+        </li>
+      </ul>  
+      <!-- menu-panel-sidepanel for plugins and other links -->
+      <div class="menu-panel-sidepanel">
+        <div class="menu-panel-sidepanel-content">
+          <ul class="menu-panel-links menu-panel-links-inner">
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'servers',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>" class="nospin">
+                <em class="material-icons" aria-hidden="true">computer</em> 
+                <?= __d('controller','Servers', [2]) ?>
+              </a>
+            </li>
+          </ul>
+      </div>
     </div>
   <?php endif; ?>
   <?php if($panel == 'operations'): ?>
