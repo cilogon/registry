@@ -207,7 +207,7 @@ if(!empty($vv_person_name)) {
             print $this->Html->link(
               __d('controller', 'People', [1]),
               [ 'controller' => 'people',
-                'action' => 'edit',
+                'action' => $curAction == 'edit' ? 'edit' : 'view',
                 $curId
               ],
               ['class' => $linkClass]
@@ -267,7 +267,7 @@ if(!empty($vv_person_name)) {
             print $this->Html->link(
               __d('controller', 'Properties', [99]),
               [ 'controller' => 'groups',
-                'action' => 'edit',
+                'action' => $curAction == 'edit' ? 'edit' : 'view',
                 $curId
               ],
               ['class' => $linkClass]

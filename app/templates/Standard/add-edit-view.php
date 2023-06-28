@@ -42,8 +42,8 @@ $templatePath = $vv_template_path ?? ROOT . DS . "templates" . DS . $modelsName;
 
 // Include subnavigation structures on add/edit/view pages
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc
-// When subnav exists, include on all Edit views and on Add/View for items with a parent.
-if($vv_action == 'edit' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
+// When subnav exists, include on all Edit/View views and on Add views for items with a parent.
+if($vv_action == 'edit' || $vv_action == 'view' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
   if(file_exists($templatePath . DS . "fields-nav.inc")) {
     include($templatePath . DS . "fields-nav.inc");
   }  
