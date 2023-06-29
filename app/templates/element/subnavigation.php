@@ -207,7 +207,8 @@ if(!empty($vv_person_name)) {
             print $this->Html->link(
               __d('controller', 'People', [1]),
               [ 'controller' => 'people',
-                'action' => $curAction == 'edit' ? 'edit' : 'view',
+                // TODO: the following test needs to be made based on read-only status of the Person
+                'action' => $curAction == 'view' ? 'view' : 'edit',
                 $curId
               ],
               ['class' => $linkClass]
@@ -267,7 +268,8 @@ if(!empty($vv_person_name)) {
             print $this->Html->link(
               __d('controller', 'Properties', [99]),
               [ 'controller' => 'groups',
-                'action' => $curAction == 'edit' ? 'edit' : 'view',
+                // TODO: the following test needs to be made based on read-only status of the group
+                'action' => $curAction == 'view' ? 'view' : 'edit',
                 $curId
               ],
               ['class' => $linkClass]
