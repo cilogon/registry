@@ -50,6 +50,7 @@ class GroupsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
@@ -97,6 +98,10 @@ class GroupsTable extends Table {
     $this->setPrimaryLink('co_id');
     $this->setAllowLookupPrimaryLink(['provision', 'reconcile']);
     $this->setRequiresCO(true);
+  
+    $this->setEditContains([
+      'Identifiers'
+    ]);
     
     $this->setAutoViewVars([
       'statuses' => [

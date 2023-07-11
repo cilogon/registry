@@ -74,13 +74,7 @@ $vueHelper = $this->loadHelper('Vue');
     },
     methods: {
       getMveas(mveaType,entityType) {
-        var entityTypeIdRef = 'person_id';
-        if(entityType == 'person_role') {
-          entityTypeIdRef = 'person_role_id';
-        }
-        if(entityType == 'external_identity') {
-          entityTypeIdRef = 'external_identity_id';
-        }
+        var entityTypeIdRef = entityType + '_id';
         let url = '<?=
           $this->Url->build(['controller' => 'api', 'action' => 'v2'])
           ?>/' + mveaType + '?' + entityTypeIdRef + '=<?php print $parentId ?>&extended';

@@ -1090,7 +1090,7 @@ html.dark-mode #pagination {
 }
 #mvea-canvas-title-container {
   display: flex;
-  justify-content: space-between;
+  gap: 0.5em;
   align-items: center;
   margin: 3em 0 -0.5em;
 }
