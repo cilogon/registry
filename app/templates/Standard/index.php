@@ -98,19 +98,23 @@ if(!empty($subnav)) {
   if($vv_permissions['add']) {
     $action_args = array();
     $action_args['vv_attr_id'] =  $vv_user['username'];
+    $action_args['vv_actions'] = array();
 
-    $action_args['vv_actions'][] = [
-      'order' => $this->Menu->getMenuOrder('Add'),
-      'icon' => $this->Menu->getMenuIcon('Add'),
-      'url' => $this->Url->build(
-        [
-          'controller' => $modelsName,
-          'action' => 'add',
-          '?' => $linkFilter
-        ]
-      ),
-      'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
-    ];
+    // Include the Add link to actions menu unless suppressed by the page
+    if(empty($suppressAddLink)) {
+      $action_args['vv_actions'][] = [
+        'order' => $this->Menu->getMenuOrder('Add'),
+        'icon' => $this->Menu->getMenuIcon('Add'),
+        'url' => $this->Url->build(
+          [
+            'controller' => $modelsName,
+            'action' => 'add',
+            '?' => $linkFilter
+          ]
+        ),
+        'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
+      ];
+    }
 
     foreach(($topLinks ?? []) as $t) {
       if($vv_permissions[ $t['link']['action'] ]) {
