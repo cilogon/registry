@@ -58,7 +58,10 @@ $rowActions = [
   ]
 ];
 
-// TODO: develop bulk actions. For now, use a placeholder.
+/*
+// When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index. 
 $bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder.
   'delete' => true
 ];
+*/
