@@ -585,15 +585,6 @@ ul.form-list li.alert-banner .co-alert {
 .menu-panel-link-desc { 
   color: var(--cmg-color-body-txt);
 }
-.menu-panel .az-link {
-  position: absolute;
-  right: 6em;
-  top: 2em;
-  font-size: 1.1em;
-}
-#main-menu .az-link a {
-  padding: 0;
-}
 .menu-panel-sidepanel {
   padding: 0 1em 2em 1.25em;
 }

@@ -39,14 +39,11 @@ msgstr "Attributes"
 msgid "co.configuration"
 msgstr "Configuration"
 
-msgid "co.configuration.az"
-msgstr "A-Z Config"
+msgid "co.configuration.short"
+msgstr "Config"
 
 msgid "co.configuration.char"
 msgstr "C"
-
-msgid "co.configuration.panel.az"
-msgstr "A-Z Listing"
 
 msgid "co.configuration.panel.title"
 msgstr "Configuration"

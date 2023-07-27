@@ -262,7 +262,7 @@
   .menu-panel {
     left: calc(100% + 1px);
     padding: 1rem 1.5rem;
-    width: 80vw;
+    width: 70vw;
     min-height: 520px;
     border-right: 1px solid var(--cmg-color-bg-006);
     border-bottom: 1px solid var(--cmg-color-bg-006);

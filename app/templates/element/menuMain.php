@@ -122,7 +122,7 @@
             ],
             [
               'permission' => 'configuration',
-              'label' => __d('menu', 'co.configuration.az'),
+              'label' => __d('menu', 'co.configuration.short'),
               'char' => __d('menu', 'co.configuration.char'),
               'controller' => 'dashboards',
               'action' => 'configuration'

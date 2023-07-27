@@ -74,16 +74,18 @@
         */ ?>
       </ul>
       
+      <?php /* XXX These sidepanel links are disabled until needed, but we will leave them in the code to 
+               provide hints to where they may belong. Plugins related to this panel may also appear here.
+ 
       <div class="menu-panel-sidepanel">
-        <?php /* XXX if we want a title for the side menu, use an h3 like so:
+        <? php /* XXX if we want a title for the side menu, use an h3 like so:
         <h3>
           <?= __d('menu','related.configurations') ?>
-        </h3> */
-        ?>
+        </h3> * /
+        ? >
         <div class="menu-panel-sidepanel-content">
           <ul class="menu-panel-links menu-panel-links-inner">
-            <li><a href="#" class="nospin"><em class="material-icons" aria-hidden="true">apps</em> placeholder</a></li>
-            <?php /* Placeholders below. Replace with real links and text replacement:
+            <? php /* Placeholders below. Replace with real links and text replacement:
             <li><a href="#"><em class="material-icons" aria-hidden="true">lock</em> Authenticators</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">forward</em> Enrollment Flows</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">access_alarm</em> Expiration Policies</a></li>
@@ -92,10 +94,11 @@
             <li><a href="#"><em class="material-icons" aria-hidden="true">check_circle</em> Identifier Validators</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">cloud_upload</em> Provisioning Targets</a></li>
             <li><!-- more links here, including plugins --></li>
-            */ ?>
+            * / ? >
           </ul>
         </div>
       </div>
+      */ ?>
     </div>
   <?php endif; ?>
   <?php if($panel == 'structure'): ?>
@@ -161,16 +164,8 @@
             </div>
           </a>
         </li>
-          */ ?>
+        */ ?>
       </ul>
-      <div class="menu-panel-sidepanel">
-        <div class="menu-panel-sidepanel-content">
-          <ul class="menu-panel-links menu-panel-links-inner">
-            <li><a href="#" class="nospin"><em class="material-icons" aria-hidden="true">apps</em> placeholder</a></li>
-            <li><!-- more links here, including plugins --></li>
-          </ul>
-        </div>
-      </div>
     </div>
   <?php endif; ?>
   <?php if($panel == 'connections'): ?>
@@ -246,7 +241,10 @@
               <div class="menu-panel-link-desc"><?= __d('menu','co.operations.jobs.desc') ?></div>
             </div>
           </a>
-        </li><li>
+        </li>
+        <?php
+          /* XXX Enable highlighted menu items as needed:
+        <li>
           <?php
             $menuUrl = $this->Url->build(
               ['plugin'       => null,
@@ -265,26 +263,12 @@
             </div>
           </a>
         </li>
-      </ul>  
-      <!-- Add the menu-panel-sidepanel here for plugins and other links. Copy the structure from the People panel above. -->
+        */ ?>
+      </ul>
     </div>
   <?php endif; ?>
   <?php if($panel == 'config'): ?>
     <h2><?= __d('menu','co.configuration.panel.title') ?></h2>
-    <div class="az-link">
-      <?= $this->Html->link(
-            __d('menu','co.configuration.panel.az'),
-            [
-              'plugin'       => null,
-              'controller'   => 'dashboards',
-              'action'       => 'configuration',
-              '?'            => [
-               'co_id' => $vv_cur_co->id
-              ]
-            ]
-          );
-      ?>
-    </div>
     <div class="menu-panel-content">
       <?php if($vv_cur_co->id == 1): ?>
         <?php
@@ -389,6 +373,11 @@
           </ul>
         </li>
       </ul>
+
+      <?php /* XXX The "Personalization" links are disabled until needed, but we will leave them in the code to 
+               provide hints to where they belong. The description ('co.configuration.panel.personalization.desc')
+               reads "Dashboards, custom text, and theming". When such things are ready, place them here.
+ 
       <ul class="menu-panel-links">
         <li>
           <h3><?= __d('menu','co.configuration.panel.personalization') ?></h3>
@@ -403,10 +392,11 @@
             <li><a href="#"><em class="material-icons" aria-hidden="true">email</em> Message Templates</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">wallpaper</em> Themes</a></li>
-            */ ?>
+            * / ? >
           </ul>
         </li>
       </ul>
+      */ ?>
     </div>
     <div class="comanage-version">
       <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
