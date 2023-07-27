@@ -350,15 +350,16 @@
     padding: 0;
   }
   /* EDIT / VIEW / INDEX ACTION TOP-LINKS MENU */
-  /* Convert the dropdown menus to be visible on wider screens.
-     XXX We will likely collapse the toplinks when there are many, but for now, expose them. */
+  /* Convert the dropdown menus to be visible on wider screens when .actions-expanded class exists. 
+     .action-expanded is set when there are fewer than four actions exposed. Otherwise, all links remain
+     in the gear dropdown menu. */
   .field-actions.top-links {
     align-self: end;
   }
-  .field-actions.top-links  .action-menu-toggle {
+  .field-actions.top-links .actions-expanded .action-menu-toggle {
     display: none;
   }
-  .field-actions.top-links  .dropdown-menu {
+  .field-actions.top-links .actions-expanded  .dropdown-menu {
     position: static;
     display: inline-block;
     min-width: 0;
@@ -367,17 +368,17 @@
     background-color: transparent;
     white-space: nowrap;
   }
-  .field-actions.top-links  .action-list-item {
+  .field-actions.top-links .actions-expanded  .action-list-item {
     display: inline-block;
   }
-  .field-actions.top-links  a.dropdown-item {
+  .field-actions.top-links .actions-expanded  a.dropdown-item {
     padding: 0 0.5em;
   }
-  #main .field-actions.top-links  a.dropdown-item:hover {
+  #main .field-actions.top-links .actions-expanded  a.dropdown-item:hover {
     color: var(--cmg-color-link);
     text-decoration: underline;
   }
-  .field-actions.top-links  a.dropdown-item:hover {
+  .field-actions.top-links .actions-expanded  a.dropdown-item:hover {
     background-color: transparent;
   }
   /* FOOTER */

@@ -27,7 +27,9 @@
 
 $actionsCount = count($vv_actions);
 $actionsCountClass = $actionsCount > 0 ? ' actions-count-' . $actionsCount : '';
-$actionsMenuClass = (!empty($vv_actions_class) ? $vv_actions_class : 'field-actions-menu') . ' dropdown dropleft' . $actionsCountClass;
+$actionsExpandedClass = ($actionsCount > 0 && $actionsCount < 4) ? ' actions-expanded' : '';
+$actionsMenuClass = (!empty($vv_actions_class) ? $vv_actions_class : 'field-actions-menu') 
+  . ' dropdown dropleft' . $actionsCountClass . $actionsExpandedClass;
 $actionsMenuUid = md5($vv_attr_id);
 $actionsType = !empty($vv_actions_type) ? $vv_actions_type : 'row-actions';
 $actionsTitle = !empty($vv_actions_title) ? $vv_actions_title : '';
