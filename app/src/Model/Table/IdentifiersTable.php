@@ -82,16 +82,6 @@ class IdentifiersTable extends Table {
   }
   
   /**
-   * Provide the default redirect goal
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getRedirectGoal(): string {
-    return "self";
-  }
-  
-  /**
    * Perform Cake Model initialization.
    *
    * @since  COmanage Registry v5.0.0
@@ -116,8 +106,8 @@ class IdentifiersTable extends Table {
     $this->setDisplayField('identifier');
     
     $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
-    $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
+    $this->setRedirectGoal('self');
     
     $this->setAutoViewVars([
       'types' => [

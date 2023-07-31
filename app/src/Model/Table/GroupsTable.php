@@ -98,7 +98,7 @@ class GroupsTable extends Table {
     $this->setPrimaryLink('co_id');
     $this->setAllowLookupPrimaryLink(['provision', 'reconcile']);
     $this->setRequiresCO(true);
-  
+    
     $this->setEditContains([
       'Identifiers'
     ]);
@@ -141,6 +141,7 @@ class GroupsTable extends Table {
         'GroupNestings',
         'GroupOwners',
         'HistoryRecords',
+        'IdentifierAssignments',
         'Identifiers',
         'ProvisioningTargets'
       ]

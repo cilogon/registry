@@ -33,6 +33,18 @@ use \Cake\Utility\Inflector;
 
 class StringUtilities {
   /**
+   * Determine the foreign key name to point to a Cake Class Name (eg: foo_id for Foo).
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $className  Class Name
+   * @return string             Foreign key name
+   */
+
+  public static function classNameToForeignKey(string $className): string {
+    return Inflector::underscore(Inflector::singularize($className)) . "_id";
+  }
+
+  /**
    * Construct the Column human-readable key
    *
    * @since  COmanage Registry v5.0.0
@@ -186,7 +198,7 @@ class StringUtilities {
    * Determine the foreign key name to point to a Cake Entity (eg: foo_id for FooTable).
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  Entity $entity Entity
+   * @param  Table  $table  Table
    * @return string         Foreign key name
    */
 

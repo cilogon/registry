@@ -65,6 +65,8 @@ return array(
     'CoreServer\\' => array($baseDir . '/plugins/CoreServer/src'),
     'CoreReport\\Test\\' => array($baseDir . '/availableplugins/CoreReport/tests'),
     'CoreReport\\' => array($baseDir . '/availableplugins/CoreReport/src'),
+    'CoreAssigner\\Test\\' => array($baseDir . '/plugins/CoreAssigner/tests'),
+    'CoreAssigner\\' => array($baseDir . '/plugins/CoreAssigner/src'),
     'Composer\\XdebugHandler\\' => array($vendorDir . '/composer/xdebug-handler/src'),
     'Composer\\Spdx\\' => array($vendorDir . '/composer/spdx-licenses/src'),
     'Composer\\Semver\\' => array($vendorDir . '/composer/semver/src'),

@@ -81,6 +81,15 @@ msgstr "Added {0} as an owner of group {1}"
 msgid "GroupOwners.deleted"
 msgstr "Removed {0} as an owner of group {1}"
 
+msgid "IdentifierAssignments.assigned.already"
+msgstr "Identifiers Already Assigned ({0})"
+
+msgid "IdentifierAssignments.history"
+msgstr "Identifier Auto Assigned: {0} ({1}, {2})"
+
+msgid "IdentifierAssignments.assigned.ok"
+msgstr "Identifiers Assigned ({0})"
+
 msgid "Names.primary_name"
 msgstr "Primary Name Updated"
 

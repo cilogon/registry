@@ -259,7 +259,11 @@ class SchemaManager {
           $flags = [];
           $options = [];
           
-          $table->addIndex($iCfg->columns, $iName, $flags, $options);
+          if(isset($iCfg->unique) && $iCfg->unique) {
+            $table->addUniqueConstraint($iCfg->columns, $iName, $flags, $options);
+          } else {
+            $table->addIndex($iCfg->columns, $iName, $flags, $options);
+          }
         }
       }
       

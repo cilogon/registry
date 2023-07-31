@@ -341,16 +341,17 @@ class AppController extends Controller {
    * Get the redirect goal for this table.
    *
    * @since  COmanage Registry v5.0.0
-   * @return string Redirect goal
+   * @param  string $action   Action
+   * @return string           Redirect goal
    */
   
-  protected function getRedirectGoal(): ?string {
+  protected function getRedirectGoal(string $action): ?string {
     // $this->name = Models
     $modelsName = $this->name;
     
     // PrimaryLinkTrait
     if(method_exists($this->$modelsName, "getRedirectGoal")) {
-      return $this->$modelsName->getRedirectGoal();
+      return $this->$modelsName->getRedirectGoal($this->request->getParam('action'));
     }
     
     return 'index';

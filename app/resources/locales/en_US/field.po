@@ -50,6 +50,9 @@ msgstr "Attribute"
 msgid "comment"
 msgstr "Comment"
 
+msgid "context"
+msgstr "Context"
+
 msgid "country"
 msgstr "Country"
 
@@ -121,6 +124,9 @@ msgstr "(Dr, Hon, etc)"
 
 msgid "identifier"
 msgstr "Identifier"
+
+msgid "format"
+msgstr "format"
 
 msgid "full_name"
 msgstr "Full Name"
@@ -321,9 +327,6 @@ msgstr "Limit Global Search Scope"
 msgid "CoSettings.search_global_limited_models.desc"
 msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
-msgid "format"
-msgstr "format"
-
 msgid "GroupMembers.source"
 msgstr "Membership Source"
 
@@ -362,6 +365,18 @@ msgstr "Open"
 
 msgid "Groups.open.desc"
 msgstr "Open groups may be self-joined by any Person in the CO"
+
+msgid "IdentifierAssignments.email_address_type_id"
+msgstr "Email Address Type"
+
+msgid "IdentifierAssignments.email_address_type_id.desc"
+msgstr "Exactly one of Email Address or Identifier Type must be set"
+
+msgid "IdentifierAssignments.identifier_type_id"
+msgstr "Identifier Type"
+
+msgid "IdentifierAssignments.identifier_type_id.desc"
+msgstr "Exactly one of Email Address or Identifier Type must be set"
 
 msgid "JobHistoryRecords.record_key"
 msgstr "Record Key"

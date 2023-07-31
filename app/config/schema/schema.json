@@ -11,12 +11,14 @@
     "columns": {
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
       "comment": { "type": "string", "size": 256 },
+      "context": { "type": "string", "size": 2 },
       "cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
       "description": { "type": "string", "size": 128 },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
       "group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
+      "identifier_assignment_id": { "type": "integer", "foreignkey": { "table": "identifier_assignments", "column": "id" }, "notnull": true },
       "language": { "type": "string", "size": 16 },
       "name": { "type": "string", "size": 128, "notnull": true },
       "ordr": { "type": "integer" },
@@ -171,8 +173,7 @@
         "cous_i1": { "columns": [ "co_id" ] },
         "cous_i2": { "columns": [ "name" ] },
         "cous_i3": { "columns": [ "co_id", "name" ] },
-        "cous_i4": { "needed": false, "columns": [ "parent_id" ]
-        }
+        "cous_i4": { "needed": false, "columns": [ "parent_id" ] }
       }
     },
     
@@ -577,6 +578,27 @@
       },
       "indexes": {
         "servers_i1": { "columns": [ "co_id" ] }
+      }
+    },
+
+    "identifier_assignments": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "context": {},
+        "group_id": {},
+        "identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": false },
+        "login": { "type": "boolean" },
+        "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": false },
+        "ordr": {}
+      },
+      "indexes": {
+        "identifier_assignments_i1": { "columns": [ "co_id" ] },
+        "identifier_assignments_i2": { "needed": false, "columns": [ "email_address_type_id" ] },
+        "identifier_assignments_i3": { "needed": false, "columns": [ "identifier_type_id" ] }
       }
     }
   },

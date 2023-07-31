@@ -96,6 +96,9 @@ msgstr "First"
 msgid "go"
 msgstr "Go"
 
+msgid "identifiers.assign"
+msgstr "Assign Identifiers"
+
 msgid "last"
 msgstr "Last"
 

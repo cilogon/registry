@@ -407,7 +407,7 @@ class StandardController extends AppController {
     $redirect = [];
     
     // By default we return to the index, but we'll also accept "self" or "primaryLink".
-    $redirectGoal = $this->getRedirectGoal();
+    $redirectGoal = $this->getRedirectGoal($this->request->getParam('action'));
     
     if(!$redirectGoal) {
       // Our default behavior is index unless we're in a plugin context
@@ -635,10 +635,17 @@ class StandardController extends AppController {
             // Inject configuration. Since we're only ever looking at the types
             // table, inject the current CO along with the requested attribute
             $avv['model'] = 'Types';
-            $avv['where'] = [
-              'attribute' => $avv['attribute'],
-              'status'    => SuspendableStatusEnum::Active
-            ];
+            if(is_array($avv['attribute'])) {
+              $avv['where'] = [
+                'attribute IN' => $avv['attribute'],
+                'status'    => SuspendableStatusEnum::Active
+              ];
+            } else {
+              $avv['where'] = [
+                'attribute' => $avv['attribute'],
+                'status'    => SuspendableStatusEnum::Active
+              ];
+            }
             // fall through
           case 'auxiliary':
 // XXX add list as in match?

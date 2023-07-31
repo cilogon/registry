@@ -74,19 +74,19 @@ trait HistoryTrait {
     if($entity->isNew() || $entity->deleted) {
       // Generate a changeset of non-empty fields
       foreach($diffFields as $field) {
-        if(!is_string($field)) {
+        if($field != 'type_id' && !is_string($field)) {
           // This is a related model, skip
           continue;
         }
         
         $newValue = $entity->get($field);
-        
-        if(!empty($newValue) && is_string($newValue)) {
+
+        if(!empty($newValue)) {
           if($field == 'type_id') {
             $newValue = $Types->getTypeLabel((int)$newValue);
           }
           
-          $changeSet[] = $field . ": " . $newValue;
+          $changeSet[] = $field . ": " . (string)$newValue;
         }
       }
     } else {

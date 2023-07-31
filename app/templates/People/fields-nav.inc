@@ -68,6 +68,19 @@ $topLinks = [
       ]
     ],
     'class' => ''
+  ],
+  [
+    'icon' => 'badge',
+    'order' => 'Default',
+    'label' => __d('operation', 'identifiers.assign'),
+    'link' => [
+      'controller' => 'identifier_assignments',
+      'action' => 'assign',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
   ]
 ];
   

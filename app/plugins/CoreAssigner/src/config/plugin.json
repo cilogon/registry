@@ -1,0 +1,38 @@
+{
+  "types": {
+    "assigner": [
+      "FormatAssigners"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "format_assigners": {
+        "columns": {
+          "id": {},
+          "identifier_assignment_id": {},
+          "format": { "type": "string", "size": 256 },
+          "minimum": { "type": "integer" },
+          "maximum": { "type": "integer" },
+          "collision_mode": { "type": "string", "size": 2 },
+          "permitted_characters": { "type": "string", "size": 2 }
+        },
+        "indexes": {
+          "format_assigners_i1": { "columns": [ "identifier_assignment_id" ]}
+        }
+      },
+      "format_assigner_sequences": {
+        "columns": {
+          "id": {},
+          "format_assigner_id": { "type": "integer", "foreignkey": { "table": "format_assigners", "column": "id" } },
+          "affix": { "type": "string", "size": 256 },
+          "last": { "type": "integer" }
+        },
+        "indexes": {
+          "format_assigner_sequences_i1": { "columns": [ "format_assigner_id", "affix" ], "unique": true },
+          "format_assigner_sequences_i2": { "needed": false, "columns": [ "format_assigner_id" ] }
+        },
+        "changelog": false
+      }
+    }
+  }
+}

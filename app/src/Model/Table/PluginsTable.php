@@ -401,7 +401,9 @@ class PluginsTable extends Table {
             // exception and anyway just returning a single error will be sufficient
             // for now
 
-            return __d('error', 'Plugins.inuse', [count($r), $type, $r->first()->name, $r->first()->co_id]);
+            $displayField = $table->getDisplayField();
+
+            return __d('error', 'Plugins.inuse', [count($r), $type, $r->first()->$displayField, $r->first()->co_id]);
           }
         }
       }

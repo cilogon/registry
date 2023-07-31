@@ -176,6 +176,7 @@ class PeopleTable extends Table {
         'EmailAddresses',
         'ExternalIdentities',
         'HistoryRecords',
+        'IdentifierAssignments',
         'Identifiers',
         'PersonRoles',
         'ProvisioningTargets',

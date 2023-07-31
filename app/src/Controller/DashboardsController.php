@@ -118,6 +118,11 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ],
       // XXX External Identity Sources should use "cloud_download" for the icon
+      __d('controller', 'IdentifierAssignments', [99]) => [
+        'icon'          => 'badge',
+        'controller'    => 'identifier_assignments',
+        'action'        => 'index'
+      ],
       __d('controller', 'ProvisioningTargets', [99]) => [
         'icon'          => 'cloud_upload',
         'controller'    => 'provisioning_targets',

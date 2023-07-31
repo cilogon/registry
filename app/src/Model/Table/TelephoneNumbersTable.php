@@ -69,16 +69,6 @@ class TelephoneNumbersTable extends Table {
   }
   
   /**
-   * Provide the default redirect goal
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getRedirectGoal(): string {
-    return "self";
-  }
-  
-  /**
    * Perform Cake Model initialization.
    *
    * @since  COmanage Registry v5.0.0
@@ -105,6 +95,7 @@ class TelephoneNumbersTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
+    $this->setRedirectGoal('self');
     
     $this->setAutoViewVars([
       'types' => [

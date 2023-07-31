@@ -48,9 +48,10 @@ trait PrimaryLinkTrait {
   // Actions where the primary link can be obtained by looking up the record ID
   private $lookupActions = ['delete', 'edit', 'canvas', 'view'];
   
-  // Where to redirect on add or edit, can be 'self', 'index', 'pluggableLink', or 'primaryLink'
-  // We use null to mean "index unless we're in a plugin context, in which case pluggableLink"
-  private $redirectGoal = null;
+  // Where to redirect on add or edit, can be 'self', 'index', 'pluggableLink', or 'primaryLink'.
+  // We use null to mean "index unless we're in a plugin context, in which case pluggableLink".
+  // This array is keyed on the action (or "*" for default).
+  private $redirectGoal = ['*' => null];
   
   // Accept the current CO ID?
   private $acceptCoId = false;
@@ -120,12 +121,22 @@ trait PrimaryLinkTrait {
       }
     } else {
       foreach($this->primaryLinks as $linkField => $linkTable) {
-        if(!empty($entity->$linkField)) {
+        $lf = $linkField;
+
+        if(strstr($linkField, '.')) {
+          // Modified plugin notation ("CoreAssigners.format_assigner_id"),
+          // we just need the fieldname, not the full string.
+
+          $bits = explode(".", $linkField, 2);
+          $lf = $bits[1];
+        }
+
+        if(!empty($entity->$lf)) {
           // Use this field. Recursively ask the primaryLink until we get an answer.
           $LinkTable = TableRegistry::getTableLocator()->get($linkTable);
-          
-          $linkValue = ($original ? $entity->getOriginal($linkField) : $entity->get($linkField));
-          
+
+          $linkValue = ($original ? $entity->getOriginal($lf) : $entity->get($lf));
+
           return $LinkTable->findCoForRecord($linkValue);
         }
       }
@@ -164,6 +175,34 @@ trait PrimaryLinkTrait {
   }
   
   /**
+   * Find the Primary Link associated with the requested object ID.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id       Object ID
+   * @param  bool   $archived Whether to retrieve archived (deleted) records
+   * @return Entity           Primary Link (as an Entity)
+   * @throws \InvalidArgumentException
+   */
+  
+  public function findPrimaryLink(int $id, bool $archived=false) {
+    $obj = $this->get($id, ['archived' => $archived]); //->firstOrFail();
+    
+    // We might have multiple primary link keys (eg for MVEAs), but only one
+    // should be set. Return the first one we find.
+    foreach(array_keys($this->primaryLinks) as $plKey) {
+      if(!empty($obj->$plKey)) {
+        return (object)[
+          'attr'  => $plKey,
+          'value' => $obj->$plKey,
+          'co_id' => $this->calculateCoForRecord($obj)
+        ];
+      }
+    }
+    
+    throw new \InvalidArgumentException(__d('error', 'primary_link'));
+  }
+  
+  /**
    * Find the Primary Link for an entity.
    *
    * @since  COmanage Registry v5.0.0
@@ -178,33 +217,6 @@ trait PrimaryLinkTrait {
         $LinkTable = TableRegistry::getTableLocator()->get($this->primaryLinks[$plKey]);
         
         return $LinkTable->findById($entity->$plKey)->firstOrFail();
-      }
-    }
-    
-    throw new \InvalidArgumentException(__d('error', 'primary_link'));
-  }
-  
-  /**
-   * Find the Primary Link associated with the requested object ID.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $id Object ID
-   * @return Entity     Primary Link (as an Entity)
-   * @throws \InvalidArgumentException
-   */
-  
-  public function findPrimaryLink(int $id) {
-    $obj = $this->findById($id)->firstOrFail();
-    
-    // We might have multiple primary link keys (eg for MVEAs), but only one
-    // should be set. Return the first one we find.
-    foreach(array_keys($this->primaryLinks) as $plKey) {
-      if(!empty($obj->$plKey)) {
-        return (object)[
-          'attr'  => $plKey,
-          'value' => $obj->$plKey,
-          'co_id' => $this->calculateCoForRecord($obj)
-        ];
       }
     }
     
@@ -238,11 +250,12 @@ trait PrimaryLinkTrait {
    * Obtain this table's redirect goal.
    *
    * @since  COmanage Registry v5.0.0
-   * @return string Redirect goal
+   * @param  string $action  Action
+   * @return string          Redirect goal
    */
   
-  public function getRedirectGoal(): ?string {
-    return $this->redirectGoal;
+  public function getRedirectGoal(string $action): ?string {
+    return $this->redirectGoal[$action] ?? $this->redirectGoal['*'];
   }
   
   /**
@@ -457,8 +470,17 @@ trait PrimaryLinkTrait {
     foreach($fields as $field) {
       $t = null;
       
-      // Calculate the table name for future reference
-      if(preg_match('/^(.*?)_id$/', $field, $f)) {
+      // Calculate the table name for future reference. This could just be
+      // a simple reference ("person_id" => "People") or it could be in
+      // plugin notation ("CoreAssigner.format_assigner_id" => "CoreAssigner.FormatAssigners").
+      // Note the plugin notation isn't exactly standard (Plugin.field doesn't make sense
+      // except that we inflect it to something that does).
+
+      if(preg_match('/^(.*)\.(.*?)_id$/', $field, $f)) {
+        // Modified plugin notation match
+        $t = $f[1] . "." . \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[2]));
+      } elseif(preg_match('/^(.*?)_id$/', $field, $f)) {
+        // Standard foreign key match
         $t = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
       }
       
@@ -470,15 +492,16 @@ trait PrimaryLinkTrait {
    * Set the redirect goal for this table. 
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string $goal  Redirect goal ('index', 'pluggableLink', 'primaryLink', 'self')
+   * @param  string $goal   Redirect goal ('index', 'pluggableLink', 'primaryLink', 'self')
+   * @param  string $action Action to set goal for ('*' for default)
    * @throws InvalidArgumentException
    */
   
-  public function setRedirectGoal(string $goal) {
+  public function setRedirectGoal(string $goal, string $action='*') {
     if(!in_array($goal, ['index', 'pluggableLink', 'primaryLink', 'self'])) {
       throw new \InvalidArgumentException(__d('error', 'invalid', [$goal]));
     }
     
-    $this->redirectGoal = $goal;
+    $this->redirectGoal[$action] = $goal;
   }
 }

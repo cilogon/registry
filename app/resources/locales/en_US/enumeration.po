@@ -72,6 +72,15 @@ msgstr "All Members"
 msgid "GroupTypeEnum.S"
 msgstr "Standard"
 
+msgid "IdentifierAssignmentContextEnum.CD"
+msgstr "Department"
+
+msgid "IdentifierAssignmentContextEnum.CG"
+msgstr "Group"
+
+msgid "IdentifierAssignmentContextEnum.CP"
+msgstr "Person"
+
 msgid "JobStatusEnum.A"
 msgstr "Assigned"
 

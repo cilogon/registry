@@ -54,6 +54,8 @@ trait ProvisionableTrait {
     string  $context,
     ?int    $provisioningTargetId=null) {
     if(method_exists($this, 'marshalProvisioningData')) {
+      // The model specific marshalProvisioningData implementations are expected
+      // to properly handle deleted records.
       $data = $this->marshalProvisioningData($id);
 
       // Invocation of the plugins is handled by the Pluggable table
@@ -69,8 +71,11 @@ trait ProvisionableTrait {
       // This is a secondary model, eg Names. We need to figure out the primary model
       // and then request provisioning on that one instead.
 
-      $primaryLink = $this->findPrimaryLink($id);
+      // We need to explicitly look at archived records here. A deleted record
+      // may point to a valid primary object.
 
+      $primaryLink = $this->findPrimaryLink(id: $id, archived: true);
+      
       $parentTableName = StringUtilities::foreignKeyToClassName($primaryLink->attr);
 
       $this->$parentTableName->requestProvisioning(

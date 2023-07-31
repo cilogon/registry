@@ -72,16 +72,6 @@ class NamesTable extends Table {
   public function getLayout(): string {
     return "iframe";
   }
-  
-  /**
-   * Provide the default redirect goal
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getRedirectGoal(): string {
-    return "self";
-  }
     
   /**
    * Perform Cake Model initialization.
@@ -109,6 +99,7 @@ class NamesTable extends Table {
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
+    $this->setRedirectGoal('self');
     
     $this->setAutoViewVars([
       'languages' => [

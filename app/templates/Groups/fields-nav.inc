@@ -37,12 +37,15 @@ $mveasEntityType = "group";
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
 $topLinks = [
   [
-    'icon' => 'sync',
+    'icon' => 'history',
     'order' => 'Default',
-    'label' => __d('operation', 'reconcile'),
+    'label' => __d('controller', 'HistoryRecords', [99]),
     'link' => [
-      'action' => 'reconcile',
-      $vv_obj->id
+      'controller' => 'history_records',
+      'action' => 'index',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
     ],
     'class' => ''
   ],
@@ -60,13 +63,25 @@ $topLinks = [
     'class' => ''
   ],
   [
-    'icon' => 'history',
+    'icon' => 'badge',
     'order' => 'Default',
-    'label' => __d('controller', 'HistoryRecords', [99]),
+    'label' => __d('operation', 'identifiers.assign'),
     'link' => [
-      'controller' => 'history_records',
-      'action' => 'index',
-      '?' => ['group_id' => $vv_obj->id]
+      'controller' => 'identifier_assignments',
+      'action' => 'assign',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'reconcile'),
+    'link' => [
+      'action' => 'reconcile',
+      $vv_obj->id
     ],
     'class' => ''
   ]

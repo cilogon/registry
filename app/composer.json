@@ -32,7 +32,8 @@
             "App\\": "src/",
             "CoreServer\\": "plugins/CoreServer/src/",
             "FileConnector\\": "availableplugins/FileConnector/src/",
-            "SqlConnector\\": "availableplugins/SqlConnector/src/"
+            "SqlConnector\\": "availableplugins/SqlConnector/src/",
+            "CoreAssigner\\": "plugins/CoreAssigner/src/"
         }
     },
     "autoload-dev": {
@@ -41,7 +42,8 @@
             "Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
             "CoreServer\\Test\\": "plugins/CoreServer/tests/",
             "FileConnector\\Test\\": "availableplugins/FileConnector/tests/",
-            "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/"
+            "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/",
+            "CoreAssigner\\Test\\": "plugins/CoreAssigner/tests/"
         }
     },
     "scripts": {

@@ -134,6 +134,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'CoreServer\\' => 11,
             'CoreReport\\Test\\' => 16,
             'CoreReport\\' => 11,
+            'CoreAssigner\\Test\\' => 18,
+            'CoreAssigner\\' => 13,
             'Composer\\XdebugHandler\\' => 23,
             'Composer\\Spdx\\' => 14,
             'Composer\\Semver\\' => 16,
@@ -399,6 +401,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreReport\\' => 
         array (
             0 => __DIR__ . '/../..' . '/availableplugins/CoreReport/src',
+        ),
+        'CoreAssigner\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreAssigner/tests',
+        ),
+        'CoreAssigner\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreAssigner/src',
         ),
         'Composer\\XdebugHandler\\' => 
         array (
