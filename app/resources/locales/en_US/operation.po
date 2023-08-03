@@ -126,6 +126,9 @@ msgstr "Make Primary"
 msgid "provision"
 msgstr "Provision Now"
 
+msgid "provision.confirm"
+msgstr "Are you sure you want to run provisioning?"
+
 msgid "provisioning.status"
 msgstr "Provisioning Status"
 

@@ -53,16 +53,10 @@ use App\Lib\Util\StringUtilities;
 
 <!-- Our view is similar to index.php -->
 <div class="table-container">
-  <?php
-    $indexTableClasses = 'index-table list-mode';
-    if (!empty($rowActions)) {
-      $indexTableClasses .= ' with-actions';
-    }
-  ?>
-  <table id="<?= 'provisioningstatus-table'; ?>" class="<?= $indexTableClasses; ?>">
+  <table id="provisioningstatus-table" class="index-table list-mode with-actions">
     <thead>
       <tr>
-        <th class="actions"></th>
+        <td class="actions"></td>
         <th><?= __d('controller', 'ProvisioningTargets', [1]); ?></th>
         <th><?= __d('field', 'status'); ?></th>
         <th><?= __d('field', 'comment'); ?></th>
@@ -74,34 +68,45 @@ use App\Lib\Util\StringUtilities;
     </tbody>
       <?php foreach($vv_provisioning_statuses as $p): ?>
       <tr>
-        <td>
-<!-- JIRA to merge this with menuActions, also to throw up "Are you sure?" -->
-          <a class="field-actions-menu" href="<?= 
-            $this->Url->build([
-              'controller' => $vv_primary_link_model,
-              'action' => 'provision',
-              $vv_primary_link_obj->id,
-              '?' => [
-                'provisioning_target_id' => $p['target']->id
+        <td class="actions">
+          <div class="field-actions">
+<!-- CFM-305 -- JIRA to throw up "Are you sure?" - also to simplify all the below -->
+          <?php
+            // Build the row actions
+            $action_args = array();
+            $action_args['vv_attr_id'] =  $p['target']->id;
+            $action_args['vv_actions'] = [
+              [
+                'order' => $this->Menu->getMenuOrder('Default'),
+                'icon' => 'start',
+                'url' => $this->Url->build([
+                  'controller' => $vv_primary_link_model,
+                  'action' => 'provision',
+                  $vv_primary_link_obj->id,
+                  '?' => [
+                    'provisioning_target_id' => $p['target']->id
+                  ]
+                ]),
+                'label' => __d('operation', 'provision')
+              ],
+              [
+                'order' => $this->Menu->getMenuOrder('Default'),
+                'icon' => 'history',
+                'url' => $this->Url->build([
+                  'controller' => 'provisioning_history_records',
+                  'action' => 'index',
+                  '?' => [
+                    'provisioning_target_id' => $p['target']->id,
+                    StringUtilities::entityToForeignKey($vv_primary_link_obj) => $vv_primary_link_obj->id
+                  ]
+                ]),
+                'label' => __d('controller', 'ProvisioningHistoryRecords', [99])
               ]
-            ]);
-          ?>">
-            <em class="material-icons">start</em>
-          <?= __d('operation', 'provision'); ?>
-          </a>
-          <a class="field-actions-menu" href="<?= 
-            $this->Url->build([
-              'controller' => 'provisioning_history_records',
-              'action' => 'index',
-              '?' => [
-                'provisioning_target_id' => $p['target']->id,
-                StringUtilities::entityToForeignKey($vv_primary_link_obj) => $vv_primary_link_obj->id
-              ]
-            ]);
-          ?>">
-            <em class="material-icons">history</em>
-          <?= __d('controller', 'ProvisioningHistoryRecords', [99]); ?>
-          </a>
+            ];
+  
+            print $this->element('menuAction', $action_args);
+          ?>
+          </div>
         </td>
         <td><?= $p['target']->description; ?></td>
         <td><?= __d('enumeration', 'ProvisioningStatusEnum.'.$p['status']); ?></td>

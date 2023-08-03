@@ -1550,6 +1550,9 @@ th, td {
 th {
   background-color: var(--cmg-color-bg-003);
 }
+thead td.actions {
+  background-color: var(--cmg-color-bg-003);
+}
 td {
   border-bottom: 1px solid var(--cmg-color-bg-005);
 }
