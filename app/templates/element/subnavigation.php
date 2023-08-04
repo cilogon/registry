@@ -118,26 +118,23 @@ if(!empty($vv_person_name)) {
             }
           }
           // delete
-          $actionPostBtnArray = ['action' => 'delete', $curId];
-          $actionUrl = $this->Url->build(['action' => 'delete', $curId]);
           $action_args['vv_actions'][] = array(
             'order' => $this->Menu->getMenuOrder('Delete'),
             'icon' =>  $this->Menu->getMenuIcon('Delete'),
-            'url' => 'javascript:void(0);',
+            'url' => ['action' => 'delete', $curId],
             'label' => __d('operation', 'delete'),
             'class' => 'deletebutton nospin',
-            'onclick' => array(
-              'dg_bd_txt' => __d(
+            'confirm' => array(
+              'dg_body_txt' => __d(
                 'operation', 
                 'delete.confirm', 
                 [$supertitle . ', ' . __d('information','entity.id',[$curId])]
               ),
               'dg_post_btn_array' => $actionPostBtnArray,
-              'dg_url' => $actionUrl,
-              'dg_conf_btn' => __d('operation', 'remove'),
+              'dg_confirm_btn' => __d('operation', 'remove'),
               'dg_cancel_btn' => __d('operation', 'cancel'),
               'dg_title' => __d('operation', 'remove'),
-              'dg_bd_txt_repl_str' => ''
+              'dg_body_txt_replacements' => ''
             )
           );
         ?>

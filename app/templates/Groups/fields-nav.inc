@@ -73,6 +73,11 @@ $topLinks = [
         'group_id' => $vv_obj->id
       ]
     ],
+    'if' => 'notAutomatic',
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'identifiers.assign.confirm',[$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'assign')
+    ],
     'class' => ''
   ],
   [
@@ -82,6 +87,10 @@ $topLinks = [
     'link' => [
       'action' => 'reconcile',
       $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'reconcile.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'reconcile')
     ],
     'class' => ''
   ]

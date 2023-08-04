@@ -79,27 +79,31 @@ use App\Lib\Util\StringUtilities;
               [
                 'order' => $this->Menu->getMenuOrder('Default'),
                 'icon' => 'start',
-                'url' => $this->Url->build([
+                'url' => [
                   'controller' => $vv_primary_link_model,
                   'action' => 'provision',
                   $vv_primary_link_obj->id,
                   '?' => [
                     'provisioning_target_id' => $p['target']->id
                   ]
-                ]),
-                'label' => __d('operation', 'provision')
+                ],
+                'label' => __d('operation', 'provision'),
+                'confirm' => [
+                  'dg_body_txt' => __d('operation', 'provision.confirm'),
+                  'dg_confirm_btn' => __d('operation', 'provision')
+                ]
               ],
               [
                 'order' => $this->Menu->getMenuOrder('Default'),
                 'icon' => 'history',
-                'url' => $this->Url->build([
+                'url' => [
                   'controller' => 'provisioning_history_records',
                   'action' => 'index',
                   '?' => [
                     'provisioning_target_id' => $p['target']->id,
                     StringUtilities::entityToForeignKey($vv_primary_link_obj) => $vv_primary_link_obj->id
                   ]
-                ]),
+                ],
                 'label' => __d('controller', 'ProvisioningHistoryRecords', [99])
               ]
             ];

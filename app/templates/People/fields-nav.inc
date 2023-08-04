@@ -80,6 +80,10 @@ $topLinks = [
         'person_id' => $vv_obj->id
       ]
     ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'identifiers.assign.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'assign')
+    ],
     'class' => ''
   ]
 ];
