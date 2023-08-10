@@ -1832,11 +1832,3 @@ footer {
   text-align: center;
   padding: 2em 2em 1em;
 }
-/* Select2 */
-.select2-container--default .select2-selection--single {
-  border: 1px solid var(--cmg-color-bg-006);
-  background-color: var(--cmg-color-body-bg);
-}
-.select2-container--default .select2-selection--single .select2-selection__placeholder {
-  color: var(--cmg-color-txt-soft);
-}

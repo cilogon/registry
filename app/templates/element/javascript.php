@@ -156,16 +156,6 @@
     // Make all select form controls Bootstrappy
     $("select").addClass("form-select");
 
-    // Use select2 library everywhere except
-    // XXX TODO: Find a replacement for Select2 - it is not accessible.
-    // - duet-date
-    // $("select").not("#limit").not(".duet-date__select--month").not(".duet-date__select--year").select2({
-    //   width: '100%',
-    //   tags: true,
-    //   placeholder: "-- Select --",
-    //   allowClear: true
-    // });
-
     // Generic row click handling
     // First capture mouse location to test if we're clicking or drag-selecting (for copy)
     var mouseDownEvent = null;

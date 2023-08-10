@@ -58,7 +58,6 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     <!-- Load CSS -->
     <?= $this->Html->css([
       'bootstrap/bootstrap.min',
-      'select2/select2.min',
       'co-color',
       'co-base',
       'co-responsive'
@@ -67,8 +66,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     <!-- Load Bootstrap and jQuery (other scripts at bottom) -->
     <?= $this->Html->script([
       'bootstrap/bootstrap.bundle.min.js',
-      'jquery/jquery.min.js',
-      'select2/select2.min.js'
+      'jquery/jquery.min.js'
     ]) . PHP_EOL ?>
 
     <!-- Include external files and scripts -->
