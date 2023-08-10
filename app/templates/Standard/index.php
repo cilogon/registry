@@ -179,7 +179,7 @@ if(!empty($subnav)) {
     <thead>
       <tr>
         <?php if(!empty($rowActions)): ?>
-          <th class="actions"></th>
+          <td class="actions"></td>
         <?php endif; ?>
         <?php
           // The first heading will get the bulk select all checkbox.

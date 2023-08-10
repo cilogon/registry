@@ -756,8 +756,11 @@ ul.form-list li.alert-banner .co-alert {
   background-color: transparent;
 }
 #content .top-filters legend .material-icons {
-  font-size: 1.4em;
   color: var(--cmg-color-headings);
+}
+#content .top-filters legend .material-icons.top-filters-search-icon {
+  font-size: 1.4rem;
+  padding: 0 0.2rem 0 0.1rem;
 }
 #content .top-filters legend button.cm-toggle .material-icons {
   font-size: 34px;
@@ -766,7 +769,7 @@ ul.form-list li.alert-banner .co-alert {
 .top-filters fieldset {
   clear: both;
   position: relative;
-  padding: 0.5em 0.5em 0;
+  padding: 0.4rem 0.5rem 0;
   margin: 0;
   background-color: var(--cmg-color-bg-001);
 }
@@ -1558,7 +1561,7 @@ td {
 }
 th:first-child,
 td:first-child {
-  padding-left: 1.25em;
+  padding-left: 1rem;
 }
 table.list-mode th.actions:first-child,
 table.list-mode td.actions:first-child {

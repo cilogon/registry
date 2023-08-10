@@ -92,8 +92,10 @@ $hasActiveFilters = false;
 <div id="<?= $modelName . ucfirst($this->request->getParam('action')); ?>Search" class="top-filters">
   <fieldset>
     <legend id="top-filters-toggle">
-      <em class="material-icons" aria-hidden="true">search</em>
-      <?= __d('operation', 'filter'); ?>
+      <em class="material-icons top-filters-search-icon" aria-hidden="true">search</em>
+      <span class="top-filters-title">
+        <?= __d('operation', 'filter'); ?>
+      </span>
 
       <?php if(!empty($search_params)):?>
         <span id="top-filters-active-filters">
