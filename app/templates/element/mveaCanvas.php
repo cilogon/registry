@@ -46,15 +46,13 @@
       $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
       $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
       $actionClass = !empty($a['class']) ? $a['class'] . ' nospin' : 'nospin';
-      $actionUrl = $this->Url->build(
-        [
-          'controller' => $a['controller'],
-          'action' => $a['action'],
-          '?' => [
-            $vv_entity_type . '_id' => $objId
-          ]
+      $actionUrl = [
+        'controller' => $a['controller'],
+        'action' => $a['action'],
+        '?' => [
+          $vv_entity_type . '_id' => $objId
         ]
-      );
+      ];
       $actionLabel = __d('controller', Cake\Utility\Inflector::camelize($a['controller']), [1]);
       $actionDataAttrs = [['data-cm-mveatype', $a['controller']]];
       $action_args['vv_actions'][] = [
