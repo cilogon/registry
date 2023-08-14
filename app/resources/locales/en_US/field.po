@@ -354,6 +354,9 @@ msgstr "{0} Members"
 msgid "Groups.desc.members.active"
 msgstr "{0} Active Members"
 
+msgid "Groups.group_type"
+msgstr "Group Type"
+
 msgid "Groups.nesting_mode_all"
 msgstr "Require All for Nested Memberships"
 
@@ -365,6 +368,12 @@ msgstr "Open"
 
 msgid "Groups.open.desc"
 msgstr "Open groups may be self-joined by any Person in the CO"
+
+msgid "Groups.owners.desc.affix"
+msgstr "{0} Owners"
+
+msgid "Groups.owners_group_id"
+msgstr "Owners Group"
 
 msgid "IdentifierAssignments.email_address_type_id"
 msgstr "Email Address Type"

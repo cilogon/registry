@@ -40,6 +40,17 @@ class Group extends Entity {
   ];
   
   /**
+   * Determine if this entity record can be deleted.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool True if the record can be deleted, false otherwise
+   */
+
+  public function canDelete(): bool {
+    return !$this->isSystem();
+  }
+  
+  /**
    * Determine if this is the All Members group.
    *
    * @since  COmanage Registry v5.0.0
@@ -60,16 +71,16 @@ class Group extends Entity {
   public function isAutomatic(): bool {
     return in_array($this->group_type, [GroupTypeEnum::ActiveMembers, GroupTypeEnum::AllMembers]);
   }
-  
+
   /**
-   * Determine if this entity record can be deleted.
-   *
+   * Determine if this is an owners group.
+   * 
    * @since  COmanage Registry v5.0.0
-   * @return bool True if the record can be deleted, false otherwise
+   * @return bool true if this is an owners group, false otherwise.
    */
 
-  public function canDelete(): bool {
-    return !$this->isSystem();
+  public function isOwners(): bool {
+    return $this->group_type == GroupTypeEnum::Owners;
   }
   
   /**
@@ -80,7 +91,13 @@ class Group extends Entity {
    */
   
   public function isSystem(): bool {
-    return in_array($this->group_type, [GroupTypeEnum::ActiveMembers, GroupTypeEnum::Admins, GroupTypeEnum::AllMembers]);
+    return in_array($this->group_type,
+                    [
+                      GroupTypeEnum::ActiveMembers,
+                      GroupTypeEnum::Admins,
+                      GroupTypeEnum::AllMembers,
+                      GroupTypeEnum::Owners
+                    ]);
   }
   
   /**

@@ -270,14 +270,16 @@
         "open": { "type": "boolean" },
         "status": {},
         "group_type": { "type": "string", "size": 2 },
-        "nesting_mode_all": { "type": "boolean" }
+        "nesting_mode_all": { "type": "boolean" },
+        "owners_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } }
       },
       "indexes": {
         "groups_i1": { "columns": [ "co_id" ] },
         "groups_i2": { "columns": [ "co_id", "name" ] },
         "groups_i3": { "columns": [ "co_id", "group_type" ] },
         "groups_i4": { "columns": [ "cou_id", "group_type" ] },
-        "groups_i5": { "needed": false, "columns": [ "cou_id" ]}
+        "groups_i5": { "needed": false, "columns": [ "cou_id" ]},
+        "groups_i6": { "needed": false, "columns": [ "owners_group_id" ]}
       }
     },
     
@@ -308,19 +310,6 @@
         "group_members_i2": { "columns": [ "person_id" ]},
         "group_members_i3": { "columns": [ "group_id", "person_id" ]},
         "group_members_i4": { "columns": [ "group_nesting_id" ]}
-      }
-    },
-    
-    "group_owners": {
-      "columns": {
-        "id": {},
-        "group_id": {},
-        "person_id": {}
-      },
-      "indexes": {
-        "group_owners_i1": { "columns": [ "group_id" ]},
-        "group_owners_i2": { "columns": [ "person_id" ]},
-        "group_owners_i3": { "columns": [ "group_id", "person_id" ]}
       }
     },
     

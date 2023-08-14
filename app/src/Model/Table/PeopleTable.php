@@ -197,6 +197,10 @@ class PeopleTable extends Table {
    */
   
   public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    // Note this callback successfully fires because ChangelogBehavior ignores
+    // hard deletes. See GroupsTable for an example of using implementedEvents()
+    // to change priorities.
+
     if(isset($options['useHardDelete']) 
        && $options['useHardDelete']
        && $entity->id > 0) {

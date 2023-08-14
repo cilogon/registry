@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Event\EventInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -73,14 +74,30 @@ class GroupsTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
     $this->belongsTo('Cous');
+
+    // Most Groups (except other Owners groups) have an Owner Group,
+    // which we should define with a hasOne relation (and a foreign key
+    // like owners_for_group_id). However, this doesn't intuitively define
+    // the relationship (having owners_group_id point to the Owners group
+    // is more obvious than having the Owners group fk back to the original),
+    // and also makes it more expensive to query the database, so we use
+    // a belongsTo relation instead. (This also aligns with Cou::parent_id.)
+    // The downside of this is we have to manually cascade deletes to the Owners
+    // group, since cascades don't travers belongsTo.
+    $this->belongsTo('OwnersGroup')
+         ->setClassName('Groups')
+         ->setForeignKey('owners_group_id')
+         ->setProperty('owners_group');
     
+    // And the inverse relation, for the Owners Group
+    $this->hasOne('OwnersForGroup')
+         ->setClassName('Groups')
+         ->setForeignKey('owners_group_id');
+
     $this->hasMany('GroupMembers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('GroupNestings')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
-    $this->hasMany('GroupOwners')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
@@ -100,7 +117,11 @@ class GroupsTable extends Table {
     $this->setRequiresCO(true);
     
     $this->setEditContains([
-      'Identifiers'
+      'Identifiers',
+      // For an Owners Group, the group it manages owners for
+      'OwnersForGroup',
+      // For a regular group, the Owners Group
+      'OwnersGroup'
     ]);
     
     $this->setAutoViewVars([
@@ -108,7 +129,7 @@ class GroupsTable extends Table {
         'type' => 'enum',
         'class' => 'SuspendableStatusEnum'
       ],
-      'group_types' => [
+      'groupTypes' => [
         'type' => 'enum',
         'class' => 'GroupTypeEnum'
       ]
@@ -129,6 +150,8 @@ class GroupsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
+        // Note that self service Group creation will be implemented via
+        // a Dashboard widget (CFM-316) and NOT via this index page
         'index' =>    ['platformAdmin', 'coAdmin']
       ],
       // Related models whose permissions we'll need, typically for table views
@@ -139,7 +162,6 @@ class GroupsTable extends Table {
 //     groups. Maybe it's OK for now, since all groups are visible to all members of the CO.
         'GroupMembers',
         'GroupNestings',
-        'GroupOwners',
         'HistoryRecords',
         'IdentifierAssignments',
         'Identifiers',
@@ -256,6 +278,45 @@ class GroupsTable extends Table {
   }
   
   /**
+   * Callback before model delete.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  CakeEventEvent $event   The beforeDelete event
+   * @param                 $entity  Entity
+   * @param  ArrayObject    $options Options
+   * @return boolean                 True on success
+   */
+
+  public function beforeDelete(EventInterface $event, $entity, \ArrayObject $options) {
+    // AR-Group-8 When a Group is deleted, its corresponding Owners Group is also deleted.
+    if(!empty($entity->owners_group_id)) {
+      $ownersGroup = $this->get($entity->owners_group_id);
+      $this->delete($ownersGroup);
+
+      // We leave the foreign key in place on $entity in case someone decides
+      // to look at the archived data.
+    }
+
+    return true;
+  }
+
+  /**
+   * Callback before data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   beforeMarshal event
+   * @param  ArrayObject     $data    Entity data
+   * @param  ArrayObject     $options Callback options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options) {
+    // If no group_type was set, this is a Standard Group, so fill in the field.
+    if(empty($data['group_type'])) {
+      $data['group_type'] = GroupTypeEnum::Standard;
+    }
+  }
+
+  /**
    * Define business rules.
    *
    * @since  COmanage Registry v5.0.0
@@ -272,16 +333,76 @@ class GroupsTable extends Table {
     // are to avoid unexpected consequences from implicitly undoing a nesting...
     // the administrator must do that first.
     $rules->addUpdate([$this, 'ruleIsNested'],
-                       'isNestedUpdate',
-                       ['errorField' => 'status']);
+                      'isNestedUpdate',
+                      ['errorField' => 'status']);
     
     // AR-Group-3 A Group cannot be deleted if it is nested into a Target Group
     // or is a Target Group for a nesting
     $rules->addDelete([$this, 'ruleIsNested'],
-                       'isNestedDelete',
-                       ['errorField' => 'status']);
+                      'isNestedDelete',
+                      ['errorField' => 'status']);
     
+    // AR-Group-4 The name, description, and status of a Group of type Owners
+    // cannot be manually changed.
+    $rules->addUpdate([$this, 'ruleOwnerIsModified'],
+                      'ownerDescriptionModified',
+                      ['errorField' => 'description']);
+    $rules->addUpdate([$this, 'ruleOwnerIsModified'],
+                      'ownerNameModified',
+                      ['errorField' => 'name']);
+    $rules->addUpdate([$this, 'ruleOwnerIsModified'],
+                      'ownerStatusModified',
+                      ['errorField' => 'status']);
+    
+    // Similarly, the group_type cannot be changed for any Group
+    $rules->addUpdate([$this, 'ruleTypeIsModified'],
+                      'typeModified',
+                      ['errorField' => 'group_type']);
+    
+    // AR-Group-9 Standard Groups may not be named starting with the prefix CO:,
+    // which is reserved for System Groups.
+    $rules->add([$this, 'ruleCheckNamePrefix'],
+                'checkNamePrefix',
+                ['errorField' => 'name']);
+
     return $rules;
+  }
+
+  /**
+   * Create an Owners Group for the requested Group.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Group  $group  Group Entity to create an Owners Group for
+   * @return int            Owners Group ID
+   * @throws PersistenceFailedException
+   */
+
+  public function createOwnersGroup($group): int {
+    if($group->isOwners()) {
+      throw new \InvalidArgumentException("Group is already an Owners Group");
+    }
+
+    $ownerGroup = $this->newEntity([
+      'co_id'       => $group->co_id,
+      'cou_id'      => $group->cou_id,
+      // For now we just prefix everything with the same string, but maybe
+      // we want to be smarter for System Groups?
+      'name'        => 'CO:owners:' . $group->name,
+      'description' => __d('field', 'Groups.owners.desc.affix', [$group->name]),
+      'open'        => false,
+      'status'      => SuspendableStatusEnum::Active,
+      'group_type'  => GroupTypeEnum::Owners
+    ]);
+
+    // AR-Group-6 Groups of type Owners cannot be provisioned.
+    $this->saveOrFail($ownerGroup);
+
+    // Update the original Group with a pointer to this one
+    $group->owners_group_id = $ownerGroup->id;
+
+    $this->saveOrFail($group);
+
+    return $ownerGroup->id;
   }
   
   /**
@@ -355,6 +476,24 @@ class GroupsTable extends Table {
   }
   
   /**
+   * Define the table's implemented events.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function implementedEvents(): array {
+    $events = parent::implementedEvents();
+
+    // We need to adjust our beforeDelete priority to run before ChangelogBehavior's.
+    $events['Model.beforeDelete'] = [
+      'callable' => 'beforeDelete',
+      'priority' => 1
+    ];
+
+    return $events;
+  }
+
+  /**
    * Callback after model save.
    *
    * @since  COmanage Registry v5.0.0
@@ -378,6 +517,20 @@ class GroupsTable extends Table {
     
     $this->recordHistory($entity, $action, $comment);
     
+    if(!$entity->isOwners()) {
+      if($entity->isNew()) {
+        // When a new Group is created, create the owners Group for it.
+        // This includes automatic Groups.
+
+        $this->createOwnersGroup($entity);
+      } elseif(!$entity->get('deleted')) {
+        // If a Group is updated, we may need to update the same attributes
+        // in the Owners Group.
+
+        $this->updateOwnersGroup($entity);
+      }
+    }
+
     return true;
   }
   
@@ -627,6 +780,24 @@ class GroupsTable extends Table {
     
     return true;
   }
+
+  /**
+   * Application Rule to determine if the Group name has an invalid prefix.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+
+  public function ruleCheckNamePrefix($entity, $options) {
+    if($entity->group_type == GroupTypeEnum::Standard
+       && strncmp($entity->name, "CO:", 3)==0) {
+      return __d('error', 'Groups.name.prefix');
+    }
+
+    return true;
+  }
   
   /**
    * Application Rule to determine if the group is nested.
@@ -659,6 +830,49 @@ class GroupsTable extends Table {
     return true;
   }
   
+  /**
+   * Application Rule to determine if a non-modifiable Owners Group field was modified.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleOwnerIsModified($entity, $options) {
+    if(!$entity->isOwners()) {
+      return true;
+    }
+
+    // We'll check the field specified in $options['errorField']
+    if($entity->isDirty($options['errorField'])) {
+      return __d('error', 'fields.read_only', $options['errorField']);
+    }
+
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the Group Type was changed.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleTypeIsModified($entity, $options) {
+    if($entity->isDirty('group_type')
+       // For some reason the field is flagged as dirty on update
+       // (presumably when we update owners_group_id in localAfterSave)
+       // so we need to compare the original value
+       && $entity->get('group_type') != $entity->getOriginal('group_type')) {
+      return __d('error', 'fields.read_only', 'group_type');
+    }
+
+    return true;
+  }
+
   /**
    * Perform a keyword search.
    *
@@ -693,6 +907,34 @@ class GroupsTable extends Table {
                 ->order(['Groups.name'])
                 ->limit($limit)
                 ->all();
+  }
+
+  /**
+   * Update the attributes of an Owners Group, based on the attributes of the
+   * related primary Group.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Group  $group  Owners Group entity
+   * @return int            Owners Group ID
+   * @throws PersistenceFailedException
+   */
+
+  public function updateOwnersGroup($group): int {
+    if($group->isOwners()) {
+      throw new \InvalidArgumentException(__d('error', 'Groups.owners.desc.affix'));
+    }
+
+    $ownerGroup = $this->get($group->owners_group_id);
+
+    // We synchronize name, description, and status
+    $ownerGroup->name = 'CO:owners:' . $group->name;
+    $ownerGroup->description = $group->name . " Owners";
+    $ownerGroup->status = $group->status;
+
+    // We need to disable rule checking since these fields are not normally modifiable
+    $this->saveOrFail($ownerGroup, ['checkRules' => false]);
+
+    return $ownerGroup->id;
   }
 
   /**
@@ -739,6 +981,13 @@ class GroupsTable extends Table {
       'content' => ['rule' => ['boolean']]
     ]);
     $validator->allowEmptyString('nesting_mode_all');
+
+    // This will be null for Owner Groups, which don't have further Owner Groups
+    $validator->add('owner_group_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('owner_group_id');
+
     
     return $validator; 
   }

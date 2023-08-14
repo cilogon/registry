@@ -44,7 +44,7 @@ $indexColumns = [
   ],
   'status' => [
     'type' => 'enum',
-    'class' => 'StatusEnum',
+    'class' => 'SuspendableStatusEnum',
     'sortable' => true
   ]
 ];

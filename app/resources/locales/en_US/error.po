@@ -93,6 +93,9 @@ msgstr "Please recheck these fields: {0}"
 msgid "fields.primary_link"
 msgstr "The Primary Link {0} is frozen and cannot be changed"
 
+msgid "fields.read_only"
+msgstr "The field {0} is not modifiable"
+
 msgid "file"
 msgstr "Cannot read file {0}"
 
@@ -118,8 +121,14 @@ msgstr "Target group is already nested into this Group"
 msgid "GroupNestings.same"
 msgstr "Group cannot be nested into itself"
 
+msgid "Groups.name.prefix"
+msgstr "Standard Groups may not have names starting with \"CO:\""
+
 msgid "Groups.nested"
 msgstr "Group is nested or has nestings, and cannot be suspended or deleted"
+
+msgid "Groups.owners.update"
+msgstr "Update called on Owners Group"
 
 msgid "IdentifierAssignments.exists"
 msgstr "The identifier \"{0}\" is already in use"

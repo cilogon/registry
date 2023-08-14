@@ -167,16 +167,19 @@ class SetupCommand extends Command
     ],
     ['validate' => false])];
     
-    $person->group_members = [$coTable->People->GroupMembers->newEntity([
-      'group_id' => $coTable->Groups->getAdminGroupId(coId: $co_id)
-    ],
-    ['validate' => false])];
-    
-    $person->group_owners = [$coTable->People->GroupOwners->newEntity([
-      'group_id' => $coTable->Groups->getAdminGroupId(coId: $co_id)
-    ],
-    ['validate' => false])];
+    $g = $$coTable->Groups->find('adminGroup', ['co_id' => $co_id])->firstOrFail();
 
+    $person->group_members = [
+      $coTable->People->GroupMembers->newEntity(
+        ['group_id' => $g->id],
+        ['validate' => false]
+      ),
+      $coTable->People->GroupMembers->newEntity(
+        ['group_id' => $g->owners_group_id],
+        ['validate' => false]
+      )
+    ];
+    
     $coTable->People->save($person);
 
     // Write the salt file if not set in environment and file does not exist.

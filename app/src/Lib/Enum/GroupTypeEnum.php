@@ -33,5 +33,6 @@ class GroupTypeEnum extends StandardEnum {
   const ActiveMembers = 'MA';
   const Admins        = 'A';
   const AllMembers    = 'M';
+  const Owners        = 'O';
   const Standard      = 'S';
 }

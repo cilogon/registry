@@ -291,19 +291,6 @@ if(!empty($vv_person_name)) {
         </li>
         <li class="nav-item">
           <?php
-            $linkClass = ($active == 'owners') ? 'nav-link active' : 'nav-link';
-            print $this->Html->link(
-              __d('controller', 'Owners', [99]),
-              [ 'controller' => 'group_owners',
-                'action' => 'index',
-                '?' => $linkFilter
-              ],
-              ['class' => $linkClass]
-            );
-          ?>
-        </li>
-        <li class="nav-item">
-          <?php
             $linkClass = ($active == 'nestings') ? 'nav-link active' : 'nav-link';
             print $this->Html->link(
               __d('controller', 'Nestings', [99]),

@@ -25,12 +25,57 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-print $this->Field->control('name');
+// Most fields can't be edited for Owners Groups
+$options = [];
 
-print $this->Field->control('description');
+if($vv_obj->isOwners()) {
+  $options['readonly'] = true;
+}
 
-print $this->Field->control('status');
+print $this->Field->control(
+  fieldName: 'name',
+  options: $options
+);
 
-print $this->Field->control('open');
+print $this->Field->control(
+  fieldName: 'description',
+  options: $options
+);
+
+print $this->Field->control(
+  fieldName: 'status',
+  options: $options
+);
+
+print $this->Field->control(
+  fieldName: 'open',
+  options: $options
+);
 
 print $this->Field->control('nesting_mode_all');
+
+if($vv_action != 'add') {
+  print $this->Field->control(
+    fieldName: 'group_type',
+    options: ['readonly' => true]
+  );
+  
+  if($vv_obj->isOwners()) {
+    // Link to the main group
+    if(!empty($vv_obj->owners_for_group)) {
+      print $this->Field->statusControl(
+        fieldName: 'owners_group_id',
+        status: $vv_obj->owners_for_group->name,
+        link: ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]]
+      );
+    }
+  } else {
+    // Link to the owners group
+
+    print $this->Field->statusControl(
+      fieldName: 'owners_group_id',
+      status: $vv_obj->owners_group->name,
+      link: ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]]
+    );
+  }
+}

@@ -48,54 +48,63 @@ $topLinks = [
       ]
     ],
     'class' => ''
-  ],
-  [
-    'icon' => 'cloud_sync',
-    'order' => 'Default',
-    'label' => __d('operation', 'provisioning.status'),
-    'link' => [
-      'controller' => 'provisioning_targets',
-      'action' => 'status',
-      '?' => [
-        'group_id' => $vv_obj->id
-      ]
-    ],
-    'class' => ''
-  ],
-  [
-    'icon' => 'badge',
-    'order' => 'Default',
-    'label' => __d('operation', 'identifiers.assign'),
-    'link' => [
-      'controller' => 'identifier_assignments',
-      'action' => 'assign',
-      '?' => [
-        'group_id' => $vv_obj->id
-      ]
-    ],
-    'class' => ''
-  ],
-  [
-    'icon' => 'sync',
-    'order' => 'Default',
-    'label' => __d('operation', 'reconcile'),
-    'link' => [
-      'action' => 'reconcile',
-      $vv_obj->id
-    ],
-    'class' => ''
   ]
 ];
 
+if(!$vv_obj->isOwners()) {
+  // Most actions aren't available for Owners Groups
+  $topLinks += [
+    [
+      'icon' => 'cloud_sync',
+      'order' => 'Default',
+      'label' => __d('operation', 'provisioning.status'),
+      'link' => [
+        'controller' => 'provisioning_targets',
+        'action' => 'status',
+        '?' => [
+          'group_id' => $vv_obj->id
+        ]
+      ],
+      'class' => ''
+    ],
+    [
+      'icon' => 'badge',
+      'order' => 'Default',
+      'label' => __d('operation', 'identifiers.assign'),
+      'link' => [
+        'controller' => 'identifier_assignments',
+        'action' => 'assign',
+        '?' => [
+          'group_id' => $vv_obj->id
+        ]
+      ],
+      'class' => ''
+    ],
+    [
+      'icon' => 'sync',
+      'order' => 'Default',
+      'label' => __d('operation', 'reconcile'),
+      'link' => [
+        'action' => 'reconcile',
+        $vv_obj->id
+      ],
+      'class' => ''
+    ]
+  ];
+}
+
 // $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
 // it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
-$addMenuLinks = [
-  [
-    'controller' => 'identifiers',
-    'action' => 'add',
-    'icon' => 'fingerprint'
-  ]
-];
+
+if(!$vv_obj->isOwners()) {
+  $addMenuLinks = [
+    [
+      'controller' => 'identifiers',
+      'action' => 'add',
+      'icon' => 'fingerprint'
+    ]
+  ];
+}
 
 $subnav = [
   'name' => 'group',

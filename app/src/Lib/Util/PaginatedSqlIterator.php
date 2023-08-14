@@ -76,7 +76,7 @@ class PaginatedSqlIterator implements \Iterator {
    * @return mixed Element at the current position
    */
   
-  public function current() {
+  public function current(): mixed {
     return $this->results[$this->position];
   }
   
@@ -113,7 +113,7 @@ class PaginatedSqlIterator implements \Iterator {
    * @since  COmanage Registry v3.3.0
    */
   
-  protected function loadCount() {
+  protected function loadCount(): void {
     $query = $this->table->find();
     
     if($this->conditions) {
@@ -129,7 +129,7 @@ class PaginatedSqlIterator implements \Iterator {
    * @since  COmanage Registry v3.3.0
    */
   
-  protected function loadPage() {
+  protected function loadPage(): void {
     unset($this->results);
     $this->results = null;
     
@@ -172,7 +172,7 @@ class PaginatedSqlIterator implements \Iterator {
    * @since  COmanage Registry v3.3.0
    */
   
-  public function next() {
+  public function next(): void {
     $this->position++;
     
     if($this->position >= count($this->results)) {
@@ -187,7 +187,7 @@ class PaginatedSqlIterator implements \Iterator {
    * @since  COmanage Registry v3.3.0
    */
   
-  public function rewind() {
+  public function rewind(): void {
     $this->maxid = 0;
     
     $this->loadPage();
@@ -200,7 +200,7 @@ class PaginatedSqlIterator implements \Iterator {
    * @return boolean True if the current position is valid, false otherwise
    */
   
-  public function valid() {
+  public function valid(): bool {
     return !empty($this->results[$this->position]);
   }
 }

@@ -38,6 +38,7 @@ use Cake\Datasource\ConnectionManager;
 use Cake\I18n\FrozenTime;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use \App\Lib\Util\PaginatedSqlIterator;
 
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
@@ -77,7 +78,7 @@ class TransmogrifyCommand extends Command {
       'fieldMap' => [
         'global_search_limit' => 'search_global_limit',
         'required_fields_addr' => 'required_fields_address',
-        'telephone_number_permitted_fields' => '&populate_co_settings_phone',
+        'permitted_fields_telephone_number' => '&populate_co_settings_phone',
         // XXX CFM-80 these fields are not yet migrated
         //     be sure to add appropriate fields to 'booleans'
         'enable_nsf_demo' => null, // CFM-123
@@ -98,7 +99,9 @@ class TransmogrifyCommand extends Command {
         'co_theme_id' => null,
         'person_picker_email_type' => null,
         'person_picker_identifier_type' => null,
-        'person_picker_display_types' => null
+        'person_picker_display_types' => null,
+        // No longer supported in PE, see CFM-316
+        'group_create_admin_only' => null
       ]
     ],
     'authentication_events' => [
@@ -171,14 +174,17 @@ class TransmogrifyCommand extends Command {
     'groups' => [
       'source' => 'cm_co_groups',
       'displayField' => 'name',
-      'cache' => [ 'co_id' ],
+      'cache' => [ 'co_id', 'owners_group_id' ],
       'booleans' => [ 'nesting_mode_all', 'open' ],
       'fieldMap' => [
         // auto is implied by group_type
         'auto' => null,
         // Rename the changelog key
-        'co_group_id' => 'group_id'
-      ]
+        'co_group_id' => 'group_id',
+        // Make sure group_type is populated if not already set
+        'group_type' => '?S'
+      ],
+      'postTable' => 'createOwnersGroups'
     ],
     'group_nestings' => [
       'source' => 'cm_co_group_nestings',
@@ -206,7 +212,7 @@ class TransmogrifyCommand extends Command {
         // Temporary until implemented
         'source_org_identity_id' => null
       ],
-      'preRow' => 'check_group_memberships'
+      'preRow' => 'check_group_membership'
     ],
     'names' => [
       'source' => 'cm_names',
@@ -326,7 +332,10 @@ class TransmogrifyCommand extends Command {
         'complete_time' => 'finish_time',
         'job_type_fk' => null,
         'job_params' => 'parameters',
-        'requeued_from_co_job_id' => 'requeued_from_job_id'
+        'requeued_from_co_job_id' => 'requeued_from_job_id',
+        // XXX CFM-246 not yet supported
+        'max_retry' => null,
+        'max_retry_count' => null
       ],
       'preRow' => 'filterJobs'
     ],
@@ -413,7 +422,7 @@ class TransmogrifyCommand extends Command {
   }
   
   /**
-   * Check if a group membership is actually asserted.
+   * Check if a group membership is actually asserted, and reassign ownerships.
    *
    * @since  COmanage Registry v5.0.0
    * @param  array $origRow Row of table data (original data)
@@ -421,27 +430,78 @@ class TransmogrifyCommand extends Command {
    * @throws InvalidArgumentException
    */
   
-  protected function check_group_memberships(array $origRow, array $row) {
-    if($row['owner'] && !$row['deleted'] && !$row['co_group_member_id']) {
-      // Insert a GroupOwner row for this record. Note we ignore valid from and
-      // through for this. We also ignore non-current changelog records.
-      
-      $ownerRow = [
-        'group_id' => $origRow['co_group_id'],
-        'person_id' => $origRow['co_person_id'],
-        'created' => $origRow['created'],
-        'modified' => $origRow['modified'],
-        'group_owner_id' => null,
-        'revision' => 0,
-        'deleted' => 'f',
-        'actor_identifier' => $origRow['actor_identifier']
-      ];
-      
-      $this->outconn->insert('group_owners', $ownerRow);
+  protected function check_group_membership(array $origRow, array $row) {
+    // We need to handle the various member+owner scenarios, but basically
+    // (1) If 'owner' is set, manually create a Group Membership in the appropriate
+    //     Owners Group (we need to be called via preRow to do this)
+    // (2) If 'member' is NOT set, throw an exception so we don't create
+    //     in invalid membership
+    // (3) Otherwise just return so the Membership gets created
+
+    if($origRow['owner'] && !$origRow['deleted'] && !$origRow['co_group_member_id']) {
+      // Create a membership in the appropriate owners group, but not
+      // on changelog entries
+
+      if(!empty($this->cache['groups']['id'][ $origRow['co_group_id'] ]['owners_group_id'])) {
+        $ownerRow = [
+          'group_id' => $this->cache['groups']['id'][ $origRow['co_group_id'] ]['owners_group_id'],
+          'person_id' => $origRow['co_person_id'],
+          'created' => $origRow['created'],
+          'modified' => $origRow['modified'],
+          'group_member_id' => null,
+          'revision' => 0,
+          'deleted' => 'f',
+          'actor_identifier' => $origRow['actor_identifier']
+        ];
+        
+        $this->outconn->insert('group_members', $ownerRow);
+      } else {
+        $this->io->error("Could not find owners group for CoGroupMember " . $origRow['id']);
+      }
     }
-    
-    if(!$row['member']) {
+
+    if(!$row['member'] && !$row['owner']) {
       throw new \InvalidArgumentException('member not set on GroupMember');
+    }
+  }
+
+  /**
+   * Create an Owners Group for an existing Group.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $origRow Row of table data (original data)
+   * @param  array $row     Row of table data (post fixes)
+   */
+  
+  protected function createOwnersGroups() {
+    // Pull all Groups and create Owners Group for them. Deployments generally
+    // don't have so many Groups that we need PaginatedSqlIterator, but we'll
+    // use it here anyway just in case.
+
+    // By doing this once for the table we avoid having to sort through
+    // changelog metadata to figure out which rows to actually create owners
+    // groups for.
+
+    $Groups = TableRegistry::getTableLocator()->get('Groups');
+
+    $iterator = new PaginatedSqlIterator($Groups, []);
+
+    foreach($iterator as $k => $group) {
+      try {
+        // Because PaginatedSqlIterator will pick up new Groups as we create them,
+        // we need to check for any Owners groups (that we just created) and skip them.
+        if(!$group->isOwners()) {
+          $ownersGid = $Groups->createOwnersGroup($group);
+
+          // We need to manually populate the cache
+          $this->cache['groups']['id'][$group->id]['owners_group_id'] = $ownersGid;
+        }
+      }
+      catch(\Exception $e) {
+        $this->io->error("Failed to create owners group for "
+                          . $group->name . " (" . $group->id . "): "
+                          . $e->getMessage());
+      }
     }
   }
   
@@ -888,6 +948,13 @@ class TransmogrifyCommand extends Command {
         if(!$row[$oldname]) {
           throw new \InvalidArgumentException("Could not find value for $table $oldname");
         }
+      } elseif($newname[0] == '?') {
+        // This is a default value to populate if the current value is null
+        $v = substr($newname, 1);
+
+        if($row[$oldname] === null) {
+          $row[$oldname] = $v;
+        }
       } else {
         // Copy the value to the new name, then unset the old name
         $row[$newname] = $row[$oldname];
@@ -917,7 +984,7 @@ class TransmogrifyCommand extends Command {
    */
   
   protected function map_affiliation_type(array $row) {
-    return $this->map_type($row, 'PersonRoles.affiliation_type', $this->findCoId($row), 'affiliation_type');
+    return $this->map_type($row, 'PersonRoles.affiliation_type', $this->findCoId($row), 'affiliation');
   }
   
   /**
@@ -1134,7 +1201,7 @@ class TransmogrifyCommand extends Command {
    * Map a type string to a foreign key.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  array  $row    Row of table data (ignored)
+   * @param  array  $row    Row of table data
    * @param  string $type   Type to map (types:attribute) 
    * @param  int    $coId   CO ID
    * @param  string $attr   Row column to use for type value
