@@ -48,6 +48,51 @@ $topLinks = [
       ]
     ],
     'class' => ''
+  ],
+  [
+    'icon' => 'cloud_sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'provisioning.status'),
+    'link' => [
+      'controller' => 'provisioning_targets',
+      'action' => 'status',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'badge',
+    'order' => 'Default',
+    'label' => __d('operation', 'identifiers.assign'),
+    'link' => [
+      'controller' => 'identifier_assignments',
+      'action' => 'assign',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'if' => 'notAutomatic',
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'identifiers.assign.confirm',[$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'assign')
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'reconcile'),
+    'link' => [
+      'action' => 'reconcile',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'reconcile.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'reconcile')
+    ],
+    'class' => ''
   ]
 ];
 

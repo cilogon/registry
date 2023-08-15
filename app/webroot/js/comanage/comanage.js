@@ -67,18 +67,20 @@ function replaceTokens(text,replacements) {
   return processedString;
 }
 
-// Generate a dialog box confirming <txt>.  On confirmation, click a DOM element referenced by <clickId>.
+// Generate a dialog box confirming <txt>.  If a clickId is supplied, on confirmation, click a DOM element referenced by <clickId>.
 // The clickId DOM element is intended to be a CakePHP postButton or postLink (which may be visually hidden).
-// txt                - body text           (string, required)
-// clickId            - id of DOM element   (string, required)
-// confirmbtxt        - confirm button text (string, optional)
-// cancelbtxt         - cancel button text  (string, optional)
-// titletxt           - dialog title text   (string, optional)
+// txt                - body text              (string, required)
+// confirmUrl         - url for confirm button (string, required)
+// clickId            - id of DOM element      (string, required) 
+// confirmbtxt        - confirm button text    (string, optional)
+// cancelbtxt         - cancel button text     (string, optional)
+// titletxt           - dialog title text      (string, optional)
 // tokenReplacements  - strings to replace tokens in dialog body text (array, optional)
-function js_confirm_generic(txt, clickId, confirmbtxt, cancelbtxt, titletxt, tokenReplacements) {
+function js_confirm_generic(txt, confirmUrl, clickId, confirmbtxt, cancelbtxt, titletxt, tokenReplacements) {
 
   var bodyText = txt;
-  var clickId = clickId;
+  var confUrl = confirmUrl;
+  var clickId = (clickId != '' ? clickId : undefined);
   var confbutton = confirmbtxt;
   var cxlbutton = cancelbtxt;
   var title = titletxt;
@@ -106,11 +108,16 @@ function js_confirm_generic(txt, clickId, confirmbtxt, cancelbtxt, titletxt, tok
 
   // Set the body text of the dialog
   $("#dialog-text").text(bodyText);
-
-  // Set the dialog confirmation button to click the DOM
-  // element referenced by the clickId
+  
   $("#dialog-confirm-button").click(function() {
-    $("#" + clickId).click();
+    if(clickId !== undefined) {
+      // If we have a clickId, set the dialog confirmation button to click the DOM
+      // element referenced by it.
+      $("#" + clickId).click();
+    } else {
+      // Otherwise just redirect to the confirmation URL
+      location.href = confirmUrl;
+    }
   });
 
   // Override the button texts if set

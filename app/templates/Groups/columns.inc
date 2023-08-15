@@ -65,14 +65,11 @@ $rowActions = [
     'icon' => 'history'
   ],
   [
-    'controller' => 'identifiers',
-    'action' => 'index',
-    'icon' => 'label',
-    'if' => 'notAutomatic'
-  ],
-  [
     'action' => 'reconcile',
-    'icon' => 'sync'
+    'icon' => 'sync',
+    'confirm' => [
+      'dg_confirm_btn' => __d('operation', 'reconcile')
+    ]
   ]
 ];
 

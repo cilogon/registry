@@ -75,30 +75,43 @@
       </ul>
       
       <?php /* XXX These sidepanel links are disabled until needed, but we will leave them in the code to 
-               provide hints to where they may belong. Plugins related to this panel may also appear here.
+               provide hints to where they may belong. Plugins related to this panel may also appear here. */ ?>
  
       <div class="menu-panel-sidepanel">
-        <? php /* XXX if we want a title for the side menu, use an h3 like so:
+        <?php /* XXX if we want a title for the side menu, use an h3 like so:
         <h3>
           <?= __d('menu','related.configurations') ?>
-        </h3> * /
-        ? >
+        </h3> */
+        ?>
         <div class="menu-panel-sidepanel-content">
           <ul class="menu-panel-links menu-panel-links-inner">
-            <? php /* Placeholders below. Replace with real links and text replacement:
+            <?php /* Placeholders below. Replace with real links and text replacement:
             <li><a href="#"><em class="material-icons" aria-hidden="true">lock</em> Authenticators</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">forward</em> Enrollment Flows</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">access_alarm</em> Expiration Policies</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">developer_board</em> Extended Attributes</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">person_pin</em> Identifier Assignments</a></li>
+            */ ?>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'identifier_assignments',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>"><em class="material-icons" aria-hidden="true">badge</em> <?= __d('controller', 'IdentifierAssignments', [99]) ?></a>
+            </li>
+            <?php /*
             <li><a href="#"><em class="material-icons" aria-hidden="true">check_circle</em> Identifier Validators</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">cloud_upload</em> Provisioning Targets</a></li>
             <li><!-- more links here, including plugins --></li>
-            * / ? >
+            */ ?>
           </ul>
         </div>
       </div>
-      */ ?>
     </div>
   <?php endif; ?>
   <?php if($panel == 'structure'): ?>

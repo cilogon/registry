@@ -125,32 +125,29 @@ if(!empty($subnav)) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder($t['order']),
           'icon' => $this->Menu->getMenuIcon($t['icon']),
-          'url' => $this->Url->build($t['link']),
+          'url' => $t['link'],
           'label' => $t['label'],
+          'class' => !empty($t['class']) ? $t['class'] : '',
+          'confirm' => !empty($t['confirm']) ? $t['confirm'] : []
         ];
       }
     }
   
     // Delete
     if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
-      $actionPostBtnArray = ['action' => 'delete', $vv_obj->id];
-      $actionUrl = $this->Url->build(['action' => 'delete', $vv_obj->id]);
-      $action_args['vv_actions'][] = array(
+      $action_args['vv_actions'][] = [
         'order' => $this->Menu->getMenuOrder('Delete'),
         'icon' =>  $this->Menu->getMenuIcon('Delete'),
-        'url' => 'javascript:void(0);',
+        'url' => ['action' => 'delete', $vv_obj->id],
         'label' => __d('operation', 'delete'),
-        'class' => 'deletebutton nospin',
-        'onclick' => array(
-          'dg_bd_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
-          'dg_post_btn_array' => $actionPostBtnArray,
-          'dg_url' => $actionUrl,
-          'dg_conf_btn' => __d('operation', 'remove'),
-          'dg_cancel_btn' => __d('operation', 'cancel'),
+        'class' => 'deletebutton',
+        'confirm' => [
+          'method' => 'post',
           'dg_title' => __d('operation', 'remove'),
-          'dg_bd_txt_repl_str' => ''
-        )
-      );
+          'dg_body_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
+          'dg_confirm_btn' => __d('operation', 'remove')
+        ]
+      ];
     }
   
     if(!empty($action_args['vv_actions'])) {

@@ -64,6 +64,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
   <ul id="action-list_<?= $actionsMenuUid; ?>" class="dropdown-menu nospin">
     <?php foreach($vv_actions as $action): ?>
       <?php 
+        $actionUrl = $this->Url->build($action['url']);
         $actionDataAttrs = '';
         if(!empty($action['dataAttrs'])) {
           foreach($action['dataAttrs'] as $dataAttr) {
@@ -73,8 +74,8 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
       ?>
       <li class="action-list-item">
         <?php $actionCssClass = (!empty($action['class'])) ? "dropdown-item " . $action['class'] : "dropdown-item"; ?>
-        <?php if(empty($action['onclick'])): ?>
-          <a class="<?= $actionCssClass; ?>" href="<?= $action['url']; ?>"<?= !(empty($actionDataAttrs)) ? $actionDataAttrs : '' ?>>
+        <?php if(empty($action['confirm'])): ?>
+          <a class="<?= $actionCssClass; ?>" href="<?= $actionUrl ?>"<?= !(empty($actionDataAttrs)) ? $actionDataAttrs : '' ?>>
             <?php if(!empty($action['icon'])): ?>
               <?php if(!empty($action['iconClass'])): ?>
                 <em class="<?= $action['iconClass']; ?>" aria-hidden="true"><?= $action['icon']; ?></em>
@@ -86,17 +87,37 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
           </a>
         <?php else: ?>
           <?php
-            // Build a link to a confirm dialog box. The confirm button of the dialog
-            // will trigger the postButton built below the menu link.
-            $actionUid = 'action-' . md5($action['onclick']['dg_url']);
+            // Build a link to a confirm dialog box. If the method is "POST", the confirm button of the dialog
+            // will trigger the postButton built below the menu link. Otherwise, confirm will simply redirect
+            // to the action's URL.
+
+            $postButton = false;
+            $actionUid = '';
+            // If we use POST (such as for delete) generate the UID: 
+            if(!empty($action['confirm']['method']) && strtolower($action['confirm']['method']) == 'post') {
+              $postButton = true;
+              $actionUid = 'action-' . md5($actionUrl);
+            }  
+            
+            // Gather the dialog text
+            $dialogBodyText = !empty($action['confirm']['dg_body_txt']) ? $action['confirm']['dg_body_txt'] : __d('operation','confirm.generic');
+            $dialogTitle = !empty($action['confirm']['dg_title']) ? $action['confirm']['dg_title'] : $action['label'];
+            $confirmButtonText = !empty($action['confirm']['dg_confirm_btn']) ? $action['confirm']['dg_confirm_btn'] : __d('operation','confirm');
+            $cancelButtonText = !empty($action['confirm']['dg_cancel_btn']) ? $action['confirm']['dg_cancel_btn'] : __d('operation','cancel');
+            $replacements = !empty($action['confirm']['dg_body_txt_replacements']) ? $action['confirm']['dg_body_txt_replacements'] : '';
+
             $dg_onclick = 'javascript:js_confirm_generic(\''
-            . $action['onclick']['dg_bd_txt'] . '\',\''            // dialog body text
-            . $actionUid . '\',\''                                 // ID of postButton element to click on confirm
-            . $action['onclick']['dg_conf_btn'] . '\',\''          // dialog confirm button
-            . $action['onclick']['dg_cancel_btn'] . '\',\''        // dialog cancel button
-            . $action['onclick']['dg_title'] . '\',[\''            // dialog title
-            . $action['onclick']['dg_bd_txt_repl_str']             // dialog body text replacement strings
+            . $dialogBodyText . '\',\''          // dialog body text
+            . $actionUrl . '\',\''               // URL to redirect to on confirm
+            . $actionUid . '\',\''               // ID of postButton element to click on confirm if not empty
+            . $confirmButtonText . '\',\''       // dialog confirm button text
+            . $cancelButtonText . '\',\''        // dialog cancel button
+            . $dialogTitle . '\',[\''            // dialog title
+            . $replacements                      // dialog body text replacement strings
             . '\']);';
+
+            // Links that launch a dialog box should never put up a spinner.
+            $actionCssClass .= ' nospin';
           ?>
           <a class="<?= $actionCssClass; ?>" href="#" onclick="<?= $dg_onclick; ?>"  
              data-bs-toggle="modal" data-bs-target="#dialog">
@@ -109,11 +130,15 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
             <?php endif; ?>
             <?= $action['label']; ?>
           </a>
-          <?php // build the postButton element that will be clicked by the modal dialog: ?>
-          <?= $this->Form->postButton($action['onclick']['dg_conf_btn'], 
-              $action['onclick']['dg_post_btn_array'],['id' => $actionUid, 'class'   => 'hidden']); ?>
-        <?php endif; ?>
+          <?php
+            // If we need a postButton, build it. It will be clicked when the modal dialog confirm button is clicked: 
+            if($postButton) {
+              print $this->Form->postButton($confirmButtonText,
+                $action['url'], ['id' => $actionUid, 'class' => 'hidden']);
+            }
+          ?>
       </li>
+      <?php endif; ?>
     <?php endforeach;?>
     <?php if(!empty($vv_bulk_actions) && $actionsType == 'top-links'): ?>
       <li id="bulk-edit-switch-container" class="action-list-item">

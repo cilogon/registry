@@ -105,13 +105,11 @@ if(!empty($subnav)) {
       $action_args['vv_actions'][] = [
         'order' => $this->Menu->getMenuOrder('Add'),
         'icon' => $this->Menu->getMenuIcon('Add'),
-        'url' => $this->Url->build(
-          [
-            'controller' => $modelsName,
-            'action' => 'add',
-            '?' => $linkFilter
-          ]
-        ),
+        'url' => [
+          'controller' => $modelsName,
+          'action' => 'add',
+          '?' => $linkFilter
+        ],
         'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
       ];
     }
@@ -128,8 +126,10 @@ if(!empty($subnav)) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder($t['order']),
           'icon' => $this->Menu->getMenuIcon($t['icon']),
-          'url' => $this->Url->build($t['link']),
+          'url' => $t['link'],
           'label' => $t['label'],
+          'class' => !empty($t['class']) ? $t['class'] : '',
+          'confirm' => !empty($t['confirm']) ? $t['confirm'] : []
         ];
       }
     }
@@ -179,7 +179,7 @@ if(!empty($subnav)) {
     <thead>
       <tr>
         <?php if(!empty($rowActions)): ?>
-          <th class="actions"></th>
+          <td class="actions"></td>
         <?php endif; ?>
         <?php
           // The first heading will get the bulk select all checkbox.
@@ -260,65 +260,60 @@ if(!empty($subnav)) {
             $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
             $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
             $actionClass = !empty($a['class']) ? $a['class'] : '';
-            $actionUrl = '';
-            $actionLabel = '';
-            $actionOnClick = []; // used for confirmation dialog 
+            $actionUrl = ['action' => $a['action'], $entity->id];
+            $actionLabel = !empty($a['label']) ? $a['label'] : __d('operation', $a['action']);
+
+            if (!empty($a['controller'])) {
+              // We're linking into a related controller
+              $actionLabel = !empty($a['label']) ? $a['label'] : __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
+              $actionUrl = [
+                'controller' => $a['controller'],
+                'action' => $a['action'],
+                '?' => [$tableFK => $entity->id]
+              ];
+            }
 
             // Generate the link text and urls:
+            
+            if(!empty($a['confirm'])) {
+              // Gather the default confirmation body text. By convention this is named
+              // [action].confirm in the operation.po file but can be overridden in the actions array.
+              $confirmKey = $a['action'].'.confirm';
+              $confirmTxt = __d('operation', $confirmKey, [$entity->id]);
 
-            // If we have a .confirm text, we need to generate a confirm dialog box
-            $confirmKey = $a['action'].'.confirm';
-            $confirmTxt = __d('operation', $confirmKey);
-
-            if($confirmTxt != $confirmKey) {
-              // We found the localized string
-              $actionPostBtnArray = ['action' => $a['action'], $entity->id];
-              $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
-              // XXX should be configurable which field we put in, maybe displayField?
+              // Gather the dialog text - we need to expand these (here) so we can provide the default confirmTxt when appropriate
+              $dialogBodyText = !empty($a['confirm']['dg_body_txt']) ? $a['confirm']['dg_body_txt'] : $confirmTxt;
+              $dialogTitle = !empty($a['confirm']['dg_title']) ? $a['confirm']['dg_title'] : $actionLabel;
+              $confirmButtonText = !empty($a['confirm']['dg_confirm_btn']) ? $a['confirm']['dg_confirm_btn'] : __d('operation','confirm');
+              $cancelButtonText = !empty($a['confirm']['dg_cancel_btn']) ? $a['confirm']['dg_cancel_btn'] : __d('operation','cancel');
+              $replacements = !empty($a['confirm']['dg_body_txt_replacements']) ? $a['confirm']['dg_body_txt_replacements'] : '';
+              
               $action_args['vv_actions'][] = array(
                 'order' => $actionOrder,
                 'icon' =>  $actionIcon,
-                'url' => 'javascript:void(0);',
-                'label' => __d('operation', $a['action']),
+                'iconClass' => $actionIconClass,
+                'url' => $actionUrl,
+                'label' => $actionLabel,
                 'class' => !empty($actionClass) ? $actionClass . ' nospin' : 'nospin',
-                'onclick' => array(
-                  'dg_bd_txt' => __d('operation', $confirmKey, [$entity->id]), // dialog body text
-                  'dg_post_btn_array' => $actionPostBtnArray,                 // postButton array for building the postButton
-                  'dg_url' => $actionUrl,                                     // action url for building a unique ID
-                  'dg_conf_btn' => __d('operation', 'confirm'),  // dialog confirm button text
-                  'dg_cancel_btn' => __d('operation', 'cancel'), // dialog cancel button text
-                  'dg_title' => __d('operation', 'confirm'),     // dialog box title
-                  'dg_bd_txt_repl_str' => ''                                  // dialog body text replacement strings 
-                ),
-              );
-            } elseif(!empty($a['controller'])) {
-              // We're linking into a related controller
-              $actionLabel = __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
-              $actionUrl = $this->Url->build(
-                ['controller' => $a['controller'],
-                 'action'     => $a['action'],
-                 '?' => [ $tableFK => $entity->id] ]
+                'confirm' => [
+                  'dg_title' => $dialogTitle,
+                  'dg_body_txt' => $dialogBodyText,
+                  'dg_confirm_btn' => $confirmButtonText,
+                  'dg_cancel_btn' => $cancelButtonText,
+                  'dg_body_txt_replacements' => $replacements
+                ]
               );
             } else {
-              $actionLabel = __d('operation', $a['action']);
-              $actionUrl = $this->Url->build(['action' => $a['action'], $entity->id]);
+              // Set the action link configuration
+              $action_args['vv_actions'][] = array(
+                'order' => $actionOrder,
+                'icon' => $actionIcon,
+                'iconClass' => $actionIconClass,
+                'url' => $actionUrl,
+                'label' => $actionLabel,
+                'class' => $actionClass
+              );
             }
-
-            // If a specific label is sent in the config, use it instead
-            if(!empty($a['label'])) {
-              $actionLabel = $a['label'];
-            }
-
-            // Set the action link configuration
-            $action_args['vv_actions'][] = array(
-              'order' => $actionOrder,
-              'icon' => $actionIcon,
-              'iconClass' => $actionIconClass,
-              'url' => $actionUrl,
-              'label' => $actionLabel,
-              'class' => $actionClass,
-              'onclick' => $actionOnClick
-            );
           }
         }
 
