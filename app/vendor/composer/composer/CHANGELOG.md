@@ -1,3 +1,39 @@
+### [2.5.8] 2023-06-09
+
+  * Fixed regression in edge cases where root package gets added to a repository already during the install process (#11495)
+  * Fixed EventDispatcher on windows picking bat files when using "@php binary" (#11490)
+  * Fixed ICU CDLR version parsing failing the whole process when ICU cannot initialize the resource bundle (#11492)
+  * Fixed type declarations on ClassLoader (#11500)
+
+### [2.5.7] 2023-05-24
+
+  * Fixed regression preventing autoloading the dependencies of metapackages when running --no-dev (#11481)
+
+### [2.5.6] 2023-05-24
+
+  * BC Warning: Installers and `InstallationManager::getInstallPath` will now return `null` instead of an empty string for metapackages' paths. This may have adverse effects on plugin code using this expecting always a string but it is unlikely (#11455)
+  * Fixed metapackages showing their install path as the root package's path instead of empty (#11455)
+  * Fixed lock file verification on `install` to deal better with `replace`/`provide` (#11475)
+  * Fixed lock file having a more recent modification time than the vendor dir when `require` guesses the constraint after resolution (#11405)
+  * Fixed numeric default branches with a `v` prefix being treated as non-numeric ones and receiving an alias like e.g. dev-main would (e51d755a08)
+  * Fixed binary proxies not being transparent when included by another PHP process and returning a value (#11454)
+  * Fixed support for plugin classes being marked as `readonly` (#11404)
+  * Fixed `getmypid` being required as it is not always available (#11401)
+  * Fixed authentication issue when downloading several files from private Bitbucket in parallel (#11464)
+
+### [2.5.5] 2023-03-21
+
+  * Fixed basic auth failures resulting in infinite retry loop (#11320)
+  * Fixed GitHub rate limit reporting (#11366)
+  * Fixed InstalledVersions error in Composer 1 compatibility edge case (#11304)
+  * Fixed issue displaying solver problems with branch names containing `%` signs (#11359)
+  * Fixed race condition in cache validity detection when running Composer highly concurrently (#11375)
+  * Fixed various minor config command issues (#11353, #11302)
+
+### [2.5.4] 2023-02-15
+
+  * Fixed extra.plugin-optional support in PluginInstaller when doing pre-install checks (#11318)
+
 ### [2.5.3] 2023-02-10
 
   * Added extra.plugin-optional support for allow auto-disabling unknown plugins which are not critical when running non-interactive (#11315)
@@ -1695,6 +1731,11 @@
 
   * Initial release
 
+[2.5.8]: https://github.com/composer/composer/compare/2.5.7...2.5.8
+[2.5.7]: https://github.com/composer/composer/compare/2.5.6...2.5.7
+[2.5.6]: https://github.com/composer/composer/compare/2.5.5...2.5.6
+[2.5.5]: https://github.com/composer/composer/compare/2.5.4...2.5.5
+[2.5.4]: https://github.com/composer/composer/compare/2.5.3...2.5.4
 [2.5.3]: https://github.com/composer/composer/compare/2.5.2...2.5.3
 [2.5.2]: https://github.com/composer/composer/compare/2.5.1...2.5.2
 [2.5.1]: https://github.com/composer/composer/compare/2.5.0...2.5.1

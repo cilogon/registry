@@ -64,8 +64,16 @@
     "suggest": {
         "ext-curl": "To enable more efficient network calls in Http\\Client.",
         "ext-openssl": "To use Security::encrypt() or have secure CSRF token generation.",
-        "lib-ICU": "The intl PHP library, to use Text::transliterate() or Text::slug()",
+        "lib-ICU": "To use locale-aware features in the I18n and Database packages",
         "paragonie/csp-builder": "CSP builder, to use the CSP Middleware"
+    },
+    "provide": {
+        "psr/container-implementation": "^1.0 || ^2.0",
+        "psr/http-client-implementation": "^1.0",
+        "psr/http-server-handler-implementation": "^1.0",
+        "psr/http-server-middleware-implementation": "^1.0",
+        "psr/log-implementation": "^1.0 || ^2.0",
+        "psr/simple-cache-implementation": "^1.0 || ^2.0"
     },
     "config": {
         "process-timeout": 900,
