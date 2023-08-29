@@ -167,7 +167,7 @@ class SetupCommand extends Command
     ],
     ['validate' => false])];
     
-    $g = $$coTable->Groups->find('adminGroup', ['co_id' => $co_id])->firstOrFail();
+    $g = $coTable->Groups->find('adminGroup', ['co_id' => $co_id])->firstOrFail();
 
     $person->group_members = [
       $coTable->People->GroupMembers->newEntity(
