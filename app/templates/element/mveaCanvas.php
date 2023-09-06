@@ -91,7 +91,7 @@
   }
 ?>
 <div id="mvea-canvas" class="co-cards">
-  <div id="mvea-canvas-attributes-js" class="row row-cols-1 g-4 <?= ($widgetCount > 1) ? 'row-cols-md-2' : ''?>">
+  <div id="mvea-canvas-attributes-js" class="row row-cols-1 g-4<?= ($widgetCount > 1) ? ' row-cols-md-2' : ''?>">
     <?php
       foreach($attributes as $attr) {
         if(!empty(($vv_obj[$attr]))) {

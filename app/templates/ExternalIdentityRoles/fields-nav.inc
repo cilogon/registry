@@ -25,6 +25,39 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'ad_hoc_attributes',
+  'addresses',
+  'telephone_numbers'
+];
+
+// Name the MVEAs Entity Type
+$mveasEntityType = "external_identity_role";
+
+// $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
+$addMenuLinks = [
+  [
+    'controller' => 'ad_hoc_attributes',
+    'action' => 'add',
+    'icon' => 'check_box',
+    'iconClass' => 'material-icons-outlined'
+  ],
+  [
+    'controller' => 'addresses',
+    'action' => 'add',
+    'icon' => 'contact_mail',
+    'iconClass' => 'material-icons-outlined'
+  ],
+  [
+    'controller' => 'telephone_numbers',
+    'action' => 'add',
+    'icon' => 'phone'
+  ]
+];
+
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
 $topLinks = [];
 

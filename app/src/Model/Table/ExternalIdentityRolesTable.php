@@ -89,10 +89,9 @@ class ExternalIdentityRolesTable extends Table {
     $this->setRedirectGoal('self');
     
     $this->setEditContains([
-      /*
       'Addresses',
       'AdHocAttributes',
-      'TelephoneNumbers'*/
+      'TelephoneNumbers'
     ]);
     
     $this->setAutoViewVars([
