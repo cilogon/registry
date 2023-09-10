@@ -26,17 +26,17 @@
 
 // On page load, call any defined initialization functions.
 // Make sure function is defined before calling.
-function js_onload_call_hooks() {
-  if(window.js_local_onload) {
-    js_local_onload();
+function jsOnLoadCallHooks() {
+  if(window.jsLocalOnLoad) {
+    jsLocalOnLoad();
   }
 }
 
 // On form submit, call any defined functions.
 // Make sure function is defined before calling.
-function js_onsubmit_call_hooks() {
-  if(window.js_local_onsubmit) {
-    js_local_onsubmit();
+function jsOnSubmitCallHooks() {
+  if(window.jsLocalOnSubmit) {
+    jsLocalOnSubmit();
   }
 }
 
@@ -53,6 +53,32 @@ function displaySpinner() {
 // stop a spinner explicitly
 function stopSpinner() {
   $("#co-loading").hide();
+}
+
+// Show fields in .form-list output.
+// fields          - array of field IDs
+// isPageLoad      - boolean, true for first page load
+function showFields(fields, isPageLoad) {
+  for(const field of fields) {
+    if(isPageLoad !== undefined && isPageLoad) {
+      $('#' + field).closest('li').addClass('collapse show');
+    } else {
+      $('#' + field).closest('li').collapse('show');
+    }  
+  }
+}
+
+// Hide fields in .form-list output.
+// fields          - array of field IDs
+// isPageLoad      - boolean, true for first page load
+function hideFields(fields, isPageLoad) {
+  for(const field of fields) {
+    if(isPageLoad !== undefined && isPageLoad) {
+      $('#' + field).closest('li').addClass('collapse');
+    } else {
+      $('#' + field).closest('li').collapse('hide');
+    }
+  }
 }
 
 // Returns an i18n string with tokens replaced.
@@ -76,7 +102,7 @@ function replaceTokens(text,replacements) {
 // cancelbtxt         - cancel button text     (string, optional)
 // titletxt           - dialog title text      (string, optional)
 // tokenReplacements  - strings to replace tokens in dialog body text (array, optional)
-function js_confirm_generic(txt, confirmUrl, clickId, confirmbtxt, cancelbtxt, titletxt, tokenReplacements) {
+function jsConfirmGeneric(txt, confirmUrl, clickId, confirmbtxt, cancelbtxt, titletxt, tokenReplacements) {
 
   var bodyText = txt;
   var confUrl = confirmUrl;

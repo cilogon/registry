@@ -90,7 +90,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       $bodyClasses .= ' logged-out';
     }
   ?>
-  <body class="<?= $bodyClasses ?>" onload="js_onload_call_hooks()">
+  <body class="<?= $bodyClasses ?>" onload="jsOnLoadCallHooks()">
     <!-- Iframe layout -->
     <div id="comanage-iframe-wrapper">
       <main id="main">

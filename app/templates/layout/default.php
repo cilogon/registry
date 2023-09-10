@@ -90,7 +90,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       $bodyClasses .= ' logged-out';
     }
   ?>
-  <body class="<?= $bodyClasses ?>" onload="js_onload_call_hooks()">
+  <body class="<?= $bodyClasses ?>" onload="jsOnLoadCallHooks()">
     <div id="skip-to-content-box">
       <a href="#content-start" id="skip-to-content" class="visually-hidden-focusable nospin"><?= __d('operation', 'skip_to_content') ?></a>
     </div>

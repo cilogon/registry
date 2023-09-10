@@ -284,7 +284,7 @@ class FieldHelper extends Helper {
    */
   
   protected function endLine(): string {
-    return "</li>\n";
+    return "</div></li>\n";
   }
   
   /**
@@ -556,7 +556,7 @@ class FieldHelper extends Helper {
       $ret .= ' class="' . $class . '"';
     }
     
-    $ret .= '>';
+    $ret .= '><div class="field">';
     
     return $ret;
   }
@@ -571,12 +571,14 @@ class FieldHelper extends Helper {
   
   public function submit(string $label): string {
     return '<li class="fields-submit">
-      <div class="field-name">
-        <span class="required">* ' . __d('field', 'required') . '</span>
-      </div>
-      <div class="field-info">
-        ' . $this->Form->submit($label) . '
-      </div>
+      <div class="field">
+        <div class="field-name">
+          <span class="required">* ' . __d('field', 'required') . '</span>
+        </div>
+        <div class="field-info">
+          ' . $this->Form->submit($label) . '
+        </div>
+      </div>  
     </li>';
   }
 }

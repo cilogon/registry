@@ -28,40 +28,43 @@
 <script type="text/javascript">
   // JS specific to these fields
 
-  function fields_update_gadgets() {
+  function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
-
     var context = document.getElementById('context').value;
 
-    if(context == '<?= \App\Lib\Enum\IdentifierAssignmentContextEnum::Person ?>') {
-      $("#group-id").closest('li').hide('fade');
-// Group ID restriction is not yet implemented (CFM-57)
-//      $("#group-id").closest('li').show('fade');
-      $("#email-address-type-id").closest('li').show('fade');
+    if(context == '') {
+      // Collapse all gadgets when context is empty.
+      hideFields(['email-address-type-id','group-id','login'], isPageLoad);
+    } else if(context == '<?= \App\Lib\Enum\IdentifierAssignmentContextEnum::Person ?>') {
+      // Show/Hide for Person context
+// XXX Group ID restriction is not yet implemented (CFM-57)
+// TODO: When it is, add 'group-id' to the showFields() array.
+      showFields(['email-address-type-id'], isPageLoad);
+      hideFields(['group-id'], isPageLoad);
 
       var identifierType = document.getElementById('identifier-type-id').value;
-
       if(!identifierType) {
-        $("#login").closest('li').hide('fade');
+        hideFields(['login'], isPageLoad);
       } else {
-        $("#login").closest('li').show('fade');
+        showFields(['login'], isPageLoad);
       }
     } else {
-      $("#group-id").closest('li').hide('fade');
-      $("#email-address-type-id").closest('li').hide('fade');
-      $("#login").closest('li').hide('fade');
+      // Show/Hide for Group context
+      showFields(['group-id'], isPageLoad);
+      hideFields(['email-address-type-id','login'], isPageLoad);
     }
   }
 
-  function reset_type(id) {
+  function resetType(id) {
     document.getElementById(id).value = "";
-    fields_update_gadgets();
+    updateGadgets();
   }
 
-  function js_local_onload() {
-    fields_update_gadgets();
+  function jsLocalOnLoad() {
+    updateGadgets(true);
   }
 </script>
+  
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
@@ -74,27 +77,30 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control(
     fieldName: 'context',
     options: [
-      'onChange' => 'javascript:fields_update_gadgets();'
+      'onChange' => 'updateGadgets()'
     ]
   );
-  
-  print $this->Field->control('group_id');
   
   print $this->Field->control(
     fieldName: 'identifier_type_id',
     options: [
-      'onChange' => 'javascript:reset_type("email-address-type-id")'
+      'onChange' => 'resetType("email-address-type-id")'
     ]
   );
   
-  print $this->Field->control('login');
+  print $this->Field->control(
+    fieldName: 'login',
+    cssClass: 'subfield'
+  );
 
   print $this->Field->control(
     fieldName: 'email_address_type_id',
     options: [
-      'onChange' => 'javascript:reset_type("identifier-type-id")'
+      'onChange' => 'resetType("identifier-type-id")'
     ]
   );
+
+  print $this->Field->control('group_id');
 
   print $this->Field->control('ordr');
 }

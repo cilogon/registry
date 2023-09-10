@@ -28,28 +28,33 @@
 <script type="text/javascript">
   // JS specific to these fields
 
-  function fields_update_gadgets() {
+  function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
-
     var attr = document.getElementById('attribute').value;
-    
+
+    // Handle page interaction
     if(attr == 'PersonRoles.affiliation_type') {
-      $("#edupersonaffiliation").closest('li').show('fade');
+      showFields(['edupersonaffiliation'], isPageLoad);
     } else {
-      $("#edupersonaffiliation").closest('li').hide('fade');
+      hideFields(['edupersonaffiliation'], isPageLoad);
     }
   }
 
-  function js_local_onload() {
-    fields_update_gadgets();
+  function jsLocalOnLoad() {
+    updateGadgets(true);
   }
 </script>
+  
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('attribute', 
-                              ['onChange' => 'fields_update_gadgets();',
-                               'readonly' => $vv_action == 'edit']);
+  print $this->Field->control(
+    fieldName: 'attribute', 
+    options: [
+      'onChange' => 'updateGadgets()', 
+      'readonly' => $vv_action == 'edit'
+    ]
+  );
   
   print $this->Field->control('display_name');
   

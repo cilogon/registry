@@ -28,22 +28,22 @@
 <script type="text/javascript">
   // JS specific to these fields
 
-  function fields_update_gadgets() {
+  function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
-
     var mode = document.getElementById('collision-mode').value;
     
     if(mode == '<?= \CoreAssigner\Lib\Enum\CollisionModeEnum::Sequential ?>') {
-      $("#maximum").closest('li').hide('fade');
+      hideFields(['maximum'], isPageLoad);
     } else {
-      $("#maximum").closest('li').show('fade');
+      showFields(['maximum'], isPageLoad);
     }
   }
 
-  function js_local_onload() {
-    fields_update_gadgets();
+  function jsLocalOnLoad() {
+    updateGadgets(true);
   }
 </script>
+  
 <?php
 // This view does currently not support read-only, and add is not used
 if($vv_action == 'edit') {
@@ -52,7 +52,7 @@ if($vv_action == 'edit') {
   print $this->Field->control(
     fieldName: 'collision_mode',
     options: [
-      'onChange' => 'javascript:fields_update_gadgets();'
+      'onChange' => 'updateGadgets()'
     ]
   );
 

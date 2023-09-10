@@ -106,7 +106,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
             $cancelButtonText = !empty($action['confirm']['dg_cancel_btn']) ? $action['confirm']['dg_cancel_btn'] : __d('operation','cancel');
             $replacements = !empty($action['confirm']['dg_body_txt_replacements']) ? $action['confirm']['dg_body_txt_replacements'] : '';
 
-            $dg_onclick = 'javascript:js_confirm_generic(\''
+            $dg_onclick = 'javascript:jsConfirmGeneric(\''
             . $dialogBodyText . '\',\''          // dialog body text
             . $actionUrl . '\',\''               // URL to redirect to on confirm
             . $actionUid . '\',\''               // ID of postButton element to click on confirm if not empty

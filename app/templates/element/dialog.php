@@ -26,7 +26,7 @@
    *
    * This generic modal dialog stub is used for confirmations, e.g. when deleting a record.
    * The text of the box is overridden with JavaScript, and the confirm button is intended to
-   * click a CakePHP postLink or postButton in the DOM. Use js_confirm_generic() to call it.
+   * click a CakePHP postLink or postButton in the DOM. Use jsConfirmGeneric() to call it.
    */
 ?>
 

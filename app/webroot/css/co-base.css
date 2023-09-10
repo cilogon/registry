@@ -1130,7 +1130,7 @@ ul.data-list li {
   background-color: var(--cmg-color-bg-003);
 }
 ul.data-list li:nth-child(2n) {
-  background-color: var(--cmg-color-bg-009); /* note that this is slightly lighter than the .form-list zebra */
+  background-color: var(--cmg-color-bg-009);
 }
 ul.data-table li {
   background-color: unset;
@@ -1152,25 +1152,34 @@ above. ***/
 ul.form-list {
   clear: both;
   padding: 0;
-  border-top: 1px solid var(--cmg-color-bg-005);
 }
 .cm-time-picker-vals ul li,
 ul.form-list li {
-  background-color: var(--cmg-color-bg-001);
+  background-color: var(--cmg-color-body-bg);
   border-left: 1px solid var(--cmg-color-bg-005);
-  border-bottom: 1px solid var(--cmg-color-bg-005);
+  border-top: 1px solid var(--cmg-color-bg-005);
   border-right: 1px solid var(--cmg-color-bg-005);
   margin: 0;
-  padding: 0.75em;
+  padding: 0;
   list-style: none;
 }
-.cm-time-picker-vals ul li:nth-child(even),
-ul.form-list li:nth-child(even) {
+ul.form-list li:focus-within {
+  background-color: var(--cmg-color-bg-001);
+}
+ul.form-list li.fields-submit:focus-within {
   background-color: var(--cmg-color-body-bg);
+}
+ul.form-list li.subfield {
+  border-top: none;
+}
+ul.form-list li .field {
+  margin: 0;
+  padding: 0.75em;
 }
 ul.form-list li.fields-submit {
   background-color: unset;
-  border: none;
+  border-left: none;
+  border-right: none;
 }
 ul.form-list .field-name {
   display: block;
@@ -1362,6 +1371,9 @@ ul.form-list .cm-time-picker-vals li {
   display: block;
   padding: 4px 0 0 0;
 }
+.cm-time-picker-vals ul li:nth-child(even) {
+  background-color: var(--cmg-color-body-bg);
+}
 .cm-time-picker-vals button {
   background-color: transparent;
   border: none;
@@ -1392,6 +1404,7 @@ ul.form-list .cm-time-picker-vals li {
   position: absolute;
   border: none;
   right: 2.5em;
+  padding-top: 1em;
   color: var(--cmg-color-txt-soft);
   background-color: unset;
 }
@@ -1826,6 +1839,11 @@ html.dark-mode .btn-default:active {
   color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-006);
+}
+.collapsing {
+  transition-property: height, visibility;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
 }
 /* FOOTER */
 footer {

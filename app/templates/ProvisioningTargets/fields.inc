@@ -27,35 +27,45 @@
 ?>
 <script type="text/javascript">
   // JS specific to these fields
-
-  function fields_update_gadgets() {
+  
+  function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
+    var status = document.getElementById('status').value;
 
-    var attr = document.getElementById('status').value;
-
-    if(attr == "<?= \App\Lib\Enum\ProvisionerModeEnum::Queue ?>"
-       || attr == "<?= \App\Lib\Enum\ProvisionerModeEnum::QueueOnError ?>") {
+    if(status == "<?= \App\Lib\Enum\ProvisionerModeEnum::Queue ?>"
+       || status == "<?= \App\Lib\Enum\ProvisionerModeEnum::QueueOnError ?>") {
 alert("Queue modes not yet implemented"); // XXX CFM-26
-      $("#retry-interval").closest('li').show('fade');
+      showFields(['retry-interval'], isPageLoad);
     } else {
-      $("#retry-interval").closest('li').hide('fade');
+      hideFields(['retry-interval'], isPageLoad);
     }
   }
 
-  function js_local_onload() {
-    fields_update_gadgets();
+  function jsLocalOnLoad() {
+    updateGadgets(true);
   }
 </script>
+  
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('description');
 
-  print $this->Field->control('status', 
-                              ['onChange' => 'fields_update_gadgets();',
-                               'default'  => \App\Lib\Enum\ProvisionerModeEnum::QueueOnError]);
+  print $this->Field->control(
+    fieldName: 'status', 
+    options: [
+      'onChange' => 'updateGadgets()',
+      'default'  => \App\Lib\Enum\ProvisionerModeEnum::QueueOnError
+    ]
+  );
   
-  print $this->Field->control('retry_interval', ['default' => 900]);
+  print $this->Field->control(
+    fieldName: 'retry_interval', 
+    options: [
+      'default' => 900
+    ],
+    cssClass: 'subfield'
+  );
 
   print $this->Field->control('plugin');
 

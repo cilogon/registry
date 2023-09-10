@@ -87,7 +87,7 @@
   ul.form-list-admin .field-info {
     width: 40%;
   }
-  ul.form-list li {
+  ul.form-list li .field {
     display: flex;
     column-gap: 1em;
     align-items: center;
