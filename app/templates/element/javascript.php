@@ -73,7 +73,7 @@
     $('#global-search-clear').click(function(e) {
       e.stopPropagation();
       $('#q').val('');
-      $('#q').removeClass('hasValue');
+      $('#q').removeClass('has-value');
       $('#q').focus();
     });
     // Select search text on focus
@@ -83,9 +83,9 @@
     // Hide and reveal clear button
     $('#q').on('input', function(e) {
       if($(this).val() != '') {
-        $(this).addClass('hasValue');
+        $(this).addClass('has-value');
       } else {
-        $(this).removeClass('hasValue');
+        $(this).removeClass('has-value');
       }
     });
 

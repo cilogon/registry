@@ -311,14 +311,9 @@ class DashboardsController extends StandardController {
 
     // Gather our search string.
     $q = '';
-    if(!empty($this->request->getData('global-search-q'))) {
-      // A search was passed in from the global search-bar.
-      $q = trim($this->request->getData('global-search-q'));
-      // Now pass the search string to the in-page search form and empty the global search bar.
-      $this->setRequest($this->getRequest()->withData('global-search-q', '')->withData('q', $q));
-    } elseif(!empty($this->request->getData('q'))) {
-      // A search was passed in from the form on the Global Search page. 
-      $q = trim($this->request->getData('q'));
+    if(!empty($this->request->getQuery('q'))) {
+      // A search was passed in from the form on the Global Search bar. 
+      $q = trim($this->request->getQuery('q'));
     }
   
     // Only process the request if we have a string of non-space characters
@@ -403,7 +398,7 @@ class DashboardsController extends StandardController {
       
       $this->Flash->information(__d('result',
                                     'search.exact',
-                                    [filter_var($this->request->getData('q'), FILTER_SANITIZE_SPECIAL_CHARS),
+                                    [filter_var($this->request->getQuery('q'), FILTER_SANITIZE_SPECIAL_CHARS),
                                      __d('controller', $matchClass, [1])]));
 
       // Redirect to the matchClass controller

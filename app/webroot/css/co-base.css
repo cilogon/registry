@@ -206,7 +206,7 @@ body.cos.select #top-bar {
   color: var(--cmg-color-txt-inverse);
   border-right: 1px dotted var(--cmg-color-highlight-005);
 }
-#q.hasValue + #global-search-clear {
+#q.has-value + #global-search-clear {
   display: inline-block;
 }
 #top-bar #global-search-toggle {
