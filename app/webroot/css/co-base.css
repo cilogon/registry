@@ -705,23 +705,16 @@ ul.form-list li.alert-banner .co-alert {
   list-style: none;
   display: inline;
 }
-#search-results-meta li:after {
-  content: ",";
-}
-#search-results-meta li:first-child:after,
-#search-results-meta li:last-child:after {
-  content: "";
-}
 #search-results ul.search-results-group {
   padding: 0;
   list-style: none;
-  display: grid;
-  gap: 1em;
-  margin-bottom: 0;
+  margin: 1.5em 0 0;
 }
 #search-results li.search-result {
   padding: 0;
+  margin-bottom: 1.5em;
   border: 1px dashed var(--cmg-color-bg-008);
+  break-inside: avoid;
 }
 #search-results li.search-result a {
   display: block;
@@ -739,6 +732,11 @@ ul.form-list li.alert-banner .co-alert {
 }
 #search-results .search-result-match-info {
   font-size: 0.8em;
+}
+#search-results .search-result-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 #search-results .accordion-body {
   padding: 1em;

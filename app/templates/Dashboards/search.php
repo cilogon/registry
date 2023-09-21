@@ -35,13 +35,22 @@
     'id' => 'search'
   ];
 
-  $noResults = true;
+  $resultsCount = 0;
+  // Count only People and Groups for now. Other models can come later.
+  foreach(['People', 'Groups'] as $pm) {
+    $resultsCount += count($vv_results[$pm]);
+  }  
 ?>
 
 <div class="pageTitleContainer">
   <div class="pageTitle">
     <h1><?= $vv_title; ?></h1>
   </div>
+  <?php if($resultsCount): ?>
+    <ul id="search-results-meta">
+      <li class="search-results-found"><?= __d('result','search.result.found', [$resultsCount]); ?></li>
+    </ul>
+  <?php endif; ?>
 </div>
 
 <!-- Flash Messages and defined Info Banners -->
@@ -60,48 +69,43 @@
     <?php endforeach; // $banners ?>
   <?php endif; // $banners ?>
 </div>
-
-<?php
-  $peopleResultsCount = count($vv_results['People']);
-  $groupsResultsCount = count($vv_results['Groups']);
-?>  
-<?php if($peopleResultsCount || $groupsResultsCount): ?>
-  <?php $noResults = false; ?>
-  <ul id="search-results-meta">
-    <li class="search-results-found"><?= __d('result', 'search.result.found') ?></li>
-    <?php if($peopleResultsCount): ?>
-     <li>
-       <a href="#search-results-people" class="nospin">
-        <?= __d('result','search.result.found.modelCount', [$peopleResultsCount, __d('controller', "People", [$peopleResultsCount])]); ?>
-       </a>
-     </li>
-    <?php endif; ?>
-    <?php if($groupsResultsCount): ?>
-      <li>
-        <a href="#search-results-groups" class="nospin">
-          <?= __d('result','search.result.found.modelCount', [$groupsResultsCount, __d('controller', "Groups", [$groupsResultsCount])]); ?>
-        </a>
-      </li>
-    <?php endif; ?>
-  </ul>
-<?php endif; ?>
   
-<div id="search-results" class="accordion">
-<!-- Start with the Primary Registry objects -->
-<?php foreach(['People', 'Groups'] as $pm): ?>
-  <?php if(!empty($vv_results[$pm])): ?>
-    <div  id="search-results-<?= strtolower($pm) ?>" class="search-results-group-container accordion-item">
-      <div id="search-results-<?= strtolower($pm) ?>-header" class="search-results-group-title accordion-header">
-        <button class="accordion-button" 
-                data-bs-toggle="collapse" 
-                data-bs-target="#search-results-<?= strtolower($pm) ?>-body" 
-                aria-expanded="true" 
-                aria-controls="search-results-<?= strtolower($pm) ?>-body">
-          <?= __d('controller', $pm, 2); ?>
-        </button>
-      </div>
-      <div id="search-results-<?= strtolower($pm) ?>-body" class="accordion-collapse collapse show">
-        <div class="accordion-body">
+<div id="search-results">
+  <?php if($resultsCount): ?>
+    <nav id="cm-searchresults-subnav-tabs" class="cm-subnav-tabs">
+      <ul class="nav nav-tabs" role="tablist">
+        <?php $isFirstTab = true; ?>
+        <?php foreach(['People', 'Groups'] as $i=>$pm): ?>
+          <?php if(!empty($vv_results[$pm])): ?>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link search-result-tab<?= $isFirstTab ? ' active' : '' ?>" 
+                      id="search-results-<?= strtolower($pm) ?>-tab" 
+                      data-bs-toggle="tab" 
+                      data-bs-target="#search-results-<?= strtolower($pm) ?>" 
+                      type="button" role="tab" 
+                      aria-controls="search-results-<?= strtolower($pm) ?>" 
+                      aria-selected="true">
+                <span class="tab-title">
+                  <?= __d('controller', $pm, 2) ?>
+                </span>
+                <span class="badge rounded-pill bg-outline-primary">
+                  <?= count($vv_results[$pm]) ?>
+                </span>
+              </button>
+            </li>
+            <?php $isFirstTab = false; ?>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      </ul>
+    </nav>
+    <div  id="search-results-tab-content ?>" class="search-results-group-container tab-content">
+    <?php $isFirstTab = true; ?>
+    <?php foreach(['People', 'Groups'] as $i=>$pm): ?>
+      <?php if(!empty($vv_results[$pm])): ?>
+        <div id="search-results-<?= strtolower($pm) ?>" 
+             class="tab-pane fade<?= $isFirstTab ? ' show active' : '' ?>" 
+             role="tabpanel" 
+             aria-labelledby="search-results-<?= strtolower($pm) ?>-tab">
           <ul class="search-results-group">
             <?php foreach($vv_results[$pm] as $pkey => $matches): ?>
               <?php  
@@ -148,15 +152,13 @@
             <?php endforeach; ?>
           </ul>
         </div>
-      </div>
+        <?php $isFirstTab = false; ?>
+      <?php endif; ?> 
+    <?php endforeach; ?>
     </div>
-  <?php endif; ?> 
-<?php endforeach; ?>
-
-<?php if($noResults): ?>
-  <p>
-    <?= __d('result','search.retry'); ?>
-  </p>
-<?php endif; ?>
-  
+  <?php else: ?>
+    <p>
+      <?= __d('result','search.retry'); ?>
+    </p>
+  <?php endif; ?>
 </div>

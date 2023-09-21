@@ -199,8 +199,13 @@
     border-right: 1px dashed var(--cmg-color-bg-006);
   }
   /* SEARCH RESULTS */
+  body.search .pageTitleContainer {
+    justify-content: start;
+    gap: 1em;
+  }
   #search-results ul.search-results-group {
-    grid-template-columns: repeat(2,1fr);
+    column-count: 2;
+    column-gap: 1.25em;
   }
   #top-menu {
     z-index: 30;
@@ -423,7 +428,7 @@
   }
   /* SEARCH RESULTS */
   #search-results ul.search-results-group {
-    grid-template-columns: repeat(4,1fr);
+    column-count: 3;
   }
 }
 
@@ -431,7 +436,10 @@
 /**************************************************************************************************************/
 /* Extra large devices (desktops, 1200px and up) */
 @media only screen and (min-width: 1200px) {
-
+  /* SEARCH RESULTS */
+  #search-results ul.search-results-group {
+    column-count: 4;
+  }
 }
 
 /* SPECIAL */

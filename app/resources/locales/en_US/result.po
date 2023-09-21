@@ -115,10 +115,7 @@ msgid "search.none"
 msgstr "No results found"
 
 msgid "search.result.found"
-msgstr "Found"
-
-msgid "search.result.found.modelCount"
-msgstr "{0} {1}"
+msgstr "Found {0} results"
 
 msgid "search.result.id"
 msgstr "ID {0}"
