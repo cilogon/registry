@@ -69,16 +69,15 @@
     top: 0;
     right: 0;
   }
-  ul.form-list .field-name {
-    display: inline-block;
-    min-width: 80px;
-    vertical-align: middle;
-    width: 30%;
-    padding-left: 0.5em;
+  /* FORMS */
+  ul.form-list li .field {
+    display: grid;
+    column-gap: 1em;
+    align-items: center;
+    grid-template-columns: 1fr 2fr;
   }
-  ul.form-list .field-info {
-    display: inline-block;
-    width: 70%;
+  ul.form-list .field-name {
+    padding-left: 0.5em;
   }
   ul.form-list-admin .field-name {
     width: 50%;
@@ -87,10 +86,8 @@
   ul.form-list-admin .field-info {
     width: 40%;
   }
-  ul.form-list li .field {
-    display: flex;
-    column-gap: 1em;
-    align-items: center;
+  ul.form-list .field-desc {
+    padding: 0.5em 0 0 0.5em;
   }
   ul.form-list li.field-stack textarea {
     margin: 0.5em 0 0.5em 0.5em;
@@ -118,6 +115,11 @@
   /* DATE / TIME PICKER */
   .duet-date__dialog {
     left: -20em;
+  }
+  /* DENSITY SETTINGS (from User Settings Menu; Medium is default) */
+  /* Density "small" */
+  html.density-small h1 {
+    font-size: 2.4em;
   }
 }
 
@@ -352,7 +354,6 @@
   th.actions,
   td.actions {
     width: 40px; /* this is pushed wider by the nowrap on .field-actions .dropdown-menu */
-    padding: 0;
   }
   /* EDIT / VIEW / INDEX ACTION TOP-LINKS MENU */
   /* Convert the dropdown menus to be visible on wider screens when .actions-expanded class exists. 
@@ -413,9 +414,13 @@
 /**************************************************************************************************************/
 /* Medium devices (desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
+  /* FORMS */
+  ul.form-list li .field {
+    column-gap: 2em;
+  }
   /* DATE / TIME PICKER */
   .cm-time-picker-panel {
-    right: -100%;
+    right: -250px;
     display: flex;
   }
   .cm-time-picker-vals ul {
@@ -436,6 +441,10 @@
 /**************************************************************************************************************/
 /* Extra large devices (desktops, 1200px and up) */
 @media only screen and (min-width: 1200px) {
+  /* FORMS */
+  ul.form-list li .field {
+    grid-template-columns: 1fr 3fr;
+  }
   /* SEARCH RESULTS */
   #search-results ul.search-results-group {
     column-count: 4;

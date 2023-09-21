@@ -243,9 +243,39 @@ body.cos.select #top-bar {
 #top-menu .dropdown-item:hover {
   background-color: var(--cmg-color-bg-003);
 }
-#top-menu .dropdown-item .material-icons {
+#top-menu .dropdown-item .material-icons,
+#top-menu .dropdown-item .material-icons-outlined {
   margin-right: 0.25em;
   vertical-align: middle;
+}
+#top-menu .menu-grouping h4 .material-icons,
+#top-menu .menu-grouping h4 .material-icons-outlined {
+  font-size: 1.1rem;
+  margin-right: 0.5rem;
+}
+.menu-grouping {
+  padding: 1em;
+  font-size: 0.9em;
+}
+.menu-grouping h4 {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  padding: 0;
+  margin-bottom: 0.2em;
+}
+.menu-grouping-group {
+  display: flex;
+  gap: 0.75em;
+  padding-left: 2em;
+}
+.menu-grouping-group .form-check {
+  display: flex;
+  gap: 0.25em;
+  align-items: center;
+}
+.menu-grouping-group .form-check .form-check-input {
+  float: none;
 }
 #user-panel {
   color: var(--cmg-color-body-txt);
@@ -909,8 +939,18 @@ ul.form-list li.alert-banner .co-alert {
   padding-bottom: 1em;
 }
 /* INDEX ACTION COMMAND MENUS */
-a.action-menu-toggle {
-  padding: 0.5rem;
+th.with-field-actions {
+  padding-left: 2.75em;
+}
+td.with-field-actions {
+  display: flex;
+  align-items: center;
+}
+.field-actions {
+  float: left;
+  padding-left: 1.5em;
+  margin-left: -1.5em;
+  margin-right: 0.75em;
 }
 .field-actions .dropdown-menu {
   padding: 0;
@@ -941,11 +981,14 @@ a.dropdown-item.deletebutton {
 table.bulk-edit-mode a.row-link,
 table.bulk-edit-mode .read-only-link-container,
 table.bulk-edit-mode .row-link-heading,
-table.bulk-edit-mode td.actions .field-actions {
+table.bulk-edit-mode .field-actions {
   display: none;
 }
+table.bulk-edit-mode th.with-field-actions {
+  padding-left: 0.75em;
+}
 table.list-mode a.row-link,
-table.list-mode td.actions .field-actions {
+table.list-mode .field-actions {
   display: block;
 }
 table.list-mode .bulk-action-checkbox-container {
@@ -954,6 +997,9 @@ table.list-mode .bulk-action-checkbox-container {
 table.index-table .form-check {
   margin-bottom: 0;
   min-height: unset;
+}
+.bulk-action-checkbox-container .form-check-input {
+  margin-right: 1em;
 }
 /* PAGINATION */
 #pagination {
@@ -1174,6 +1220,9 @@ ul.form-list li .field {
   margin: 0;
   padding: 0.75em;
 }
+ul.form-list li .field:hover {
+  background-color: var(--cmg-color-bg-001);
+}
 ul.form-list li.fields-submit {
   background-color: unset;
   border-left: none;
@@ -1188,6 +1237,7 @@ ul.form-list .field-info {
 ul.form-list .field-desc {
   font-size: 0.9em;
   font-style: italic;
+  padding-bottom: 1em;
 }
 ul.form-list .fields-header {
   background-color: var(--cmg-color-body-bg);
@@ -1205,12 +1255,16 @@ ul.form-list input[type="password"] {
   color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-body-bg);
 }
+ul.form-list input[type="number"] {
+  width: 6em;
+}
 ul.form-list input[type="text"]:focus,
 ul.form-list input[type="number"]:focus,
 ul.form-list input[type="password"]:focus {
   background-color: var(--cmg-color-highlight-002);
 }
 ul.form-list select {
+  width: auto; /* select boxes should fit to their content, typically */
   font-size: 0.9em;
   color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-body-bg);
@@ -1323,6 +1377,9 @@ ul.fields li.fields-datepicker .field-info {
   display: flex;
   align-items: center;
 }
+ul.form-list input.datepicker {
+  width: auto;
+}
 .field-info .input-group {
   flex-wrap: unset;
 }
@@ -1334,6 +1391,9 @@ ul.fields li.fields-datepicker .field-info {
   font-size: inherit;
   line-height: inherit;
   padding: .25rem .75rem;
+}
+.cm-time-picker {
+  position: relative;
 }
 .cm-time-picker-panel {
   position: absolute;
@@ -1570,13 +1630,8 @@ thead td.actions {
 td {
   border-bottom: 1px solid var(--cmg-color-bg-005);
 }
-th:first-child,
-td:first-child {
-  padding-left: 1rem;
-}
 table.list-mode th.actions:first-child,
 table.list-mode td.actions:first-child {
-  padding-left: 0;
   text-align: center;
 }
 table.bulk-edit-mode th.actions,
@@ -1755,6 +1810,9 @@ html.dark-mode .btn-default:active {
   color: var(--cmg-color-btn-bg-001);
   border: none;
 }
+#edit_ApiUsers .provisionbutton {
+  margin-left: 1em;
+}
 /*Bootstrap badge*/
 .badge {
   font-weight: normal;
@@ -1842,6 +1900,50 @@ html.dark-mode .btn-default:active {
   transition-property: height, visibility;
   transition-duration: 0.2s;
   transition-timing-function: ease-out;
+}
+/* DENSITY SETTINGS (from User Settings Menu; Medium is default) */
+/* Density "small" */
+html.density-small th, 
+html.density-small td {
+  padding: 0.5em;
+}
+html.density-small th.with-field-actions {
+  padding-left: 2.5em;
+}
+html.density-small table.bulk-edit-mode th.with-field-actions {
+  padding-left: 0.5em;
+}
+html.density-small .bulk-action-checkbox-container .form-check-input {
+  margin-right: 0;
+}
+html.density-small .co-grid .col {
+  padding: 0.75em;
+}
+html.density-small ul.form-list li .field {
+  padding: 0.5em;
+}
+html.density-small a.menu-panel-toggle {
+  font-size: 0.9em;
+}
+/* Density "large" */
+html.density-large th,
+html.density-large td {
+  padding: 1.25em;
+}
+html.density-large th.with-field-actions {
+  padding-left: 2.75em;
+}
+html.density-large table.bulk-edit-mode th.with-field-actions {
+  padding-left: 1.25em;
+}
+html.density-large .co-grid .col {
+  padding: 1.5em;
+}
+html.density-large ul.form-list li .field {
+  padding: 1.5em;
+}
+html.density-large .field-data {
+  padding: 0.75em 1em;
 }
 /* FOOTER */
 footer {

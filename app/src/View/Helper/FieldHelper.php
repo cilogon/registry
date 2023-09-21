@@ -461,7 +461,7 @@ class FieldHelper extends Helper {
          . '<span class="visually-hidden">' . __d('field','required') . '</span>' 
          : '') . '
       </div>
-      ' . ($desc ? '<span class="field-desc">' . $desc . '</span>' : "") .'
+      ' . ($desc ? '<div class="field-desc">' . $desc . '</div>' : "") .'
     </div>';
   }
   
@@ -509,7 +509,7 @@ class FieldHelper extends Helper {
      
     return $this->startLine()
            . $this->formNameDiv($fieldName, $labelText, 'string', $labelIsTextOnly)
-           . $linkHtml
+           . $this->formInfoDiv($linkHtml)
            . $this->endLine();
   }
   

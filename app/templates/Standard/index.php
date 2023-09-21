@@ -178,15 +178,25 @@ if(!empty($subnav)) {
   <table id="<?= $tableName . '-table'; ?>" class="<?= $indexTableClasses; ?>">
     <thead>
       <tr>
-        <?php if(!empty($rowActions)): ?>
-          <td class="actions"></td>
-        <?php endif; ?>
         <?php
-          // The first heading will get the bulk select all checkbox.
+          // The first heading will get the bulk select all checkbox
+          // and will contain extra padding when row actions are present.
           $firstHeading = true;
         ?>
         <?php foreach($indexColumns as $col => $cfg): ?>
-          <th<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
+          <?php
+            $headingClass = '';
+            if(!empty($cfg['cssClass'])) {
+              $headingClass = $cfg['cssClass'];
+            }
+            if($firstHeading && !empty($rowActions)) {
+              if(!empty($headingClass)) {
+                $headingClass .= ' ';
+              }
+              $headingClass .= 'with-field-actions';
+            }
+          ?>
+          <th<?= !empty($headingClass) ? ' class="' . $headingClass . '"' : ''; ?>>
             <?php
             if($firstHeading) {
               print '<span class="row-link-heading">';
@@ -208,134 +218,134 @@ if(!empty($subnav)) {
               print '</span>';
             }
             ?>
-            <?php if($firstHeading): ?>
+            <?php if($firstHeading && !empty($bulkActions)): ?>
               <div class="form-check bulk-action-checkbox-container">
                 <input class="form-check-input" type="checkbox" value="" id="bulk-action-select-all">
                 <label class="form-check-label" for="bulk-action-select-all">
                   <?= $label; ?>
                 </label>
               </div>
-              <?php
-              // The first heading has been used.
-              $firstHeading = false;
-              ?>
             <?php endif; ?>
           </th>
+          <?php
+            $firstHeading = false;
+          ?>
         <?php endforeach; ?>
       </tr>
     </thead>
     <tbody>
     <?php foreach($$tableName as $entity): ?>
       <tr>
-      <?php if(!empty($rowActions)): ?>
-      <?php
-        // Action list for command menu dropdown / button listing
-        $action_args = array();
-        $action_args['vv_attr_id'] =  $entity->id;
-        
-        // Insert actions as per the .inc file
-        // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
-        $actionOrderDefault = $this->Menu->getMenuOrder('Default');
-        foreach($rowActions as $a) {
-          $ok = false;
-          if(!empty($a['controller'])) {
-            $tableName = Inflector::camelize($a['controller']);
-
-            if(isset($vv_permission_set[$entity->id][$tableName][ $a['action'] ])) {
-              $ok = $vv_permission_set[$entity->id][$tableName][ $a['action'] ];
-            }
-          } else {
-            $ok = $vv_permission_set[$entity->id][ $a['action'] ];
-          }
-
-          if($ok && !empty($a['if'])) {
-            // If there's a conditional on the field, test the entity
-            $f = $a['if'];
-
-            $ok = $entity->$f();
-          }
-
-          if($ok) {
-            $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
-            $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
-            $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
-            $actionClass = !empty($a['class']) ? $a['class'] : '';
-            $actionUrl = ['action' => $a['action'], $entity->id];
-            $actionLabel = !empty($a['label']) ? $a['label'] : __d('operation', $a['action']);
-
+      <?php 
+        if(!empty($rowActions)) {
+          // Action list for command menu dropdown / button listing
+          $action_args = array();
+          $action_args['vv_attr_id'] = $entity->id;
+  
+          // Insert actions as per the .inc file
+          // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
+          $actionOrderDefault = $this->Menu->getMenuOrder('Default');
+          foreach ($rowActions as $a) {
+            $ok = false;
             if (!empty($a['controller'])) {
-              // We're linking into a related controller
-              $actionLabel = !empty($a['label']) ? $a['label'] : __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
-              $actionUrl = [
-                'controller' => $a['controller'],
-                'action' => $a['action'],
-                '?' => [$tableFK => $entity->id]
-              ];
-            }
-
-            // Generate the link text and urls:
-            
-            if(!empty($a['confirm'])) {
-              // Gather the default confirmation body text. By convention this is named
-              // [action].confirm in the operation.po file but can be overridden in the actions array.
-              $confirmKey = $a['action'].'.confirm';
-              $confirmTxt = __d('operation', $confirmKey, [$entity->id]);
-
-              // Gather the dialog text - we need to expand these (here) so we can provide the default confirmTxt when appropriate
-              $dialogBodyText = !empty($a['confirm']['dg_body_txt']) ? $a['confirm']['dg_body_txt'] : $confirmTxt;
-              $dialogTitle = !empty($a['confirm']['dg_title']) ? $a['confirm']['dg_title'] : $actionLabel;
-              $confirmButtonText = !empty($a['confirm']['dg_confirm_btn']) ? $a['confirm']['dg_confirm_btn'] : __d('operation','confirm');
-              $cancelButtonText = !empty($a['confirm']['dg_cancel_btn']) ? $a['confirm']['dg_cancel_btn'] : __d('operation','cancel');
-              $replacements = !empty($a['confirm']['dg_body_txt_replacements']) ? $a['confirm']['dg_body_txt_replacements'] : '';
-              
-              $action_args['vv_actions'][] = array(
-                'order' => $actionOrder,
-                'icon' =>  $actionIcon,
-                'iconClass' => $actionIconClass,
-                'url' => $actionUrl,
-                'label' => $actionLabel,
-                'class' => !empty($actionClass) ? $actionClass . ' nospin' : 'nospin',
-                'confirm' => [
-                  'dg_title' => $dialogTitle,
-                  'dg_body_txt' => $dialogBodyText,
-                  'dg_confirm_btn' => $confirmButtonText,
-                  'dg_cancel_btn' => $cancelButtonText,
-                  'dg_body_txt_replacements' => $replacements
-                ]
-              );
+              $tableName = Inflector::camelize($a['controller']);
+  
+              if (isset($vv_permission_set[$entity->id][$tableName][$a['action']])) {
+                $ok = $vv_permission_set[$entity->id][$tableName][$a['action']];
+              }
             } else {
-              // Set the action link configuration
-              $action_args['vv_actions'][] = array(
-                'order' => $actionOrder,
-                'icon' => $actionIcon,
-                'iconClass' => $actionIconClass,
-                'url' => $actionUrl,
-                'label' => $actionLabel,
-                'class' => $actionClass
-              );
+              $ok = $vv_permission_set[$entity->id][$a['action']];
+            }
+  
+            if ($ok && !empty($a['if'])) {
+              // If there's a conditional on the field, test the entity
+              $f = $a['if'];
+  
+              $ok = $entity->$f();
+            }
+  
+            if ($ok) {
+              $actionOrder = !empty($a['order']) ? $a['order'] : $actionOrderDefault++;
+              $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
+              $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
+              $actionClass = !empty($a['class']) ? $a['class'] : '';
+              $actionUrl = ['action' => $a['action'], $entity->id];
+              $actionLabel = !empty($a['label']) ? $a['label'] : __d('operation', $a['action']);
+  
+              if (!empty($a['controller'])) {
+                // We're linking into a related controller
+                $actionLabel = !empty($a['label']) ? $a['label'] : __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
+                $actionUrl = [
+                  'controller' => $a['controller'],
+                  'action' => $a['action'],
+                  '?' => [$tableFK => $entity->id]
+                ];
+              }
+  
+              // Generate the link text and urls:
+  
+              if (!empty($a['confirm'])) {
+                // Gather the default confirmation body text. By convention this is named
+                // [action].confirm in the operation.po file but can be overridden in the actions array.
+                $confirmKey = $a['action'] . '.confirm';
+                $confirmTxt = __d('operation', $confirmKey, [$entity->id]);
+  
+                // Gather the dialog text - we need to expand these (here) so we can provide the default confirmTxt when appropriate
+                $dialogBodyText = !empty($a['confirm']['dg_body_txt']) ? $a['confirm']['dg_body_txt'] : $confirmTxt;
+                $dialogTitle = !empty($a['confirm']['dg_title']) ? $a['confirm']['dg_title'] : $actionLabel;
+                $confirmButtonText = !empty($a['confirm']['dg_confirm_btn']) ? $a['confirm']['dg_confirm_btn'] : __d('operation', 'confirm');
+                $cancelButtonText = !empty($a['confirm']['dg_cancel_btn']) ? $a['confirm']['dg_cancel_btn'] : __d('operation', 'cancel');
+                $replacements = !empty($a['confirm']['dg_body_txt_replacements']) ? $a['confirm']['dg_body_txt_replacements'] : '';
+  
+                $action_args['vv_actions'][] = array(
+                  'order' => $actionOrder,
+                  'icon' => $actionIcon,
+                  'iconClass' => $actionIconClass,
+                  'url' => $actionUrl,
+                  'label' => $actionLabel,
+                  'class' => !empty($actionClass) ? $actionClass . ' nospin' : 'nospin',
+                  'confirm' => [
+                    'dg_title' => $dialogTitle,
+                    'dg_body_txt' => $dialogBodyText,
+                    'dg_confirm_btn' => $confirmButtonText,
+                    'dg_cancel_btn' => $cancelButtonText,
+                    'dg_body_txt_replacements' => $replacements
+                  ]
+                );
+              } else {
+                // Set the action link configuration
+                $action_args['vv_actions'][] = array(
+                  'order' => $actionOrder,
+                  'icon' => $actionIcon,
+                  'iconClass' => $actionIconClass,
+                  'url' => $actionUrl,
+                  'label' => $actionLabel,
+                  'class' => $actionClass
+                );
+              }
             }
           }
         }
-
-        ?>  
-      
-        <td class="actions">
-          <div class="field-actions">
-            <?php if(!empty($action_args['vv_actions'])): ?>
-              <?= $this->element('menuAction', $action_args); ?>
-            <?php endif; ?>
-          </div>
-        </td>
-      <?php endif; ?>
         
-      <?php
         // We will set $isFirstLink to false after the first link is set. This is used to
         // establish the row-link class (and thus click action) for the row. There can be only one.
         // This is also used to determine which label will be assigned to the bulk action checkbox.
         $isFirstLink = true; 
       ?>  
       <?php foreach($indexColumns as $col => $cfg): ?>
-        <td<?= !empty($cfg['cssClass']) ? ' class="' . $cfg['cssClass'] . '"' : ''; ?>>
+        <?php
+          $cellClass = '';
+          if(!empty($cfg['cssClass'])) {
+            $cellClass = $cfg['cssClass'];
+          }
+          if($isFirstLink && !empty($rowActions)) {
+            if(!empty($cellClass)) {
+              $cellClass .= ' ';
+            }
+            $cellClass .= 'with-field-actions';
+          }
+        ?>
+        <td<?= !empty($cellClass) ? ' class="' . $cellClass . '"' : ''; ?>>
           <?php
             $suffix = "";
             
@@ -350,6 +360,13 @@ if(!empty($subnav)) {
                 // For our first pass, we insert a comma, but this might not generalize
                 $suffix = ", " . $str;
               }
+            }
+            
+            // Output the row actions if present
+            if($isFirstLink && !empty($rowActions)) {
+              print '<div class="field-actions">';
+              print  $this->element('menuAction', $action_args);
+              print '</div>';
             }
             
             switch($cfg['type']) {
@@ -455,8 +472,8 @@ if(!empty($subnav)) {
                 
                 $linked = false;
 
-                // Output the bulk-action checkbox and label
-                if($isFirstLink) {
+                // Output the bulk-action checkbox and label if present
+                if($isFirstLink && !empty($bulkActions)) {
                   print '<div class="form-check bulk-action-checkbox-container">';
                   print '<input class="form-check-input" type="checkbox" value="" id="bulk-action-id-' . $entity->id . '" data-entity-id="' . $entity->id . '">';
                   print '<label class="form-check-label" for="bulk-action-id-' . $entity->id . '">';

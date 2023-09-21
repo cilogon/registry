@@ -46,7 +46,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
         $vv_obj->id
       ],
      'label' => __d('operation', 'api.key.generate'),
-     'class' => 'provisionbutton nospin',
+     'class' => 'provisionbutton nospin btn btn-primary btn-sm',
      'confirm' => __d('operation', 'api.key.generate.confirm')
     ];
     

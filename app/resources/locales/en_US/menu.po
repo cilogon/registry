@@ -165,14 +165,26 @@ msgstr "Advanced Menu"
 msgid "menu.darkmode"
 msgstr "Dark mode"
 
+msgid "menu.darkmode.auto"
+msgstr "auto"
+
+msgid "menu.darkmode.dark"
+msgstr "dark"
+
+msgid "menu.darkmode.light"
+msgstr "light"
+
+msgid "menu.density"
+msgstr "Density"
+
 msgid "menu.density.small"
-msgstr "Density small"
+msgstr "small"
 
 msgid "menu.density.medium"
-msgstr "Density medium"
+msgstr "medium"
 
 msgid "menu.density.large"
-msgstr "Density large"
+msgstr "large"
 
 msgid "menu.introduction"
 msgstr "Please select an action from the menu."

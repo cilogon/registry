@@ -247,18 +247,37 @@
     });
     
     // SETTINGS (from User Menu)
-    // Dark Mode toggle
-    $("#dark-mode-toggle").click(function(e) {
-      e.preventDefault();
-      $('html').toggleClass('dark-mode');
+    // Dark Mode toggles (auto is default)
+    $("#setting-darkmode-dark").click(function(e) {
+      $('html').removeClass('light-mode').addClass('dark-mode');
+    });
+    $("#setting-darkmode-light").click(function(e) {
+      $('html').removeClass('dark-mode').addClass('light-mode');
+    });
+    $("#setting-darkmode-auto").click(function(e) {
+      $('html').removeClass('dark-mode').removeClass('light-mode');
     });
     
     // Test for dark mode OS preference, and add the 'dark-mode' body class by default if it is present.
-    // XXX TODO: Replace this with setting an application variable (when available) so we do not flash the light color briefly on each page load
+    // XXX TODO: Once an application variable is set and the class is rendered at page build, 
+    //  there will be no flash of the light color on each page load if the setting is defined.
+    //  We will need to investigate this for the OS setting, and send an ajax call to set the preference
+    //  if the user has not set it so that no page flash occurs.
     const darkModeOsEnabled = window.matchMedia("(prefers-color-scheme: dark)");
-    if(darkModeOsEnabled.matches) {
+    if(darkModeOsEnabled.matches && !($('html').hasClass('light-mode')) &&  !($('html').hasClass('dark-mode'))) {
       $('html').addClass('dark-mode');
     }
+
+    // Density toggles (medium is default)
+    $("#setting-density-small").click(function(e) {
+      $('html').removeClass('density-large').addClass('density-small');
+    });
+    $("#setting-density-medium").click(function(e) {
+      $('html').removeClass('density-small').removeClass('density-large');
+    });
+    $("#setting-density-large").click(function(e) {
+      $('html').removeClass('density-small').addClass('density-large');
+    });
     
   });
 
