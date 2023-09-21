@@ -76,7 +76,7 @@ $vueHelper = $this->loadHelper('Vue');
       getMveas(mveaType,entityType) {
         var entityTypeIdRef = entityType + '_id';
         let url = '<?=
-          $this->Url->build(['controller' => 'api', 'action' => 'v2'])
+          $this->Url->build(['controller' => 'api/ajax', 'action' => 'v2'])
           ?>/' + mveaType + '?' + entityTypeIdRef + '=<?php print $parentId ?>&extended';
         let xhr = callRegistryAPI(
           url, 

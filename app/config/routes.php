@@ -51,6 +51,50 @@ $routes->setRouteClass(DashedRoute::class);
 
 //// API routes
 $routes->scope('/api/v2', function (RouteBuilder $builder) {
+  // BodyParserMiddleware will automatically parse JSON bodies, but we only
+  // want that for API transactions, so we only apply it to the /api scope.
+  $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
+  /*
+   * Apply a middleware to the current route scope.
+   * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
+   */
+  $builder->setExtensions(['json']);
+  $builder->applyMiddleware('bodyparser');
+  // Use setPass to make parameter show up as function parameter
+  // Model specific actions, which will usually have more specific URLs:
+  $builder->post(
+    '/api_users/generate/{id}',
+    ['controller' => 'ApiV2', 'action' => 'generateApiKey', 'model' => 'api_users'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  // These establish the usual CRUD options on all models:
+  $builder->delete(
+    '/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'delete'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  $builder->get(
+    '/{model}',
+    ['controller' => 'ApiV2', 'action' => 'index']);
+  $builder->get(
+    '/{model}/{id}',
+    ['controller' => 'ApiV2', 'action' => 'view'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  $builder->post(
+    '/{model}',
+    ['controller' => 'ApiV2', 'action' => 'add']);
+  $builder->put(
+    '/{model}/{id}',
+    ['controller' => 'ApiV2', 'action' => 'edit'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+});
+
+
+//// API Ajax routes
+$routes->scope('/api/ajax/v2',
+               ['_namePrefix' => 'apiAjaxV2:'],
+               function (RouteBuilder $builder) {
   // Register scoped middleware for in scopes.
   $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware(['httponly' => true]));
   // BodyParserMiddleware will automatically parse JSON bodies, but we only
@@ -92,7 +136,6 @@ $routes->scope('/api/v2', function (RouteBuilder $builder) {
     ->setPass(['id'])
     ->setPatterns(['id' => '[0-9]+']);
 });
-
 
 // Main application routes
 $routes->scope('/', function (RouteBuilder $builder) {
