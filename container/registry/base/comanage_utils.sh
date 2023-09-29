@@ -1168,6 +1168,8 @@ ServerName ${COMANAGE_REGISTRY_VIRTUAL_HOST_SCHEME:-http}://${COMANAGE_REGISTRY_
 UseCanonicalName On
 UseCanonicalPhysicalPort On
 
+Header set Content-Security-Policy "frame-ancestors 'self';"
+
 EOF
 }
 
@@ -1195,6 +1197,7 @@ UseCanonicalName On
 UseCanonicalPhysicalPort On
 
 Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+Header set Content-Security-Policy "frame-ancestors 'self';"
 
 SSLEngine on
 SSLProtocol all -SSLv2 -SSLv3
