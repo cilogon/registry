@@ -23,13 +23,11 @@
  * @since         COmanage registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  *
- * Colors use the convention --cmg-color-hue-number with optional comments to describe
- * how they are used. Colors are mostly listed in order of prominence: the most pronounced colors
- * are represented by the lowest numbers. The order is otherwise arbitrary and new colors can
- * be added by appending to the list and incrementing the number.
+ * Color variables use the naming convention --cmg-color-[type][-optional number]
  *
- * Dark mode: the body.dark-mode class will override the defaults (see the lower half of this file). 
- * :root sets the global defaults. body.dark-mode sets the dark mode defaults.  
+ * Light and dark mode colors: 
+ * :root sets the global defaults for light mode. 
+ * The "html.dark-mode" section overrides all default variables for dark mode.  
  */
 
 /* COmanage Light Color Scheme (default) */
