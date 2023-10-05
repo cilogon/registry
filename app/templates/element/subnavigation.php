@@ -204,8 +204,9 @@ if(!empty($vv_person_name)) {
             print $this->Html->link(
               __d('controller', 'People', [1]),
               [ 'controller' => 'people',
-                // TODO: the following test needs to be made based on read-only status of the Person
-                'action' => $curAction == 'view' ? 'view' : 'edit',
+                // TODO: the following test needs to be made based on read-only status of the Person only
+                //'action' => $curAction == 'view' ? 'view' : 'edit',
+                'action' => 'edit',
                 $curId
               ],
               ['class' => $linkClass]
@@ -323,26 +324,16 @@ if(!empty($vv_person_name)) {
           <li class="list-inline-item">
             <?php
               // Properties
-              $cc = 'people';
+              $cc = 'external-identities';
               $cid = $curId;
-              if($isPersonTab) {
-                $cid = $parentId;
-              }
-              if($isPersonRole) {
-                $cc = 'person-roles';
-                $cid = !empty($vv_person_role_id) ? $vv_person_role_id : $curId;
-              }
-              if($isExternalId) {
-                $cc = 'external-identities';
-                if(!empty($vv_ei_id)) {
-                  $cid = $vv_ei_id;  
-                }
+              if(!empty($vv_ei_id)) {
+                $cid = $vv_ei_id;  
               }
               $linkClass = ($subActive == 'properties') ? 'nav-link active' : 'nav-link';
               print $this->Html->link(
                 __d('controller', 'Properties', [99]),
                 [ 'controller' => $cc,
-                  'action' => 'edit',
+                  'action' => 'view',
                   $cid
                 ],
                 ['class' => $linkClass]

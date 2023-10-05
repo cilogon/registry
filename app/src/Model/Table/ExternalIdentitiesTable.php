@@ -121,6 +121,17 @@ class ExternalIdentitiesTable extends Table {
       'Urls'
     ]);
     $this->setIndexContains(['PrimaryName']);
+    $this->setViewContains([
+      'PrimaryName',
+      'Addresses',
+      'AdHocAttributes',
+      'EmailAddresses',
+      'Identifiers',
+      'Names',
+      'Pronouns',
+      'TelephoneNumbers',
+      'Urls'
+    ]);
 
     $this->setAutoViewVars([
       'statuses' => [

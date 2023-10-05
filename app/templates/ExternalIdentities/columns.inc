@@ -30,6 +30,7 @@
 $indexColumns = [
   'name' => [
     'type' => 'link',
+    'action' => 'view',
     'model' => 'primary_name',
     'field' => 'full_name',
 // XXX see comments in the controller about sorting on given vs family
