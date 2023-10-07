@@ -29,7 +29,7 @@
 $htmlId = $htmlId;
 $parentId = $parentId;
 $mveaType = $mveaType;      // the type of MVEA we will fetch
-$entityType = $entityType;  // the type of entity continaing the MVEA (person, person_role, external_identity)
+$entityType = $entityType;  // the type of entity continaing the MVEA (person, person_role, external_identity, external_identity_role)
 
 // Get the camel-case controller name and generate the title  
 $mveaController = Cake\Utility\Inflector::camelize($mveaType);
@@ -63,7 +63,8 @@ $vueHelper = $this->loadHelper('Vue');
           mveaType: '<?= $mveaType ?>',
           mveaController: '<?= Cake\Utility\Inflector::dasherize($mveaController) ?>',
           mveaTitle: '<?= $title ?>',
-          webroot: '<?= $this->request->getAttribute('webroot') ?>'
+          webroot: '<?= $this->request->getAttribute('webroot') ?>',
+          action:  '<?= $vv_action ?>'
         },
         txt: JSON.parse('<?= json_encode($vueHelper->locales()) ?>'),
         isLoading: true

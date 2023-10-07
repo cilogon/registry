@@ -208,76 +208,95 @@ class FieldHelper extends Helper {
    */
   
   public function dateControl(string $fieldName, string $dateType=DateTypeEnum::Standard): string {
-    // A datetime field will be rendered as a plain text input with adjacent date and time pickers
-    // that will interact with the field value. Allowing direct access to the input field is for
-    // accessibility purposes.
-    
-    $pickerType = $dateType;
-    // Special-case the very common "valid_from" and "valid_through" fields so we won't need
-    // to specify their types in fields.inc.
-    if($fieldName == 'valid_from') {
-      $pickerType = DateTypeEnum::FromTime;
-    }
-    if($fieldName == 'valid_through') {
-      $pickerType = DateTypeEnum::ThroughTime;
-    }
-    
-    // Append the timezone to the label -- TODO: see that the timezone gets output to the display
-    $label = __d('field', $fieldName.".tz", [$this->_View->get('vv_tz')]);
-    
-    // Create the options array for the (text input) form control
-    $coptions = [];
-    $coptions['class'] = 'form-control datepicker';
-    
-    if($pickerType == DateTypeEnum::DateOnly) {
-      $coptions['placeholder'] = 'YYYY-MM-DD';
-      $coptions['pattern'] = '\d{4}-\d{2}-\d{2}';
-      $coptions['title'] = __d('field', 'datepicker.enterDate');
-    } else {
-      $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
-      $coptions['pattern'] = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
-      $coptions['title'] = __d('field', 'datepicker.enterDateTime');
-    }
-    $coptions['id'] = str_replace("_", "-", $fieldName);
-  
-    $entity = $this->getView()->get('vv_obj');
-  
-    // Default the picker date to today
-    $now = FrozenTime::now();
-    $pickerDate = $now->i18nFormat('yyyy-MM-dd');
-    
-    // Get the existing values, if present
-    if(!empty($entity->$fieldName)) {
-      // Adjust the time back to the user's timezone
-      if($pickerType == DateTypeEnum::DateOnly) {
-        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
+    if($this->action == 'view') {
+      // return the date as plaintext
+      $coptions = [];
+      $entity = $this->getView()->get('vv_obj');
+      if (!empty($entity->$fieldName)) {
+        // Adjust the time back to the user's timezone
+        if ($dateType == DateTypeEnum::DateOnly) {
+          $controlCode = '<time>' . $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz')) . '</time>';
+        } else {
+          $controlCode = '<time>' . $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz')) . '</time>';
+        }
       } else {
-        $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz'));
+        $controlCode = __d('information', 'notset');
       }
-      $pickerDate = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
+      // Return this to the generic control() function
+      return $this->control($fieldName, $coptions, ctrlCode: $controlCode, labelIsTextOnly: true);
+      
+    } else {
+      // A datetime field will be rendered as a plain text input with adjacent date and time pickers
+      // that will interact with the field value. Allowing direct access to the input field is for
+      // accessibility purposes.
+  
+      $pickerType = $dateType;
+      // Special-case the very common "valid_from" and "valid_through" fields so we won't need
+      // to specify their types in fields.inc.
+      if ($fieldName == 'valid_from') {
+        $pickerType = DateTypeEnum::FromTime;
+      }
+      if ($fieldName == 'valid_through') {
+        $pickerType = DateTypeEnum::ThroughTime;
+      }
+  
+      // Append the timezone to the label -- TODO: see that the timezone gets output to the display
+      $label = __d('field', $fieldName . ".tz", [$this->_View->get('vv_tz')]);
+  
+      // Create the options array for the (text input) form control
+      $coptions = [];
+      $coptions['class'] = 'form-control datepicker';
+  
+      if ($pickerType == DateTypeEnum::DateOnly) {
+        $coptions['placeholder'] = 'YYYY-MM-DD';
+        $coptions['pattern'] = '\d{4}-\d{2}-\d{2}';
+        $coptions['title'] = __d('field', 'datepicker.enterDate');
+      } else {
+        $coptions['placeholder'] = 'YYYY-MM-DD HH:MM:SS';
+        $coptions['pattern'] = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
+        $coptions['title'] = __d('field', 'datepicker.enterDateTime');
+      }
+      $coptions['id'] = str_replace("_", "-", $fieldName);
+  
+      $entity = $this->getView()->get('vv_obj');
+  
+      // Default the picker date to today
+      $now = FrozenTime::now();
+      $pickerDate = $now->i18nFormat('yyyy-MM-dd');
+  
+      // Get the existing values, if present
+      if(!empty($entity->$fieldName)) {
+        // Adjust the time back to the user's timezone
+        if($pickerType == DateTypeEnum::DateOnly) {
+          $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
+        } else {
+          $coptions['value'] = $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz'));
+        }
+        $pickerDate = $entity->$fieldName->i18nFormat("yyyy-MM-dd", $this->getView()->get('vv_tz'));
+      }
+  
+      // Set the date picker floor year value (-100 years)
+      $pickerDateFT = new FrozenTime($pickerDate);
+      $pickerDateFT = $pickerDateFT->subYears(100);
+      $pickerFloor = $pickerDateFT->i18nFormat("yyyy-MM-dd");
+  
+      $date_picker_args = [
+        'fieldName' => $fieldName,
+        'pickerDate' => $pickerDate,
+        'pickerType' => $pickerType,
+        'pickerFloor' => $pickerFloor
+      ];
+  
+      // Create a text field to hold our value and call the datePicker
+      $controlCode = $this->Form->text($fieldName, $coptions)
+        . $this->getView()->element('datePicker', $date_picker_args);
+  
+      // Specify a class on the <li> form control wrapper
+      $liClass = "fields-datepicker";
+      
+      // Pass everything to the generic control() function
+      return $this->control($fieldName, $coptions, ctrlCode: $controlCode, cssClass: $liClass);
     }
-    
-    // Set the date picker floor year value (-100 years)
-    $pickerDateFT = new FrozenTime($pickerDate);
-    $pickerDateFT = $pickerDateFT->subYears(100);
-    $pickerFloor = $pickerDateFT->i18nFormat("yyyy-MM-dd"); 
-  
-    $date_picker_args = [
-      'fieldName'   => $fieldName,
-      'pickerDate'  => $pickerDate,
-      'pickerType'  => $pickerType,
-      'pickerFloor' => $pickerFloor
-    ];
-    
-    // Create a text field to hold our value and call the datePicker
-    $controlCode = $this->Form->text($fieldName, $coptions)
-      . $this->getView()->element('datePicker', $date_picker_args);
-  
-    // Specify a class on the <li> form control wrapper
-    $liClass = "fields-datepicker";
-    
-    // Pass everything to the generic control() function
-    return $this->control($fieldName, $coptions, ctrlCode: $controlCode, cssClass: $liClass);
   }
   
   /**

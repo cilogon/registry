@@ -39,6 +39,15 @@ msgstr "Please select the collaboration (CO) you wish to manage."
 msgid "entity.id"
 msgstr "ID: {0}"
 
+msgid "noattrs"
+msgstr "No attributes"
+
+msgid "notset"
+msgstr "not set"
+
+msgid "pagination.format"
+msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
+
 msgid "ExternalIdentities.source"
 msgstr "This External Identity was created from {0} ({1})"
 

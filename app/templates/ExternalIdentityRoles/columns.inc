@@ -30,6 +30,7 @@
 $indexColumns = [
   'title' => [
     'type' => 'link',
+    'action' => 'view',
     'sortable' => true
   ],
   'affiliation_type_id' => [

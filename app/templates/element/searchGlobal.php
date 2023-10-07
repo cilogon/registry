@@ -26,7 +26,7 @@
 */
 
 $options = [
-  'type' => 'get',
+  'type' => 'post',
   'url' => [
     'plugin'      => null,
     'controller'  => 'dashboards',
@@ -52,7 +52,7 @@ $options = [
       ['class' => 'visually-hidden']
     );
     $globalSearchInputClass = 'global-search-query';
-    if(!empty($this->request->getQuery('q'))) {
+    if(!empty($this->request->getData('q'))) {
       $globalSearchInputClass .= ' has-value';
     }
     print $this->Form->input(
@@ -60,8 +60,7 @@ $options = [
       [
         'id' => 'q', 
         'class' => $globalSearchInputClass, 
-        'placeholder' => __d('field','search.placeholder'),
-        'value' => $this->request->getQuery('q')
+        'placeholder' => __d('field','search.placeholder')
       ]
     );
     print $this->Form->button(

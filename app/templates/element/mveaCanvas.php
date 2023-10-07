@@ -69,7 +69,7 @@
 ?>
 <div id="mvea-canvas-title-container">
   <h2><?= __d('information','global.attributes') ?></h2>
-  <?php if(!empty($vv_add_menu_links)): ?>
+  <?php if(!empty($vv_add_menu_links) && $vv_action == 'edit'): ?>
     <div id="mvea-add-menu-container" class="field-actions">
       <?= $this->element('menuAction', $action_args) ?>
     </div>
@@ -92,22 +92,25 @@
 ?>
 <div id="mvea-canvas" class="co-cards">
   <div id="mvea-canvas-attributes-js" class="row row-cols-1 g-4<?= ($widgetCount > 1) ? ' row-cols-md-2' : ''?>">
-    <?php
-      foreach($attributes as $attr) {
-        if(!empty(($vv_obj[$attr]))) {
-          print $this->element(
-            'mveaJs',
-            [
-              'htmlId' => 'mvea-canvas-' . $attr . '-js',
-              'parentId' => $objId,
-              'mveaType' => $attr,
-              'entityType' => $vv_entity_type
-            ]
-          );
+    <?php if($widgetCount == 0): ?>
+        <div class="no-attributes"><?= __d('information','noattrs') ?></div>
+    <?php else: ?>
+      <?php 
+        foreach ($attributes as $attr) {
+          if (!empty(($vv_obj[$attr]))) {
+            print $this->element(
+              'mveaJs',
+              [
+                'htmlId' => 'mvea-canvas-' . $attr . '-js',
+                'parentId' => $objId,
+                'mveaType' => $attr,
+                'entityType' => $vv_entity_type
+              ]
+            );
+          }
         }
-      }
-      // TODO: Add the DOB as its own special card (CFM-261)
-      print $this->element('mveaModal');
-    ?>
+      ?>
+    <?php endif; ?>
+    <?= $this->element('mveaModal') ?>
   </div>
 </div>

@@ -691,11 +691,14 @@ ul.form-list li.alert-banner .co-alert {
 .cm-subnav-tabs .nav-link {
   text-transform: uppercase;
   padding: 1em 1.5em;
-  color: var(--cmg-color-link);
+  color: var(--cmg-color-link) !important;
+}
+.cm-subnav-links .nav-link {
+  color: var(--cmg-color-link) !important;
 }
 .cm-subnav-tabs .nav-link.active,
 .cm-subnav-links .nav-link.active {
-  color: var(--cmg-color-body-txt);
+  color: var(--cmg-color-body-txt) !important;
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-006) var(--cmg-color-bg-006) var(--cmg-color-body-bg) var(--cmg-color-bg-006);
 }
@@ -1269,6 +1272,9 @@ ul.form-list select {
   color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-007);
+}
+.form-select:disabled {
+  background-color: var(--cmg-color-bg-009);
 }
 ul.form-list li.fields-submit .required {
   font-style: italic;

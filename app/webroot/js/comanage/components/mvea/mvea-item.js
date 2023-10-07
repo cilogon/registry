@@ -36,7 +36,7 @@ export default {
   },
   computed: {
     mveaLink: function() {
-      return this.core.webroot + this.core.mveaController + '/edit/' + this.mvea.id;
+      return this.core.webroot + this.core.mveaController + (this.core.action == 'edit' ? '/edit/' : '/view/') + this.mvea.id;
     }
   },
   methods: {
