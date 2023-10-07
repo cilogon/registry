@@ -94,6 +94,15 @@ class TypesTable extends Table {
     $this->hasMany('Names');
     $this->hasMany('PersonRoles')
          ->setForeignKey('affiliation_type_id');
+    $this->hasMany('PipelineMatchTypes')
+         ->setClassName('Pipelines')
+         ->setForeignKey('match_type_id');
+    $this->hasMany('PipelineSyncAffiliationTypes')
+         ->setClassName('Pipelines')
+         ->setForeignKey('sync_affiliation_type_id');
+    $this->hasMany('PipelineSyncIdentifierTypes')
+         ->setClassName('Pipelines')
+         ->setForeignKey('sync_identifier_type_id');
     $this->hasMany('Pronouns');
     $this->hasMany('TelephoneNumbers');
     $this->hasMany('Urls');

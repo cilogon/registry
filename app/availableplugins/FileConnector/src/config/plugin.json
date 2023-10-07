@@ -2,6 +2,9 @@
   "types": {
     "provisioner": [
       "FileProvisioners"
+    ],
+    "source": [
+      "FileSources"
     ]
   },
   "schema": {
@@ -10,10 +13,24 @@
         "columns": {
           "id": {},
           "provisioning_target_id": {},
-          "filename": { "type": "string", "size": 128 }
+          "filename": { "type": "string", "size": 256 }
         },
         "indexes": {
           "file_provisioners_i1": { "columns": [ "provisioning_target_id" ]}
+        }
+      },
+      "file_sources": {
+        "columns": {
+          "id": {},
+          "external_identity_source_id": {},
+          "filename": { "type": "string", "size": 256 },
+          "format": { "type": "string", "size": 2 },
+          "archivedir": { "type": "string", "size": 256 },
+          "threshold_warn": { "type": "integer" },
+          "threshold_override": { "type": "boolean" }
+        },
+        "indexes": {
+          "file_sources_i1": { "columns": [ "external_identity_source_id" ] }
         }
       }
     }

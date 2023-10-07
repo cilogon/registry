@@ -25,9 +25,31 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-// XXX sync status?
+// This view will not support add/edit
+if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
+  print __d(
+    'information', 
+    'ExternalIdentities.source',
+    [
+      $this->Html->link(
+        $vv_obj->ext_identity_source_records[0]->external_identity_source->description,
+        [
+          'controller'  => 'external-identity-sources',
+          'action'      => 'edit',
+          $vv_obj->ext_identity_source_records[0]->external_identity_source->id
+        ]
+      ),
+      $this->Html->link(
+        __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 1)]),
+        [
+          'controller'  => 'ext-identity-source-records',
+          'action'      => 'view',
+          $vv_obj->ext_identity_source_records[0]->id
+        ]
+      )
+    ]
+  );
+
   print $this->Field->control('status', ['empty' => false]);
   
   print $this->Field->dateControl('date_of_birth', \App\Lib\Enum\DateTypeEnum::DateOnly);

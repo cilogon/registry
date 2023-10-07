@@ -332,13 +332,16 @@ class SqlProvisionersTable extends Table {
    */
     
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    // Apply the database schema (PAR-SqlProvisioner-1)
-    $this->llog('rule', "PAR-SqlProvisioner-1 Applying database schema for SqlProvisioner " . $entity->id);
-    $this->applySchema($entity->id);
-    
-    // Populate or update the reference data (PAR-SqlProvisioner-2)
-    $this->llog('rule', "PAR-SqlProvisioner-2 Syncing reference data for SqlProvisioner " . $entity->id);
-    $this->syncReferenceData($entity->id);
+    // We may not have a Server configuration yet on first save
+    if(!empty($spcfg->server_id)) {
+      // Apply the database schema (PAR-SqlProvisioner-1)
+      $this->llog('rule', "PAR-SqlProvisioner-1 Applying database schema for SqlProvisioner " . $entity->id);
+      $this->applySchema($entity->id);
+      
+      // Populate or update the reference data (PAR-SqlProvisioner-2)
+      $this->llog('rule', "PAR-SqlProvisioner-2 Syncing reference data for SqlProvisioner " . $entity->id);
+      $this->syncReferenceData($entity->id);
+    }
 
     return true;
   }
@@ -530,7 +533,7 @@ class SqlProvisionersTable extends Table {
    * @param  string   $dataSource  DataSource label
    */
   
-  public function syncReferenceData($id, $dataSource='targetdb') {
+  public function syncReferenceData(int $id, string $dataSource='targetdb') {
     $spcfg = $this->get($id, ['contain' => ['ProvisioningTargets']]);
 
     $this->Servers->SqlServers->connect($spcfg->server_id, $dataSource);

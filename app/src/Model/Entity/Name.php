@@ -32,6 +32,7 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class Name extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
   use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   

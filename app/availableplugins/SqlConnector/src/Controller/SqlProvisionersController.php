@@ -47,14 +47,16 @@ class SqlProvisionersController extends StandardPluginController {
 
   public function reapply(string $id) {
     try {
-      $this->SqlProvisioners->applySchema((int)$id);
+      $sp = $this->SqlProvisioners->get((int)$id);
+      $this->SqlProvisioners->applySchema($sp->id);
+
       $this->Flash->success(__d('sql_connector', 'result.reapply.ok'));
     }
     catch(\Exception $e) {
       $this->Flash->error($e->getMessage());
     }
 
-    return $this->generateRedirect((int)$id);
+    return $this->generateRedirect($sp ?? null);
   }
 
   /**
@@ -68,7 +70,8 @@ class SqlProvisionersController extends StandardPluginController {
     try {
       $cur_co = $this->getCO();
 
-      $this->SqlProvisioners->syncReferenceData(id: $id);
+      $sp = $this->SqlProvisioners->get((int)$id);
+      $this->SqlProvisioners->syncReferenceData(id: $sp->id);
 
       $this->Flash->success(__d('sql_connector', 'result.resync.ok'));
     }
@@ -76,6 +79,6 @@ class SqlProvisionersController extends StandardPluginController {
       $this->Flash->error($e->getMessage());
     }
 
-    return $this->generateRedirect((int)$id);
+    return $this->generateRedirect($sp ?? null);
   }
 }

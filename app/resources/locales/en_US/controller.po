@@ -57,6 +57,12 @@ msgstr "{0,plural,=1{External Identity} other{External Identities}}"
 msgid "ExternalIdentityRoles"
 msgstr "{0,plural,=1{External Identity Role} other{External Identity Roles}}"
 
+msgid "ExternalIdentitySources"
+msgstr "{0,plural,=1{External Identity Source} other{External Identity Sources}}"
+
+msgid "ExtIdentitySourceRecords"
+msgstr "{0,plural,=1{External Identity Source Record} other{External Identity Source Records}}"
+
 msgid "GroupMembers"
 msgstr "{0,plural,=1{Group Member} other{Group Members}}"
 
@@ -92,6 +98,9 @@ msgstr "{0,plural,=1{Person} other{People}}"
 
 msgid "PersonRoles"
 msgstr "{0,plural,=1{Person Role} other{Person Roles}}"
+
+msgid "Pipelines"
+msgstr "{0,plural,=1{Pipeline} other{Pipelines}}"
 
 msgid "Pronouns"
 msgstr "{0,plural,=1{Pronoun Preference} other{Pronouns}}"

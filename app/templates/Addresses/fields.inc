@@ -25,8 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
+if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   // Dynamic required fields is automatically handled by FormHelper via the
   // validation rules
   
@@ -47,4 +46,8 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('language');
 
   print $this->Field->control('description');
+
+  print $this->Field->control('frozen');
+
+  print $this->Field->sourceControl($vv_obj);
 }

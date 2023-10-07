@@ -245,6 +245,9 @@ class SchemaManager {
           $table->addForeignKeyConstraint($tablePrefix.$fkTable, [$mColumn], ['id'], [], $tablePrefix.$tName . "_" . $mColumn . "_fkey");
           $table->addIndex([$mColumn], $tablePrefix.$tName . "_im" . $i++);
         }
+
+        // MVEA tables also support frozen flags
+        $table->addColumn("frozen", "boolean", ['notnull' => false]);
       }
       
       if(isset($tCfg->indexes)) {
@@ -268,8 +271,8 @@ class SchemaManager {
       }
       
       // (For Registry) If an attribute is "sourced" it is a CO Person attribute
-      // that is copied via a Pipeline from an Org Identity that was created from
-      // an Org Identity Source, so we need a foreign key into ourself.
+      // that is copied via a Pipeline from an External Identity that was created from
+      // an External Identity Source, so we need a foreign key into ourself.
       
       if(isset($tCfg->sourced) && $tCfg->sourced) {
         $sColumn = "source_" . $tablePrefix.\Cake\Utility\Inflector::singularize($tName) . "_id";

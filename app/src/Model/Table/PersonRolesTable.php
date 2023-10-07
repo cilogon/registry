@@ -96,6 +96,10 @@ class PersonRolesTable extends Table {
          ->setClassName('People')
          ->setForeignKey('sponsor_person_id')
          ->setProperty('sponsor_person');
+    $this->belongsTo('SourceExternalIdentityRoles')
+         ->setClassName('ExternalIdentityRoles')
+         ->setForeignKey('source_external_identity_role_id')
+         ->setProperty('source_external_identity_role');
     $this->belongsTo('Types')
          ->setForeignKey('affiliation_type_id')
          ->setProperty('affiliation_type');
@@ -118,7 +122,8 @@ class PersonRolesTable extends Table {
     $this->setPrimaryLink('person_id');
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
-    
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
+
     $this->setEditContains([
       'Addresses',
       'AdHocAttributes',
@@ -131,7 +136,12 @@ class PersonRolesTable extends Table {
       }]],
       'SponsorPeople' => ['Names' => ['queryBuilder' => function ($q) {
         return $q->where(['primary_name' => true]);
-      }]]
+      }]],
+      'SourceExternalIdentityRoles'
+    ]);
+    
+    $this->setViewContains([
+      'SourceExternalIdentityRoles'
     ]);
     
     $this->setAutoViewVars([
@@ -156,8 +166,11 @@ class PersonRolesTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -423,6 +436,19 @@ class PersonRolesTable extends Table {
   }
 
   /**
+   * Determine the source foreign key attribute for this table, for tables that
+   * have Pipelined attributes from External Identities to People.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @return string     Source name field (eg: source_name_id)
+   */
+
+  public function sourceForeignKey(): string {
+    // PersonRoles doesn't follow the standard pattern
+    return "source_external_identity_role_id";
+  }
+
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0
@@ -484,7 +510,17 @@ class PersonRolesTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('ordr');
+
+    $validator->add('source_external_identity_role_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('source_external_identity_role_id');
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     return $validator; 
   }
 }

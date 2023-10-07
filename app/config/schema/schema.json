@@ -16,6 +16,8 @@
       "description": { "type": "string", "size": 128 },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
+      "external_identity_source_id": { "type": "integer", "foreignkey": { "table": "external_identity_sources", "column": "id" } },
+      "frozen": { "type": "boolean" },
       "group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
       "identifier_assignment_id": { "type": "integer", "foreignkey": { "table": "identifier_assignments", "column": "id" }, "notnull": true },
@@ -26,6 +28,7 @@
       "person_role_id": { "type": "integer", "foreignkey": { "table": "person_roles", "column": "id" } },
       "plugin": { "type": "string", "size": 80 },
       "provisioning_target_id": { "type": "integer", "foreignkey": { "table": "provisioning_targets", "column": "id" }, "notnull": true },
+      "reference_identifier": { "type": "string", "size": 40 },
       "report_id": { "type": "integer", "foreignkey": { "table": "reports", "column": "id" }, "notnull": true },
       "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": true },
       "status": { "type": "string", "size": 2 },
@@ -202,40 +205,17 @@
       }
     },
     
-    "person_roles": {
-      "columns": {
-        "id": {},
-        "person_id": { "notnull": true },
-        "status": {},
-        "ordr": {},
-        "cou_id": {},
-        "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-        "title": { "type": "string", "size": 128 },
-        "organization": { "type": "string", "size": 128 },
-        "department": { "type": "string", "size": 128 },
-        "manager_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
-        "sponsor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
-        "valid_from": {},
-        "valid_through": {}
-      },
-      "indexes": {
-        "person_roles_i1": { "columns": [ "person_id" ] },
-        "person_roles_i2": { "columns": [ "sponsor_person_id" ] },
-        "person_roles_i3": { "columns": [ "cou_id" ] },
-        "person_roles_i4": { "columns": [ "affiliation_type_id" ] },
-        "person_roles_i5": { "columns": [ "manager_person_id" ] }
-      }
-    },
-    
     "external_identities": {
       "columns": {
         "id": {},
         "person_id": { "notnull": true },
+        "source_key": { "type": "string", "size": 512 },
         "status": {},
         "date_of_birth": { "type": "date" }
       },
       "indexes": {
-        "external_identities_i1": { "columns": [ "person_id" ] }
+        "external_identities_i1": { "columns": [ "person_id" ] },
+        "external_identities_i2": { "columns": [ "source_key" ] }
       }
     },
     
@@ -243,6 +223,7 @@
       "columns": {
         "id": {},
         "external_identity_id": { "notnull": true },
+        "role_key": { "type": "string", "size": 512 },
         "status": {},
         "ordr": {},
         "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
@@ -257,6 +238,34 @@
       "indexes": {
         "external_identity_roles_i1": { "columns": [ "external_identity_id" ] },
         "external_identity_roles_i2": { "columns": [ "affiliation_type_id" ] }
+      }
+    },
+    
+    "person_roles": {
+      "columns": {
+        "id": {},
+        "person_id": { "notnull": true },
+        "status": {},
+        "ordr": {},
+        "cou_id": {},
+        "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "title": { "type": "string", "size": 128 },
+        "organization": { "type": "string", "size": 128 },
+        "department": { "type": "string", "size": 128 },
+        "manager_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "sponsor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "valid_from": {},
+        "valid_through": {},
+        "source_external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
+        "frozen": {}
+      },
+      "indexes": {
+        "person_roles_i1": { "columns": [ "person_id" ] },
+        "person_roles_i2": { "columns": [ "sponsor_person_id" ] },
+        "person_roles_i3": { "columns": [ "cou_id" ] },
+        "person_roles_i4": { "columns": [ "affiliation_type_id" ] },
+        "person_roles_i5": { "columns": [ "manager_person_id" ] },
+        "person_roles_i6": { "columns": [ "source_external_identity_role_id" ] }
       }
     },
     
@@ -588,6 +597,68 @@
         "identifier_assignments_i1": { "columns": [ "co_id" ] },
         "identifier_assignments_i2": { "needed": false, "columns": [ "email_address_type_id" ] },
         "identifier_assignments_i3": { "needed": false, "columns": [ "identifier_type_id" ] }
+      }
+    },
+
+    "pipelines": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "status": {},
+        "match_strategy": { "type": "string", "size": 2 },
+        "match_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "match_server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" } },
+        "sync_status_on_delete": { "type": "string", "size": 2 },
+        "sync_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "sync_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
+        "sync_replace_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
+        "sync_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } }
+      },
+      "indexes": {
+        "pipelines_i1": { "columns": [ "co_id" ] },
+        "pipelines_i2": { "needed": false, "columns": [ "match_type_id" ] },
+        "pipelines_i3": { "needed": false, "columns": [ "match_server_id" ] },
+        "pipelines_i4": { "needed": false, "columns": [ "sync_affiliation_type_id" ] },
+        "pipelines_i5": { "needed": false, "columns": [ "sync_cou_id" ] },
+        "pipelines_i6": { "needed": false, "columns": [ "sync_replace_cou_id" ] },
+        "pipelines_i7": { "needed": false, "columns": [ "sync_identifier_type_id" ] }
+      }
+    },
+
+    "external_identity_sources": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "sor_label": { "type": "string", "size": 40 },
+        "pipeline_id": { "type": "integer", "foreignkey": { "table": "pipelines", "column": "id" }, "notnull": true },
+        "hash_source_record": { "type": "boolean" }
+      },
+      "indexes": {
+        "external_identity_sources_i1": { "columns": [ "co_id" ] },
+        "external_identity_sources_i2": { "columns": [ "sor_label"] },
+        "external_identity_sources_i3": { "needed": false, "columns": [ "pipeline_id" ] }
+      }
+    },
+
+    "ext_identity_source_records": {
+      "comment": "This table should be called external_identity_source_records but then we exceed Cake's 61 character alias.field limit with ExternalIdentitySourceRecords.external_identity_source_record_id",
+      "columns": {
+        "id": {},
+        "external_identity_source_id": { "type": "integer", "foreignkey": { "table": "external_identity_sources", "column": "id" }, "notnull": true },
+        "source_key": { "type": "string", "size": 1024 },
+        "source_record": { "type": "text" },
+        "last_update": { "type": "datetime" },
+        "external_identity_id": {},
+        "reference_identifier": {}
+      },
+      "indexes": {
+        "ext_identity_sources_records_i1": { "columns": [ "external_identity_source_id" ] },
+        "ext_identity_sources_records_i2": { "columns": [ "external_identity_id" ] },
+        "ext_identity_sources_records_i3": { "columns": [ "external_identity_source_id", "source_key" ] }
       }
     }
   },

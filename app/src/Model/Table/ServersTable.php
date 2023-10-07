@@ -64,6 +64,12 @@ class ServersTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
 
+    // In general, we don't want to propagate deletes of a Server to its
+    // hasMany dependents since we want to throw an error for the administrator
+    // first. (For deleting a CO, the dependent objects should be deleted first.)
+    $this->hasMany('Pipelines')
+         ->setForeignKey('match_server_id');
+
 // XXX Note this will bind to (eg) CoreServer but not (eg) SqlProvisioner
     $this->setPluginRelations();
     

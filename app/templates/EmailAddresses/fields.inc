@@ -25,8 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
+if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   print $this->Field->control('mail');
 
   print $this->Field->control('type_id', ['default' => $vv_default_type]);
@@ -35,4 +34,8 @@ if($vv_action == 'add' || $vv_action == 'edit') {
 
 // XXX CFM-129 need to implement verification
   print $this->Field->control('verified', ['readonly' => true]);
+
+  print $this->Field->control('frozen');
+
+  print $this->Field->sourceControl($vv_obj);
 }

@@ -89,6 +89,7 @@ class PronounsTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
     
     $this->setAutoViewVars([
       'languages' => [
@@ -106,8 +107,11 @@ class PronounsTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -159,6 +163,11 @@ class PronounsTable extends Table {
     ]);
     $validator->allowEmptyString('language');
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_pronoun_id', [
       'content' => ['rule' => 'isInteger']
     ]);

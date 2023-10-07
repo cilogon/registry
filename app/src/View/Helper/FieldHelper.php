@@ -158,6 +158,23 @@ class FieldHelper extends Helper {
                                   $labelText);
     }
     
+    // If an attribute is frozen, inject a special link to unfreeze it, since
+    // the attribute is read only and the admin can't simply uncheck the setting
+    if($fieldName == 'frozen' && $vv_obj->frozen) {
+      return $this->statusControl($fieldName, 
+                                  __d('field', 'frozen'), 
+                                  [
+                                    'label' => __d('operation', 'unfreeze'),
+                                    'url' => [
+                                      'plugin'      => null,
+                                      'controller'  => StringUtilities::entityToClassname($vv_obj),
+                                      'action'      => 'unfreeze',
+                                      $vv_obj->id
+                                    ]
+                                  ], 
+                                  $labelText);
+    }
+
     // Required fields are usually determined by the model validator, but for
     // related models the view (currently) has to pass the field as required in
     // $options. For fields of the form model.0.field, if $options['required']
@@ -464,7 +481,58 @@ class FieldHelper extends Helper {
       ' . ($desc ? '<div class="field-desc">' . $desc . '</div>' : "") .'
     </div>';
   }
+
+  /**
+   * Emit a source control for an MVEA that has a source_foo_id field pointing
+   * to an External Identity attribute.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity   $entity   Entity to emit control for
+   * @return string             Source HTML
+   */
   
+  // XXX docblock - emit control for MVEA that has a source_foo_id
+  public function sourceControl($entity): string {
+    // eg: Identifiers
+    $modelName = StringUtilities::entityToClassName($entity);
+    // eg: source_identifier_id, or source_external_identity_role_id
+    $sourceFK = $this->getView()->get('vv_source_fk');
+    // eg: source_identifier - we need to construct this from the $sourceFK
+    $sourceEntityName = substr($sourceFK, 0, strlen($sourceFK)-3);
+    // In most cases $sourceModelName = $modelName, but not for PersonRoles
+    $sourceModelName = substr(StringUtilities::foreignKeyToClassName($sourceFK), 6);
+
+    $linkHtml = "";
+
+    if(!empty($entity->$sourceFK)) {
+      $linkHtml = $this->Html->Link(
+        title: __d('controller', $sourceModelName, [1]),
+        url: [
+          'controller'  => $sourceModelName,
+          'action'      => 'view',
+          $entity->$sourceFK
+        ]
+      ) . ", " . 
+      $this->Html->Link(
+        title: __d('controller', 'ExternalIdentities', [1]),
+        url: [
+          'controller'  => 'external_identities',
+          'action'      => 'view',
+          $entity->$sourceEntityName->external_identity_id
+        ]
+      );
+    }
+
+    return $this->startLine()
+           . $this->formNameDiv(
+                fieldName: $sourceFK,
+                labelText: __d('field', 'source'),
+                fieldType: 'string'
+             )
+           . $linkHtml
+           . $this->endLine();
+  }
+
   /**
    * Generate a status control (a read only status with an optional link button).
    * 

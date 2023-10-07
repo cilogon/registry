@@ -79,14 +79,18 @@ class AdHocAttributesTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -130,6 +134,11 @@ class AdHocAttributesTable extends Table {
     
     $this->registerStringValidation($validator, $schema, 'value', false);
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_ad_hoc_attribute_id', [
       'content' => ['rule' => 'isInteger']
     ]);

@@ -74,7 +74,7 @@ class StandardController extends AppController {
             return $this->instantiatePlugin($obj);
           }
 
-          return $this->generateRedirect($obj->id);
+          return $this->generateRedirect($obj);
         }
         
         $errors = $obj->getErrors();
@@ -173,7 +173,14 @@ class StandardController extends AppController {
     }
 
     $this->set('vv_template_path', $vv_template_path);
-  
+
+    // Primarily of interest to detailed record views, if this attribute supports
+    // Pipeline sourcing (ie: has a source_foo_id field) set the name of the source
+    // foreign key into a view var since it's not always calculable.
+    if(method_exists($table, "sourceForeignKey")) {
+      $this->set('vv_source_fk', $table->sourceForeignKey());
+    }
+
     // Check to see if the model names a specific layout
     if(method_exists($table, "getLayout")) {
        $this->viewBuilder()->setLayout($table->getLayout());
@@ -339,7 +346,7 @@ class StandardController extends AppController {
             $table->requestProvisioning(id: (int)$id, context: ProvisioningContextEnum::Automatic);
           }
 
-          return $this->generateRedirect((int)$id); 
+          return $this->generateRedirect($saveObj); 
         }
         
         $errors = $saveObj->getErrors();
@@ -358,9 +365,7 @@ class StandardController extends AppController {
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
       $this->Flash->error($e->getMessage());
-      // XXX This redirects to an Exception page because $id is not found.
-      // XXX A 404 with error would be better.
-      return $this->generateRedirect((int)$id);
+      return $this->generateRedirect(null);
     }
     
     $this->set('vv_obj', $obj);
@@ -399,11 +404,11 @@ class StandardController extends AppController {
    * Generate a redirect for a Standard Object operation.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int $id ID of object to redirect to
+   * @param  Entity $entity   Entity to redirect to
    * @return \Cake\Http\Response
    */
   
-  public function generateRedirect(?int $id) {
+  public function generateRedirect($entity) {
     $redirect = [];
     
     // By default we return to the index, but we'll also accept "self" or "primaryLink".
@@ -418,16 +423,23 @@ class StandardController extends AppController {
         $redirectGoal = 'index';
       }
     }
-
+    
     if($redirectGoal == 'self'
-       && $id
+       && $entity
        && in_array($this->request->getParam('action'), ['add', 'edit'])) {
-      // Redirect to the edit view of the record just added
-      // (if the user has add permission, they probably have edit permission)
+      // We typically want to redirect to the edit view of the record,
+      // but in some cases (eg: if the record was just frozen) we want to
+      // redirect to "view" instead.
       
+      $readOnly = false;
+
+      if(method_exists($entity, "isReadOnly")) {
+        $readOnly = $entity->isReadOnly();
+      }
+
       $redirect = [
-        'action' => 'edit',
-        $id
+        'action' => $readOnly ? "view" : "edit",
+        $entity->id
       ];
     } elseif($redirectGoal == 'pluggableLink' || $redirectGoal == 'primaryLink') {
       // pluggableLink and primaryLink do basically the same thing, except that
@@ -779,6 +791,37 @@ class StandardController extends AppController {
   }
 
   /**
+   * Unfreeze a frozen record.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $id Entity ID
+   */
+
+  public function unfreeze($id) {
+    // $this->name = Models
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+
+    try {
+      // Pull the current record
+      $obj = $table->get((int)$id);
+    }
+    catch(\Exception $e) {
+      // findById throws Cake\Datasource\Exception\RecordNotFoundException
+      $this->Flash->error($e->getMessage());
+      return $this->generateRedirect(null);
+    }
+
+    // Normally we'd wrap this in a function on the table or entity, but
+    // it's such a simple change that it doesn't seem to be worth it atm.
+    $obj->frozen = false;
+    $table->save($obj);
+
+    return $this->generateRedirect($obj);
+  }
+
+  /**
    * Handle a view action for a Standard object.
    *
    * @since  COmanage Registry v5.0.0
@@ -809,9 +852,7 @@ class StandardController extends AppController {
     catch(\Exception $e) {
       // findById throws Cake\Datasource\Exception\RecordNotFoundException
       $this->Flash->error($e->getMessage());
-      // XXX This redirects to an Exception page because $id is not found.
-      // XXX A 404 with error would be better.
-      return $this->generateRedirect((int)$id);
+      return $this->generateRedirect(null);
     }
     
     $this->set('vv_obj', $obj);

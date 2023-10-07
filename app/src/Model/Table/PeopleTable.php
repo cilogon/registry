@@ -73,6 +73,11 @@ class PeopleTable extends Table {
     
     $this->hasOne('PrimaryName')
          ->setClassName('Names')
+         // We have to explicitly set the foreign key here so that the relations
+         // ManagerPeople and SponsorPeople (in PersonRolesTable) get the correct
+         // foreign key into Names table when pulling data via contains (as in
+         // marshalProvisioningData(), below)
+         ->setForeignKey('person_id')
          ->setConditions(['PrimaryName.primary_name' => true]);
     $this->hasMany('Names')
          ->setDependent(true)
@@ -90,9 +95,6 @@ class PeopleTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('GroupMembers')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
-    $this->hasMany('GroupOwners')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
@@ -197,9 +199,16 @@ class PeopleTable extends Table {
    */
   
   public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
-    // Note this callback successfully fires because ChangelogBehavior ignores
-    // hard deletes. See GroupsTable for an example of using implementedEvents()
-    // to change priorities.
+// XXX we are effectively reimplementing expunge logic here, maybe move it to
+//     a new protected PeopleTable::expunge() function (called only from here)?
+    // If we were only dealing with hard delete, we wouldn't need implementedEvents()
+    // below, because ChangelogBehavior ignores hard deletes.
+
+    // Whether soft or hard deleting, we need to remove Automatic Group Memberships
+    // before we delete the Person, or lookups performed while managing those
+    // group memberships will fail.
+
+    $this->reconcileCoMembersGroupMemberships(entity: $entity, deleted: true);
 
     if(isset($options['useHardDelete']) 
        && $options['useHardDelete']
@@ -216,6 +225,21 @@ class PeopleTable extends Table {
         [ 'sponsor_person_id' => null ],
         [ 'sponsor_person_id' => $entity->id ]
       );
+
+      // Manually delete any names, since the validation rules will fail on cascade.
+      $this->Names->deleteAll(
+        [ 'person_id' => $entity->id ]
+      );
+    } else {
+      // Manually delete any names, since the validation rules will fail on cascade.
+      // Since this isn't a hard delete we can't use deleteAll since we need
+      // ChangelogBehavior to fire.
+
+      $names = $this->Names->find()->where(['person_id' => $entity->id])->all();
+
+      foreach($names as $n) {
+        $this->Names->delete($n, ['checkRules' => false]);
+      }
     }
 
     return true;
@@ -255,6 +279,24 @@ class PeopleTable extends Table {
   }
   
   /**
+   * Define the table's implemented events.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function implementedEvents(): array {
+    $events = parent::implementedEvents();
+
+    // We need to adjust our beforeDelete priority to run before ChangelogBehavior's.
+    $events['Model.beforeDelete'] = [
+      'callable' => 'beforeDelete',
+      'priority' => 1
+    ];
+
+    return $events;
+  }
+
+  /**
    * Callback after model save.
    *
    * @since  COmanage Registry v5.0.0
@@ -270,7 +312,10 @@ class PeopleTable extends Table {
     // XXX implement this eventually?
     //$provision = (isset($options['provision']) ? $options['provision'] : true);
     
-    $this->reconcileCoMembersGroupMemberships($entity);
+    if(!$entity->deleted) {
+      // If the entity was deleted we handled this in beforeDelete, above
+      $this->reconcileCoMembersGroupMemberships($entity);
+    }
     
     return true;
   }
@@ -312,7 +357,6 @@ class PeopleTable extends Table {
           'Urls' => [ 'Types' ]
         ],
         'GroupMembers' => [ 'Groups' ],
-        'GroupOwners' => [ 'Groups' ],
         'Identifiers' => [ 'Types' ],
         'Names' => [ 'Types' ],
         'PersonRoles' => [
@@ -431,15 +475,20 @@ class PeopleTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  EntityInterface  $entity         Person Entity
    * @param  bool             $provision      Whether to run provisioners
+   * @param  bool             $deleted        Whether $entity should be treated as deleted
    * @throws InvalidArgumentException
    * @throws RuntimeException
    */
 
-  public function reconcileCoMembersGroupMemberships(\Cake\Datasource\EntityInterface $entity, bool $provision=true) {
+  public function reconcileCoMembersGroupMemberships(
+    \Cake\Datasource\EntityInterface $entity, 
+    bool $provision=true,
+    bool $deleted=false
+  ) {
     // This is similar to PersonRole::reconcileCouMembersGroupMemberships.
-    
-    $activeEligible = $entity->isActive();
-    $allEligible = $entity->status != StatusEnum::Archived;
+
+    $activeEligible = !$deleted && $entity->isActive();
+    $allEligible = !$deleted && ($entity->status != StatusEnum::Archived);
     
     // Update the automatic CO groups
     $this->llog('rule', "AR-Person-1 Syncing membership in All Members Group for CO " . $entity->co_id . " for Person " . $entity->id . ", eligibility=" . $allEligible);

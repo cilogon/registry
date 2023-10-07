@@ -157,7 +157,7 @@ class FileProvisionersTable extends Table {
 
   public function ruleIsFileWriteable($entity, array $options): string|bool {
     if(!is_writable($entity->filename)) {
-      return __d('file_provisioner', 'error.filename.writeable', [$entity->filename]);
+      return __d('file_connector', 'error.filename.writeable', [$entity->filename]);
     }
 
     return true;

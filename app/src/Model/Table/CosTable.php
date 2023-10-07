@@ -80,10 +80,16 @@ class CosTable extends Table {
     $this->hasMany('Groups')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('IdentifierAssignments')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Jobs')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('People')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('Pipelines')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('Reports')

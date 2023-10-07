@@ -43,8 +43,10 @@ class BreadcrumbComponent extends Component
   protected $skipConfigPaths = [];
   // Don't render the parent links
   protected $skipParentPaths = [];
-  // Inject parent links
+  // Inject parent links (these render before the index link, if set)
   protected $injectParents = [];
+  // Inject title links (immediately before the title breadcrumb)
+  protected $injectTitleLinks = [];
   
   /**
    * Callback run prior to rendering the view.
@@ -131,7 +133,38 @@ class BreadcrumbComponent extends Component
       }
 
       $controller->set('vv_bc_parents', $parents);
+
+      $controller->set('vv_bc_title_links', $this->injectTitleLinks);
     }
+  }
+
+  /**
+   * Inject a title link based on the display field of an entity into the breadcrumb set.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Table    $table    Table for $entity
+   * @param  Entity   $entity   Entity to generate title link for
+   * @param  string   $action   Action to link to
+   * @param  string   $label    If set, use this label instead of the entity's displayField
+   */
+  
+  public function injectTitleLink(
+    $table,
+    $entity,
+    string $action='edit',
+    ?string $label=null
+  ) {
+    $displayField = $table->getDisplayField();
+
+    $this->injectTitleLinks[] = [
+      'target' => [
+        'plugin'      => null,
+        'controller'  => $table->getTable(),
+        'action'      => $action,
+        $entity->id
+      ],
+      'label' => $label ?: $entity->$displayField
+    ];
   }
 
   /**

@@ -25,8 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
+if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   // Dynamic required fields is automatically handled by FormHelper via the
   // validation rules, but we need to manually check permitted fields.
 
@@ -46,4 +45,8 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   // the new primary_name is, but we do allow this name to become primary
   // because afterSave will unset the old one.
   print $this->Field->control('primary_name', ['readonly' => $vv_obj->primary_name]);
+
+  print $this->Field->control('frozen');
+
+  print $this->Field->sourceControl($vv_obj);
 }

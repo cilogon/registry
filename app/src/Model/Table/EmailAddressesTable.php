@@ -95,6 +95,7 @@ class EmailAddressesTable extends Table {
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
     
     $this->setAutoViewVars([
       'types' => [
@@ -108,8 +109,11 @@ class EmailAddressesTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -189,6 +193,11 @@ class EmailAddressesTable extends Table {
     
     $this->registerStringValidation($validator, $schema, 'description', false);
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_email_address_id', [
       'content' => ['rule' => 'isInteger']
     ]);

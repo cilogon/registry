@@ -36,6 +36,18 @@ msgstr "False"
 msgid "BooleanEnum.1"
 msgstr "True"
 
+msgid "DeletedRoleStatusEnum.D"
+msgstr "Archived"
+
+msgid "DeletedRoleStatusEnum.GP"
+msgstr "Grace Period"
+
+msgid "DeletedRoleStatusEnum.S"
+msgstr "Suspended"
+
+msgid "DeletedRoleStatusEnum.XP"
+msgstr "Expired"
+
 msgid "EduPersonAffiliationEnum.affiliate"
 msgstr "Affiliate"
 
@@ -59,6 +71,27 @@ msgstr "Staff"
 
 msgid "EduPersonAffiliationEnum.student"
 msgstr "Student"
+
+msgid "ExternalIdentityStatusEnum.A"
+msgstr "Active"
+
+msgid "ExternalIdentityStatusEnum.D"
+msgstr "Archived"
+
+msgid "ExternalIdentityStatusEnum.D2"
+msgstr "Duplicate"
+
+msgid "ExternalIdentityStatusEnum.GP"
+msgstr "Grace Period"
+
+msgid "ExternalIdentityStatusEnum.PS"
+msgstr "Pending Activation"
+
+msgid "ExternalIdentityStatusEnum.S"
+msgstr "Suspended"
+
+msgid "ExternalIdentityStatusEnum.XP"
+msgstr "Expired"
 
 msgid "GroupTypeEnum.MA"
 msgstr "Active Members"
@@ -213,6 +246,18 @@ msgstr "Turkish (Türkçe)"
 msgid "LanguageEnum.ur"
 msgstr "Urdu (اُردُو)"
 
+msgid "MatchStrategyEnum.EA"
+msgstr "Email Address"
+
+msgid "MatchStrategyEnum.EX"
+msgstr "External"
+
+msgid "MatchStrategyEnum.ID"
+msgstr "Identifier"
+
+msgid "MatchStrategyEnum.NO"
+msgstr "No Matching"
+
 msgid "PermittedNameFieldsEnum.given,family"
 msgstr "Given, Family"
 
@@ -354,6 +399,9 @@ msgstr "Pending Approval"
 msgid "StatusEnum.PC"
 msgstr "Pending Confirmation"
 
+msgid "StatusEnum.PS"
+msgstr "Pending Activation"
+
 msgid "StatusEnum.S"
 msgstr "Suspended"
 
@@ -371,6 +419,21 @@ msgstr "Active"
 
 msgid "SuspendableStatusEnum.S"
 msgstr "Suspended"
+
+msgid "SyncModeEnum.F"
+msgstr "Full"
+
+msgid "SyncModeEnum.M"
+msgstr "Manual"
+
+msgid "SyncModeEnum.Q"
+msgstr "Query"
+
+msgid "SyncModeEnum.U"
+msgstr "Update"
+
+msgid "SyncModeEnum.X"
+msgstr "Disabled"
 
 msgid "TemplateableStatusEnum.A"
 msgstr "Active"

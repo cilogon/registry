@@ -116,6 +116,21 @@ trait PluggableModelTrait {
   }
 
   /**
+   * Obtain the Plugin Model from an entity ID.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id       Entity ID
+   * @param  array  $options  Options, as supported by get()
+   */
+
+  public function pluginModelForEntityId(int $id, array $options=[]) {
+    $entity = $this->get($id, $options);
+    $pModel = StringUtilities::pluginModel($entity->plugin);
+
+    return $this->$pModel;
+  }
+  
+  /**
    * Set up hasMany relations for instantiated plugin models.
    * 
    * @since  COmanage Registry v5.0.0

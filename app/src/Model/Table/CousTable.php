@@ -79,6 +79,12 @@ class CousTable extends Table {
          ->setCascadeCallbacks(true);
     // AR-COU-1 A COU may not be deleted if it has any members.
     $this->hasMany('PersonRoles');
+    $this->hasMany('SyncCouPipelines')
+         ->setClassName('Pipelines')
+         ->setForeignKey('sync_cou_id');
+    $this->hasMany('SyncReplaceCouPipelines')
+         ->setClassName('Pipelines')
+         ->setForeignKey('sync_replace_cou_id');
     
     $this->setDisplayField('name');
     

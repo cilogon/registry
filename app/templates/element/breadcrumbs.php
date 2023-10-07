@@ -77,6 +77,16 @@ if(!empty($vv_bc_parents)) {
   }
 }
 
+// Insert any title links immediately before the page title
+if(!empty($vv_bc_title_links)) {
+  foreach($vv_bc_title_links as $tbc) {
+    $this->Breadcrumbs->add(
+      $tbc['label'],
+      $tbc['target']
+    );
+  }
+}
+
 // Insert the page title
 if(!empty($vv_title)) {
   $this->Breadcrumbs->add(

@@ -25,11 +25,47 @@
 msgid "controller.FileProvisioners"
 msgstr "{0,plural,=1{File Provisioner} other{File Provisioners}}"
 
+msgid "enumeration.FileSourceFormatEnum.C3"
+msgstr "CSV v3"
+
+msgid "error.filename.readable"
+msgstr "The file \"{0}\" is not readable"
+
 msgid "error.filename.writeable"
 msgstr "The file \"{0}\" is not writable"
+
+msgid "error.header"
+msgstr "Did not find CSV file header"
 
 msgid "field.FileProvisioners.filename"
 msgstr "File Name"
 
 msgid "field.FileProvisioners.filename.desc"
 msgstr "Full path to file to write to, which must exist and be writeable"
+
+msgid "field.FileSources.archivedir"
+msgstr "Archive Directory"
+
+msgid "field.FileSources.archivedir.desc"
+msgstr "If specified, a limited number of prior copies of the source file will be stored here"
+
+msgid "field.FileSources.filename"
+msgstr "File Name"
+
+msgid "field.FileSources.filename.desc"
+msgstr "Full path to file to read from, which must exist and be readable"
+
+msgid "field.FileSources.format"
+msgstr "File Format"
+
+msgid "field.FileSources.threshold_warn"
+msgstr "Warning Threshold"
+
+msgid "field.FileSources.threshold_warn.desc"
+msgstr "If the number of changed records exceeds the specified percentage, a warning will be generated and processing will stop (requires Archive Directory)"
+
+msgid "field.FileSources.threshold_override"
+msgstr "Warning Threshold Override"
+
+msgid "field.FileSources.threshold_override.desc"
+msgstr "If set, the next Full sync will ignore the Warning Threshold"

@@ -33,10 +33,11 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\ExternalIdentityStatusEnum;
 
 class ExternalIdentitiesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -82,6 +83,9 @@ class ExternalIdentitiesTable extends Table {
     $this->hasMany('ExternalIdentityRoles')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('ExtIdentitySourceRecords')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -120,7 +124,13 @@ class ExternalIdentitiesTable extends Table {
       'TelephoneNumbers',
       'Urls'
     ]);
+
     $this->setIndexContains(['PrimaryName']);
+
+    $this->setViewContains([
+      'PrimaryName',
+      'ExtIdentitySourceRecords' => ['ExternalIdentitySources']
+    ]);
 
     $this->setAutoViewVars([
       'statuses' => [
@@ -164,6 +174,22 @@ class ExternalIdentitiesTable extends Table {
   }
   
   /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    $this->recordHistory($entity);
+
+    return true;
+  }
+
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0
@@ -176,9 +202,10 @@ class ExternalIdentitiesTable extends Table {
     
     $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
+    $this->registerStringValidation($validator, $schema, 'source_key', true);
+
     $validator->add('status', [
-// XXX what to do about the sync status?
-      'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
+      'content' => ['rule' => ['inList', ExternalIdentityStatusEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('status');
     

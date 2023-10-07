@@ -104,6 +104,9 @@ msgstr "Ends at:"
 msgid "extension"
 msgstr "Extension"
 
+msgid "frozen"
+msgstr "Frozen"
+
 msgid "id"
 msgstr "ID"
 
@@ -133,6 +136,9 @@ msgstr "Full Name"
 
 msgid "language"
 msgstr "Language"
+
+msgid "last_update"
+msgstr "Last Update"
 
 msgid "locality"
 msgstr "Locality"
@@ -183,11 +189,17 @@ msgstr "Privileged"
 msgid "pronouns"
 msgstr "Preferred Pronouns"
 
+msgid "reference_identifier"
+msgstr "Reference Identifier"
+
 msgid "remote_ip"
 msgstr "IP Address"
 
 msgid "required"
 msgstr "Required"
+
+msgid "role_key"
+msgstr "Role Key"
 
 msgid "room"
 msgstr "Room"
@@ -203,6 +215,15 @@ msgstr "Clear global search"
 
 msgid "search.placeholder"
 msgstr "Search..."
+
+msgid "source"
+msgstr "Source"
+
+msgid "source_key"
+msgstr "Source Key"
+
+msgid "source_record"
+msgstr "Source Record"
 
 msgid "sponsor"
 msgstr "Sponsor"
@@ -327,6 +348,9 @@ msgstr "Limit Global Search Scope"
 msgid "CoSettings.search_global_limited_models.desc"
 msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
+msgid "ExternalIdentitySources.source_record.desc"
+msgstr "If the source record is empty, it likely indicates this record is no longer available from the datasource"
+
 msgid "GroupMembers.source"
 msgstr "Membership Source"
 
@@ -437,6 +461,42 @@ msgstr "Start Summary"
 
 msgid "Jobs.start_time"
 msgstr "Started"
+
+msgid "Pipelines.match_strategy"
+msgstr "Match Strategy"
+
+msgid "Pipelines.sync_affiliation_type_id"
+msgstr "Person Role Affiliation"
+
+msgid "Pipelines.sync_affiliation_type_id.desc"
+msgstr "If set, created Person Roles will be given this affiliation (not the affiliation of the External Identity)"
+
+msgid "Pipelines.sync_cou_id"
+msgstr "Sync to COU"
+
+msgid "Pipelines.sync_identifier_type_id"
+msgstr "Sync Identifier Type"
+
+msgid "Pipelines.sync_identifier_type_id.desc"
+msgstr "For fields such as manager or sponsor, the inbound identifier type"
+
+msgid "Pipelines.sync_on_delete"
+msgstr "Sync On Delete"
+
+msgid "Pipelines.sync_on_update"
+msgstr "Sync On Update"
+
+msgid "Pipelines.sync_replace_cou_id"
+msgstr "Replace Record in COU"
+
+msgid "Pipelines.sync_replace_cou_id.desc"
+msgstr "If the Person has an existing Person Role in the specified Person Role will be deleted/expired"
+
+msgid "Pipelines.sync_status_on_delete"
+msgstr "Role Status On Delete"
+
+msgid "Pipelines.sync_status_on_delete.desc"
+msgstr "When the source record is no longer valid, the corresponding Person Role will be set to this status"
 
 msgid "Plugins.plugin"
 msgstr "Plugin"

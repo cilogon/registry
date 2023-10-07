@@ -81,7 +81,9 @@ trait HistoryTrait {
         
         $newValue = $entity->get($field);
 
-        if(!empty($newValue)) {
+        if(!empty($newValue) 
+           // get() appears to return related entities?
+           && is_string($newValue)) {
           if($field == 'type_id') {
             $newValue = $Types->getTypeLabel((int)$newValue);
           }
@@ -98,6 +100,11 @@ trait HistoryTrait {
         $oldValue = $diff[$field];
         $newValue = $entity->get($field);
         
+        // extractOriginalChanged will return associated models, which we skip
+        if(is_array($oldValue) || is_array($newValue)) {
+          continue;
+        }
+
         if($field == 'type_id') {
           $oldValue = $Types->getTypeLabel((int)$diff[$field]);
           $newValue = $Types->getTypeLabel((int)$newValue);

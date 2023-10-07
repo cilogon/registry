@@ -45,6 +45,11 @@ trait ReadOnlyEntityTrait {
       return true;
     }
     
+    // Frozen attributes are treated as Read Only
+    if($this->frozen) {
+      return true;
+    }
+    
     // Records flagged as deleted or with a parent foreign key are read only
     
     // The class name is something like `\App\Model\Entity\PersonRole', but we just

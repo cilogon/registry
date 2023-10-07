@@ -42,6 +42,7 @@ class StatusEnum extends StandardEnum {
   const Invited             = 'I';
   const Locked              = 'LK';
   const Pending             = 'P';
+  const PendingActivation   = 'PS';
   const PendingApproval     = 'PA';
   const PendingConfirmation = 'PC';
   const Suspended           = 'S';

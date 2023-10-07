@@ -93,6 +93,15 @@ msgstr "Edit {0}"
 msgid "edit.ai"
 msgstr "Edit {0}"
 
+msgid "ExternalIdentitySourceRecords.retrieve"
+msgstr "Retrieve from External Identity Source"
+
+msgid "ExternalIdentitySources.search"
+msgstr "Search Source"
+
+msgid "ExternalIdentitySources.sync"
+msgstr "Sync Record to CO"
+
 msgid "filter"
 msgstr "Filter"
 
@@ -167,6 +176,9 @@ msgstr "Skip to main content"
 
 msgid "Cos.switch"
 msgstr "Switch To This CO"
+
+msgid "unfreeze"
+msgstr "Unfreeze"
 
 msgid "view"
 msgstr "View"

@@ -80,6 +80,11 @@ class DashboardsController extends StandardController {
         'icon'          => 'assignment',
         'controller'    => 'jobs',
         'action'        => 'index'
+      ],
+      __d('controller', 'ExternalIdentitySourceRecords', [99]) => [
+        'icon'          => 'assignment',
+        'controller'    => 'external_identity_source_records',
+        'action'        => 'index'
       ]
     ];
     
@@ -117,10 +122,19 @@ class DashboardsController extends StandardController {
         'controller'    => 'cous',
         'action'        => 'index'
       ],
-      // XXX External Identity Sources should use "cloud_download" for the icon
+      __d('controller', 'ExternalIdentitySources', [99]) => [
+        'icon'          => 'cloud_download',
+        'controller'    => 'external_identity_sources',
+        'action'        => 'index'
+      ],
       __d('controller', 'IdentifierAssignments', [99]) => [
         'icon'          => 'badge',
         'controller'    => 'identifier_assignments',
+        'action'        => 'index'
+      ],
+      __d('controller', 'Pipelines', [99]) => [
+        'icon'          => 'cable',
+        'controller'    => 'pipelines',
         'action'        => 'index'
       ],
       __d('controller', 'ProvisioningTargets', [99]) => [

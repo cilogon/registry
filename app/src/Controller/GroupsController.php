@@ -48,13 +48,16 @@ class GroupsController extends StandardController {
 
   public function reconcile(string $id) {
     try {
-      $this->Groups->reconcile((int)$id);
+      $group = $this->Groups->get((int)$id);
+
+      $this->Groups->reconcile($group->id);
+
       $this->Flash->success(__d('result', 'Groups.reconciled'));
     }
     catch(\Exception $e) {
       $this->Flash->error($e->getMessage());
     }
-    
-    return $this->generateRedirect((int)$id);
+
+    return $this->generateRedirect($group ?? null);
   }
 }

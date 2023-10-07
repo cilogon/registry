@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use \Cake\Event\EventInterface;
 use \Cake\ORM\Query;
 use \Cake\ORM\RulesChecker;
 use \Cake\ORM\Table;
@@ -96,7 +97,7 @@ class NamesTable extends Table {
     $this->setDisplayField('full_name');
     
     $this->setPrimaryLink(['external_identity_id', 'person_id']);
-    $this->setAllowLookupPrimaryLink(['primary']);
+    $this->setAllowLookupPrimaryLink(['primary', 'unfreeze']);
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
@@ -118,8 +119,11 @@ class NamesTable extends Table {
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'primary' =>  ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -128,6 +132,24 @@ class NamesTable extends Table {
     ]);
   }
   
+  /**
+   * Callback before data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   beforeMarshal event
+   * @param  ArrayObject     $data    Entity data
+   * @param  ArrayObject     $options Callback options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
+  {
+    if(!empty($data['source_name_id'])) {
+      // Source records may not assert primary name on the Person copy.
+// XXX this implies an EIS name cannot be a primary name - document as an AR
+      $data['primary_name'] = false;
+    }
+  }
+
   /**
    * Define business rules.
    *
@@ -389,6 +411,11 @@ class NamesTable extends Table {
     
     $this->registerStringValidation($validator, $schema, 'display_name', false);
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_name_id', [
       'content' => ['rule' => 'isInteger']
     ]);

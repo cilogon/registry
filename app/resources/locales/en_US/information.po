@@ -39,17 +39,17 @@ msgstr "Please select the collaboration (CO) you wish to manage."
 msgid "entity.id"
 msgstr "ID: {0}"
 
-msgid "pagination.format"
-msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
+msgid "ExternalIdentities.source"
+msgstr "This External Identity was created from {0} ({1})"
 
-msgid "plugin.active"
-msgstr "Active"
+msgid "ExternalIdentitySources.retrieve"
+msgstr "This is the current record available directly from the source. To view the latest record retrieved and cached by Registry, click <i>View External Identity Source Record</i>."
 
-msgid "plugin.active.only"
-msgstr "Active, Cannot Be Disabled"
+msgid "ExternalIdentitySourceRecords.view"
+msgstr "This is the latest record retrieved from the source, as cached by Registry. To view the current record directly from the source, select <i>Retrieve from External Identity Source</i>."
 
-msgid "plugin.inactive"
-msgstr "Inactive"
+msgid "ExternalIdentitySources.search.attrs.none"
+msgstr "The External Identity Source cannot be searched."
 
 msgid "global.attribute.modal"
 msgstr "Attribute Modal"
@@ -68,3 +68,15 @@ msgstr "No value"
 
 msgid "global.visit.link"
 msgstr "Visit link"
+
+msgid "pagination.format"
+msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
+
+msgid "plugin.active"
+msgstr "Active"
+
+msgid "plugin.active.only"
+msgstr "Active, Cannot Be Disabled"
+
+msgid "plugin.inactive"
+msgstr "Inactive"

@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Event\EventInterface;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -41,6 +42,7 @@ class IdentifiersTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -108,6 +110,7 @@ class IdentifiersTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
     
     $this->setAutoViewVars([
       'types' => [
@@ -125,8 +128,11 @@ class IdentifiersTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -139,6 +145,23 @@ class IdentifiersTable extends Table {
     ]);
   }
   
+  /**
+   * Callback before data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   beforeMarshal event
+   * @param  ArrayObject     $data    Entity data
+   * @param  ArrayObject     $options Callback options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
+  {
+    if(empty($data['status'])) {
+      // Set a default status of Active if not otherwise set (eg: via EIS/Pipelines)
+      $data['status'] = SuspendableStatusEnum::Active;
+    }
+  }
+
   /**
    * Callback after model save.
    *
@@ -229,6 +252,11 @@ class IdentifiersTable extends Table {
     ]);
     $validator->notEmptyString('status');
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_identifier_id', [
       'content' => ['rule' => 'isInteger']
     ]);

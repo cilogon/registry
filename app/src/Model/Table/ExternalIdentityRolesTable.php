@@ -33,12 +33,15 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\ActionEnum;
+use \App\Lib\Enum\ExternalIdentityStatusEnum;
 
 class ExternalIdentityRolesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
@@ -75,6 +78,10 @@ class ExternalIdentityRolesTable extends Table {
     $this->hasMany('AdHocAttributes')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('PersonRoles')
+         ->setForeignKey('source_external_identity_role_id')
+         ->setProperty('source_external_identity_role');
+         // We don't want these to cascade deletes, see beforeDelete()
     $this->hasMany('TelephoneNumbers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -123,6 +130,39 @@ class ExternalIdentityRolesTable extends Table {
   }
   
   /**
+   * Callback before model delete.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  CakeEventEvent $event   The beforeDelete event
+   * @param                 $entity  Entity
+   * @param  ArrayObject    $options Options
+   * @return boolean                 True on success
+   */
+
+  public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    // Is there a Person Role associated with this EI Role?
+    if(!empty($entity->id)) {
+      $prole = $this->PersonRoles->find()
+                                 ->where(['PersonRoles.source_external_identity_role_id' => $entity->id])
+                                 ->first();
+      
+      if(!empty($prole)) {
+        // Unset the foreign key to the source EI Role so we don't cascade
+        // deletes or otherwise mess things up.
+
+        $this->llog('trace', "Removing link from PersonRole " . $prole->id . " to source ExternalIdentityRole " . $entity->id);
+
+        $prole->source_external_identity_role_id = null;
+        $this->PersonRoles->saveOrFail($prole);
+      }
+    }
+
+    $this->recordHistory(entity: $entity, action: ActionEnum::MVEADeleted);
+    
+    return true;
+  }
+
+  /**
    * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
@@ -143,6 +183,42 @@ class ExternalIdentityRolesTable extends Table {
   }
   
   /**
+   * Define the table's implemented events.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function implementedEvents(): array {
+    $events = parent::implementedEvents();
+
+    // We need to adjust our beforeDelete priority to run before ChangelogBehavior's.
+    $events['Model.beforeDelete'] = [
+      'callable' => 'beforeDelete',
+      'priority' => 1
+    ];
+
+    return $events;
+  }
+
+  /**
+   * Callback after model save.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   Event
+   * @param  EntityInterface $entity  Entity (ie: Co)
+   * @param  ArrayObject     $options Save options
+   * @return bool                     True on success
+   */
+    
+  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+    if(!$entity->deleted) {
+      $this->recordHistory($entity);
+    }
+
+    return true;
+  }
+
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0
@@ -155,6 +231,8 @@ class ExternalIdentityRolesTable extends Table {
     
     $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
+    $this->registerStringValidation($validator, $schema, 'role_key', true);
+
     $validator->add('affiliation_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
@@ -181,7 +259,7 @@ class ExternalIdentityRolesTable extends Table {
     $validator->allowEmptyString('valid_through');
     
     $validator->add('status', [
-      'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
+      'content' => ['rule' => ['inList', ExternalIdentityStatusEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('status');
     

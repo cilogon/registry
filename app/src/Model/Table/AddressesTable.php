@@ -96,6 +96,7 @@ class AddressesTable extends Table {
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
     
     $this->setAutoViewVars([
       'languages' => [
@@ -113,8 +114,11 @@ class AddressesTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -248,6 +252,11 @@ class AddressesTable extends Table {
     ]);
     $validator->notEmptyString('type_id');
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_address_id', [
       'content' => ['rule' => 'isInteger']
     ]);

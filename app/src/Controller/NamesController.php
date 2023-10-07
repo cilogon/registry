@@ -92,7 +92,7 @@ class NamesController extends MVEAController {
     catch(\Exception $e) {
       $this->Flash->error($e->getMessage());
     }
-    
-    return $this->generateRedirect((int)$id);
+
+    return $this->generateRedirect($obj ?? null);
   }
 }

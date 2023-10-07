@@ -96,6 +96,7 @@ class TelephoneNumbersTable extends Table {
     $this->setRequiresCO(true);
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
+    $this->setAllowLookupPrimaryLink(['unfreeze']);
     
     $this->setAutoViewVars([
       'types' => [
@@ -109,8 +110,11 @@ class TelephoneNumbersTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
+      // Actions that are permitted on readonly entities (besides view)
+      'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
@@ -199,6 +203,11 @@ class TelephoneNumbersTable extends Table {
     ]);
     $validator->notEmptyString('type_id');
     
+    $validator->add('frozen', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('frozen');
+
     $validator->add('source_telephone_number_id', [
       'content' => [ 'rule'    => 'isInteger' ]
     ]);

@@ -48,6 +48,9 @@ msgstr "{0} {1} Deleted: {2}"
 msgid "edited.mvea"
 msgstr "{0} {1} Edited: {2}"
 
+msgid "ExternalIdentitySources.synced"
+msgstr "External Identity Source sync complete"
+
 msgid "Groups.added"
 msgstr "Group {0} created"
 
@@ -102,6 +105,12 @@ msgstr "Job canceled by {0}"
 msgid "Jobs.registered"
 msgstr "Started via JobCommand by {0} (uid {1})"
 
+msgid "People.added.pipeline"
+msgstr "Created new Person via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
+
+msgid "Pipelines.ei.added"
+msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
+
 msgid "saved"
 msgstr "Saved"
 
@@ -116,6 +125,9 @@ msgstr "No results found"
 
 msgid "search.result.found"
 msgstr "Found {0} results"
+
+msgid "search.result.found.modelCount"
+msgstr "{0} {1}"
 
 msgid "search.result.id"
 msgstr "ID {0}"
