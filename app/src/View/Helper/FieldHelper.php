@@ -220,7 +220,7 @@ class FieldHelper extends Helper {
           $controlCode = '<time>' . $entity->$fieldName->i18nFormat("yyyy-MM-dd HH:mm:ss", $this->getView()->get('vv_tz')) . '</time>';
         }
       } else {
-        $controlCode = __d('information', 'notset');
+        $controlCode = '<div class="not-set">' . __d('information', 'notset') . '</div>';
       }
       // Return this to the generic control() function
       return $this->control($fieldName, $coptions, ctrlCode: $controlCode, labelIsTextOnly: true);

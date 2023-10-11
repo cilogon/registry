@@ -131,16 +131,12 @@ class ExternalIdentitiesTable extends Table {
       'Addresses',
       'AdHocAttributes',
       'EmailAddresses',
+      'ExtIdentitySourceRecords' => ['ExternalIdentitySources'],
       'Identifiers',
       'Names',
       'Pronouns',
       'TelephoneNumbers',
       'Urls'
-    ]);
-
-    $this->setViewContains([
-      'PrimaryName',
-      'ExtIdentitySourceRecords' => ['ExternalIdentitySources']
     ]);
 
     $this->setAutoViewVars([

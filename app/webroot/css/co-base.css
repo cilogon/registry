@@ -1200,6 +1200,9 @@ ul.form-list {
   clear: both;
   padding: 0;
 }
+body.view ul.form-list {
+  border-bottom: 1px solid var(--cmg-color-bg-005);
+}
 .cm-time-picker-vals ul li,
 ul.form-list li {
   background-color: var(--cmg-color-body-bg);
@@ -1230,6 +1233,9 @@ ul.form-list li.fields-submit {
   background-color: unset;
   border-left: none;
   border-right: none;
+}
+ul.form-list li.fields-submit .field:hover {
+  background-color: var(--cmg-color-body-bg);
 }
 ul.form-list .field-name {
   display: block;
@@ -1272,6 +1278,9 @@ ul.form-list select {
   color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-007);
+}
+ul.form-list .not-set {
+  padding: 4px 6px;
 }
 .form-select:disabled {
   background-color: var(--cmg-color-bg-009);

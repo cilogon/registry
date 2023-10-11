@@ -27,28 +27,30 @@
 
 // This view will not support add/edit
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print __d(
-    'information', 
-    'ExternalIdentities.source',
-    [
-      $this->Html->link(
-        $vv_obj->ext_identity_source_records[0]->external_identity_source->description,
-        [
-          'controller'  => 'external-identity-sources',
-          'action'      => 'edit',
-          $vv_obj->ext_identity_source_records[0]->external_identity_source->id
-        ]
-      ),
-      $this->Html->link(
-        __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 1)]),
-        [
-          'controller'  => 'ext-identity-source-records',
-          'action'      => 'view',
-          $vv_obj->ext_identity_source_records[0]->id
-        ]
-      )
-    ]
-  );
+  if(!empty($vv_obj->ext_identity_source_records[0])) {
+    print __d(
+      'information',
+      'ExternalIdentities.source',
+      [
+        $this->Html->link(
+          $vv_obj->ext_identity_source_records[0]->external_identity_source->description,
+          [
+            'controller' => 'external-identity-sources',
+            'action' => 'edit',
+            $vv_obj->ext_identity_source_records[0]->external_identity_source->id
+          ]
+        ),
+        $this->Html->link(
+          __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 1)]),
+          [
+            'controller' => 'ext-identity-source-records',
+            'action' => 'view',
+            $vv_obj->ext_identity_source_records[0]->id
+          ]
+        )
+      ]
+    );
+  }
 
   print $this->Field->control('status', ['empty' => false]);
   
