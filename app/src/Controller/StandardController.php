@@ -546,9 +546,13 @@ class StandardController extends AppController {
     if(!empty($link->attr)) {
       // If a link attribute is defined but no value is provided, then query
       // where the link attribute is NULL
-      $query = $table->find()->where([$table->getAlias().'.'.$link->attr => $link->value]);
+      // "all" is the default finder. But since we are utilizing the paginator here, we will check the configuration
+      // for any custom finder.
+      $query = $table->find(
+        $this->paginate['finder'] ?? "all"
+      )->where([$table->getAlias().'.'.$link->attr => $link->value]);
     } else {
-      $query = $table->find();
+      $query = $table->find($this->paginate['finder'] ?? "all");
     }
     
     // QueryModificationTrait
@@ -563,7 +567,7 @@ class StandardController extends AppController {
     
       if(!empty($searchableAttributes)) {
         // Here we iterate over the attributes, and we add a new where clause for each one
-        foreach(array_keys($searchableAttributes) as $attribute) {
+        foreach($searchableAttributes as $attribute => $options) {
           if(!empty($this->request->getQuery($attribute))) {
             $query = $table->whereFilter($query, $attribute, $this->request->getQuery($attribute));
           } elseif (!empty($this->request->getQuery($attribute . "_starts_at"))

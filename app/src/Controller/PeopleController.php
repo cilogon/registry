@@ -32,6 +32,7 @@ namespace App\Controller;
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
+use http\QueryString;
 
 class PeopleController extends StandardController {
   public $paginate = [
@@ -49,7 +50,8 @@ class PeopleController extends StandardController {
     'sortableFields' => [
       'PrimaryName.given',
       'PrimaryName.family'
-    ]
+    ],
+    'finder' => 'indexed'
   ];
   
   /**

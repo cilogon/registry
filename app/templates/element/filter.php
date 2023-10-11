@@ -121,7 +121,7 @@ $hasActiveFilters = false;
           <button class="top-filters-active-filter deletebutton spin btn btn-default btn-sm" data-identifier="<?= $data_identifier ?>" type="button" aria-controls="<?php print $aria_controls; ?>" title="<?= __d('operation', 'clear.filters',[2]); ?>">
             <em class="material-icons" aria-hidden="true">cancel</em>
             <span class="top-filters-active-filter-title">
-              <?= !empty($columns[$key]['label']) ? $columns[$key]['label'] : $vv_searchable_attributes[$key]['label'] ?>
+              <?= Inflector::humanize(Inflector::underscore($vv_searchable_attributes[$key]['label'] ?? $columns[$key]['label'])) ?>
             </span>
             <?php if($vv_searchable_attributes[$key]['type'] != 'boolean'): ?>
               <span class="top-filters-active-filter-value">
@@ -145,14 +145,18 @@ $hasActiveFilters = false;
         $field_booleans_columns = [];
         $field_datetime_columns = [];
         
-        if(!empty($columns)) {
-          // To make our filters consistently ordered with the index columns, sort the $vv_searchable_attributes
-          // by the keys of columns.inc $indexColumns (passed in to this View element as $indexColumns and referenced
-          // as "$columns"). The fields found in $columns will be placed first in the resulting array.
-          // The result should only include fields that exist in the original $vv_searchable_attributes array.
-          $vv_searchable_attributes = array_intersect_key(array_replace(array_flip(array_keys($columns)), $vv_searchable_attributes), $vv_searchable_attributes);
-        }
+        $inactiveFiltersCount = 0; // for re-balancing the columns and submit buttons
         
+        if(!empty($columns)) {
+          // The searchable attributes will be sorted first alphabetically
+          asort($vv_searchable_attributes);
+          // Sort the order attribute
+          uasort($vv_searchable_attributes, function ($item1, $item2) {
+            if ($item1['order'] == $item2['order']) return 0;
+            return $item1['order'] < $item2['order'] ? -1 : 1;
+          });
+        }
+
         foreach($vv_searchable_attributes as $key => $options) {
           if($options['type'] == 'boolean') {
             $field_booleans_columns[$key] = $options;
@@ -161,7 +165,13 @@ $hasActiveFilters = false;
             $field_datetime_columns[$key] = $options;
             continue;
           }
-          
+
+          $label = Inflector::humanize(
+            Inflector::underscore(
+              $options['label'] ?? $columns[$key]['label']
+            )
+          );
+
           if($options['type'] == 'date') {
             // Date fields use a date picker (e.g. DOB)
             // (Note that timestamps are handled specially. See below.)
@@ -188,9 +198,16 @@ $hasActiveFilters = false;
               'pickerType' => \App\Lib\Enum\DateTypeEnum::DateOnly,
               'pickerFloor' => $pickerFloor
             ];
+
+            $wrapperCssClass = 'filter-active';
+            if(empty($options['active'])) {
+              $wrapperCssClass = 'filter-inactive';
+              $inactiveFiltersCount++;
+            }
+            
             // Create a text field to hold our date value.
-            print '<div class="top-filters-fields-date">';
-            print $this->Form->label($key, !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label']);
+            print '<div class="top-filters-fields-date filter-standard ' . $wrapperCssClass . '">';
+            print $this->Form->label($key, $label);
             print '<div class="d-flex">';
             print $this->Form->text($key, $opts) . $this->element('datePicker', $date_args);
             print '</div>';
@@ -198,7 +215,7 @@ $hasActiveFilters = false;
           } else {
             // text input
             $formParams = [
-              'label' => !empty($columns[$key]['label']) ? $columns[$key]['label'] : $options['label'],
+              'label' => $label,
               // The default type is text, but we might convert to select below
               'type' => 'text',
               'value' => (!empty($query[$key]) ? $query[$key] : ''),
@@ -219,26 +236,36 @@ $hasActiveFilters = false;
             $formParams['empty'] = true;
           }
 
+          $wrapperCssClass = 'filter-active';
+          if(empty($options['active'])) {
+            $wrapperCssClass = 'filter-inactive';
+            $inactiveFiltersCount++;
+          }
+          
           if($options['type'] != 'date') {
+            print '<div class="filter-standard ' . $wrapperCssClass . '">';
             print $this->Form->control($key, $formParams);
+            print '</div>';
           }
         }
       ?>
       <?php if(!empty($field_booleans_columns)): ?>
-        <div class="top-search-checkboxes input">
-          <div class="top-search-checkbox-fields">
+        <div class="top-filters-checkboxes input">
+          <div class="top-filters-checkbox-fields">
             <?php foreach($field_booleans_columns as $key => $options): ?>
-              <div class="form-check form-check-inline">
-                <?php
-                  print $this->Form->label(!empty($columns[$key]['label']) ? $columns[$key]['label'] : $key);
-                  print $this->Form->checkbox($key, [
-                    'id' => str_replace("_", "-", $key),
-                    'class' => 'form-check-input',
-                    'checked' => $query[$key] ?? 0,
-                    'hiddenField' => false,
-                    'required' => false
-                  ]);
-                ?>
+              <div class="filter-boolean <?= empty($options['active']) ? 'filter-inactive' : 'filter-active' ?>">
+                <div class="form-check form-check-inline">
+                  <?php
+                    print $this->Form->label(!empty($columns[$key]['label']) ? $columns[$key]['label'] : $key);
+                    print $this->Form->checkbox($key, [
+                      'id' => str_replace("_", "-", $key),
+                      'class' => 'form-check-input',
+                      'checked' => $query[$key] ?? 0,
+                      'hiddenField' => false,
+                      'required' => false
+                    ]);
+                  ?>
+                </div>
               </div>
             <?php endforeach; ?>
           </div>
@@ -332,26 +359,69 @@ $hasActiveFilters = false;
         </div>
       <?php endif; ?>
 
-      <?php $rebalanceColumns = ((count($vv_searchable_attributes)) % 2 != 0) ? ' class="tss-rebalance"' : ''; ?>
+      <?php $rebalanceColumns = (((count($vv_searchable_attributes) - $inactiveFiltersCount) % 2 == 1) && empty($field_booleans_columns)) ? ' class="tss-rebalance"' : ''; ?>
       <div id="top-filters-submit"<?php print $rebalanceColumns ?>>
+        
         <?php
-          $args = array();
+          // Order of the submit buttons is important here: the Enter key will submit the first (and we want the tab order to follow suit).  
+          // We reverse the visual order of all these buttons with CSS (flex-direction: row-reverse;).
+          
           // search button (submit)
+          $args = array();
           $args['id'] = 'top-filters-filter-button';
           $args['aria-label'] = __d('operation', 'filter');
           $args['class'] = 'submit-button spin btn btn-primary';
           print $this->Form->submit(__d('operation', 'filter'),$args);
 
           // clear button
+          $args = array();
           $args['id'] = 'top-filters-clear';
           $args['class'] = 'clear-button spin btn btn-default';
           $args['aria-label'] = __d('operation', 'clear');
           $args['onclick'] = 'clearTopSearch(this.form)';
           print $this->Form->button(__d('operation', 'clear'),$args);
         ?>
+        
+        <?php if(!empty($vv_searchable_attributes)): ?>
+          <div id="top-filters-options-container">
+            <button id="top-filters-options-button" class="btn btn-default options-button dropdown-toggle" 
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <?= __d('menu', 'options') ?>
+            </button>
+            <div class="dropdown-menu dropdown-menu-lg-end" aria-labelledby="top-filters-options-button">
+              <h4><?= __d('menu','available.filters') ?></h4>
+              <div id="top-filters-options">
+                <?php foreach($vv_searchable_attributes as $key => $options): ?>
+                  <?php if($options['type'] == 'timestamp' || $options['type'] == 'boolean') continue; // skip timestamp types and put booleans at the bottom of the list ?>
+                  <div class="form-check filter-selector filter-selector-text">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           value="<?= Cake\Utility\Inflector::dasherize($key) ?>" 
+                           id="filter-selector-<?= $key ?>"<?= !empty($options['active']) ? ' checked' : '' ?>>
+                    <label class="form-check-label" for="filter-selector-<?= $key ?>">
+                      <?= $options['label'] ?>
+                    </label>
+                  </div>
+                <?php endforeach; ?>
+                <?php foreach($field_booleans_columns as $key => $options): ?>
+                  <div class="form-check filter-selector filter-selector-boolean">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           value="<?= Cake\Utility\Inflector::dasherize($key) ?>" 
+                           id="filter-selector-<?= $key ?>"<?= !empty($options['active']) ? ' checked' : '' ?>>
+                    <label class="form-check-label" for="filter-selector-<?= $key ?>">
+                      <?= $options['label'] ?>
+                    </label>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+        <?php endif; ?>
       </div>
     </div>
   </fieldset>
 </div>
 
 <?= $this->Form->end(); ?>
+

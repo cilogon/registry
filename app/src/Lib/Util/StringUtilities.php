@@ -57,10 +57,16 @@ class StringUtilities {
 
   public static function columnKey($modelsName, $c, $tz=null, $useCustomClMdlLabel=false): string {
     if(strpos($c, "_id", strlen($c)-3)) {
+      $postfix = "";
+      if($c == "parent_id") {
+        // This means we are working with a model that implements a Tree behavior
+        $postfix = " ({$modelsName})";
+      }
+
       // Key is of the form field_id, use .ct label instead
       $k = self::foreignKeyToClassName($c);
 
-      return __d('controller', $k, [1]);
+      return __d('controller', $k, [1])  . $postfix;
     }
 
     // Look for a model specific key first

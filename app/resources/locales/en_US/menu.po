@@ -27,6 +27,9 @@
 msgid "artifacts"
 msgstr "Available {0} Artifacts"
 
+msgid "available.filters"
+msgstr "Available Filters"
+
 msgid "co.artifacts"
 msgstr "Artifacts"
 
@@ -200,6 +203,9 @@ msgstr "User Menu"
 
 msgid "menu.toggle"
 msgstr "Toggle menu collapse button"
+
+msgid "options"
+msgstr "Options"
 
 msgid "registries"
 msgstr "Available {0} Registries"

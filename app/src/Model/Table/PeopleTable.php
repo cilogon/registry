@@ -156,6 +156,39 @@ class PeopleTable extends Table {
       ]
     ]);
     
+    // XXX expand/revise this as needed to work best with looking up the related models
+    $this->setFilterConfig([
+      'family' => [
+        'type' => 'relatedModel',
+        'model' => 'Name',
+        'active' => true,
+        'order' => 2
+      ],
+      'given' => [
+        'type' => 'relatedModel',
+        'model' => 'Name',
+        'active' => true,
+        'order' => 1
+      ],
+      'mail' => [
+        'type' => 'relatedModel',
+        'model' => 'EmailAddress',
+        'active' => true,
+        'order' => 3
+      ],
+      'identifier' => [
+        'type' => 'relatedModel',
+        'model' => 'Identifier',
+        'active' => true,
+        'order' => 4
+      ],
+      'timezone' => [
+        'type' => 'field',
+        'active' => false,
+        'order' => 99
+      ]      
+    ]);
+    
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
@@ -243,6 +276,29 @@ class PeopleTable extends Table {
     }
 
     return true;
+  }
+
+  /**
+   * Customized finder for the Index Population View
+   *
+   * @param   Query  $query    Cake ORM Query
+   * @param   array  $options  Cake ORM Query options
+   *
+   * @return CakeORMQuery          Cake ORM Query
+   * @since  COmanage Registry v5.0.0
+   */
+  public function findIndexed(Query $query, array $options): Query {
+    return $query->select([
+                            'People.id',
+                            'PrimaryName.given',
+                            'PrimaryName.family',
+                            'People.status',
+                            'People.created',
+                            'People.modified',
+                            'People.timezone',
+                            'People.date_of_birth'
+                          ])
+                  ->distinct();
   }
 
   /**
@@ -429,9 +485,9 @@ class PeopleTable extends Table {
 
       $identifiers = [];
 
-      foreach($ret['data']->identifiers as $id) {
-        if($id->status == SuspendableStatusEnum::Active) {
-          $identifiers[] = $id;
+      foreach($ret['data']->identifiers as $ident) {
+        if($ident->status == SuspendableStatusEnum::Active) {
+          $identifiers[] = $ident;
         }
       }
 
@@ -454,9 +510,9 @@ class PeopleTable extends Table {
 
       $identifiers = [];
 
-      foreach($ret['data']->identifiers as $id) {
-        if($id->status == SuspendableStatusEnum::Active) {
-          $identifiers[] = $id;
+      foreach($ret['data']->identifiers as $ident) {
+        if($ident->status == SuspendableStatusEnum::Active) {
+          $identifiers[] = $ident;
         }
       }
 

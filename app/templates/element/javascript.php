@@ -149,6 +149,35 @@
       $("#top-filters-toggle .top-filters-active-filter").hide();
       $("#top-filters-clear").click();
     });
+    
+    // Hide and show filter fields using the Available Filters menu
+    $('#top-filters-form .filter-selector').click(function(e) {
+      e.stopPropagation();
+      
+      // Get the checkbox and the target filter id held in the checkbox value
+      let cb = $(this).find('input');
+      let target = $(cb).val();
+      
+      // Toggle the active and inactive state of the target filter
+      if(cb.prop('checked')) {
+        $('#' + target).closest('.filter-inactive').removeClass('filter-inactive').addClass('filter-active');
+      } else {
+        $('#' + target).closest('.filter-active').removeClass('filter-active').addClass('filter-inactive');
+      }
+      
+      // Toggle the submit container rebalance class so long as there are no datetime pickers
+      if(!$('#top-filters-fields .top-filters-fields-dates').length) {
+        // Count the number of standard visible fields, and apply the rebalance class on an odd number 
+        // unless boolean fields are visible - in which case we remove it.
+        let standardFiltersCount = $('#top-filters-fields .filter-standard.filter-active').length;
+        let booleanFiltersCount = $('#top-filters-fields .filter-boolean.filter-active').length;
+        if(standardFiltersCount % 2 == 1 && !booleanFiltersCount) {
+          $('#top-filters-submit').addClass("tss-rebalance"); 
+        } else {
+          $('#top-filters-submit').removeClass("tss-rebalance");
+        }          
+      }
+    });
 
     // Make all submit buttons pretty (Bootstrap)
     $("input:submit").addClass("spin submit-button btn btn-primary");

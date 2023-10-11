@@ -323,7 +323,7 @@
   .call-to-action {
     margin-bottom: 0;
   }
-  /* TOP SEARCH */
+  /* TOP FILTERS */
   .top-filters-fields-subgroups {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -331,12 +331,23 @@
     padding: 0 0.5em;
     align-items: center;
   }
-  .top-search-checkboxes {
+  .top-filters-checkbox-fields {
+    display: flex;
+  }
+  .top-filters-checkboxes {
     padding: 0.5em 0 0;
+  }
+  #top-filters-submit {
+    position: relative;
+  }
+  .top-filters .submit-button, 
+  .top-filters .clear-button, 
+  .top-filters .options-button {
+    margin: 1em 0.25em;
   }
   #top-filters-submit.tss-rebalance {
     margin-top: -3.5em;
-    position: relative;
+    float: right;
   }
   /* CO CONFIGURATION DASHBOARD */
   .config-menu {
@@ -417,6 +428,12 @@
   /* FORMS */
   ul.form-list li .field {
     column-gap: 2em;
+  }
+  /* TOP FILTERS */
+  .top-filters .submit-button,
+  .top-filters .clear-button,
+  .top-filters .options-button {
+    margin: 1em 0.5em;
   }
   /* DATE / TIME PICKER */
   .cm-time-picker-panel {
