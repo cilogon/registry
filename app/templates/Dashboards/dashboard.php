@@ -26,8 +26,16 @@
  */
 
 // XXX This is a placeholder
+
+// $flashArgs pass banner messages to the flash element container
+$flashArgs = [];
+if(!empty($banners)) {
+  $flashArgs['vv_banners'] = $banners;
+}
+
 ?>
 
 <div id="introduction">
+  <?= $this->element('flash', $flashArgs); ?>
   <p><?= __d('menu','menu.introduction') ?></p>
 </div>

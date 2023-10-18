@@ -239,6 +239,9 @@
   #advanced-menu {
     margin-top: 2rem;
   }
+  body.platform-co #advanced-menu li a {
+    padding: 0.25em;
+  }
   #co-menu-collapse {
     display: flex;
     justify-content: center;
@@ -293,6 +296,9 @@
     position: absolute;
     bottom: 2rem;
     margin: 0;
+  }
+  #main-menu .menu-panel .config-platform-notice {
+    margin: 10em 0 4em;
   }
   /* GENERAL */
   .table-container {

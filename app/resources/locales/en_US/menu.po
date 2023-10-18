@@ -42,6 +42,9 @@ msgstr "Attributes"
 msgid "co.configuration"
 msgstr "Configuration"
 
+msgid "co.configuration.desc"
+msgstr "Configuration for the current CO"
+
 msgid "co.configuration.short"
 msgstr "Config"
 
@@ -58,16 +61,13 @@ msgid "co.configuration.panel.personalization.desc"
 msgstr "Dashboards, custom text, and theming"
 
 msgid "co.configuration.panel.platform"
-msgstr "Platform-Wide Settings"
+msgstr "Platform-Wide Configuration"
 
 msgid "co.configuration.panel.platform.desc"
 msgstr "These configurations are found only in the COmanage CO"
 
-msgid "co.configuration.panel.setup"
-msgstr "CO Setup"
-
-msgid "co.configuration.panel.setup.desc"
-msgstr "Settings for the current CO"
+msgid "co.configuration.title"
+msgstr "CO Configuration"
 
 msgid "co.connections"
 msgstr "Connections"

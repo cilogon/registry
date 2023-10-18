@@ -324,8 +324,8 @@
       <?php endif; // $vv_platform_menu_items ?>
       <ul class="menu-panel-links">
         <li>
-          <h3><?= __d('menu','co.configuration.panel.setup') ?></h3>
-          <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.setup.desc') ?></p>
+          <h3><?= __d('menu','co.configuration.title') ?></h3>
+          <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.desc') ?></p>
           <ul class="menu-panel-links-inner">
             <li>
               <?php
@@ -411,6 +411,29 @@
       </ul>
       */ ?>
     </div>
+    <?php if($vv_cur_co->id != 1 && $vv_user_roles['platform']): ?>
+      <?php
+      $noticeUrls = [
+        $this->Url->build([
+          'plugin'       => null,
+          'controller'   => 'dashboards',
+          'action'       => 'configuration',
+          '?'            => [
+            'co_id' => 1
+          ]]),
+        $this->Url->build([
+          'plugin'       => null,
+          'controller'   => 'dashboards',
+          'action'       => 'dashboard',
+          '?'            => [
+            'co_id' => 1
+          ]])
+      ];
+      ?>
+      <div class="config-platform-notice">
+        <?= $this->Alert->alert(__d('information','cmp.config.notice', $noticeUrls), 'information', true) ?>
+      </div>
+    <?php endif; ?>
     <div class="comanage-version">
       <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
     </div>

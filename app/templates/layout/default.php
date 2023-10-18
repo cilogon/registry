@@ -89,6 +89,13 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     } else {
       $bodyClasses .= ' logged-out';
     }
+    
+    // add hints that we're in the platform-level (COmanage) CO
+    $isPlatformCO = false;
+    if(!empty($vv_cur_co) && ($vv_cur_co->id == 1) && !($vv_controller == 'Cos' && $vv_action == 'select')) {
+      $isPlatformCO = true;
+      $bodyClasses .= ' platform-co';
+    }
   ?>
   <body class="<?= $bodyClasses ?>" onload="jsOnLoadCallHooks()">
     <div id="skip-to-content-box">
@@ -97,7 +104,6 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Primary layout -->
     <div id="comanage-wrapper">
-
       <!-- Include custom header -->
       <?php if(!empty($vv_theme_header)): ?>
         <header id="customHeader">
@@ -158,6 +164,21 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
           <?= $this->element('menuTop') ?>
         </div>
       </div>
+      
+      <?php if($isPlatformCO): ?>
+        <?php
+        $platformConfigUrl = $this->Url->build([
+          'plugin'       => null,
+          'controller'   => 'dashboards',
+          'action'       => 'configuration',
+          '?'            => [
+            'co_id' => 1
+          ]]);
+        ?>
+        <div id="platform-notice">
+          <?= __d('information','cmp.co.notice', [$platformConfigUrl]) ?>
+        </div>
+      <?php endif; ?>
 
       <div id="main-wrapper">
         <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>

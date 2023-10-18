@@ -140,12 +140,16 @@ class AppController extends Controller {
     $modelsName = $this->name;
     
     // Views can also inspect the request object to determine the current
-    // action, but it seems slightly easier to do it once here.
+    // controller and action, but it seems slightly easier to do it once here.
+    $this->set('vv_controller', $this->request->getParam('controller'));
     $this->set('vv_action', $this->request->getParam('action'));
     
     if(isset($this->RegistryAuth)) {
       // Components might not be loaded on error, so check
       $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions($this->getCOID()));
+  
+      // Provide the user's application roles to the views.
+      $this->set('vv_user_roles', $this->RegistryAuth->getApplicationUserRoles($this->getCOID()));
     }
     
     return parent::beforeRender($event);

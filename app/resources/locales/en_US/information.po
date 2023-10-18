@@ -36,6 +36,12 @@ msgstr "You are not an active member in any collaboration. If your request for e
 msgid "cos.select"
 msgstr "Please select the collaboration (CO) you wish to manage."
 
+msgid "cmp.config.notice"
+msgstr "<a href="{0}">Platform-wide configurations</a> are available in the <a href="{1}">COmanage CO</a>."
+
+msgid "cmp.co.notice"
+msgstr "This is the COmanage CO, which is used for platform wide <a href="{0}">configurations</a>."
+
 msgid "entity.id"
 msgstr "ID: {0}"
 

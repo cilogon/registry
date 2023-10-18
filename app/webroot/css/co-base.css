@@ -946,6 +946,16 @@ ul.form-list li.alert-banner .co-alert {
 .top-filters-fields-date .duet-date__toggle {
   margin-top: -3px;
 }
+/* PLATFORM NOTICE (for COmanage CO) */
+#platform-notice {
+  padding: 0.5em;
+  text-align: center;
+  border-bottom: 1px solid var(--cmg-color-bg-006);
+  background-color: var(--cmg-color-highlight-004);
+}
+#platform-notice a:hover {
+  text-decoration: underline;
+}
 /* CO CONFIGURATION DASHBOARD */
 .config-menu {
   list-style: none;
@@ -964,6 +974,26 @@ ul.form-list li.alert-banner .co-alert {
 #platform-menu {
   border-bottom: 1px solid var(--cmg-color-bg-006);
   padding-bottom: 1em;
+}
+h2.config-subtitle {
+  font-size: 1.6em;
+}
+.config-platform-notice {
+  margin: 4em 0 -3em;
+}
+#main-menu .menu-panel .config-platform-notice {
+  margin: 0 0 1em;
+}
+#main-menu .menu-panel .config-platform-notice a {
+  display: inline;
+  padding: 0;
+}
+#main-menu .menu-panel .config-platform-notice a:hover {
+  background-color: unset;
+  text-decoration: underline;
+}
+#main-menu .menu-panel .config-platform-notice .material-icons-outlined {
+  font-size: 24px;
 }
 /* INDEX ACTION COMMAND MENUS */
 th.with-field-actions {

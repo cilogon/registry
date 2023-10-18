@@ -423,6 +423,32 @@ class RegistryAuthComponent extends Component
   }
   
   /**
+   * Obtain the application role of the user for general use in the views
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int   $coId  Current CO ID, if known
+   * @return array $appRoles Array of roles
+   */
+  
+  public function getApplicationUserRoles(?int $coId): array {
+    $appUserRoles = [];
+    
+    // True for platform administrator
+    $appUserRoles['platform'] = $this->isPlatformAdmin();
+    
+    // True for administrator of the current CO
+    $appUserRoles['co'] = $this->isCoAdmin($coId);
+    
+    // TODO: add other application roles such as 'cou' and 'support'
+    // See: https://spaces.at.internet2.edu/display/COmanage/Registry+PE+Permissions  
+    
+    // True if user is authenticated
+    $appUserRoles['authuser'] = $this->isAuthenticatedUser();
+    
+    return $appUserRoles;
+  }
+  
+  /**
    * Obtain the identifier of the currently authenticated user.
    *
    * @since  COmanage Registry v5.0.0
@@ -544,6 +570,17 @@ class RegistryAuthComponent extends Component
   
   public function isApiUser(): bool {
     return $this->authenticatedApiUser;
+  }
+  
+  /**
+   * Determine if the current user is authenticated.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool True if the current user is authenticated
+   */
+  
+  public function isAuthenticatedUser(): bool {
+    return !empty($this->authenticatedUser);
   }
   
   /**

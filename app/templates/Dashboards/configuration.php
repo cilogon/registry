@@ -34,6 +34,8 @@
 
 <section class="inner-content">
   <?php if(!empty($vv_platform_menu_items)): ?>
+    <h2 class="config-subtitle"><?= __d('menu','co.configuration.panel.platform') ?></h2>
+    <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.platform.desc') ?></p>
     <ul id="platform-menu" class="config-menu">
       <?php foreach($vv_platform_menu_items as $label => $cfg): ?>
         <li>
@@ -50,7 +52,9 @@
           ?>
         </li>
       <?php endforeach; // $vv_configuration_menu_items ?>
-  </ul>
+    </ul>
+    <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration.title') ?></h2>
+    <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.desc') ?></p>
   <?php endif; // $vv_platform_menu_items ?>
   <ul id="configuration-menu" class="config-menu">
     <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
@@ -71,6 +75,30 @@
     <?php endforeach; // $vv_configuration_menu_items ?>
   </ul>
 </section>
+
+<?php if(empty($vv_platform_menu_items) && $vv_user_roles['platform']): ?>
+  <?php
+    $noticeUrls = [    
+      $this->Url->build([
+        'plugin'       => null,
+        'controller'   => 'dashboards',
+        'action'       => 'configuration',
+        '?'            => [
+          'co_id' => 1
+      ]]),
+      $this->Url->build([
+      'plugin'       => null,
+      'controller'   => 'dashboards',
+      'action'       => 'dashboard',
+      '?'            => [
+        'co_id' => 1
+      ]])
+    ];
+  ?>
+  <div class="config-platform-notice">
+    <?= $this->Alert->alert(__d('information','cmp.config.notice', $noticeUrls), 'information', true) ?>
+  </div>
+<?php endif; ?>
 
 <div class="comanage-version">
   <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
