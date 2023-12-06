@@ -76,14 +76,14 @@ class DashboardsController extends StandardController {
     // could be delegated to (eg) a COU Admin at some point...
     
     $artifactMenuItems = [
+      __d('controller', 'ExtIdentitySourceRecords', [99]) => [
+        'icon'          => 'assignment',
+        'controller'    => 'ext_identity_source_records',
+        'action'        => 'index'
+      ],
       __d('controller', 'Jobs', [99]) => [
         'icon'          => 'assignment',
         'controller'    => 'jobs',
-        'action'        => 'index'
-      ],
-      __d('controller', 'ExternalIdentitySourceRecords', [99]) => [
-        'icon'          => 'assignment',
-        'controller'    => 'external_identity_source_records',
         'action'        => 'index'
       ]
     ];

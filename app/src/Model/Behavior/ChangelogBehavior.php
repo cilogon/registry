@@ -183,10 +183,16 @@ class ChangelogBehavior extends Behavior
       // We also increment the revision on the entity, not the archive
       $entity->revision++;
 
-      // Cake 3 doesn't have callbacks=false, so we use the archive flag so we
+      // Cake 3+ doesn't have callbacks=false, so we use the archive flag so we
       // don't recurse indefinitely. We also skip validation in case (eg) validation
       // rules changed since the original record was created.
-      $subject->saveOrFail($archive, ['checkRules' => false, 'archive' => false]);
+      $subject->saveOrFail($archive, [
+                            'checkRules' => false,
+                            'archive' => false,
+                            // We don't want to save associated models by default since
+                            // it will rekey them to the new archive copy.
+                            'associated' => false
+                           ]);
       
       return;
     }

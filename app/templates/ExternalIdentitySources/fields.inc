@@ -36,4 +36,6 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('plugin');
 
   print $this->Field->control('pipeline_id');
+  
+  print $this->Field->control('sor_label');
 }

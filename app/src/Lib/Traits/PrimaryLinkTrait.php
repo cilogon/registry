@@ -191,10 +191,18 @@ trait PrimaryLinkTrait {
     // should be set. Return the first one we find.
     foreach(array_keys($this->primaryLinks) as $plKey) {
       if(!empty($obj->$plKey)) {
+        // If this Primary Link points to a plugin, add a hint for the callter
+        $plugin = null;
+
+        if(strstr($this->primaryLinks[$plKey], '.')) {
+          $plugin = \App\Lib\Util\StringUtilities::pluginPlugin($this->primaryLinks[$plKey]);
+        }
+
         return (object)[
-          'attr'  => $plKey,
-          'value' => $obj->$plKey,
-          'co_id' => $this->calculateCoForRecord($obj)
+          'plugin'  => $plugin,
+          'attr'    => $plKey,
+          'value'   => $obj->$plKey,
+          'co_id'   => $this->calculateCoForRecord($obj)
         ];
       }
     }
@@ -450,7 +458,6 @@ trait PrimaryLinkTrait {
    * @param  int $coId  CO ID
    */
   
-  
   public function setCurCoId(int $coId) {
     $this->curCoId = $coId;
   }
@@ -479,12 +486,15 @@ trait PrimaryLinkTrait {
       if(preg_match('/^(.*)\.(.*?)_id$/', $field, $f)) {
         // Modified plugin notation match
         $t = $f[1] . "." . \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[2]));
+        // We need the key to be the field name, not Plugin.field
+        $this->primaryLinks[$f[2]."_id"] = $t;
       } elseif(preg_match('/^(.*?)_id$/', $field, $f)) {
         // Standard foreign key match
         $t = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
+        $this->primaryLinks[$field] = $t;
+      } else {
+        $this->primaryLinks[$field] = null;
       }
-      
-      $this->primaryLinks[$field] = $t;
     }
   }
   
@@ -492,13 +502,13 @@ trait PrimaryLinkTrait {
    * Set the redirect goal for this table. 
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string $goal   Redirect goal ('index', 'pluggableLink', 'primaryLink', 'self')
+   * @param  string $goal   Redirect goal ('index', 'pluggableLink', 'primaryLink', 'self', 'special')
    * @param  string $action Action to set goal for ('*' for default)
    * @throws InvalidArgumentException
    */
   
   public function setRedirectGoal(string $goal, string $action='*') {
-    if(!in_array($goal, ['index', 'pluggableLink', 'primaryLink', 'self'])) {
+    if(!in_array($goal, ['index', 'pluggableLink', 'primaryLink', 'self', 'special'])) {
       throw new \InvalidArgumentException(__d('error', 'invalid', [$goal]));
     }
     

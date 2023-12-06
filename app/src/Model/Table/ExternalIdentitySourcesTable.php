@@ -78,6 +78,8 @@ class ExternalIdentitySourcesTable extends Table {
     
     $this->setPrimaryLink(['co_id']);
     $this->setRequiresCO(true);
+    // We need to calculate the redirect URL for sync ourselves (in the controller)
+    $this->setRedirectGoal('special', 'sync');
     $this->setAllowLookupPrimaryLink(['retrieve', 'search', 'sync']);
 
     $this->setAutoViewVars([
@@ -132,7 +134,12 @@ class ExternalIdentitySourcesTable extends Table {
 
     $pModel = StringUtilities::pluginModel($source->plugin);
 
-    return $this->$pModel->retrieve($source, $source_key);
+    $record = $this->$pModel->retrieve($source, $source_key);
+
+    // Inject the source key so every backend doesn't have to do this
+    $record['entity_data']['source_key'] = $source_key;
+
+    return $record;
   }
 
   /**

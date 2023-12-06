@@ -48,6 +48,9 @@ msgstr "{0} {1} Deleted: {2}"
 msgid "edited.mvea"
 msgstr "{0} {1} Edited: {2}"
 
+msgid "ExternalIdentities.status.recalculated"
+msgstr "External Identity status recalculated from {0} to {1}"
+
 msgid "ExternalIdentitySources.synced"
 msgstr "External Identity Source sync complete"
 
@@ -108,8 +111,20 @@ msgstr "Started via JobCommand by {0} (uid {1})"
 msgid "People.added.pipeline"
 msgstr "Created new Person via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
 
+msgid "People.status.recalculated"
+msgstr "Person status recalculated from {0} to {1}"
+
+msgid "PersonRoles.status.recalculated"
+msgstr "Person Role status recalculated from {0} to {1}"
+
+msgid "Pipelines.complete"
+msgstr "Pipeline {0} complete for EIS {1} source key {2}"
+
 msgid "Pipelines.ei.added"
 msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
+
+msgid "Pipelines.started"
+msgstr "Pipeline {0} started for EIS {1} source key {2}"
 
 msgid "saved"
 msgstr "Saved"

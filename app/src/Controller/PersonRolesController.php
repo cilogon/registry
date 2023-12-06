@@ -42,4 +42,56 @@ class PersonRolesController extends MVEAController {
       'PersonRoles.title' => 'asc'
     ]
   ];
+
+  // Cache the personStatus on add/edit actions, in order to render a flash message
+  protected $cachedPerson = null;
+
+  /**
+   * Callback run prior to the request action.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   */
+
+  public function beforeFilter(\Cake\Event\EventInterface $event) {
+    if(!$this->request->is('restful') 
+       && ($this->request->is('post') || $this->request->is('put'))
+       && in_array($this->request->getParam('action'), ['add', 'edit'])) {
+      // Cache the current Person so to see if status was recalculated
+      $this->cachedPerson = $this->PersonRoles->People->get($this->request->getData('person_id'));
+    }
+
+    return parent::beforeFilter($event);
+  }
+
+  /**
+   * Set supplemental Flash messages.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function setSupplementalFlash($entity) {
+    // If we auto-recalculated the Person Role status, set a Flash message
+    $autoStatus = $this->PersonRoles->getAutoStatus();
+
+    if(!empty($autoStatus)) {
+      $this->Flash->information(__d('result', 
+                                    'PersonRoles.status.recalculated', 
+                                    [__d('enumeration', 'StatusEnum.'.$autoStatus['from']), 
+                                    __d('enumeration', 'StatusEnum.'.$autoStatus['to'])]));
+    }
+
+    if(!empty($this->cachedPerson)) {
+      // See if we have a new Person status value, and if so set a Flash message
+
+      $person = $this->PersonRoles->People->get($this->cachedPerson->id);
+
+      if($this->cachedPerson->status != $person->status) {
+        $this->Flash->information(__d('result', 
+                                      'People.status.recalculated', 
+                                      [__d('enumeration', 'StatusEnum.'.$this->cachedPerson->status), 
+                                      __d('enumeration', 'StatusEnum.'.$person->status)]));
+      }
+    }
+  }
 }

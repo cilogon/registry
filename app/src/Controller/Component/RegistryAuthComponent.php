@@ -130,6 +130,41 @@ class RegistryAuthComponent extends Component
     
     // Perform authorization check
 
+    // Controllers can handle their own authn and/or authz, as indicated
+    // by implementing the willHandleAuth() function. This applies to both
+    // regular and API requests.
+
+    $controllerAuthz = false;
+
+    if(method_exists($controller, 'willHandleAuth')) {
+      // The Controller might handle its own authn/z
+
+      $mode = $controller->willHandleAuth($event);
+
+      switch($mode) {
+        case 'authz':
+          // The controller will handle authorization, but we still need
+          // to make sure we have an authenticated user
+          $controllerAuthz = true;
+          break;
+        case 'open':
+          // The current request is open/public, no auth required
+          return true;
+          break;
+        case 'no':
+          // The controller will not do either authn or authz, so apply
+          // standard behavior
+          break;
+        case 'yes':
+          // The controller will handle both authn and authz, simply return
+          return true;
+          break;
+        default:
+          throw new \InvalidArgumentException("Unknown willHandleAuth return value $mode");
+          break;
+      }
+    }
+
     // Do we have an authenticated user session?
 
     // Note we don't stuff anything into the session anymore, the only attribute
@@ -146,9 +181,22 @@ class RegistryAuthComponent extends Component
       
       try {
         if($this->authenticateApiUser()) {
-          if($this->calculatePermission(action: $request->getParam('action'), id: $id)) {
+          $authok = false;
+
+          if($controllerAuthz) {
+            // Don't merge these if statements together! We want to hand off
+            // to the controller to determine if authz was met, and if not redirect
+            // appropriately. We _don't_ want to call our own calculatePermission().
+            if($controller->calculatePermission()) {
+              // Controller asserts authorization successful
+              $authok = true;
+            }
+          } elseif($this->calculatePermission(action: $request->getParam('action'), id: $id)) {
             // Authorization successful
-            
+            $authok = true;
+          }
+
+          if($authok) {
             $AuthenticationEvents = TableRegistry::getTableLocator()->get('AuthenticationEvents');
             
             $AuthenticationEvents->record(identifier: $this->authenticatedUser,
@@ -182,12 +230,6 @@ class RegistryAuthComponent extends Component
       }
     } else {
       // Certain requests do not require authentication
-      
-      // XXX is this too broad, or are all Pages permitted? Also, should this move
-      // into Controller::isAuthorized?
-      if($controller->getName() == 'Pages') {
-        return true;
-      }
 
       if(!empty($auth['external']['user'])) {
         // We have a valid username that is *authenticated* for the current request.
@@ -196,7 +238,14 @@ class RegistryAuthComponent extends Component
         $controller->set('vv_user', ['username' => $auth['external']['user']]);
         $this->authenticatedUser = $auth['external']['user'];
         
-        if($this->calculatePermission($request->getParam('action'), $id)) {
+        if($controllerAuthz) {
+          // Don't merge these if statements together! We want to hand off
+          // to the controller to determine if authz was met, and if not redirect
+          // appropriately. We _don't_ want to call our own calculatePermission().
+          if($controller->calculatePermission()) {
+            return true;
+          }
+        } elseif($this->calculatePermission($request->getParam('action'), $id)) {
           // Authorization successful
           return true;
         }

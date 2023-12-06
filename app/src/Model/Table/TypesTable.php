@@ -106,7 +106,6 @@ class TypesTable extends Table {
     $this->hasMany('Pronouns');
     $this->hasMany('TelephoneNumbers');
     $this->hasMany('Urls');
-// XXX add other MVEA models
     
     $this->setDisplayField('display_name');
     

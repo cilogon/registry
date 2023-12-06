@@ -99,6 +99,7 @@ class NamesTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary', 'unfreeze']);
     $this->setRequiresCO(true);
+    // Models that AcceptCoId should be expicitly added to StandardApiController::initialize()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
     
@@ -145,7 +146,7 @@ class NamesTable extends Table {
   {
     if(!empty($data['source_name_id'])) {
       // Source records may not assert primary name on the Person copy.
-// XXX this implies an EIS name cannot be a primary name - document as an AR
+// XXX this implies an EIS name cannot be a primary name - document as an AR 
       $data['primary_name'] = false;
     }
   }
@@ -235,10 +236,20 @@ class NamesTable extends Table {
    */
   
   public function primaryName(int $id, string $recordType='person') {
-    return $this->find()
-                ->where([$recordType.'_id' => $id,
-                         'primary_name' => true])
-                ->firstOrFail();
+    if($recordType == 'person') {
+      // Return the Primary Name
+
+      return $this->find()
+                  ->where(['person_id' => $id,
+                          'primary_name' => true])
+                  ->firstOrFail();
+    } else {
+      // Return the first name, whatever it is
+
+      return $this->find()
+                  ->where(['external_identity_id' => $id])
+                  ->firstOrFail();
+    }
   }
 
   /**

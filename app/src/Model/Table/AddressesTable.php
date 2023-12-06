@@ -94,6 +94,7 @@ class AddressesTable extends Table {
     
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
+    // Models that AcceptCoId should be expicitly added to StandardApiController::initialize()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['unfreeze']);

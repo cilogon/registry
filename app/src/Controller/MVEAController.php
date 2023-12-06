@@ -92,7 +92,7 @@ class MVEAController extends StandardController {
         
             $externalIdentity = $ExternalIdentity->findById($eiId)->firstOrFail();
         
-            // What's the primary name for the Extarnal Identity?
+            // What's the primary name for the External Identity? The first name found...
             $this->set('vv_ei_name', $Names->primaryName($externalIdentity->id, 'external_identity'));
             $this->set('vv_ei_id', $externalIdentity->id);
         

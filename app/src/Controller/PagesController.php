@@ -87,4 +87,16 @@ class PagesController extends AppController
 
         return $this->render();
     }
+
+    /**
+     * Indicate whether this Controller will handle some or all authnz.
+     * 
+     * @since  COmanage Registry v5.0.0
+     * @param  EventInterface   $event  Cake event, ie: from beforeFilter
+     * @return string                   "no", "open", "authz", or "yes"
+     */
+
+    function willHandleAuth(\Cake\Event\EventInterface $event): string {
+        return "open";
+    }
 }

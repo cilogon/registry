@@ -33,6 +33,7 @@ use App\Lib\Enum\TemplateableStatusEnum;
 use App\Lib\Events\ChangelogEventListener;
 use App\Lib\Events\CoIdEventListener;
 use App\Lib\Events\RuleBuilderEventListener;
+use App\Lib\Util\StringUtilities;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Datasource\Exception;
@@ -219,6 +220,20 @@ class AppController extends Controller {
       if($lookup) {
         foreach($availablePrimaryLinks as $potentialPrimaryLink) {
           // Try to find a value
+
+          if(strstr($potentialPrimaryLink, '.')) {
+            // For looking up values in records here, we want only the attribute
+            // itself and not the plugin name (used for hacky notation by
+            // PrimaryLinkTrait::setPrimaryLink(). Note this is a field and not
+            // a model, but pluginModel() gets us the bit we need.
+
+            // Store the plugin for possible later reference.
+            $potentialPlugin = StringUtilities::pluginPlugin($potentialPrimaryLink);
+
+            // We clobber $potentialPrimaryLink to avoid rewriting a bunch of code,
+            // but probably we should rewrite it.
+            $potentialPrimaryLink = StringUtilities::pluginModel($potentialPrimaryLink);
+          }
           
           if($this->request->is('get')) {
             // If this action allows unkeyed, asserted primary link IDs, check the query
@@ -269,7 +284,13 @@ class AppController extends Controller {
                 
                 $this->cur_pl->value = $linkValue;
               }
-            } elseif($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
+            }
+            
+            // If we didn't find the primary link in the submitted form or API
+            // request, it might be available via the URL.
+
+            if(!$linkValue
+               && $this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
               // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
               $param = (int)$this->request->getParam('pass.0');
               
@@ -439,40 +460,48 @@ class AppController extends Controller {
       // Nothing to do...
       return;
     }
-    
-    // $this->name = Models, unless we're in an API call
-    $modelsName = $this->name;
-    
-    $attrs = $this->request->getAttributes();
-    
-    // Unlike Match, where the Matchgrid is embedded in the request API URL,
-    // Registry API calls are more similar to UI calls, where we may or may
-    // not be able to find the CO ID directly in the URL.
-    if($this->request->is('restful') 
-       && !empty($attrs['params']['model'])) {
-      $modelsName = \Cake\Utility\Inflector::camelize($attrs['params']['model']);
-      $this->$modelsName = TableRegistry::getTableLocator()->get($modelsName);
-    }
-    
-    if(!method_exists($this->$modelsName, "requiresCO")
-       || !$this->$modelsName->requiresCO()) {
-      // Nothing to do, CO not required by this model/controller
-      return;
-    }
-    
-    // Not all models have CO as their primary link. This will also
-    // trigger setting of the viewVar for breadcrumbs and anything else.
-    $link = $this->getPrimaryLink(true);
-    
+
     // Try to find the requested CO
     $coid = null;
     
-    // getPrimaryLink has already done our work
-    if($link->attr == 'co_id') {
-      $coid = $link->value;
-    } else {
-      if(!empty($link->co_id)) {
-        $coid = $link->co_id;
+    if(method_exists($this, 'calculateRequestedCOID')) {
+      // This controller implements special logic
+
+      $coid = $this->calculateRequestedCOID();
+    }
+    
+    if(!$coid) {
+      // $this->name = Models, unless we're in an API call
+      $modelsName = $this->name;
+      
+      $attrs = $this->request->getAttributes();
+      
+      // Unlike Match, where the Matchgrid is embedded in the request API URL,
+      // Registry API calls are more similar to UI calls, where we may or may
+      // not be able to find the CO ID directly in the URL.
+      if($this->request->is('restful') 
+        && !empty($attrs['params']['model'])) {
+        $modelsName = \Cake\Utility\Inflector::camelize($attrs['params']['model']);
+        $this->$modelsName = TableRegistry::getTableLocator()->get($modelsName);
+      }
+      
+      if(!method_exists($this->$modelsName, "requiresCO")
+        || !$this->$modelsName->requiresCO()) {
+        // Nothing to do, CO not required by this model/controller
+        return;
+      }
+      
+      // Not all models have CO as their primary link. This will also
+      // trigger setting of the viewVar for breadcrumbs and anything else.
+      $link = $this->getPrimaryLink(true);
+
+      // getPrimaryLink has already done our work
+      if($link->attr == 'co_id') {
+        $coid = $link->value;
+      } else {
+        if(!empty($link->co_id)) {
+          $coid = $link->co_id;
+        }
       }
     }
     
@@ -499,17 +528,21 @@ class AppController extends Controller {
         throw new \InvalidArgumentException(__d('error', 'inactive', [__d('controller', 'Cos', [1]), $coid]));
       }
       
-      // We store the CO ID in Configuration to facilitate its access from
-      // model contexts such as validation where passing the value via the
-      // Controller is not particularly feasible.
+      if(!empty($modelsName) && !empty($this->$modelsName)) {
+        // We store the CO ID in Configuration to facilitate its access from
+        // model contexts such as validation where passing the value via the
+        // Controller is not particularly feasible. Note that for API calls
+        // $modelsName may not be set, so (eg) StandardApiController does
+        // something similar.
 
-      // This only works for the current model, not related models. If/when we
-      // need to support relatedmodels, we could have setCurCoId() cascade the
-      // CO to any of its related models that require it, or use the event
-      // listener approach commented out below.
-      if(method_exists($this->$modelsName, "acceptsCoId") 
-         && $this->$modelsName->acceptsCoId()) {
-        $this->$modelsName->setCurCoId((int)$coid);
+        // This only works for the current model, not related models. If/when we
+        // need to support relatedmodels, we could have setCurCoId() cascade the
+        // CO to any of its related models that require it, or use the event
+        // listener approach commented out below.
+        if(method_exists($this->$modelsName, "acceptsCoId") 
+          && $this->$modelsName->acceptsCoId()) {
+          $this->$modelsName->setCurCoId((int)$coid);
+        }
         
         /* This doesn't work for the current model since it has already been
            initialized, but it could be an option for related models later...

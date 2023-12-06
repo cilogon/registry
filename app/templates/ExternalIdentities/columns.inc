@@ -31,10 +31,10 @@ $indexColumns = [
   'name' => [
     'type' => 'link',
     'action' => 'view',
-    'model' => 'primary_name',
+    'model' => 'names',
     'field' => 'full_name',
 // XXX see comments in the controller about sorting on given vs family
-    'sortable' => 'PrimaryName.family'
+//    'sortable' => 'PrimaryName.family'
   ]
 ];
 

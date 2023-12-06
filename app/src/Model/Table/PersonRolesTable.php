@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Event\EventInterface;
+use \Cake\I18n\FrozenTime;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -66,6 +68,9 @@ class PersonRolesTable extends Table {
       'student'
     ]
   ];
+
+  // Cache status info if we automatically recalculated the status in beforeMarshal
+  protected $autoStatus = null;
   
   /**
    * Perform Cake Model initialization.
@@ -178,7 +183,107 @@ class PersonRolesTable extends Table {
       ]
     ]);
   }
-  
+
+  /**
+   * Callback before data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   beforeMarshal event
+   * @param  ArrayObject     $data    Entity data
+   * @param  ArrayObject     $options Callback options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
+  {
+    // Perform validity date/status reconciliation. status should always be set,
+    // but we'll check for it just in case.
+    if(!empty($data['status'])) {
+      // Note that $data['id'] will _not_ be set, even for updates, so we can't directly
+      // reference the Person Role ID in log records
+
+      // AR-PersonRole-4 A Person Role with a Valid From date in the future and a status
+      // of Active, Expired, or Grace Period will be given a status of Pending Activation,
+      // unless the Person Role is frozen. A Person Role in Pending Activation status with
+      // a valid from date in the past will be given a status of Active.
+
+      if(!empty($data['valid_from'])) {
+        $validFrom = new FrozenTime($data['valid_from']);
+
+        if($validFrom->isPast()
+           && $data['status'] == StatusEnum::PendingActivation) {
+          if(empty($data['frozen']) || !$data['frozen']) {
+            $this->autoStatus = [ 'from' => $data['status'], 'to' => StatusEnum::Active ];
+            $this->llog('rule', "AR-PersonRole-4 Updating status on Person Role for Person " . $data['person_id'] . " from Pending Activation to Active");
+            $data['status'] = StatusEnum::Active;
+          } else {
+            $this->llog('trace', 'Not recalculating status on Person Role for Person ' . $data['person_id'] . ' since the record is frozen');
+          }
+        } elseif($validFrom->isFuture()
+           && in_array($data['status'], [StatusEnum::Active,
+                                         StatusEnum::Expired,
+                                         StatusEnum::GracePeriod])) {
+          if(empty($data['frozen']) || !$data['frozen']) {
+            $this->autoStatus = [ 'from' => $data['status'], 'to' => StatusEnum::PendingActivation ];
+            $this->llog('rule', "AR-PersonRole-4 Updating status on Person Role for Person " . $data['person_id'] . " from " . $data['status'] . " to Pending Activation");
+            $data['status'] = StatusEnum::PendingActivation;
+          } else {
+            $this->llog('trace', 'Not recalculating status on Person Role for Person ' . $data['person_id'] . ' since the record is frozen');
+          }
+        }
+      }
+
+      // AR-PersonRole-5 A Person Role with a Valid Through date in the past and a status
+      // of Active, Grace Period, or Pending Activation will be given a status of Expired,
+      // unless the Person Role is frozen. A Person Role in Expired status with a valid
+      // from date in the future will be given a status of Active.
+
+      if(!empty($data['valid_through'])) {
+        $validThrough = new FrozenTime($data['valid_through']);
+
+        if($validThrough->isFuture()
+           && $data['status'] == StatusEnum::Expired) {
+          if(empty($data['frozen']) || !$data['frozen']) {
+            $this->autoStatus = [ 'from' => $data['status'], 'to' => StatusEnum::Active ];
+            $this->llog('rule', "AR-PersonRole-5 Updating status on Person Role for Person " . $data['person_id'] . " from Expired to Active");
+            $data['status'] = StatusEnum::Active;
+          } else {
+            $this->llog('trace', 'Not recalculating status on Person Role for Person ' . $data['person_id'] . ' since the record is frozen');
+          }
+        } elseif($validThrough->isPast()
+           && in_array($data['status'], [StatusEnum::Active,
+                                         StatusEnum::GracePeriod,
+                                         StatusEnum::PendingActivation])) {
+          if(empty($data['frozen']) || !$data['frozen']) {
+            $this->autoStatus = [ 'from' => $data['status'], 'to' => StatusEnum::Expired ];
+            $this->llog('rule', "AR-PersonRole-5 Updating status on Person Role for Person " . $data['person_id'] . " from " . $data['status'] . " to Pending Expired");
+            $data['status'] = StatusEnum::Expired;
+          } else {
+            $this->llog('trace', 'Not recalculating status on Person Role for Person ' . $data['person_id'] . ' since the record is frozen');
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-PersonRole-6 If both valid from and valid through dates are provided for
+    // a Person Role, the valid from date must be earlier than the valid through date.
+
+    $rules->add([$this, 'ruleDatesSequential'],
+                'datesSequential',
+                ['errorField' => 'valid_from']);
+
+    return $rules;
+  }
+
   /**
    * Table specific logic to generate a display field.
    *
@@ -199,6 +304,17 @@ class PersonRolesTable extends Table {
     return (string)$entity->id;
   }
   
+  /**
+   * Get information related to automatic status recalculation.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @return array    'from': Old status, 'to': New status
+   */
+
+  public function getAutoStatus(): ?array {
+    return $this->autoStatus;
+  }
+
   /**
    * Obtain an iterator for the set of Members in the specified COU.
    *
@@ -300,6 +416,10 @@ class PersonRolesTable extends Table {
     
     $this->reconcileCouMembersGroupMemberships($entity);
     
+    if($entity->isDirty('status')) {
+      $this->People->recalculateStatus($entity->person_id);
+    }
+
     return true;
   }
   
@@ -397,6 +517,30 @@ class PersonRolesTable extends Table {
     }
   }  
   
+  /**
+   * Application Rule to determine if validity dates are sequential
+   *
+   * @param   Entity  $entity   Entity to be validated
+   * @param   array   $options  Application rule options
+   *
+   * @return bool|string true if the Rule check passes, false otherwise
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function ruleDatesSequential($entity, array $options): bool|string {
+    // This rule only applies if both valid_from and valid_through are set.
+
+    if(!empty($entity->valid_from) && !empty($entity->valid_through)) {
+      $diff = $entity->valid_from->diff($entity->valid_through);
+
+      if($diff->invert) {
+        return __d('error', 'PersonRoles.valid_from.after');
+      }
+    }
+
+    return true;
+  }
+
   /**
    * Perform a keyword search.
    *

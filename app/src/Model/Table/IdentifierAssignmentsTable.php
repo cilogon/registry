@@ -214,8 +214,6 @@ class IdentifierAssignmentsTable extends Table {
           $this->llog('trace', "New Identifier '".$ia->description."' assigned (".$ret['assigned'][$ia->description].") for $entityType $entityId");
 
           $this->attachIdentifier($ia, $entity, $ret['assigned'][$ia->description]);
-
-          $cxn->commit();
         }
         catch(\Exception $e) {
           $this->llog('debug', "Identifier '".$ia->description."' assignment failed for $entityType $entityId: " . $e->getMessage());
@@ -225,8 +223,12 @@ class IdentifierAssignmentsTable extends Table {
       } else {
         $this->llog('trace', "Identifier '".$ia->description."' already assigned for $entityType $entityId");
         $ret['already'][$ia->description] = true; // XXX maybe return the identifier?
-        $cxn->rollback();
+        // We can't rollback here because it will cause parent transactions
+        // (eg: Pipelines) to fail
+//        $cxn->rollback();
       }
+
+      $cxn->commit();
     }
 
     // Trigger provisioning, letting errors bubble up (AR-GMR-5)

@@ -32,6 +32,7 @@ namespace App\Controller\Component;
 use \Cake\Controller\Component;
 use \Cake\Event\EventInterface;
 use \Cake\ORM\TableRegistry;
+use \Cake\Utility\Inflector;
 use \App\Lib\Util\StringUtilities;
 
 class BreadcrumbComponent extends Component
@@ -179,11 +180,7 @@ class BreadcrumbComponent extends Component
     $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
 
     $contain = [];
-
-    if($modelsName == 'People' || $modelsName == 'ExternalIdentities') {
-      // We need the Primary Name to render it
-      $contain[] = 'PrimaryName';
-    }
+    $primaryName = null;
 
     $linkTable = TableRegistry::getTableLocator()->get($modelsName);
     $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
@@ -203,8 +200,15 @@ class BreadcrumbComponent extends Component
 
     $label = $linkObj->$displayField;
 
-    if(!empty($linkObj->primary_name)) {
-      $label = $linkObj->primary_name->full_name;
+    if($modelsName == 'People' || $modelsName == 'ExternalIdentities') {
+      // We need the Primary Name (or first name found) to render it
+
+      $Names = TableRegistry::getTableLocator()->get('Names');
+
+      // This will throw an error on failure
+      $primaryName = $Names->primaryName($linkObj->id, Inflector::underscore(Inflector::singularize($modelsName)));
+      
+      $label = $primaryName->full_name;
     }
 
     // If we don't have a visible label use the record ID

@@ -154,7 +154,7 @@ class StringUtilities {
     } else {
       // Standard localization
 
-      return __d('controller', $modelsName, [$plural ? 99 : 1]);
+      return __d('controller', $controllerName, [$plural ? 99 : 1]);
     }
   }
 

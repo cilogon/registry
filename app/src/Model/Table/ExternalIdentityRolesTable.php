@@ -108,7 +108,7 @@ class ExternalIdentityRolesTable extends Table {
       ],
       'affiliationTypes' => [
         'type' => 'type',
-        'attribute' => 'PersonRoles.affiliation'
+        'attribute' => 'PersonRoles.affiliation_type'
       ]
     ]);
     
@@ -117,13 +117,13 @@ class ExternalIdentityRolesTable extends Table {
 // See also CFM-126
 // XXX need to add couAdmin, eventually
       'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'delete' =>   false,
+        'edit' =>     false,
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
+        'add' =>      false,
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
@@ -213,6 +213,10 @@ class ExternalIdentityRolesTable extends Table {
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
     if(!$entity->deleted) {
       $this->recordHistory($entity);
+
+      if($entity->isDirty('status')) {
+        $this->ExternalIdentities->recalculateStatus($entity->external_identity_id);
+      }
     }
 
     return true;

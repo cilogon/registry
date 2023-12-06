@@ -211,7 +211,8 @@ class PluginsTable extends Table {
    */
 
   public function findActive(Query $query): Query {
-    return $query->where(['Plugins.status' => SuspendableStatusEnum::Active]);
+    return $query->where(['Plugins.status' => SuspendableStatusEnum::Active])
+                 ->order(['plugin' => 'ASC']);
   }
 
   /**
@@ -440,7 +441,7 @@ class PluginsTable extends Table {
       $dh = opendir($cfg['path']);
 
       while(($d = readdir($dh)) !== false) {
-        if($d == "." || $d == "..") {
+        if($d == "." || $d == ".." || $d == ".DS_Store") {
           continue;
         }
 

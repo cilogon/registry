@@ -33,6 +33,7 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -396,7 +397,6 @@ class PeopleTable extends Table {
         'AdHocAttributes',
         'EmailAddresses' => [ 'Types' ],
         'ExternalIdentities' => [
-          'PrimaryName' => [ 'Types' ],
           'Addresses' => [ 'Types' ],
           'AdHocAttributes',
           'EmailAddresses' => [ 'Types' ],
@@ -523,6 +523,73 @@ class PeopleTable extends Table {
     }
 
     return $ret;
+  }
+
+  /**
+   * Recalculate Person status based on Person Roles status.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int      $id   Person ID
+   * @return string         New Person status  
+   */
+
+  public function recalculateStatus(int $id): ?string {
+    $newStatus = null;
+
+    // Start by pulling the roles for this person, along with the Person record
+
+    $person = $this->get($id, ['contain' => 'PersonRoles']);
+
+    if(!empty($person->person_roles)) {
+      foreach($person->person_roles as $role) {
+        if(!$newStatus) {
+          // This is the first role, just set the new status to it
+
+          $newStatus = $role->status;
+        } else {
+          // Check if this role's status is more preferable than the current status
+
+          if(StatusEnum::rank($role->status) > StatusEnum::rank($newStatus)) {
+            $newStatus = $role->status;
+          }
+        }
+      }
+    }
+
+    if($newStatus) {
+      if($newStatus != $person->status) {
+        // Locked status cannot be recalculated. This isn't an error, per se.
+        if($person->status == StatusEnum::Locked) {
+          $this->llog('trace', 'Not recalculating Person " . $person->id . " status since the record is locked');
+          return $curStatus;
+        }
+
+        // Update the Person status
+        $oldStatus = $person->status;
+        $person->status = $newStatus;
+        $this->save($person);
+
+        // Record history
+        $this->recordHistory(
+          entity:   $person,
+          action:   ActionEnum::PersonStatusRecalculated,
+          comment:  __d('result', 
+                        'People.status.recalculated', 
+                        [__d('enumeration', 'StatusEnum.'.$oldStatus), 
+                         __d('enumeration', 'StatusEnum.'.$newStatus)])
+        );
+
+        // We shouldn't need to manually trigger provisioning here since we'll typically
+        // be called via PersonRole::afterSave(), which will be called by some other
+        // context (StandardController, Pipelines, etc) that will manage provisioning
+        // after the PersonRole save (to the calling context's perspective) is finished.
+//  $this->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
+      }
+      // else nothing to do, status is unchanged
+    }
+    // else no roles, leave status unchanged
+
+    return $newStatus;
   }
 
   /**

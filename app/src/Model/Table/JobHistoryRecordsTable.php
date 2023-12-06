@@ -97,6 +97,25 @@ class JobHistoryRecordsTable extends Table {
   }
   
   /**
+   * Perform actions while marshaling data, before validation.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event    Event
+   * @param  ArrayObject    $data     Object data, in array format
+   * @param  ArrayObject    $options  Entity save options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
+  {
+    if(!empty($data['comment'])) {
+      // Truncate the comment to fit the column width
+      $column = $this->getSchema()->getColumn('comment');
+
+      $data['comment'] = substr($data['comment'], 0, $column['length']);
+    }
+  }
+  
+  /**
    * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
@@ -173,11 +192,7 @@ class JobHistoryRecordsTable extends Table {
     ]);
     $validator->allowEmptyString('record_key');
     
-    $validator->add('comment', [
-      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('comment')]],
-                   'provider' => 'table'],
-    ]);
-    $validator->notEmptyString('comment');
+    $this->registerStringValidation($validator, $schema, 'comment', true);
     
     $validator->add('status', [
       'content' => ['rule' => ['inList', JobStatusEnum::getConstValues()]]

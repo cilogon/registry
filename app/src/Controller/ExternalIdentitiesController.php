@@ -38,11 +38,11 @@ use Cake\ORM\TableRegistry;
 class ExternalIdentitiesController extends MVEAController {
   public $paginate = [
     'order' => [
-      'PrimaryName.family' => 'asc'
+      'Name.family' => 'asc'
     ],
     'sortableFields' => [
-      'PrimaryName.given',
-      'PrimaryName.family'
+      'Names.given',
+      'Names.family'
     ]
   ];
 }

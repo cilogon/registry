@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Event\EventInterface;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
@@ -113,6 +114,25 @@ class HistoryRecordsTable extends Table {
     ]);
   }
   
+  /**
+   * Perform actions while marshaling data, before validation.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event    Event
+   * @param  ArrayObject    $data     Object data, in array format
+   * @param  ArrayObject    $options  Entity save options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
+  {
+    if(!empty($data['comment'])) {
+      // Truncate the comment to fit the column width
+      $column = $this->getSchema()->getColumn('comment');
+
+      $data['comment'] = substr($data['comment'], 0, $column['length']);
+    }
+  }
+
   /**
    * Table specific logic to generate a display field.
    *
@@ -219,17 +239,11 @@ class HistoryRecordsTable extends Table {
     
     $this->registerPrimaryKeyValidation($validator, $this->getPrimaryLinks());
     
-    $validator->add('action', [
-      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('action')]],
-                   'provider' => 'table'],
-    ]);
-    $validator->notEmptyString('action');
-    
-    $validator->add('comment', [
-      'length' => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn('comment')]],
-                   'provider' => 'table'],
-    ]);
-    $validator->notEmptyString('comment');
+    $this->registerStringValidation($validator, $schema, 'action', true);
+
+    // We disable validateInput for the comment field since changesToString likes to
+    // include > characters.
+    $this->registerStringValidation($validator, $schema, 'comment', required: true, validateInput: false);
     
     return $validator; 
   }

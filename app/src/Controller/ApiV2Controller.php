@@ -97,7 +97,7 @@ class ApiV2Controller extends AppController {
           $results[] = ['id' => $obj->id];
 
           // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-          if(method_exists($table, "requestProvisioning")) {
+          if(method_exists($this->modelsName, "requestProvisioning")) {
             $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
             $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
           }

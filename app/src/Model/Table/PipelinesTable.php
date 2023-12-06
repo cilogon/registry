@@ -43,6 +43,7 @@ use \App\Model\Entity\Person;
 use \App\Model\Entity\Pipeline;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\DeletedRoleStatusEnum;
+use \App\Lib\Enum\ExternalIdentityStatusEnum;
 use \App\Lib\Enum\MatchStrategyEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\StatusEnum;
@@ -194,6 +195,8 @@ class PipelinesTable extends Table {
     // By finding a matching ID patchEntity() will know not to update the related
     // model. If an attribute changes in the Backend record, we won't match it
     // here and the old value will be deleted while the new value will be added.
+    // (We do still need to handle some metadata for new records, though, in particular
+    // foreign keys.)
 
     // Start with the ID of the External Identity itself.
     $ret['id'] = $externalIdentity->id;
@@ -224,7 +227,9 @@ class PipelinesTable extends Table {
             }
           }
         }
+      }
 
+      if(!empty($ret[$m])) {
         // And make sure each mapped Backend record has a parent record ID.
         // We do this separately to catch any new records.
         foreach(array_keys($ret[$m]) as $i) {
@@ -234,20 +239,48 @@ class PipelinesTable extends Table {
     }
 
     // Now map any External Identity Roles. We can use the role_key to help here.
-    if(!empty($externalIdentity->external_identity_roles) 
+    
+    if(!empty($externalIdentity->external_identity_roles)
        && !empty($ret['external_identity_roles'])) {
       foreach($externalIdentity->external_identity_roles as $roleentity) {
         foreach($ret['external_identity_roles'] as $i => $rdata) {
           if($roleentity->role_key == $rdata['role_key']) {
-            // Insert the record ID
+            // Insert the record ID for existing records (updates)
             $ret['external_identity_roles'][$i]['id'] = $roleentity->id;
+
+            // While we're here, work with any related models
+            foreach([
+              // related models need EntityMetaTrait
+              'ad_hoc_attributes',
+              'addresses', 
+              'telephone_numbers'
+            ] as $m) {
+              if(!empty($ret['external_identity_roles'][$i][$m])) {
+                if(!empty($roleentity->$m)) {
+                  // There is at least one associated model of this type on the
+                  // External Identity Role, and in the mapped Backend data
+                  foreach($roleentity->$m as $rentity) {
+                    // Check all mapped records for the same model
+                    foreach($ret['external_identity_roles'][$i][$m] as $j => $mdata) {
+                      if(!isset($ret['external_identity_roles'][$i][$m][$j]['id']) // We saw this one already
+                        && $rentity->isProbablyThisArray($mdata)) {
+                        // Insert the record ID
+                        $ret['external_identity_roles'][$i][$m][$j]['id'] = $rentity->id;
+                        break; // We can exit the inner loop, but not the outer ones
+                      }
+                    }
+                  }
+                }
+
+                // Insert the parent record ID, separately to catch any new records
+                foreach(array_keys($ret['external_identity_roles'][$i][$m]) as $j) {
+                  $ret['external_identity_roles'][$i][$m][$j]['external_identity_role_id'] = $roleentity->id;
+                }
+              }
+            }
+
             break; // We can exit the inner loop, but not the outer one
           }
-        }
-
-        // Insert the parent record ID, again separately to catch any new records.
-        foreach(array_keys($ret['external_identity_roles']) as $i) {
-          $ret['external_identity_roles'][$i]['external_identity_id'] = $externalIdentity->id;
         }
       }
 
@@ -256,38 +289,12 @@ class PipelinesTable extends Table {
       // therefore not have existing keys). For deleted Roles, when the Role itself
       // is deleted the associated models will also be deleted (as dependencies) so
       // we don't need to facilitate that here.
+    }
 
-      foreach($externalIdentity->external_identity_roles as $roleentity) {
-        foreach($ret['external_identity_roles'] as $i => $rdata) {
-          foreach([
-            // related models need EntityMetaTrait
-            'ad_hoc_attributes',
-            'addresses', 
-            'telephone_numbers'
-          ] as $m) {
-            if(!empty($roleentity->$m) 
-               && !empty($ret['external_identity_roles'][$m])) {
-              // There is at least one associated model of this type on the
-              // External Identity Role, and in the mapped Backend data
-              foreach($roleentity->$m as $rentity) {
-                // Check all mapped records for the same model
-                foreach($ret['external_identity_roles'][$m] as $i => $mdata) {
-                  if(!isset($ret['external_identity_roles'][$m][$i]['id']) // We saw this one already
-                    && $rentity->isProbablyThisArray($mdata)) {
-                    // Insert the record ID
-                    $ret['external_identity_roles'][$m][$i]['id'] = $rentity->id;
-                    break; // We can exit the inner loop, but not the outer ones
-                  }
-                }
-
-                // Insert the parent record ID, separately to catch any new records
-                foreach(array_keys($ret['external_identity_roles'][$m]) as $i) {
-                  $ret['external_identity_roles'][$m][$i]['external_identity_role_id'] = $roleentity->id;
-                }
-              }
-            }
-          }
-        }
+    if(!empty($ret['external_identity_roles'])) {
+      // Insert the parent record ID, again separately to catch any new records.
+      foreach(array_keys($ret['external_identity_roles']) as $i) {
+        $ret['external_identity_roles'][$i]['external_identity_id'] = $externalIdentity->id;
       }
     }
 
@@ -341,9 +348,9 @@ class PipelinesTable extends Table {
     // Force this to be the primary name just in case it wasn't set
     $newPerson['names'][0]['primary_name'] = true;
 
-    $entity = $this->Cos->People->newEntity($newPerson);
+    $entity = $this->Cos->People->newEntity($newPerson, ['associated' => 'Names']);
 
-    $this->Cos->People->saveOrFail($entity);
+    $this->Cos->People->saveOrFail($entity, ['associated' => 'Names']);
 
     $this->Cos->People->recordHistory(
       entity: $entity,
@@ -358,6 +365,49 @@ class PipelinesTable extends Table {
     );
 
     return $entity;
+  }
+
+  /**
+   * Copy the data from an entity and filter metadata, returning an array
+   * suitable for creating a new entity. Related models are also removed.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity $entity       Entity to copy
+   * @return array                Array of filtered entity data
+   */
+
+  protected function duplicateFilterEntityData($entity): array {
+    // There's some overlap with TableMetaTrait::filterMetadataFields...
+
+    $newdata = $entity->toArray();
+
+    // This list is a combination of eliminating fields that create
+    // noise in change detection for History creation, as well as
+    // functional attributes that cause problems if set (eg: frozen).
+    unset(
+      $newdata['id'],
+      $newdata['external_identity_id'],
+      $newdata['external_identity_role_id'],
+      $newdata['actor_identifier'],
+      $newdata['created'],
+      $newdata['deleted'],
+      $newdata['frozen'],
+      $newdata['full_name'],
+      // XXX we temporarily filter manager and sponsor identifiers because
+      // we haven't yet implemented support for mapping them
+      $newdata['manager_identifier'],
+      $newdata['sponsor_identifier'],
+      $newdata['modified'],
+      $newdata['primary_name'],
+      $newdata['revision'],
+      $newdata['role_key'],
+      // We don't want status for the External Identity, and we handle it
+      // specially for External Identity Roles
+      $newdata['status']
+    );
+
+    // This will remove anything that isn't stringy
+    return array_filter($newdata, 'is_scalar');
   }
 
   /**
@@ -400,7 +450,7 @@ class PipelinesTable extends Table {
         $this->llog('trace', "Record for EIS $eisId source key " . $eisBackendRecord['source_key'] . " is unchanged, stopping Pipeline");
 
         $cxn->commit();
-        $return;
+        return;
       }
 
       // (2) Match against an existing Person or create a new Person, in
@@ -411,7 +461,16 @@ class PipelinesTable extends Table {
         $eisRecord['record'],
         $eisBackendRecord['entity_data']
       );
-      
+
+      // We can't record the start history until we have a Person entity
+      $this->Cos->People->ExternalIdentities->recordHistory(
+        entity: $person,
+        action: ActionEnum::PersonPipelineStarted,
+        comment: __d('result', 
+                    'Pipelines.started',
+                    [$id, $eisId, $eisBackendRecord['source_key']])
+      );
+
       // (3) Create or update an External Identity based on the sync strategy
       //     and the backend attributes
       $externalIdentity = $this->syncExternalIdentity(
@@ -443,18 +502,28 @@ class PipelinesTable extends Table {
       );
 
       // (6) Update Person Status
-
+      // - We no longer need to do anything here since status recalculation
+      //   happens automatically
+/*
       $person = $this->updatePersonStatus(
         $pipeline,
         $externalIdentity,
         $person
-      );
+      );*/
 
       // (7) Provision
 
       $this->Cos->People->requestProvisioning(
         id:       $person->id,
         context:  ProvisioningContextEnum::Automatic
+      );
+
+      $this->Cos->People->ExternalIdentities->recordHistory(
+        entity: $person,
+        action: ActionEnum::PersonPipelineComplete,
+        comment: __d('result', 
+                    'Pipelines.complete',
+                    [$id, $eisId, $eisBackendRecord['source_key']])
       );
 
       $this->llog('trace', "Pipeline $id complete for EIS $eisId source key " . $eisBackendRecord['source_key']);
@@ -468,42 +537,6 @@ class PipelinesTable extends Table {
 
       throw new \RuntimeException($e->getMessage());
     }
-  }
-
-  /**
-   * Copy the data from an entity and filter metadata, returning an array
-   * suitable for creating a new entity. Related models are also removed.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity $entity       Entity to copy
-   * @return array                Array of filtered entity data
-   */
-
-  protected function duplicateFilterEntityData($entity): array {
-    // There's some overlap with TableMetaTrait::filterMetadataFields...
-
-    $newdata = $entity->toArray();
-
-    // This list is a combination of eliminating fields that create
-    // noise in change detection for History creation, as well as
-    // functional attributes that cause problems if set (eg: frozen).
-    unset(
-      $newdata['id'],
-      $newdata['external_identity_id'],
-      $newdata['actor_identifier'],
-      $newdata['created'],
-      $newdata['deleted'],
-      $newdata['frozen'],
-      $newdata['full_name'],
-      $newdata['modified'],
-      $newdata['primary_name'],
-      $newdata['revision'],
-      $newdata['role_key'],
-      $newdata['status']
-    );
-
-    // This will remove anything that isn't stringy
-    return array_filter($newdata, 'is_scalar');
   }
 
   /**
@@ -607,8 +640,7 @@ class PipelinesTable extends Table {
 
     $ret = [
       // Make sure source_key is a string
-      'source_key' => (string)$eisAttributes['source_key'],
-      'status'     => StatusEnum::Active
+      'source_key' => (string)$eisAttributes['source_key']
     ];
     
     if(!empty($eisAttributes['date_of_birth'])) {
@@ -683,15 +715,27 @@ class PipelinesTable extends Table {
                                                            'PersonRoles.affiliation_type',
                                                            $val
                                                          );
+          } elseif($attr == 'status') {
+            // Generally we'll let validation and recalcuation handle status,
+            // but if for some reason the backend asserts Deleted (which is used
+            // internally as a sync status, and so is not permitted to be asserted
+            // by the backend) we'll just convert it to Archived rather than futz
+            // around with context specific validation rules.
+
+            // Strictly speaking this is not an Application Rule since backends
+            // shouldn't assert Deleted status so we don't need to document a
+            // behavior for what happens when they do.
+
+            $rolecopy['status'] = 
+              $val == ExternalIdentityStatusEnum::Deleted
+              ? ExternalIdentityStatusEnum::Archived
+              : $val;
           } else {
-// XXX need to add sponsor/manager mapping CFM-33
+// XXX need to add sponsor/manager mapping CFM-33; remove from duplicateFilterEntityData
             // Just copy the attribute
             $rolecopy[$attr] = $val;
           }
         }
-
-// XXX need to revisit status management CFM-344
-        $rolecopy['status'] = StatusEnum::Active;
 
         // If no affiliation type was provided by the backend,
         // use the Pipeline's configuration
@@ -719,7 +763,7 @@ class PipelinesTable extends Table {
                                           $attr['type']
                                         );
                 unset($copy['type']);
-                $ret[$m][] = $copy;
+                $rolecopy[$m][] = $copy;
               }
               catch(\Exception $e) {
                 $this->llog('error', "Failed to map $attr type \"" . $attr['type'] . "\" to a valid Type ID for EIS role record " . $role['role_key'] . ", skipping");
@@ -879,6 +923,9 @@ class PipelinesTable extends Table {
       // and try to correlate its record keys.
       $mapped = $this->correlateRecordKeys($externalIdentity, $mapped);
 
+      // Track any new entities so we don't immediately delete them
+      $newEntities = [];
+
       // To avoid complications with patching, we work with individual records,
       // not associated models.
       $externalIdentityEntity = $this->Cos->People->ExternalIdentities->get(
@@ -940,11 +987,12 @@ class PipelinesTable extends Table {
                     $aentity,
                     // We only need to filter out related models for
                     // ExternalIdentityRoles since the others don't have them
-                    array_filter($arecord, 'is_scalar')
+                    array_filter($arecord, 'is_scalar'),
+                    ['associated' => []]
                   );
 
                   if($aentity->isDirty()) {
-                    $this->Cos->People->ExternalIdentities->$model->saveOrFail($aentity);
+                    $this->Cos->People->ExternalIdentities->$model->saveOrFail($aentity, ['associated' => false]);
                     $this->llog('trace', "Updated $model " . $aentity->id . " for External Identity " . $externalIdentityEntity->id);
                   }
 
@@ -994,7 +1042,11 @@ class PipelinesTable extends Table {
                             $newentity = $this->Cos->People->ExternalIdentities->$model->$eirmodel->newEntity($aeirrecord);
 
                             $this->Cos->People->ExternalIdentities->$model->$eirmodel->saveOrFail($newentity);
-                            this->llog('trace', "Added $eirmodel " . $newentity->id . " for $model " . $aentity->id);
+                            $this->llog('trace', "Added $eirmodel " . $newentity->id . " for $model " . $aentity->id);
+
+                            // Inject the new entity so syncPerson sees it
+                            $externalIdentity->$model->$eirmodel[] = $newentity;
+                            $newEntities[$amodel][] = $newentity->id;
                           }
                         }
                       }
@@ -1004,7 +1056,11 @@ class PipelinesTable extends Table {
 
                       if(!empty($aentity->$aeirmodel)) {
                         foreach($aentity->$aeirmodel as $aeirentity) {
-                          $found = Hash::extract($arecord[$aeirmodel], '{n}[id='.$aeirentity->id.']');
+                          $found = false;
+                          
+                          if(!empty($arecord[$aeirmodel])) {
+                            $found = Hash::extract($arecord[$aeirmodel], '{n}[id='.$aeirentity->id.']');
+                          }
 
                           if(!$found) {
                             $this->llog('trace', "Deleted $eirmodel " . $aeirentity->id . " for $model " . $aentity->id);
@@ -1027,10 +1083,21 @@ class PipelinesTable extends Table {
               // $arecord should include the associated models, so we don't need
               // to do any special handling for them.
 
-              $newentity = $this->Cos->People->ExternalIdentities->$model->newEntity($arecord);
+              $newentity = $this->Cos->People->ExternalIdentities->$model->newEntity(
+                $arecord,
+                ['associated' => ['Addresses', 'AdHocAttributes', 'TelephoneNumbers']]
+              );
 
-              $this->Cos->People->ExternalIdentities->$model->saveOrFail($newentity);
+              $this->Cos->People->ExternalIdentities->$model->saveOrFail(
+                $newentity,
+                ['associated' => ['Addresses', 'AdHocAttributes', 'TelephoneNumbers']]
+              );
+
               $this->llog('trace', "Added $model " . $newentity->id . " for External Identity " . $externalIdentityEntity->id);
+
+              // Inject the new entity so syncPerson sees it
+              $externalIdentity->$amodel[] = $newentity;
+              $newEntities[$amodel][] = $newentity->id;
             }
           }
         }
@@ -1045,7 +1112,19 @@ class PipelinesTable extends Table {
 
         if(!empty($externalIdentity->$amodel)) {
           foreach($externalIdentity->$amodel as $aentity) {
-            $found = Hash::extract($mapped[$amodel], '{n}[id='.$aentity->id.']');
+            $found = false;
+
+            if(!empty($mapped[$amodel])) {
+              // Is this an existing entity in the mapped data?
+              $found = (bool)Hash::extract($mapped[$amodel], '{n}[id='.$aentity->id.']');
+
+              if(!$found
+                 && !empty($newEntities[$amodel])
+                 && in_array($aentity->id, $newEntities[$amodel])) {
+                // This is a new entity we just added
+                $found = true;
+              }
+            }
 
             if(!$found) {
               if($model == 'ExternalIdentityRoles') {
@@ -1064,14 +1143,36 @@ class PipelinesTable extends Table {
 
                 $prole = $this->Cos->People->PersonRoles->find()
                               ->where(['PersonRoles.source_external_identity_role_id' => $aentity->id])
+                              ->contain(['AdHocAttributes', 'Addresses', 'TelephoneNumbers'])
                               ->first();
       
                 if(!empty($prole)) {
-                  // Update the status in accordance with the Pipeline configuratino
-                  $this->llog('trace', "Updating status on PersonRole " . $prole->id . " to " . $pipeline->sync_status_on_delete . " following deletion of source ExternalIdentityRole " . $aentity->id);
+                  if(isset($prole->frozen) && $prole->frozen) {
+                    $this->llog('trace', "Refusing to update frozen Person Role " . $prole->id . " from deleted External Identity Role " . $aentity->id);
+                  } else {
+                    // Update the status in accordance with the Pipeline configuration
+                    $this->llog('trace', "Updating status on PersonRole " . $prole->id . " to " . $pipeline->sync_status_on_delete . " following deletion of source ExternalIdentityRole " . $aentity->id);
 
-                  $prole->status = $pipeline->sync_status_on_delete;
-                  $this->Cos->People->PersonRoles->saveOrFail($prole);
+                    $prole->status = $pipeline->sync_status_on_delete;
+                    $this->Cos->People->PersonRoles->saveOrFail($prole);
+
+                    // Delete the MVEAs associated with this Person Role. We do this here
+                    // rather than in syncPerson since we're doing all the other work here.
+                    foreach([
+                      'Addresses', 
+                      'AdHocAttributes', 
+                      'TelephoneNumbers'
+                    ] as $eirmodel) {
+                      $aeirmodel = Inflector::underscore($eirmodel);
+
+                      if(!empty($prole->$aeirmodel)) {
+                        foreach($prole->$aeirmodel as $aeirentity) {
+                          $this->llog('trace', "Deleted $aeirmodel " . $aeirentity->id . " for Person Role " . $prole->id);
+                          $this->Cos->People->PersonRoles->$eirmodel->deleteOrFail($aeirentity);
+                        }
+                      }
+                    }
+                  }
                 }
               }
 
@@ -1167,6 +1268,11 @@ class PipelinesTable extends Table {
             // There is an existing record, update it (if it changed) _unless_
             // the attribute record is frozen.
 
+            if($model == 'Names' && $found->primary_name) {
+              // Preserve the primary name flag, if set
+              $newdata['primary_name'] = true;
+            }
+
             $this->Cos->People->$model->patchEntity($found, $newdata);
 
             if($found->isDirty()) {
@@ -1228,7 +1334,8 @@ class PipelinesTable extends Table {
     $seenRoleIds = [];
 
     if(!empty($externalIdentity->external_identity_roles)) {
-      $sourcefk = 'source_external_identity_role_id';
+      // $sourcefk = 'source_external_identity_role_id'
+      $sourcefk = $this->Cos->People->PersonRoles->sourceForeignKey();
 
       // Pull the current Person Roles
       $curentities = $this->Cos->People->PersonRoles
@@ -1237,6 +1344,7 @@ class PipelinesTable extends Table {
                             'PersonRoles.person_id'        => $person->id,
                             "PersonRoles.$sourcefk IS NOT" => null
                           ])
+                          ->contain(['AdHocAttributes', 'Addresses', 'TelephoneNumbers'])
                           ->all();
 
       foreach($externalIdentity->external_identity_roles as $eirentity) {
@@ -1261,7 +1369,19 @@ class PipelinesTable extends Table {
 
         // duplicateFilterEntityData() will remove status, but we need to
         // set it back (if asserted) or set a default (if not).
-        $newdata['status'] = $eirentity->status ?? StatusEnum::Pending;
+        if(!empty($eirentity->status)) {
+          if($eirentity->status == ExternalIdentityStatusEnum::Archived) {
+            // The EI Role was flagged as Archived, update the Person Role to
+            // the status configured in the Pipeline. In this scenario, we don't
+            // otherwise remove associated MVEAs.
+            $newdata['status'] = $pipeline->sync_status_on_delete;
+          } else {
+            $newdata['status'] = $eirentity->status;
+          }
+        } else {
+          // Default to Active status for this Role (subject to validity date recalculation)
+          $newdata['status'] = StatusEnum::Active;
+        }
 
         // Do we have a corresponding record on the Person?
         $found = $curentities->firstMatch([$sourcefk => $eirentity->id]);
@@ -1270,13 +1390,13 @@ class PipelinesTable extends Table {
           // There is an existing record, update it (if it changed) _unless_
           // the role record is frozen.
 
-          $this->Cos->People->PersonRoles->patchEntity($found, $newdata);
+          $this->Cos->People->PersonRoles->patchEntity($found, $newdata, ['associated' => []]);
 
           if($found->isDirty()) {
             if(isset($found->frozen) && $found->frozen) {
-              $this->llog('trace', "Refusing to update frozen $model " . $found->id . " to Person from External Identity " . $externalIdentity->id);
+              $this->llog('trace', "Refusing to update frozen Person Role " . $found->id . " to Person from External Identity " . $externalIdentity->id);
             } else {
-              $this->Cos->People->PersonRoles->saveOrFail($found);
+              $this->Cos->People->PersonRoles->saveOrFail($found, ['associated' => false]);
               $this->llog('trace', "Updated PersonRole " . $found->id . " to Person from External Identity " . $externalIdentity->id);
             }
           }
@@ -1284,10 +1404,93 @@ class PipelinesTable extends Table {
           // Default the new attribute to not frozen
           $newdata['frozen'] = false;
 
-          $newentity = $this->Cos->People->PersonRoles->newEntity($newdata);
-          $this->Cos->People->PersonRoles->saveOrFail($newentity);
+          $newentity = $this->Cos->People->PersonRoles->newEntity($newdata, ['associated' => []]);
+          $this->Cos->People->PersonRoles->saveOrFail($newentity, ['associated' => false]);
 
           $this->llog('trace', "Added PersonRole " . $newentity->id . " to Person from External Identity " . $externalIdentity->id);
+        }
+
+        // Now handle related models
+
+        foreach([
+          'ad_hoc_attributes' => 'AdHocAttributes',
+          'addresses' => 'Addresses',
+          'telephone_numbers' => 'TelephoneNumbers'
+        ] as $m => $t) {
+          $seenRelatedModelIds = [];
+
+          if(!empty($eirentity->$m)) {
+            foreach($eirentity->$m as $relatedEntity) {
+              // Convert the related entity to an array and filter it
+              $newdata = $this->duplicateFilterEntityData($relatedEntity);
+              
+              // Insert foreign keys
+              $rsourcefk = $this->Cos->People->PersonRoles->$t->sourceForeignKey();
+              $newdata[$rsourcefk] = $relatedEntity->id;
+              $newdata['person_role_id'] = $found->id ?? $newentity->id;
+
+              // See if we have a correponding Person Role entity, but only if
+              // we're working with an existing Person Role
+
+              $relatedFound = null;
+
+              if(!empty($found->$m)) {
+                $relatedFound = Hash::extract($found->$m, '{n}['.$rsourcefk.'='.$relatedEntity->id.']');
+
+                if($relatedFound) {
+                  // Hash returns an array, but we want the first object in it
+
+                  $relatedFound = $relatedFound[0];
+
+                  // There is an existing record, update it (if it changed) _unless_
+                  // the record is frozen
+
+                  $this->Cos->People->PersonRoles->$t->patchEntity($relatedFound, $newdata, ['associated' => []]);
+
+                  if($relatedFound->isDirty()) {
+                    if(isset($relatedFound->frozen) && $relatedFound->frozen) {
+                      $this->llog('trace', "Refusing to update frozen $t " . $relatedFound->id . " to Person Role from External Identity Role $t " . $relatedEntity->id);
+                    } else {
+                      $this->Cos->People->PersonRoles->$t->saveOrFail($relatedFound, ['associated' => false]);
+                      $this->llog('trace', "Updated $t " . $relatedFound->id . " to Person Role from External Identity Role $t " . $relatedEntity->id);
+                    }
+                  }
+
+                  $seenRelatedModelIds[] = $relatedFound->id;
+                }
+              }
+
+              // We need to use empty() because Hash might return an empty array
+              if(empty($relatedFound)) {
+                // We have a new related entity on an existing Person Role, or a new
+                // Person Role (and therefore all related entities are new)
+
+                // Default the new attribute to not frozen
+                $newdata['frozen'] = false;
+
+                $newentity = $this->Cos->People->PersonRoles->$t->newEntity($newdata, ['associated' => []]);
+                $this->Cos->People->PersonRoles->$t->saveOrFail($newentity, ['associated' => false]);
+
+                $this->llog('trace', "Added PersonRole $t " . $newentity->id . " to Person Role from External Identity Role $t " . $relatedEntity->id);
+
+                $seenRelatedModelIds[] = $newentity->id;
+              }
+            }
+          }
+
+          // Delete any related models we didn't see in the source EI Role
+          if(!empty($found->$m)) {
+            foreach($found->$m as $curRelatedEntity) {
+              if(!in_array($curRelatedEntity->id, $seenRelatedModelIds)) {
+                if(isset($curRelatedEntity->frozen) && $curRelatedEntity->frozen) {
+                  $this->llog('trace', "Refusing to delete frozen $t " . $curRelatedEntity->id . " from Person Role $t " . $relatedEntity->id);
+                } else {
+                  $this->llog('trace', "Deleted $t " . $curRelatedEntity->id . " for Person Role " . $found->id);
+                  $this->Cos->People->PersonRoles->$t->deleteOrFail($curRelatedEntity);
+                }
+              }
+            }
+          }
         }
 
         $seenRoleIds[] = $eirentity->id;
@@ -1298,13 +1501,24 @@ class PipelinesTable extends Table {
       // to be applied, and also allows us to reactive a role if it comes back
       // with the same Role Key.
 
+      // Under what circumstances would we have a Person Role with a foreign key
+      // to an EI Role, but we didn't see that EI Role when walking the loop,
+      // above?
+      // - If the backend changed the status to Suspended or Archived, the EIR
+      //   would still be valid, and we would see it above.
+      // - If the backend deleted the role entirely, syncExternalIdentity would
+      //   notice, and explicitly change the PersonRole status to $delete_status
+      //   while ExternalIdentityRoles::beforeDelete would update the PR foreign
+      //   key to no longer point to the source EIR, so we wouldn't see the PR
+      //   at all.
+      // - A manually deleted EIR would behave similarly.
+/*
       if(!empty($curentities->person_roles)) {
         foreach($curentities->person_roles as $currole) {
-          if(!in_array($seenRoleIds, $curentities->currole->id)) {
-            // XXX want to delete person role $curentities->currole->id CFM-33
+          if(!in_array($currole->id, $seenRoleIds)) {
           }
         }
-      }
+      }*/
     }
 
     return $person;
@@ -1318,7 +1532,7 @@ class PipelinesTable extends Table {
    * @param  ExternalIdentity         $externalIdentity External Identity
    * @param  Person                   $person           Person
    * @return Person                                     Person
-   */
+   *
 
   protected function updatePersonStatus(
     Pipeline          $pipeline,
@@ -1336,7 +1550,7 @@ class PipelinesTable extends Table {
     }
 
     return $person;
-  }
+  }*/
 
   /**
    * Set validation rules.

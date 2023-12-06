@@ -49,8 +49,11 @@ $recordsExist = false;
 // Our default link actions, in order of preference, unless the column config overrides it
 $linkActions = ['edit', 'view'];
 
+// $vv_template_path will be set for plugins
+$templatePath = $vv_template_path ?? ROOT . DS . "templates" . DS . $modelsName;
+
 // Read the index configuration ($indexColumns) and the associated actions for this model
-$incFile = ROOT . DS . "templates" . DS . $modelsName . DS . "columns.inc";
+$incFile = $templatePath . DS . "columns.inc";
 if(!is_readable($incFile)) {
   throw new \InvalidArgumentException("$incFile is not readable");
 }
@@ -110,7 +113,13 @@ if(!empty($subnav)) {
           'action' => 'add',
           '?' => $linkFilter
         ],
-        'label' => __d('operation', 'add.a', __d('controller', $modelsName, [1])),
+        'label' => __d(
+                    'operation', 
+                    'add.a',
+                    \App\Lib\Util\StringUtilities::localizeController(
+                      controllerName: $modelsName, 
+                      pluginName: $this->getPlugin(), 
+                      plural: false))
       ];
     }
 
@@ -465,7 +474,11 @@ if(!empty($subnav)) {
                     }
                   } else {
                     if(!empty($entity->$m->$f)) {
+                      // HasOne
                       $label = $entity->$m->$f . $suffix;
+                    } elseif(!empty($entity->$m[0]->$f)) {
+                      // HasMany, pick the first
+                      $label = $entity->$m[0]->$f . $suffix;
                     }
                   }
                 }

@@ -90,8 +90,8 @@ msgstr "Pending Activation"
 msgid "ExternalIdentityStatusEnum.S"
 msgstr "Suspended"
 
-msgid "ExternalIdentityStatusEnum.XP"
-msgstr "Expired"
+msgid "ExternalIdentityStatusEnum.DX"
+msgstr "Deleted"
 
 msgid "GroupTypeEnum.MA"
 msgstr "Active Members"

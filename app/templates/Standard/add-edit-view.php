@@ -100,10 +100,15 @@ if(!empty($subnav)) {
       $perm = false;
 
       if(!empty($t['link']['controller'])) {
-        // We're linking into a related model
+        // We're linking into a related model, which may or may not be in a plugin
 
         $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
 
+        if(!empty($t['link']['plugin'])) {
+          $linkModel = \Cake\Utility\Inflector::camelize($t['link']['plugin'])
+                       . "." . $linkModel;
+        }
+        
         if(isset($vv_permissions[$linkModel][ $t['link']['action'] ])) {
           $perm = $vv_permissions[$linkModel][ $t['link']['action'] ];
         }

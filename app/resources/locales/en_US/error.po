@@ -229,6 +229,10 @@ msgstr "Page number must be an integer"
 msgid "perm"
 msgstr "Permission Denied"
 
+msgid "PersonRoles.valid_from.after"
+msgstr "Valid From date must be earlier than Valid Through date"
+
+
 msgid "Plugins.inactive"
 msgstr "The plugin {0} is not active"
 

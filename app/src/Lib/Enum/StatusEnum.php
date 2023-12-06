@@ -47,4 +47,63 @@ class StatusEnum extends StandardEnum {
   const PendingConfirmation = 'PC';
   const Suspended           = 'S';
   const Declined            = 'X';
+
+  /**
+   * Map a status value to its "preference" or "rank" for status recalculation.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $status StatusEnum
+   * @return int            Preference Rank (larger numbers are more preferred)
+   * @throws InvalidArgumentException
+   */
+
+  public static function rank(string $status): int {
+    // We rank status by "preference". More "preferred" statuses rank higher.
+    // To facilitate comparison, we'll convert the status to an integer value.
+    // Most preferred numbers are larger so we can say things like
+    // Active > Expired.
+
+    // Note a similar chart is defined in ExternalIdentityStatusEnum.
+
+    $statusRanks = array(
+      // Active statuses are most preferred
+      self::Active                => 15,
+      self::GracePeriod           => 14,
+
+      // Next come expired statuses, since there may be provisioned skeletal records
+      // that need to be maintained
+      self::Suspended             => 13,
+      self::Expired               => 12,
+
+      // Then invitation statuses
+      self::Approved              => 11,
+      self::PendingApproval       => 10,
+      self::Confirmed             => 9,
+      self::PendingConfirmation   => 8,
+      self::Invited               => 7,
+      self::PendingActivation     => 6,
+      self::Pending               => 5,  // It's not clear this is used for anything
+
+      // Denied and Declined are below expired since other roles are more likely to have been used
+      self::Denied                => 4,
+      self::Declined              => 3,
+
+      // Finally, we generally don't want Archived or Duplicate unless all roles are deleted or duplicates
+      self::Archived              => 2,
+      self::Duplicate             => 1
+    );
+
+    if($status == self::Locked) {
+      // Locked status should only apply to the Person and not Person Roles, so it
+      // shouldn't be valid for ranking.
+
+      throw new \InvalidArgumentException("Cannot calculate Rank for Locked status");
+    }
+
+    if(!isset($statusRanks[$status])) {
+      throw new \InvalidArgumentException("Invalid status $status");
+    }
+
+    return $statusRanks[$status];
+  }
 }

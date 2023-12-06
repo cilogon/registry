@@ -95,7 +95,8 @@ class FieldHelper extends Helper {
                           string $beforeField = '',
                           string $afterField = '',
                           string $prefix = '',
-                          bool   $labelIsTextOnly = false): string {
+                          bool   $labelIsTextOnly = false,
+                          string $controlType = null): string {
     $coptions = $options;
     $coptions['label'] = false;
     $coptions['readonly'] = 
@@ -111,8 +112,8 @@ class FieldHelper extends Helper {
   
     // Get the field type from the map of fields (e.g. 'boolean', 'string', 'timestamp')
     $fieldMap = $this->getView()->get('vv_field_types');
-    $fieldType = $fieldMap[$fieldName];
-    
+    $fieldType = $controlType ?: $fieldMap[$fieldName];
+
     // Remove prefix from field value
     if(!empty($prefix) && !empty($this->getView()->get('vv_obj')->$fieldName)) {
       $vv_obj = $this->getView()->get('vv_obj');
@@ -510,7 +511,6 @@ class FieldHelper extends Helper {
    * @return string             Source HTML
    */
   
-  // XXX docblock - emit control for MVEA that has a source_foo_id
   public function sourceControl($entity): string {
     // eg: Identifiers
     $modelName = StringUtilities::entityToClassName($entity);

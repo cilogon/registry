@@ -32,19 +32,22 @@ namespace App\Lib\Enum;
 class ActionEnum extends StandardEnum {
   // Codes beginning with 'X' (eg: 'XABC') are reserved for local use
   // Codes beginning with a lowercase 'p' (eg: 'pABC') are reserved for plugin use
-  const CommentAdded            = 'CMNT';
-  const GroupAdded              = 'ACGR';
-  const GroupDeleted            = 'DCGR';
-  const GroupEdited             = 'ECGR';
-  const GroupMemberAdded        = 'ACGM';
-  const GroupMemberDeleted      = 'DCGM';
-  const GroupMemberEdited       = 'ECGM';
-  const GroupOwnerAdded         = 'ACGO';
-  const GroupOwnerDeleted       = 'DCGO';
-  const IdentifierAutoAssigned  = 'AIDA';
-  const MVEAAdded               = 'AMVE';
-  const MVEADeleted             = 'DMVE';
-  const MVEAEdited              = 'EMVE';
-  const NamePrimary             = 'PNAM';
-  const PersonAddedPipeline     = 'ACPL';
+  const CommentAdded                  = 'CMNT';
+  const GroupAdded                    = 'ACGR';
+  const GroupDeleted                  = 'DCGR';
+  const GroupEdited                   = 'ECGR';
+  const GroupMemberAdded              = 'ACGM';
+  const GroupMemberDeleted            = 'DCGM';
+  const GroupMemberEdited             = 'ECGM';
+  const GroupOwnerAdded               = 'ACGO';
+  const GroupOwnerDeleted             = 'DCGO';
+  const IdentifierAutoAssigned        = 'AIDA';
+  const MVEAAdded                     = 'AMVE';
+  const MVEADeleted                   = 'DMVE';
+  const MVEAEdited                    = 'EMVE';
+  const NamePrimary                   = 'PNAM';
+  const PersonAddedPipeline           = 'ACPL';
+  const PersonPipelineComplete        = 'CCPL';
+  const PersonPipelineStarted         = 'SCPL';
+  const PersonStatusRecalculated      = 'RCPS';
 }

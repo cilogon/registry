@@ -69,25 +69,32 @@ trait ValidationTrait {
    * Register validation rules for the provided field, as a string.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  Validator            $validator Cake Validator
-   * @param  TableSchemaInterface $schema    Cake Schema
-   * @param  string               $field     Field name
-   * @param  bool                 $required  Whether this field is required
-   * @param  string               $prefix    Require the value to start with $prefix
+   * @param  Validator            $validator      Cake Validator
+   * @param  TableSchemaInterface $schema         Cake Schema
+   * @param  string               $field          Field name
+   * @param  bool                 $required       Whether this field is required
+   * @param  string               $prefix         Require the value to start with $prefix
+   * @param  bool                 $validateInput  Whether to appli the validateInput rule
    * @return Validator            Cake Validator
    */
   
-  public function registerStringValidation(Validator $validator,
-                                           TableSchemaInterface $schema,
-                                           string $field,
-                                           bool $required,
-                                           string $prefix = ''): Validator {
+  public function registerStringValidation(
+    Validator             $validator,
+    TableSchemaInterface  $schema,
+    string                $field,
+    bool                  $required,
+    string                $prefix = '',
+    bool                  $validateInput = true
+  ): Validator {
     $rules = [
       'size'    => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn($field)]],
-                    'provider' => 'table'],
-      'filter'  => ['rule'     => ['validateInput'],
                     'provider' => 'table']
     ];
+
+    if($validateInput) {
+      $rules['filter'] = ['rule'     => ['validateInput'],
+                          'provider' => 'table'];
+    }
 
     if(!empty($prefix)) {
       $rules['prefix'] = [
@@ -245,7 +252,7 @@ trait ValidationTrait {
       
       if(strlen($value) != strcspn($value, $invalid)) {
         // Mismatch, implying bad input
-        return __d('error', 'input.invalid');
+        return __d('error', 'input.invalid.2');
       }
       
       // We require at least one non-whitespace character (CO-1551)

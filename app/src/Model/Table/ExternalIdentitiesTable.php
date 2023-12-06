@@ -65,9 +65,10 @@ class ExternalIdentitiesTable extends Table {
     // Define associations
     $this->belongsTo('People');
     
-    $this->hasOne('PrimaryName')
-         ->setClassName('Names')
-         ->setConditions(['PrimaryName.primary_name' => true]);
+// External Identities do not have Primary Names
+//    $this->hasOne('PrimaryName')
+//         ->setClassName('Names');
+//         ->setConditions(['PrimaryName.primary_name' => true]);
     $this->hasMany('Names')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -111,9 +112,7 @@ class ExternalIdentitiesTable extends Table {
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     
-// XXX does some of this stuff really belong in the controller?
     $this->setEditContains([
-      'PrimaryName',
       'Addresses',
       'AdHocAttributes',
       'EmailAddresses',
@@ -125,9 +124,9 @@ class ExternalIdentitiesTable extends Table {
       'Urls'
     ]);
 
-    $this->setIndexContains(['PrimaryName']);
+    $this->setIndexContains(['Names']);
+
     $this->setViewContains([
-      'PrimaryName',
       'Addresses',
       'AdHocAttributes',
       'EmailAddresses',
@@ -165,6 +164,33 @@ class ExternalIdentitiesTable extends Table {
   }
   
   /**
+   * Callback before model delete.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  CakeEventEvent $event   The beforeDelete event
+   * @param                 $entity  Entity
+   * @param  ArrayObject    $options Options
+   * @return boolean                 True on success
+   */
+  
+  public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    // If we were only dealing with hard delete, we wouldn't need implementedEvents()
+    // below, because ChangelogBehavior ignores hard deletes.
+
+    // Manually delete any names, since the validation rules will fail on cascade.
+    // Since this isn't a hard delete we can't use deleteAll since we need
+    // ChangelogBehavior to fire.
+
+    $names = $this->Names->find()->where(['external_identity_id' => $entity->id])->all();
+
+    foreach($names as $n) {
+      $this->Names->delete($n, ['checkRules' => false]);
+    }
+
+    return true;
+  }
+
+  /**
    * Table specific logic to generate a display field.
    *
    * @since  COmanage Registry v5.0.0
@@ -173,11 +199,25 @@ class ExternalIdentitiesTable extends Table {
    */
   
   public function generateDisplayField(\App\Model\Entity\ExternalIdentity $entity): string {
-    if(empty($entity->primary_name)) {
-      throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
-    }
-    
-    return $entity->primary_name->full_name;
+    return $entity->names[0]->full_name;
+  }
+  
+  /**
+   * Define the table's implemented events.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function implementedEvents(): array {
+    $events = parent::implementedEvents();
+
+    // We need to adjust our beforeDelete priority to run before ChangelogBehavior's.
+    $events['Model.beforeDelete'] = [
+      'callable' => 'beforeDelete',
+      'priority' => 1
+    ];
+
+    return $events;
   }
   
   /**
@@ -194,6 +234,61 @@ class ExternalIdentitiesTable extends Table {
     $this->recordHistory($entity);
 
     return true;
+  }
+
+  /**
+   * Recalculate External Identity status based on External Identity Roles status.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int      $id   External Identity ID
+   * @return string         New External Identity status  
+   */
+
+  public function recalculateStatus(int $id): ?string {
+    $newStatus = null;
+
+    // Start by pulling the roles for this External Identity, along with the EI record
+
+    $externalIdentity = $this->get($id, ['contain' => 'ExternalIdentityRoles']);
+
+    if(!empty($externalIdentity->external_identity_roles)) {
+      foreach($externalIdentity->external_identity_roles as $role) {
+        if(!$newStatus) {
+          // This is the first role, just set the new status to it
+
+          $newStatus = $role->status;
+        } else {
+          // Check if this role's status is more preferable than the current status
+
+          if(ExternalIdentityStatusEnum::rank($role->status) > ExternalIdentityStatusEnum::rank($newStatus)) {
+            $newStatus = $role->status;
+          }
+        }
+      }
+    }
+
+    if($newStatus) {
+      if($newStatus != $externalIdentity->status) {
+        // Update the External Identity status
+        $oldStatus = $externalIdentity->status;
+        $externalIdentity->status = $newStatus;
+        $this->save($externalIdentity);
+
+        // Record history
+        $this->recordHistory(
+          entity:   $externalIdentity,
+          action:   ActionEnum::PersonStatusRecalculated,
+          comment:  __d('result', 
+                        'ExternalIdentities.status.recalculated', 
+                        [__d('enumeration', 'ExternalIdentityStatusEnum.'.$oldStatus), 
+                         __d('enumeration', 'ExternalIdentityStatusEnum.'.$newStatus)])
+        );
+      }
+      // else nothing to do, status is unchanged
+    }
+    // else no roles, leave status unchanged
+
+    return $newStatus;
   }
 
   /**

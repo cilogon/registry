@@ -60,6 +60,11 @@ class StandardController extends AppController {
 
         if($table->save($obj)) {
           $this->Flash->success(__d('result', 'saved'));
+
+          // Give the controller an opportunity to set additional Flash messages
+          if(method_exists($this, "setSupplementalFlash")) {
+            $this->setSupplementalFlash($obj);
+          }
           
           // Trigger provisioning, letting errors bubble up (AR-GMR-5)
           if(method_exists($table, "requestProvisioning")) {
@@ -123,6 +128,30 @@ class StandardController extends AppController {
     $this->render('/Standard/add-edit-view');
   }
   
+  /**
+   * Callback run prior to the request action.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
+   */
+
+  public function beforeFilter(\Cake\Event\EventInterface $event) {
+    if(!$this->request->is('restful')) {
+      // Provide additional hints to BreadcrumbsComponent. This needs to be here
+      // and not in beforeRender because the component beforeRender will run first.
+
+      $primaryLink = $this->getPrimaryLink(true);
+
+      if(!empty($primaryLink->attr) && $primaryLink->attr != 'co_id') {
+        // eg: EnrollmentFlowSteps -> EnrollmentFlow, JobHistoryRecords -> Job, etc
+        $this->Breadcrumb->injectPrimaryLink($primaryLink);
+      }
+    }
+
+    return parent::beforeFilter($event);
+  }
+
   /**
    * Standard operations before the view is rendered.
    *
@@ -340,6 +369,11 @@ class StandardController extends AppController {
         if($table->save($saveObj)) {
           $this->Flash->success(__d('result', 'saved'));
           
+          // Give the controller an opportunity to set additional Flash messages
+          if(method_exists($this, "setSupplementalFlash")) {
+            $this->setSupplementalFlash($obj);
+          }
+          
           // Trigger provisioning, letting errors bubble up (AR-GMR-5)
           if(method_exists($table, "requestProvisioning")) {
             $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
@@ -423,7 +457,7 @@ class StandardController extends AppController {
         $redirectGoal = 'index';
       }
     }
-    
+
     if($redirectGoal == 'self'
        && $entity
        && in_array($this->request->getParam('action'), ['add', 'edit'])) {
@@ -443,7 +477,7 @@ class StandardController extends AppController {
       ];
     } elseif($redirectGoal == 'pluggableLink' || $redirectGoal == 'primaryLink') {
       // pluggableLink and primaryLink do basically the same thing, except that
-      // pluggableLink moves from a plugin to core so we need to drop the plugin
+      // pluggableLink checks for special handling of the 'plugin' parameter
       $link = $this->getPrimaryLink(true);
       
       if(!empty($link->attr) && !empty($link->value)) {
@@ -454,9 +488,15 @@ class StandardController extends AppController {
         ];
 
         if($redirectGoal == 'pluggableLink') {
-          $redirect['plugin'] = null;
+          // If the primary link points to a plugin, we want to redirect
+          // into that plugin, otherwise the core code
+          $redirect['plugin'] = $link->plugin ?? null;
         }
       }
+    } elseif($redirectGoal == 'special') {
+      // The controller will implement a special calculation
+
+      $redirect = $this->calculateRedirectTarget($entity);
     } else {
       // Default is to redirect to the index view
       $redirect = ['action' => 'index'];
