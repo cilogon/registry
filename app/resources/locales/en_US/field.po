@@ -385,7 +385,7 @@ msgid "Groups.nesting_mode_all"
 msgstr "Require All for Nested Memberships"
 
 msgid "Groups.nesting_mode_all.desc"
-msgstr "For membership in this Group via Nested Groups, require membership in <i>all</i> Nested (Source) Groups to be a member of this Group (instead of <i>any</i>)"
+msgstr "When enabled, a Person must be found in ALL nested groups to be included as a member. When disabled, a Person found in ANY nested group will be included. Also note that nested groups marked for "negation" (to exclude members) take priority over nested groups used for inclusion."
 
 msgid "Groups.open"
 msgstr "Open"

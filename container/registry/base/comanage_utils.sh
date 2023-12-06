@@ -94,10 +94,10 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_ADMIN_USERNAME
         COMANAGE_REGISTRY_CRON_USER
         COMANAGE_REGISTRY_CRONTAB
-        COMANAGE_REGISTRY_DATASOURCE
         COMANAGE_REGISTRY_DATABASE
         COMANAGE_REGISTRY_DATABASE_HOST
         COMANAGE_REGISTRY_DATABASE_PORT
+        COMANAGE_REGISTRY_DATABASE_SCHEMA
         COMANAGE_REGISTRY_DATABASE_USER
         COMANAGE_REGISTRY_DATABASE_USER_PASSWORD
         COMANAGE_REGISTRY_EMAIL_FROM
@@ -131,6 +131,15 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_REMOTE_IP_PROXY_PROTOCOL_EXCEPTIONS
         COMANAGE_REGISTRY_REMOTE_IP_TRUSTED_PROXY
         COMANAGE_REGISTRY_REMOTE_IP_TRUSTED_PROXY_LIST
+        COMANAGE_REGISTRY_TRANSMOGRIFY
+        COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE
+        COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_HOST
+        COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_PORT
+        COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SCHEMA
+        COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_USER
+        COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_USER_PASSWORD
+        COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_COPY
+        COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_TYPES
         COMANAGE_REGISTRY_SECURITY_SALT
         COMANAGE_REGISTRY_PHP_SESSION_REDIS_URL
         COMANAGE_REGISTRY_SKIP_SETUP
@@ -147,9 +156,9 @@ function comanage_utils::consume_injected_environment() {
 
     # If the file associated with a configuration variable is present then 
     # read the value from it into the appropriate variable. So for example
-    # if the variable COMANAGE_REGISTRY_DATASOURCE_FILE exists and its
+    # if the variable COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE exists and its
     # value points to a file on the file system then read the contents
-    # of that file into the variable COMANAGE_REGISTRY_DATASOURCE.
+    # of that file into the variable COMANAGE_REGISTRY_DATABASE_USER_PASSWORD.
 
     local config_var
     for config_var in "${injectable_config_vars[@]}"
@@ -322,9 +331,16 @@ function comanage_utils::exec_cron() {
 #   COMANAGE_REGISTRY_DATABASE
 #   COMANAGE_REGISTRY_DATABASE_HOST
 #   COMANAGE_REGISTRY_DATABASE_PORT
+#   COMANAGE_REGISTRY_DATABASE_SCHEMA
 #   COMANAGE_REGISTRY_DATABASE_USER
 #   COMANAGE_REGISTRY_DATABASE_USER_PASSWORD
-#   COMANAGE_REGISTRY_DATASOURCE
+#   COMANAGE_REGISTRY_TRANSMOGRIFY
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_HOST
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_PORT
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SCHEMA
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_USER
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_USER_PASSWORD
 #   COMANAGE_REGISTRY_DIR
 #   OUTPUT
 # Arguments:
@@ -429,7 +445,96 @@ EOF
     php_string+=$'\n            '
     php_string+="'cacheMetadata' => ${COMANAGE_REGISTRY_DATABASE_CACHE_METADATA:-true},"
 
-    php_string+=$'\n        ]\n    ]\n];\n';
+    # Close the default datasource.
+    php_string+=$'\n        ]'
+
+    # Add a configuration for the database to be transmogrified (the source).
+    if [[ -n "${COMANAGE_REGISTRY_TRANSMOGRIFY}" ]]; then
+        php_string+=$','
+        php_string+=$'\n        '
+        php_string+=$"'transmogrify' => ["
+        php_string+=$'\n            '
+        php_string+=$"'className' => 'Cake\Database\Connection',"
+
+        php_string+=$'\n            '
+        php_string+="'driver' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_DRIVER:-Cake\Database\Driver\Postgres}',"
+
+        php_string+=$'\n            '
+        php_string+="'persistent' => ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_PERSISTENT:-false},"
+
+        php_string+=$'\n            '
+        php_string+="'host' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_HOST:-registry-database}',"
+
+        php_string+=$'\n            '
+        php_string+="'username' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_USER:-registry_user}',"
+
+        php_string+=$'\n            '
+        php_string+="'password' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_USER_PASSWORD:-password}',"
+
+        php_string+=$'\n            '
+        php_string+="'database' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE:-registry}',"
+
+        # The value of port is an integer.
+        if [[ -n "${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_PORT}" ]]; then
+            php_string+=$'\n            '
+            php_string+="'port' => ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_PORT},"
+        fi
+
+        php_string+=$'\n            '
+        php_string+="'encoding' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_ENCODING:-utf8}',"
+
+        php_string+=$'\n            '
+        php_string+="'timezone' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_ENCODING:-UTC}',"
+
+        # Only used when the database driver is Postgres.
+        if [[ ((${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_DRIVER} == 'Cake\Database\Driver\Postgres') ||
+             -z ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_DRIVER}) &&
+             -n ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SCHEMA} ]]; then
+            php_string+=$'\n            '
+            php_string+="'schema' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SCHEMA}',"
+        fi
+
+        if [[ -n ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_UNIX_SOCKET} ]]; then
+            php_string+=$'\n            '
+            php_string+="'unix_socket' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_UNIX_SOCKET}',"
+        fi
+
+        # Only used when the database driver is MySQL.
+        if [[ (${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_DRIVER} == 'Cake\Database\Driver\Mysql') &&
+              -n ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SSL_KEY} ]]; then
+            php_string+=$'\n            '
+            php_string+="'ssl_key' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SSL_KEY}',"
+        fi
+
+        # Only used when the database driver is MySQL.
+        if [[ (${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_DRIVER} == 'Cake\Database\Driver\Mysql') &&
+              -n ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SSL_CERT} ]]; then
+            php_string+=$'\n            '
+            php_string+="'ssl_cert' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SSL_CERT}',"
+        fi
+
+        # Only used when the database driver is MySQL.
+        if [[ (${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_DRIVER} == 'Cake\Database\Driver\Mysql') &&
+              -n ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SSL_CA} ]]; then
+            php_string+=$'\n            '
+            php_string+="'ssl_ca' => '${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_SSL_CA}',"
+        fi
+
+        php_string+=$'\n            '
+        php_string+="'log' => ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_LOG:-false},"
+
+        php_string+=$'\n            '
+        php_string+="'quoteIdentifiers' => ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_QUOTE_IDENTIFIERS:-false},"
+
+        php_string+=$'\n            '
+        php_string+="'cacheMetadata' => ${COMANAGE_REGISTRY_TRANSMOGRIFY_DATABASE_CACHE_METADATA:-true},"
+
+        # Close the transmogrify datasource.
+        php_string+=$'\n        ]'
+    fi
+
+    # Close Datasource and the top-level array.
+    php_string+=$'\n    ]\n];\n';
 
     printf "%s" "$php_string" > $database_config
 
@@ -878,9 +983,9 @@ function comanage_utils::registry_clear_cache() {
 #   COMANAGE_REGISTRY_ADMIN_FAMILY_NAME
 #   COMANAGE_REGISTRY_ADMIN_USERNAME
 #   COMANAGE_REGISTRY_DIR
-#   COMANAGE_REGISTRY_ENABLE_POOLING
 #   COMANAGE_REGISTRY_SECURITY_SALT
 #   COMANAGE_REGISTRY_SKIP_SETUP
+#   COMANAGE_REGISTRY_TRANSMOGRIFY
 #   OUTPUT
 # Arguments:
 #   None
@@ -904,10 +1009,15 @@ function comanage_utils::registry_setup() {
         export SECURITY_SALT="${COMANAGE_REGISTRY_SECURITY_SALT}"
     fi
 
-    echo "Running ./bin/cake setup..." > "$OUTPUT" 2>&1
-    ./bin/cake setup --admin-given-name "${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" \
-                     --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
-                     --admin-username "${COMANAGE_REGISTRY_ADMIN_USERNAME}" > "$OUTPUT" 2>&1
+    # We either transmogrify or setup.
+    if [[ -n "${COMANAGE_REGISTRY_TRANSMOGRIFY}" ]]; then
+        comanage_utils::transmogrify
+    else
+        echo "Running ./bin/cake setup..." > "$OUTPUT" 2>&1
+        ./bin/cake setup --admin-given-name "${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" \
+                         --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
+                         --admin-username "${COMANAGE_REGISTRY_ADMIN_USERNAME}" > "$OUTPUT" 2>&1
+    fi
 
     popd > "$OUTPUT" 2>&1
 }
@@ -950,6 +1060,45 @@ function comanage_utils::tmp_ownership() {
     chown -R "${ownership}" "${tmp_dir}"
 
     echo "Recursively set ownership of ${tmp_dir} to ${ownership}" > "$OUTPUT"
+}
+
+##########################################
+# Run the transmogrify command
+# Globals:
+#   COMANAGE_REGISTRY_DIR
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_COPY
+#   COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_TYPES
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_utils::transmogrify() {
+    local transmogrify
+    local itypes
+    local itype
+
+    pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+
+    transmogrify=(./bin/cake transmogrify -v)
+
+    if [[ -n "${COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_COPY}" ]]; then
+        transmogrify+=(--login-identifier-copy)
+    fi
+
+    if [[ -n "${COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_TYPES}" ]]; then
+        itypes=(`echo "$COMANAGE_REGISTRY_TRANSMOGRIFY_LOGIN_IDENTIFIER_TYPES" | sed -e 's@,@ @g'`) > "$OUTPUT" 2>&1
+
+        for itype in "${itypes[@]}";
+        do
+            transmogrify+=(--login-identifier-type $itype)
+        done
+    fi
+
+    echo "Running ${transmogrify[@]}" > "$OUTPUT" 2>&1
+    "${transmogrify[@]}" > "$OUTPUT" 2>&1
+
+    popd > "$OUTPUT" 2>&1
 }
 
 ##########################################
