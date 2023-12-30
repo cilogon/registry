@@ -689,27 +689,14 @@ class TransmogrifyCommand extends Command {
           $this->cliLogPercentage($tally, $count);
         }
       }
-      
-      // Run any post processing functions for the table.
-      
-      if(!empty($this->tables[$t]['postTable'])) {
-        $p = $this->tables[$t]['postTable'];
-        
-        $this->$p();
-      }
-      
+
+      // Log warning and error count.
+      $io->out("<warning>(Warnings: " . $warns . ")</warning>");
+      $io->out("<error>(Errors: " . $err . ")</error>");
+
+      // Reset sequence to next value after current max.
       $max = $this->outconn->fetchOne('SELECT MAX(id) FROM ' . $t);
       $max++;
-      $stdout_msg = "(New max: " . $max . ")";
-      if($warns > 0) {
-        $stdout_msg .= "<warning>(Warnings: " . $warns . ")</warning>";
-      }
-      if($err > 0) {
-        $stdout_msg .= "<error>(Errors: " . $err . ")</error>";
-      }
-
-      $io->out($stdout_msg);
-      
       $this->io->info("Resetting sequence for $t to $max");
       
       // Strictly speaking we should use prepared statements, but we control the
@@ -721,6 +708,13 @@ class TransmogrifyCommand extends Command {
         $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
       }
       $this->outconn->executeQuery($outsql);
+      
+      // Run any post processing functions for the table.
+      if(!empty($this->tables[$t]['postTable'])) {
+        $p = $this->tables[$t]['postTable'];
+        
+        $this->$p();
+      }
     }
   }
   
