@@ -160,6 +160,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'App\\Test\\' => 9,
             'App\\' => 4,
+            'ApiConnector\\Test\\' => 18,
+            'ApiConnector\\' => 13,
         ),
     );
 
@@ -481,6 +483,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'ApiConnector\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/ApiConnector/tests',
+        ),
+        'ApiConnector\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/ApiConnector/src',
         ),
     );
 

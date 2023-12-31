@@ -81,7 +81,7 @@ class FileSourcesTable extends Table {
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'delete' =>   false, // Delete the pluggable object instead
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
@@ -205,9 +205,8 @@ class FileSourcesTable extends Table {
    */
 
   protected function resultToEntityData(array $result): array {
-    // Build the External Identity as an array, then convert it to an entity.
-    // Unlike v4, backends need to insert the SORID (for consistency with the role ID)
-    $eidata = [ 'source_key' => $result[ $this->fieldCfg['SORID'] ] ];
+    // Build the External Identity as an array
+    $eidata = [];
 
     // We copy whatever attributes the inbound file asserts for a given model,
     // leaving it to the validation rules to worry about correctness.

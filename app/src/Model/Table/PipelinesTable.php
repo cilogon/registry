@@ -785,6 +785,26 @@ class PipelinesTable extends Table {
   }
 
   /**
+   * Map an Identifier of the configured type to a Person ID.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $typeId     Identifier Type ID
+   * @param  string $identifier Identifier
+   * @return int                Person ID
+   */
+
+  protected function mapIdentifier(int $typeId, string $identifier): ?int {
+    try {
+      $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+      return $Identifiers->lookupPerson($typeId, $identifier);
+    }
+    catch(\Exception $e) {
+      return null;
+    }
+  }
+
+  /**
    * Pipeline step to obtain a Person associated with the $eisRecord, possibly
    * by executing the Match Strategy.
    * 
@@ -873,9 +893,41 @@ class PipelinesTable extends Table {
       // We also need to add the Person ID
       $mapped['person_id'] = $person->id;
 
-      $entity = $this->Cos->People->ExternalIdentities->newEntity($mapped);
+      $entity = $this->Cos->People->ExternalIdentities->newEntity(
+        $mapped,
+        ['associated' => [
+          'Addresses',
+          'AdHocAttributes',
+          'EmailAddresses',
+          'Identifiers',
+          'Names',
+          'Pronouns',
+          'TelephoneNumbers',
+          'Urls',
+          'ExternalIdentityRoles',
+          'ExternalIdentityRoles.AdHocAttributes',
+          'ExternalIdentityRoles.Addresses',
+          'ExternalIdentityRoles.TelephoneNumbers'
+        ]]
+      );
 
-      $this->Cos->People->ExternalIdentities->saveOrFail($entity);
+      $this->Cos->People->ExternalIdentities->saveOrFail(
+        $entity,
+        ['associated' => [
+          'Addresses',
+          'AdHocAttributes',
+          'EmailAddresses',
+          'Identifiers',
+          'Names',
+          'Pronouns',
+          'TelephoneNumbers',
+          'Urls',
+          'ExternalIdentityRoles',
+          'ExternalIdentityRoles.AdHocAttributes',
+          'ExternalIdentityRoles.Addresses',
+          'ExternalIdentityRoles.TelephoneNumbers'
+        ]]
+      );
 
       // Update $eisRecord with the new external_entity_id
       $eisRecord->external_identity_id = $entity->id;
@@ -1365,6 +1417,34 @@ class PipelinesTable extends Table {
         // External Identity sync to the same COU.
         if(!empty($pipeline->sync_cou_id)) {
           $newdata['cou_id'] = $pipeline->sync_cou_id;
+        }
+
+        // Map Manager and Sponsor identifiers, if set, to corresponding People.
+        // If not found, we'll log a warning but otherwise proceed.
+        // Also, we need a configured Identifier type.
+        
+        foreach(['manager', 'sponsor'] as $f) {
+          $eirField = $f . "_identifier";
+          $prField = $f . "_person_id";
+
+          // Populate a null value by default, in case an existing foreign key
+          // is removed
+          $newdata[$prField] = null;
+
+          if(!empty($eirentity->$eirField)) {
+            if(!empty($pipeline->sync_identifier_type_id)) {
+              $newdata[$prField] = $this->mapIdentifier(
+                                    $pipeline->sync_identifier_type_id,
+                                    $eirentity->$eirField
+                                   );
+              
+              if(empty($newdata[$prField])) {
+                $this->llog('trace', "Unable to map $eirField for External Identity Role " . $eirentity->id . " because no Person with the specified identifier was found");
+              }
+            } else {
+              $this->llog('trace', "Unable to map $eirField for External Identity Role " . $eirentity->id . " because there is no Sync Identifier Type configured for Pipeline " . $pipeline->id);
+            }
+          }
         }
 
         // duplicateFilterEntityData() will remove status, but we need to

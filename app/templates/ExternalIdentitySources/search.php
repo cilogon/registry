@@ -115,15 +115,15 @@
           </tr>
         </thead>
         <tbody>
-          <?php foreach($vv_search_results as $r): ?>
+          <?php foreach($vv_search_results as $source_key => $r): ?>
           <tr>
             <td>
               <?= $this->Html->link(
-                    $r['source_key'],
+                    $source_key,
                     [
                       'action' => 'retrieve',
                       $this->request->getParam('pass')[0],
-                      '?' => ['source_key' => $r['source_key']]
+                      '?' => ['source_key' => $source_key]
                     ]
                   ); ?>
             </td>

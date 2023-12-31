@@ -1,0 +1,34 @@
+{
+  "types": {
+    "source": [
+      "ApiSources"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "api_sources": {
+        "columns": {
+          "id": {},
+          "external_identity_source_id": {},
+          "api_user_id": {}
+        },
+        "indexes": {
+          "api_sources_i1": { "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "api_source_records": {
+        "columns": {
+          "id": {},
+          "api_source_id": { "type": "integer", "foreignkey": { "table": "api_sources", "column": "id" } },
+          "source_key": { "type": "string", "size": 1024 },
+          "source_record": { "type": "text" }
+        },
+        "indexes": {
+          "api_source_records_i1": { "columns": [ "api_source_id" ] },
+          "api_source_records_i2": { "columns": [ "api_source_id", "source_key" ] }
+        },
+        "changelog": false
+      }
+    }
+  }
+}

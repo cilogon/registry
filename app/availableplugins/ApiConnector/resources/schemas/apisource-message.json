@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.internet2.edu/COmanage/registry/tree/5.0.0/app/resources/schema/apisource-message.json",
+  "title": "COmanage Registry API Source Message Format",
+  "description": "COmanage Registry API Source Message Format",
+  
+  "$defs": {
+    "addresses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "description": "The country for this address",
+            "type": "string"
+          },
+          "language": {
+            "description": "The language encoding for this address",
+            "type": "string"
+          },
+          "locality": {
+            "description": "The city or locality for this address",
+            "type": "string"
+          },
+          "postalCode": {
+            "description": "The postal code for this address",
+            "type": "string"
+          },
+          "region": {
+            "description": "The state, province, or region for this address",
+            "type": "string"
+          },
+          "room": {
+            "description": "The room number for this address",
+            "type": "string"
+          },
+          "streetAddress": {
+            "description": "The street for this address",
+            "type": "string"
+          },
+          "type": {
+            "description": "The type of address",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "adhoc": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "description": "Ad Hoc attribute tag/label",
+            "type": "string"
+          },
+          "value": {
+            "description": "Ad Hoc attribute value",
+            "type": "string"
+          }
+        }
+      },
+      "required": [ "tag" ]
+    },
+    "dateOfBirth": {
+      "description": "Date of Birth for the person associated with this identity",
+      "type": "string",
+      "format": "date"
+    },
+    "emailAddresses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mail": {
+            "description": "An email address for this identity",
+            "type": "string",
+            "format": "email"
+          },
+          "type": {
+            "description": "The type of email address",
+            "type": "string"
+          },
+          "verified": {
+            "description": "Whether this email address has been verified",
+            "type": "boolean"
+          }
+        }
+      },
+      "required": [ "mail" ]
+    },
+    "identifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "description": "A identifier for the person",
+            "type": "string"
+          },
+          "type": {
+            "description": "The type of identifier",
+            "type": "string"
+          }
+        },
+        "required": [ "identifier" ]
+      }
+    },
+    "names": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "family": {
+            "description": "The person's family or surname",
+            "type": "string"
+          },
+          "given": {
+            "description": "The person's given or first name",
+            "type": "string"
+          },
+          "language": {
+            "description": "The language encoding for this name",
+            "type": "string"
+          },
+          "middle": {
+            "description": "The person's middle name",
+            "type": "string"
+          },
+          "prefix": {
+            "description": "The honorific or prefix for the person's name",
+            "type": "string"
+          },
+          "suffix": {
+            "description": "The suffix for this person's name",
+            "type": "string"
+          },
+          "type": {
+            "description": "The type of name",
+            "type": "string"
+          }
+        },
+        "required": [ "given" ]
+      }
+    },
+    "telephoneNumbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "description": "A telephone number for the person",
+            "type": "string",
+            "format": "itu-e164"
+          },
+          "type": {
+            "description": "The type of telephone number",
+            "type": "string"
+          }
+        },
+        "required": [ "number" ]
+      }
+    },
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "A URL for the person",
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "description": "The type of URL",
+            "type": "string"
+          }
+        },
+        "required": [ "url" ]
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "COmanage identifier for this object",
+          "type": "string"
+        }
+      },
+      "required": [ "id" ]
+    }
+  },
+  
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": "1.0.0"
+        },
+        "objectType": {
+          "const": "externalIdentity"
+        }
+      },
+      "required": [ "version", "objectType" ]
+    },
+    "returnUrl": {
+      "description": "Petition Specific Redirect Target",
+      "type": "string",
+      "format": "uri"
+    },
+    "sorAttributes": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "addresses": {
+          "$ref": "#/$defs/addresses"
+        },
+        "adhoc": {
+          "$ref": "#/$defs/adhoc"
+        },
+        "dateOfBirth": {
+          "$ref": "#/$defs/dateOfBirth"
+        },
+        "emailAddresses": {
+          "$ref": "#/$defs/emailAddresses"
+        },
+        "identifiers": {
+          "$ref": "#/$defs/identifiers"
+        },
+        "names": {
+          "$ref": "#/$defs/names"
+        },
+        "telephoneNumbers": {
+          "$ref": "#/$defs/telephoneNumbers"
+        },
+        "urls": {
+          "$ref": "#/$defs/urls"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "addresses": {
+                "$ref": "#/$defs/addresses"
+              },
+              "adhoc": {
+                "$ref": "#/$defs/adhoc"
+              },
+              "affiliation": {
+                "description": "The affiliation for this role",
+                "type": "string"
+              },
+              "department": {
+                "description": "The department for this role",
+                "type": "string"
+              },
+              "managerIdentifier": {
+                "description": "An identifier for the Manager for this role",
+                "type": "string"
+              },
+              "organization": {
+                "description": "The organization for this role",
+                "type": "string"
+              },
+              "rank": {
+                "description": "The rank or order for this role, among all roles (lower number indicate higher priorities)",
+                "type": "integer"
+              },
+              "roleIdentifier": {
+                "description": "A unique identifier for this role",
+                "type": "string"
+              },
+              "sponsorIdentifier": {
+                "description": "An identifier for the Sponsor for this role",
+                "type": "string"
+              },
+              "status": {
+                "description": "The status for this role",
+                "type": "string",
+                "enum": [ "A", "D", "D2", "GP", "S" ]
+              },
+              "telephoneNumbers": {
+                "$ref": "#/$defs/telephoneNumbers"
+              },
+              "title": {
+                "description": "The title for this role",
+                "type": "string"
+              },
+              "validFrom": {
+                "description": "The time from which this role is valid",
+                "type": "string",
+                "format": "date-time"
+              },
+              "validThrough": {
+                "description": "The time through which this role is valid",
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "required": [ "affiliation", "roleIdentifier", "status" ]
+        }
+      }
+    }
+  },
+  "required": [ "sorAttributes" ]
+}

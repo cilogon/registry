@@ -85,4 +85,6 @@ return array(
     'Bake\\' => array($vendorDir . '/cakephp/bake/src'),
     'App\\Test\\' => array($baseDir . '/tests'),
     'App\\' => array($baseDir . '/src'),
+    'ApiConnector\\Test\\' => array($baseDir . '/availableplugins/ApiConnector/tests'),
+    'ApiConnector\\' => array($baseDir . '/availableplugins/ApiConnector/src'),
 );

@@ -71,7 +71,7 @@ class FileProvisionersTable extends Table {
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'delete' =>   false, // Delete the pluggable object instead
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],

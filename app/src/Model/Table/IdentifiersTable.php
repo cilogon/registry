@@ -179,6 +179,29 @@ class IdentifiersTable extends Table {
   }
 
   /**
+   * Look up a Person ID from an identifier and identifier type ID.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $typeId     Identifier Type ID
+   * @param  string $identifier Identifier
+   * @return int                Person ID
+   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   */
+
+  public function lookupPerson(int $typeId, string $identifier): int {
+    $id = $this->find()
+               ->where([
+                'identifier'  => $identifier,
+                'type_id'     => $typeId,
+                'status'      => SuspendableStatusEnum::Active,
+                'person_id IS NOT NULL'
+               ])
+               ->firstOrFail();
+    
+    return $id->person_id;
+  }
+
+  /**
    * Perform a keyword search.
    *
    * @since  COmanage Registry v5.0.0

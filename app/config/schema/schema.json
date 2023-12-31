@@ -9,6 +9,7 @@
     "comment": "Columns with names matching those defined here will by default inherit these properties",
     
     "columns": {
+      "api_user_id": { "type": "integer", "foreignkey": { "table": "api_users", "column": "id" } },
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
       "comment": { "type": "string", "size": 256 },
       "context": { "type": "string", "size": 2 },

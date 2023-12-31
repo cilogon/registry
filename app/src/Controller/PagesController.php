@@ -96,7 +96,7 @@ class PagesController extends AppController
      * @return string                   "no", "open", "authz", or "yes"
      */
 
-    function willHandleAuth(\Cake\Event\EventInterface $event): string {
+    public function willHandleAuth(\Cake\Event\EventInterface $event): string {
         return "open";
     }
 }
