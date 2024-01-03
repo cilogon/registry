@@ -219,20 +219,21 @@ class AppController extends Controller {
       
       if($lookup) {
         foreach($availablePrimaryLinks as $potentialPrimaryLink) {
+          // $potentialPrimaryLink will be something like 'attribute_collector_id'
+          // $potentialPrimaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'
+          $potentialPrimaryLinkTable = $this->$modelsName->getPrimaryLinkTableName($potentialPrimaryLink);
+          $potentialPlugin = null;
+
           // Try to find a value
 
-          if(strstr($potentialPrimaryLink, '.')) {
+          if(strstr($potentialPrimaryLinkTable, '.')) {
             // For looking up values in records here, we want only the attribute
             // itself and not the plugin name (used for hacky notation by
             // PrimaryLinkTrait::setPrimaryLink(). Note this is a field and not
             // a model, but pluginModel() gets us the bit we need.
 
             // Store the plugin for possible later reference.
-            $potentialPlugin = StringUtilities::pluginPlugin($potentialPrimaryLink);
-
-            // We clobber $potentialPrimaryLink to avoid rewriting a bunch of code,
-            // but probably we should rewrite it.
-            $potentialPrimaryLink = StringUtilities::pluginModel($potentialPrimaryLink);
+            $potentialPlugin = StringUtilities::pluginPlugin($potentialPrimaryLinkTable);
           }
           
           if($this->request->is('get')) {
@@ -321,6 +322,9 @@ class AppController extends Controller {
           if(!empty($this->cur_pl->value)) {
             // We found a populated primary link. Store the attribute and break the loop.
             $this->cur_pl->attr = $potentialPrimaryLink;
+            if($potentialPlugin) {
+              $this->cur_pl->plugin = $potentialPlugin;
+            }
             $this->set('vv_primary_link', $this->cur_pl->attr);
             break;
           }

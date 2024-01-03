@@ -180,11 +180,11 @@ trait PrimaryLinkTrait {
    * @since  COmanage Registry v5.0.0
    * @param  int    $id       Object ID
    * @param  bool   $archived Whether to retrieve archived (deleted) records
-   * @return Entity           Primary Link (as an Entity)
+   * @return object           Primary Link information (as an object)
    * @throws \InvalidArgumentException
    */
   
-  public function findPrimaryLink(int $id, bool $archived=false) {
+  public function findPrimaryLink(int $id, bool $archived=false): object {
     $obj = $this->get($id, ['archived' => $archived]); //->firstOrFail();
     
     // We might have multiple primary link keys (eg for MVEAs), but only one

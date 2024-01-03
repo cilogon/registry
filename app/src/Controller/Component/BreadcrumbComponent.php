@@ -48,6 +48,8 @@ class BreadcrumbComponent extends Component
   protected $injectParents = [];
   // Inject title links (immediately before the title breadcrumb)
   protected $injectTitleLinks = [];
+  // Whether parent links are frozen
+  protected $parentsFrozen = false;
   
   /**
    * Callback run prior to rendering the view.
@@ -117,7 +119,7 @@ class BreadcrumbComponent extends Component
 
         if($action != 'index') {
           $target = [
-            'plugin'     => null,
+            'plugin'     => $primaryLink->plugin ?? null,
             'controller' => $modelsName,
             'action'     => 'index'
           ];
@@ -126,8 +128,12 @@ class BreadcrumbComponent extends Component
             $target['?'] = [$primaryLink->attr => $primaryLink->value];
           }
 
+          $label = (!empty($primaryLink->plugin)
+                    ? __d(Inflector::underscore($primaryLink->plugin), 'controller.'.$modelsName, [99])
+                    : __d('controller', $modelsName, [99]));
+
           $parents[] = [
-            'label'   => __d('controller', $modelsName, [99]),
+            'label'   => $label,
             'target'  => $target
           ];
         }
@@ -137,6 +143,103 @@ class BreadcrumbComponent extends Component
 
       $controller->set('vv_bc_title_links', $this->injectTitleLinks);
     }
+  }
+
+  /**
+   * Prevent any additional parent links from being added. Intended primarily for
+   * Controllers that extend StandardController but do not want the standard behavior.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function freezeParents() {
+    $this->parentsFrozen = true;
+  }
+
+  /**
+   * Inject the primary link into the breadcrumb path.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  object $link       Primary Link (as returned by getPrimaryLink())
+   * @param  bool   $index      Include link to parent index
+   * @param  string $linkLabel  Label to use for Primary Link instead of displayField
+   */
+
+  public function injectPrimaryLink(object $link, bool $index=true, $linkLabel=null) {
+    if($this->parentsFrozen) {
+      return;
+    }
+
+    // eg: "People"
+    $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
+    $modelPath = $modelsName;
+
+    if(!empty($link->plugin)) {
+      // eg: "CoreEnroller.AttributeCollectors"
+      $modelPath = $link->plugin . "." . $modelsName;
+    }
+
+    $contain = [];
+    $primaryName = null;
+
+    $linkTable = TableRegistry::getTableLocator()->get($modelPath);
+    $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
+    $displayField = $linkTable->getDisplayField();
+
+    if($index) {
+      // We need to determine the primary link of the parent, which might or might
+      // not be co_id
+
+      if(method_exists($linkTable, "findPrimaryLink")) {
+        // If findPrimaryLink doesn't exist, we're probably working with CosTable
+
+        $parentLink = $linkTable->findPrimaryLink($linkObj->id);
+
+        $this->injectParents[] = [
+          'target' => [
+            'plugin'      => $parentLink->plugin ?? null,
+            'controller'  => $modelsName,
+            'action'      => 'index',
+            '?'           => [
+              $parentLink->attr => $parentLink->value
+            ]
+          ],
+          'label' => StringUtilities::localizeController(
+            controllerName: $modelsName,
+            pluginName:     $link->plugin ?? null,
+            plural:         true
+          )
+        ];
+      }
+    }
+
+    $label = $linkLabel ?? $linkObj->$displayField;
+
+    if($modelsName == 'People' || $modelsName == 'ExternalIdentities') {
+      // We need the Primary Name (or first name found) to render it
+
+      $Names = TableRegistry::getTableLocator()->get('Names');
+
+      // This will throw an error on failure
+      $primaryName = $Names->primaryName($linkObj->id, Inflector::underscore(Inflector::singularize($modelsName)));
+      
+      $label = $primaryName->full_name;
+    }
+
+    // If we don't have a visible label use the record ID
+    if(empty($label)) {
+      $label = $linkObj->id;
+    }
+
+    $this->injectParents[] = [
+      'target' => [
+        'plugin'      => $link->plugin ?? null,
+        'controller'  => $modelsName,
+        'action'      => 'edit',
+        $linkObj->id
+      ],
+      'label' => $label
+    ];
   }
 
   /**
@@ -165,65 +268,6 @@ class BreadcrumbComponent extends Component
         $entity->id
       ],
       'label' => $label ?: $entity->$displayField
-    ];
-  }
-
-  /**
-   * Inject the primary link into the breadcrumb path.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  object link  Primary Link (as returned by getPrimaryLink())
-   */
-
-  public function injectPrimaryLink(object $link) {
-    // eg: "People"
-    $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
-
-    $contain = [];
-    $primaryName = null;
-
-    $linkTable = TableRegistry::getTableLocator()->get($modelsName);
-    $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
-    $displayField = $linkTable->getDisplayField();
-
-    $this->injectParents[] = [
-      'target' => [
-        'plugin'      => null,
-        'controller'  => $modelsName,
-        'action'      => 'index',
-        '?'           => [
-          'co_id' => $link->co_id
-        ]
-      ],
-      'label' => __d('controller', $modelsName, [99])
-    ];
-
-    $label = $linkObj->$displayField;
-
-    if($modelsName == 'People' || $modelsName == 'ExternalIdentities') {
-      // We need the Primary Name (or first name found) to render it
-
-      $Names = TableRegistry::getTableLocator()->get('Names');
-
-      // This will throw an error on failure
-      $primaryName = $Names->primaryName($linkObj->id, Inflector::underscore(Inflector::singularize($modelsName)));
-      
-      $label = $primaryName->full_name;
-    }
-
-    // If we don't have a visible label use the record ID
-    if(empty($label)) {
-      $label = $linkObj->id;
-    }
-
-    $this->injectParents[] = [
-      'target' => [
-        'plugin'      => null,
-        'controller'  => $modelsName,
-        'action'      => 'edit',
-        $linkObj->id
-      ],
-      'label' => $label
     ];
   }
 

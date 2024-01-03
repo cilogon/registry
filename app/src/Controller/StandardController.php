@@ -506,8 +506,12 @@ class StandardController extends AppController {
       if(!empty($link->attr) && !empty($link->value)) {
         $redirect['?'] = [$link->attr => $link->value];
       }
+
+      if(!empty($this->getPlugin())) {
+        $redirect['plugin'] = $this->getPlugin();
+      }
     }
-    
+
     return $this->redirect($redirect);
   }
   
@@ -671,7 +675,7 @@ class StandardController extends AppController {
           case 'array':
             // Use the provided array of values. By default, we use the values
             // for the keys as well, to generate HTML along the lines of
-            // <option value="Foo">"Foo"</option>
+            // <option value="Foo">"Foo"</option>. (See also 'hash'.)
             $this->set($vvar, array_combine($avv['array'], $avv['array']));
             break;
           case 'enum':
@@ -683,6 +687,10 @@ class StandardController extends AppController {
               $class = '\\'.$bits[0].'\\Lib\\Enum\\'.$bits[1];
             }
             $this->set($vvar, $class::getLocalizedConsts());
+            break;
+          case 'hash':
+            // Like 'array' but we assume we are passed key/value pairs
+            $this->set($vvar, $avv['hash']);
             break;
           // "auxiliary" and "select" do basically the same thing, but the former
           // returns the full object and the latter just returns a hash suitable
