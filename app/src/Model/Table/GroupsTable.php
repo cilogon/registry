@@ -123,6 +123,14 @@ class GroupsTable extends Table {
       // For a regular group, the Owners Group
       'OwnersGroup'
     ]);
+
+    $this->setViewContains([
+       'Identifiers',
+       // For an Owners Group, the group it manages owners for
+       'OwnersForGroup',
+       // For a regular group, the Owners Group
+       'OwnersGroup'
+     ]);
     
     $this->setAutoViewVars([
       'statuses' => [
