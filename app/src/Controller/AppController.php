@@ -554,19 +554,19 @@ class AppController extends Controller {
            approach below.
         $CoIdEventListener = new CoIdEventListener($coid);
         EventManager::instance()->on($CoIdEventListener);*/
-      }
-      
-      // Walk through the first level associations and pass the CO ID to them,
-      // as well. We could ultimately cascade this via the table once we have
-      // a use case to do so, though note it's possible a child associations
-      // wants the CO ID even though the parent doesn't.
-      
-      foreach($this->$modelsName->associations()->getIterator() as $a) {
-        $aTable = $a->getTarget();
         
-        if(method_exists($aTable, "acceptsCoId") 
-           && $aTable->acceptsCoId()) {
-          $aTable->setCurCoId((int)$coid);
+        // Walk through the first level associations and pass the CO ID to them,
+        // as well. We could ultimately cascade this via the table once we have
+        // a use case to do so, though note it's possible a child associations
+        // wants the CO ID even though the parent doesn't.
+        
+        foreach($this->$modelsName->associations()->getIterator() as $a) {
+          $aTable = $a->getTarget();
+          
+          if(method_exists($aTable, "acceptsCoId") 
+            && $aTable->acceptsCoId()) {
+            $aTable->setCurCoId((int)$coid);
+          }
         }
       }
     }
