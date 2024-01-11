@@ -33,11 +33,19 @@ if($vv_action == 'add') {
   
   foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
     if(in_array($f, $vv_permitted_name_fields)) {
-      print $this->Field->control('names.0.'.$f, ['required' => in_array($f, $vv_required_name_fields)]);
+      print $this->Field->control(
+        fieldName: 'names.0.'.$f,
+        options: ['required' => in_array($f, $vv_required_name_fields)],
+        controlType: 'string'
+      );
     }
   }
   
-  print $this->Field->control('names.0.type_id', ['empty' => false, 'default' => $vv_default_name_type]);
+  print $this->Field->control(
+    fieldName: 'names.0.type_id',
+    options: ['empty' => false, 'default' => $vv_default_name_type],
+    controlType: 'string'
+  );
   
   // AR-Name-1 Since this is the first name for this Person, it must be
   // designated primary
