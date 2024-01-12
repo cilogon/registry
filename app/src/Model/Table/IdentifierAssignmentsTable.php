@@ -232,7 +232,7 @@ class IdentifierAssignmentsTable extends Table {
     }
 
     // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-    if(method_exists($EntityTable, "requestProvisioning")) {
+    if(method_exists($EntityTable, "requestProvisioning") && !empty($entity->id)) {
       $this->llog('rule', "AR-GMR-5 Requesting provisioning for $entityType " . $entity->id);
       $EntityTable->requestProvisioning(id: $entity->id, context: ProvisioningContextEnum::Automatic);
     }
