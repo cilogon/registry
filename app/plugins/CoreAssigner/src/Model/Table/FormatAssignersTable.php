@@ -145,7 +145,7 @@ class FormatAssignersTable extends Table {
         $ia->format_assigner->id,
         $sequenced,
         $ia->format_assigner->collision_mode,
-        $ia->format_assigner->minimum,
+        $ia->format_assigner->minimum ?? 0,
         $ia->format_assigner->maximum
       );
       
