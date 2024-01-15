@@ -191,6 +191,44 @@
           <?php
             $menuUrl = $this->Url->build(
               ['plugin'       => null,
+               'controller'   => 'external_identity_sources',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined" aria-hidden="true">cloud_download</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller','ExternalIdentitySources', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.connections.external_identity_sources.desc') ?></div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'pipelines',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-icons-outlined" aria-hidden="true">cable</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller','Pipelines', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.connections.pipelines.desc') ?></div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
                'controller'   => 'provisioning_targets',
                '?'            => [
                  'co_id' => $vv_cur_co->id

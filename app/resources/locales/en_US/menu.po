@@ -78,6 +78,12 @@ msgstr "Connections"
 msgid "co.connections.panel.desc"
 msgstr "Connections to external services: upstream inputs and downstream outputs"
 
+msgid "co.connections.external_identity_sources.desc"
+msgstr "Point to external \"systems of record\" from which to receive Person and Person Role data"
+
+msgid "co.connections.pipelines.desc"
+msgstr "Connect data from External Identity Sources to Person Records"
+
 msgid "co.connections.provisioning_targets.desc"
 msgstr "Create access to applications and services"
 
