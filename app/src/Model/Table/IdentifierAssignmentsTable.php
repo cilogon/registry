@@ -136,7 +136,10 @@ class IdentifierAssignmentsTable extends Table {
    * Assign Identifiers for an Entity.
    * 
    * @since  COmanage Registry v5.0.0
-* XXX Document params
+   * @param  string $entityType     Entity Table (eg: "People")
+   * @param  int    $entityId       Entity ID
+   * @param  bool   $provision      Whether or not to run provisioners after assignment
+   * @param  int    $actorPersonId  Person ID of Actor assigning identifiers
    */
 
   public function assign(
@@ -470,7 +473,7 @@ class IdentifierAssignmentsTable extends Table {
     ]);
     $validator->notEmptyString('status');
 
-    $this->registerStringValidation($validator, $schema, 'plugin', false);
+    $this->registerStringValidation($validator, $schema, 'plugin', true);
     
     $validator->add('context', [
       'content' => ['rule' => ['inList', IdentifierAssignmentContextEnum::getConstValues()]]

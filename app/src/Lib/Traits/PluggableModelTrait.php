@@ -142,11 +142,19 @@ trait PluggableModelTrait {
     // once per instantiation.
 
     $models = $this->find()
-                   ->select('plugin')
+                   ->select(['id', 'plugin'])
                    ->distinct(['plugin'])
                    ->all();
-
+    
     foreach($models as $m) {
+      if(empty($m->plugin) || !strstr($m->plugin, '.')) {
+        // This plugin is not valid. We could filter this in the find() using a
+        // where() clause, but checking here allows us to emit a warning.
+
+        $this->llog('error', "Ignoring invalid plugin found in " . $this->getTable() . " record " . $m->id);
+        continue;
+      }
+
       // In general, a model with a "plugin" field has a 1-1 relation
       // with the instantiated plugin configuration. eg: One instance
       // of a Server has exactly one SqlServer associated with it.

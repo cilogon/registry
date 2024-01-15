@@ -162,7 +162,7 @@ class ServersTable extends Table {
     ]);
     $validator->notEmptyString('status');
 
-    $this->registerStringValidation($validator, $schema, 'plugin', false);
+    $this->registerStringValidation($validator, $schema, 'plugin', true);
     
     return $validator; 
   }
