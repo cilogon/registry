@@ -95,7 +95,7 @@ class HistoryRecordsTable extends Table {
       'ActorPeople' => ['Names' => ['queryBuilder' => function ($q) {
         return $q->where(['primary_name' => true]);
       }]],
-      'ExternalIdentities' => ['PrimaryName'],
+      'ExternalIdentities',
       'Groups'
     ]);
     

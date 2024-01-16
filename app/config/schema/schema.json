@@ -608,7 +608,8 @@
         "description": {},
         "status": {},
         "match_strategy": { "type": "string", "size": 2 },
-        "match_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "match_email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "match_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "match_server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" } },
         "sync_status_on_delete": { "type": "string", "size": 2 },
         "sync_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
@@ -618,12 +619,13 @@
       },
       "indexes": {
         "pipelines_i1": { "columns": [ "co_id" ] },
-        "pipelines_i2": { "needed": false, "columns": [ "match_type_id" ] },
+        "pipelines_i2": { "needed": false, "columns": [ "match_email_address_type_id" ] },
         "pipelines_i3": { "needed": false, "columns": [ "match_server_id" ] },
         "pipelines_i4": { "needed": false, "columns": [ "sync_affiliation_type_id" ] },
         "pipelines_i5": { "needed": false, "columns": [ "sync_cou_id" ] },
         "pipelines_i6": { "needed": false, "columns": [ "sync_replace_cou_id" ] },
-        "pipelines_i7": { "needed": false, "columns": [ "sync_identifier_type_id" ] }
+        "pipelines_i7": { "needed": false, "columns": [ "sync_identifier_type_id" ] },
+        "pipelines_i8": { "needed": false, "columns": [ "match_identifier_type_id" ] }
       }
     },
 

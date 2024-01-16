@@ -120,11 +120,14 @@ msgstr "Person Role status recalculated from {0} to {1}"
 msgid "Pipelines.complete"
 msgstr "Pipeline {0} complete for EIS {1} source key {2}"
 
+msgid "Pipelines.matched"
+msgstr "Pipeline {0} ({1}) matched EIS {2} ({3}) source key {4} to Person using Match Strategy {5}"
+
 msgid "Pipelines.ei.added"
 msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
 
 msgid "Pipelines.started"
-msgstr "Pipeline {0} started for EIS {1} source key {2}"
+msgstr "Pipeline {0} ({1}) started for EIS {2} ({3}) source key {4}"
 
 msgid "saved"
 msgstr "Saved"

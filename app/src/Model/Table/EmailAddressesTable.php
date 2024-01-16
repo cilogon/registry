@@ -139,6 +139,31 @@ class EmailAddressesTable extends Table {
   }
 
   /**
+   * Look up a Person ID from an email address and email address type ID.
+   * Only verified addresses can be used for lookups.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $typeId     Email Address Type ID
+   * @param  string $identifier Email Address
+   * @return int                Person ID
+   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   */
+
+  public function lookupPerson(int $typeId, string $identifier): int {
+    // The second parameter is called $identifier for consistency with IdentifiersTable::lookupPerson()
+    $id = $this->find()
+               ->where([
+                'LOWER(mail)' => strtolower($identifier),
+                'type_id'     => $typeId,
+                'verified'    => true,
+                'person_id IS NOT NULL'
+               ])
+               ->firstOrFail();
+
+    return $id->person_id;
+  }
+
+  /**
    * Perform a keyword search.
    *
    * @since  COmanage Registry v5.0.0

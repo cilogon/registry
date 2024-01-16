@@ -29,6 +29,9 @@
 # When adding entries to this file, group non-model specific translations at the top,
 # then model specific translations alphabetically by model.
 
+msgid "action"
+msgstr "Action"
+
 msgid "actions"
 msgstr "{0,plural,=1{Action} other{Actions}}"
 
@@ -461,6 +464,11 @@ msgstr "Start Summary"
 
 msgid "Jobs.start_time"
 msgstr "Started"
+msgid "Pipelines.match_email_address_type_id"
+msgstr "Email Address Type"
+
+msgid "Pipelines.match_identifier_type_id"
+msgstr "Identifier Type"
 
 msgid "Pipelines.match_strategy"
 msgstr "Match Strategy"

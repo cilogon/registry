@@ -81,10 +81,14 @@ class PipelinesTable extends Table {
          ->setClassName('Servers')
          ->setForeignKey('match_server_id')
          ->setProperty('match_server');
-    $this->belongsTo('MatchTypes')
+    $this->belongsTo('MatchEmailAddressTypes')
          ->setClassName('Types')
-         ->setForeignKey('match_type_id')
-         ->setProperty('match_type');
+         ->setForeignKey('match_email_address_type_id')
+         ->setProperty('match_email_address_type');
+    $this->belongsTo('MatchIdentifierTypes')
+         ->setClassName('Types')
+         ->setForeignKey('match_identifier_type_id')
+         ->setProperty('match_identifier_type');
     $this->belongsTo('SyncAffiliationTypes')
          ->setClassName('Types')
          ->setForeignKey('sync_affiliation_type_id')
@@ -110,6 +114,14 @@ class PipelinesTable extends Table {
     $this->setRequiresCO(true);
 
     $this->setAutoViewVars([
+      'matchEmailAddressTypes' => [
+        'type' => 'type',
+        'attribute' => 'EmailAddresses.type'
+      ],
+      'matchIdentifierTypes' => [
+        'type' => 'type',
+        'attribute' => 'Identifiers.type'
+      ],
       'matchStrategies' => [
         'type'  => 'enum',
         'class' => 'MatchStrategyEnum'
@@ -455,12 +467,14 @@ class PipelinesTable extends Table {
 
       // (2) Match against an existing Person or create a new Person, in
       //     accordance with the Pipeline's Match Strategy
-      $person = $this->obtainPerson(
+      $personInfo = $this->obtainPerson(
         $pipeline,
         $eis,
         $eisRecord['record'],
         $eisBackendRecord['entity_data']
       );
+
+      $person = $personInfo['person'];
 
       // We can't record the start history until we have a Person entity
       $this->Cos->People->ExternalIdentities->recordHistory(
@@ -468,7 +482,7 @@ class PipelinesTable extends Table {
         action: ActionEnum::PersonPipelineStarted,
         comment: __d('result', 
                     'Pipelines.started',
-                    [$id, $eisId, $eisBackendRecord['source_key']])
+                    [$pipeline->description, $id, $eis->description, $eisId, $eisBackendRecord['source_key']])
       );
 
       // (3) Create or update an External Identity based on the sync strategy
@@ -480,6 +494,19 @@ class PipelinesTable extends Table {
         $eisRecord['record'],
         $eisBackendRecord['entity_data']
       );
+
+      // If the Person record was matched (meaning it isn't new) create a
+      // History Record here, now that we have an External Identity
+
+      if($personInfo['status'] == 'matched') {
+        $this->Cos->People->ExternalIdentities->recordHistory(
+          entity: $person,
+          action: ActionEnum::PersonMatchedPipeline,
+          comment: __d('result', 
+                       'Pipelines.matched',
+                       [$pipeline->description, $id, $eis->description, $eisId, $eisBackendRecord['source_key'], $personInfo['strategy']])
+        );
+      }
 
       // (4) Sync the External Identity attributes with the Person record
       $person = $this->syncPerson(
@@ -813,7 +840,9 @@ class PipelinesTable extends Table {
    * @param  ExternalIdentitySource   $eis            External Identity Source
    * @param  ExtIdentitySourceRecord  $eisRecord      External Identity Source Record
    * @param  array                    $eisAttributes  Attributes provided by EIS Backend
-   * @return Person                                   Person, possibly newly created
+   * @return array                                    'person': Person object
+   *                                                  'status': 'linked', 'created', 'matched'
+   *                                                  'strategy': If status = 'matched', the MatchStrategy
    */
 
   protected function obtainPerson(
@@ -821,7 +850,7 @@ class PipelinesTable extends Table {
     ExternalIdentitySource  $eis,
     ExtIdentitySourceRecord $eisRecord,
     array                   $eisAttributes
-  ): Person {
+  ): array {
     // Shorthand...
     $sourceKey = $eisRecord->source_key;
 
@@ -830,22 +859,35 @@ class PipelinesTable extends Table {
 
     if(!empty($eisRecord->external_identity_id)) {
       $this->llog('trace', "Using previously linked Person " . $eisRecord->external_identity->person->id . " for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
-      return $eisRecord->external_identity->person;
+      return [
+        'person' => $eisRecord->external_identity->person,
+        'status' => 'linked'
+      ];
     }
 
     // There isn't a Person associated with the request, run the configured
     // Match Strategy to see if one exists
 
-    $personId = null;
+    $person = null;
     $referenceId = null;
 
     $this->llog('trace', "Using Match Strategy " . $pipeline->match_strategy . " for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
 
     switch($pipeline->match_strategy) {
       case MatchStrategyEnum::EmailAddress:
+      case MatchStrategyEnum::Identifier:
+        $person = $this->searchByAttribute(
+          $eis,
+          $eisRecord,
+          $pipeline->match_strategy,
+          ($pipeline->match_strategy == MatchStrategyEnum::EmailAddress
+           ? $pipeline->match_email_address_type_id
+           : $pipeline->match_identifier_type_id),
+          $eisAttributes
+        );
+        break;
       case MatchStrategyEnum::External:
 // XXX If we get a reference ID, attach it to the $eisRecord here CFM-33
-      case MatchStrategyEnum::Identifier:
         throw new \RuntimeException('NOT IMPLEMENTED');
         break;
       case MatchStrategyEnum::NoMatching:
@@ -853,14 +895,106 @@ class PipelinesTable extends Table {
         break;
     }
 
-    if(!$personId) {
+    if(!$person) {
       // We didn't find an existing Person, so create a new one
       $this->llog('trace', "No existing Person found, creating new Person record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
 
-      $person = $this->createPersonFromEIS($pipeline, $eis, $eisRecord, $eisAttributes);
+      return [
+        'person' => $this->createPersonFromEIS($pipeline, $eis, $eisRecord, $eisAttributes),
+        'status' => 'created'
+      ];
     }
 
-    return $person;
+    return [
+      'person'    => $person,
+      'status'    => 'matched',
+      'strategy'  => $pipeline->match_strategy
+    ];
+  }
+
+  /**
+   * Search for an existing Person using an attribute provided in the EIS Record.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  ExternalIdentitySource   $eis            External Identity Source
+   * XXX params/return
+   * @return Person                   Person if found, null otherwise
+   * @throws InvalidArgumentException
+   */
+
+  protected function searchByAttribute(
+    ExternalIdentitySource  $eis,
+    ExtIdentitySourceRecord $eisRecord,
+    string                  $matchStrategy,
+    int                     $attributeTypeId,
+    array                   $attributes
+  ): ?Person {
+    // By the time the Pipeline is called, $attributes (while an array) should be
+    // normalized to the Registry data model (though we haven't yet called
+    // mapAttributesToCO).
+
+    // First map the search type ID from the configuration to the expected API string
+
+    $Types = TableRegistry::getTableLocator()->get('Types');
+
+    $typeLabel = $Types->getTypeLabel($attributeTypeId);
+
+    // Make sure we have a valid search item
+
+    $searchValue = null;
+    $searchString = null;
+    $SearchTable = null;
+
+    if($matchStrategy == MatchStrategyEnum::EmailAddress) {
+      $SearchTable = TableRegistry::getTableLocator()->get('EmailAddresses');
+      $searchValue = Hash::extract($attributes, "email_addresses.{n}[type=$typeLabel]");
+
+      if(!empty($searchValue)) {
+        $searchString = $searchValue[0]['mail'];
+      }
+    } elseif($matchStrategy == MatchStrategyEnum::Identifier) {
+      $SearchTable = TableRegistry::getTableLocator()->get('Identifiers');
+      $searchValue = Hash::extract($attributes, "identifiers.{n}[type=$typeLabel]");
+
+      if(!empty($searchValue)) {
+        $searchString = $searchValue[0]['identifier'];
+      }
+    } else {
+      throw new \InvalidArgumentException("Unknown Match Strategy '" . $matchStrategy . "' in PipelinesTable::searchByAttribute()");
+    }
+
+    if(empty($searchString)) {
+      $this->llog('trace', "No attribute found of type $typeLabel for Match Strategy, creating new Person record for EIS " . $eis->description . " (" . $eis->id . ") source key " . $eisRecord->source_key);
+      return null;
+    }
+
+    // Perform the search
+
+    $personId = null;
+
+    try {
+      $personId = $SearchTable->lookupPerson($attributeTypeId, $searchString);
+    }
+    catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
+      // No match
+    }
+
+    if(!empty($personId)) {
+      // For consistency with createPersonFromEIS, we retrieve the Person and Names.
+      // syncExternalIdentity will pull whatever Person attributes it actually needs.
+
+      // AR-Pipeline-2 Pipeline Person Matching ignores the existing Person status.
+      $person = $SearchTable->People->get($personId, ['contain' => ['Names']]);
+
+      // We can't record history yet since we don't have an External Identity
+      // (we'll do that in execute()), but we can at least log
+
+      $this->llog('trace', "Matched to existing Person ID $personId using Match Strategy $matchStrategy and search string '$searchString' for EIS " . $eis->description . " (" . $eis->id . ") source key " . $eisRecord->source_key);
+
+      return $person;
+    }
+
+    return null;
   }
 
   /**
@@ -1660,10 +1794,27 @@ class PipelinesTable extends Table {
     ]);
     $validator->notEmptyString('match_strategy');
 
-    $validator->add('match_type_id', [
+    $validator->add('match_email_address_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('match_type_id');
+    $validator->notEmptyString(
+      field: 'match_email_address_type_id',
+      when: function ($context) { 
+        return (!empty($context['data']['match_strategy'])
+                && ($context['data']['match_strategy'] == MatchStrategyEnum::EmailAddress));
+      }
+    );
+
+    $validator->add('match_identifier_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->notEmptyString(
+      field: 'match_identifier_type_id',
+      when: function ($context) { 
+        return (!empty($context['data']['match_strategy'])
+                && ($context['data']['match_strategy'] == MatchStrategyEnum::Identifier));
+      }
+    );
 
     $validator->add('match_server_id', [
       'content' => ['rule' => 'isInteger']

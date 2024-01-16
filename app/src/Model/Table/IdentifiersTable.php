@@ -180,6 +180,7 @@ class IdentifiersTable extends Table {
 
   /**
    * Look up a Person ID from an identifier and identifier type ID.
+   * Only active Identifiers can be used for lookups.
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int    $typeId     Identifier Type ID

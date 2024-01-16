@@ -25,6 +25,28 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 ?>
+<script type="text/javascript">
+  // JS specific to these fields
+
+  function updateGadgets(isPageLoad) {
+    // Hide or show gadgets according to current state
+    var strategy = document.getElementById('match-strategy').value;
+    
+    if(strategy == '<?= \App\Lib\Enum\MatchStrategyEnum::EmailAddress ?>') {
+      hideFields(['match-identifier-type-id'], isPageLoad);
+      showFields(['match-email-address-type-id'], isPageLoad);
+    } else if(strategy == '<?= \App\Lib\Enum\MatchStrategyEnum::Identifier ?>') {
+      hideFields(['match-email-address-type-id'], isPageLoad);
+      showFields(['match-identifier-type-id'], isPageLoad);
+    } else {
+      hideFields(['match-email-address-type-id', 'match-identifier-type-id'], isPageLoad);
+    }
+  }
+
+  function jsLocalOnLoad() {
+    updateGadgets(true);
+  }
+</script>
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
@@ -33,11 +55,17 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->Field->control('status');
   
   // Match Strategy
-  print $this->Field->control('match_strategy');
+  print $this->Field->control(
+    fieldName: 'match_strategy',
+    controlType: 'select',
+    options: [
+      'onChange' => 'updateGadgets()'
+    ]
+  );
 
-    // print $this->Field->control('match_type_id');
+  print $this->Field->control('match_email_address_type_id');
 
-    // print $this->Field->control('match_server_id');
+  print $this->Field->control('match_identifier_type_id');
 
   // Sync Strategy
 //  print $this->Field->control('sync_on_update');

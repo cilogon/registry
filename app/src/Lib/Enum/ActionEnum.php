@@ -47,6 +47,7 @@ class ActionEnum extends StandardEnum {
   const MVEAEdited                    = 'EMVE';
   const NamePrimary                   = 'PNAM';
   const PersonAddedPipeline           = 'ACPL';
+  const PersonMatchedPipeline         = 'MCPL';
   const PersonPipelineComplete        = 'CCPL';
   const PersonPipelineStarted         = 'SCPL';
   const PersonStatusRecalculated      = 'RCPS';
