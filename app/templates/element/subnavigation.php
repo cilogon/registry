@@ -35,6 +35,7 @@ $flashArgs = [];
 $curId = NULL;
 $curController = $this->request->getParam('controller');
 $curAction = $this->request->getParam('action');
+$navController = $curController;
 
 if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link))) {
   // This will work for most top-level index views
@@ -48,12 +49,17 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
 } elseif (!empty($vv_obj)) {
   // This will work for most top-level edit views
   // XXX we might produce the $vv_primary_link for edit views so the approach below could be deprecated
+  // XXX $vv_primary_link_obj is the equivalent for plugins however
   $curId = $vv_obj->id;
   if(!empty($vv_person_id)) {
     $curId = $vv_person_id;
+  } elseif($active == 'plugin' && !empty($vv_primary_link_obj) && !empty($vv_primary_link_model)) {
+    $curId = $vv_primary_link_obj->id;
+    $navController = $vv_primary_link_model;
   } elseif(!empty($vv_primary_link_id)) {
     $curId = $vv_primary_link_id;
   }
+  
   // For top-level nav while in edit pages.
   if ($name == 'person') {
     $linkFilter = ['person_id' => $curId];
@@ -73,7 +79,9 @@ if(!empty($vv_obj)) {
 }
 
 $supertitle = __d('information','global.title.none');
-if(!empty($vv_person_name)) {
+if($active == 'plugin' && !empty($vv_bc_parent_obj)) {
+  $supertitle = $vv_bc_parent_obj->$vv_bc_parent_displayfield;
+} elseif(!empty($vv_person_name)) {
   $supertitle = $vv_person_name->full_name;
 } elseif(!empty($vv_supertitle)) {
   $supertitle = $vv_supertitle;
@@ -301,6 +309,40 @@ if(!empty($vv_person_name)) {
           ?>
         </li>
       <?php endif; // group ?>
+      
+      <?php if ($name == 'plugin'): ?>
+        <!-- General Plugin Configuration Subnavigation -->
+        <!-- Used for all plugins that have a parent object with a child plugin config -->
+        <li class="nav-item">
+          <?php
+            $linkClass = ($active == 'properties') ? 'nav-link active' : 'nav-link';
+            
+            // Because we are in a plugin, the normal link() and build() functions want to 
+            // include the plugin path as part of the URL (and plugin => false cannot be used
+            // with these functions like it can with references to resources). Pass a string instead.
+            $navUrl = '/' . \Cake\Utility\Inflector::dasherize($navController) . 
+              ($curAction == 'view' ? '/view/' : '/edit/') . $curId;
+            
+            print $this->Html->link(
+              __d('controller', 'Properties', [99]),
+              $navUrl,
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+        <li class="nav-item">
+          <?php
+            $linkClass = ($active == 'plugin') ? 'nav-link active' : 'nav-link';
+            $navUrl = '/' . \Cake\Utility\Inflector::dasherize($navController) . '/configure/' . $curId;
+            print $this->Html->link(
+              __d('operation', 'configure.plugin'),
+              $navUrl,
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+      <?php endif; // plugin ?>
+      
     </ul>
   </nav>
 
@@ -361,4 +403,3 @@ if(!empty($vv_person_name)) {
     
   <?php endif; // end  $isExternalId ?>
 </div>
-  

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Pipelines Index Columns
+ * COmanage Registry External Identity Sources Edit Navigation
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,22 +24,21 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-
-$indexColumns = [
-  'description' => [
-    'type' => 'link',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
+  
+$topLinks = [
+  [
+    'icon' => 'search',
+    'order' => 'Default',
+    'label' => __d('operation', 'ExternalIdentitySources.search'),
+    'link' => [
+      'action' => 'search',
+      $vv_obj->id
+    ],
+    'class' => ''
   ]
 ];
 
-/*
-// TODO: develop $bulkActions. For now, use a placeholder. 
-$bulkActions = [
-  'delete' => true
+$subnav = [
+  'name' => 'plugin',
+  'active' => 'properties'
 ];
-*/

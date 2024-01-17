@@ -82,7 +82,7 @@ msgid "co.connections.external_identity_sources.desc"
 msgstr "Define external \"systems of record\" from which to receive Person data through a Pipeline"
 
 msgid "co.connections.pipelines.desc"
-msgstr "Connect external data to Person Records"
+msgstr "Connect external data to Person records"
 
 msgid "co.connections.provisioning_targets.desc"
 msgstr "Create access to applications and services"
