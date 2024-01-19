@@ -151,14 +151,14 @@ trait PrimaryLinkTrait {
    * #since  COmanage Registry v5.0.0
    * @param  int      $id Record ID
    * @return int|null     CO ID or null if not found
+   * @throws Cake\Datasource\Exception\RecordNotFoundException
    */
   
   public function findCoForRecord(int $id): ?int {
-    // Pull the object to examine the primary links
-    $query = $this->findById($id);
-    
-    // This will throw an error on failure
-    return $this->calculateCoForRecord($query->firstOrFail());
+    // Pull the object to examine the primary links. We might be asked to find the
+    // CO for a deleted object (eg: to add a history record, or to show an older
+    // value for an entity), so accept archived records.
+    return $this->calculateCoForRecord($this->get($id, ['archived' => true]));
   }
   
   /**
