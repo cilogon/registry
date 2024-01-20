@@ -418,6 +418,14 @@ class PipelinesTable extends Table {
       $newdata['status']
     );
 
+    // Timestamps are FrozenTime objects in the entity data, and is_scalar
+    // will filter them out, so convert them to strings
+    foreach(['valid_from', 'valid_through'] as $attr) {
+      if(!empty($entity->$attr)) {
+        $newdata[$attr] = $entity->$attr->i18nFormat('yyyy-MM-dd HH:mm:ss');
+      }
+    }
+
     // This will remove anything that isn't stringy
     return array_filter($newdata, 'is_scalar');
   }
@@ -1269,14 +1277,20 @@ class PipelinesTable extends Table {
               // $arecord should include the associated models, so we don't need
               // to do any special handling for them.
 
+              $associated = [];
+
+              if($model == 'ExternalIdentityRoles') {
+                $associated = ['Addresses', 'AdHocAttributes', 'TelephoneNumbers'];
+              }
+
               $newentity = $this->Cos->People->ExternalIdentities->$model->newEntity(
                 $arecord,
-                ['associated' => ['Addresses', 'AdHocAttributes', 'TelephoneNumbers']]
+                ['associated' => $associated]
               );
 
               $this->Cos->People->ExternalIdentities->$model->saveOrFail(
                 $newentity,
-                ['associated' => ['Addresses', 'AdHocAttributes', 'TelephoneNumbers']]
+                ['associated' => $associated]
               );
 
               $this->llog('trace', "Added $model " . $newentity->id . " for External Identity " . $externalIdentityEntity->id);

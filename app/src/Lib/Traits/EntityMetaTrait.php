@@ -62,7 +62,8 @@ trait EntityMetaTrait {
 
     foreach($data as $field => $value) {
       if((!isset($this->$field) && !empty($value))   // Value in $data but not $entity
-         || (isset($this->$field) && empty($value))  // Value in $entity but not $data
+         || (isset($this->$field) && empty($value)   // Value in $entity but not $data
+             && !empty($this->$field))                // ... and $entity is not falsey
          || (isset($this->$field) && $this->$field != $value)) {  // Values don't match
         // Not a match
         $match = false;
