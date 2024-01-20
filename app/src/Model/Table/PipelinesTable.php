@@ -1682,12 +1682,12 @@ class PipelinesTable extends Table {
                 // Default the new attribute to not frozen
                 $newdata['frozen'] = false;
 
-                $newentity = $this->Cos->People->PersonRoles->$t->newEntity($newdata, ['associated' => []]);
-                $this->Cos->People->PersonRoles->$t->saveOrFail($newentity, ['associated' => false]);
+                $newrentity = $this->Cos->People->PersonRoles->$t->newEntity($newdata, ['associated' => []]);
+                $this->Cos->People->PersonRoles->$t->saveOrFail($newrentity, ['associated' => false]);
 
-                $this->llog('trace', "Added PersonRole $t " . $newentity->id . " to Person Role from External Identity Role $t " . $relatedEntity->id);
+                $this->llog('trace', "Added PersonRole $t " . $newrentity->id . " to Person Role from External Identity Role $t " . $relatedEntity->id);
 
-                $seenRelatedModelIds[] = $newentity->id;
+                $seenRelatedModelIds[] = $newrentity->id;
               }
             }
           }
