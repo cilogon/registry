@@ -26,105 +26,139 @@
  */
 
 use \Cake\Utility\Inflector;
+
+  // Include the plugin subnavigation
+  $subnav = [
+    'name' => 'plugin',
+    'active' => 'search'
+  ];
+
+  // Generate the subnavigation title and tabs
+  print $this->element('subnavigation', $subnav);
 ?>
 
 <div class="pageTitleContainer">
   <div class="pageTitle">
-    <h1><?= $vv_title; ?></h1>
+    <h2><?= $vv_title ?></h2>
   </div>
-</div>
-
-<!-- Flash Messages and defined Info Banners -->
-<div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-
-  <?php if(!empty($indexBanners)): ?>
-    <?php foreach($indexBanners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $indexBanners ?>
-  <?php endif; // $indexBanners ?>
-
-  <?php if(!empty($banners)): ?>
-    <?php foreach($banners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $banners ?>
-  <?php endif; // $banners ?>
-</div>
-
-<!-- insert explainer box -->
-
-<?= __d('information', 'ExternalIdentitySources.retrieve'); ?>
-
-<ul>
-<li><?= $this->Html->link(
-      __d('operation', 'ExternalIdentitySources.sync'),
-      [
+  <?php
+    // Action list for top menu dropdown / button listing
+    $action_args = array();
+    $action_args['vv_attr_id'] =  $vv_eis->id;
+    $action_args['vv_actions'][] = [
+      'order' => 1,
+      'icon' => 'sync',
+      'url' => [
         'controller'  => 'external-identity-sources',
         'action'      => 'sync',
         $vv_eis->id,
         '?'           => ['source_key' => $vv_eis_record['source_key']]
-      ]
-    ); ?></li>
-<?php if(!empty($vv_external_identity_record)): ?>
-<li><?= $this->Html->link(
-      __d('operation', 'view.a', [__d('controller', 'ExternalIdentities', [1])]),
-      [
-        'controller'  => 'external-identities',
-        'action'      => 'view',
-        $vv_external_identity_record->external_identity_id
-      ]
-    ); ?></li>
-<li><?= $this->Html->link(
-      __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', [1])]),
-      [
-        'controller'  => 'ext-identity-source-records',
-        'action'      => 'view',
-        $vv_external_identity_record->id
-      ]
-    ); ?></li>
-<?php endif; // $vv_external_identity_record ?>
-</ul>
+      ],
+      'label' => __d('operation', 'ExternalIdentitySources.sync')
+    ];
+    
+    if(!empty($vv_external_identity_record)) {
+      $action_args['vv_actions'][] = [
+        'order' => 2,
+        'icon' => 'visibility',
+        'url' => [
+          'controller'  => 'external-identities',
+          'action'      => 'view',
+          $vv_external_identity_record->external_identity_id
+        ],
+        'label' => __d('operation', 'view.a', [__d('controller', 'ExternalIdentities', [1])])
+      ];
+      $action_args['vv_actions'][] = [
+        'order' => 3,
+        'icon' => 'visibility',
+        'url' => [
+          'controller'  => 'ext-identity-source-records',
+          'action'      => 'view',
+          $vv_external_identity_record->id
+        ],
+        'label' => __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', [1])])
+      ];
+    }
+    
+    print '<div class="field-actions top-links">';
+    print $this->element('menuAction', $action_args);
+    print '</div>';
+  ?>
+</div>
+
+<!-- insert explainer box -->
+<div class="alert alert-warning co-alert" role="alert">
+  <div class="alert-body d-flex align-items-center">
+    <span class="alert-title d-flex align-items-center">
+      <span class="material-icons-outlined alert-icon">report_problem</span>
+    </span>
+    <span class="alert-message">        
+      <?= __d('information', 'ExternalIdentitySources.retrieve'); ?>
+    </span>
+  </div>
+</div>
 
 <div class="innerContent">
   <div class="table-container">
-    <table id="view_external_identity_source_record">
+    <h3><?= __d('information','ExternalIdentitySourceRecords.metadata') ?></h3>
+    <table id="view-external-identity-source-record-metadata" class="eis-table">
+      <thead>
+        <tr>
+          <th><?= __d('field','item') ?></th>
+          <th><?= __d('field','value') ?></th>
+        </tr>
+      </thead>
       <tbody>
         <!-- Record metadata -->
         <tr>
-          <td><?= __d('controller', 'ExternalIdentitySources', 1); ?></td>
-          <td></td>
-          <td><?= $vv_eis->description; ?></td>
+          <td class="eis-meta eis-item"><?= __d('controller', 'ExternalIdentitySources', 1); ?></td>
+          <td class="eis-meta eis-value"><?= $vv_eis->description; ?></td>
         </tr>
         <tr>
-          <td><?= __d('field', 'source_key'); ?></td>
-          <td></td>
-          <td><?= $vv_eis_record['source_key']; ?></td>
+          <td class="eis-meta eis-item"><?= __d('field', 'source_key'); ?></td>
+          <td class="eis-meta eis-value"><?= $vv_eis_record['source_key']; ?></td>
         </tr>
+      </tbody>
+    </table>
+
+    <h3><?= __d('controller', 'ExternalIdentities', 1) ?></h3>
+    <table id="view-external-identity-source-record" class="eis-table">
+      <thead>
+        <tr>
+          <th><?= __d('field','item') ?></th>
+          <th><?= __d('field','type') ?></th>
+          <th><?= __d('field','value') ?></th>
+        </tr>
+      </thead>
+      <tbody>
+    
         <!-- We order attributes according to their likely importance,
              starting with names. Because $vv_eis_record is an array and
              not an entity, we can't use entity methods to get virtual fields
              like full_name. -->
         <?php foreach($vv_eis_record['entity_data']['names'] as $name): ?>
-          <td><?= __d('controller', 'Names', 1); ?></td>
-          <td><?= $name['type']; ?></td>
-          <td>
-            <ul>
-            <?php
-              foreach($name as $field => $value) {
-                if($field == 'type') continue;
-
-                print "<li>" . $field . ": " . $value . "</li>\n";
-              }
-            ?>
-            </ul>
-          </td>
+          <tr>
+            <td class="eis-item"><?= __d('controller', 'Names', 1); ?></td>
+            <td class="eis-type"><?= $name['type'] ??  '' ?></td>
+            <td class="eis-value">
+              <ul>
+              <?php
+                foreach($name as $field => $value) {
+                  if($field == 'type') continue;
+  
+                  print "<li>" . $field . ": " . $value . "</li>\n";
+                }
+              ?>
+              </ul>
+            </td>
+          </tr>
         <?php endforeach; // $name ?>
         <!-- Date of birth, and any other External Identity single value attributes
              that may come later -->
         <tr>
-          <td><?= __d('field', 'date_of_birth'); ?></td>
-          <td></td>
-          <td><?= $vv_eis_record['entity_data']['date_of_birth'] ?? ""; ?></td>
+          <td class="eis-item"><?= __d('field', 'date_of_birth'); ?></td>
+          <td class="eis-type"></td>
+          <td class="eis-value"><?= $vv_eis_record['entity_data']['date_of_birth'] ?? ""; ?></td>
         </tr>
         <!-- MVEAs associated with the External Identity -->
         <?php
@@ -139,9 +173,9 @@ use \Cake\Utility\Inflector;
             if(!empty($vv_eis_record['entity_data'][$model])) {
               foreach($vv_eis_record['entity_data'][$model] as $m) {
                 print "<tr>\n";
-                print "<td>" . __d('controller', Inflector::camelize($model), 1) . "</td>\n";
-                print "<td>" . ($m['type'] ?? "") . "</td>\n";
-                print "<td><ul>\n";
+                print "<td class=\"eis-item\">" . __d('controller', Inflector::camelize($model), 1) . "</td>\n";
+                print "<td class=\"eis-type\">" . ($m['type'] ?? "") . "</td>\n";
+                print "<td class=\"eis-value\"><ul>\n";
                 foreach($m as $field => $value) {
                   if($field == 'type') continue;
 
@@ -158,35 +192,45 @@ use \Cake\Utility\Inflector;
           if(!empty($vv_eis_record['entity_data']['ad_hoc_attributes'])) {
             foreach($vv_eis_record['entity_data']['ad_hoc_attributes'] as $aha) {
               print "<tr>\n";
-              print "<td>" . __d('controller', 'AdHocAttributes', 1) . "</td>\n";
-              print "<td>" . $aha['tag'] . "</td>\n";
-              print "<td>" . $aha['value'] . "</td>\n";
+              print "<td class=\"eis-item\">" . __d('controller', 'AdHocAttributes', 1) . "</td>\n";
+              print "<td class=\"eis-type\">" . $aha['tag'] . "</td>\n";
+              print "<td class=\"eis-value\">" . $aha['value'] . "</td>\n";
               print "</tr>\n";
             }
           }
         ?>
+      </tbody>
+    </table>
+    
+    <?php if(!empty($vv_eis_record['entity_data']['external_identity_roles'])): ?>
+      <h3><?= __d('controller', 'ExternalIdentityRoles', 1) ?></h3>
+      <table id="view-external-identity-source-record" class="eis-table">
+        <thead>
+          <tr>
+            <th><?= __d('field','item') ?></th>
+            <th><?= __d('field','type') ?></th>
+            <th><?= __d('field','value') ?></th>
+          </tr>
+        </thead>
+        <tbody>
         <!-- External Identity Roles, with their associated single value attributes -->
         <?php
           if(!empty($vv_eis_record['entity_data']['external_identity_roles'])) {
             foreach($vv_eis_record['entity_data']['external_identity_roles'] as $role) {
-// In particular this should stand out somehow
-              print "<tr>\n";
-              print "<td colspan=3>" . __d('controller', 'ExternalIdentityRoles', 1) . "</td>\n";
-              print "</tr>\n";
 
               print "<tr>\n";
-              print "<td>" . __d('field', 'role_key') . "</td>\n";
-              print "<td></td>\n";
-              print "<td>" . $role['role_key'] . "</td>\n";
+              print "<td class=\"eis-eir eis-item\">" . __d('field', 'role_key') . "</td>\n";
+              print "<td class=\"eis-eir eis-type\"></td>\n";
+              print "<td class=\"eis-eir eis-value\">" . $role['role_key'] . "</td>\n";
               print "</tr>\n";
 
               foreach(array_keys($role) as $field) {
                 if($field == 'role_key' || is_array($role[$field])) continue;
 
                 print "<tr>\n";
-                print "<td>" . __d('field', $field) . "</td>\n";
-                print "<td></td>\n";
-                print "<td>" . $role[$field] . "</td>\n";
+                print "<td class=\"eis-eir eis-item\">" . __d('field', $field) . "</td>\n";
+                print "<td class=\"eis-eir eis-type\"></td>\n";
+                print "<td class=\"eis-eir eis-value\">" . $role[$field] . "</td>\n";
                 print "</tr>\n";
               }
             }
@@ -202,9 +246,9 @@ use \Cake\Utility\Inflector;
             if(!empty($role[$model])) {
               foreach($role[$model] as $m) {
                 print "<tr>\n";
-                print "<td>" . __d('controller', Inflector::camelize($model), 1) . "</td>\n";
-                print "<td>" . ($m['type'] ?? "") . "</td>\n";
-                print "<td><ul>\n";
+                print "<td class=\"eis-eir eis-item\">" . __d('controller', Inflector::camelize($model), 1) . "</td>\n";
+                print "<td class=\"eis-eir eis-type\">" . ($m['type'] ?? "") . "</td>\n";
+                print "<td class=\"eis-eir eis-value\"><ul>\n";
                 foreach($m as $field => $value) {
                   if($field == 'type') continue;
 
@@ -221,31 +265,37 @@ use \Cake\Utility\Inflector;
           if(!empty($role['ad_hoc_attributes'])) {
             foreach($role['ad_hoc_attributes'] as $aha) {
               print "<tr>\n";
-              print "<td>" . __d('controller', 'AdHocAttributes', 1) . "</td>\n";
-              print "<td>" . $aha['tag'] . "</td>\n";
-              print "<td>" . $aha['value'] . "</td>\n";
+              print "<td class=\"eis-eir eis-item\">" . __d('controller', 'AdHocAttributes', 1) . "</td>\n";
+              print "<td class=\"eis-eir eis-type\">" . $aha['tag'] . "</td>\n";
+              print "<td class=\"eis-eir eis-value\">" . $aha['value'] . "</td>\n";
               print "</tr>\n";
             }
           }
         ?>
-        <!-- Finally the raw source record -->
-        <tr>
-          <td>
-            <?= __d('field', 'source_record'); ?><br />
-            <span class="field-desc"><?= __d('field', 'ExternalIdentitySources.source_record.desc'); ?></span>
-          </td>
-          <td></td>
-          <td>
-            <code class="source-record">
-            <?php
-              if(!empty($vv_eis_record['source_record'])) {
-                print filter_var($vv_eis_record['source_record'], FILTER_SANITIZE_SPECIAL_CHARS);
-              }; 
-            ?>
-            </code>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    <?php endif; ?>
+
+    <!-- Finally the raw source record -->
+    <h3><?= __d('field', 'source_record'); ?></h3>
+    <div id="source-record-raw">
+      <?php if(!empty($vv_eis_record['source_record'])): ?>
+        <code class="source-record">
+          <?= filter_var($vv_eis_record['source_record'], FILTER_SANITIZE_SPECIAL_CHARS) ?>
+        </code>
+      <?php else: ?>
+        <div class="alert alert-info co-alert" role="alert">
+          <div class="alert-body d-flex align-items-center">
+                <span class="alert-title d-flex align-items-center">
+                  <span class="material-icons-outlined alert-icon">report_problem</span>
+                </span>
+            <span class="alert-message">        
+                  <?= __d('field', 'ExternalIdentitySources.source_record.empty') ?>
+                </span>
+          </div>
+        </div>
+      <?php endif; ?>
+    </div>
+    
   </div>
 </div>

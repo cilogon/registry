@@ -24,70 +24,88 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+  // Include the plugin subnavigation
+  $subnav = [
+    'name' => 'plugin',
+    'active' => 'search'
+  ];
+  
+  // Generate the subnavigation title and tabs
+  print $this->element('subnavigation', $subnav);
 ?>
 
 <div class="pageTitleContainer">
   <div class="pageTitle">
-    <h1><?= $vv_title; ?></h1>
+    <h2><?= $vv_title ?></h2>
   </div>
-</div>
-
-<!-- Flash Messages and defined Info Banners -->
-<div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-
-  <?php if(!empty($indexBanners)): ?>
-    <?php foreach($indexBanners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $indexBanners ?>
-  <?php endif; // $indexBanners ?>
-
-  <?php if(!empty($banners)): ?>
-    <?php foreach($banners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $banners ?>
-  <?php endif; // $banners ?>
 </div>
 
 <?php if(empty($vv_search_attrs)): ?>
-<!-- XXX this needs updating -->
-  <div class="co-info-topbox">
-    <em class="material-icons">info</em>
-    <div class="co-info-topbox-text">
-      <?php print __d('information', 'ExternalIdentitySources.search.attrs.none'); ?>
+  <div class="alert alert-info co-alert" role="alert">
+    <div class="alert-body d-flex align-items-center">
+      <span class="alert-title d-flex align-items-center">
+        <span class="material-icons-outlined alert-icon">info</span>
+      </span>
+      <span class="alert-message">        
+        <?php print __d('information', 'ExternalIdentitySources.search.attrs.none'); ?>
+      </span>
     </div>
   </div>
 <?php else: // vv_search_attrs ?>
-<ul id="eis_search_fields" class="fields form-list">
-<?php
-  // Begin the form
-  print $this->Form->create(null, [
-    'id'   => 'eis-search-form',
-    'type' => 'post'
-  ]);
-
-  foreach($vv_search_attrs as $field => $label) {
-    $key = "search." . $field;
-
-    print "<li>" . $this->Form->control($key,
-                               [
-                                 'label' => $label
-                               ])
-                               . "</li>\n";
-
-  }
-?>
-  <li class="fields-submit">
-    <div class="field-name">
-    </div>
-    <div class="field-info">
-      <?php
-        print $this->Form->submit(__d('operation', 'search'));
-        print $this->Form->end();
-      ?>
-    </div>
-  </li>
-</ul>
+  <?php
+    // Begin the form
+    print $this->Form->create(null, [
+      'id'   => 'eis-search-form',
+      'type' => 'post'
+    ]);
+  ?>
+  <?php if(count($vv_search_attrs) == 1): ?>
+    <?php // We have only a single search query, so render it gracefully. Currently that's true for FileSourceTable and ApiSourceTable. ?>
+    <?php  foreach($vv_search_attrs as $field => $label): ?>
+      <?php  $key = "search." . $field; ?>
+      <div class="eis-single-search">
+        <?= $this->Form->label($key, $label, ['class' => 'visually-hidden']) ?>
+        <?= $this->Form->control($key, 
+          [
+            'class' => 'form-control', 
+            'label' => false,
+            'placeholder' => __d('information','ExternalIdentitySources.search.single.placeholder'),
+            'onfocus' => 'this.select()'
+          ]) 
+        ?>
+        <?= $this->Form->submit(__d('operation', 'search'), ['class' => 'btn-sm']); ?>
+      </div>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <ul id="eis-search-fields" class="fields form-list">  
+      <?php  foreach($vv_search_attrs as $field => $label): ?>
+        <?php  $key = "search." . $field; ?>
+        <li>
+          <div class="field">
+            <div class="field-name">
+              <div class="field-title">
+                <?= $this->Form->label($key, $label) ?>
+              </div>
+            </div>
+            <div class="field-info">
+              <?= $this->Form->control($key, ['label' => false]) ?>
+            </div>
+          </div>
+        </li>
+      <?php endforeach; ?> 
+      <li class="fields-submit">
+        <div class="field-name">
+        </div>
+        <div class="field-info">
+          <?php
+            print $this->Form->submit(__d('operation', 'search'));
+          ?>
+        </div>
+      </li>
+    </ul>
+  <?php endif; ?>
+  <?= $this->Form->end() ?>
 <?php endif; // vv_search_attrs ?>
 
 <?php if(isset($vv_search_results)): ?>
@@ -116,7 +134,7 @@
         </thead>
         <tbody>
           <?php foreach($vv_search_results as $source_key => $r): ?>
-          <tr>
+          <tr class="linked-row">
             <td>
               <?= $this->Html->link(
                     $source_key,
@@ -124,18 +142,15 @@
                       'action' => 'retrieve',
                       $this->request->getParam('pass')[0],
                       '?' => ['source_key' => $source_key]
+                    ],
+                    [
+                      'class' => 'row-link row-link-retrieve'
                     ]
                   ); ?>
             </td>
-            <td><?= $r['names'][0]['given']; ?></td>
-            <td><?= $r['names'][0]['family']; ?></td>
-            <td>
-              <?php
-                if(!empty($r['email_addresses'][0]['mail'])) {
-                  print $r['email_addresses'][0]['mail'];
-                }
-              ?>
-            </td>
+            <td><?= $r['names'][0]['given'] ?? '' ?></td>
+            <td><?= $r['names'][0]['family'] ?? '' ?></td>
+            <td><?= $r['email_addresses'][0]['mail'] ?? '' ?></td>
           </tr>
           <?php endforeach; // $vv_search_results ?>
         </tbody>

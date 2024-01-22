@@ -404,6 +404,9 @@
   .field-actions.top-links .actions-expanded  a.dropdown-item:hover {
     background-color: transparent;
   }
+  #view-external-identity-source-record td:first-child {
+    white-space: nowrap;
+  }
   /* FOOTER */
   #co-footer {
     position: static;

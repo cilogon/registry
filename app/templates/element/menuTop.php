@@ -68,55 +68,62 @@
           </a>
           <ul class="dropdown-menu">
             <li class="menu-grouping">
-              <h4>
-                <span class="material-icons" aria-hidden="true">dark_mode</span>
-                <?= __d('menu','menu.darkmode'); ?>
-              </h4>
-              <form class="menu-grouping-group">
-                <div class="form-check">
-                  <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-dark">
-                  <label class="form-check-label" for="setting-darkmode-dark">
-                    <?= __d('menu','menu.darkmode.dark'); ?>
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-light">
-                  <label class="form-check-label" for="setting-darkmode-light">
-                    <?= __d('menu','menu.darkmode.light'); ?>
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-auto" checked>
-                  <label class="form-check-label" for="setting-darkmode-auto">
-                    <?= __d('menu','menu.darkmode.auto'); ?>
-                  </label>
-                </div>
+              <form>
+                <fieldset>
+                  <legend>
+                    <span class="material-icons" aria-hidden="true">dark_mode</span>
+                    <?= __d('menu','menu.darkmode'); ?>
+                  </legend>
+                  <div class="menu-grouping-group">
+                    <div class="form-check">
+                      <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-dark">
+                      <label class="form-check-label" for="setting-darkmode-dark">
+                        <?= __d('menu','menu.darkmode.dark'); ?>
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-light">
+                      <label class="form-check-label" for="setting-darkmode-light">
+                        <?= __d('menu','menu.darkmode.light'); ?>
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-auto" checked>
+                      <label class="form-check-label" for="setting-darkmode-auto">
+                        <?= __d('menu','menu.darkmode.auto'); ?>
+                      </label>
+                    </div>
+                  </div>
+                </fieldset>
               </form>
             </li>
             <li><hr class="dropdown-divider"></li>
             <li class="menu-grouping">
-              <h4>
-                <span class="material-icons" aria-hidden="true">density_small</span>
-                <?= __d('menu','menu.density'); ?>
-              </h4>
-              <form class="menu-grouping-group">
-                <div class="form-check">
-                  <input type="radio" name="setting-density" class="form-check-input" id="setting-density-small">
-                  <label class="form-check-label" for="setting-density-small">
-                    <?= __d('menu','menu.density.small'); ?>
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" name="setting-density" class="form-check-input" id="setting-density-medium" checked>
-                  <label class="form-check-label" for="setting-density-medium">
-                    <?= __d('menu','menu.density.medium'); ?>
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" name="setting-density" class="form-check-input" id="setting-density-large">
-                  <label class="form-check-label" for="setting-density-large">
-                    <?= __d('menu','menu.density.large'); ?>
-                  </label>
+              <form>
+                <fieldset>
+                  <legend>
+                    <span class="material-icons" aria-hidden="true">density_small</span>
+                    <?= __d('menu','menu.density'); ?>
+                  </legend>
+                  <div class="menu-grouping-group">
+                  <div class="form-check">
+                    <input type="radio" name="setting-density" class="form-check-input" id="setting-density-small">
+                    <label class="form-check-label" for="setting-density-small">
+                      <?= __d('menu','menu.density.small'); ?>
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input type="radio" name="setting-density" class="form-check-input" id="setting-density-medium" checked>
+                    <label class="form-check-label" for="setting-density-medium">
+                      <?= __d('menu','menu.density.medium'); ?>
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input type="radio" name="setting-density" class="form-check-input" id="setting-density-large">
+                    <label class="form-check-label" for="setting-density-large">
+                      <?= __d('menu','menu.density.large'); ?>
+                    </label>
+                  </div>
                 </div>
               </form>
             </li>

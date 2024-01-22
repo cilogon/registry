@@ -60,11 +60,17 @@ msgstr "This External Identity was created from {0} ({1})"
 msgid "ExternalIdentitySources.retrieve"
 msgstr "This is the current record available directly from the source. To view the latest record retrieved and cached by Registry, click <i>View External Identity Source Record</i>."
 
+msgid "ExternalIdentitySourceRecords.metadata"
+msgstr "Metadata"
+
 msgid "ExternalIdentitySourceRecords.view"
 msgstr "This is the latest record retrieved from the source, as cached by Registry. To view the current record directly from the source, select <i>Retrieve from External Identity Source</i>."
 
 msgid "ExternalIdentitySources.search.attrs.none"
 msgstr "The External Identity Source cannot be searched."
+
+msgid "ExternalIdentitySources.search.single.placeholder"
+msgstr "Search directly against the source for any value"
 
 msgid "global.attribute.modal"
 msgstr "Attribute Modal"

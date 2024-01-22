@@ -252,6 +252,22 @@
               <?php
                 $menuUrl = $this->Url->build(
                   ['plugin'       => null,
+                   'controller'   => 'ext_identity_source_records',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>" class="nospin">
+                <em class="material-icons" aria-hidden="true">assignment</em> 
+                <?= __d('controller','ExtIdentitySourceRecords', [99]) ?>
+              </a>
+            </li>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
                    'controller'   => 'servers',
                    'action'       => 'index',
                    '?'            => [
@@ -260,7 +276,7 @@
                 );
               ?>
               <a href="<?= $menuUrl ?>" class="nospin">
-                <em class="material-icons" aria-hidden="true">computer</em> 
+                <em class="material-icons" aria-hidden="true">computer</em>
                 <?= __d('controller','Servers', [2]) ?>
               </a>
             </li>

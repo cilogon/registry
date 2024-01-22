@@ -113,6 +113,9 @@ msgstr "Frozen"
 msgid "id"
 msgstr "ID"
 
+msgid "item"
+msgstr "Item"
+
 msgid "family"
 msgstr "Family Name"
 
@@ -258,6 +261,9 @@ msgstr "Timestamp"
 msgid "title"
 msgstr "Title"
 
+msgid "type"
+msgstr "Type"
+
 msgid "url"
 msgstr "URL"
 
@@ -351,8 +357,8 @@ msgstr "Limit Global Search Scope"
 msgid "CoSettings.search_global_limited_models.desc"
 msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
-msgid "ExternalIdentitySources.source_record.desc"
-msgstr "If the source record is empty, it likely indicates this record is no longer available from the datasource"
+msgid "ExternalIdentitySources.source_record.empty"
+msgstr "The source record is empty. This suggests the record is no longer available from the datasource."
 
 msgid "GroupMembers.source"
 msgstr "Membership Source"

@@ -58,7 +58,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
     $navController = $vv_primary_link_model;
   } elseif(!empty($vv_primary_link_id)) {
     $curId = $vv_primary_link_id;
-  }
+  } 
   
   // For top-level nav while in edit pages.
   if ($name == 'person') {
@@ -66,6 +66,10 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   } elseif ($name == 'group') {
     $linkFilter = ['group_id' => $curId];
   }
+} elseif(!empty($vv_bc_title_links)) {
+  // All else fails? Use the breadcrumb which has figured this out.
+  // XXX We might just be able to do this and skip all the above after breadcrumbs have been refactored
+  $curId = end($vv_bc_title_links[0]['target']);
 }
 
 if(!empty($vv_obj)) {
@@ -89,6 +93,10 @@ if($active == 'plugin' && !empty($vv_bc_parent_obj)) {
   $supertitle = $vv_obj->$vv_display_field;
 } elseif(!empty($vv_bc_parent_obj)) {
   $supertitle = $vv_bc_parent_obj->$vv_bc_parent_displayfield;
+} elseif(!empty($vv_bc_title_links)) {
+  // All else fails? Use the breadcrumb which has figured this out.
+  // XXX We might just be able to do this and skip all the above after breadcrumbs have been refactored
+  $supertitle = $vv_bc_title_links[0]['label'];
 }
 ?>
 
@@ -341,6 +349,19 @@ if($active == 'plugin' && !empty($vv_bc_parent_obj)) {
             );
           ?>
         </li>
+        <?php if($navController == 'ExternalIdentitySources' && (!empty($vv_permissions['search']) || !empty($vv_permissions['edit']))): ?>
+          <li class="nav-item">
+            <?php
+              $linkClass = ($active == 'search') ? 'nav-link active' : 'nav-link';
+              $navUrl = '/' . \Cake\Utility\Inflector::dasherize($navController) . '/search/' . $curId;
+              print $this->Html->link(
+                __d('operation', 'ExternalIdentitySources.search'),
+                $navUrl,
+                ['class' => $linkClass]
+              );
+            ?>
+          </li>
+        <?php endif; ?>
       <?php endif; // plugin ?>
       
     </ul>
