@@ -145,7 +145,8 @@ class PeopleTable extends Table {
       'Urls'
     ]);
     $this->setIndexContains(['PrimaryName']);
-    
+    $this->setViewContains(['PrimaryName']);
+
     $this->setAutoViewVars([
       'statuses' => [
         'type' => 'enum',

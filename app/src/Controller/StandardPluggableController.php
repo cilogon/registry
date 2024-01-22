@@ -42,7 +42,7 @@ class StandardPluggableController extends StandardController {
    */
   
   public function configure(string $id) {
-    // We basically implement a redirect here to faciliate view rendering.
+    // We basically implement a redirect here to facilitate view rendering.
     // (We only need to map into the plugin on actual link click, instead of
     // potentially many times on an index view for links that may not be used.)
 

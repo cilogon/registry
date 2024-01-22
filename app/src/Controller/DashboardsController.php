@@ -50,7 +50,8 @@ class DashboardsController extends StandardController {
     $this->Breadcrumb->skipConfig([
       '/^\/dashboards\/artifacts/',
       '/^\/dashboards\/dashboard/',
-      '/^\/dashboards\/registries/'
+      '/^\/dashboards\/registries/',
+      '/^\/dashboards\/search/'
     ]);
     // There is currently no inventory of dashboards, so we skip parents
     // for configuration, dashboard, and registries actions

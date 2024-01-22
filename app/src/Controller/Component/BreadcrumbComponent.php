@@ -37,6 +37,18 @@ use \App\Lib\Util\StringUtilities;
 
 class BreadcrumbComponent extends Component
 {
+  /*
+   * Breadcrump example
+   * COmanage Registry > Alfa Community > Configuration > External Identity Sources > Test Filesource Plugin > Configure Test Filesource Plugin
+   *
+   * Root link(prepend):  COmanage Registry // Root node (link)
+   * CO Level Link:       Alfa Community    // if Current CO is defined (link)
+   * configuration:       Configuration     // Configuration breadcrumb (link)
+   * path:                Parent            // Render the path from dashboard (link)
+   * Title Links:
+   * Page Title:          Title             // e.g. Configure Test Filesource Plugin (string)
+   */
+
   // Configuration provided by the controller
   // Don't render any breadcrumbs
   protected $skipAllPaths = [];
@@ -45,11 +57,14 @@ class BreadcrumbComponent extends Component
   // Don't render the parent links
   protected $skipParentPaths = [];
   // Inject parent links (these render before the index link, if set)
+  // The parent links are constructed as part of the injectPrimaryLink function. This in the StandardController as well
+  // as in the StandardPluginController, MVEAController, ProvisioningHistoryRecordController, etc. These controllers are
+  // a descendant from the StandardController we will calculate the Parents twice. In order to avoid duplicates the
+  // injectParents table has to be an associative array. The uniqueness of the key will preserve the uniqueness of the parent
+  // path while the order of firing will create the correct breadcumb path order
   protected $injectParents = [];
   // Inject title links (immediately before the title breadcrumb)
   protected $injectTitleLinks = [];
-  // Whether parent links are frozen
-  protected $parentsFrozen = false;
   
   /**
    * Callback run prior to rendering the view.
@@ -61,115 +76,105 @@ class BreadcrumbComponent extends Component
   public function beforeRender(EventInterface $event) {
     $controller = $event->getSubject();
     $request = $controller->getRequest();
+
+    if($request->is('restful') || $request->is('ajax')) {
+      return;
+    }
+
     $modelsName = $controller->getName();
 
-    if(!$request->is('restful')) {
-      // Determine the request target, but strip off query params
-      $requestTarget = $request->getRequestTarget(false);
+    // Determine the request target, but strip off query params
+    $requestTarget = $request->getRequestTarget(false);
 
-      $skipAll = false;
-      $skipConfig = false;
+    $skipAll = false;
+    $skipConfig = false;
 
-      foreach($this->skipAllPaths as $p) {
-        if(preg_match($p, $requestTarget)) {
-          $skipAll = true;
-          break;
-        }
+    foreach($this->skipAllPaths as $p) {
+      if(preg_match($p, $requestTarget)) {
+        $skipAll = true;
+        break;
       }
-
-      foreach($this->skipConfigPaths as $p) {
-        if(preg_match($p, $requestTarget)) {
-          $skipConfig = true;
-          break;
-        }
-      }
-
-      // Determine if the current request maps to a path where
-      // breadcrumb rendering should be skipped in whole or in part
-      $controller->set('vv_bc_skip', $skipAll);
-
-      $controller->set('vv_bc_skip_config', $skipConfig);
-
-      // Do we have a target model, and if so is it a configuration
-      // model (eg: ApiUsers) or an object model (eg: CoPeople)?
-      if(isset($controller->$modelsName) // May not be set under certain error conditions
-        && method_exists($controller->$modelsName, "isConfigurationTable")) {
-        $controller->set('vv_bc_configuration_link', $controller->$modelsName->isConfigurationTable());
-      } else {
-        $controller->set('vv_bc_configuration_link', false);
-      }
-
-      // Build a list of intermediate parent links, starting with any
-      // injected parents. This overrides $skipParentPaths.
-      $parents = $this->injectParents;
-
-      $skipParent = false;
-
-      foreach($this->skipParentPaths as $p) {
-        if(preg_match($p, $requestTarget)) {
-          $skipParent = true;
-          break;
-        }
-      }
-
-      if(!$skipParent) {
-        // For non-index views, insert a link back to the index.
-        $action = $request->getParam('action');
-        $primaryLink = $controller->getPrimaryLink(true);
-
-        if($action != 'index') {
-          $target = [
-            'plugin'     => $primaryLink->plugin ?? null,
-            'controller' => $modelsName,
-            'action'     => 'index'
-          ];
-
-          if(!empty($primaryLink->attr)) {
-            $target['?'] = [$primaryLink->attr => $primaryLink->value];
-          }
-
-          $label = (!empty($primaryLink->plugin)
-                    ? __d(Inflector::underscore($primaryLink->plugin), 'controller.'.$modelsName, [99])
-                    : __d('controller', $modelsName, [99]));
-
-          $parents[] = [
-            'label'   => $label,
-            'target'  => $target
-          ];
-        }
-      }
-
-      $controller->set('vv_bc_parents', $parents);
-
-      $controller->set('vv_bc_title_links', $this->injectTitleLinks);
     }
-  }
 
-  /**
-   * Prevent any additional parent links from being added. Intended primarily for
-   * Controllers that extend StandardController but do not want the standard behavior.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
+    foreach($this->skipConfigPaths as $p) {
+      if(preg_match($p, $requestTarget)) {
+        $skipConfig = true;
+        break;
+      }
+    }
 
-  public function freezeParents() {
-    $this->parentsFrozen = true;
+    // Determine if the current request maps to a path where
+    // breadcrumb rendering should be skipped in whole or in part
+    $controller->set('vv_bc_skip', $skipAll);
+
+    $controller->set('vv_bc_skip_config', $skipConfig);
+
+    // Do we have a target model, and if so is it a configuration
+    // model (eg: ApiUsers) or an object model (eg: CoPeople)?
+    if(isset($controller->$modelsName) // May not be set under certain error conditions
+      && method_exists($controller->$modelsName, "isConfigurationTable")) {
+      $controller->set('vv_bc_configuration_link', $controller->$modelsName->isConfigurationTable());
+    } else {
+      $controller->set('vv_bc_configuration_link', false);
+    }
+
+    // Build a list of intermediate parent links, starting with any
+    // injected parents. This overrides $skipParentPaths.
+    $parents = $this->injectParents;
+
+    $skipParent = false;
+
+    foreach($this->skipParentPaths as $p) {
+      if(preg_match($p, $requestTarget)) {
+        $skipParent = true;
+        break;
+      }
+    }
+
+    if(!$skipParent) {
+      // For non-index views, insert a link back to the index.
+      $action = $request->getParam('action');
+      $primaryLink = $controller->getPrimaryLink(true);
+
+      if($action != 'index') {
+        $target = [
+          'plugin'     => $primaryLink->plugin ?? null,
+          'controller' => $modelsName,
+          'action'     => 'index'
+        ];
+
+        if(!empty($primaryLink->attr)) {
+          $target['?'] = [$primaryLink->attr => $primaryLink->value];
+        }
+
+        $label = (!empty($primaryLink->plugin)
+          ? __d(Inflector::underscore($primaryLink->plugin), 'controller.'.$modelsName, [99])
+          : __d('controller', $modelsName, [99]));
+
+        $parents[] = [
+          'label'   => $label,
+          'target'  => $target
+        ];
+      }
+    }
+
+    $controller->set('vv_bc_parents', $parents);
+
+    $controller->set('vv_bc_title_links', $this->injectTitleLinks);
   }
 
   /**
    * Inject the primary link into the breadcrumb path.
    * 
-   * @since  COmanage Registry v5.0.0
-   * @param  object $link       Primary Link (as returned by getPrimaryLink())
-   * @param  bool   $index      Include link to parent index
-   * @param  string $linkLabel  Label to use for Primary Link instead of displayField
+   * @param  object $link            Primary Link (as returned by getPrimaryLink())
+   * @param  bool   $index           Include link to parent index
+   * @param  string|null $linkLabel  Override the constructed label
+   *
+   *@since  COmanage Registry v5.0.0
    */
 
-  public function injectPrimaryLink(object $link, bool $index=true, $linkLabel=null) {
-    if($this->parentsFrozen) {
-      return;
-    }
-
+  public function injectPrimaryLink(object $link, bool $index=true, string $linkLabel=null): void
+  {
     // eg: "People"
     $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
     $modelPath = $modelsName;
@@ -179,12 +184,14 @@ class BreadcrumbComponent extends Component
       $modelPath = $link->plugin . "." . $modelsName;
     }
 
-    $contain = [];
-    $primaryName = null;
+    // Construct the get<Request Action>Contains function name
+    $requestAction = $this->getController()->getRequest()->getParam('action');
+    $containsList = "get" . ucfirst($requestAction) . "Contains";
 
     $linkTable = TableRegistry::getTableLocator()->get($modelPath);
+    $contain = method_exists($linkTable, $containsList) ? $linkTable->$containsList() : [];
+
     $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
-    $displayField = $linkTable->getDisplayField();
 
     if($index) {
       // We need to determine the primary link of the parent, which might or might
@@ -195,7 +202,7 @@ class BreadcrumbComponent extends Component
 
         $parentLink = $linkTable->findPrimaryLink($linkObj->id);
 
-        $this->injectParents[] = [
+        $this->injectParents[ $modelPath . $parentLink->value] = [
           'target' => [
             'plugin'      => $parentLink->plugin ?? null,
             'controller'  => $modelsName,
@@ -213,32 +220,36 @@ class BreadcrumbComponent extends Component
       }
     }
 
-    $label = $linkLabel ?? $linkObj->$displayField;
+    // Find the allowed action
+    $breadcrumbAction = method_exists($linkObj, 'isReadOnly') ?
+                        ($linkObj->isReadOnly() ? 'view' : 'edit') :
+                        'edit';
 
-    if($modelsName == 'People' || $modelsName == 'ExternalIdentities') {
-      // We need the Primary Name (or first name found) to render it
+    // The action in the following injectParents dictates the action here
+    // XXX This is a duplicate from StandardController.
+    if(method_exists($linkTable, 'generateDisplayField')) {
+      // We don't use a trait for this since each table will implement different logic
 
-      $Names = TableRegistry::getTableLocator()->get('Names');
+      $label = __d('operation', "{$breadcrumbAction}.ai", $linkTable->generateDisplayField($linkObj));
+    } else {
+      // Default view title is edit object display field
+      $field = $linkTable->getDisplayField();
 
-      // This will throw an error on failure
-      $primaryName = $Names->primaryName($linkObj->id, Inflector::underscore(Inflector::singularize($modelsName)));
-      
-      $label = $primaryName->full_name;
+      if(!empty($obj->$field)) {
+        $label = __d('operation', "{$breadcrumbAction}.ai", $obj->$field);
+      } else {
+        $label = __d('operation', "{$breadcrumbAction}.ai", __d('controller', $modelsName, [1]));
+      }
     }
 
-    // If we don't have a visible label use the record ID
-    if(empty($label)) {
-      $label = $linkObj->id;
-    }
-
-    $this->injectParents[] = [
+    $this->injectParents[ $linkTable->getTable() . $linkObj->id ] = [
       'target' => [
         'plugin'      => $link->plugin ?? null,
         'controller'  => $modelsName,
-        'action'      => 'edit',
+        'action'      => $breadcrumbAction,
         $linkObj->id
       ],
-      'label' => $label
+      'label' => $linkLabel ?? $label
     ];
   }
 
