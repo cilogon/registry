@@ -102,54 +102,21 @@
     </ul>
   </nav>
   <nav id="navigation-bottom" aria-label="<?= __d('menu','menu.advanced') ?>">
-    <ul id="advanced-menu">
-      <?php
-        if(!empty($vv_cur_co)) {
-          $menuItems = [
-            [
-              'permission' => 'configuration',
-              'label' => __d('menu', 'co.registries'),
-              'char' => __d('menu', 'co.registries.char'),
-              'controller' => 'dashboards',
-              'action' => 'registries'
-            ],
-            [
-              'permission' => 'configuration',
-              'label' => __d('menu', 'co.artifacts'),
-              'char' => __d('menu', 'co.artifacts.char'),
-              'controller' => 'dashboards',
-              'action' => 'artifacts'
-            ],
-            [
-              'permission' => 'configuration',
-              'label' => __d('menu', 'co.configuration.short'),
-              'char' => __d('menu', 'co.configuration.char'),
-              'controller' => 'dashboards',
-              'action' => 'configuration'
-            ]
-          ];
-
-          foreach($menuItems as $m) {
-            if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
-              $linkContent = '<span class="menu-title-char" aria-hidden="true">' . $m['char'] . '</span>'
-                . '<span class="menu-title">' . $m['label'] . '</span>';
-              print '<li>';
-              print $this->Html->link(
-                $linkContent,
-                ['plugin'       => null,
-                 'controller'   => $m['controller'],
-                 'action'       => $m['action'],
-                 '?'            => [
-                   'co_id' => $vv_cur_co->id
-                 ]],
-                ['escape' => false, 'title' => $m['label']]
-              );
-              print '</li>';
-            }
-          }
-        }
-      ?>
-    </ul>
+    <?php if(!empty($vv_cur_co)): ?>
+      <div id="all-button-container">
+        <?= $this->Html->link(
+          __d('menu', 'co.all'),
+          ['plugin'       => null,
+           'controller'   => 'dashboards',
+           'action'       => 'configuration',
+           '?'            => ['co_id' => $vv_cur_co->id]],
+          [
+            'id' => 'all-button',
+            'class' => 'btn btn-primary btn-sm'
+          ]
+        );?>
+      </div>
+    <?php endif; ?>
     <button id="co-menu-collapse" aria-label="<?= __d('menu','menu.toggle') ?>">
       <em class="material-icons-outlined co-menu-collapse-icon" aria-hidden="true">
         expand_circle_down

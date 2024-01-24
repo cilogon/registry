@@ -83,8 +83,8 @@ if(!empty($subnav)) {
 }
 ?>
 
-<div class="pageTitleContainer">
-  <div class="pageTitle">
+<div class="page-title-container">
+  <div class="page-title">
     <?php if(empty($subnav)): ?>
       <h1><?= $vv_title; ?></h1>
     <?php else: ?>

@@ -30,13 +30,13 @@ msgstr "Available {0} Artifacts"
 msgid "available.filters"
 msgstr "Available Filters"
 
+msgid "co.all"
+msgstr "All"
+
 msgid "co.artifacts"
 msgstr "Artifacts"
 
-msgid "co.artifacts.char"
-msgstr "A"
-
-msgid "co.Attributes"
+msgid "co.attributes"
 msgstr "Attributes"
 
 msgid "co.configuration"
@@ -47,9 +47,6 @@ msgstr "Configuration for the current CO"
 
 msgid "co.configuration.short"
 msgstr "Config"
-
-msgid "co.configuration.char"
-msgstr "C"
 
 msgid "co.configuration.panel.title"
 msgstr "Configuration"
@@ -87,6 +84,12 @@ msgstr "Connect external data to Person records"
 msgid "co.connections.provisioning_targets.desc"
 msgstr "Create access to applications and services"
 
+msgid "co.features.all"
+msgstr "All Features"
+
+msgid "co.groups"
+msgstr "Groups"
+
 msgid "co.operations"
 msgstr "Operations"
 
@@ -101,9 +104,6 @@ msgstr "Manage this CO's asynchronous process queue"
 
 msgid "co.operations.reports.desc"
 msgstr "Create, view, and export reports"
-
-msgid "co.groups"
-msgstr "Groups"
 
 msgid "co.people"
 msgstr "People"
@@ -134,9 +134,6 @@ msgstr "Review and manage people in your collaboration (CO Person Records)"
 
 msgid "co.registries"
 msgstr "Registries"
-
-msgid "co.registries.char"
-msgstr "R"
 
 msgid "co.structure"
 msgstr "Structure"

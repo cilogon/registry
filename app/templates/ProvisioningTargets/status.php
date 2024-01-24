@@ -28,8 +28,8 @@
 use App\Lib\Util\StringUtilities;
 ?>
 
-<div class="pageTitleContainer">
-  <div class="pageTitle">
+<div class="page-title-container">
+  <div class="page-title">
     <h1><?= $vv_title; ?></h1>
   </div>
 </div>

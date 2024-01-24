@@ -508,6 +508,14 @@ ul.form-list li.alert-banner .co-alert {
 #co-menu-collapse {
   display: none;
 }
+#all-button-container {
+  text-align: center;
+}
+#all-button {
+  padding: 0.25rem 1rem;
+  display: inline-block;
+  margin: 3em 0 0;
+}
 /* Menu Panels */
 .menu-panel {
   display: none;
@@ -594,23 +602,6 @@ ul.form-list li.alert-banner .co-alert {
 #main-menu .menu-panel-links .menu-panel-links-inner li {
   margin-bottom: 0;
 }
-#advanced-menu {
-  margin: 1em 0;
-  padding: 0;
-}
-#advanced-menu li {
-  list-style: none;
-  text-align: center;
-  font-size: 0.9em;
-}
-#advanced-menu li a {
-  display: block;
-  padding: 0.5em 0;
-  color: var(--cmg-color-txt-soft);
-}
-#advanced-menu .menu-title-char {
-  display: none;
-}
 .menu-panel-links-desc {
   margin-top: 0.5em;
   font-size: 0.9em;
@@ -639,20 +630,23 @@ ul.form-list li.alert-banner .co-alert {
   font-size: 0.9em;
   margin-top: -1em;
 }
-.pageTitleContainer {
+.page-title-container {
   display: flex;
   justify-content: space-between;
   margin: 1em 0 0.5em;
   align-items: baseline;
 }
-.pageTitle {
+#select-co.page-title-container {
+  margin: 0;
+}
+.page-title {
   padding-bottom: 0.25em;
 }
-.pageTitle h2 {
+.page-title h2 {
   line-height: 1.2em;
 }
-.pageTitle .deleted,
-.pageTitle .archived {
+.page-title .deleted,
+.page-title .archived {
   background-color: var(--cmg-color-highlight-013);
   color: var(--cmg-color-txt-inverse);
   font-size: 0.7em;
@@ -662,7 +656,7 @@ ul.form-list li.alert-banner .co-alert {
   padding: 0 4px;
   text-transform: uppercase;
 }
-.pageTitle .archived {
+.page-title .archived {
   background-color: var(--cmg-color-txt-soft);
 }
 #introduction {
@@ -963,6 +957,8 @@ ul.form-list li.alert-banner .co-alert {
 .config-menu {
   list-style: none;
   padding: 0;
+  border-bottom: 1px solid var(--cmg-color-bg-006);
+  padding-bottom: 1em;
 }
 .config-menu a {
   display: inline-block;
@@ -974,15 +970,14 @@ ul.form-list li.alert-banner .co-alert {
   color: var(--cmg-color-body-txt);
   margin-right: 0.5em;
 }
-#platform-menu {
-  border-bottom: 1px solid var(--cmg-color-bg-006);
-  padding-bottom: 1em;
+#artifacts-menu {
+  border-bottom: none;
 }
 h2.config-subtitle {
   font-size: 1.6em;
 }
 .config-platform-notice {
-  margin: 4em 0 -3em;
+  margin: 1em 0 -3em;
 }
 #main-menu .menu-panel .config-platform-notice {
   margin: 0 0 1em;
@@ -1382,6 +1377,9 @@ ul.form-list li.field-stack textarea {
 ul.form-list .field-suppliment {
   font-size: 0.9em;
 }
+ul.form-list li.info-title {
+  border: none;
+}
 .checkbox label input {
   margin-right: 0.5em;
 }
@@ -1581,7 +1579,7 @@ ul.form-list .cm-time-picker-vals li {
 #comanage-iframe-wrapper #content {
   padding: 1rem 2em 0;
 }
-#comanage-iframe-wrapper .pageTitleContainer {
+#comanage-iframe-wrapper .page-title-container {
   margin: 1em 0;
 }
 /* EIS SEARCH */

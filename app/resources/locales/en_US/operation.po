@@ -70,7 +70,7 @@ msgid "configure.plugin"
 msgstr "Configure Plugin"
 
 msgid "dashboard.configuration"
-msgstr "Manage {0} Configuration"
+msgstr "{0} Configuration"
 
 msgid "deactivate"
 msgstr "Deactivate"

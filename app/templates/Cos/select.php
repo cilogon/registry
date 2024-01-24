@@ -28,8 +28,8 @@
 // XXX See registry/app/View/Pages/home.ctp for various error messages we should
 //     render based on the user's state, include op.home.no.collabs if empty
 ?>
-<div class="titleNavContainer">
-  <div class="pageTitle">
+<div id="select-co" class="page-title-container">
+  <div class="page-title">
     <h1><?= __('registry.home.collab'); ?></h1>
   </div>
 </div>

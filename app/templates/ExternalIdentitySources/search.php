@@ -35,8 +35,8 @@
   print $this->element('subnavigation', $subnav);
 ?>
 
-<div class="pageTitleContainer">
-  <div class="pageTitle">
+<div class="page-title-container">
+  <div class="page-title">
     <h2><?= $vv_title ?></h2>
   </div>
 </div>

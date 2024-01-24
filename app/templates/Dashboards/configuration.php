@@ -26,9 +26,12 @@
  */
 ?>
 
-<div class="pageTitleContainer">
-  <div class="pageTitle">
-    <h1><?= $vv_title; ?></h1>
+<div class="page-title-container">
+  <div class="page-title page-title-features">
+    <h1><?= $vv_title ?></h1>
+    <div class="comanage-version">
+      <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
+    </div>
   </div>
 </div>
 
@@ -53,9 +56,15 @@
         </li>
       <?php endforeach; // $vv_configuration_menu_items ?>
     </ul>
-    <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration.title') ?></h2>
+
+    <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration') ?></h2>
     <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.desc') ?></p>
   <?php endif; // $vv_platform_menu_items ?>
+  
+  <?php if(empty($vv_platform_menu_items)): ?>
+    <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration') ?></h2>
+  <?php endif; ?>
+  
   <ul id="configuration-menu" class="config-menu">
     <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
       <li>
@@ -73,6 +82,46 @@
         ?>
       </li>
     <?php endforeach; // $vv_configuration_menu_items ?>
+  </ul>
+  
+  <h2 class="config-subtitle mb-2"><?= __d('menu','co.registries') ?></h2>
+  <ul id="registries-menu" class="config-menu">
+    <?php foreach($vv_registries_menu_items as $label => $cfg): ?>
+      <li>
+        <?php
+          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+            . '<span class="menu-title">' . $label . '</span>';
+          print $this->Html->link(
+            $linkContent,
+            ['plugin'     => null,
+             'controller' => $cfg['controller'],
+             'action'     => $cfg['action'],
+             '?'          => ['co_id' => $vv_cur_co->id]],
+            ['escape' => false]
+          );
+        ?>
+      </li>
+    <?php endforeach; // $vv_registries_menu_items ?>
+  </ul>
+
+  <h2 class="config-subtitle mb-2"><?= __d('menu','co.artifacts') ?></h2>
+  <ul id="artifacts-menu" class="config-menu">
+    <?php foreach($vv_artifacts_menu_items as $label => $cfg): ?>
+      <li>
+        <?php
+          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+            . '<span class="menu-title">' . $label . '</span>';
+          print $this->Html->link(
+            $linkContent,
+            ['plugin'     => null,
+             'controller' => $cfg['controller'],
+             'action'     => $cfg['action'],
+             '?'          => ['co_id' => $vv_cur_co->id]],
+            ['escape' => false]
+          );
+        ?>
+      </li>
+    <?php endforeach; // $vv_artifacts_menu_items ?>
   </ul>
 </section>
 
@@ -99,7 +148,3 @@
     <?= $this->Alert->alert(__d('information','cmp.config.notice', $noticeUrls), 'information', true) ?>
   </div>
 <?php endif; ?>
-
-<div class="comanage-version">
-  <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
-</div>

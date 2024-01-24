@@ -57,42 +57,6 @@ class DashboardsController extends StandardController {
     // for configuration, dashboard, and registries actions
     $this->Breadcrumb->skipParents(['/^\/dashboards/']);
   }
-  
-  /**
-   * Render the CO Registries Dashboard.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function artifacts() {
-    $cur_co = $this->getCO();
-    
-    $this->set('vv_title', __d('menu', 'artifacts', [$cur_co->name]));
-    
-    // Construct the set of primary registry objects, which
-    // we want to order by the localized text string.
-    
-    // We're assuming that the permission for each of these items is the same as for
-    // registries() itself, ie: CMP or CO Admin. But plausibly some of this stuff
-    // could be delegated to (eg) a COU Admin at some point...
-    
-    $artifactMenuItems = [
-      __d('controller', 'ExtIdentitySourceRecords', [99]) => [
-        'icon'          => 'assignment',
-        'controller'    => 'ext_identity_source_records',
-        'action'        => 'index'
-      ],
-      __d('controller', 'Jobs', [99]) => [
-        'icon'          => 'assignment',
-        'controller'    => 'jobs',
-        'action'        => 'index'
-      ]
-    ];
-    
-    ksort($artifactMenuItems);
-    
-    $this->set('vv_artifacts_menu_items', $artifactMenuItems);
-  }
 
   /**
    * Render the CO Configuration Dashboard.
@@ -103,7 +67,7 @@ class DashboardsController extends StandardController {
   public function configuration() {
     $cur_co = $this->getCO();
     
-    $this->set('vv_title', __d('operation', 'dashboard.configuration', $cur_co->name));
+    $this->set('vv_title', __d('menu', 'co.features.all'));
     
     // Construct the set of configuration items. For everything except CO Settings
     // we want to order by the localized text string.
@@ -143,11 +107,12 @@ class DashboardsController extends StandardController {
         'controller'    => 'provisioning_targets',
         'action'        => 'index'
       ],
-      __d('controller', 'Reports', [99]) => [
-        'icon'          => 'summarize',
-        'controller'    => 'reports',
-        'action'        => 'index'
-      ],
+// XXX restore when Reports are ready to be exposed.      
+//      __d('controller', 'Reports', [99]) => [
+//        'icon'          => 'summarize',
+//        'controller'    => 'reports',
+//        'action'        => 'index'
+//      ],
       __d('controller', 'Types', [99]) => [
         'icon'          => 'widgets',
         'controller'    => 'types',
@@ -192,37 +157,7 @@ class DashboardsController extends StandardController {
     ksort($platformMenuItems);
     
     $this->set('vv_platform_menu_items', $platformMenuItems);
-  }
   
-  /**
-   * Render a Dashboard.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  int   $id Dashboard ID
-   */
-  
-  public function dashboard(?int $id=null) {
-    // XXX placeholder
-  }
-
-  /**
-   * Render the CO Registries Dashboard.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-  
-  public function registries() {
-    $cur_co = $this->getCO();
-    
-    $this->set('vv_title', __d('menu', 'registries', [$cur_co->name]));
-    
-    // Construct the set of primary registry objects, which
-    // we want to order by the localized text string.
-    
-    // We're assuming that the permission for each of these items is the same as for
-    // registries() itself, ie: CMP or CO Admin. But plausibly some of this stuff
-    // could be delegated to (eg) a COU Admin at some point...
-    
     $registryMenuItems = [
       __d('controller', 'Groups', [99]) => [
         'icon'          => 'people',
@@ -240,10 +175,38 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ]
     ];
-    
+  
     ksort($registryMenuItems);
-    
+  
     $this->set('vv_registries_menu_items', $registryMenuItems);
+  
+    $artifactMenuItems = [
+      __d('controller', 'ExtIdentitySourceRecords', [99]) => [
+        'icon'          => 'assignment',
+        'controller'    => 'ext_identity_source_records',
+        'action'        => 'index'
+      ],
+      __d('controller', 'Jobs', [99]) => [
+        'icon'          => 'assignment',
+        'controller'    => 'jobs',
+        'action'        => 'index'
+      ]
+    ];
+  
+    ksort($artifactMenuItems);
+  
+    $this->set('vv_artifacts_menu_items', $artifactMenuItems);
+  }
+  
+  /**
+   * Render a Dashboard.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int   $id Dashboard ID
+   */
+  
+  public function dashboard(?int $id=null) {
+    // XXX placeholder
   }
 
   /**
