@@ -88,7 +88,7 @@ class AlertHelper extends Helper {
   public function getAlertIcon(string $type) {
     switch($type) {
       case('success'): return '<span class="material-icons-outlined alert-icon">check_circle</span>';
-      case('info'): return '<span class="material-icons-outlined alert-icon">info</span>';
+      case('information'): return '<span class="material-icons-outlined alert-icon">info</span>';
       default: return '<span class="material-icons-outlined alert-icon">report_problem</span>';
     }
   }
