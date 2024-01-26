@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 // XXX not doing anything with Log yet
+use App\Lib\Util\StringUtilities;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
@@ -109,15 +110,19 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
 
       $this->set('vv_eis_record', $this->ExternalIdentitySources->retrieve((int)$id, $source_key));
 
-      $this->set('vv_external_identity_record', $this->ExternalIdentitySources
-                                                     ->ExtIdentitySourceRecords
-                                                     ->find()
-                                                     ->where(['ExtIdentitySourceRecords.source_key' => $source_key,
-                                                             'ExtIdentitySourceRecords.external_identity_source_id' => $id])
-                                                     ->contain(['ExternalIdentities'])
-                                                     ->first());
+      $externalIdentityRecordObj = $this->ExternalIdentitySources
+                                        ->ExtIdentitySourceRecords
+                                        ->find()
+                                        ->where(['ExtIdentitySourceRecords.source_key' => $source_key,
+                                                 'ExtIdentitySourceRecords.external_identity_source_id' => $id])
+                                        ->contain(['ExternalIdentities'])
+                                        ->first();
+      $this->set('vv_external_identity_record', $externalIdentityRecordObj);
 
-      $this->set('vv_title', __d('operation', 'view.a', [$source_key]));
+      [$title, , ] = StringUtilities::entityAndActionToTitle($externalIdentityRecordObj,
+                                                             StringUtilities::entityToClassName($externalIdentityRecordObj),
+                                                             'view');
+      $this->set('vv_title', $title);
     }
     catch(\Exception $e) {
       $this->Flash->error($e->getMessage());
@@ -152,7 +157,10 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
 
     $this->set('vv_search_attrs', $this->ExternalIdentitySources->searchableAttributes((int)$id));
 
-    $this->set('vv_title', __d('operation', 'ExternalIdentitySources.search'));
+    [$title, , ] = StringUtilities::entityAndActionToTitle(null,
+                                                           $this->getName(),
+                                                           $this->request->getParam('action'));
+    $this->set('vv_title', $title);
   }
 
   /**
@@ -167,9 +175,8 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
       $source_key = $this->request->getQuery('source_key');
 
       $this->ExternalIdentitySources->sync((int)$id, $source_key);
+      // XXX Sync does not have a view. We do not need to set a title. Yet need to fetch the updated Identity
       $this->set('vv_eis_record', $this->ExternalIdentitySources->retrieve((int)$id, $source_key));
-
-      $this->set('vv_title', __d('operation', 'view.a', [$source_key]));
       
       $this->Flash->success(__d('result', 'ExternalIdentitySources.synced'));
     }

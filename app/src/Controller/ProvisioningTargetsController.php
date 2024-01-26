@@ -30,6 +30,8 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 // XXX not doing anything with Log yet
+use App\Lib\Util\StringUtilities;
+use Cake\Utility\Inflector;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
@@ -85,17 +87,21 @@ class ProvisioningTargetsController extends StandardPluggableController {
     // PrimaryLinkTrait - Look up our primary link to see which object type we're
     // working with, an also get our CO ID
     $link = $this->getPrimaryLink(true);
-
-    if($link->attr == 'person_id') {
-      $statuses = $this->ProvisioningTargets->status(coId: $link->co_id, personId: (int)$link->value);
-    } elseif($link->attr == 'group_id') {
-      $statuses = $this->ProvisioningTargets->status(coId: $link->co_id, groupId: (int)$link->value);
-    }
+    // Use argument unpacking operator with names parameters in order to make the call more dynamic
+    $statusCalculateParams = [
+      'coId' => $link->co_id,
+      // Currently supported function parameters are personId, groupId
+      Inflector::variable($link->attr) => (int)$link->value
+    ];
+    $statuses = $this->ProvisioningTargets->status(...$statusCalculateParams);
 
     $this->set('vv_provisioning_statuses', $statuses);
 
     if(!$this->request->is('restful')) {
-      $this->set('vv_title', __d('operation', 'provisioning.status'));
+      [$title, , ] = StringUtilities::entityAndActionToTitle(null,
+                                                             'provisioning',
+                                                             $this->request->getParam('action'));
+      $this->set('vv_title', $title);
     }
   }
 }

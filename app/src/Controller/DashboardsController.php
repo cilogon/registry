@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 // XXX not doing anything with Log yet
+use App\Lib\Util\StringUtilities;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
@@ -45,14 +46,14 @@ class DashboardsController extends StandardController {
 
   public function initialize(): void {
     parent::initialize();
-    
+
     // Configure breadcrumb rendering
     $this->Breadcrumb->skipConfig([
-      '/^\/dashboards\/artifacts/',
-      '/^\/dashboards\/dashboard/',
-      '/^\/dashboards\/registries/',
-      '/^\/dashboards\/search/'
-    ]);
+                                    '/^\/dashboards\/artifacts/',
+                                    '/^\/dashboards\/dashboard/',
+                                    '/^\/dashboards\/registries/',
+                                    '/^\/dashboards\/search/'
+                                  ]);
     // There is currently no inventory of dashboards, so we skip parents
     // for configuration, dashboard, and registries actions
     $this->Breadcrumb->skipParents(['/^\/dashboards/']);
@@ -63,19 +64,23 @@ class DashboardsController extends StandardController {
    *
    * @since  COmanage Registry v5.0.0
    */
-  
+
   public function configuration() {
     $cur_co = $this->getCO();
-    
-    $this->set('vv_title', __d('menu', 'co.features.all'));
-    
+
+    [$title, , ] = StringUtilities::entityAndActionToTitle(null,
+                                                           'co.features',
+                                                           'all',
+                                                           'menu');
+    $this->set('vv_title', $title);
+
     // Construct the set of configuration items. For everything except CO Settings
     // we want to order by the localized text string.
-    
+
     // We're assuming that the permission for each of these items is the same as for
     // configuration() itself, ie: CMP or CO Admin. But plausibly some of this stuff
     // could be delegated to (eg) a COU Admin at some point...
-    
+
     $configMenuItems = [
       __d('controller', 'ApiUsers', [99]) => [
         'icon'          => 'vpn_key',
@@ -107,7 +112,7 @@ class DashboardsController extends StandardController {
         'controller'    => 'provisioning_targets',
         'action'        => 'index'
       ],
-// XXX restore when Reports are ready to be exposed.      
+// XXX restore when Reports are ready to be exposed.
 //      __d('controller', 'Reports', [99]) => [
 //        'icon'          => 'summarize',
 //        'controller'    => 'reports',
@@ -119,27 +124,27 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ]
     ];
-    
+
     ksort($configMenuItems);
-    
+
     // Insert CO Settings to the front of the list
 
     $configMenuItems = array_merge([
-      __d('controller', 'CoSettings', [99]) => [
-        'icon'          => 'settings',
-        'controller'    => 'co_settings',
-        'action'        => 'manage'
-      ]],
-      $configMenuItems
+                                     __d('controller', 'CoSettings', [99]) => [
+                                       'icon'          => 'settings',
+                                       'controller'    => 'co_settings',
+                                       'action'        => 'manage'
+                                     ]],
+                                   $configMenuItems
     );
-    
+
     $this->set('vv_configuration_menu_items', $configMenuItems);
 
     $platformMenuItems = [];
-    
+
     if($this->getCOID() == 1) {
       // Also pass the platform menu items
-      
+
       $platformMenuItems = [
         __d('controller', 'Cos', [99]) => [
           'icon'          => 'home',
@@ -153,11 +158,10 @@ class DashboardsController extends StandardController {
         ]
       ];
     }
-    
+
     ksort($platformMenuItems);
-    
+
     $this->set('vv_platform_menu_items', $platformMenuItems);
-  
     $registryMenuItems = [
       __d('controller', 'Groups', [99]) => [
         'icon'          => 'people',
@@ -175,11 +179,11 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ]
     ];
-  
+
     ksort($registryMenuItems);
-  
+
     $this->set('vv_registries_menu_items', $registryMenuItems);
-  
+
     $artifactMenuItems = [
       __d('controller', 'ExtIdentitySourceRecords', [99]) => [
         'icon'          => 'assignment',
@@ -192,19 +196,18 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ]
     ];
-  
+
     ksort($artifactMenuItems);
-  
+
     $this->set('vv_artifacts_menu_items', $artifactMenuItems);
   }
-  
+
   /**
    * Render a Dashboard.
    *
    * @since  COmanage Registry v5.0.0
    * @param  int   $id Dashboard ID
    */
-  
   public function dashboard(?int $id=null) {
     // XXX placeholder
   }
@@ -214,15 +217,15 @@ class DashboardsController extends StandardController {
    *
    * @since  COmanage Registry v5.0.0
    */
-  
+
   public function search() {
     /* To add a new backend to search:
      * (1) Implement $model->search($id, $q, $limit)
      * (2) Add the model to $models here, and define which roles can query it
      * (3) Update documentation at https://spaces.at.internet2.edu/pages/viewpage.action?pageId=243078053
      */
-    
-     $models = [
+
+    $models = [
       'Addresses' => [
         'parent'        => ['People' => 'person_id', 'PersonRoles' => 'person_role_id'],
         'roles'         => ['platformAdmin', 'coAdmin'],
@@ -293,7 +296,7 @@ class DashboardsController extends StandardController {
       // A search was passed in from the form on the Global Search bar. 
       $q = trim($this->request->getData('q'));
     }
-  
+
     // Only process the request if we have a string of non-space characters
     if(!empty($q)) {
 
@@ -358,7 +361,7 @@ class DashboardsController extends StandardController {
     // or if there is a single result overall, redirect to that result.
     if((count($results['Cos']) == 0
         && (count($results['People']) + count($results['Groups'])) == 1)
-       || 
+       ||
        (count($results['Cos']) == 1
         && (count($results['People']) + count($results['Groups'])) == 0)) {
       // Figure out which model matched, as well as the target model to redirect to
@@ -373,18 +376,18 @@ class DashboardsController extends StandardController {
           $matchClass = array_key_first($results[$m][$targetRecordId]);
         }
       }
-      
+
       $this->Flash->information(__d('result',
                                     'search.exact',
                                     [filter_var($this->request->getData('q'), FILTER_SANITIZE_SPECIAL_CHARS),
-                                     __d('controller', $matchClass, [1])]));
+                                      __d('controller', $matchClass, [1])]));
 
       // Redirect to the matchClass controller
       return $this->redirect([
-        'controller'  => Inflector::dasherize($targetClass),
-        'action'      => 'edit',
-        $targetRecordId
-      ]);
+                               'controller'  => Inflector::dasherize($targetClass),
+                               'action'      => 'edit',
+                               $targetRecordId
+                             ]);
 
       // XXX handle plugins
     } elseif(count($results['Cos'])
@@ -394,6 +397,12 @@ class DashboardsController extends StandardController {
     }
 
     $this->set('vv_results', $results);
-    $this->set('vv_title', __d('result', 'search.results'));
+    // XXX The action is search and the result is not a modelPath. In this use the pattern is reversed. We should
+    //     probably reconsider the po naming for the result domain
+    [$title, , ] = StringUtilities::entityAndActionToTitle(null,
+                                                           'search',
+                                                           'results',
+                                                           'result');
+    $this->set('vv_title', $title);
   }
 }

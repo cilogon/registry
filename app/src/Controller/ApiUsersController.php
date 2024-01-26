@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use App\Lib\Util\StringUtilities;
+
 class ApiUsersController extends StandardController {
   public $paginate = [
     'order' => [
@@ -56,7 +58,10 @@ class ApiUsersController extends StandardController {
     
     // Let the view render, but tell it to use a different fields file
     $this->set('vv_fields_inc', 'fields-generate.inc');
-    $this->set('vv_title', __d('operation', 'api.key.generate'));
+    [$title, , ] = StringUtilities::entityAndActionToTitle(null,
+                                                           'api.key',
+                                                           $this->request->getParam('action'));
+    $this->set('vv_title', $title);
     
     $this->render('/Standard/add-edit-view');
   }

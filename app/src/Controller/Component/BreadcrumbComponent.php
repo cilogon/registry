@@ -186,6 +186,20 @@ class BreadcrumbComponent extends Component
 
     // Construct the get<Request Action>Contains function name
     $requestAction = $this->getController()->getRequest()->getParam('action');
+    // In the case we are dealing with non-standard actions we need to fallback to a standard one
+    // in order to get access to the contain array. We will use the permissions to decide which
+    // action to fallback to
+    if(!in_array($requestAction, [
+      'index', 'view', 'delete', 'add', 'edit'
+    ])) {
+      $permissionsArray = $this->getController()->RegistryAuth->calculatePermissionsForView($requestAction);
+      $id               = $this->getController()->getRequest()->getParam('pass')[0] ?? null;
+      if (isset($id)) {
+        $requestAction = ( isset($permissionsArray['edit']) && $permissionsArray['edit'] ) ? 'edit' : 'view';
+      } else {
+        $requestAction = 'index';
+      }
+    }
     $containsList = "get" . ucfirst($requestAction) . "Contains";
 
     $linkTable = TableRegistry::getTableLocator()->get($modelPath);
@@ -226,21 +240,7 @@ class BreadcrumbComponent extends Component
                         'edit';
 
     // The action in the following injectParents dictates the action here
-    // XXX This is a duplicate from StandardController.
-    if(method_exists($linkTable, 'generateDisplayField')) {
-      // We don't use a trait for this since each table will implement different logic
-
-      $label = __d('operation', "{$breadcrumbAction}.ai", $linkTable->generateDisplayField($linkObj));
-    } else {
-      // Default view title is edit object display field
-      $field = $linkTable->getDisplayField();
-
-      if(!empty($obj->$field)) {
-        $label = __d('operation', "{$breadcrumbAction}.ai", $obj->$field);
-      } else {
-        $label = __d('operation', "{$breadcrumbAction}.ai", __d('controller', $modelsName, [1]));
-      }
-    }
+    [$title,,] = StringUtilities::entityAndActionToTitle($linkObj, $modelPath, $breadcrumbAction);
 
     $this->injectParents[ $linkTable->getTable() . $linkObj->id ] = [
       'target' => [
@@ -249,7 +249,7 @@ class BreadcrumbComponent extends Component
         'action'      => $breadcrumbAction,
         $linkObj->id
       ],
-      'label' => $linkLabel ?? $label
+      'label' => $linkLabel ?? $title
     ];
   }
 

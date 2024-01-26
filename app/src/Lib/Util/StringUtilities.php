@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Util;
 
+use Cake\ORM\TableRegistry;
 use \Cake\Utility\Inflector;
 
 class StringUtilities {
@@ -123,6 +124,81 @@ class StringUtilities {
     $classPath = get_class($entity);
 
     return Inflector::underscore(Inflector::singularize(substr($classPath, strrpos($classPath, '\\')+1))) . "_id";
+  }
+
+  /**
+   * Construct the title, supertitle and subtitle for a given Model and action
+   *
+   * - if the Entity is null then we construct the message ID by concatenating the modelPath and the action
+   * - if the action is null then the message ID is the modelsName
+   * - if the action is the Index View then the message ID is the modelsName + "others", which in this case is the plural of the name
+   * - in all other cases the message id is constructed by the displayField. Either it is defined or dynamically
+   *   constructed
+   *
+   * @param   Entity|null  $entity     Entity object
+   * @param   string       $modelPath  The path of the Model, from core Models it is the Model Name. For plugins it is the Plugin.ModelName
+   * @param   string|null  $action     Request Action
+   * @param   string       $domain     The po file the message ID is located in
+   *
+   * @return array                 List of title, supertitle, subtitle
+   */
+  public static function entityAndActionToTitle($entity,
+                                                string $modelPath,
+                                                ?string $action,
+                                                string $domain='operation'): array {
+    $supertitle = '';
+    $subtitle   = '';
+    $title      = '';
+
+    if($entity === null) {
+      return [__d($domain, "{$modelPath}.{$action}"), '', ''];
+    }
+
+    $plugin = '';
+    $modelsName = $modelPath;
+    if(str_contains($modelPath, '.')) {
+      [$plugin, $modelsName] = explode('.', $modelPath, 2);
+    }
+
+    $linkTable  = TableRegistry::getTableLocator()->get($modelPath);
+    $msgId = "{$action}.a";
+
+    if(Inflector::singularize(self::entityToClassName($entity)) !== Inflector::singularize($modelsName)) {
+      $linkTable  = TableRegistry::getTableLocator()->get(self::entityToClassName($entity));
+      // if the modelPath and the action are equal then we skip the concatenation
+      $msgId = $modelPath === $action ? $modelPath : "{$modelPath}.{$action}";
+    }
+
+    if($action === null) {
+      return [__d('controller', $modelsName), '', ''];
+    }
+
+    // Index view
+    if($action === 'index') {
+      // 99 is the default for plural
+      return [__d('controller', $modelsName, [99]), '', ''];
+    }
+
+    // Add/Edit/View
+    if(method_exists($linkTable, 'generateDisplayField')) {
+      // We don't use a trait for this since each table will implement different logic
+
+      $title = __d($domain, $msgId, $linkTable->generateDisplayField($entity));
+      $supertitle = $linkTable->generateDisplayField($entity);
+      // Pass the display field also into subtitle for dealing with External IDs
+      $subtitle = $linkTable->generateDisplayField($entity);
+    } else {
+      // Default view title is edit object display field
+      $field = $linkTable->getDisplayField();
+
+      if(!empty($entity->$field)) {
+        $title = __d($domain, $msgId, $entity->$field);
+      } else {
+        $title = __d($domain, $msgId, __d('controller', $modelsName, [1]));
+      }
+    }
+
+    return [$title, $supertitle, $subtitle];
   }
 
   /**

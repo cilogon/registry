@@ -98,7 +98,8 @@ class StandardPluginController extends StandardController {
       // Override the title set in StandardController. Since that was set in edit()
       // which is called before the rendering hooks, this title will take precedence.
 
-      $this->set('vv_title', __d('operation', 'configure.a', $parentObj->$parentDisplayField));
+      [$title, , ] = StringUtilities::entityAndActionToTitle($parentObj, $parentClassName, 'configure');
+      $this->set('vv_title', $title);
     }
 
     return parent::beforeRender($event);

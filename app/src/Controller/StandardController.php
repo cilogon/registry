@@ -52,6 +52,8 @@ class StandardController extends AppController {
     $table = $this->$modelsName;
     // $tableName = models
     $tableName = $table->getTable();
+    // Create an empty entity for FormHelper
+    $obj = $table->newEmptyEntity();
     
     if($this->request->is('post')) {
       try {
@@ -100,14 +102,10 @@ class StandardController extends AppController {
         
         $this->Flash->error($e->getMessage());
       }
-      
-      // Pass $obj as context so the view can render validation errors
-      $this->set('vv_obj', $obj);
-    } else {
-      // Create an empty entity for FormHelper
-      
-      $this->set('vv_obj', $table->newEmptyEntity());
     }
+
+    // Pass $obj as context so the view can render validation errors
+    $this->set('vv_obj', $obj);
     
     // PrimaryLinkTrait, via AppController
     $this->getPrimaryLink();
@@ -116,13 +114,10 @@ class StandardController extends AppController {
     $this->populateAutoViewVars();
     
     // Default title is add new object
-    $this->set('vv_title', __d('operation', 'add.a', __d('controller', $modelsName, [1])));
-
-    // Supertitle is normally the display name of the parent object when subnavigation exists.
-    // Set this here as the fallback default. This value is overriden in MVEAController to hold the
-    // name of the parent object, not the model name of the current object.
-    // TODO: set this to a better value for other kinds of child objects (e.g. Group member)
-    $this->set('vv_supertitle', __d('controller', $modelsName, [1]));
+    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, $modelsName, 'add');
+    $this->set('vv_title', $title);
+    $this->set('vv_supertitle', $supertitle);
+    $this->set('vv_subtitle', $subtitle);
 
     // Let the view render
     $this->render('/Standard/add-edit-view');
@@ -411,24 +406,13 @@ class StandardController extends AppController {
     
     // AutoViewVarsTrait
     $this->populateAutoViewVars($obj);
-    
-    if(method_exists($table, 'generateDisplayField')) {
-      // We don't use a trait for this since each table will implement different logic
-      
-      $this->set('vv_title', __d('operation', 'edit.ai', $table->generateDisplayField($obj)));
-      $this->set('vv_supertitle', $table->generateDisplayField($obj));
-      // Pass the display field also into subtitle for dealing with External IDs
-      $this->set('vv_subtitle', $table->generateDisplayField($obj));
-    } else {
-      // Default view title is edit object display field
-      $field = $table->getDisplayField();
-      
-      if(!empty($obj->$field)) {
-        $this->set('vv_title', __d('operation', 'edit.ai', $obj->$field));
-      } else {
-        $this->set('vv_title', __d('operation', 'edit.ai', __d('controller', $modelsName, [1])));
-      }
-    }
+
+    // Calculate and set title, supertitle and subtitle
+    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, $modelsName, 'edit');
+
+    $this->set('vv_title', $title);
+    $this->set('vv_supertitle', $supertitle);
+    $this->set('vv_subtitle', $subtitle);
     
     // Let the view render
     $this->render('/Standard/add-edit-view');
@@ -646,7 +630,8 @@ class StandardController extends AppController {
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));
     
     // Default index view title is model name
-    $this->set('vv_title', __d('controller', $modelsName, [99]));
+    [$title, , ] = StringUtilities::entityAndActionToTitle($resultSet, $modelsName, 'index');
+    $this->set('vv_title', $title);
     
     // Let the view render
     $this->render('/Standard/index');
@@ -915,24 +900,13 @@ class StandardController extends AppController {
     // AutoViewVarsTrait
     // We still used this in view() to map select values
     $this->populateAutoViewVars($obj);
-    
-    if(method_exists($table, 'generateDisplayField')) {
-      // We don't use a trait for this since each table will implement different logic
-      
-      $this->set('vv_title', __d('operation', 'view.ai', $table->generateDisplayField($obj)));
-      $this->set('vv_supertitle', $table->generateDisplayField($obj));
-      // Pass the display field also into subtitle for dealing with External IDs
-      $this->set('vv_subtitle', $table->generateDisplayField($obj));
-    } else {
-      // Default view title is the object display field
-      $field = $table->getDisplayField();
-      
-      if(!empty($obj->$field)) {
-        $this->set('vv_title', __d('operation', 'view.ai', $obj->$field));
-      } else {
-        $this->set('vv_title', __d('operation', 'view.ai', __d('controller', $modelsName, [1])));
-      }
-    }
+
+    // Calculate and set title, supertitle and subtitle
+    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, $modelsName, 'view');
+
+    $this->set('vv_title', $title);
+    $this->set('vv_supertitle', $supertitle);
+    $this->set('vv_subtitle', $subtitle);
     
     // Let the view render
     $this->render('/Standard/add-edit-view');
