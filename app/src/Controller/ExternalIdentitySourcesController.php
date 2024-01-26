@@ -119,6 +119,13 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
                                         ->first();
       $this->set('vv_external_identity_record', $externalIdentityRecordObj);
 
+      if($externalIdentityRecordObj === null) {
+        // I need an empty entity
+        $ExtIdentitySourceRecords = $this->getTableLocator()->get('ExtIdentitySourceRecords');
+        // Create an empty entity for FormHelper
+        $externalIdentityRecordObj = $ExtIdentitySourceRecords->newEmptyEntity();
+      }
+
       [$title, , ] = StringUtilities::entityAndActionToTitle($externalIdentityRecordObj,
                                                              StringUtilities::entityToClassName($externalIdentityRecordObj),
                                                              'view');
