@@ -34,6 +34,7 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use App\Lib\Enum\ProvisioningEligibilityEnum;
 use App\Lib\Enum\ProvisioningStatusEnum;
+use \FileConnector\Model\Entity\FileProvisioner;
 
 class FileProvisionersTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
@@ -108,17 +109,18 @@ class FileProvisionersTable extends Table {
 
   /**
    * Provision object data to the provisioning target.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  SqlProvisioner               $provisioningTarget FileProvisioner configuration
-   * @param  string                       $className          Class name of primary object being provisioned
-   * @param  object                       $data               Provisioning data in Entity format (eg: \App\Model\Entity\Person)
-   * @param  ProvisioningEligibilityEnum  $eligibility        Provisioning Eligibility Enum
+   *
+   * @param   FileProvisioner  $provisioningTarget  FileProvisioner configuration
+   * @param   string           $entityName
+   * @param   object           $data                Provisioning data in Entity format (eg: \App\Model\Entity\Person)
+   * @param   string           $eligibility         Provisioning Eligibility Enum
+   *
    * @return array                                            Array of status, comment, and optional identifier
+   * @since  COmanage Registry v5.0.0
    */
 
   public function provision(
-    \FileProvisioner\Model\Entity\FileProvisioner $provisioningTarget,
+    FileProvisioner $provisioningTarget,
     string $entityName,
     object $data,
     string $eligibility
