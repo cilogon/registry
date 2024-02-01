@@ -54,9 +54,33 @@ $topLinks = [
         'external_identity_id' => $vv_obj->id
       ]
     ],
-    'class' => ''
+    'skipPermsCheck' => true
+  ],
+  [
+    'icon' => 'visibility',
+    'order' => 'Default',
+    'label' => __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 1)]),
+    'link' => [
+      'controller' => 'ext_identity_source_records',
+      'action' => 'index',
+      $vv_obj->ext_identity_source_records[0]->id
+    ]
   ]
 ];
+  
+if($vv_action == 'view' && !empty($vv_obj->ext_identity_source_records[0])) {
+  $topLinks[] = [
+    'icon' => 'visibility',
+    'order' => 'Default',
+    'label' => __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 1)]),
+    'link' => [
+      'controller' => 'ext-identity-source-records',
+      'action' => 'view',
+      $vv_obj->ext_identity_source_records[0]->id
+    ],
+    'skipPermsCheck' => true
+  ];
+}
 
 // $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
 // it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.

@@ -55,16 +55,22 @@ msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 
 msgid "ExternalIdentities.source"
-msgstr "This External Identity was created from {0} ({1})"
+msgstr "This External Identity was created from {0}."
+
+msgid "ExternalIdentitySources.records"
+msgstr "Source Records"
 
 msgid "ExternalIdentitySources.retrieve"
-msgstr "This is the current record available directly from the source. To view the latest record retrieved and cached by Registry, click <i>View External Identity Source Record</i>."
+msgstr "This is the current record retrieved directly from the source. <a href="{0}">View the latest record cached by Registry</a>."
+
+msgid "ExternalIdentitySources.retrieve.notSynced"
+msgstr "This is the current record available directly from the source."
 
 msgid "ExternalIdentitySourceRecords.metadata"
 msgstr "Metadata"
 
 msgid "ExternalIdentitySourceRecords.view"
-msgstr "This is the latest record retrieved from the source, as cached by Registry. To view the current record directly from the source, select <i>Retrieve from External Identity Source</i>."
+msgstr "This is the latest record from the source as cached by Registry. <a href="{0}">Retrieve the current record directly from the source</a>."
 
 msgid "ExternalIdentitySources.search.attrs.none"
 msgstr "The External Identity Source cannot be searched."

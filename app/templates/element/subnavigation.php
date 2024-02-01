@@ -51,7 +51,11 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   // XXX we might produce the $vv_primary_link for edit views so the approach below could be deprecated
   // XXX $vv_primary_link_obj is the equivalent for plugins however
   $curId = $vv_obj->id;
-  if(!empty($vv_person_id)) {
+  if(!empty($tabsId) && !empty($tabsController)) {
+    // these have been explicitly set in the $subnav array in fields-nav.inc, so just use them.
+    $curId = $tabsId;
+    $navController = $tabsController;
+  } elseif(!empty($vv_person_id)) {
     $curId = $vv_person_id;
   } elseif($active == 'plugin' && !empty($vv_primary_link_obj) && !empty($vv_primary_link_model)) {
     $curId = $vv_primary_link_obj->id;
@@ -83,7 +87,10 @@ if(!empty($vv_obj)) {
 }
 
 $supertitle = __d('information','global.title.none');
-if($active == 'plugin' && !empty($vv_bc_parent_obj)) {
+if(!empty($tabsSupertitle)) {
+  // this has been explicitly set in the $subnav array in fields-nav.inc, so just use it.
+  $supertitle = $tabsSupertitle; 
+} elseif($active == 'plugin' && !empty($vv_bc_parent_obj)) {
   $supertitle = $vv_bc_parent_obj->$vv_bc_parent_displayfield;
 } elseif(!empty($vv_person_name)) {
   $supertitle = $vv_person_name->full_name;
@@ -349,13 +356,16 @@ if($active == 'plugin' && !empty($vv_bc_parent_obj)) {
             );
           ?>
         </li>
-        <?php if($navController == 'ExternalIdentitySources' && (!empty($vv_permissions['search']) || !empty($vv_permissions['edit']))): ?>
+        <?php if(
+          ($navController == 'ExternalIdentitySources' && (!empty($vv_permissions['search']) || !empty($vv_permissions['edit']))) ||
+          ($curController == 'ExtIdentitySourceRecords' && !empty($vv_permissions['view']))
+        ): ?>
           <li class="nav-item">
             <?php
               $linkClass = ($active == 'search') ? 'nav-link active' : 'nav-link';
               $navUrl = '/' . \Cake\Utility\Inflector::dasherize($navController) . '/search/' . $curId;
               print $this->Html->link(
-                __d('operation', 'ExternalIdentitySources.search'),
+                __d('information', 'ExternalIdentitySources.records'),
                 $navUrl,
                 ['class' => $linkClass]
               );

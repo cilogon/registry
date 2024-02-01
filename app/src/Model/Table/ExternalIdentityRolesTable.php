@@ -100,6 +100,12 @@ class ExternalIdentityRolesTable extends Table {
       'AdHocAttributes',
       'TelephoneNumbers'
     ]);
+  
+    $this->setViewContains([
+      'Addresses',
+      'AdHocAttributes',
+      'TelephoneNumbers'
+    ]);
     
     $this->setAutoViewVars([
       'statuses' => [

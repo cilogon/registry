@@ -42,16 +42,7 @@
 </div>
 
 <?php if(empty($vv_search_attrs)): ?>
-  <div class="alert alert-info co-alert" role="alert">
-    <div class="alert-body d-flex align-items-center">
-      <span class="alert-title d-flex align-items-center">
-        <span class="material-icons-outlined alert-icon">info</span>
-      </span>
-      <span class="alert-message">        
-        <?php print __d('information', 'ExternalIdentitySources.search.attrs.none'); ?>
-      </span>
-    </div>
-  </div>
+  <?= $this->Alert->alert(__d('information', 'ExternalIdentitySources.search.attrs.none'), 'information', false)  ?>
 <?php else: // vv_search_attrs ?>
   <?php
     // Begin the form

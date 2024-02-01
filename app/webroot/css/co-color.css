@@ -86,6 +86,8 @@
   --cmg-color-highlight-015: #842029; /* alert: danger text color (red) */
   --cmg-color-highlight-016: #f8cece; /* alert: danger border color (red) */
   
+  --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
+  
   /* Duet Date Picker Colors & Settings */
   --duet-color-primary: var(--cmg-color-btn-bg-001);
   --duet-color-text: var(--cmg-color-body-txt);

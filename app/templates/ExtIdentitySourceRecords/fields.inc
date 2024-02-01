@@ -24,43 +24,25 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<!-- XXX This stuff should render in the form structure, below -->
-<?= __d('information', 'ExternalIdentitySourceRecords.view'); ?>
-<ul>
-<?php if(!empty($vv_obj->external_identity_source_id)): ?>
-<li><?= $this->Html->link(
-          __d('operation', 'ExternalIdentitySourceRecords.retrieve'),
-          [
-            'controller'  => 'external-identity-sources',
-            'action'      => 'retrieve',
-            $vv_obj->external_identity_source_id,
-            '?'           => [
-              'source_key'  => $vv_obj->source_key
-            ]
-          ]
-        ); ?></li>
-<li><?= $this->Html->link(
-          $vv_obj->external_identity_source->description,
-          [
-            'controller'  => 'external-identity-sources',
-            'action'      => 'edit',
-            $vv_obj->external_identity_source_id
-          ]
-        ); ?></li>
-<?php endif; ?>
-<?php if(!empty($vv_obj->external_identity_id)): ?>
-<li><?= $this->Html->link(
-          __d('controller', 'ExternalIdentities', [1]),
-          [
-            'controller'  => 'external-identities',
-            'action'      => 'view',
-            $vv_obj->external_identity_id
-          ]
-        ); ?></li>
-<?php endif; ?>
-</ul>
-<?php
+  
+$noticeText = __d(
+  'information', 
+  'ExternalIdentitySourceRecords.view',
+  [
+    $this->Url->build(
+      [
+        'controller' => 'external_identity_sources',
+        'action' => 'retrieve',
+        $vv_obj->external_identity_source_id,
+        '?' => [
+          'source_key' => $vv_obj->source_key
+        ]
+      ]
+    )
+  ]
+);
+
+print $this->Alert->alert($noticeText, 'information', false);
 
 // This view does not support add or edit
 if($vv_action == 'view') {

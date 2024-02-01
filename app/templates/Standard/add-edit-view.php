@@ -125,8 +125,8 @@ if(!empty($subnav)) {
           $t['link']['?'] = $linkFilter;
         }
       }
-
-      if($perm) {
+      
+      if($perm || !empty($t['skipPermsCheck'])) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder($t['order']),
           'icon' => $this->Menu->getMenuIcon($t['icon']),

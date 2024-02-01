@@ -424,13 +424,16 @@ body.cos.select #top-bar {
 .co-alert.alert-information {
   background-color: var(--cmg-color-highlight-004);
   color: var(--cmg-color-highlight-003);
-  border-color: var(--cmg-color-link);
+  border-color:  var(--cmg-color-highlight-017);
 }
 .co-alert .alert-icon {
   margin-right: 0.1rem;
 }
 .co-alert .alert-title-text {
   margin-right: 0.25em;
+}
+.co-alert a {
+  text-decoration: underline;
 }
 /* Alerts in the add-edit form: */
 ul.form-list li.alert-banner {

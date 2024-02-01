@@ -87,16 +87,25 @@ use \Cake\Utility\Inflector;
 </div>
 
 <!-- insert explainer box -->
-<div class="alert alert-warning co-alert" role="alert">
-  <div class="alert-body d-flex align-items-center">
-    <span class="alert-title d-flex align-items-center">
-      <span class="material-icons-outlined alert-icon">report_problem</span>
-    </span>
-    <span class="alert-message">        
-      <?= __d('information', 'ExternalIdentitySources.retrieve'); ?>
-    </span>
-  </div>
-</div>
+<?php
+  $noticeText = __d('information', 'ExternalIdentitySources.retrieve.notSynced');
+  if(!empty($vv_external_identity_record->id)) {
+    $noticeText = __d(
+      'information',
+      'ExternalIdentitySources.retrieve',
+      [
+        $this->Url->build(
+          [
+            'controller' => 'ext-identity-source-records',
+            'action' => 'view',
+            $vv_external_identity_record->id
+          ]
+        )
+      ]
+    );
+  }
+?>
+<?= $this->Alert->alert($noticeText, 'information', false) ?>
 
 <div class="innerContent">
   <div class="table-container">

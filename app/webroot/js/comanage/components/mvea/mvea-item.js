@@ -139,7 +139,7 @@ export default {
     <!-- Urls -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'urls'" @click="followRowLink">
       <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.description != '' ? this.mvea.description : this.mvea.url }}</a>   
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.description != '' && this.mvea.description != null ? this.mvea.description : this.mvea.url }}</a>   
         <a :href="this.mvea.url" class="canvas-url-link" :title="this.txt['global.visit.link']"><span class="material-icons">north_east</span></a>
       </div>
       <div class="field-data data-label">
