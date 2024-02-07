@@ -332,8 +332,11 @@ class SqlProvisionersTable extends Table {
    */
     
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    // We may not have a Server configuration yet on first save
-    if(!empty($spcfg->server_id)) {
+    // We may not have a Server configuration yet on first save.
+
+    // Also, When the SQL Provisioner is deleted, neither the
+    // database schema nor reference data is touched (PAR-SqlProvisioner-4).
+    if(!empty($entity->server_id) && !$entity->deleted) {
       // Apply the database schema (PAR-SqlProvisioner-1)
       $this->llog('rule', "PAR-SqlProvisioner-1 Applying database schema for SqlProvisioner " . $entity->id);
       $this->applySchema($entity->id);

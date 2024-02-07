@@ -133,6 +133,9 @@ class SqlServersTable extends Table {
       'timezone'          => 'UTC'
     ];
 
+    // We need to drop the existing configuration before we can reconfigure it
+    ConnectionManager::drop('targetdb');
+
     ConnectionManager::setConfig('targetdb', $dbconfig);
 
     return true;

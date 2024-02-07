@@ -93,6 +93,9 @@ class SchemaManager {
       $cfargs['ssl_ca'] = $cfg['ssl_ca'];
     }
     
+    if($this->io) $this->io->out("Connecting to database " . $cfg['database'] . " as " 
+                                  . $cfg['username'] . "@" . $cfg['host']);
+    
     $this->conn = DriverManager::getConnection($cfargs, $config);
     $this->driver = $cfg['driver'];
   }
