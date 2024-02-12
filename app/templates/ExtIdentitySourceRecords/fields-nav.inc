@@ -35,8 +35,7 @@ if(!empty($vv_obj->external_identity_id)) {
       'controller'  => 'external_identities',
       'action'      => 'view',
       $vv_obj->external_identity_id
-    ],
-    'skipPermsCheck' => true
+    ]
   ];
   $topLinks[] = [
     'icon' => 'visibility',
@@ -49,8 +48,7 @@ if(!empty($vv_obj->external_identity_id)) {
       '?' => [
         'source_key' => $vv_obj->source_key
       ]
-    ],
-    'skipPermsCheck' => true
+    ]
   ];
 }
 

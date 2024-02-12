@@ -159,6 +159,21 @@ class ExternalIdentitiesTable extends Table {
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']
+      ],
+      // Related models whose permissions we'll need, typically for table views
+      'related' => [
+         'Names',
+         'Addresses',
+         'AdHocAttributes',
+         'EmailAddresses',
+         'ExternalIdentityRoles',
+         'ExtIdentitySourceRecords',
+         'HistoryRecords',
+         'Identifiers',
+         'JobHistoryRecords',
+         'Pronouns',
+         'TelephoneNumbers',
+         'Urls'
       ]
     ]);
   }

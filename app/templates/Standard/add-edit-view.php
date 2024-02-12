@@ -126,7 +126,7 @@ if(!empty($subnav)) {
         }
       }
       
-      if($perm || !empty($t['skipPermsCheck'])) {
+      if($perm) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder($t['order']),
           'icon' => $this->Menu->getMenuIcon($t['icon']),

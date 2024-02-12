@@ -86,8 +86,7 @@ class ExtIdentitySourceRecordsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      false,
-// CFM-32 Update this permission when made available via the Artifacts menu
-        'index' =>    false // ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
   }
