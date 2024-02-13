@@ -170,13 +170,13 @@ class ProvisioningTargetsTable extends Table {
             ProvisionerModeEnum::Queue,
             ProvisionerModeEnum::QueueOnError
           ])) {
-            $this->llog('trace', "Skipping Provisioning Target with mode " . $t->status . " (automatic context)", $t->id);
+            $this->llog('trace', "Skipping Provisioning Target " . $t->id . " with mode " . $t->status . " (automatic context)", $t->id);
             continue 2;
           }
           break;
         case ProvisioningContextEnum::Enrollment:
           if($t->status == ProvisionerModeEnum::Manual) {
-            $this->llog('trace', "Skipping Provisioning Target with mode " . $t->status . " (enrollment context)", $t->id);
+            $this->llog('trace', "Skipping Provisioning Target " . $t->id . " with mode " . $t->status . " (enrollment context)", $t->id);
             continue 2;
           }
           break;
@@ -200,6 +200,8 @@ class ProvisioningTargetsTable extends Table {
 
         $result = $this->$pluginModel->provision($t->$uPluginModel, $provisionedModel, $data, $eligibility);
 
+        $this->alog('trace', $result);
+
         $this->ProvisioningHistoryRecords->record(
           provisioningTargetId: $t->id,
           comment: $result['comment'],
@@ -209,6 +211,8 @@ class ProvisioningTargetsTable extends Table {
         );
       }
       catch(\Exception $e) {
+        $this->llog('error', "Provisioning failure: " . $e->getMessage());
+        
         $this->ProvisioningHistoryRecords->record(
           provisioningTargetId: $t->id,
           comment: $e->getMessage(),
