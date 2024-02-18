@@ -61,6 +61,9 @@ class SqlProvisionersTable extends Table {
       'source' => 'People',
       'source_table' => 'people',
       'related' => [
+        // We need to process PersonRoles first (last on delete) in case an
+        // MVEA refers to it
+        'PersonRoles',
         'AdHocAttributes',
         'Addresses',
         'EmailAddresses',
@@ -68,7 +71,6 @@ class SqlProvisionersTable extends Table {
         'GroupMembers',
         'Identifiers',
         'Names',
-        'PersonRoles',
         'Pronouns',
         'TelephoneNumbers',
         'Urls'
@@ -417,8 +419,15 @@ class SqlProvisionersTable extends Table {
     try {
       $curEntity = $SpTable->get($data->id);
 
-      if($eligibility == ProvisioningEligibilityEnum::Eligible) {
-        // We have a currently provisioned record and the subject is Eligible,
+      // We treat Eligible and Ineligible the same, meaning we provision the records.
+      // marshalProvisioningData() filters Ineligible records so that entitlement
+      // oriented attributes (such as Group Memberships and Person Roles) are removed,
+      // which allows us to provision enough of a record that referential integrity is
+      // maintained.
+
+      if($eligibility == ProvisioningEligibilityEnum::Eligible
+         || $eligibility == ProvisioningEligibilityEnum::Ineligible) {
+        // We have a currently provisioned record and the subject is not Deleted,
         // patch it with $data and try saving.
         $patchedEntity = $SpTable->patchEntity($curEntity, $data->toArray(), ['validate' => false]);
 
@@ -450,12 +459,15 @@ class SqlProvisionersTable extends Table {
           'identifier'  => null
         ];
       } else {
-        // The subject record is deleted or otherwise Ineligible, remove the
-        // current entity. Remove the related models before the entity.
+        // The subject record is Deleted, remove the current entity.
+        // Remove the related models before the entity.
+        // We process related models backwards so Person Role is deleted last
+        // (in case other MVEAs point to it) (though we also manually cascade
+        // deletes in syncRelatedEntities()).
 
         if(!empty($mconfig['related'])) {
           // Process related models
-          foreach($mconfig['related'] as $rmodel) {
+          foreach(array_reverse($mconfig['related']) as $rmodel) {
             $this->syncRelatedEntities(
               SqlProvisioner: $SqlProvisioner,
               parentEntityName: $entityName,
@@ -478,8 +490,9 @@ class SqlProvisionersTable extends Table {
     }
     catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
       // The record is not yet in the SP table (probably a new record)
-      if($eligibility == ProvisioningEligibilityEnum::Eligible) {
-        // The subject is eligible, so provision the record
+      if($eligibility == ProvisioningEligibilityEnum::Eligible
+         || $eligibility == ProvisioningEligibilityEnum::Ineligible) {
+        // The subject is not Deleted, so provision the record
         $newEntity = $SpTable->newEntity($data->toArray(), ['validate' => false]);
 
         $SpTable->saveOrFail(
@@ -510,11 +523,11 @@ class SqlProvisionersTable extends Table {
           'identifier'  => null
         ];
       } else {
-        // The subject record is deleted or otherwise Ineligible, nothing to do
+        // The subject record is deleted, nothing to do
 
         return [
           'status'      => ProvisioningStatusEnum::NotProvisioned,
-          'comment'     => __d('sql_connector', 'result.prov.ineligible'),
+          'comment'     => __d('sql_connector', 'result.prov.deleted'),
           'identifier'  => null
         ];
       }
@@ -665,7 +678,8 @@ class SqlProvisionersTable extends Table {
                            ->where([$parentFk => $parentData->id])
                            ->all();
 
-    if($eligibility == ProvisioningEligibilityEnum::Eligible) {
+    if($eligibility == ProvisioningEligibilityEnum::Eligible
+       || $eligibility == ProvisioningEligibilityEnum::Ineligible) {
       // Patch the target with the source. Note this will handle add and
       // insert correctly, but will ignore any records from $curEntities that
       // are not in $srcEntities.
@@ -673,7 +687,7 @@ class SqlProvisionersTable extends Table {
 
       $SpTable->saveManyOrFail($patchedEntities, ['validate' => false, 'checkRules' => false]);
     } else {
-      // Delete all currently provisioned entries, which will force by
+      // Delete all currently provisioned entries, which we'll force by
       // clearing $srcEntities
 
       $srcEntities = [];
@@ -715,6 +729,32 @@ class SqlProvisionersTable extends Table {
     }
 
     if(!empty($toDelete)) {
+      if(!empty($this->secondaryModels[$relatedEntityName]['related'])) {
+        // This model has additional related models that we may need to cascade deletes to.
+        // We can't leverage Cake's "dependent => true" because the related models don't
+        // exist in a well defined way that Cake can properly set them up on the fly.
+        // So we manually process deleteAlls.
+
+        $parentKey = StringUtilities::ClassNameToForeignKey($relatedEntityName);
+
+        foreach($this->secondaryModels[$relatedEntityName]['related'] as $subModelName) {
+          $subconfig = $this->secondaryModels[$subModelName];
+
+          $options = [
+            'table'       => $SqlProvisioner->table_prefix . $subconfig['table'],
+            'alias'       => $subconfig['name'],
+            'connection'  => ConnectionManager::get($dataSource)
+          ];
+
+          $SubTable = TableRegistry::get(alias: $subconfig['name'], options: $options);
+
+          foreach($toDelete as $d) {
+            // We shouldn't get here if either $parentKey or $d->id is null...
+            $SubTable->deleteAll([$parentKey => $d->id]);
+          }          
+        }
+      }
+
       $SpTable->deleteMany($toDelete);
     }
 
