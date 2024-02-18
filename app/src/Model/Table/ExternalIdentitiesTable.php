@@ -33,6 +33,7 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\ExternalIdentityStatusEnum;
 
 class ExternalIdentitiesTable extends Table {

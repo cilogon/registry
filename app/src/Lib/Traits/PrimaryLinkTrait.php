@@ -38,9 +38,9 @@ trait PrimaryLinkTrait {
   // pairs, where the key is the field (eg: co_id) and the value is the table
   // (eg: Cos).
   private $primaryLinks = [];
-  
+
   // Allow empty primary link?
-  private $allowEmpty = false;
+  private $allowEmptyActions = [];
   
   // Actions that can have an unkeyed (ie: self asserted) primary link ID
   private $unkeyedActions = ['add', 'index'];
@@ -69,14 +69,15 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Whether the primary link is permitted to be empty.
+   * Check to see whether the specified actions permits the primary link to be empty.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param boolean $allowEmpty true if the primary link is permitted to be empty
+   * @param  string   $action Action
+   * @return boolean          true if permitted, false otherwise
    */
   
-  public function allowEmptyPrimaryLink() {
-    return $this->allowEmpty;
+  public function allowEmptyPrimaryLink(string $action) {
+    return in_array($action , $this->allowEmptyActions);
   }
   
   /**
@@ -251,7 +252,7 @@ trait PrimaryLinkTrait {
    */
   
   public function getPrimaryLinkTableName(string $primaryLink): string {
-    return $this->primaryLinks[$primaryLink];
+    return $this->primaryLinks[$primaryLink] ?? 'Cos';
   }
   
   /**
@@ -421,11 +422,11 @@ trait PrimaryLinkTrait {
    * Set whether the primary link is permitted to be empty.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param boolean $allowEmpty true if the primary link is permitted to be empty
+   * @param  array   $actions   Actions where the primary link is allowed to be empty
    */
   
-  public function setAllowEmptyPrimaryLink(bool $allowEmpty) {
-    $this->allowEmpty = $allowEmpty;
+  public function setAllowEmptyPrimaryLink(array $actions) {
+    $this->allowEmptyActions = array_merge($this->allowEmptyActions, $actions);
   }
   
   /**

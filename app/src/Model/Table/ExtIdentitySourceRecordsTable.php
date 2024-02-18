@@ -45,6 +45,7 @@ class ExtIdentitySourceRecordsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -72,10 +73,32 @@ class ExtIdentitySourceRecordsTable extends Table {
     $this->setPrimaryLink(['external_identity_source_id']);
     $this->setRequiresCO(true);
 
-    $this->setViewContains([
+    // These are required for the link to work from the Artifacts page
+    $this->setAllowUnkeyedPrimaryCO(['index']);
+    $this->setAllowEmptyPrimaryLink(['index']);
+
+    $this->setIndexContains([
       'ExternalIdentitySources'
     ]);
     
+    $this->setViewContains([
+      'ExternalIdentitySources'
+    ]);
+/*
+// XXX This doesn't seem to correlate to what actually renders?
+    $this->setFilterConfig([
+      'external_identity_source_id' => [
+        'type' => 'field',
+        'active' => true,
+        'order' => 1
+      ],
+      'source_key' => [
+        'type' => 'field',
+        'active' => true,
+        'order' => 2
+      ]
+    ]);*/
+
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [

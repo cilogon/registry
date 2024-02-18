@@ -1172,7 +1172,8 @@ class PipelinesTable extends Table {
               // ever able to add persistant record keys to the Backend
               // interface this code should "just work".
 
-              // We do rely on this block to process EIR related models.
+              // We do rely on this block to process EIR related models,
+              // which have roleIdentifiers that allow us to match records.
 
               foreach($externalIdentity->$amodel as $aentity) {
                 if($aentity->id == $arecord['id']) {

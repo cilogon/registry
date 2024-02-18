@@ -46,7 +46,7 @@ $topLinks = [
   [
     'icon' => 'history',
     'order' => 'Default',
-    'label' => __d('operation', 'HistoryRecords'),
+    'label' => __d('controller', 'HistoryRecords', [99]),
     'link' => [
       'controller' => 'history_records',
       'action' => 'index',
