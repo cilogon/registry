@@ -36,6 +36,9 @@ use Cake\I18n\I18n;
 
 class VueHelper extends Helper {
   private array $locales_list = [
+    'enumeration' => [
+      'SuspendableStatusEnum.S'
+    ],
     'field' => [
       'login',
       'primary',

@@ -97,6 +97,7 @@ export default {
         <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.identifier }}</a>                                              
       </div>
       <div class="field-data data-label">
+        <span v-if="this.mvea.status == 'S'" class="mr-1 badge bg-danger">{{ this.txt["SuspendableStatusEnum.S"] }}</span>
         <span v-if="this.mvea.login" class="mr-1 badge bg-outline-secondary login">{{ this.txt.login }}</span>
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>
       </div>
