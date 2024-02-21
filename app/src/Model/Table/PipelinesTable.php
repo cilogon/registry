@@ -519,7 +519,7 @@ class PipelinesTable extends Table {
       // (4) Sync the External Identity attributes with the Person record
       $person = $this->syncPerson(
         $pipeline,
-        $externalIdentity,
+        $externalIdentity->id,
         $person
       );
 
@@ -1396,17 +1396,38 @@ class PipelinesTable extends Table {
    * Sync an External Identity to a Person.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  Pipeline                 $pipeline         Pipeline
-   * @param  ExternalIdentity         $externalIdentity External Identity
-   * @param  Person                   $person           Person
-   * @return Person                                     Person
+   * @param  Pipeline    $pipeline            Pipeline
+   * @param  int         $externalIdentityId  External Identity ID
+   * @param  Person      $person              Person
+   * @return Person                           Person
    */
 
   protected function syncPerson(
     Pipeline          $pipeline,
-    ExternalIdentity  $externalIdentity,
+    int               $externalIdentityId,
     Person            $person
   ): Person {
+    // We re-pull the External Identity to account for any changes that might have
+    // been processed by syncExternalIdentity.
+    $externalIdentity = $this->Cos->People->ExternalIdentities->get(
+      $externalIdentityId,
+      ['contain' => [
+        'Addresses',
+        'AdHocAttributes',
+        'EmailAddresses',
+        'Identifiers',
+        'Names',
+        'Pronouns',
+        'TelephoneNumbers',
+        'Urls',
+        'ExternalIdentityRoles' => [
+          'AdHocAttributes',
+          'Addresses', 
+          'TelephoneNumbers'
+        ]
+      ]]
+    );
+
     // Because ExternalIdentities belongTo People, we can assume we have at least
     // a Person object here (it would have been created by obtainPerson if there
     // wasn't one at the start of the process).
