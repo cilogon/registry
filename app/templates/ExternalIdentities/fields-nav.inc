@@ -62,7 +62,7 @@ $topLinks = [
     'link' => [
       'controller' => 'ext_identity_source_records',
       'action' => 'view',
-      $vv_obj->ext_identity_source_records[0]->id
+      $vv_obj->ext_identity_source_record->id
     ]
   ]
 ];

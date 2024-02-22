@@ -58,6 +58,7 @@ use \Cake\Http\Exception\ForbiddenException;
 use \Cake\Http\Exception\UnauthorizedException;
 use \Cake\ORM\ResultSet;
 use \Cake\ORM\TableRegistry;
+use \Cake\Utility\Inflector;
 use \App\Lib\Enum\AuthenticationEventEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Enum\TemplateableStatusEnum;
@@ -319,6 +320,9 @@ class RegistryAuthComponent extends Component
     
     // Is this user a CO Member?
     $coMember = $this->isCoMember($controller->getCOID());
+
+    // Get the action
+    $reqAction = $controller->getRequest()->getParam('action');
     
     // Is this record read only?
     $readOnly = false;
@@ -333,8 +337,27 @@ class RegistryAuthComponent extends Component
       $readOnlyActions = ['view'];
       
       // Pull the record so we can interrogate it
-      
-      $obj = $table->get($id);
+
+      // XXX Get the record along with the contains
+      // We use findById() rather than get() so we can apply subsequent
+      // query modifications via traits
+      $query = $table->findById($id);
+
+      // QueryModificationTrait
+      $getActionMethod = "get{$reqAction}Contains";
+      if(method_exists($table, $getActionMethod)) {
+        $query = $query->contain($table->$getActionMethod());
+      }
+
+      try {
+        // Pull the current record
+        $obj = $query->firstOrFail();
+      }
+      catch(\Exception $e) {
+        // findById throws Cake\Datasource\Exception\RecordNotFoundException
+        $this->Flash->error($e->getMessage());
+        return $this->generateRedirect(null);
+      }
       
       if(method_exists($obj, "isReadOnly")) {
         $readOnly = $obj->isReadOnly();
@@ -375,9 +398,62 @@ class RegistryAuthComponent extends Component
 
         $ret[$action] = $ok;
       }
+
+      if(!empty($permissions['related']['entity'])) {
+        foreach($permissions['related']['entity'] as $rtable) {
+          $RelatedTable = TableRegistry::getTableLocator()->get($rtable);
+          $rpermissions = $this->getTablePermissions($RelatedTable, $id);
+          $robj = $obj->get(Inflector::singularize(Inflector::underscore($rtable)));
+          $rreadOnlyActions = ['view'];
+
+          // Is this record read only?
+          $rreadOnly = false;
+
+          // Can this record be deleted?
+          $rcanDelete = true;
+
+          if($robj !== null && method_exists($robj, "isReadOnly")) {
+            $rreadOnly = $robj->isReadOnly();
+
+            if(!empty($rpermissions['readOnly'])) {
+              // Merge in controller specific actions permitted on read only entities
+              $rreadOnlyActions = array_merge($rreadOnlyActions, $rpermissions['readOnly']);
+            }
+          }
+
+          if($robj !== null &&  method_exists($robj, "canDelete")) {
+            $rcanDelete = $robj->canDelete();
+          }
+
+          foreach($rpermissions['entity'] as $action => $roles) {
+            $ok = false;
+
+            if((($action != 'delete' || $rcanDelete)
+                &&
+                !$rreadOnly) || in_array($action, $rreadOnlyActions)) {
+              if(is_array($roles)) {
+                // A list of roles authorized to perform this action, see if the
+                // current user has any
+                foreach($roles as $role) {
+                  // eg: $role = "platformAdmin", which corresponds to the variables set, above
+                  if($$role) {
+                    $ok = true;
+                    break;
+                  }
+                }
+              } elseif($roles === true) {
+                // Any authenticated user is permitted
+                $ok = true;
+              }
+            }
+
+            $ret[$rtable][$action] = $ok;
+          }
+        }
+      }
       
-      if(!empty($permissions['related'])) {
-        foreach($permissions['related'] as $rtable) {
+      if(!empty($permissions['related']['table'])) {
+        foreach($permissions['related']['table'] as $rtable) {
           $RelatedTable = TableRegistry::getTableLocator()->get($rtable);
           $rpermissions = $this->getTablePermissions($RelatedTable, $id);
           
@@ -403,7 +479,8 @@ class RegistryAuthComponent extends Component
           }
         }
       }
-    } else {
+
+    } else { // No $id
       // Permissions for actions that operate over tables
       
       foreach($permissions['table'] as $action => $roles) {

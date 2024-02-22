@@ -140,7 +140,9 @@ class IdentifiersTable extends Table {
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
-        'AuthenticationEvents'
+        'table' => [
+          'AuthenticationEvents'
+        ]
       ]
     ]);
   }

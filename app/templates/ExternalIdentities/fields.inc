@@ -27,18 +27,18 @@
 
 // This view will not support add/edit
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  if(!empty($vv_obj->ext_identity_source_records[0])) {
+  if(!empty($vv_obj->ext_identity_source_record)) {
 
     $noticeText = __d(
       'information',
       'ExternalIdentities.source',
       [
         $this->Html->link(
-          $vv_obj->ext_identity_source_records[0]->external_identity_source->description,
+          $vv_obj->ext_identity_source_record->external_identity_source->description,
           [
             'controller' => 'external-identity-sources',
             'action' => 'edit',
-            $vv_obj->ext_identity_source_records[0]->external_identity_source->id
+            $vv_obj->ext_identity_source_record->external_identity_source->id
           ]
         )
       ]

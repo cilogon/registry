@@ -114,7 +114,9 @@ class JobsTable extends Table {
       'readOnly' => ['cancel'],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
-        'JobHistoryRecords'
+        'table' => [
+          'JobHistoryRecords'
+        ]
       ]
     ]);
   }

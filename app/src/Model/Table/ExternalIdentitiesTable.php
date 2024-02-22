@@ -85,7 +85,7 @@ class ExternalIdentitiesTable extends Table {
     $this->hasMany('ExternalIdentityRoles')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    $this->hasMany('ExtIdentitySourceRecords')
+    $this->hasOne('ExtIdentitySourceRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
@@ -163,18 +163,22 @@ class ExternalIdentitiesTable extends Table {
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
-         'Names',
-         'Addresses',
-         'AdHocAttributes',
-         'EmailAddresses',
-         'ExternalIdentityRoles',
-         'ExtIdentitySourceRecords',
-         'HistoryRecords',
-         'Identifiers',
-         'JobHistoryRecords',
-         'Pronouns',
-         'TelephoneNumbers',
-         'Urls'
+        'entity' => [
+          'ExtIdentitySourceRecords',
+        ],
+        'table' => [
+          'Names',
+          'Addresses',
+          'AdHocAttributes',
+          'EmailAddresses',
+          'ExternalIdentityRoles',
+          'HistoryRecords',
+          'Identifiers',
+          'JobHistoryRecords',
+          'Pronouns',
+          'TelephoneNumbers',
+          'Urls'
+        ],
       ]
     ]);
   }

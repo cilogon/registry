@@ -93,7 +93,11 @@ class NamesTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
-    
+    $this->belongsTo('ExtIdentitySourceRecords')
+         ->setClassName('ExtIdentitySourceRecords')
+         ->setForeignKey('source_name_id')
+         ->setProperty('source_name');
+
     $this->setDisplayField('full_name');
     
     $this->setPrimaryLink(['external_identity_id', 'person_id']);

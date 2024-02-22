@@ -131,7 +131,9 @@ class CosTable extends Table {
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
-        'Dashboards'
+        'table' => [
+          'Dashboards'
+        ]
       ]
     ]);
   }

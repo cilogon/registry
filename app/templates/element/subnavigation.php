@@ -194,6 +194,7 @@ if(!empty($tabsSupertitle)) {
           $isExternalId = (
             $vv_primary_link == 'external_identity_id'
             || $vv_primary_link == 'external_identity_role_id'
+            || $vv_primary_link == 'external_identity_source_id'
             || ($curController == 'ExternalIdentities' && ($curAction == 'edit' || $curAction == 'view'))
             || ($curController == 'ExternalIdentityRoles' && ($curAction == 'edit' || $curAction == 'view'))
           ) ? true : false;
@@ -382,7 +383,9 @@ if(!empty($tabsSupertitle)) {
     <?php
       $parentId = $curId;
       $curId = $this->request->getQuery($vv_primary_link);
-      if(!empty($vv_ei_id)) {
+      if(!empty($subTabsId)) {
+        $curId = $subTabsId;
+      } elseif(!empty($vv_ei_id)) {
         $curId = $vv_ei_id;
         $linkFilter = ['external_identity_id' => $curId];
       } elseif(!empty($vv_obj)) {

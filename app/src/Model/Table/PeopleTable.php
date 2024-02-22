@@ -207,18 +207,20 @@ class PeopleTable extends Table {
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
-        'Addresses',
-        'AdHocAttributes',
-        'Names',
-        'EmailAddresses',
-        'ExternalIdentities',
-        'HistoryRecords',
-        'IdentifierAssignments',
-        'Identifiers',
-        'PersonRoles',
-        'ProvisioningTargets',
-        'TelephoneNumbers',
-        'Urls'
+        'table' => [
+          'Addresses',
+          'AdHocAttributes',
+          'Names',
+          'EmailAddresses',
+          'ExternalIdentities',
+          'HistoryRecords',
+          'IdentifierAssignments',
+          'Identifiers',
+          'PersonRoles',
+          'ProvisioningTargets',
+          'TelephoneNumbers',
+          'Urls'
+        ],
       ]
     ]);
   }
@@ -660,7 +662,7 @@ class PeopleTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->notEmptyString('co_id');
-    
+
     $validator->add('status', [
       'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
     ]);

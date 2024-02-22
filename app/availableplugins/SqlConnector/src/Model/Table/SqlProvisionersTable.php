@@ -61,19 +61,19 @@ class SqlProvisionersTable extends Table {
       'source' => 'People',
       'source_table' => 'people',
       'related' => [
-        // We need to process PersonRoles first (last on delete) in case an
-        // MVEA refers to it
-        'PersonRoles',
-        'AdHocAttributes',
-        'Addresses',
-        'EmailAddresses',
-        'ExternalIdentities',
-        'GroupMembers',
-        'Identifiers',
-        'Names',
-        'Pronouns',
-        'TelephoneNumbers',
-        'Urls'
+        'table' => [
+          'AdHocAttributes',
+          'Addresses',
+          'EmailAddresses',
+          'ExternalIdentities',
+          'GroupMembers',
+          'Identifiers',
+          'Names',
+          'PersonRoles',
+          'Pronouns',
+          'TelephoneNumbers',
+          'Urls'
+        ],
       ]
     ],
     'Groups' => [
@@ -82,7 +82,9 @@ class SqlProvisionersTable extends Table {
       'source'  => 'Groups',
       'source_table'  => 'groups',
       'related' => [
-        'GroupMembers'
+        'table' => [
+          'GroupMembers'
+        ],
       ]
     ]
   ];
@@ -116,15 +118,17 @@ class SqlProvisionersTable extends Table {
       'source'  => 'ExternalIdentities',
       'source_table' => 'external_identities',
       'related' => [
-        'AdHocAttributes',
-        'Addresses',
-        'EmailAddresses',
-        'ExternalIdentityRoles',
-        'Identifiers',
-        'Names',
-        'Pronouns',
-        'TelephoneNumbers',
-        'Urls'
+        'table' => [
+          'AdHocAttributes',
+          'Addresses',
+          'EmailAddresses',
+          'ExternalIdentityRoles',
+          'Identifiers',
+          'Names',
+          'Pronouns',
+          'TelephoneNumbers',
+          'Urls'
+        ],
       ]
     ],
     'ExternalIdentityRoles' => [
@@ -133,9 +137,11 @@ class SqlProvisionersTable extends Table {
       'source'  => 'ExternalIdentityRoles',
       'source_table' => 'external_identity_roles',
       'related' => [
-        'AdHocAttributes',
-        'Addresses',
-        'TelephoneNumbers'
+        'table' => [
+          'AdHocAttributes',
+          'Addresses',
+          'TelephoneNumbers'
+        ],
       ]
     ],
     'GroupMembers' => [
@@ -166,9 +172,11 @@ class SqlProvisionersTable extends Table {
       'source'  => 'PersonRoles',
       'source_table' => 'person_roles',
       'related' => [
-        'AdHocAttributes',
-        'Addresses',
-        'TelephoneNumbers'
+        'table' => [
+          'AdHocAttributes',
+          'Addresses',
+          'TelephoneNumbers'
+        ],
       ]
     ],
     'Pronouns' => [

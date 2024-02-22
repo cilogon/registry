@@ -164,16 +164,18 @@ class GroupsTable extends Table {
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
+        'table' => [
 // XXX As a first pass, this (combined with the implementation in AppController::calculatePermissions)
 //     will render a link to group-members?group_id=X for all groups in the index view
 //     groups?co_id=2. This may or may not be right in the long term, eg for private
 //     groups. Maybe it's OK for now, since all groups are visible to all members of the CO.
-        'GroupMembers',
-        'GroupNestings',
-        'HistoryRecords',
-        'IdentifierAssignments',
-        'Identifiers',
-        'ProvisioningTargets'
+          'GroupMembers',
+          'GroupNestings',
+          'HistoryRecords',
+          'IdentifierAssignments',
+          'Identifiers',
+          'ProvisioningTargets'
+        ],
       ]
     ]);
   }

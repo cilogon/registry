@@ -82,7 +82,8 @@ class ExtIdentitySourceRecordsTable extends Table {
     ]);
     
     $this->setViewContains([
-      'ExternalIdentitySources'
+      'ExternalIdentitySources',
+      'ExternalIdentities'  => ['People' => ['PrimaryName']],
     ]);
 /*
 // XXX This doesn't seem to correlate to what actually renders?
