@@ -62,6 +62,11 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     
     $subjectTable = $event->getSubject();
     
+    if(strncmp($subjectTable->getRegistryAlias(), "DebugKit.", 9)==0) {
+      // Skip DebugKit calls
+      return $rules;
+    }
+
     $schema = $subjectTable->getSchema();
     
     // We need to skip some metadata fields, including changelog and EIS fks
