@@ -422,7 +422,7 @@ class SqlProvisionersTable extends Table {
       'connection'  => ConnectionManager::get($dataSource)
     ];
 
-    $SpTable = TableRegistry::get(alias: $mconfig['name'], options: $options);
+    $SpTable = TableRegistry::getTableLocator()->get(alias: $mconfig['name'], options: $options);
 
     try {
       $curEntity = $SpTable->get($data->id);
@@ -578,13 +578,13 @@ class SqlProvisionersTable extends Table {
         'connection'  => ConnectionManager::get($dataSource)
       ];
 
-      $SpTable = TableRegistry::get(alias: $m['name'], options: $options);
+      $SpTable = TableRegistry::getTableLocator()->get(alias: $m['name'], options: $options);
 
       // Next get the source table model
 
 // XXX don't we need to use the "plugin" datasource here and elsewhere?
 // (test with job shell - maybe this is an RFE for Reprovision All)
-      $SrcTable = TableRegistry::get($m['source']);
+      $SrcTable = TableRegistry::getTableLocator()->get($m['source']);
 
       // Pull the source records and then sync them to the target table.
       // We expect reference data to be no larger than O(100) or maybe
@@ -670,7 +670,7 @@ class SqlProvisionersTable extends Table {
       'connection'  => ConnectionManager::get($dataSource)
     ];
 
-    $SpTable = TableRegistry::get(alias: $mconfig['name'], options: $options);
+    $SpTable = TableRegistry::getTableLocator()->get(alias: $mconfig['name'], options: $options);
 
     // We have the source values, but we need to convert them to arrays
     // for patchEntities
@@ -754,7 +754,7 @@ class SqlProvisionersTable extends Table {
             'connection'  => ConnectionManager::get($dataSource)
           ];
 
-          $SubTable = TableRegistry::get(alias: $subconfig['name'], options: $options);
+          $SubTable = TableRegistry::getTableLocator()->get(alias: $subconfig['name'], options: $options);
 
           foreach($toDelete as $d) {
             // We shouldn't get here if either $parentKey or $d->id is null...
