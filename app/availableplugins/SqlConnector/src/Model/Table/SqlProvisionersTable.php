@@ -61,19 +61,18 @@ class SqlProvisionersTable extends Table {
       'source' => 'People',
       'source_table' => 'people',
       'related' => [
-        'table' => [
-          'AdHocAttributes',
-          'Addresses',
-          'EmailAddresses',
-          'ExternalIdentities',
-          'GroupMembers',
-          'Identifiers',
-          'Names',
-          'PersonRoles',
-          'Pronouns',
-          'TelephoneNumbers',
-          'Urls'
-        ],
+// XXX partial reversion of CFM-363
+        'AdHocAttributes',
+        'Addresses',
+        'EmailAddresses',
+        'ExternalIdentities',
+        'GroupMembers',
+        'Identifiers',
+        'Names',
+        'PersonRoles',
+        'Pronouns',
+        'TelephoneNumbers',
+        'Urls'
       ]
     ],
     'Groups' => [
@@ -82,9 +81,7 @@ class SqlProvisionersTable extends Table {
       'source'  => 'Groups',
       'source_table'  => 'groups',
       'related' => [
-        'table' => [
-          'GroupMembers'
-        ],
+        'GroupMembers'
       ]
     ]
   ];
@@ -118,17 +115,15 @@ class SqlProvisionersTable extends Table {
       'source'  => 'ExternalIdentities',
       'source_table' => 'external_identities',
       'related' => [
-        'table' => [
-          'AdHocAttributes',
-          'Addresses',
-          'EmailAddresses',
-          'ExternalIdentityRoles',
-          'Identifiers',
-          'Names',
-          'Pronouns',
-          'TelephoneNumbers',
-          'Urls'
-        ],
+        'AdHocAttributes',
+        'Addresses',
+        'EmailAddresses',
+        'ExternalIdentityRoles',
+        'Identifiers',
+        'Names',
+        'Pronouns',
+        'TelephoneNumbers',
+        'Urls'
       ]
     ],
     'ExternalIdentityRoles' => [
@@ -137,11 +132,9 @@ class SqlProvisionersTable extends Table {
       'source'  => 'ExternalIdentityRoles',
       'source_table' => 'external_identity_roles',
       'related' => [
-        'table' => [
-          'AdHocAttributes',
-          'Addresses',
-          'TelephoneNumbers'
-        ],
+        'AdHocAttributes',
+        'Addresses',
+        'TelephoneNumbers'
       ]
     ],
     'GroupMembers' => [
@@ -172,11 +165,9 @@ class SqlProvisionersTable extends Table {
       'source'  => 'PersonRoles',
       'source_table' => 'person_roles',
       'related' => [
-        'table' => [
-          'AdHocAttributes',
-          'Addresses',
-          'TelephoneNumbers'
-        ],
+        'AdHocAttributes',
+        'Addresses',
+        'TelephoneNumbers'
       ]
     ],
     'Pronouns' => [
