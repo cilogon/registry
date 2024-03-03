@@ -6,6 +6,7 @@ return [
         'Bake' => $baseDir . '/vendor/cakephp/bake/',
         'Cake/TwigView' => $baseDir . '/vendor/cakephp/twig-view/',
         'CoreAssigner' => $baseDir . '/plugins/CoreAssigner/',
+        'CoreEnroller' => $baseDir . '/plugins/CoreEnroller/',
         'CoreServer' => $baseDir . '/plugins/CoreServer/',
         'DebugKit' => $baseDir . '/vendor/cakephp/debug_kit/',
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',

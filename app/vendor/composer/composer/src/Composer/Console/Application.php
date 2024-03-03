@@ -87,6 +87,10 @@ class Application extends BaseApplication
 
     public function __construct(string $name = 'Composer', string $version = '')
     {
+        if (method_exists($this, 'setCatchErrors')) {
+            $this->setCatchErrors(true);
+        }
+
         static $shutdownRegistered = false;
         if ($version === '') {
             $version = Composer::getVersion();
@@ -216,7 +220,7 @@ class Application extends BaseApplication
 
         // Clobber sudo credentials if COMPOSER_ALLOW_SUPERUSER is not set before loading plugins
         if ($needsSudoCheck) {
-            $isNonAllowedRoot = function_exists('posix_getuid') && posix_getuid() === 0;
+            $isNonAllowedRoot = $this->isRunningAsRoot();
 
             if ($isNonAllowedRoot) {
                 if ($uid = (int) Platform::getEnv('SUDO_UID')) {
@@ -288,7 +292,7 @@ class Application extends BaseApplication
             $this->hasPluginCommands = true;
         }
 
-        if ($isNonAllowedRoot && !$io->isInteractive()) {
+        if (!$this->disablePluginsByDefault && $isNonAllowedRoot && !$io->isInteractive()) {
             $io->writeError('<error>Composer plugins have been disabled for safety in this non-interactive session. Set COMPOSER_ALLOW_SUPERUSER=1 if you want to allow plugins to run as root/super user.</error>');
             $this->disablePluginsByDefault = true;
         }
@@ -361,7 +365,9 @@ class Application extends BaseApplication
                                     $description = $composer['scripts-descriptions'][$script];
                                 }
 
-                                $this->add(new Command\ScriptAliasCommand($script, $description));
+                                $aliases = $composer['scripts-aliases'][$script] ?? [];
+
+                                $this->add(new Command\ScriptAliasCommand($script, $description, $aliases));
                             }
                         }
                     }
@@ -388,6 +394,11 @@ class Application extends BaseApplication
 
             return $result;
         } catch (ScriptExecutionException $e) {
+            if ($this->getDisablePluginsByDefault() && $this->isRunningAsRoot() && !$this->io->isInteractive()) {
+                $io->writeError('<error>Plugins have been disabled automatically as you are running as root, this may be the cause of the script failure.</error>', true, IOInterface::QUIET);
+                $io->writeError('<error>See also https://getcomposer.org/root</error>', true, IOInterface::QUIET);
+            }
+
             return $e->getCode();
         } catch (\Throwable $e) {
             $ghe = new GithubActionError($this->io);
@@ -395,9 +406,10 @@ class Application extends BaseApplication
 
             $this->hintCommonErrors($e, $output);
 
-            // symfony/console does not handle \Error subtypes so we have to renderThrowable ourselves
+            // symfony/console <6.4 does not handle \Error subtypes so we have to renderThrowable ourselves
             // instead of rethrowing those for consumption by the parent class
-            if (!$e instanceof \Exception) {
+            // can be removed when Composer supports PHP 8.1+
+            if (!method_exists($this, 'setCatchErrors') && !$e instanceof \Exception) {
                 if ($output instanceof ConsoleOutputInterface) {
                     $this->renderThrowable($e, $output->getErrorOutput());
                 } else {
@@ -467,6 +479,12 @@ class Application extends BaseApplication
         if ($exception instanceof ProcessTimedOutException) {
             $io->writeError('<error>The following exception is caused by a process timeout</error>', true, IOInterface::QUIET);
             $io->writeError('<error>Check https://getcomposer.org/doc/06-config.md#process-timeout for details</error>', true, IOInterface::QUIET);
+        }
+
+        if ($this->getDisablePluginsByDefault() && $this->isRunningAsRoot() && !$this->io->isInteractive()) {
+            $io->writeError('<error>Plugins have been disabled automatically as you are running as root, this may be the cause of the following exception. See also https://getcomposer.org/root</error>', true, IOInterface::QUIET);
+        } elseif ($exception instanceof CommandNotFoundException && $this->getDisablePluginsByDefault()) {
+            $io->writeError('<error>Plugins have been disabled, which may be why some commands are missing, unless you made a typo</error>', true, IOInterface::QUIET);
         }
 
         $hints = HttpDownloader::getExceptionHints($exception);
@@ -652,6 +670,16 @@ class Application extends BaseApplication
         return $this->initialWorkingDirectory;
     }
 
+    public function getDisablePluginsByDefault(): bool
+    {
+        return $this->disablePluginsByDefault;
+    }
+
+    public function getDisableScriptsByDefault(): bool
+    {
+        return $this->disableScriptsByDefault;
+    }
+
     /**
      * @return 'prompt'|bool
      */
@@ -660,5 +688,10 @@ class Application extends BaseApplication
         $config = Factory::createConfig($this->io);
 
         return $config->get('use-parent-dir');
+    }
+
+    private function isRunningAsRoot(): bool
+    {
+        return function_exists('posix_getuid') && posix_getuid() === 0;
     }
 }
