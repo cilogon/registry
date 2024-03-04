@@ -142,6 +142,15 @@ class GroupsTable extends Table {
         'class' => 'GroupTypeEnum'
       ]
     ]);
+
+    $this->setFilterConfig([
+      'identifier' => [
+        'type' => 'relatedModel',
+        'model' => 'Identifier',
+        'active' => true,
+        'order' => 4
+      ]
+    ]);
     
     $this->setPermissions([
   // XXX update for couAdmins, etc

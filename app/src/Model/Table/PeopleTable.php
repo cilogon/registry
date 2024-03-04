@@ -564,7 +564,7 @@ class PeopleTable extends Table {
         // Locked status cannot be recalculated. This isn't an error, per se.
         if($person->status == StatusEnum::Locked) {
           $this->llog('trace', 'Not recalculating Person " . $person->id . " status since the record is locked');
-          return $curStatus;
+          return $person->status;
         }
 
         // Update the Person status

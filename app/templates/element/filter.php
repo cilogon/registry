@@ -113,7 +113,7 @@ $hasActiveFilters = false;
 
             // The populated variables are in plural while the column names are singular
             // Convention: It is a prerequisite that the vvar should be the plural of the column name
-            $populated_vvar = Inflector::pluralize($key);
+            $populated_vvar = lcfirst(Inflector::pluralize(Inflector::camelize($key)));
             $button_label = isset($$populated_vvar) ?
               $$populated_vvar[ $search_params[$key] ] :
               (is_array($search_params[$key]) ? 'Range' : $search_params[$key]);
@@ -146,16 +146,6 @@ $hasActiveFilters = false;
         $field_datetime_columns = [];
         
         $inactiveFiltersCount = 0; // for re-balancing the columns and submit buttons
-        
-        if(!empty($columns)) {
-          // The searchable attributes will be sorted first alphabetically
-          asort($vv_searchable_attributes);
-          // Sort the order attribute
-          uasort($vv_searchable_attributes, function ($item1, $item2) {
-            if ($item1['order'] == $item2['order']) return 0;
-            return $item1['order'] < $item2['order'] ? -1 : 1;
-          });
-        }
 
         foreach($vv_searchable_attributes as $key => $options) {
           if($options['type'] == 'boolean') {
@@ -226,7 +216,7 @@ $hasActiveFilters = false;
           
           // The populated variables are in plural while the column names are singular
           // Convention: It is a prerequisite that the vvar should be the plural of the column name
-          $populated_vvar = Inflector::pluralize($key);
+          $populated_vvar = lcfirst(Inflector::pluralize(Inflector::camelize($key)));
           if(isset($$populated_vvar)) {
             // If we have an AutoViewVar matching the name of this key,
             // convert to a select

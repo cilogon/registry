@@ -90,13 +90,28 @@ trait SearchFilterTrait {
           $fieldIsActive = $filterConfig[$column]['active'];
         }
       }
-      
-      $this->searchFilters[$column] = [
+
+      $attribute = [
         'type' => $type,
         'label' => \App\Lib\Util\StringUtilities::columnKey($modelname, $column, $vv_tz, true),
         'active' => $fieldIsActive,
         'order' => 99 // this is the default
       ];
+
+      // The column name should always go first, then the description will follow.
+      if($column == 'name') {
+        $this->searchFilters = [ $column => $attribute, ...$this->searchFilters];
+      } else if ($column == 'description') {
+        if(isset($this->searchFilters['name'])) {
+          $this->searchFilters = array_slice($this->searchFilters, 0, 1)
+            + [ $column => $attribute ]
+            + array_slice($this->searchFilters, 1);
+        } else {
+          $this->searchFilters = [ $column => $attribute, ...$this->searchFilters];
+        }
+      } else {
+        $this->searchFilters[$column] = $attribute;
+      }
 
       // For the date fields we search ranges
       if($type === 'timestamp') {

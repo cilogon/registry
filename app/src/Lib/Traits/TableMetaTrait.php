@@ -84,7 +84,8 @@ trait TableMetaTrait {
       'source_name_id',
       'source_pronoun_id',
       'source_telephone_number_id',
-      'source_url_id'
+      'source_url_id',
+      'owners_group_id'
     ];
 
     $newa = array();
