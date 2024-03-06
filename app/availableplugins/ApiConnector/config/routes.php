@@ -36,7 +36,6 @@ use Cake\Routing\Router;
 // of Cake routes, so either can be specified here.
 
 // ApiSource API routes
-// We place these under /v2 since the Registry v4 plugin essentially implemented v1
 
 $routes->scope('/api/apisource', function (RouteBuilder $builder) {
   // Register scoped middleware for in scopes.

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Provisioning History Records Controller
+ * COmanage Registry SQL Assigners Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,23 +20,21 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
+ * @package       registry-plugins
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Controller;
+namespace CoreAssigner\Controller;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+use App\Controller\StandardPluginController;
 
-class ProvisioningHistoryRecordsController extends StandardController {
+class SqlAssignersController extends StandardPluginController {
   public $paginate = [
     'order' => [
-      'ProvisioningHistoryRecords.id' => 'desc'
+      'SqlAssigners.server_id' => 'asc'
     ]
   ];
 }

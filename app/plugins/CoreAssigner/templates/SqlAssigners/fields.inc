@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Provisioning History Records Controller
+ * COmanage Registry SQL Assigners Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,18 +25,11 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+// This view does currently not support read-only, and add is not used
+if($vv_action == 'edit') {
+  print $this->Field->control('server_id');
+  
+  print $this->Field->control('source_table');
 
-namespace App\Controller;
-
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
-
-class ProvisioningHistoryRecordsController extends StandardController {
-  public $paginate = [
-    'order' => [
-      'ProvisioningHistoryRecords.id' => 'desc'
-    ]
-  ];
+  print $this->Field->control('type_id');
 }

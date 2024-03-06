@@ -1,7 +1,8 @@
 {
   "types": {
     "assigner": [
-      "FormatAssigners"
+      "FormatAssigners",
+      "SqlAssigners"
     ]
   },
   "schema": {
@@ -32,6 +33,24 @@
           "format_assigner_sequences_i2": { "needed": false, "columns": [ "format_assigner_id" ] }
         },
         "changelog": false
+      },
+      "sql_assigners": {
+        "columns": {
+          "id": {},
+          "identifier_assignment_id": {},
+          "server_id": {
+            "notnull": false,
+            "comment": "type_id isn't available on the initial row insert by StandardPluggableController::instantiatePlugin"
+          },
+          "source_table": { "type": "string", "size": 80 },
+          "type_id": {
+            "notnull": false,
+            "comment": "type_id isn't available on the initial row insert by StandardPluggableController::instantiatePlugin"
+          }
+        },
+        "indexes": {
+          "sql_assigners": { "columns": [ "identifier_assignment_id" ] }
+        }
       }
     }
   }

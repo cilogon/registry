@@ -25,6 +25,9 @@
 msgid "controller.FormatAssigners"
 msgstr "{0,plural,=1{Format Assigner} other{Format Assigners}}"
 
+msgid "controller.SqlAssigners"
+msgstr "{0,plural,=1{SQL Assigner} other{SQL Assigners}}"
+
 msgid "enumeration.CollisionModeEnum.R"
 msgstr "Random"
 
@@ -42,6 +45,12 @@ msgstr "AlphaNumeric and Dot, Dash, Underscore, Apostrophe"
 
 msgid "enumeration.PermittedCharactersEnum.AL"
 msgstr "Any"
+
+msgid "error.SqlAssigners.failed"
+msgstr "Could not map key Identifier to target Identifier"
+
+msgid "error.SqlAssigners.key.none"
+msgstr "Could not find key Identifier in Person record"
 
 msgid "field.FormatAssigners.collision_mode"
 msgstr "Collision Mode"
@@ -72,3 +81,12 @@ msgstr "Permitted Characters"
 
 msgid "field.FormatAssigners.permitted_characters.desc"
 msgstr "When substituting parameters in a format, only permit these characters to be used"
+
+msgid "field.SqlAssigners.source_table"
+msgstr "Source Table Name"
+
+msgid "field.SqlAssigners.type_id"
+msgstr "Key Identifier Type"
+
+msgid "field.SqlAssigners.type_id.desc"
+msgstr "Type of existing Identifier used to query the Source Table"

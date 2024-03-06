@@ -30,6 +30,10 @@ $indexColumns = [
     'type' => 'link',
     'sortable' => true
   ],
+  'identifier_type_id' => [
+    'type' => 'fk',
+    'label' => __d('field', 'type'),
+  ],
   'plugin' => [
     'type' => 'echo',
     'sortable' => true

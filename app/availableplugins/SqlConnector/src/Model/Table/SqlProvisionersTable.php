@@ -61,7 +61,6 @@ class SqlProvisionersTable extends Table {
       'source' => 'People',
       'source_table' => 'people',
       'related' => [
-// XXX partial reversion of CFM-363
         'AdHocAttributes',
         'Addresses',
         'EmailAddresses',

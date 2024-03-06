@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Provisioning History Records Controller
+ * COmanage Registry SQL Assigner Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,23 +20,30 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
+ * @package       registry-plugins
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Controller;
+namespace CoreAssigner\Model\Entity;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+use Cake\ORM\Entity;
 
-class ProvisioningHistoryRecordsController extends StandardController {
-  public $paginate = [
-    'order' => [
-      'ProvisioningHistoryRecords.id' => 'desc'
-    ]
+class SqlAssigner extends Entity {
+  /**
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * Note that when '*' is set to true, this allows all unspecified fields to
+   * be mass assigned. For security purposes, it is advised to set '*' to false
+   * (or remove it), and explicitly make individual fields accessible as needed.
+   *
+   * @var array<string, bool>
+   */
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
   ];
 }

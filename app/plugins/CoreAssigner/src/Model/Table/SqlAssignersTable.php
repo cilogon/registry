@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry SQL Servers Table
+ * COmanage Registry SQL Assigners Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,18 +27,17 @@
 
 declare(strict_types=1);
 
-namespace CoreServer\Model\Table;
+namespace CoreAssigner\Model\Table;
 
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 
-// Even though CoreServer is a plugin, it should always be enabled
-use CoreServer\Lib\Enum\RdbmsTypeEnum;
-
-class SqlServersTable extends Table {
+class SqlAssignersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -64,17 +63,24 @@ class SqlServersTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
 
     // Define associations
+    $this->belongsTo('IdentifierAssignments');
     $this->belongsTo('Servers');
+    $this->belongsTo('Types');
+    
+    $this->setDisplayField('source_table');
 
-    $this->setDisplayField('hostname');
-
-    $this->setPrimaryLink('server_id');
+    $this->setPrimaryLink('identifier_assignment_id');
     $this->setRequiresCO(true);
 
     $this->setAutoViewVars([
+      'servers' => [
+        'type' => 'select',
+        'model' => 'Servers',
+        'where' => ['plugin' => 'CoreServer.SqlServers']
+      ],
       'types' => [
-        'type' => 'enum',
-        'class' => 'CoreServer.RdbmsTypeEnum'
+        'type' => 'type',
+        'attribute' => 'Identifiers.type'
       ]
     ]);
 
@@ -87,58 +93,55 @@ class SqlServersTable extends Table {
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
+        'add' =>      false, // This is added by the parent model
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
   }
 
   /**
-   * Establish a connection (via Cake's ConnectionManager) to the specified SQL server.
-   *
+   * Assign an identifier.
+   * 
    * @since  COmanage Registry v5.0.0
-   * @param  int    $serverId Server ID (NOT SqlServer ID)
-   * @param  string $name     Connection name, used for subsequent access via Models
-   * @return bool   true on success
-   * @throws Exception
+   * @param  IdentifierAssignment $ia     Identifier Assignment describing the requested configuration
+   * @param  object               $entity The entity (Person, Group, Department) to assign an Identifier for
+   * @return string                       The newly proposed Identifier
+   * @throws InvalidArgumentException
+   * @throws RuntimeException
    */
-  
-  public function connect(int $serverId, string $name): bool {
-    // Note if you're looking to add support for tablePrefix here (eg: "cm_")
-    // Cake basically dropped support for that in v3. As an alternate,
-    // individual models can be configured to use alternate table names,
-    // which is basically what the SQL Provisioner does.
 
-    // Pull our configuration via the parent Server object.
-    $server = $this->Servers->get($serverId, ['contain' => ['SqlServers']]);
+  public function assign($ia, $entity): string {
+    // Find the key identifier type in the $entity data
+    $keyIdentifier = Hash::extract($entity->identifiers, '{n}[type_id='.$ia->sql_assigner->type_id.']');
 
-    $dbmap = [
-      RdbmsTypeEnum::MariaDB    => 'Mysql',
-      RdbmsTypeEnum::MySQL      => 'Mysql',
-      RdbmsTypeEnum::Postgres   => 'Postgres',
-      RdbmsTypeEnum::SQLite     => 'Sqlite',
-      RdbmsTypeEnum::SqlServer  => 'Sqlserver'
+    if(empty($keyIdentifier)) {
+      throw new \InvalidArgumentException(__d('core_assigner', 'error.SqlAssigners.key.none'));
+    }
+
+    $SqlServer = TableRegistry::getTableLocator()->get('CoreServer.SqlServers');
+
+    $SqlServer->connect($ia->sql_assigner->server_id, 'sqlassigner');
+
+    $options = [
+      'table'       => $ia->sql_assigner->source_table,
+      'alias'       => 'SourceIdentifiers',
+      'connection'  => ConnectionManager::get('sqlassigner')
     ];
 
-    $dbconfig = [
-      'className'         => 'Cake\Database\Connection',
-      'driver'            => "Cake\Database\Driver\\" . $dbmap[$server->sql_server->type],
-      'persistent'        => false,
-      'host'              => $server->sql_server->hostname,
-      'username'          => $server->sql_server->username,
-      'password'          => $server->sql_server->password,
-      'database'          => $server->sql_server->databas,
-      'quoteIdentifiers'  => false,
-      'encoding'          => 'utf8',
-      'timezone'          => 'UTC'
-    ];
+    $SourceTable = TableRegistry::getTableLocator()->get(
+      alias: 'SourceIdentifiers',
+      options: $options
+    );
 
-    // We need to drop the existing configuration before we can reconfigure it
-    ConnectionManager::drop($name);
+    $identifier = $SourceTable->find()
+                              ->where(['key' => $keyIdentifier[0]->identifier])
+                              ->first();
 
-    ConnectionManager::setConfig($name, $dbconfig);
+    if(!empty($identifier->identifier)) {
+      return $identifier->identifier;
+    }
 
-    return true;
+    throw new \InvalidArgumentException(__d('core_assigner', 'error.SqlAssigners.failed'));
   }
 
   /**
@@ -152,24 +155,23 @@ class SqlServersTable extends Table {
   public function validationDefault(Validator $validator): Validator {
     $schema = $this->getSchema();
 
+    $validator->add('identifier_assignment_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->notEmptyString('identifier_assignment_id');
+
     $validator->add('server_id', [
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->notEmptyString('server_id');
 
-    $validator->add('type', [
-      'content' => ['rule' => ['inList', RdbmsTypeEnum::getConstValues()]]
+    $this->registerStringValidation($validator, $schema, 'source_table', true);
+
+    $validator->add('type_id', [
+      'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('type');
+    $validator->notEmptyString('type_id');
 
-    $this->registerStringValidation($validator, $schema, 'hostname', true);
-
-    $this->registerStringValidation($validator, $schema, 'databas', true);
-
-    $this->registerStringValidation($validator, $schema, 'username', false);
-
-    $this->registerStringValidation($validator, $schema, 'password', false);
-    
     return $validator;
   }
 }

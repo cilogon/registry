@@ -451,14 +451,14 @@ class FieldHelper extends Helper {
             if($key != $label) {
               break;
             }
-          } else {
-            // Just look up the key
-            $key = (!$core ? "field." : "") . $fn;
-            $label = __d(($core ? 'field' : $pluginDomain), $key);
+          }
+          
+          // Just look up the key
+          $key = (!$core ? "field." : "") . $fn;
+          $label = __d(($core ? 'field' : $pluginDomain), $key);
 
-            if($key != $label) {
-              break;
-            }
+          if($key != $label) {
+            break;
           }
         } else {
           // If we found a key, break the loop
