@@ -109,6 +109,8 @@ class GroupsTable extends Table {
     $this->hasMany('ProvisioningHistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('ProvisioningTargets')
+         ->setForeignKey('provisioning_group_id');
 
     $this->setDisplayField('name');
     

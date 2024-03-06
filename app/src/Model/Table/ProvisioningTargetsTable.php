@@ -95,7 +95,7 @@ class ProvisioningTargetsTable extends Table {
       ],
       'provisioningGroups' => [
         'type'  => 'select',
-        'model' => 'ProvisioningGroups'
+        'model' => 'Groups'
       ],
       'statuses' => [
         'type'  => 'enum',
