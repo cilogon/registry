@@ -663,6 +663,19 @@
         "ext_identity_sources_records_i2": { "columns": [ "external_identity_id" ] },
         "ext_identity_sources_records_i3": { "columns": [ "external_identity_source_id", "source_key" ] }
       }
+    },
+
+    "application_states": {
+      "columns": {
+        "id": {},
+        "person_id": {},
+         "tag": { "type": "string", "size": 128 },
+        "value": { "type": "string", "size": 256 }
+      },
+      "indexes": {
+        "application_states_i1": { "columns": [ "person_id" ] }
+      },
+      "changelog": false
     }
   },
   
