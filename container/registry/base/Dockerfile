@@ -25,7 +25,7 @@ FROM php:${PHP_IMAGE_VERSION}-apache-bookworm
 # but xls, pdo, pdo_mysql, pdo_pgsql, mysqli, pgsql, 
 # and ldap extensions must be built.
 RUN apt-get update && apt-get install -y \
-         libldap-2.4-2 \
+         libldap-2.5-0 \
          libldap2-dev \
          libmariadb-dev \
          libpq-dev \
