@@ -108,8 +108,10 @@ class StandardController extends AppController {
     $this->set('vv_obj', $obj);
     
     // PrimaryLinkTrait, via AppController
-    $this->getPrimaryLink();
-    
+    // Check if I have already calculated it up the tree of execution
+    if(empty($this->cur_pl->value) && empty($this->cur_pl->attr)) {
+      $this->getPrimaryLink();
+    }
     // AutoViewVarsTrait, via AppController
     $this->populateAutoViewVars();
     
