@@ -183,7 +183,8 @@ class StringUtilities {
     // The MVEA Models have a entityId. The one from the parent model.
     // We need to have a condition for this and exclude it.
     if($entity->id !== null
-       && $action != 'add'
+       && $action !== 'add'
+       && $action !== 'delete'
        && method_exists($linkTable, 'generateDisplayField')) {
       // We don't use a trait for this since each table will implement different logic
 
