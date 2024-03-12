@@ -47,7 +47,8 @@ class IdentifiersTable extends Table {
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
-  
+  use \App\Lib\Traits\QueryModificationTrait;
+
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
   protected $defaultTypes = [
@@ -104,14 +105,19 @@ class IdentifiersTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ProvisioningTargets');
     $this->belongsTo('Types');
-    
+    $this->belongsTo('ExtIdentitySourceRecords')
+         ->setClassName('ExtIdentitySourceRecords')
+         ->setForeignKey('source_identifier_id')
+         ->setProperty('source_identifier');
+
     $this->setDisplayField('identifier');
     
     $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
-    
+    $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
+
     $this->setAutoViewVars([
       'types' => [
         'type' => 'type',

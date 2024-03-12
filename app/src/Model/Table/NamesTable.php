@@ -51,6 +51,8 @@ class NamesTable extends Table {
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
+
 
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
@@ -103,10 +105,12 @@ class NamesTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary', 'unfreeze']);
     $this->setRequiresCO(true);
-    // Models that AcceptCoId should be expicitly added to StandardApiController::initialize()
+    // Models that AcceptCoId should be explicitly added to StandardApiController::initialize()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
-    
+    $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
+
+
     $this->setAutoViewVars([
       'languages' => [
         'type' => 'enum',

@@ -180,7 +180,11 @@ class StringUtilities {
     }
 
     // Add/Edit/View
-    if(method_exists($linkTable, 'generateDisplayField')) {
+    // The MVEA Models have a entityId. The one from the parent model.
+    // We need to have a condition for this and exclude it.
+    if($entity->id !== null
+       && $action != 'add'
+       && method_exists($linkTable, 'generateDisplayField')) {
       // We don't use a trait for this since each table will implement different logic
 
       $title = __d($domain, $msgId, $linkTable->generateDisplayField($entity));

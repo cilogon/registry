@@ -117,6 +117,22 @@ class AppController extends Controller {
     
     // Determine the requested CO
     $this->setCO();
+
+    // We need to manually set the Current CO ID for models with dynamic validation rules.
+    // Plugins can implement calculateRequestedCOID() to tell
+    // AppController what the current CO is, we then pass that information
+    // manually here.
+
+    // It's not ideal to have a hardcoded list of models, but we don't have
+    // a better solution at the moment.
+
+    if($this->getCOID() !== null) {
+      foreach(['Addresses', 'Names', 'TelephoneNumbers'] as $m) {
+        $Table = TableRegistry::getTableLocator()->get($m);
+
+        $Table->setCurCoId($this->getCOID());
+      }
+    }
     
     if(isset($this->RegistryAuth)) {
       // Components might not be loaded on error, so check

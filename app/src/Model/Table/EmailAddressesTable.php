@@ -44,6 +44,7 @@ class EmailAddressesTable extends Table {
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
@@ -88,7 +89,11 @@ class EmailAddressesTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
-    
+    $this->belongsTo('ExtIdentitySourceRecords')
+         ->setClassName('ExtIdentitySourceRecords')
+         ->setForeignKey('source_email_address_id')
+         ->setProperty('source_email_address');
+
     $this->setDisplayField('mail');
     
     $this->setPrimaryLink(['external_identity_id', 'person_id']);
@@ -96,7 +101,8 @@ class EmailAddressesTable extends Table {
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
-    
+    $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
+
     $this->setAutoViewVars([
       'types' => [
         'type' => 'type',

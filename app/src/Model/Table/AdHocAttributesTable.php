@@ -42,6 +42,7 @@ class AdHocAttributesTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   
   /**
    * Provide the default layout
@@ -73,13 +74,18 @@ class AdHocAttributesTable extends Table {
     $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
-    
+    $this->belongsTo('ExtIdentitySourceRecords')
+         ->setClassName('ExtIdentitySourceRecords')
+         ->setForeignKey('source_ad_hoc_attribute_id')
+         ->setProperty('source_ad_hoc_attribute');
+
     $this->setDisplayField('tag');
     
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
+    $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

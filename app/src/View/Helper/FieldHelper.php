@@ -521,26 +521,31 @@ class FieldHelper extends Helper {
     // In most cases $sourceModelName = $modelName, but not for PersonRoles
     $sourceModelName = substr(StringUtilities::foreignKeyToClassName($sourceFK), 6);
 
-    $linkHtml = "";
+    $linkHtml = '<div>';
 
     if(!empty($entity->$sourceFK)) {
-      $linkHtml = $this->Html->Link(
+      $linkHtml .= $this->Html->Link(
         title: __d('controller', $sourceModelName, [1]),
         url: [
           'controller'  => $sourceModelName,
           'action'      => 'view',
           $entity->$sourceFK
         ]
-      ) . ", " . 
-      $this->Html->Link(
-        title: __d('controller', 'ExternalIdentities', [1]),
-        url: [
-          'controller'  => 'external_identities',
-          'action'      => 'view',
-          $entity->$sourceEntityName->external_identity_id
-        ]
       );
     }
+
+    if(!empty($entity->$sourceEntityName)) {
+      $linkHtml .= ', ' . $this->Html->Link(
+        title: __d('controller', 'ExternalIdentities', [1]),
+        url: [
+                 'controller'  => 'external_identities',
+                 'action'      => 'view',
+                 $entity->$sourceEntityName->external_identity_id
+               ]
+      );
+    }
+
+    $linkHtml .= '</div>';
 
     return $this->startLine()
            . $this->formNameDiv(

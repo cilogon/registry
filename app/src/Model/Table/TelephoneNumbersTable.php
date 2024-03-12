@@ -45,6 +45,7 @@ class TelephoneNumbersTable extends Table {
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
@@ -89,7 +90,11 @@ class TelephoneNumbersTable extends Table {
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
     $this->belongsTo('Types');
-    
+    $this->belongsTo('ExtIdentitySourceRecords')
+         ->setClassName('ExtIdentitySourceRecords')
+         ->setForeignKey('source_telephone_number_id')
+         ->setProperty('source_telephone_number');
+
     $this->setDisplayField('number');
     
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
@@ -98,7 +103,9 @@ class TelephoneNumbersTable extends Table {
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
-    
+    $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
+
+
     $this->setAutoViewVars([
       'types' => [
         'type' => 'type',

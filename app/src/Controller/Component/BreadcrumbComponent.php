@@ -181,26 +181,27 @@ class BreadcrumbComponent extends Component
 
     if(!empty($link->plugin)) {
       // eg: "CoreEnroller.AttributeCollectors"
-      $modelPath = $link->plugin . "." . $modelsName;
+      $modelPath = $link->plugin . '.' . $modelsName;
     }
 
     // Construct the get<Request Action>Contains function name
     $requestAction = $this->getController()->getRequest()->getParam('action');
+    $mappedRequestAction = $requestAction;
     // In the case we are dealing with non-standard actions we need to fallback to a standard one
     // in order to get access to the contain array. We will use the permissions to decide which
-    // action to fallback to
+    // action to fall back to
     if(!in_array($requestAction, [
       'index', 'view', 'delete', 'add', 'edit'
     ])) {
       $permissionsArray = $this->getController()->RegistryAuth->calculatePermissionsForView($requestAction);
       $id               = $this->getController()->getRequest()->getParam('pass')[0] ?? null;
       if (isset($id)) {
-        $requestAction = ( isset($permissionsArray['edit']) && $permissionsArray['edit'] ) ? 'edit' : 'view';
+        $mappedRequestAction = ( isset($permissionsArray['edit']) && $permissionsArray['edit'] ) ? 'edit' : 'view';
       } else {
-        $requestAction = 'index';
+        $mappedRequestAction = 'index';
       }
     }
-    $containsList = "get" . ucfirst($requestAction) . "Contains";
+    $containsList = 'get' . ucfirst($mappedRequestAction) . 'Contains';
 
     $linkTable = TableRegistry::getTableLocator()->get($modelPath);
     $contain = method_exists($linkTable, $containsList) ? $linkTable->$containsList() : [];
@@ -237,7 +238,13 @@ class BreadcrumbComponent extends Component
     // Find the allowed action
     $breadcrumbAction = method_exists($linkObj, 'isReadOnly') ?
                         ($linkObj->isReadOnly() ? 'view' : 'edit') :
-                        'edit';
+                        $mappedRequestAction;
+
+    // We specifically need to check for the add action
+    if($mappedRequestAction == 'add') {
+      $breadcrumbAction = 'add';
+    }
+
 
     // The action in the following injectParents dictates the action here
     [$title,,] = StringUtilities::entityAndActionToTitle($linkObj, $modelPath, $breadcrumbAction);

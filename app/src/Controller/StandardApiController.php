@@ -43,22 +43,6 @@ class StandardApiController extends AppController {
   public function initialize(): void {
     parent::initialize();
     
-    // We need to manually set the Current CO ID for models with dynamic
-    // validation rules. This is ordinarily done by AppController, but
-    // AppController doesn't know how to figure out what CO an API request
-    // maps to. Plugins can implement calculateRequestedCOID() to tell
-    // AppController what the current CO is, we then pass that information
-    // manually here.
-
-    // It's not ideal to have a hardcoded list of models, but we don't have
-    // a better solution at the moment.
-
-    foreach(['Addresses', 'Names', 'TelephoneNumbers'] as $m) {
-      $Table = TableRegistry::getTableLocator()->get($m);
-
-      $Table->setCurCoId($this->getCOID());
-    }
-    
     // We want API auth, not Web Auth
     $this->RegistryAuth->setConfig('apiUser', true);
   }
