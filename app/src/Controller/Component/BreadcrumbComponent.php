@@ -241,8 +241,8 @@ class BreadcrumbComponent extends Component
                         $mappedRequestAction;
 
     // We specifically need to check for the add action
-    if($mappedRequestAction == 'add') {
-      $breadcrumbAction = 'add';
+    if($mappedRequestAction == 'add' || $mappedRequestAction == 'delete') {
+      $breadcrumbAction = $mappedRequestAction;
     }
 
 
