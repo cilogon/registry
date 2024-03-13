@@ -82,6 +82,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     $bodyClasses = $controller_stripped . ' ' .$action_stripped;
     $isCoSelectView = $controller_stripped == 'cos' && $action_stripped == 'select';
     $isDashboard = $controller_stripped == 'dashboards' && $action_stripped == 'dashboard';
+    $generateHomeLink = (!$isCoSelectView && !empty($vv_cur_co));
 
     // add further body classes as needed
     if(!empty($vv_user)) {
@@ -115,35 +116,39 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
       <header id="banner">
         <div id="logo-title-wrapper">
+          <?php if($generateHomeLink): ?> 
+            <?php
+              // wrap the logo and the title in the home link
+              $cmHomeLink = $this->Url->build([
+                'plugin'       => null,
+                'controller'   => 'Dashboards',
+                'action'       => 'dashboard',
+                '?' => ['co_id' => $vv_cur_co->id]],
+                ['escape' => false]
+              );
+            ?>
+            <a href="<?= $cmHomeLink ?>">
+          <?php endif; ?>
           <div id="logo">
             <?=
-            $this->Html->link(
               $this->Html->image(
                 "COmanage-Gears.svg",
                 array(
                   'alt' => __('registry.meta.logo')
                 )
-              ),'/',
-              array('escape' => false)
-            );
+              );
             ?>
           </div>
           <div id="siteTitle">
-            <!-- XXX Sanitize $vv_cur_co['name'] -->
-            <?php if($isCoSelectView): // just print the name ?>
-              <?= __('registry.meta.registry') ?>
-            <?php elseif(!empty($vv_cur_co)): ?>
-              <?= $this->Html->link(
-                $vv_cur_co['name'],
-                ['controller' => 'Dashboards',
-                 'action' => 'dashboard',
-                 '?' => ['co_id' => $vv_cur_co->id]],
-                ['escape' => false]);
-              ?>
+            <?php if($generateHomeLink): ?>
+              <?= h($vv_cur_co['name']) ?>
             <?php else: ?>
-              <?= $this->Html->link(__('registry.meta.registry'), '/'); ?>
+              <?= __('registry.meta.registry') ?>
             <?php endif; ?>          
           </div>
+          <?php if($generateHomeLink): ?>
+            </a>
+          <?php endif; ?>
         </div>
         <!-- Custom Navigation Links -->
         <?php if(!empty($vv_NavLinks) || !empty($vv_CoNavLinks)): ?>
