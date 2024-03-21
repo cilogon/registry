@@ -27,10 +27,14 @@
 
 $indexColumns = [
  'name' => [
-    'type' => 'relatedLink',
+    'type' => 'link',
     'model' => 'person',
     'submodel' => 'primary_name',
     'field' => 'full_name',
+    'class' => 'cm-modal-link nospin', // launch this in a modal 
+    'dataAttrs' => [
+      ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
+    ]
 // XXX not clear how to sort on submodel, but maybe just leave it for UX revisions?
 //    'sortable' => 'PrimaryName.family'
   ],
@@ -57,6 +61,28 @@ $indexColumns = [
   ]
 ];
 
+// Suppress the default add link
+$suppressAddLink = true;
+$topLinks = [
+/* 
+  // This "Add" link launches the add form in a modal with a autocomplete people picker as a field. 
+  // Leave it here as a reference until we have a similar field such as "sponsor" created. 
+  [
+    'icon' => 'Add',
+    'order' => 'Default',
+    'label' => __d('operation', 'add.a', [__d('controller', 'GroupMembers', 1)]),
+    'link' => [
+      'controller' => 'GroupMembers',
+      'action' => 'add'
+    ],
+    'class' => 'cm-modal-link nospin', 
+    'dataAttrs' => [
+      ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
+    ]
+  ]
+  */
+];
+
 /*
 // When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index. 
 $bulkActions = [
@@ -68,4 +94,22 @@ $bulkActions = [
 $subnav = [
   'name' => 'group',
   'active' => 'members'
+];
+
+// Page options
+$peoplePicker = [
+  'label' => __d('operation','add.member'),
+  'viewConfigParameters' => [
+    'for' => 'GroupMembers',
+    'action' => $vv_action,
+    'groupId' => $this->getRequest()?->getQuery('group_id')
+  ],
+  'actionUrl' => [
+    'plugin'     => null,
+    'controller' => 'GroupMembers',
+    'action' => 'add',
+    '?' => [
+      'group_id' => $this->getRequest()?->getQuery('group_id')
+    ]
+  ]
 ];

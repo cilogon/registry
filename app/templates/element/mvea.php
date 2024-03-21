@@ -35,6 +35,7 @@ $mveaController = Cake\Utility\Inflector::camelize($mveaType);
 $title = __d('controller', $mveaController, [99]);
 
 // Create an MVEA card for a canvas page
+// XXX NOTE: this view is deprecated - mveaJs is instead used with VueJS components. This remains for reference.  
 ?>
 
 <div class="col cm-mvea-col">

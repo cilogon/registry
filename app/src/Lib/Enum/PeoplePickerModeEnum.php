@@ -1,5 +1,6 @@
+<?php
 /**
- * COmanage Registry MVEA Modal JavaScript
+ * COmanage Registry People Picker Mode Enum, Yes Variant
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,26 +25,12 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-export default {
-  props: {
-    modal: Object,
-    core: Object,
-    txt: Object
-  },
-  template: `
-    <div className="modal fade cm-modal" id="mvea-modal" aria-labelledby="mvea-modal-title" tabIndex="-1" aria-hidden="true">
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2 class="modal-title" id="mvea-modal-title">{{ this.modal.title }}</h2>
-            <button type="button" className="btn-close nospin" data-bs-dismiss="modal"
-                    :aria-label="txt.close"></button>
-          </div>
-          <div id="mvea-modal-text" className="modal-body">
-            <iframe :src="this.modal.url"/>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+declare(strict_types = 1);
+
+namespace App\Lib\Enum;
+
+class PeoplePickerModeEnum extends StandardEnum {
+  const Manager   = 'M';
+  const Sponsor   = 'S';
+  const All       = 'AL';
 }

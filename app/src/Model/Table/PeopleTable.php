@@ -289,12 +289,11 @@ class PeopleTable extends Table {
    * Customized finder for the Index Population View
    *
    * @param   Query  $query    Cake ORM Query
-   * @param   array  $options  Cake ORM Query options
    *
-   * @return CakeORMQuery          Cake ORM Query
+   * @return Query Cake ORM Query
    * @since  COmanage Registry v5.0.0
    */
-  public function findIndexed(Query $query, array $options): Query {
+  public function findIndexed(Query $query): Query {
     return $query->select([
                             'People.id',
                             'PrimaryName.given',

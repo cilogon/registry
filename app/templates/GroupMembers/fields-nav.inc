@@ -27,8 +27,3 @@
 
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
 $topLinks = [];
-
-$subnav = [
-  'name' => 'group',
-  'active' => 'members'
-];

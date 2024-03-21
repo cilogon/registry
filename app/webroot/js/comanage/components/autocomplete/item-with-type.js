@@ -1,5 +1,5 @@
 /**
- * COmanage Registry MVEA Modal JavaScript
+ * COmanage Registry Item with Type Vue.js Component
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -26,24 +26,37 @@
 
 export default {
   props: {
-    modal: Object,
-    core: Object,
-    txt: Object
+    item: Object,
+    kind: '',
+    query: '',
+    highlightedquery: Object
+  },
+  inject: ['app'],
+  computed: {
+    val: function() {
+      if(this.kind == 'email') {
+        return this.item.mail
+      }
+      if(this.kind == 'identifier') {
+        return this.item.identifier
+      }
+      return ''
+    },
+    type: function() {
+      return this.app.types?.find((t) => t.id == this.item.type_id)?.display_name
+    },
+    itemClasses: function() {
+      return "item-with-type item-type-" + this.item.type_id; 
+    }
   },
   template: `
-    <div className="modal fade cm-modal" id="mvea-modal" aria-labelledby="mvea-modal-title" tabIndex="-1" aria-hidden="true">
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2 class="modal-title" id="mvea-modal-title">{{ this.modal.title }}</h2>
-            <button type="button" className="btn-close nospin" data-bs-dismiss="modal"
-                    :aria-label="txt.close"></button>
-          </div>
-          <div id="mvea-modal-text" className="modal-body">
-            <iframe :src="this.modal.url"/>
-          </div>
-        </div>
-      </div>
+    <div :class="itemClasses">
+      <span class="value">
+        <span v-html="highlightedquery(this.val, query)"></span>
+      </span>
+      <span class="type">
+       {{ this.type }}
+      </span>
     </div>
   `
 }

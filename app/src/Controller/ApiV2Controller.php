@@ -41,7 +41,8 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 
 class ApiV2Controller extends AppController {
   use \App\Lib\Traits\LabeledLogTrait;
-  
+  use \App\Lib\Traits\IndexQueryTrait;
+
   /**
    * Perform Cake Controller initialization.
    *
@@ -77,6 +78,8 @@ class ApiV2Controller extends AppController {
   public function add() {
     // $this->name = Models
     $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
     // $tableName = models
     $tableName = $this->tableName;
     
@@ -144,15 +147,20 @@ class ApiV2Controller extends AppController {
   public function delete($id) {
     // $this->name = Models (ie: from ModelsTable)
     $modelsName = $this->name;
-    
+    // $table = the actual table object
+    $table = $this->$modelsName;
+    // $tableName = models
+    $tableName = $table->getTable();
+
+
     // Make sure the requested object exists
     try {
-      $obj = $this->$modelsName->findById($id)->firstOrFail();
-      
+      $obj = $table->findById($id)->firstOrFail();
+
 // XXX document AR-CO-1 when we implement hard delete/changelog
 //     note similar logic in StandardController
-      $this->$modelsName->deleteOrFail($obj);
-      
+      $table->deleteOrFail($obj);
+
       if(method_exists($obj, "isReadOnly") && $obj->isReadOnly()) {
         throw new BadRequestException(__d('error', 'edit.readonly'));
       }
@@ -184,10 +192,12 @@ class ApiV2Controller extends AppController {
   public function edit($id) {
     // $this->name = Models (ie: from ModelsTable)
     $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
     // $tableName = models
-    $tableName = $this->$modelsName->getTable();
+    $tableName = $table->getTable();
 
-    $query = $this->$modelsName->findById($id);
+    $query = $table->findById($id);
 
     try {
       // Pull the current record
@@ -203,14 +213,14 @@ class ApiV2Controller extends AppController {
         throw new BadRequestException(__d('error', 'api.object', [$modelsName]));
       }
       
-      $obj = $this->$modelsName->patchEntity($obj, $json[$modelsName]);
+      $obj = $table->patchEntity($obj, $json[$modelsName]);
       
-      $this->$modelsName->saveOrFail($obj);
+      $table->saveOrFail($obj);
 
       // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-      if(method_exists($this->$modelsName, "requestProvisioning")) {
+      if(method_exists($table, "requestProvisioning")) {
         $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
-        $this->$modelsName->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
+        $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
       }
 
       // Let the view render
@@ -224,7 +234,6 @@ class ApiV2Controller extends AppController {
       $err = $this->exceptionToError($e);
       
       $this->llog('debug', $err);
-      $results[] = ['error' => $err];
 
       throw new BadRequestException($this->exceptionToError($e));
     }
@@ -293,48 +302,26 @@ class ApiV2Controller extends AppController {
   public function index() {
     // $modelsName = Models
     $modelsName = $this->name;
-    
-    $query = $this->$modelsName->find();
-    
-    // PrimaryLinkTrait
-    $link = $this->getPrimaryLink(true);
-    
-    // We automatically allow API calls to be filtered on primary link
-    if(!empty($link->attr) && !empty($link->value)) {
-      $query = $query->where([$this->$modelsName->getAlias().'.'.$link->attr => $link->value]);
-    }
+    // $table = the actual table object
+    $table = $this->$modelsName;
 
-    // This will produce a nested object which is very useful for vue integration
-    if($this->request->getQuery('extended') !== null) {
-      $modelContain = [];
-      $associations = $this->$modelsName->associations();
-      foreach($associations->getByType(['BelongsTo']) as $a) {
-        $modelContain[] = $a->getClassName();
-      }
-
-      if(!empty($modelContain)) {
-        $query = $query->contain($modelContain);
+    $reqParameters = [];
+    $pickerMode = false;
+    if($this->request->is('ajax')) {
+      $reqParameters = [...$this->request->getQuery()];
+      if($this->request->getQuery('picker') !== null) {
+        $pickerMode = filter_var($this->request->getQuery('picker'), FILTER_VALIDATE_BOOLEAN);
       }
     }
 
-    if($modelsName == 'AuthenticationEvents') {
-      // Special case for filtering on authenticated identifier. There is a
-      // similar filter in AuthenticationEventsController::beforeFilter.
-      // If other special cases show up this should get refactored into a trait
-      // populated by the table (or something similar).
-      
-      if($this->getRequest()->getQuery('authenticated_identifier')) {
-        $query = $query->where(['authenticated_identifier' => \App\Lib\Util\StringUtilities::urlbase64decode($this->getRequest()->getQuery('authenticated_identifier'))]);
-      } else {
-        // We only allow unfiltered queries for platform users
-        
-        if(!$this->RegistryAuth->isPlatformAdmin()) {
-          throw new \InvalidArgumentException(__d('error', 'input.notprov', 'authenticated_identifier'));
-        }
-      }
+
+    // Construct the Query
+    $query = $this->getIndexQuery($pickerMode, $reqParameters);
+
+    if(method_exists($table, 'findIndexed')) {
+      $query = $table->findIndexed($query);
     }
-    
-    // This magically makes REST calls paginated... can use eg direction=,
+      // This magically makes REST calls paginated... can use eg direction=,
     // sort=, limit=, page= 
     $this->set($this->tableName, $this->paginate($query));
     
@@ -351,14 +338,16 @@ class ApiV2Controller extends AppController {
   public function view($id = null) {
     // $this->name = Models
     $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
     // $tableName = models
-    $tableName = $this->$modelsName->getTable();
+    $tableName = $table->getTable();
     
     if(empty($id)) {
       throw new InvalidArgumentException(__d('error', 'notprov', ['id']));
     }
     
-    $obj = $this->$modelsName->findById($id)->firstOrFail();
+    $obj = $table->findById($id)->firstOrFail();
     
     $this->set($tableName, [$obj]);
     

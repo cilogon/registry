@@ -65,8 +65,10 @@ class TelephoneNumbersTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @return string  Type of redirect
    */
-  public function getLayout(): string {
-    return "iframe";
+  public function getLayout(string $action = ''): string {
+    return match($action) {
+      default => 'iframe'
+    };
   }
   
   /**

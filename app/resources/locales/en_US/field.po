@@ -101,6 +101,9 @@ msgstr "Display Name"
 msgid "edupersonaffiliation"
 msgstr "eduPersonAffiliation"
 
+msgid "email"
+msgstr "Email"
+
 msgid "ends_at"
 msgstr "Ends at:"
 
@@ -124,6 +127,9 @@ msgstr "Given Name"
 
 msgid "group_membership"
 msgstr "{0} Membership in {1}"
+
+msgid "hidden"
+msgstr "Hidden"
 
 msgid "honorific"
 msgstr "Honorific"
@@ -341,6 +347,15 @@ msgstr "Name Permitted Fields"
 
 msgid "CoSettings.permitted_fields_telephone_number"
 msgstr "Telephone Number Permitted Fields"
+
+msgid "CoSettings.person_picker_display_fields"
+msgstr "Person Picker Display Fields"
+
+msgid "CoSettings.person_picker_display_fields.desc"
+msgstr "This determines what fields to display alongside the person name when using the autocomplete Person Picker (e.g. for selecting Group members)."
+
+msgid "CoSettings.person_picker_display_types"
+msgstr "Display field types in the picker"
 
 msgid "CoSettings.required_fields_address"
 msgstr "Address Required Fields"

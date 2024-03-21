@@ -55,6 +55,7 @@ class CoSettingsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\ValidationTrait;
   
   /**
    * Perform Cake Model initialization.
@@ -82,10 +83,18 @@ class CoSettingsTable extends Table {
          ->setClassName('Types')
          ->setForeignKey('default_email_address_type_id')
          ->setProperty('default_email_address_type');
+    $this->belongsTo('PersonPickerEmailAddressType')
+         ->setClassName('Types')
+         ->setForeignKey('person_picker_email_address_type_id')
+         ->setProperty('person_picker_email_address_type');
     $this->belongsTo('DefaultIdentifierTypes')
          ->setClassName('Types')
          ->setForeignKey('default_identifier_type_id')
          ->setProperty('default_identifier_type');
+    $this->belongsTo('PersonPickerIdentifierTypes')
+      ->setClassName('Types')
+      ->setForeignKey('person_picker_identifier_type_id')
+      ->setProperty('person_picker_identifier_type');
     $this->belongsTo('DefaultNameTypes')
          ->setClassName('Types')
          ->setForeignKey('default_name_type_id')
@@ -102,7 +111,7 @@ class CoSettingsTable extends Table {
          ->setClassName('Types')
          ->setForeignKey('default_url_type_id')
          ->setProperty('default_url_type');
-    
+
     $this->setDisplayField('co_id');
     
     $this->setPrimaryLink('co_id');
@@ -120,6 +129,14 @@ class CoSettingsTable extends Table {
         'attribute' => 'EmailAddresses.type'
       ],
       'defaultIdentifierTypes' => [
+        'type' => 'type',
+        'attribute' => 'Identifiers.type'
+      ],
+      'personPickerEmailAddressTypes' => [
+        'type' => 'type',
+        'attribute' => 'EmailAddresses.type'
+      ],
+      'personPickerIdentifierTypes' => [
         'type' => 'type',
         'attribute' => 'Identifiers.type'
       ],
@@ -197,6 +214,9 @@ class CoSettingsTable extends Table {
       'default_url_type_id'               => null,
       'permitted_fields_name'             => PermittedNameFieldsEnum::HGMFS,
       'permitted_fields_telephone_number' => PermittedTelephoneNumberFieldsEnum::CANE,
+      'person_picker_email_type'          => null,
+      'person_picker_identifier_type'     => null,
+      'person_picker_display_types'       => true,
       'required_fields_address'           => RequiredAddressFieldsEnum::Street,
       'required_fields_name'              => RequiredNameFieldsEnum::Given,
       'search_global_limit'               => DEF_GLOBAL_SEARCH_LIMIT,
@@ -347,6 +367,22 @@ class CoSettingsTable extends Table {
     ]);
     $validator->notEmptyString('search_global_limit');
 
-    return $validator; 
+    $validator->add('person_picker_email_type', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('person_picker_email_type');
+
+    $validator->add('person_picker_identifier_type', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('person_picker_identifier_type');
+
+
+    $validator->add('person_picker_display_types', [
+      'content' => ['rule' => 'boolean']
+    ]);
+    $validator->allowEmptyString('person_picker_display_types');
+
+    return $validator;
   }
 }

@@ -49,6 +49,9 @@ h1.loginMsg {
   margin: 1em 0;
   text-align: center;
 }
+body.in-iframe h1 {
+  font-size: 2em;
+}
 h2 {
   font-size: 2em;
   line-height: 2em;
@@ -637,7 +640,8 @@ ul.form-list li.alert-banner .co-alert {
   display: flex;
   justify-content: space-between;
   margin: 1em 0 0.5em;
-  align-items: baseline;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 #select-co.page-title-container {
   margin: 0;
@@ -1008,7 +1012,12 @@ td.with-field-actions {
   float: left;
   padding-left: 1.5em;
   margin-left: -1.5em;
+}
+.field-actions-menu {
   margin-right: 0.75em;
+}
+.field-actions-menu.actions-expanded {
+  margin-right: 0;
 }
 .field-actions .dropdown-menu {
   padding: 0;
@@ -1302,9 +1311,20 @@ ul.form-list .field-desc {
   font-size: 0.9em;
   font-style: italic;
   padding-bottom: 1em;
+  color: var(--cmg-color-txt-soft);
 }
 ul.form-list .fields-header {
   background-color: var(--cmg-color-body-bg);
+}
+ul.form-list .subfield-title {
+  font-weight: bold;
+}
+ul.form-list .subfield-cols {
+  display: inline-flex;
+}
+ul.form-list .field-col .subfield-title {
+  display: block;
+  margin-bottom: 0;
 }
 ul.form-list input[type="text"],
 ul.form-list input[type="number"],
@@ -1524,6 +1544,80 @@ ul.form-list .cm-time-picker-vals li {
 .cm-time-picker-colon {
   padding: 0 1em;
 }
+/* Autocomplete */
+.cm-autocomplete-panel {
+  overflow-y: scroll;
+  max-height: 50vh !important;
+}
+.cm-autocomplete-panel ul {
+  padding: 0;
+  margin: 0;
+  background-color: var(--cmg-color-body-bg);
+  border: 1px solid var(--cmg-color-bg-008);
+}
+.cm-autocomplete-panel li {
+  padding: 1em;
+  list-style: none;
+  border-collapse: collapse;
+  border-bottom: 1px solid var(--cmg-color-bg-006);
+}
+.cm-autocomplete-panel li[data-p-focus=true] {
+  background-color: var(--cmg-color-bg-001);
+  box-shadow: inset 0 0 0.5em var(--cmg-color-btn-bg-001);
+}
+.cm-autocomplete-panel .cm-ac-subitems {
+  font-size: 0.9em;
+  margin-left: 1em;
+}
+.cm-ac-subitem {
+  display: grid;
+  grid-template-columns: 1fr 8fr;
+  padding: 0.25em 0 0;
+}
+.cm-ac-subitem.cm-ac-email {
+  border-bottom: 1px solid var(--cmg-color-bg-006);
+  padding-bottom: 2px;
+}
+.cm-ac-pager a {
+  display: block;
+  padding: 1em;
+  text-align: center;
+}
+.cm-ac-pager a:focus,
+.cm-ac-pager a:hover {
+  text-decoration: underline;
+}
+.item-with-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.1em;
+  border-bottom: 1px solid var(--cmg-color-bg-006);
+}
+.item-with-type:last-child {
+  border-bottom: none;
+}
+.item-with-type .value {
+  word-break: break-all;
+}
+.item-with-type .type {
+  font-size: 0.9em;
+  font-style: italic;
+}
+.query-highlight {
+  background-color: var(--cmg-color-highlight-018);
+  color: black;
+}
+/* PEOPLE PICKER */
+#cm-people-picker {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  gap: 4px;
+}
+.group-member-to-add-name {
+  margin-right: 0.5em;
+  font-size: 1.4em;
+}
 /* Vue transitions */
 .v-enter-active,
 .v-leave-active {
@@ -1555,22 +1649,22 @@ ul.form-list .cm-time-picker-vals li {
   border: 1px solid var(--cmg-color-bg-007);
   margin: 0;
 }
-/* MVEA MODAL */
-.mvea-modal .modal-dialog {
+/* MVEA & STANDARD MODAL */
+.cm-modal .modal-dialog {
   max-width: 90vw;
 }
-.mvea-modal .modal-header {
+.cm-modal .modal-header {
   padding: 0.5rem 1rem;
   background-color: var(--cmg-color-bg-004);
   border-bottom: none;
 }
-.mvea-modal .modal-content {
+.cm-modal .modal-content {
   height: 80vh;
 }
-.mvea-modal .modal-body {
+.cm-modal .modal-body {
   padding-top: 0;
 }
-.mvea-modal iframe {
+.cm-modal iframe {
   width: 100%;
   height: 100%;
 }

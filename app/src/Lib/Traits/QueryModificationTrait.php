@@ -29,6 +29,10 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use Cake\Database\Expression\QueryExpression;
+use Cake\ORM\Query;
+use Cake\Utility\Inflector;
+
 trait QueryModificationTrait {
   // Array of associated models to copy during a duplicate
   private $duplicateContains = false;
@@ -47,7 +51,33 @@ trait QueryModificationTrait {
   
   // Array of associated models to pull during a view
   private $viewContains = false;
-  
+
+
+  /**
+   * Construct the checkValidity for the fields valid_from and valid_through
+   *
+   * @param   Query  $query
+   *
+   * @return QueryExpression
+   * @since  COmanage Registry v5.0.0
+   */
+  public function checkValidity(Query $query): QueryExpression {
+    $fieldModelPrefix = Inflector::pluralize(substr($this->getEntityClass(), strrpos($this->getEntityClass(), '\\')+1));
+
+    $exp = $query->newExpr();
+    $orValidFromConditions = $exp->or(
+      fn(QueryExpression $or) => $or->isNull($fieldModelPrefix . '.valid_from')
+                                    ->lt($fieldModelPrefix . '.valid_from', date('Y-m-d H:i:s'))
+    );
+    $orValidThroughConditions = $exp->or(
+      fn(QueryExpression $or) => $or->isNull($fieldModelPrefix . '.valid_through')
+                                    ->gt($fieldModelPrefix . '.valid_through', date('Y-m-d H:i:s'))
+    );
+
+    return $exp->add($orValidFromConditions)
+               ->add($orValidThroughConditions);
+  }
+
   /**
    * Obtain the set of associated models to copy during a duplicate.
    *
@@ -79,17 +109,6 @@ trait QueryModificationTrait {
   
   public function getIndexContains() {
     return $this->indexContains;
-  }
-  
-  /**
-   * Obtain the index filter for this model.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return array|Closure Array of index filters or closure that generates an array
-   */
-  
-  public function getIndexFilter(): array|\Closure|null {
-    return $this->indexFilter;
   }
   
   /**

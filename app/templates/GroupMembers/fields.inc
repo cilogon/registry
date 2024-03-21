@@ -26,8 +26,42 @@
  */
 
 if($vv_action == 'add') {
-  // As a temporary hack for development, we accept a manually entered Person ID
-  print $this->Field->control('person_id', ['type' => 'text']);
+  if(!empty($vv_selected_person)) {
+    // The person has been preselected. Created a hidden field, and present information about the person.
+    print $this->Form->hidden('person_id', ['value' => $vv_selected_person['id']]);
+    
+    // Present the person information in the view:
+?>    
+    <li>
+      <div class="field">
+        <div class="field-name">
+          <div class="field-title">
+            <?= __d('field','name') ?>
+          </div>
+        </div>
+        <div class="field-info">
+          <span class="group-member-to-add-name">
+            <?= $vv_selected_person['name'] ?>
+          </span> 
+          <span class="group-member-to-add-id">
+            (<?= __d('information', 'entity.id', [$vv_selected_person['id']]) ?>)
+          </span>
+        </div>
+      </div>
+    </li>
+<?php 
+  } else {
+    // Produce the autocomplete people selector on 'add'
+    print $this->Field->peopleAutocompleteControl('person_id', [
+      'for' => 'GroupMembers',
+      'action' => $vv_action,
+      'groupId' => $this->getRequest()?->getQuery('group_id')
+    ]); 
+  }
+  
+  // XXX As a temporary hack for development, we accept a manually entered Person ID
+  // XXX leave here temporarily.
+  //print $this->Field->control('person_id', ['type' => 'text']);
 } else {
   print $this->Form->hidden('person_id');
 }

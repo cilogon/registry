@@ -1,5 +1,5 @@
 /**
- * COmanage Registry MVEA Modal JavaScript
+ * COmanage Registry Mini-Loader Vue.js Component
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -26,24 +26,21 @@
 
 export default {
   props: {
-    modal: Object,
-    core: Object,
-    txt: Object
+    isLoading: {
+      type: Boolean,
+      default: false
+    },
+    classes: {
+      type: String,
+      default: "d-inline" // by default mimic a span
+    }
   },
   template: `
-    <div className="modal fade cm-modal" id="mvea-modal" aria-labelledby="mvea-modal-title" tabIndex="-1" aria-hidden="true">
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2 class="modal-title" id="mvea-modal-title">{{ this.modal.title }}</h2>
-            <button type="button" className="btn-close nospin" data-bs-dismiss="modal"
-                    :aria-label="txt.close"></button>
-          </div>
-          <div id="mvea-modal-text" className="modal-body">
-            <iframe :src="this.modal.url"/>
-          </div>
-        </div>
-      </div>
+    <!-- Wrapping inside a div in order to have better stylistic handling -->
+    <div :class="classes">
+      <span v-show="isLoading" class="co-loading-mini" role="status">
+        <span></span><span></span><span></span>
+      </span>
     </div>
   `
 }

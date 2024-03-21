@@ -29,7 +29,10 @@ declare(strict_types = 1);
 
 namespace App\Model\Behavior;
 
+use Cake\Datasource\EntityInterface;
+use Cake\Event\Event;
 use Cake\ORM\Behavior;
+use Cake\ORM\Query;
 use Cake\Utility\Inflector;
 
 class ChangelogBehavior extends Behavior 
@@ -44,7 +47,7 @@ class ChangelogBehavior extends Behavior
    * @return boolean                 True on success
    */
   
-  public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+  public function beforeDelete(Event $event, $entity, \ArrayObject $options) {
     if(isset($options['useHardDelete']) && $options['useHardDelete']) {
       // Hard delete requested, so just return
       return true;
@@ -74,7 +77,7 @@ class ChangelogBehavior extends Behavior
     // But return success
     return true;
   }
-  
+
   /**
    * Adjust find query conditions for changelog.
    *
@@ -85,7 +88,7 @@ class ChangelogBehavior extends Behavior
    * @param  boolean     $primary Whether or not this is the root query (vs an associated query)
    */
   
-  public function beforeFind(\Cake\Event\Event $event, \Cake\ORM\Query $query, \ArrayObject $options, bool $primary) {
+  public function beforeFind(Event $event, Query $query, \ArrayObject $options, bool $primary) {
     if(isset($options['archived']) && $options['archived']) {
       // Archived records requested (including possiblf expunge), so just return
       return true;
@@ -100,7 +103,16 @@ class ChangelogBehavior extends Behavior
     
     // XXX add support for archived, revision, etc
     // XXX if specific id is requested, do not modify query
-    
+
+    // Take into account all joined associations
+    if(!empty($query->clause('join'))) {
+      foreach($query->clause('join') as $mdl => $opts) {
+        $ascParentfk = Inflector::singularize($opts['table']) . '_id';
+
+        $query->where([$opts['alias'] . '.deleted IS NOT true'])
+              ->where([$opts['alias'] . '.' . $ascParentfk . ' IS NULL']);
+      }
+    }
     // We use IS NOT TRUE to check for null || false, since pre-Changelog data
     // may have null instead of false.
     // (Alternately we could join two clauses for false || IS NULL.)
@@ -121,7 +133,7 @@ class ChangelogBehavior extends Behavior
    * @param  ArrayObject     $options Options
    */
   
-  public function beforeSave(\Cake\Event\Event $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
+  public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options) {
     // XXX prevent updates to deleted and archived records
     //     Cake Book suggests doing this with Application Rules... can we define those in the Behavior?
     //     or perhaps in beforeMarshal? https://book.cakephp.org/3.0/en/orm/saving-data.html#modifying-request-data-before-building-entities

@@ -53,4 +53,25 @@ if($vv_action == 'edit') {
   print $this->Field->control('search_global_limit');
   
   print $this->Field->control('search_global_limited_models');
+
+  print $this->Field->groupedControls(
+    [
+      'person_picker_email_address_type_id' => [
+        'options' => [
+          'suppressBlank' => true,
+          'label' => __d('field', 'mail'),
+        ],
+      ],
+      'person_picker_identifier_type_id' => [
+        'options' => [
+          'suppressBlank' => true,
+          'label' => __d('field', 'identifier'),
+        ],
+      ],
+      'person_picker_display_types' => [
+        'singleRowItem' => true
+      ]
+    ],
+    'person_picker_display_fields'
+  );
 }

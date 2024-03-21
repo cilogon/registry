@@ -111,7 +111,10 @@
         "required_fields_address": { "type": "string", "size": 160 },
         "required_fields_name": { "type": "string", "size": 160 },
         "search_global_limit": { "type": "integer" },
-        "search_global_limited_models": { "type": "boolean" }
+        "search_global_limited_models": { "type": "boolean" },
+        "person_picker_email_type": { "type": "integer" },
+        "person_picker_identifier_type": { "type": "integer" },
+        "person_picker_display_types": { "type": "boolean" }
       },
       "indexes": {
         "co_settings_i1": { "columns": [ "co_id" ]},

@@ -246,7 +246,7 @@ $hasActiveFilters = false;
               <div class="filter-boolean <?= empty($options['active']) ? 'filter-inactive' : 'filter-active' ?>">
                 <div class="form-check form-check-inline">
                   <?php
-                    print $this->Form->label(!empty($columns[$key]['label']) ? $columns[$key]['label'] : $key);
+                    print $this->Form->label($options['label'] ?? $key);
                     print $this->Form->checkbox($key, [
                       'id' => str_replace("_", "-", $key),
                       'class' => 'form-check-input',

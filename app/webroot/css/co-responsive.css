@@ -295,6 +295,28 @@
   #main-menu .menu-panel .config-platform-notice {
     margin: 10em 0 4em;
   }
+  /* PEOPLE PICKER */
+  #cm-people-picker {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.5em;
+    padding: 0;
+  }
+  #cm-people-picker .cm-autocomplete {
+    width: 300px;
+    height: 30px;
+  }
+  #cm-people-picker #cmPersonPickerId-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  #cm-people-picker .co-loading-mini-container {
+    position: absolute;
+    right: 0.75em;
+    z-index: 1;
+  }
   /* GENERAL */
   .table-container {
     overflow: unset;
@@ -383,7 +405,8 @@
   }
   .field-actions.top-links .actions-expanded  .dropdown-menu {
     position: static;
-    display: inline-block;
+    display: flex;
+    align-items: flex-end;
     min-width: 0;
     font-size: 0.9em;
     border: none;
@@ -481,6 +504,9 @@
   /* CO CONFIGURATION DASHBOARD */
   .config-menu {
     column-count: 4;
+  }
+  .item-with-type {
+    grid-template-columns: 1fr 2fr;
   }
 }
 

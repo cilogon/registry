@@ -29,9 +29,12 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Model\Entity\GroupMember;
+use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
@@ -49,6 +52,19 @@ class GroupMembersTable extends Table {
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
+  
+  /**
+   * Provide the default layout
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string  Type of redirect
+   */
+  public function getLayout(string $action = ''): string {
+    return match($action) {
+      'add','edit','view' => 'iframe',  
+      default => 'default'
+    };
+  }
   
   /**
    * Perform Cake Model initialization.
@@ -75,15 +91,28 @@ class GroupMembersTable extends Table {
     
     $this->setPrimaryLink(['group_id', 'person_id']);
     $this->setRequiresCO(true);
+    $this->setRedirectGoal('self');
     
     $this->setEditContains(['Groups', 'People.PrimaryName']);
-    
+    $this->setViewContains(['Groups', 'People.PrimaryName']);
+
     $this->setIndexContains([
       'GroupNestings' => 'Groups',
       'Groups', 
       'People.PrimaryName'
     ]);
-    
+
+    $this->setAutoViewVars([
+      'cosettings' => [
+        'type' => 'auxiliary',
+        'model' => 'CoSettings'
+      ],
+      'types' => [
+        'type' => 'auxiliary',
+        'model' => 'Types'
+      ]
+    ]);
+
     $this->setPermissions([
   // XXX update for couAdmins, group owners, etc
       // Actions that operate over an entity (ie: require an $id)
@@ -126,7 +155,7 @@ class GroupMembersTable extends Table {
    * @return string         Display field
    */
 
-  public function generateDisplayField(\App\Model\Entity\GroupMember $entity): string {
+  public function generateDisplayField(GroupMember $entity): string {
     // Pull the group and person information to build a more useful display string
     
     return __d('field', 'group_membership', [$entity->person->primary_name->full_name, $entity->group->name]);
@@ -149,35 +178,22 @@ class GroupMembersTable extends Table {
                            bool $checkValidity=true): bool {
     // This function is here (instead of GroupsTable) because we need it for
     // rule validation on new GroupMember save.
-    
-    $conditions = [
-      'group_id' => $groupId,
-      'person_id' => $personId
-    ];
-    
-    if($checkValidity) {
-      // Only pull currently valid group memberships
-      
-      $conditions['AND'][] = [
-        'OR' => [
-          'valid_from IS NULL',
-          'valid_from < ' => date('Y-m-d H:i:s', time())
-        ]
-      ];
-      $conditions['AND'][] = [
-        'OR' => [
-          'valid_through IS NULL',
-          'valid_through > ' => date('Y-m-d H:i:s', time())
-        ]
-      ];
-    }
-    
+
+    $query = $this->find()
+                  ->where(['group_id' => $groupId])
+                  ->where(['person_id' => $personId]);
+
     if($direct) {
 // XXX need to add pipelines here eventually
-      $conditions[] = 'group_nesting_id IS NULL';
+      $query = $query->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('group_nesting_id'));
     }
-    
-    $count = $this->find()->where($conditions)->count();
+
+    if($checkValidity) {
+      $queryCheckValidityExp = $this->checkValidity($query);
+      $query = $query->where($queryCheckValidityExp);
+    }
+
+    $count = $query->count();
     
     // When !$direct, we could get more than one row back
     return ($count > 0);

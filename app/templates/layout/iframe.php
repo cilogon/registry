@@ -63,10 +63,14 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       'co-responsive'
     ]) . PHP_EOL ?>
 
-    <!-- Load Bootstrap and jQuery (other scripts at bottom) -->
+    <!-- Load Bootstrap, jQuery, and Vue (other scripts at bottom) -->
+    <!-- Refer to the following link for any extra libraries https://cdnjs.com/libraries/primevue/3.48.1 -->
     <?= $this->Html->script([
       'bootstrap/bootstrap.bundle.min.js',
-      'jquery/jquery.min.js'
+      'jquery/jquery.min.js',
+      'vue/vue-3.2.31.global.prod.js',
+      'vue/primevue-3.48.1.core.min.js',
+      'vue/primevue-3.48.1.autocomplete.min.js'
     ]) . PHP_EOL ?>
 
     <!-- Include external files and scripts -->
@@ -119,8 +123,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
 
     <!-- Load Javascript -->
     <!-- XXX js-cookie should be deprecated -->
-    <?= $this->Html->script([      
-      'vue/vue-3.2.31.global.prod.js',
+    <?= $this->Html->script([
       'js-cookie/js.cookie-2.1.3.min.js',
       'comanage/comanage.js'
     ]) . PHP_EOL ?>

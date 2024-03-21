@@ -158,6 +158,31 @@ function jsConfirmGeneric(txt, confirmUrl, clickId, confirmbtxt, cancelbtxt, tit
   $("#dialog").modal('show');
 }
 
+/**
+ * COmanage Registry Modal Launcher: general function for launching a page in our generic modal window.
+ * This function uses the same persistent dialog box as the jsConfirmGeneric() function.
+ * @param url              {string}  Url contained by the modal iframe
+ * @param title            {string}  Title for the modal window
+ * @param reloadOnClose   {boolean} [True to reload the browser after closing the modal]
+ */
+function launchCmModal(
+  url,
+  title,
+  reloadOnClose = true
+) {
+  // Set the title text of the dialog
+  $("#cm-modal-title").html(title);
+  
+  // Set the body text of the dialog
+  $("#cm-modal-text").html('<iframe src="' + url + '"></iframe>');
+  
+  // Set the data-reload-on-close parameter that will be observed when the modal is closed
+  $("#cm-modal").attr('data-reload-on-close', reloadOnClose);
+  
+  // Open the modal window
+  $("#cm-modal").modal('show');
+}
+
 // Generic goto page form handling for multi-page listings.
 // We handle this in javascript to avoid special casing controllers.
 // pageNumber         - page number         (int, required)

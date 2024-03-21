@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use Cake\Database\Expression\QueryExpression;
+use Cake\ORM\TableRegistry;
 use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
 use \App\Lib\Enum\ProvisioningContextEnum;
@@ -36,6 +38,8 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Util\StringUtilities;
 
 class StandardController extends AppController {
+  use \App\Lib\Traits\IndexQueryTrait;
+
   // Pagination defaults should be set in each controller
   public $pagination = [];
 
@@ -209,7 +213,7 @@ class StandardController extends AppController {
 
     // Check to see if the model names a specific layout
     if(method_exists($table, "getLayout")) {
-       $this->viewBuilder()->setLayout($table->getLayout());
+      $this->viewBuilder()->setLayout($table->getLayout($this->request->getParam('action')));
     }
 
     return parent::beforeRender($event);
@@ -564,73 +568,22 @@ class StandardController extends AppController {
     $table = $this->$modelsName;
     // $tableName = models
     $tableName = $table->getTable();
+    // Construct the Query
+    $query = $this->getIndexQuery();
 
-    $query = null;
-    
-    // PrimaryLinkTrait
-    $link = $this->getPrimaryLink(true);
-    
-    // AutoViewVarsTrait
-    $this->populateAutoViewVars();
-    
-    if(!empty($link->attr)) {
-      // If a link attribute is defined but no value is provided, then query
-      // where the link attribute is NULL
-      // "all" is the default finder. But since we are utilizing the paginator here, we will check the configuration
-      // for any custom finder.
-      $query = $table->find(
-        $this->paginate['finder'] ?? "all"
-      )->where([$table->getAlias().'.'.$link->attr => $link->value]);
-    } else {
-      $query = $table->find($this->paginate['finder'] ?? "all");
+    if(method_exists($table, 'findIndexed')) {
+      $query = $table->findIndexed($query);
     }
-    
-    // QueryModificationTrait
-    if(method_exists($table, "getIndexContains")
-       && $table->getIndexContains()) {
-      $query->contain($table->getIndexContains());
-    }
-  
-    // SearchFilterTrait
-    if(method_exists($table, "getSearchableAttributes")) {
-      $searchableAttributes = $table->getSearchableAttributes($this->name, $this->viewBuilder()->getVar('vv_tz'));
-    
-      if(!empty($searchableAttributes)) {
-        // Here we iterate over the attributes, and we add a new where clause for each one
-        foreach($searchableAttributes as $attribute => $options) {
-          if(!empty($this->request->getQuery($attribute))) {
-            $query = $table->whereFilter($query, $attribute, $this->request->getQuery($attribute));
-          } elseif (!empty($this->request->getQuery($attribute . "_starts_at"))
-                    || !empty($this->request->getQuery($attribute . "_ends_at"))) {
-            $search_date = [];
-            // We allow empty for dates since we might refer to infinity (from whenever or to always)
-            $search_date[] = $this->request->getQuery($attribute . "_starts_at") ?? "";
-            $search_date[] = $this->request->getQuery($attribute . "_ends_at") ?? "";
-            $query = $table->whereFilter($query, $attribute, $search_date);
-          }
-        }
-      
-        $this->set('vv_searchable_attributes', $searchableAttributes);
-      }
-    }
-    
-    // Filter on requested filter, if requested
-    // QueryModificationTrait
-    if(method_exists($table, "getIndexFilter")) {
-      $filter = $table->getIndexFilter();
-      
-      if(is_callable($filter)) {
-        $query->where($filter($this->request));
-      } else {
-        $query->where($table->getIndexFilter());
-      }
-    }
-    
+
+    // Fetch the data and paginate
     $resultSet = $this->paginate($query);
-    
+
+    // Pass vars to the View
     $this->set($tableName, $resultSet);
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));
-    
+    // AutoViewVarsTrait
+    $this->populateAutoViewVars();
+
     // Default index view title is model name
     [$title, , ] = StringUtilities::entityAndActionToTitle($resultSet, $modelsName, 'index');
     $this->set('vv_title', $title);
@@ -701,10 +654,9 @@ class StandardController extends AppController {
           case 'auxiliary':
 // XXX add list as in match?
           case 'select':
-            // We assume $modelName has a direct relationship to $avv['model']
             $avvmodel = $avv['model'];
-            $this->$avvmodel = $this->fetchTable($avvmodel);
-            
+            $this->$avvmodel = TableRegistry::getTableLocator()->get($avvmodel);
+
             if($avv['type'] == 'auxiliary') {
               $query = $this->$avvmodel->find();
             } else {
@@ -777,7 +729,7 @@ class StandardController extends AppController {
             break;
           default:
 // XXX I18n? and in match?
-            throw new \LogicException('Unknonwn Auto View Var Type {0}', [$avv['type']]);
+            throw new \LogicException('Unknonwn Auto View Var Type {0}', $avv['type']);
             break;
         }
       }

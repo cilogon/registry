@@ -122,6 +122,12 @@ if(!empty($subnav)) {
                       plural: false))
       ];
     }
+    
+    
+    if(!empty($peoplePicker)) {
+      // There is a page-level autocomplete people picker.
+      $action_args['vv_people_picker'] = $peoplePicker;
+    }
 
     foreach(($topLinks ?? []) as $t) {
       if($vv_permissions[ $t['link']['action'] ]) {
@@ -138,6 +144,7 @@ if(!empty($subnav)) {
           'url' => $t['link'],
           'label' => $t['label'],
           'class' => !empty($t['class']) ? $t['class'] : '',
+          'dataAttrs' => !empty($t['dataAttrs']) ? $t['dataAttrs'] : [],
           'confirm' => !empty($t['confirm']) ? $t['confirm'] : []
         ];
       }
@@ -152,7 +159,7 @@ if(!empty($subnav)) {
   }
   ?>
 
-  <?php if(!empty($action_args['vv_actions'])): ?>
+  <?php if(!empty($action_args['vv_actions']) || !empty($action_args['vv_people_picker'])): ?>
     <div class="field-actions top-links">
       <?= $this->element('menuAction', $action_args); ?>
     </div>
@@ -504,11 +511,12 @@ if(!empty($subnav)) {
                   foreach($tryActions as $a) {
                     // Does this user have permission for this action?
                     if($vv_permission_set[$entity->id][$a]) {
+                      $linkClass = $cfg['class'] ?? '';
                       // Handle $isFirstLink
                       $args = [];
                       $readOnlyIcon = '';
                       if($isFirstLink) {
-                        $linkClass = 'row-link';
+                        $linkClass .= (!empty($linkClass) ? ' ' : '') . 'row-link';
                         if($a == 'edit') {
                           $linkClass .= ' row-link-edit';
                         } elseif ($a == 'view') {
@@ -517,8 +525,15 @@ if(!empty($subnav)) {
                         } else {
                           $linkClass .= ' row-link-' . $a;
                         }
-                        $args = ['class' => $linkClass];
                         $isFirstLink = false;
+                      }
+                      if(!empty($linkClass)) {
+                        $args['class'] = $linkClass;
+                      }
+                      if(!empty($cfg['dataAttrs'])) {
+                        foreach($cfg['dataAttrs'] as $dataAttr) {
+                          $args[$dataAttr[0]] = $dataAttr[1];
+                        }
                       }
                       // Output the link
                       if(!empty($readOnlyIcon)) {

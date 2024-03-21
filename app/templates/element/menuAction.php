@@ -25,7 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$actionsCount = count($vv_actions);
+$actionsCount = count($vv_actions) + (int)!empty($vv_people_picker);
 $actionsCountClass = $actionsCount > 0 ? ' actions-count-' . $actionsCount : '';
 $actionsExpandedClass = ($actionsCount > 0 && $actionsCount < 4) ? ' actions-expanded' : '';
 $actionsMenuClass = (!empty($vv_actions_class) ? $vv_actions_class : 'field-actions-menu') 
@@ -62,8 +62,15 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
     
   ?>
   <ul id="action-list_<?= $actionsMenuUid; ?>" class="dropdown-menu nospin">
+    <?php if(!empty($vv_people_picker)):?>
+      <li class="action-list-item">
+        <div id="cm-people-picker">
+          <?= $this->element('peopleAutocomplete', $vv_people_picker); ?>
+        </div>
+      </li>
+    <?php endif; ?>
     <?php foreach($vv_actions as $action): ?>
-      <?php 
+      <?php
         $actionUrl = $this->Url->build($action['url']);
         $actionDataAttrs = '';
         if(!empty($action['dataAttrs'])) {

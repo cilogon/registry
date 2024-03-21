@@ -184,6 +184,20 @@
 
     // Make all select form controls Bootstrappy
     $("select").addClass("form-select");
+    
+    // Launch standard modal window when a link is configured to do so
+    $('a.cm-modal-link').click(function(e) {
+      e.preventDefault();
+      launchCmModal($(this).attr('href'), $(this).attr('data-cm-modal-title'));
+    });
+
+    // Honor the "page reload" configuration when the standard modal is closed.
+    // The current default is to always reload the browser.
+    $('#cm-modal').on('hide.bs.modal', function (e) {
+      if($(this).attr('data-reload-on-close') == 'true') {
+        location.reload();
+      }
+    })
 
     // Generic row click handling
     // First capture mouse location to test if we're clicking or drag-selecting (for copy)
@@ -195,15 +209,23 @@
     // Generic row click handling for div-and li based rows
     $('.linked-row').click(function(e) {
       url = $(this).find('a.row-link').attr('href');
+      isModal = $(this).find('a.row-link').hasClass('cm-modal-link');
       if(Math.abs(e.clientX-mouseDownEvent.clientX) < 5 &&
         Math.abs(e.clientY-mouseDownEvent.clientY < 5)) {
-        location.href = url;
+        if(isModal) {
+          e.preventDefault();
+          modalTitle = $(this).find('a.row-link').attr('data-cm-modal-title');
+          launchCmModal(url, modalTitle);
+        } else {
+          location.href = url; 
+        }
       }
     });
 
     // Generic row click handling for index-table rows
     $('table.index-table tr').each(function(e) {
       url = $(this).find('a.row-link').attr('href');
+      isModal = $(this).find('a.row-link').hasClass('cm-modal-link');
       if(url != undefined && url != '') {
         $(this).addClass('linked-row').attr('data-cm-target',url).mouseup(function(e) {
           if(Math.abs(e.clientX-mouseDownEvent.clientX) < 5 &&
@@ -216,7 +238,14 @@
               }              
             } else {
               // We're in list mode, so follow the row-link target.
-              location.href = $(this).attr('data-cm-target');  
+              if(isModal) {
+                e.preventDefault();
+                modalTitle = $(this).find('a.row-link').attr('data-cm-modal-title');
+                modalUrl = $(this).attr('data-cm-target');
+                launchCmModal(modalUrl, modalTitle);
+              } else {
+                location.href = $(this).attr('data-cm-target');  
+              }
             }
           }
           mouseDownEvent = null;

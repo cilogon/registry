@@ -87,6 +87,7 @@
   --cmg-color-highlight-016: #f8cece; /* alert: danger border color (red) */
   
   --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
+  --cmg-color-highlight-018: yellow;  /* autocomplete highlight for query text */
   
   /* Duet Date Picker Colors & Settings */
   --duet-color-primary: var(--cmg-color-btn-bg-001);
@@ -161,6 +162,9 @@ html.dark-mode {
   --cmg-color-highlight-014: #dc3545; /* danger badge (red) */
   --cmg-color-highlight-015: #842029; /* alert: danger text color (red) */
   --cmg-color-highlight-016: #f8cece; /* alert: danger border color (red) */
+
+  --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
+  --cmg-color-highlight-018: #cc0;    /* autocomplete highlight for query text */
   
   /* Bootstrap Overrides for Dark Mode */
   --bs-light-rgb: #151515;

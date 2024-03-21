@@ -70,21 +70,23 @@ class FieldHelper extends Helper {
       $this->Alert->alert($info, 'warning')
     . '</li>';
   }
-  
+
   /**
    * Emit a form control.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string  $fieldName   Form field
-   * @param  array   $options     FormHelper control options
-   * @param  string  $labelText   Label text (fieldName language key used by default)
-   * @param  string  $ctrlCode    Control code passed in from wrapper functions
-   * @param  string  $cssClass    Start li css class passed in from wrapper functions
-   * @param  string  $beforeField Markup to be placed before/above the field
-   * @param  string  $afterField  Markup to be placed after/below the field
-   * @param  string  $prefix      Field prefix - used for API Usernames
-   * @param  bool    $labelIsTextOnly For fields that should not include <label> markup
+   * @param   string       $fieldName        Form field
+   * @param   array        $options          FormHelper control options
+   * @param   string|null  $labelText        Label text (fieldName language key used by default)
+   * @param   string|null  $ctrlCode         Control code passed in from wrapper functions
+   * @param   string       $cssClass         Start li css class passed in from wrapper functions
+   * @param   string       $beforeField      Markup to be placed before/above the field
+   * @param   string       $afterField       Markup to be placed after/below the field
+   * @param   string       $prefix           Field prefix - used for API Usernames
+   * @param   bool         $labelIsTextOnly  For fields that should not include <label> markup
+   * @param   string|null  $controlType
+   *
    * @return string  HTML for control
+   * @since  COmanage Registry v5.0.0
    */
   
   public function control(string $fieldName,
@@ -97,50 +99,19 @@ class FieldHelper extends Helper {
                           string $prefix = '',
                           bool   $labelIsTextOnly = false,
                           string $controlType = null): string {
-    $coptions = $options;
-    $coptions['label'] = false;
-    $coptions['readonly'] = 
-      !$this->editable 
-      || (isset($options['readonly']) && $options['readonly'])
-      // Plugins can't be changed after the parent object is instantiated
-      || ($fieldName == 'plugin' && $this->action == 'edit');
-    // Selects, Checkboxes, and Radio Buttons use "disabled"
-    $coptions['disabled'] = $coptions['readonly'];
-    
     // Specify a class on the <li> form control wrapper
     $liClass = $cssClass;
-  
     // Get the field type from the map of fields (e.g. 'boolean', 'string', 'timestamp')
     $fieldMap = $this->getView()->get('vv_field_types');
     $fieldType = $controlType ?: $fieldMap[$fieldName];
 
-    // Remove prefix from field value
-    if(!empty($prefix) && !empty($this->getView()->get('vv_obj')->$fieldName)) {
-      $vv_obj = $this->getView()->get('vv_obj');
-      $fieldValue = $vv_obj->$fieldName;
-      $fieldValueTemp = str_replace($prefix, '', $fieldValue);
-      $vv_obj->$fieldName = $fieldValueTemp;
-      $this->getView()->set('vv_obj', $vv_obj);
-    }
-    
-    if($fieldName != 'status' 
-       && !isset($options['empty'])
-       && (!isset($options['suppressBlank']) || !$options['suppressBlank'])) {
-      // Cause any select (except status) to render with a blank option, even
-      // if the field is required. This makes it clear when a value need to be set.
-      // Note this will be ignored for non-select controls.
-      $coptions['empty'] = true;
-    }
-  
-    // A boolean field is a checkbox. Set the label and class to improve rendering
-    // and accessibility.
-    if($fieldType == 'boolean') {
-      $coptions['label'] = $labelText;
-      $coptions['class'] = 'form-check-input';
-    }
-    
     // Generate the form control or pass along the markup generated in a wrapper function
-    $controlCode = empty($ctrlCode) ? $this->Form->control($fieldName, $coptions) : $ctrlCode;
+    $controlCode = $this->formControl($fieldName,
+                                      $options,
+                                      $labelText ,
+                                      $ctrlCode,
+                                      $prefix,
+                                      $controlType);
     
     $vv_obj = $this->getView()->get('vv_obj');
 
@@ -323,7 +294,71 @@ class FieldHelper extends Helper {
   protected function endLine(): string {
     return "</div></li>\n";
   }
-  
+
+  /**
+   * Create the actual Form element
+   *
+   * @param   string       $fieldName  Form field
+   * @param   array        $options    FormHelper control options
+   *                                   By setting the options you are requesting a select field
+   * @param   string|null  $labelText  Label text (fieldName language key used by default)
+   * @param   string|null  $ctrlCode   Control code passed in from wrapper functions
+   * @param   string       $prefix     Field prefix - used for API Usernames
+   * @param   string|null  $controlType
+   *
+   * @return string  HTML for control
+   * @since  COmanage Registry v5.0.0
+   */
+  protected function formControl(string $fieldName,
+                                 array  $options = [],
+                                 string $labelText = null,
+                                 string $ctrlCode = null,
+                                 string $prefix = '',
+                                 string $controlType = null): string {
+    $coptions = $options;
+    $coptions['label'] = $options['label'] ?? false;
+    $coptions['readonly'] =
+      !$this->editable
+      || (isset($options['readonly']) && $options['readonly'])
+      // Plugins can't be changed after the parent object is instantiated
+      || ($fieldName == 'plugin' && $this->action == 'edit');
+    // Selects, Checkboxes, and Radio Buttons use "disabled"
+    $coptions['disabled'] = $coptions['readonly'];
+
+    // Get the field type from the map of fields (e.g. 'boolean', 'string', 'timestamp')
+    $fieldMap = $this->getView()->get('vv_field_types');
+    $fieldType = $controlType ?: $fieldMap[$fieldName];
+
+    // Remove prefix from field value
+    if(!empty($prefix) && !empty($this->getView()->get('vv_obj')->$fieldName)) {
+      $vv_obj = $this->getView()->get('vv_obj');
+      $fieldValue = $vv_obj->$fieldName;
+      $fieldValueTemp = str_replace($prefix, '', $fieldValue);
+      $vv_obj->$fieldName = $fieldValueTemp;
+      $this->getView()->set('vv_obj', $vv_obj);
+    }
+
+    if($fieldName != 'status'
+      && !isset($options['empty'])
+      && (!isset($options['suppressBlank']) || !$options['suppressBlank'])) {
+      // Cause any select (except status) to render with a blank option, even
+      // if the field is required. This makes it clear when a value need to be set.
+      // Note this will be ignored for non-select controls.
+      $coptions['empty'] = true;
+    }
+
+    // A boolean field is a checkbox. Set the label and class to improve rendering
+    // and accessibility.
+    if($fieldType == 'boolean') {
+      $coptions['label'] = $labelText;
+      $coptions['class'] = 'form-check-input';
+    }
+
+    // Generate the form control or pass along the markup generated in a wrapper function
+    return empty($ctrlCode) ? $this->Form->control($fieldName, $coptions) : $ctrlCode;
+
+  }
+
   /**
    * Generate a form info (control, value) box.
    *
@@ -348,6 +383,47 @@ class FieldHelper extends Helper {
     $div .= '</div>' . PHP_EOL;
     
     return $div;
+  }
+
+  /**
+   * Create grouped control elements. By default, the elements will be placed one after the other, inline,
+   * with a direction left to right. For that need to occupy the whole row we defined the 'singleRowItem'
+   * configuration property that will add an inline Bootstrap css rule. The rule will override the default
+   * behavior
+   *
+   * @param   array   $fields
+   * @param   string  $pseudoFieldName
+   * @param   string  $beforeField  Markup to be placed before/above the field
+   * @param   string  $afterField   Markup to be placed after/below the field
+   *
+   * @return string              Form Info HTML
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function groupedControls(array $fields,
+                                  string $pseudoFieldName,
+                                  string $beforeField = '',
+                                  string $afterField = ''): string {
+    $content = '';
+    foreach ($fields as $fieldName => $fieldOptions) {
+      $dblock = isset($fieldOptions['singleRowItem']) && $fieldOptions['singleRowItem'] ? 'd-block' : '';
+      $content .= "<div class='subfield subfield-cols {$dblock}'>" . PHP_EOL;
+      $content .= '<div class="field-col">' . PHP_EOL;
+      $content .= $this->formControl($fieldName, $fieldOptions['options'] ?? []) . PHP_EOL;
+      $content .= '</div>' . PHP_EOL;
+      $content .= '</div>' . PHP_EOL;
+    }
+    $mn = $this->modelName;
+
+    return $this->startLine()
+      . $this->formNameDiv(
+        fieldName: $pseudoFieldName,
+        labelText: __d('field', $mn . '.' . $pseudoFieldName),
+        fieldType: 'string',
+        fieldNameClasses: 'field-name align-top'
+      )
+      . $this->formInfoDiv($content, $beforeField, $afterField)
+      . $this->endLine();
   }
 
   /**
@@ -382,19 +458,30 @@ class FieldHelper extends Helper {
 
     return $div;
   }
-  
+
   /**
    * Generate a form name (label, description) box.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string  $fieldName Form field
-   * @param  string  $labelText Label text (fieldName language key used by default)
-   * @param  string  $fieldType Type of field (string, boolean, timestamp, etc)
-   * @param  boolean $labelIsTextOnly True if label should be text only. Otherwise false.
+   * @param   string       $fieldName         Form field
+   * @param   string|null  $labelText         Label text (fieldName language key used by default)
+   * @param   string       $fieldType         Type of field (string, boolean, timestamp, etc.)
+   * @param   boolean      $labelIsTextOnly   True if label should be text only. Otherwise, false.
+   * @param   string|null  $fieldNameClasses  Override the field-name classes
+   * @param   string|null  $fieldTitleClasses Override the field-title classes
+   * @param   string|null  $fieldDescClasses  Override the field-description classes
+   *
    * @return string             Form Name HTML
+   * @since  COmanage Registry v5.0.0
    */
   
-  protected function formNameDiv(string $fieldName, string $labelText=null, string $fieldType, bool $labelIsTextOnly=false): string {
+  protected function formNameDiv(string $fieldName,
+                                 ?string $labelText,
+                                 string $fieldType,
+                                 bool $labelIsTextOnly = false,
+                                 ?string $fieldNameClasses = null,
+                                 ?string $fieldTitleClasses = null,
+                                 ?string $fieldDescClasses = null
+  ): string {
     $label = $labelText;
     $desc = null;
     
@@ -405,7 +492,7 @@ class FieldHelper extends Helper {
     $mn = $this->modelName;
     $fn = $fieldName;
     
-    if(strpos($fieldName, '.') !== false) {
+    if(str_contains($fieldName, '.')) {
       // othermodels.0.field
       
       $bits = explode('.', $fieldName, 3);
@@ -435,7 +522,7 @@ class FieldHelper extends Helper {
 
         // Is there a model specific key? For plugins, this will be in field.Model.Field
 
-        $key = (!$core ? "field." : "") . "$mn.$fn";
+        $key = (!$core ? 'field.' : '') . "$mn.$fn";
         $label = __d(($core ? 'field' : $pluginDomain), $key);
 
         if($label == $key) {
@@ -445,7 +532,7 @@ class FieldHelper extends Helper {
 
           if(preg_match('/^(.*?)_id$/', $fn, $f)) {
             // Map foreign keys (foo_id) to the controller label
-            $key = (!$core ? "controller." : "") . Inflector::camelize(Inflector::pluralize($f[1]));
+            $key = (!$core ? 'controller.' : '') . Inflector::camelize(Inflector::pluralize($f[1]));
             $label = __d(($core ? 'controller' : $pluginDomain), $key, [1]);
 
             if($key != $label) {
@@ -454,7 +541,7 @@ class FieldHelper extends Helper {
           }
           
           // Just look up the key
-          $key = (!$core ? "field." : "") . $fn;
+          $key = (!$core ? 'field.' : '') . $fn;
           $label = __d(($core ? 'field' : $pluginDomain), $key);
 
           if($key != $label) {
@@ -486,20 +573,103 @@ class FieldHelper extends Helper {
         break;
       }
     }
-    
-    return '<div class="field-name">
-      <div class="field-title">'
-      . (!($labelIsTextOnly) && ($fieldType != 'boolean')
-         ? $this->Form->label($fn, $label)
-         : $label) 
-      . ($this->editable
-           && in_array($fn, $this->reqFields)
-         ? ' <span class="required" aria-hidden="true">*</span>'
-         . '<span class="visually-hidden">' . __d('field','required') . '</span>' 
-         : '') . '
-      </div>
-      ' . ($desc ? '<div class="field-desc">' . $desc . '</div>' : "") .'
-    </div>';
+
+    return '<div class="'. ($fieldNameClasses  ?? 'field-name') . '">'
+             . '<div class="'. ($fieldTitleClasses  ?? 'field-title') . '">'
+             // Form Label
+             . (!($labelIsTextOnly) && ($fieldType != 'boolean') ? $this->Form->label($fn, $label) : $label)
+             . ($this->editable && in_array($fn, $this->reqFields) ? $this->requiredSpanElement() : '')
+             . '</div>' // field-title div
+             // Description element
+             . ($desc ? '<div class="'. ($fieldDescClasses  ?? 'field-desc') . '">' . $desc . '</div>' : '') .'
+           </div>';
+  }
+  
+  /**
+   * Emit a People Autocomplete (PrimeVue) control for selecting a person
+   *
+   * @param  string $fieldName            Field name of input field
+   * @param  array  $viewConfigParameters
+   * @param  string $personType           Type of person autocomplete to use (XXX should be an enum, and a default should be set)
+   *
+   * @return string            Source HTML
+   * @since  COmanage Registry v5.0.0
+   *
+   */
+  
+  public function peopleAutocompleteControl(string $fieldName, array $viewConfigParameters = [], string $personType = 'coperson'): string {
+    if($this->action == 'view') {
+      // return the member name value as plaintext
+      $coptions = ['type' => 'text'];
+      $entity = $this->getView()->get('vv_obj');
+      $controlCode = $entity->$fieldName;
+      
+      // Return this to the generic control() function
+      return $this->control($fieldName, $coptions, ctrlCode: $controlCode, labelIsTextOnly: true);
+      
+    } else {
+      // Create the options array for the (text input) form control
+      $coptions = [];
+      $coptions['class'] = 'form-control people-autocomplete';
+      $coptions['placeholder'] = __d('operation','autocomplete.people.placeholder');
+      $coptions['id'] = $fieldName;
+      $coptions['value'] =  '';
+      
+      $entity = $this->getView()->get('vv_obj');
+      
+      // Get the existing values, if present
+      if(!empty($entity->$fieldName)) {
+        $coptions['value'] =  ''; // XXX put the ID here.
+      }
+            
+      // Create a field name for the autocomplete input
+      $autoCompleteFieldName = 'cm_autocomplete_' . $fieldName;
+      
+      // Because we use JavaScript to set the value of the hidden field,
+      // disable form-tamper checking for the autocomplete fields.
+      // XXX We ought not have to do this for the hidden field ($fieldName) at least
+      $this->Form->unlockField($fieldName);
+      $this->Form->unlockField($autoCompleteFieldName);
+      
+      $autocompleteArgs = [
+        'type' => 'field',
+        'fieldName' => $fieldName,
+        'personType' => $personType,
+        'htmlId' => $autoCompleteFieldName,
+        'viewConfigParameters' => $viewConfigParameters
+      ];
+      
+      // Create a hidden field to hold our value and emit the autocomplete widget
+      $controlCode = $this->Form->hidden($fieldName, $coptions)
+        . $this->getView()->element('peopleAutocomplete', $autocompleteArgs);
+      
+      // XXX the numeric value passed to 'autocomplete.people.desc' should be derived from config; it is the minLength value for starting autocomplete.
+      $autoCompleteDesc = '<div class="field-desc"><span class="material-icons">info</span> ' . __d('operation','autocomplete.people.desc',['2']) . '</div>';
+      
+      // Specify a class on the <li> form control wrapper
+      $liClass = 'fields-people-autocomplete';
+      
+      // Pass everything to the generic control() function
+      return $this->control(
+                         $fieldName,
+                         $coptions,
+        ctrlCode:        $controlCode,
+        cssClass:        $liClass,
+        afterField:      $autoCompleteDesc,
+        labelIsTextOnly: true
+      );
+    }
+  }
+
+  /**
+   * Static required Span Element
+   *
+   * @return string
+   * @since  COmanage Registry v5.0.0
+   */
+  protected function requiredSpanElement() {
+    return "<span class='required' aria-hidden='true'>*</span>"
+           . "<span class='visually-hidden'>{__d('field', 'required')}</span>";
   }
 
   /**
@@ -559,14 +729,15 @@ class FieldHelper extends Helper {
 
   /**
    * Generate a status control (a read only status with an optional link button).
-   * 
-   * @since  Registry Registry v5.0.0
-   * @param  string  $fieldName Form field
-   * @param  string  $status    Status text
-   * @param  array   $link      Link information, including 'url', 'label', 'class', 'confirm'
-   * @param  string  $labelText Label text (fieldName language key used by default)
-   * @param  boolean $labelIsTextOnly true if <label> wrapper should not be included in the markup
+   *
+   * @param   string       $fieldName        Form field
+   * @param   string       $status           Status text
+   * @param   array        $link             Link information, including 'url', 'label', 'class', 'confirm'
+   * @param   string|null  $labelText        Label text (fieldName language key used by default)
+   * @param   boolean      $labelIsTextOnly  true if <label> wrapper should not be included in the markup
+   *
    * @return string
+   * @since  COmanage Registry v5.0.0
    */
   
   public function statusControl(string $fieldName, 
@@ -582,7 +753,7 @@ class FieldHelper extends Helper {
       if(!empty($link['label'])) {
         // Create a separate link after $status
         
-        $linkHtml .= " " . $this->Html->link(
+        $linkHtml .= ' ' . $this->Html->link(
           $link['label'],
           $link['url'],
           $link
@@ -604,17 +775,19 @@ class FieldHelper extends Helper {
            . $this->formInfoDiv($linkHtml)
            . $this->endLine();
   }
-  
+
   /**
    * Start a set of form controls.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string  $modelName Model name for form
-   * @param  string  $action    Current action
-   * @param  boolean $editable  True if controls are read/write, false for read only
-   * @param  array   $reqFields Array of required fields
-   * @param  object  $entity    Entity object (if set, null on add)
+   * @param   string       $modelName  Model name for form
+   * @param   string       $action     Current action
+   * @param   boolean      $editable   True if controls are read/write, false for read only
+   * @param   array        $reqFields  Array of required fields
+   * @param   null         $entity     Entity object (if set, null on add)
+   * @param   string|null  $pluginName
+   *
    * @return string
+   * @since  COmanage Registry v5.0.0
    */
   
   public function startControlSet(string $modelName, 
@@ -632,13 +805,14 @@ class FieldHelper extends Helper {
 
     return '<ul id="' . $action . '_' . $modelName . '" class="fields form-list">' . "\n";
   }
-  
+
   /**
    * Start a form line.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string  $class Optional class to apply to the line
+   * @param   string|null  $class  Optional class to apply to the line
+   *
    * @return string
+   * @since  COmanage Registry v5.0.0
    */
   
   protected function startLine(string $class=null): string {
@@ -656,7 +830,7 @@ class FieldHelper extends Helper {
   /**
    * Emit a submit control.
    *
-   * @since  Registry Registry v6.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  string  $label Text for submit button
    * @return string
    */

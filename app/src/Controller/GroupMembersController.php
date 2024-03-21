@@ -30,6 +30,8 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 // XXX not doing anything with Log yet
+use Cake\Event\EventInterface;
+use Cake\Http\Response;
 use Cake\Log\Log;
 
 class GroupMembersController extends StandardController {
@@ -38,15 +40,17 @@ class GroupMembersController extends StandardController {
       'People.primary_name.name' => 'asc'
     ]
   ];
-  
+
   /**
    * Callback run prior to the request render.
    *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
    * @since  COmanage Registry v5.0.0
-   * @param  EventInterface $event Cake Event
    */
 
-  public function beforeRender(\Cake\Event\EventInterface $event) {
+  public function beforeRender(EventInterface $event) {
     // Pull the Group name for breadcrumb rendering
     
     $link = $this->getPrimaryLink(true);
@@ -57,5 +61,27 @@ class GroupMembersController extends StandardController {
     }
     
     return parent::beforeRender($event);
+  }
+  
+  /**
+   * Handle an add action for a Group Member.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function add() {
+    // If we have a person_id in the request, the person has been pre-selected.
+    if(!empty($this->request->getQuery('person_id'))) {
+      $personId = $this->request->getQuery('person_id');
+      $Names = $this->getTableLocator()->get('Names');
+      $personName = $Names->primaryName((int)$personId)->full_name;
+      $selectedPerson = [
+        'id' => $personId,
+        'name' => $personName
+      ];
+      $this->set('vv_selected_person', $selectedPerson);
+    }
+    
+    return parent::add();
   }
 }

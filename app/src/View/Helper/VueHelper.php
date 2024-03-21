@@ -36,10 +36,18 @@ use Cake\I18n\I18n;
 
 class VueHelper extends Helper {
   private array $locales_list = [
+    'controller' => [
+      ['GroupMembers', 1],
+      ['Identifiers', 1]
+    ],
+    'default' => [
+      'registry.meta.registry'
+    ],
     'enumeration' => [
       'SuspendableStatusEnum.S'
     ],
     'field' => [
+      'email',
       'login',
       'primary',
       'datepicker.hour',
@@ -50,6 +58,12 @@ class VueHelper extends Helper {
       'datepicker.hour'
     ],
     'operation' => [
+      'add',
+      'add.member',
+      'add.owner',
+      'autocomplete.pager.show.more',
+      'autocomplete.people.label',
+      'autocomplete.people.placeholder',
       'close'
     ]
   ];
@@ -70,7 +84,13 @@ class VueHelper extends Helper {
     $locales = [];
     foreach ($this->locales_list as $domain => $key_list) {
       foreach ($key_list as $key) {
-        $locales[$key] = __d($domain, $key);
+        if(getType($key) == 'array') {
+          // for getting plural or singular instances of a language string; 
+          // XXX we should do better than this so we can use both.
+          $locales[$key['0']] = __d($domain, $key[0], $key[1]);
+        } else {
+          $locales[$key] = __d($domain, $key);
+        }
       }
     }
 
