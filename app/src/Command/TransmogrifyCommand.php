@@ -39,8 +39,8 @@ use Cake\I18n\FrozenTime;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use \App\Lib\Util\PaginatedSqlIterator;
+use \App\Lib\Util\DBALConnection;
 
-use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 
 class TransmogrifyCommand extends Command {
@@ -356,8 +356,6 @@ class TransmogrifyCommand extends Command {
   // Make some objects more easily accessible
   protected $inconn = null;
   protected $outconn = null;
-  // Cache the driver for ease of workarounds
-  protected $outdriver = null;
   
   // Shell arguments, for easier access
   protected $args = null;
@@ -454,7 +452,9 @@ class TransmogrifyCommand extends Command {
           'actor_identifier' => $origRow['actor_identifier']
         ];
         
-        $this->outconn->insert('group_members', $ownerRow);
+        $tableName = 'group_members';
+        $qualifiedTableName = $this->outconn->qualifyTableName($tableName);
+        $this->outconn->insert($qualifiedTableName, $ownerRow);
       } else {
         $this->io->error("Could not find owners group for CoGroupMember " . $origRow['id']);
       }
@@ -522,74 +522,13 @@ class TransmogrifyCommand extends Command {
     // new database.
     
     // First, open connections to both old and new databases.
-    // Use the Cake ConnectionManager to get the database configs to pass to DBAL.
-    $indb = ConnectionManager::get('transmogrify');
-    $incfg = $indb->config();
-    
-    if(empty($incfg)) {
-      throw new \InvalidArgumentException(__d('error', 'db.config', ["transmogrify"]));
-    }
-    
-    $outdb = ConnectionManager::get('default');
-    $outcfg = $outdb->config();
-    
-    if(empty($outcfg)) {
-      throw new \InvalidArgumentException(__d('error', 'db.config', ["default"]));
-    }
-    
-    $inconfig = new \Doctrine\DBAL\Configuration();
-    
-    $cargs = [
-      'dbname'   => $incfg['database'],
-      'user'     => $incfg['username'],
-      'password' => $incfg['password'],
-      'host'     => $incfg['host'],
-      'driver'   => ($incfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
-    ];
-    
-    // For MySQL SSL
-    if(!empty($incfg['ssl_ca'])) {
-      // mysqli supports SSL configuration
-      $cargs['ssl_ca'] = $incfg['ssl_ca'];
-    }
-    
-    $this->inconn = DriverManager::getConnection($cargs, $inconfig);
-    
-    $outconfig = new \Doctrine\DBAL\Configuration();
-    
-    $cargs = [
-      'dbname'   => $outcfg['database'],
-      'user'     => $outcfg['username'],
-      'password' => $outcfg['password'],
-      'host'     => $outcfg['host'],
-      'driver'   => ($outcfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
-    ];
-    
-    // For MySQL SSL
-    if(!empty($outcfg['ssl_ca'])) {
-      // mysqli supports SSL configuration
-      $cargs['ssl_ca'] = $outcfg['ssl_ca'];
-    }
-    
-    $this->outconn = DriverManager::getConnection($cargs, $outconfig);
-    $this->outdriver = $cargs['driver'];
-    
+    $this->inconn = DBALConnection::factory($io, 'transmogrify');
+    $this->outconn = DBALConnection::factory($io, 'default');
+
     // We accept a list of table names, mostly for testing purposes
     $atables = $args->getArguments();
     
-    $schemaPrefix = '';
-    
-    if($this->outdriver == 'mysqli') {
-      // We prefix the database to the table to avoid having to quote table names
-      // that match (MySQL) reserved keywords (in particular "groups"). While
-      // theoretically Postgres supports the same notation, it seems to cause
-      // more problems than it solves.
-      
-      $schemaPrefix = $outcfg['database'] . '.';
-    }
-    
     // Register the current version for future upgrade purposes
-    
     $targetVersion = rtrim(file_get_contents(CONFIG . DS . "VERSION"));
     
     $metaTable = $this->getTableLocator()->get('Meta');
@@ -610,9 +549,10 @@ class TransmogrifyCommand extends Command {
         $this->$p();
       }
       
-      $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $this->tables[$t]['source']);
+      $qualifiedTableName = $this->inconn->qualifyTableName($this->tables[$t]['source']);
+      $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $qualifiedTableName);
       
-      $insql = "SELECT * FROM " . $this->tables[$t]['source'] . " ORDER BY id ASC";
+      $insql = "SELECT * FROM " . $qualifiedTableName . " ORDER BY id ASC";
       $stmt = $this->inconn->executeQuery($insql);
 
       // Check if the table contains data
@@ -650,7 +590,8 @@ class TransmogrifyCommand extends Command {
           
           $this->mapFields($t, $row);
           
-          $this->outconn->insert($schemaPrefix.$t, $row);
+          $qualifiedTableName = $this->outconn->qualifyTableName($t);
+          $this->outconn->insert($qualifiedTableName, $row);
           
           $this->cacheResults($t, $row);
           
@@ -695,17 +636,18 @@ class TransmogrifyCommand extends Command {
       $io->out("<error>(Errors: " . $err . ")</error>");
 
       // Reset sequence to next value after current max.
-      $max = $this->outconn->fetchOne('SELECT MAX(id) FROM ' . $t);
+      $qualifiedTableName = $this->outconn->qualifyTableName($t);
+      $max = $this->outconn->fetchOne('SELECT MAX(id) FROM ' . $qualifiedTableName);
       $max++;
-      $this->io->info("Resetting sequence for $t to $max");
+      $this->io->info("Resetting sequence for $qualifiedTableName to $max");
       
       // Strictly speaking we should use prepared statements, but we control the
       // data here, and also we're executing a maintenance operation (so query
       // optimization is less important)
-      if($this->outdriver == 'mysqli') {
-        $outsql = "ALTER TABLE `" . $t . "` AUTO_INCREMENT = " . $max;
+      if($this->outconn->isMySQL()) {
+        $outsql = "ALTER TABLE $qualifiedTableName AUTO_INCREMENT = " . $max;
       } else {
-        $outsql = "ALTER SEQUENCE " . $t . "_id_seq RESTART WITH " . $max;
+        $outsql = "ALTER SEQUENCE " . $qualifiedTableName . "_id_seq RESTART WITH " . $max;
       }
       $this->outconn->executeQuery($outsql);
       
@@ -812,7 +754,7 @@ class TransmogrifyCommand extends Command {
         // this issue: https://github.com/doctrine/dbal/issues/1847
         // We need to (more generically than this hack) convert from boolean to char
         // to avoid errors on insert
-        if($this->outdriver == 'mysqli') {
+        if($this->outconn->isMySQL()) {
           $row[$a] = ($row[$a] ? '1' : '0');
         } else {
           $row[$a] = ($row[$a] ? 't' : 'f');
@@ -1068,7 +1010,9 @@ class TransmogrifyCommand extends Command {
         $this->fixBooleans('identifiers', $copiedRow);
         
         try {
-          $this->outconn->insert('identifiers', $copiedRow);
+          $tableName = 'identifiers';
+          $qualifiedTableName = $this->outconn->qualifyTableName($tableName);
+          $this->outconn->insert($qualifiedTableName, $copiedRow);
         } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
           $this->io->warning("record already exists: " . print_r($copiedRow, true));
         }
@@ -1151,7 +1095,9 @@ class TransmogrifyCommand extends Command {
       $this->io->info('Populating org identity map...');
       
       // We pull deleted rows because we might be migrating deleted rows
-      $mapsql = "SELECT * FROM cm_co_org_identity_links";
+      $tableName = "cm_co_org_identity_links";
+      $qualifiedTableName = $this->inconn->qualifyTableName($tableName);
+      $mapsql = "SELECT * FROM $qualifiedTableName";
       $stmt = $this->inconn->query($mapsql);
       
       while($r = $stmt->fetch()) {
@@ -1254,7 +1200,9 @@ class TransmogrifyCommand extends Command {
     // First, pull the old Extended Attribute configuration.
     $extendedAttrs = [];
     
-    $insql = "SELECT * FROM cm_co_extended_attributes ORDER BY id ASC";
+    $tableName = "cm_co_extended_attributes";
+    $qualifiedTableName = $this->inconn->qualifyTableName($tableName);
+    $insql = "SELECT * FROM $qualifiedTableName ORDER BY id ASC";
     $stmt = $this->inconn->query($insql);
     
     while($row = $stmt->fetch()) {
@@ -1267,7 +1215,9 @@ class TransmogrifyCommand extends Command {
     }
     
     foreach(array_keys($extendedAttrs) as $coId) {
-      $insql = "SELECT * FROM cm_co" . $coId . "_person_extended_attributes";
+      $tableName = "cm_co" . $coId . "_person_extended_attributes";
+      $qualifiedTableName = $this->inconn->qualifyTableName($tableName);
+      $insql = "SELECT * FROM $qualifiedTableName";
       $stmt = $this->inconn->query($insql);
       
       while($eaRow = $stmt->fetch()) {
@@ -1288,7 +1238,9 @@ class TransmogrifyCommand extends Command {
             $this->fixBooleans('ad_hoc_attributes', $adhocRow);
 
             try {
-              $this->outconn->insert('ad_hoc_attributes', $adhocRow);
+              $tableName = 'ad_hoc_attributes';
+              $qualifiedTableName = $this->outconn->qualifyTableName($tableName);
+              $this->outconn->insert($qualifiedTableName, $adhocRow);
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
               $this->io->warning("record already exists: " . print_r($adhocRow, true));
             }
@@ -1346,6 +1298,8 @@ class TransmogrifyCommand extends Command {
     // Since we're creating a new row, we have to manually fix up booleans
     $roleRow['deleted'] = ($roleRow['deleted'] ? 't' : 'f');
     
-    $this->outconn->insert('external_identity_roles', $roleRow);
+    $tableName = 'external_identity_roles';
+    $qualifiedTableName = $this->outconn->qualifyTableName($tableName);
+    $this->outconn->insert($qualifiedTableName, $roleRow);
   }
 }

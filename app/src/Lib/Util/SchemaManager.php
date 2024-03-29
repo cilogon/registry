@@ -30,10 +30,7 @@ declare(strict_types = 1);
 namespace App\Lib\Util;
 
 use Cake\Console\ConsoleIo;
-use Cake\Datasource\ConnectionInterface;
-use Cake\Datasource\ConnectionManager;
 
-use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
@@ -49,14 +46,11 @@ use Doctrine\DBAL\Schema\SchemaDiff;
 class SchemaManager {
   use \App\Lib\Traits\LabeledLogTrait;
 
-  // If we're in DatabaseCommand, the Console for output
+  // Console for output
   protected $io = null;
 
   // The database connection
   protected $conn = null;
-
-  // The database driver in use
-  protected $driver = null;
 
   // The column library from the main config
   protected $columnLibrary = null;
@@ -70,34 +64,11 @@ class SchemaManager {
    */
 
   public function __construct(?ConsoleIo $io=null, string $connection='default') {
-    if($io) $this->io = $io;
-
-    // Use the ConnectionManager to get the database config to pass to DBAL.
-    $db = ConnectionManager::get($connection);
-    
-    // $db is a ConnectionInterface object
-    $cfg = $db->config();
-    
-    $config = new \Doctrine\DBAL\Configuration();
-    
-    $cfargs = [
-      'dbname'   => $cfg['database'],
-      'user'     => $cfg['username'],
-      'password' => $cfg['password'],
-      'host'     => $cfg['host'],
-      'driver'   => ($cfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
-    ];
-    
-    // For MySQL SSL
-    if(!empty($cfg['ssl_ca'])) {
-      $cfargs['ssl_ca'] = $cfg['ssl_ca'];
+    if($io) {
+      $this->io = $io;
     }
-    
-    if($this->io) $this->io->out("Connecting to database " . $cfg['database'] . " as " 
-                                  . $cfg['username'] . "@" . $cfg['host']);
-    
-    $this->conn = DriverManager::getConnection($cfargs, $config);
-    $this->driver = $cfg['driver'];
+
+    $this->conn = DBALConnection::factory($io, $connection);
   }
 
   /**
@@ -179,11 +150,12 @@ class SchemaManager {
     string  $tablePrefix=""
   ) {
     $schema = new Schema();
-    
+
     // Walk through $schemaConfig and build our schema in DBAL format.
     
     foreach($schemaConfig->tables as $tName => $tCfg) {
-      $table = $schema->createTable($tablePrefix.$tName);
+      $qualifiedTableName = $this->conn->qualifyTableName($tablePrefix.$tName);
+      $table = $schema->createTable($qualifiedTableName);
       
       foreach($tCfg->columns as $cName => $cCfg) {
         // We allow "inherited" definitions from the fieldLibrary, so merge together
@@ -222,7 +194,8 @@ class SchemaManager {
         }
         
         if(isset($colCfg->foreignkey)) {
-          $table->addForeignKeyConstraint($tablePrefix.$colCfg->foreignkey->table,
+          $foreignTableName = $this->conn->qualifyTableName($tablePrefix.$colCfg->foreignkey->table);
+          $table->addForeignKeyConstraint($foreignTableName,
                                           [$cName],
                                           [$colCfg->foreignkey->column],
                                           [],
@@ -242,10 +215,11 @@ class SchemaManager {
         foreach($tCfg->mvea as $m) {
           $mColumn = $m . "_id";
           $fkTable = \Cake\Utility\Inflector::tableize($m);
+          $foreignTableName = $this->conn->qualifyTableName($tablePrefix.$fkTable);
           
           // Insert a foreign key to this model and index it
           $table->addColumn($mColumn, "integer", ['notnull' => false]);
-          $table->addForeignKeyConstraint($tablePrefix.$fkTable, [$mColumn], ['id'], [], $tablePrefix.$tName . "_" . $mColumn . "_fkey");
+          $table->addForeignKeyConstraint($foreignTableName, [$mColumn], ['id'], [], $tablePrefix.$tName . "_" . $mColumn . "_fkey");
           $table->addIndex([$mColumn], $tablePrefix.$tName . "_im" . $i++);
         }
 
@@ -279,10 +253,11 @@ class SchemaManager {
       
       if(isset($tCfg->sourced) && $tCfg->sourced) {
         $sColumn = "source_" . $tablePrefix.\Cake\Utility\Inflector::singularize($tName) . "_id";
+        $foreignTableName = $this->conn->qualifyTableName($tablePrefix.$tName);
         
         // Insert a foreign key to this model and index it
         $table->addColumn($sColumn, "integer", ['notnull' => false]);
-        $table->addForeignKeyConstraint($tablePrefix.$tName, [$sColumn], ['id'], [], $tablePrefix.$tName . "_" . $sColumn . "_fkey");
+        $table->addForeignKeyConstraint($foreignTableName, [$sColumn], ['id'], [], $tablePrefix.$tName . "_" . $sColumn . "_fkey");
         $table->addIndex([$sColumn], $tablePrefix.$tName . "_im" . $i++);
       }
       
@@ -335,7 +310,7 @@ class SchemaManager {
       foreach($diffSql as $sql) {
         if($this->io) $this->io->out($sql);
         
-        if($this->driver == 'Cake\Database\Driver\Postgres'
+        if($this->conn->driver == 'Cake\Database\Driver\Postgres'
            && preg_match("/^DROP SEQUENCE [a-z]*_id_seq/", $sql)) {
           // Remove the DROP SEQUENCE statements in $fromSql because they're Postgres automagic
           // being misinterpreted. (Note toSaveSql might mask this now.)
@@ -360,4 +335,5 @@ class SchemaManager {
     // bin/cake schema_cache build --connection default
     // but so far we don't have an example indicating it's needed.
   }
+
 }
