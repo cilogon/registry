@@ -535,47 +535,72 @@ class TransmogrifyCommand extends Command {
     $metaTable->setUpgradeVersion($targetVersion, true);
     
     foreach(array_keys($this->tables) as $t) {
-      // If we were given a list of tables see if this table is in the list
+      // If the command line args include a list of tables skip this table
+      // if it is not in that list.
       if(!empty($atables) && !in_array($t, $atables))
         continue;
       
-      $io->info(Inflector::classify($t) . "(" . $t . ")");
+      $io->info(message: sprintf("Transmogrifying table %s(%s)", Inflector::classify($t), $t));
+
+      // Find the maximum id in the inbound table and reset the sequence for the outbound
+      // table to be that value plus one so that as we process the rows any entirely new rows
+      // inserted (entirely new rows have no existing id and will be given the id by the
+      // auto sequence) do not have a primary key id that conflicts with an existing row
+      // from the inbound table.
+      $qualifiedTableName = $this->inconn->qualifyTableName($this->tables[$t]['source']);
+      $maxId = $this->inconn->fetchOne('SELECT MAX(id) FROM ' . $qualifiedTableName);
+      $maxId++;
+
+      $qualifiedTableName = $this->outconn->qualifyTableName($t);
+      $this->io->info("Resetting sequence for $qualifiedTableName to $maxId");
+
+      // Strictly speaking we should use prepared statements, but we control the
+      // data here, and also we're executing a maintenance operation (so query
+      // optimization is less important).
+      if($this->outconn->isMySQL()) {
+        $outsql = "ALTER TABLE $qualifiedTableName AUTO_INCREMENT = " . $maxId;
+      } else {
+        $outsql = "ALTER SEQUENCE " . $qualifiedTableName . "_id_seq RESTART WITH " . $maxId;
+      }
+      $this->outconn->executeQuery($outsql);
       
-      // Run any pre processing functions for the table.
-      
+      // Run any preprocessing functions for the table.
       if(!empty($this->tables[$t]['preTable'])) {
         $p = $this->tables[$t]['preTable'];
         
         $this->$p();
       }
       
-      $qualifiedTableName = $this->inconn->qualifyTableName($this->tables[$t]['source']);
-      $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $qualifiedTableName);
-      
-      $insql = "SELECT * FROM " . $qualifiedTableName . " ORDER BY id ASC";
-      $stmt = $this->inconn->executeQuery($insql);
-
-      // Check if the table contains data
+      // Check if the outbound table contains any rows and skip the table if it does.
       $Model = $this->getTableLocator()->get($t);
       if($Model->find()->count() > 0) {
         $io->warning("Skipping Transmogrification. Table (" . $t . ") is not empty. Drop the database (or truncate) and start over.");
         continue;
       }
       
+      // Count the rows in the inbound table so that we can log the percentage processed.
+      $qualifiedTableName = $this->inconn->qualifyTableName($this->tables[$t]['source']);
+      $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $qualifiedTableName);
+
+      // Select all the rows from the inbound table.
+      $insql = "SELECT * FROM " . $qualifiedTableName . " ORDER BY id ASC";
+      $stmt = $this->inconn->executeQuery($insql);
+
       $tally = 0;
       $warns = 0;
       $err = 0;
       
+      // Loop over each row from the inbound table.
       while($row = $stmt->fetch()) {
         if(!empty($row[ $this->tables[$t]['displayField'] ])) {
           $io->verbose("$t " . $row[ $this->tables[$t]['displayField'] ]);
         }
 
         try {
-          // Make a copy of the original data for any post processing followups
+          // Make a copy of the original data for any postprocessing followups.
           $origRow = $row;
           
-          // Run any pre processing functions for the row.
+          // Run any preprocessing functions for the row.
           
           if(!empty($this->tables[$t]['preRow'])) {
             $p = $this->tables[$t]['preRow'];
@@ -635,21 +660,6 @@ class TransmogrifyCommand extends Command {
       $io->out("<warning>(Warnings: " . $warns . ")</warning>");
       $io->out("<error>(Errors: " . $err . ")</error>");
 
-      // Reset sequence to next value after current max.
-      $qualifiedTableName = $this->outconn->qualifyTableName($t);
-      $max = $this->outconn->fetchOne('SELECT MAX(id) FROM ' . $qualifiedTableName);
-      $max++;
-      $this->io->info("Resetting sequence for $qualifiedTableName to $max");
-      
-      // Strictly speaking we should use prepared statements, but we control the
-      // data here, and also we're executing a maintenance operation (so query
-      // optimization is less important)
-      if($this->outconn->isMySQL()) {
-        $outsql = "ALTER TABLE $qualifiedTableName AUTO_INCREMENT = " . $max;
-      } else {
-        $outsql = "ALTER SEQUENCE " . $qualifiedTableName . "_id_seq RESTART WITH " . $max;
-      }
-      $this->outconn->executeQuery($outsql);
       
       // Run any post processing functions for the table.
       if(!empty($this->tables[$t]['postTable'])) {
