@@ -136,8 +136,9 @@ class DBALConnection extends Connection {
   public function qualifyTableName($tableName) {
     switch ($this->driver) {
       case 'Cake\Database\Driver\Postgres':
+        $qualifiedTableName = $tableName;
         if($this->pgSchema) {
-          $qualifiedTableName = $this->pgSchema . '.' . $tableName;
+          $qualifiedTableName = $this->pgSchema . '.' . $qualifiedTableName;
         }
         break;
 
