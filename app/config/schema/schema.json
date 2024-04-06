@@ -595,6 +595,7 @@
         "identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": false },
         "login": { "type": "boolean" },
         "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": false },
+        "allow_empty": { "type": "boolean" },
         "ordr": {}
       },
       "indexes": {

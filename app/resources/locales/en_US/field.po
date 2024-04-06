@@ -423,6 +423,12 @@ msgstr "{0} Owners"
 msgid "Groups.owners_group_id"
 msgstr "Owners Group"
 
+msgid "IdentifierAssignments.allow_empty"
+msgstr "Allow Empty"
+
+msgid "IdentifierAssignments.allow_empty.desc"
+msgstr "If set and the Identifier Assignment does not generate an Identifier, Pipeline processing will be allowed to continue"
+
 msgid "IdentifierAssignments.email_address_type_id"
 msgstr "Email Address Type"
 

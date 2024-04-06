@@ -221,7 +221,16 @@ class IdentifierAssignmentsTable extends Table {
         catch(\Exception $e) {
           $this->llog('debug', "Identifier '".$ia->description."' assignment failed for $entityType $entityId: " . $e->getMessage());
           $ret['errors'][$ia->description] = $e->getMessage();
-          $cxn->rollback();
+
+          if(isset($ia->allow_empty) && $ia->allow_empty) {
+            // Failure of this Identifier Assignment does not throw an Exception,
+            // but we'll report it in the error set since we don't have another place
+            // to put it
+            $this->llog('debug', "Identifier '".$ia->description."' assignment allow_empty is true, will not rollback");
+          } else {
+            // Failure of this Identifier Assignment will cause (eg) a Pipeline to fail
+            $cxn->rollback();
+          }
         }
       } else {
         $this->llog('trace', "Identifier '".$ia->description."' already assigned for $entityType $entityId");
