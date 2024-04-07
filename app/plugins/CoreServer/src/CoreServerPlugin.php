@@ -26,6 +26,19 @@ class CoreServerPlugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
+        try {
+            // Load the OracleDriver plugin if Oracle support is enabled. We require
+            // the enable flag so we don't have to try loading the plugin on every
+            // page load when most deployments aren't going to have it.
+            $oracleEnabled = \Cake\Core\Configure::read('registry.database.oracle.enable');
+
+            if($oracleEnabled === true) {
+                $app->addPlugin(\CakeDC\OracleDriver\Plugin::class, ['bootstrap' => true]);
+            }
+        }
+        catch(\Error $e) {
+            debug($e);
+        }
     }
 
     /**

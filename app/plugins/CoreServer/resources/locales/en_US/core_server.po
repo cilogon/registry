@@ -37,12 +37,17 @@ msgstr "MS SQL Server"
 msgid "enumeration.RdbmsTypeEnum.MY"
 msgstr "MySQL"
 
-# XXX Not yet supported
-#msgid "enumeration.RdbmsTypeEnum.OR"
-#msgstr "Oracle"
+msgid "enumeration.RdbmsTypeEnum.OR"
+msgstr "Oracle"
 
 msgid "enumeration.RdbmsTypeEnum.PG"
 msgstr "Postgres"
+
+msgid "error.SqlServers.oracle.enabled"
+msgstr "Oracle support is not enabled"
+
+msgid "error.SqlServers.oracle.plugin"
+msgstr "OracleClient plugin is not loaded"
 
 msgid "field.SqlServers.databas"
 msgstr "Database Name"
@@ -53,6 +58,12 @@ msgstr "Hostname"
 # XXX Temporary?
 msgid "field.SqlServers.password"
 msgstr "Password"
+
+msgid "field.SqlServers.port"
+msgstr "Port"
+
+msgid "field.SqlServers.port.desc"
+msgstr "Specify the port only if a non-standard port number is in use"
 
 msgid "field.SqlServers.type"
 msgstr "RDBMS Type"

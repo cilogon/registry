@@ -12,6 +12,7 @@
           "server_id": {},
           "type": { "type": "string", "size": 2 },
           "hostname": { "type": "string", "size": 128 },
+          "port": { "type": "integer" },
           "databas": { "type": "string", "size": 128 },
           "username": { "type": "string", "size": 128 },
           "password": { "type": "string", "size": 80 }

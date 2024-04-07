@@ -37,9 +37,7 @@ class RdbmsTypeEnum extends StandardEnum {
   // This currently aligns with Cake supported servers
   const MariaDB   = 'MA';
   const MySQL     = 'MY';
-// XXX Oracle requires a community plugin: https://github.com/CakeDC/cakephp-oracle-driver
-// We could maybe ship with this?
-  // const Oracle    = 'OR';
+  const Oracle    = 'OR';
   const Postgres  = 'PG';
   const SQLite    = 'LT';
   const SqlServer = 'MS';

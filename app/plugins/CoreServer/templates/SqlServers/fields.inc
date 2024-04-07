@@ -31,6 +31,8 @@ if($vv_action == 'edit') {
   
   print $this->Field->control('hostname');
 
+  print $this->Field->control('port');
+
   print $this->Field->control('databas');
 
   print $this->Field->control('username');

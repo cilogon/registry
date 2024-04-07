@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace CoreServer\Model\Table;
 
+use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
@@ -94,6 +95,24 @@ class SqlServersTable extends Table {
   }
 
   /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // This is not an Application Rule per se, but the Oracle plugin must
+    // be enabled if the Server Type is set to Oracle.
+    $rules->add([$this, 'ruleOracleEnabled'],
+                'oracleEnabled',
+                ['errorField' => 'type']);
+
+    return $rules;
+  }
+
+  /**
    * Establish a connection (via Cake's ConnectionManager) to the specified SQL server.
    *
    * @since  COmanage Registry v5.0.0
@@ -115,6 +134,7 @@ class SqlServersTable extends Table {
     $dbmap = [
       RdbmsTypeEnum::MariaDB    => 'Mysql',
       RdbmsTypeEnum::MySQL      => 'Mysql',
+      RdbmsTypeEnum::Oracle     => 'Oracle',
       RdbmsTypeEnum::Postgres   => 'Postgres',
       RdbmsTypeEnum::SQLite     => 'Sqlite',
       RdbmsTypeEnum::SqlServer  => 'Sqlserver'
@@ -133,10 +153,65 @@ class SqlServersTable extends Table {
       'timezone'          => 'UTC'
     ];
 
+    if(!empty($server->sql_server->port) && is_numeric($server->sql_server->port)) {
+      $dbconfig['port'] = $server->sql_server->port;
+    }
+    
+    if($server->sql_server->type == RdbmsTypeEnum::Oracle) {
+      $oracleEnabled = \Cake\Core\Configure::read('registry.database.oracle.enable');
+
+      if($oracleEnabled) {
+        // We don't test that the plugin is available here, an error should be thrown
+        // when we try to connect.
+
+        $dbconfig['className'] = 'CakeDC\OracleDriver\Database\OracleConnection';
+        $dbconfig['driver'] = 'CakeDC\OracleDriver\Database\Driver\OracleOCI'; # For OCI8
+
+        // Use 'CakeDC\\OracleDriver\\Database\\Driver\\OraclePDO' for PDO_OCI, but CakeDC
+        // recommends OCI8
+        // The plugin documentation says certain features are enabled at v12, so we hard
+        // code that version to simplify configuration. As of this writing, Oracle 11g
+        // is the oldest supported version, but 12c dates back to July 2013, so it seems
+        // reasonable to require v12 (at least for now). Note Oracle changed their release
+        // numbers to be based on calendar years, retroactively assigning 18c (12.2.0.2)
+        // and 19c (12.2.0.3), so this approach should work at least for those versions.
+        // Since semantic versioning is not being used, it's unclear when backwards
+        // incompatible changes might be introduced, or if the CakeDC plugin even cares.
+        $dbconfig['server_version'] = 12;
+      }
+    }
+
     // We need to drop the existing configuration before we can reconfigure it
     ConnectionManager::drop($name);
 
     ConnectionManager::setConfig($name, $dbconfig);
+
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if Oracle is enabled (if selected).
+   *
+   * @since  COmanage Registyr v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return mixed            true if the Rule check passes, or an error string otherwise
+   */
+
+  public function ruleOracleEnabled($entity, $options) {
+    if($entity->type == RdbmsTypeEnum::Oracle) {
+      $oracleEnabled = \Cake\Core\Configure::read('registry.database.oracle.enable');
+
+      if(!$oracleEnabled) {
+        return __d('core_server', 'error.SqlServers.oracle.enabled');
+      }
+
+      $pluginLoaded = Plugin::isLoaded('OracleDriver');
+
+      if(!$pluginLoaded) {
+        return __d('core_server', 'error.SqlServers.oracle.plugin');
+      }
+    }
 
     return true;
   }
@@ -164,6 +239,11 @@ class SqlServersTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'hostname', true);
 
+    $validator->add('port', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('port');
+    
     $this->registerStringValidation($validator, $schema, 'databas', true);
 
     $this->registerStringValidation($validator, $schema, 'username', false);
