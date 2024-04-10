@@ -40,6 +40,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use \App\Lib\Util\PaginatedSqlIterator;
 use \App\Lib\Util\DBALConnection;
+use \App\Lib\Util\TransmogrifyUtilities;
 
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 
@@ -118,7 +119,8 @@ class TransmogrifyCommand extends Command {
     ],
     'cous' => [
       'source' => 'cm_cous',
-      'displayField' => 'name'
+      'displayField' => 'name',
+      'sqlSelect' => 'couSqlSelect'
     ],
     //'dashboards' => [ 'source' => 'cm_co_dashboards' ]
     'people' => [
@@ -466,6 +468,26 @@ class TransmogrifyCommand extends Command {
   }
 
   /**
+   * Return SQL used to select COUs from inbound database.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $tableName Name of the SQL table
+   * @return string SQL string to select rows from inbound database
+   */
+
+  protected function couSqlSelect(string $tableName): string {
+    if($this->inconn->isMySQL()) {
+      $sqlTemplate = TransmogrifyUtilities::COU_SQL_SELECT_TEMPLATE_MYSQL;
+    } else {
+      $sqlTemplate = TransmogrifyUtilities::COU_SQL_SELECT_TEMPLATE_POSTGRESQL;
+    }
+
+    $sql = str_replace('{table}', $tableName, $sqlTemplate);
+
+    return $sql;
+  }
+
+  /**
    * Create an Owners Group for an existing Group.
    *
    * @since  COmanage Registry v5.0.0
@@ -583,7 +605,12 @@ class TransmogrifyCommand extends Command {
       $count = $this->inconn->fetchOne("SELECT COUNT(*) FROM " . $qualifiedTableName);
 
       // Select all the rows from the inbound table.
-      $insql = "SELECT * FROM " . $qualifiedTableName . " ORDER BY id ASC";
+      if(!empty($this->tables[$t]['sqlSelect'])) {
+        $p = $this->tables[$t]['sqlSelect'];
+        $insql = $this->$p($qualifiedTableName);
+      } else {
+        $insql = "SELECT * FROM " . $qualifiedTableName . " ORDER BY id ASC";
+      }
       $stmt = $this->inconn->executeQuery($insql);
 
       $tally = 0;
