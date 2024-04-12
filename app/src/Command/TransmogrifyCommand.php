@@ -1328,8 +1328,10 @@ class TransmogrifyCommand extends Command {
     // lookup the CO ID in the cache, however by the time we've been called
     // affiliation has been null'd out (since we're moving it to the role row).
     // So shove it back in before calling map_affiliation_type.
-    $row['affiliation'] = $origRow['affiliation'];
-    $roleRow['affiliation_type_id'] = $this->map_affiliation_type($row);
+    if(!empty($origRow['affiliation'])) {
+      $row['affiliation'] = $origRow['affiliation'];
+      $roleRow['affiliation_type_id'] = $this->map_affiliation_type($row);
+    }
     
     // Fix up changelog
     // Since we're creating a new row, we have to manually fix up booleans
