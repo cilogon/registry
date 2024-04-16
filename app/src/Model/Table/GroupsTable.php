@@ -133,7 +133,8 @@ class GroupsTable extends Table {
        // For a regular group, the Owners Group
        'OwnersGroup'
      ]);
-    
+
+    // XXX Also used by SearchBlocks
     $this->setAutoViewVars([
       'statuses' => [
         'type' => 'enum',
@@ -148,7 +149,7 @@ class GroupsTable extends Table {
     $this->setFilterConfig([
       'identifier' => [
         'type' => 'relatedModel',
-        'model' => 'Identifier',
+        'model' => 'Identifiers',
         'active' => true,
         'order' => 4
       ]

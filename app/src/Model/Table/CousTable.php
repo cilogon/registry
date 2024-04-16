@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Lib\Enum\StatusEnum;
+use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -92,8 +94,9 @@ class CousTable extends Table {
     $this->setRequiresCO(true);
 
     $this->setAutoViewVars([
-      'parent_ids' => [
-        'type'  => 'parent'
+      'parentIds' => [
+        'type'  => 'parent'  // Even though the type is parent we refer to the parent_id
+                             // which is an integer
       ]
     ]);
     
@@ -131,6 +134,30 @@ class CousTable extends Table {
                 ['errorField' => 'parent_id']);
     
     return $rules;
+  }
+
+  /**
+   * Get the Parent COU list(Suitable for dropdown)
+   *
+   * @param   int  $coId   CO ID
+   *
+   * @return array    List of [id, name] Parent COUs
+   * @since  COmanage Registry v5.0.0
+   */
+  public function getParents(int $coId): array
+  {
+    $subquery = $this->find();
+    $subquery = $subquery->where(['co_id' => $coId])
+                   ->where(fn(QueryExpression $exp, Query $subquery) => $exp->isNotNull('parent_id'))
+                   ->select(['parent_id'])
+                   ->distinct();
+
+    $query = $this->find('list')
+                  ->where(fn(QueryExpression $exp, Query $query) => $exp->in('id', $subquery))
+                  ->distinct()
+                  ->select(['id', 'name']);
+    $results = $query->toArray();
+    return $results;
   }
   
   /**

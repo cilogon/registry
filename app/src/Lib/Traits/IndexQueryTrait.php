@@ -57,45 +57,65 @@ trait IndexQueryTrait {
       $containClause = $table->getIndexContains();
     }
 
-    // Examples:
-    // 1. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10&extended=PrimaryName,EmailAddresses,Identifiers
-    // 2. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10&extended=on
-    // 2. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10&extended=all
-    // 1. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10
     if($this->request->is('restful')|| $this->request->is('ajax')) {
-      // Restfull and ajax do not include the IndexContains by default.
-      $containClause = [];
-      // Set the extended query param to `on` in order to fetch the indexContains
-      if(
-        $this->request->getQuery('extended') &&
-        filter_var($this->request->getQuery('extended'), FILTER_VALIDATE_BOOLEAN)
-      ) {
-        $containClause = $table->getIndexContains();
-      } elseif(
-        $this->request->getQuery('extended') &&
-        $this->request->getQuery('extended') === 'all'
-      ) {
-        // Get all the associated models
-        $associations = $table->associations();
-        foreach($associations->getIterator() as $a) {
+      $containClause = $this->containClauseFromQueryParams();
+    }
+
+    return empty($containClause) ? $query : $query->contain($containClause);
+  }
+
+
+  /**
+   * Construct the Contain Clause from the query parameters of an AJAX or REST call
+   *
+   *  Examples:
+   *  1. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10&extended=PrimaryName,EmailAddresses,Identifiers
+   *  2. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10&extended=on
+   *  3. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10&extended=all
+   *  4. GET https://example.com/registry-pe/api/v2/people?co_id=2&limit=10
+   *
+   * @return array        Contain Clause
+   * @since  COmanage Registry v5.0.0
+   */
+  public function containClauseFromQueryParams(): array
+  {
+    // $this->name = Models
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+
+    // Restfull and ajax do not include the IndexContains by default.
+    $containClause = [];
+    // Set the extended query param to `on` in order to fetch the indexContains
+    if(
+      $this->request->getQuery('extended') &&
+      filter_var($this->request->getQuery('extended'), FILTER_VALIDATE_BOOLEAN)
+    ) {
+      $containClause = $table->getIndexContains();
+    } elseif(
+      $this->request->getQuery('extended') &&
+      $this->request->getQuery('extended') === 'all'
+    ) {
+      // Get all the associated models
+      $associations = $table->associations();
+      foreach($associations->getIterator() as $a) {
+        $containClause[] = $a->getName();
+      }
+    } elseif (
+      $this->request->getQuery('extended')
+      && \is_string($this->request->getQuery('extended'))
+    ) {
+      // Get ONLY the associated models requested
+      $associations = $table->associations();
+      $containQueryList = str_getcsv($this->request->getQuery('extended'));
+      foreach($associations->getIterator() as $a) {
+        if(\in_array($a->getName(), $containQueryList, true)) {
           $containClause[] = $a->getName();
-        }
-      } elseif (
-        $this->request->getQuery('extended')
-        && \is_string($this->request->getQuery('extended'))
-      ) {
-        // Get ONLY the associated models requested
-        $associations = $table->associations();
-        $containQueryList = str_getcsv($this->request->getQuery('extended'));
-        foreach($associations->getIterator() as $a) {
-          if(\in_array($a->getName(), $containQueryList, true)) {
-            $containClause[] = $a->getName();
-          }
         }
       }
     }
 
-    return empty($containClause) ? $query : $query->contain($containClause);
+    return $containClause;
   }
 
   /**
@@ -115,7 +135,7 @@ trait IndexQueryTrait {
     // PrimaryLinkTrait
     $link = $this->getPrimaryLink(true);
     // Initialize the Query Object
-    $query = $table->find($this->paginate['finder'] ?? 'all');
+    $query = $table->find();
     // Get a pointer to my expressions list
     $newexp = $query->newExpr();
     // The searchable attributes can have an AND or an OR conjunction. The first one is used from the filtering block
@@ -136,7 +156,8 @@ trait IndexQueryTrait {
     // Attributes to search for
     if(method_exists($table, 'getSearchableAttributes')) {
       $searchableAttributes = $table->getSearchableAttributes($this->name,
-                                                              $this->viewBuilder()->getVar('vv_tz'));
+                                                              $this->viewBuilder()
+                                                                   ->getVar('vv_tz'));
 
       if(!empty($searchableAttributes)) {
         $this->set('vv_searchable_attributes', $searchableAttributes);
@@ -165,6 +186,7 @@ trait IndexQueryTrait {
     }
 
     // Filter results that will occur from the searchable attributes
+    // TODO: Move to its own function
     if($pickerMode) {
       // Get only the active People
       // XXX Perhaps we need to make this a configuration

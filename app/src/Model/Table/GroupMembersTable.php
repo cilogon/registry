@@ -52,7 +52,8 @@ class GroupMembersTable extends Table {
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  
+  use \App\Lib\Traits\SearchFilterTrait;
+
   /**
    * Provide the default layout
    *
@@ -127,6 +128,21 @@ class GroupMembersTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+
+      $this->setFilterConfig([
+         'family' => [
+             'type' => 'relatedModel',
+             'model' => 'People.Names',
+             'active' => true,
+             'order' => 2
+         ],
+         'given' => [
+             'type' => 'relatedModel',
+             'model' => 'People.Names',
+             'active' => true,
+             'order' => 1
+         ],
+     ]);
   }
   
   /**

@@ -89,7 +89,7 @@ if(!empty($non_search_params)) {
 $hasActiveFilters = false;
 ?>
 
-<div id="<?= $modelName . ucfirst($this->request->getParam('action')); ?>Search" class="top-filters">
+<div id="<?= $modelName . ucfirst($this->request->getParam('action')) ?>Search" class="top-filters">
   <fieldset>
     <legend id="top-filters-toggle">
       <em class="material-icons top-filters-search-icon" aria-hidden="true">search</em>

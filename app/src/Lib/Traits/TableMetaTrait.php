@@ -73,7 +73,6 @@ trait TableMetaTrait {
       'revision',
       'lft',  // XXX For now i skip lft.rght column for tree structures
       'rght',
-      // 'parent_id', // todo: We need to filter using the parent_id. This should be an enumerator and should apply for all the models that use TreeBehavior
       'api_key',
       // XXX maybe replace this with a regex, source_*_id?
       'source_ad_hoc_attribute_id',
@@ -90,12 +89,24 @@ trait TableMetaTrait {
 
     $newa = array();
     foreach($coltype as $clmn => $type) {
-      if(in_array($clmn, $meta_fields,true)) {
+      // XXX We need to check if the type is an enum or plain string. The enum is a string
+      //     but during filtering we do not use like but eq
+      //     If required we can treat enum types as string types
+
+      $fType = $type;
+      // XXX Cakephp Inflector's camel-case function returns a Pascal case string while the variable function
+      //     returns a camel-case string
+      $viewVarsKey = Inflector::variable(Inflector::pluralize($clmn));
+      if(isset($this->getAutoViewVars()[$viewVarsKey]['type'])) {
+        $fType = $this->getAutoViewVars()[$viewVarsKey]['type'];
+      }
+
+      if(\in_array($clmn, $meta_fields, true)) {
         // Move the value to metadata
-        $newa['meta'][$clmn] = $type;
+        $newa['meta'][$clmn] = $fType;
       } else {
         // Just copy the value
-        $newa[$clmn] = $type;
+        $newa[$clmn] = $fType;
       }
     }
 

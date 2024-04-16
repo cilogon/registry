@@ -165,25 +165,25 @@ class PeopleTable extends Table {
     $this->setFilterConfig([
       'family' => [
         'type' => 'relatedModel',
-        'model' => 'Name',
+        'model' => 'Names',
         'active' => true,
         'order' => 2
       ],
       'given' => [
         'type' => 'relatedModel',
-        'model' => 'Name',
+        'model' => 'Names',
         'active' => true,
         'order' => 1
       ],
       'mail' => [
         'type' => 'relatedModel',
-        'model' => 'EmailAddress',
+        'model' => 'EmailAddresses',
         'active' => true,
         'order' => 3
       ],
       'identifier' => [
         'type' => 'relatedModel',
-        'model' => 'Identifier',
+        'model' => 'Identifiers',
         'active' => true,
         'order' => 4
       ],

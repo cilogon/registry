@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use Bake\Utility\Model\AssociationFilter;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Http\ServerRequest;
 use Cake\ORM\Query;
@@ -60,21 +61,49 @@ trait SearchFilterTrait {
       return $query;
     }
 
-    $changelog_fk = strtolower(Inflector::underscore($this->searchFilters[$attribute]['model'])) . '_id';
-    $fk = strtolower(Inflector::underscore(Inflector::singularize($this->_alias))) . '_id';
-    $mtable_name = Inflector::tableize(Inflector::pluralize($this->searchFilters[$attribute]['model']));
-    $mtable_alias = Inflector::pluralize($this->searchFilters[$attribute]['model']);
+    $parentTable = $this->_alias;
+    $joinAssociations = [];
+    // Iterate over the dot notation and add the joins in the correct order
+    // People.Names
+    foreach (explode('.', $this->searchFilters[$attribute]['model']) as $associationsdModel) {
+      $mtable_name = Inflector::tableize(Inflector::pluralize($associationsdModel));
+      $mtable_alias = Inflector::pluralize($associationsdModel);
 
-    return $query->join([$mtable_alias => [
-      'table' => $mtable_name,
-      'conditions' => [
-        $mtable_alias . '.' . $fk . '=' .  $this->_alias . '.id',
-// XXX Moved to changelong Behavior
-//        $mtable_alias . '.' . 'deleted IS NOT TRUE',
-//        $mtable_alias . '.' . $changelog_fk . ' IS NULL'
-      ],
-      'type' => $joinType
-    ]]);
+      $AssociationFilter = new AssociationFilter();
+      $associatedModel = $AssociationFilter->filterAssociations($this->fetchTable($associationsdModel));
+      $relation = null;
+      $conditions =  [];
+      if(isset($associatedModel['HasOne'])
+         && !empty($associatedModel['HasOne'][$parentTable])
+      ) {
+        $relation = $associatedModel['HasOne'][$parentTable];
+        $conditions[] = $relation['alias'] . '.' . $relation['foreignKey'] . '=' .  $mtable_alias . '.id';
+      } elseif(isset($associatedModel['HasMany'])
+        && !empty($associatedModel['HasMany'][$parentTable])
+      ) {
+        $relation = $associatedModel['HasMany'][$parentTable];
+        $conditions[] = $relation['alias'] . '.' . $relation['foreignKey'] . '=' .  $mtable_alias . '.id';
+      } elseif(isset($associatedModel['BelongsTo'])
+        && !empty($associatedModel['BelongsTo'][$parentTable])
+      ) {
+        $relation = $associatedModel['BelongsTo'][$parentTable];
+        $conditions[] = $relation['alias'] . '.id' . '=' .  $mtable_alias . '.' . $relation['foreignKey'];
+      }
+
+      $joinAssociations[$mtable_alias] = [
+        'table' => $mtable_name,
+        'conditions' => $conditions,
+        'type' => $joinType
+      ];
+
+      $parentTable = $associationsdModel;
+    }
+
+
+    return $query->join($joinAssociations);
+    // XXX We can not use the inenerJoinWith since it applies EagerLoading and includes all the fields which
+    //     causes problems
+//    return $query->innerJoinWith($this->searchFilters[$attribute]['model']);
   }
 
   /**
@@ -93,14 +122,19 @@ trait SearchFilterTrait {
     if (empty($dates[0]) && empty($dates[1])) {
       return $exp;
     }
-    // The starts_at is non-empty. So the data should be greater than the starts_at date
-    if (!empty($dates[0]) && empty($dates[1])) {
-      return $exp->gte("'" . FrozenTime::parse($dates[0]) . "'", $attributeWithModelPrefix);
-    }
-    // The ends_at is non-empty. So the data should be less than the ends_at date
-    if (!empty($dates[1])
-      && empty($dates[0])) {
-      return $exp->lte("'" . FrozenTime::parse($dates[1]) . "'", $attributeWithModelPrefix);
+
+    // The starts_at is empty or the ends_at is empty
+    if (
+      (!empty($dates[0]) && empty($dates[1]))
+      ||
+      (empty($dates[0]) && !empty($dates[1]))
+    ) {
+      $date = empty($dates[0]) ? $dates[1] : $dates[0];
+      if(str_contains($attributeWithModelPrefix, 'valid_from')) {
+        return $exp->gte($attributeWithModelPrefix, FrozenTime::parse($date));
+      } elseif(str_contains($attributeWithModelPrefix, 'valid_through')) {
+        return $exp->lte($attributeWithModelPrefix, FrozenTime::parse($date));
+      }
     }
 
     return $exp->between($attributeWithModelPrefix, "'" . $dates[0] . "'", "'" . $dates[1] . "'");
@@ -125,19 +159,28 @@ trait SearchFilterTrait {
     }
 
     // Prepend the Model name to the attribute
-    $attributeWithModelPrefix = isset($this->searchFilters[$attribute]['model']) ?
-      Inflector::pluralize($this->searchFilters[$attribute]['model']) . '.' . $attribute :
-      $this->_alias . '.' . $attribute;
+    $modelPrefix = $this->_alias;
+    if(isset($this->searchFilters[$attribute]['model'])) {
+      $associationNamesPath = explode('.', $this->searchFilters[$attribute]['model']);
+      $modelPrefix = Inflector::pluralize(end($associationNamesPath));
+    }
+
+    $attributeWithModelPrefix = $modelPrefix . '.' . $attribute;
+
 
     $search = $q;
     // Use the `lower` function to apply uniformity for the search
     $lower = $query->func()->lower([$attributeWithModelPrefix => 'identifier']);
 
+    // XXX Strings and Enums are not treated the same. Enums require an exact match but strings
+    //     are partially/non-case sensitive  matched
     return match ($this->searchFilters[$attribute]['type']) {
       'string'             => $exp->like($lower, strtolower('%' . $search . '%')),
-      'integer', 'boolean' => $exp->add([$attributeWithModelPrefix => $search]),
+      'integer',
+      'boolean',
+      'parent'             => $exp->add([$attributeWithModelPrefix => $search]),
       'date'               => $exp->add([$attributeWithModelPrefix => FrozenTime::parseDate($search, 'y-M-d')]),
-      'timestamp'          => $this->constructDateComparisonClause($search),
+      'timestamp'          => $this->constructDateComparisonClause($exp, $attributeWithModelPrefix, $search),
       default              => $exp->eq($lower, strtolower($search))
     };
   }

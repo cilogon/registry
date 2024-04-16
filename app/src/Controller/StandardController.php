@@ -719,9 +719,7 @@ class StandardController extends AppController {
             $modelsName = $this->name;
             // $table = the actual table object
             $table = $this->$modelsName;
-            // XXX We assume that all models that load the Tree behavior will
-            //     implement a potentialParents method
-            $this->set($vvar, $table->potentialParents($this->getCOID()));
+            $this->set($vvar, $table->getParents($this->getCOID()));
             break;
           case 'plugin':
             $PluginTable = $this->getTableLocator()->get('Plugins');
