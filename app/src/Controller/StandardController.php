@@ -35,7 +35,7 @@ use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
-use \App\Lib\Util\StringUtilities;
+use \App\Lib\Util\{StringUtilities, FunctionUtilities};
 
 class StandardController extends AppController {
   use \App\Lib\Traits\IndexQueryTrait;
@@ -656,13 +656,8 @@ class StandardController extends AppController {
           case 'select':
             $avvmodel = $avv['model'];
             $this->$avvmodel = TableRegistry::getTableLocator()->get($avvmodel);
+            $query = $this->$avvmodel->find($avv['type'] == 'auxiliary' ? 'all' : 'list');
 
-            if($avv['type'] == 'auxiliary') {
-              $query = $this->$avvmodel->find();
-            } else {
-              $query = $this->$avvmodel->find('list');
-            }
-            
             if(!empty($avv['find'])) {
               if($avv['find'] == 'filterPrimaryLink') {
                 // We're filtering the requested model, not our current model.
@@ -693,17 +688,29 @@ class StandardController extends AppController {
                 // Use the specified finder, if configured
                 $query = $query->find($avv['find']);
               }
-            } else {
-// XXX is this the best logic? maybe some relation to filterPrimaryLink?
+            } elseif($table->getSchema()->hasColumn('co_id')) {
+              // XXX is this the best logic? maybe some relation to filterPrimaryLink?
               // By default, filter everything on CO ID
-              
               $avv['where']['co_id'] = $this->getCOID();
               //$query = $query->where([$table->getAlias().'.co_id' => $this->getCOID()]);
             }
-            
+
+            // Where Rule. The rule will be transfered as is
             if(!empty($avv['where'])) {
               // Filter on the specified clause (of the form [column=>value])
               $query = $query->where($avv['where']);
+            }
+
+            // Where rule that will be evaluated. We use the custom whereEvan key to
+            // distinguish from the plain where. Also it might contain more than one conditions
+            if(!empty($avv['whereEval'])) {
+              foreach ($avv['whereEval'] as $whereClauseColumn => $chainedMethodDescription) {
+                $calculatedValue = FunctionUtilities::dynamicChainedFunction(
+                  $this,
+                  $chainedMethodDescription
+                );
+                $query = $query->where([$whereClauseColumn => $calculatedValue]);
+              }
             }
             
             // Sort the list by display field

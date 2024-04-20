@@ -696,6 +696,9 @@ ul.form-list li.alert-banner .co-alert {
   text-transform: uppercase;
   padding: 1em 1.5em;
   color: var(--cmg-color-link) !important;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
 }
 .cm-subnav-links .nav-link {
   color: var(--cmg-color-link) !important;
@@ -705,6 +708,20 @@ ul.form-list li.alert-banner .co-alert {
   color: var(--cmg-color-body-txt) !important;
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-006) var(--cmg-color-bg-006) var(--cmg-color-body-bg) var(--cmg-color-bg-006);
+}
+.tab-count {
+  display: inline-block;
+  margin: -4px 0 -4px 0.5em;
+  padding: 1px 4px;
+  font-size: 0.9em;
+  border: 1px solid var(--cmg-color-link);
+  border-radius: 16px;
+}
+.tab-count-item {
+  display: inline-block;
+}
+.nav-link.active .tab-count {
+  border-color: var(--cmg-color-body-txt);
 }
 .cm-subnav-links ul.list-inline {
   margin: 0.5em 0 0 0;

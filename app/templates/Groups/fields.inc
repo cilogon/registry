@@ -74,7 +74,7 @@ if($vv_action != 'add') {
 
     print $this->Field->statusControl(
       fieldName: 'owners_group_id',
-      status: $vv_obj->owners_group->name,
+      status: $vv_obj->owners_group->name ?? '',
       link: ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]]
     );
   }

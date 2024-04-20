@@ -77,9 +77,9 @@ class GroupNestingsTable extends Table {
     $this->setPrimaryLink('group_id');
     $this->setRequiresCO(true);
 
-    $this->setEditContains(['Groups', 'TargetGroups']);
+    $this->setEditContains(['Groups', 'GroupMembers', 'TargetGroups']);
     
-    $this->setIndexContains(['Groups', 'TargetGroups']);
+    $this->setIndexContains(['Groups', 'GroupMembers', 'TargetGroups']);
     
     $this->setPermissions([
 // XXX update for couAdmins, group owners, etc
@@ -95,6 +95,25 @@ class GroupNestingsTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+
+    $this->setAutoViewVars([
+     'groupMembers' => [
+       'type' => 'auxiliary',
+       'model' => 'GroupMembers',
+       'whereEval' => [
+         // Where Clause column name
+         'GroupMembers.group_id' => [
+           // Chain of methods that will construct the whereClause condition value
+           // Method that accepts no parameters
+           'getRequest',
+           // Method that accepts only one parameter
+           // getQuery(name: 'group_id')
+           'getQuery' => [
+             'name' =>'group_id'
+           ]
+         ]
+       ]
+     ]]);
   }
   
   /**

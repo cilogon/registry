@@ -123,7 +123,8 @@ class GroupsTable extends Table {
       // For an Owners Group, the group it manages owners for
       'OwnersForGroup',
       // For a regular group, the Owners Group
-      'OwnersGroup'
+      'OwnersGroup',
+      'GroupMembers'
     ]);
 
     $this->setViewContains([
@@ -131,7 +132,8 @@ class GroupsTable extends Table {
        // For an Owners Group, the group it manages owners for
        'OwnersForGroup',
        // For a regular group, the Owners Group
-       'OwnersGroup'
+       'OwnersGroup',
+       'GroupMembers'
      ]);
 
     // XXX Also used by SearchBlocks
