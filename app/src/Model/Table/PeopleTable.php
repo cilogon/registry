@@ -164,31 +164,32 @@ class PeopleTable extends Table {
     // XXX expand/revise this as needed to work best with looking up the related models
     $this->setFilterConfig([
       'family' => [
-        'type' => 'relatedModel',
+        'type' => 'string',
         'model' => 'Names',
         'active' => true,
         'order' => 2
       ],
       'given' => [
-        'type' => 'relatedModel',
+        'type' => 'string',
         'model' => 'Names',
         'active' => true,
         'order' => 1
       ],
       'mail' => [
-        'type' => 'relatedModel',
+        'type' => 'string',
         'model' => 'EmailAddresses',
         'active' => true,
         'order' => 3
       ],
       'identifier' => [
-        'type' => 'relatedModel',
+        'type' => 'string',
         'model' => 'Identifiers',
         'active' => true,
         'order' => 4
       ],
       'timezone' => [
         'type' => 'field',
+        'model' => 'People',
         'active' => false,
         'order' => 99
       ]      

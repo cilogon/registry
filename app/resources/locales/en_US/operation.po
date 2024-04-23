@@ -63,6 +63,9 @@ msgstr "Apply Database Schema"
 msgid "assign"
 msgstr "Assign"
 
+msgid "any"
+msgstr "Any"
+
 msgid "cancel"
 msgstr "Cancel"
 
@@ -143,6 +146,9 @@ msgstr "Logout"
 
 msgid "next"
 msgstr "Next"
+
+msgid "none"
+msgstr "None"
 
 msgid "page.display"
 msgstr "Display records"

@@ -43,7 +43,7 @@ class FunctionUtilities {
    *      // Chain of methods
    *      'getRequest',
    *      'getQuery' => [
-   *        // parameter name => parameter value, We are taking advantage the named parameters feature
+   *        // parameter name => parameter value, We are taking advantage of the named parameters feature
    *        'name' =>'group_id'
    *      ],
    *    ]

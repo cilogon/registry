@@ -302,25 +302,16 @@ if(!empty($tabsSupertitle)) {
           <?php
             $linkClass = ($active == 'members') ? 'nav-link active' : 'nav-link';
             $title = __d('controller', 'Members', [99]);
-            $num_group_members = 0;
-            // Group Members tab
-            if(isset($group_members)) {
-              $num_group_members = $this->Paginator->counter('{{count}}');
-            } elseif(isset($groupMembers)) {
-              // Group Nesting
-              $num_group_members = count($groupMembers);
-            } elseif($vv_obj?->group_members) {
-              // Group Properties Tab
-              $num_group_members = count($vv_obj->group_members);
-            }
 
-            $tab_title = "<span class='tab-count'>"
-                         . "<span class='tab-count-item'>{$num_group_members}</span>"
-                       . '</span>'
-                       . "<span class='tab-title'>{$title}</span>";
+            // Create the title with the count badge
+            $title = $this->element('tabs/tabTitleWithCount', [
+              'title' => $title,
+              'model' => 'group_members',
+              'where' => $linkFilter
+            ]);
 
             print $this->Html->link(
-              $tab_title,
+              $title,
               [ 'controller' => 'group_members',
                 'action' => 'index',
                 '?' => $linkFilter

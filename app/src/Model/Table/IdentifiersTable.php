@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Model\Table;
 
 use Cake\Event\EventInterface;
+use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -191,24 +192,43 @@ class IdentifiersTable extends Table {
   /**
    * Look up a Person ID from an identifier and identifier type ID.
    * Only active Identifiers can be used for lookups.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $typeId     Identifier Type ID
-   * @param  string $identifier Identifier
+   *
+   * @param   int       $typeId      Identifier Type ID
+   * @param   string    $identifier  Identifier
+   * @param   int|null  $coId        CO Id
+   * @param   bool      $login       The identifier is login enabled
+   *
    * @return int                Person ID
-   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   * @since  COmanage Registry v5.0.0
    */
 
-  public function lookupPerson(int $typeId, string $identifier): int {
-    $id = $this->find()
-               ->where([
-                'identifier'  => $identifier,
-                'type_id'     => $typeId,
-                'status'      => SuspendableStatusEnum::Active,
-                'person_id IS NOT NULL'
-               ])
-               ->firstOrFail();
-    
+  public function lookupPerson(int $typeId, string $identifier, ?int $coId, bool $login=false): int {
+    $whereClause = [
+      'identifier'  => $identifier,
+      'status'      => SuspendableStatusEnum::Active,
+      'person_id IS NOT NULL'
+    ];
+
+    if($typeId) {
+      $whereClause['type_id'] = $typeId;
+    }
+
+    if($login) {
+      $whereClause['login'] = true;
+    }
+
+    $query = $this->find()
+                  ->where($whereClause);
+
+    if($coId) {
+      $query->matching(
+        'People',
+        fn(QueryExpression $exp, Query $query) => $query->where(['People.co_id' => $coId])
+      );
+    }
+
+    $id = $query->firstOrFail();
+
     return $id->person_id;
   }
 

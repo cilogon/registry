@@ -107,3 +107,6 @@ msgstr "Active, Cannot Be Disabled"
 
 msgid "plugin.inactive"
 msgstr "Inactive"
+
+msgid "table.list"
+msgstr "{0} List"

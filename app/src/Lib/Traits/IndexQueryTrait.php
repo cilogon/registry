@@ -136,7 +136,7 @@ trait IndexQueryTrait {
     $link = $this->getPrimaryLink(true);
     // Initialize the Query Object
     $query = $table->find();
-    // Get a pointer to my expressions list
+    // Get a pointer to my expression list
     $newexp = $query->newExpr();
     // The searchable attributes can have an AND or an OR conjunction. The first one is used from the filtering block
     // while the second one from the picker vue module.
@@ -159,6 +159,8 @@ trait IndexQueryTrait {
                                                               $this->viewBuilder()
                                                                    ->getVar('vv_tz'));
 
+      // Pass any additional field filter confiration in the view
+      $this->set('vv_searchable_attributes_extras', $table->getSearchFiltersExtras());
       if(!empty($searchableAttributes)) {
         $this->set('vv_searchable_attributes', $searchableAttributes);
 
@@ -195,7 +197,7 @@ trait IndexQueryTrait {
       // Specific expressions per view
       $query = match($requestParams['for'] ?? '') {
         // GroupMembers Add view: We need to filter the active members
-        'GroupMembers' => $query->leftJoinWith('GroupMembers', fn($q) => $q->where(['GroupMembers.group_id' => (int)$requestParams['groupid'] ?? -1]))
+        'GroupMembers' => $query->leftJoinWith('GroupMembers', fn($q) => $q->where(['GroupMembers.group_id' => (int)($requestParams['groupid'] ?? -1)]))
                                 ->where($this->getTableLocator()->get('GroupMembers')->checkValidity($query))
                                 ->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('GroupMembers.' . StringUtilities::classNameToForeignKey($table->getAlias()))),
         // Just return the query

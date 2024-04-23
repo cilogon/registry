@@ -716,6 +716,8 @@ ul.form-list li.alert-banner .co-alert {
   font-size: 0.9em;
   border: 1px solid var(--cmg-color-link);
   border-radius: 16px;
+  min-width: 24px;
+  text-align: center;
 }
 .tab-count-item {
   display: inline-block;
@@ -855,7 +857,6 @@ ul.form-list li.alert-banner .co-alert {
 .side-search select {
   width: 100%;
   box-sizing: border-box;
-  margin: 0 0 0.5em 0;
   height: 28px;
   padding: 2px 4px;
   border: 1px solid var(--cmg-color-bg-006);
@@ -864,6 +865,12 @@ ul.form-list li.alert-banner .co-alert {
 }
 .top-filters label {
   margin-bottom: 0;
+}
+.top-search-end-date,
+.top-search-start-date {
+  display: flex;
+  margin-bottom: 0.5em;
+  align-items: center;
 }
 ::-webkit-input-placeholder,
 ::-moz-placeholder,
@@ -963,9 +970,6 @@ ul.form-list li.alert-banner .co-alert {
 .filter-datepicker-lbl {
   white-space: nowrap;
   margin-right: 0.5em;
-}
-.top-filters-fields-date .duet-date__toggle {
-  margin-top: -3px;
 }
 /* PLATFORM NOTICE (for COmanage CO) */
 #platform-notice {
@@ -1447,6 +1451,9 @@ ul.form-list li.info-title {
   display: flex;
   align-items: center;
   margin-left: 2.8em;
+}
+.datepicker-container {
+  display: flex;
 }
 .duet-date__toggle {
   width: 30px;

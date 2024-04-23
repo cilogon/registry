@@ -70,7 +70,19 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
     },
     components: {
       CmDateTimePicker
-    }
+    },
+    template: `
+      <cm-date-time-picker
+        :id="id"
+        :target="target"
+        :date="date"
+        :datemin="datemin"
+        :datemax="datemax"
+        :type="type"
+        :ampm="ampm"
+        :txt="txt">
+      </cm-date-time-picker>
+    `
   });
 
   // Add custom global directives available to all child components.
@@ -92,15 +104,4 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
 
   app.mount("#<?= $pickerId ?>-container");
 </script>
-<div id="<?= $pickerId ?>-container">
-  <cm-date-time-picker
-    :id="id"
-    :target="target"
-    :date="date"
-    :datemin="datemin"
-    :datemax="datemax"
-    :type="type"
-    :ampm="ampm"
-    :txt="txt">
-  </cm-date-time-picker>
-</div>
+<div id="<?= $pickerId ?>-container" class="datepicker-container"></div>

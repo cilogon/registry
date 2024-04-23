@@ -150,7 +150,7 @@ class GroupsTable extends Table {
 
     $this->setFilterConfig([
       'identifier' => [
-        'type' => 'relatedModel',
+        'type' => 'string',
         'model' => 'Identifiers',
         'active' => true,
         'order' => 4

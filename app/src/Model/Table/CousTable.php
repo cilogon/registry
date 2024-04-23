@@ -113,6 +113,29 @@ class CousTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+
+    $this->setFilterConfig([
+     'identifier' => [
+       'type' => 'string',
+       'model' => 'Identifiers',
+       'active' => true,
+       'order' => 4
+     ],
+     'parent_id' => [
+       // We want to keep the default column configuration and add extra functionality.
+       // Here the extra functionality is additional to select options since the parent_id
+       // is of type select
+       // XXX If the extras key is present, no other provided key will be evaluated. The rest
+       //     of the configuration will be expected from the TableMetaTrait::filterMetadataFields()
+       'extras' => [
+         'options' => [
+           'isnotnull' => __d('operation','any'),
+           'isnull' => __d('operation','none'),
+           __d('information','table.list', 'COUs') => '@DATA@',
+         ]
+       ]
+     ]
+   ]);
   }
   
   /**

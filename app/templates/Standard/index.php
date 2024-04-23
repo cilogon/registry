@@ -180,7 +180,7 @@ if(!empty($subnav)) {
       $filterArgs['indexColumns'] = $indexColumns;
     }
   ?>
-  <?= $this->element('filter', $filterArgs); ?>
+  <?= $this->element('filter/filter', $filterArgs); ?>
 <?php endif; ?>
 
 <!-- Index table -->

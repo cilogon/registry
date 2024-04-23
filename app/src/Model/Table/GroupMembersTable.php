@@ -131,13 +131,13 @@ class GroupMembersTable extends Table {
 
       $this->setFilterConfig([
          'family' => [
-             'type' => 'relatedModel',
+             'type' => 'string',
              'model' => 'People.Names',
              'active' => true,
              'order' => 2
          ],
          'given' => [
-             'type' => 'relatedModel',
+             'type' => 'string',
              'model' => 'People.Names',
              'active' => true,
              'order' => 1

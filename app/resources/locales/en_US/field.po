@@ -107,6 +107,9 @@ msgstr "Email"
 msgid "ends_at"
 msgstr "Ends at:"
 
+msgid "ends_at.tz"
+msgstr "Ends at ({0})"
+
 msgid "extension"
 msgstr "Extension"
 
@@ -242,6 +245,9 @@ msgstr "Sponsor"
 
 msgid "starts_at"
 msgstr "Starts at:"
+
+msgid "starts_at.tz"
+msgstr "Starts at ({0})"
 
 msgid "state"
 msgstr "State"

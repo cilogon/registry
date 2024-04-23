@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use App\Lib\Util\StringUtilities;
 use Bake\Utility\Model\AssociationFilter;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Http\ServerRequest;
@@ -37,9 +38,25 @@ use Cake\Utility\Inflector;
 use Cake\I18n\FrozenTime;
 
 trait SearchFilterTrait {
-  // Array (and configuration) of permitted search filters
+  /**
+   * Array (and configuration) of permitted search filters
+   *
+   * @var array
+   */
   private array $searchFilters = [];
-  // Optional filter configuration that dictates display state and allows for related models
+
+  /**
+   * Extra Configurations for each filter
+   *
+   * @var array
+   */
+  private array $searchFiltersExtras = [];
+
+  /**
+   * Optional filter configuration that dictates display state and allows for related models
+   *
+   * @var array
+   */
   private array $filterConfig = [];
 
   /**
@@ -167,21 +184,30 @@ trait SearchFilterTrait {
 
     $attributeWithModelPrefix = $modelPrefix . '.' . $attribute;
 
-
     $search = $q;
-    // Use the `lower` function to apply uniformity for the search
-    $lower = $query->func()->lower([$attributeWithModelPrefix => 'identifier']);
+
+    // Handle special expression functions here
+    if(\in_array($search, ['isnull', 'isnotnull'])) {
+      return match($search) {
+        'isnull'    => $exp->isNull($attributeWithModelPrefix),
+        'isnotnull' => $exp->isNotNull($attributeWithModelPrefix)
+      };
+    }
+
 
     // XXX Strings and Enums are not treated the same. Enums require an exact match but strings
-    //     are partially/non-case sensitive  matched
+    //     are partially/non-case sensitive matched
     return match ($this->searchFilters[$attribute]['type']) {
-      'string'             => $exp->like($lower, strtolower('%' . $search . '%')),
+      // Use the `lower` function to apply uniformity for the search
+      'string'             => $exp->like($query->func()->lower([$attributeWithModelPrefix => 'identifier']),
+                                         strtolower('%' . $search . '%')),
       'integer',
       'boolean',
       'parent'             => $exp->add([$attributeWithModelPrefix => $search]),
       'date'               => $exp->add([$attributeWithModelPrefix => FrozenTime::parseDate($search, 'y-M-d')]),
       'timestamp'          => $this->constructDateComparisonClause($exp, $attributeWithModelPrefix, $search),
-      default              => $exp->eq($lower, strtolower($search))
+      default              => $exp->eq($query->func()->lower([$attributeWithModelPrefix => 'identifier']),
+                                       strtolower($search))
     };
   }
 
@@ -209,16 +235,24 @@ trait SearchFilterTrait {
     // Gather up related models defined in the $filterConfig
     // XXX For now, we'll list these first - but we should probably provide a better way to order these.
     foreach ($filterConfig as $field => $f) {
-      if($f['type'] == 'relatedModel') {
-        $fieldName = Inflector::classify(Inflector::underscore($field));
-        $this->searchFilters[$field] = [
-          'type' => 'string', // XXX for now - this needs to be looked up.
-          'label' => \App\Lib\Util\StringUtilities::columnKey($fieldName, $field, $vv_tz, true),
-          'active' => $f['active'] ?? true,
-          'model' => $f['model'],
-          'order' => $f['order']
-        ];
+      $fieldName = Inflector::classify(Inflector::underscore($field));
+
+      if(isset($f['extras'])) {
+        $this->searchFiltersExtras[$field] = $f['extras'];
+        continue;
       }
+
+      $filterType = $f['type'] ?? 'string';
+      if(\in_array($f['type'], ['isNull', 'isNotNull'])) {
+        $filterType = 'boolean';
+      }
+      $this->searchFilters[$field] = [
+        'type' => $filterType,
+        'label' => $f['label'] ?? StringUtilities::columnKey($fieldName, $field, $vv_tz, true),
+        'active' => $f['active'] ?? true,
+        'model' => $f['model'],
+        'order' => $f['order']
+      ];
     }
 
     foreach ($this->filterMetadataFields() as $column => $type) {
@@ -239,7 +273,7 @@ trait SearchFilterTrait {
 
       $attribute = [
         'type' => $type,
-        'label' => \App\Lib\Util\StringUtilities::columnKey($modelname, $column, $vv_tz, true),
+        'label' => StringUtilities::columnKey($modelname, $column, $vv_tz, true),
         'active' => $fieldIsActive,
         'order' => 99 // this is the default
       ];
@@ -270,13 +304,23 @@ trait SearchFilterTrait {
   }
 
   /**
-   * Set explicilty defined filter configuration defined in the table class.
+   * Set explicit defined filter configuration defined in the table class.
    *
    * @since  COmanage Registry v5.0.0
    */
 
   public function setFilterConfig(array $filterConfig): void {
     $this->filterConfig = $filterConfig;
+  }
+
+  /**
+   * Get field extra configurations calculated in getSearchableAttributes
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  public function getSearchFiltersExtras(): array
+  {
+    return $this->searchFiltersExtras;
   }
 
 }

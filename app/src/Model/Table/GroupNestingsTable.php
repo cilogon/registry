@@ -96,24 +96,26 @@ class GroupNestingsTable extends Table {
       ]
     ]);
 
-    $this->setAutoViewVars([
-     'groupMembers' => [
-       'type' => 'auxiliary',
-       'model' => 'GroupMembers',
-       'whereEval' => [
-         // Where Clause column name
-         'GroupMembers.group_id' => [
-           // Chain of methods that will construct the whereClause condition value
-           // Method that accepts no parameters
-           'getRequest',
-           // Method that accepts only one parameter
-           // getQuery(name: 'group_id')
-           'getQuery' => [
-             'name' =>'group_id'
-           ]
-         ]
-       ]
-     ]]);
+    // XXX Keeping for functionality reference
+//    $this->setAutoViewVars([
+//     'groupMembers' => [
+//       'type' => 'auxiliary',
+//       'model' => 'GroupMembers',
+//       'whereEval' => [
+//         // Where Clause column name
+//         'GroupMembers.group_id' => [
+//           // Chain of methods that will construct the whereClause condition value
+//           // Method that accepts no parameters
+//           'getRequest',
+//           // Method that accepts only one parameter
+//           // getQuery(name: 'group_id')
+//           'getQuery' => [
+//             'name' =>'group_id'
+//           ]
+//         ]
+//       ]
+//     ]]);
+
   }
   
   /**
