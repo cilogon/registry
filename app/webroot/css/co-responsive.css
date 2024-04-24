@@ -92,6 +92,9 @@
   ul.form-list li.field-stack textarea {
     margin: 0.5em 0 0.5em 0.5em;
   }
+  .cm-modal .modal-dialog {
+    max-width: 90vw;
+  }
   /* PERSON CANVAS / CARDS */
   .co-cards .field-data-container {
     display: grid;
@@ -397,9 +400,6 @@
   /* Convert the dropdown menus to be visible on wider screens when .actions-expanded class exists. 
      .action-expanded is set when there are fewer than four actions exposed. Otherwise, all links remain
      in the gear dropdown menu. */
-  .field-actions.top-links {
-    align-self: end;
-  }
   .field-actions.top-links .actions-expanded .action-menu-toggle {
     display: none;
   }
