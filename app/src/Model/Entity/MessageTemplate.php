@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Controller
+ * COmanage Registry Message Template Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,34 +27,16 @@
 
 declare(strict_types = 1);
 
-namespace App\Controller;
+namespace App\Model\Entity;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+use Cake\ORM\Entity;
 
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
-    ]
+class MessageTemplate extends Entity {
+  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false, 
   ];
-
-  /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function forceVerify(string $id) {
-    try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Controller
+ * COmanage Registry SMTP Server Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,41 +20,30 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
+ * @package       registry-plugins
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Controller;
+namespace CoreServer\Model\Entity;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+use Cake\ORM\Entity;
 
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
-    ]
-  ];
-
+class SmtpServer extends Entity {
   /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * Note that when '*' is set to true, this allows all unspecified fields to
+   * be mass assigned. For security purposes, it is advised to set '*' to false
+   * (or remove it), and explicitly make individual fields accessible as needed.
+   *
+   * @var array<string, bool>
    */
-
-  public function forceVerify(string $id) {
-    try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
+  ];
 }

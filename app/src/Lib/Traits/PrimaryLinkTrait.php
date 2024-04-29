@@ -464,7 +464,15 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Set the primary link attribute.
+   * Set the primary link attribute. Several formats are acceepted:
+   * 
+   * 1: ('person_id'): Primary link is to People
+   * 2: (['person_id', 'group_id']): Primary link can be to People _or_ Groups
+   * 3: (['WidgetPlugin.widget_id']): Primary link is to WidgetPlugin.Widgets
+   * 4: (['subject_person_id' => 'People']): Primary link field subject_person_id is to model People
+   * 
+   * Note only the first and third formats can be used without an enclosing array.
+   * Currently the fourth format cannot be used with plugin notation.
    *
    * @since  COmanage Registry v5.0.0
    * @param  mixed $field Primary link attribute, or an array of primary links
@@ -472,30 +480,38 @@ trait PrimaryLinkTrait {
   
   public function setPrimaryLink($fields) {
     if(is_string($fields)) {
+      // Format 1, convert to format 2/3
       $fields = [$fields];
     }
     
-    foreach($fields as $field) {
-      $t = null;
-      
-      // Calculate the table name for future reference. This could just be
-      // a simple reference ("person_id" => "People") or it could be in
-      // plugin notation ("CoreAssigner.format_assigner_id" => "CoreAssigner.FormatAssigners").
-      // Note the plugin notation isn't exactly standard (Plugin.field doesn't make sense
-      // except that we inflect it to something that does).
+    foreach($fields as $k => $v) {
+      $field = $k;
+      $model = $v;
 
-      if(preg_match('/^(.*)\.(.*?)_id$/', $field, $f)) {
-        // Modified plugin notation match
-        $t = $f[1] . "." . \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[2]));
-        // We need the key to be the field name, not Plugin.field
-        $this->primaryLinks[$f[2]."_id"] = $t;
-      } elseif(preg_match('/^(.*?)_id$/', $field, $f)) {
-        // Standard foreign key match
-        $t = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
-        $this->primaryLinks[$field] = $t;
-      } else {
-        $this->primaryLinks[$field] = null;
+      if(is_int($k)) {
+        // Format 2/3, eg [ 0 => 'co_id' ]
+
+        $field = $v;
+        $model = null;
+
+        if(preg_match('/^(.*)\.(.*?)_id$/', $field, $f)) {
+          // Format 3, modified plugin notation. This isn't exactly standard
+          // (Plugin.field doesn't make sense except that we inflect it to something
+          // that does).
+
+          $model = $f[1] . "." . \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[2]));
+          // We need the field to be the actual field name, not Plugin.field
+          $field = $f[2]."_id";
+        } elseif(preg_match('/^(.*?)_id$/', $field, $f)) {
+          // Format 2, standard foreign key match
+          $model = \Cake\Utility\Inflector::camelize(\Cake\Utility\Inflector::pluralize($f[1]));
+        } else {
+          // Not clear what this is...
+        }
       }
+      // else format 4, just use as is
+
+      $this->primaryLinks[$field] = $model;
     }
   }
   

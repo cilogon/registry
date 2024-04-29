@@ -102,6 +102,11 @@ class DashboardsController extends StandardController {
         'controller'    => 'identifier_assignments',
         'action'        => 'index'
       ],
+      __d('controller', 'MessageTemplates', [99]) => [
+        'icon'          => 'message',
+        'controller'    => 'message_templates',
+        'action'        => 'index'
+      ],
       __d('controller', 'Pipelines', [99]) => [
         'icon'          => 'cable',
         'controller'    => 'pipelines',

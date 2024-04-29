@@ -510,6 +510,11 @@ class IdentifierAssignmentsTable extends Table {
     ]);
     // See AR-IdentifierAssignment-1
     $validator->allowEmptyString('email_address_type_id');
+    
+    $validator->add('allow_empty', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('allow_empty');
 
     $validator->add('ordr', [
       'content' => ['rule' => 'isInteger']

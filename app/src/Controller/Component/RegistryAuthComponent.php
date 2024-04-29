@@ -615,6 +615,37 @@ class RegistryAuthComponent extends Component
   }
   
   /**
+   * Obtain the Person ID of the currently authenticated user for the specified CO.
+   * An Exception will be thrown if there is no currently authenticated user, however
+   * null will be returned if there is a user, but they are not in the requested CO.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId   CO ID
+   * @throws RuntimeException
+   */
+
+  public function getPersonID(int $coId): ?int {
+    // We first need an authenticated Identifier, and it can't be for an API user.
+
+    if(empty($this->authenticatedUser)) {
+      throw new \RuntimeException("RegistryAuthComponent:getPersonID No authenticated user");
+    }
+
+    if($this->authenticatedApiUser) {
+      throw new \RuntimeException("RegistryAuthComponent::getPersonID Current user is an API user");
+    }
+
+    $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+    try {
+      return $Identifiers->lookupPersonByLogin($coId, $this->authenticatedUser);
+    }
+    catch(Cake\Datasource\Exception\RecordNotFoundException $e) {
+      return null;
+    }
+  }
+  
+  /**
    * Obtain the set of permissions as provided by the table.
    *
    * @since  COmanage Registry v5.0.0

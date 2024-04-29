@@ -24,6 +24,9 @@
 
 # Operations (Commands)
 
+msgid "acknowledge"
+msgstr "Acknowledge"
+
 msgid "activate"
 msgstr "Activate"
 
@@ -111,6 +114,9 @@ msgstr "Edit"
 msgid "edit.a"
 msgstr "Edit {0}"
 
+msgid "EmailAddresses.verify.force"
+msgstr "Force Verify"
+
 msgid "ExternalIdentitySourceRecords.retrieve"
 msgstr "Retrieve from External Identity Source"
 
@@ -147,6 +153,15 @@ msgstr "Logout"
 msgid "next"
 msgstr "Next"
 
+msgid "Notifications.acknowledge.confirm"
+msgstr "Acknowledge this notification?"
+
+msgid "Notifications.cancel.confirm"
+msgstr "Cancel this notification?"
+
+msgid "Notifications.resend.confirm"
+msgstr "Resend this notification?"
+
 msgid "none"
 msgstr "None"
 
@@ -182,6 +197,9 @@ msgstr "Are you sure you want to reconcile this group ({0})?"
 
 msgid "remove"
 msgstr "Remove"
+
+msgid "resend"
+msgstr "Resend"
 
 msgid "save"
 msgstr "Save"

@@ -29,8 +29,14 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Datasource\EntityInterface;
+use Cake\Event\EventInterface;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\ActionEnum;
+use \App\Lib\Enum\ProvisioningContextEnum;
+use \App\Model\Entity\EmailAddress;
 
 class EmailAddressesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -102,7 +108,7 @@ class EmailAddressesTable extends Table {
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
-    $this->setAllowLookupPrimaryLink(['unfreeze']);
+    $this->setAllowLookupPrimaryLink(['forceVerify', 'unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
 
     $this->setAutoViewVars([
@@ -117,6 +123,7 @@ class EmailAddressesTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'forceVerify' => ['platformAdmin', 'coAdmin'],
         'unfreeze' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
@@ -128,6 +135,132 @@ class EmailAddressesTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+  }
+
+  /**
+   * Callback after data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface   $event   afterMarshal event
+   * @param  Entity Interface $entity  Marshalled entity
+   * @param  ArrayObject      $data    Entity data
+   * @param  ArrayObject      $options Callback options
+   */
+
+  public function afterMarshal(
+    EventInterface $event, 
+    EntityInterface $entity, 
+    \ArrayObject $data, 
+    \ArrayObject $options
+  ) {
+    if(!empty($entity->person_id) && $entity->isDirty('mail')) {
+      // AR-EmailAddress-2 Editing an Email Address (but not its Type) associated
+      // with a Person will revert it to unverified.
+
+      $this->llog('rule', "AR-EmailAddress-2 Flagging email address " . $entity->mail . " for Person " . $entity->person_id . " as unverified due to edit");
+
+      $entity->verified = false;
+      $data['verified'] = false;
+    }
+  }
+
+  /**
+   * Get an Email Address suitable for message delivery for the specified Person.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $personId Person ID
+   * @return string           Email address suitable for delivery
+   * @throws InvalidArgumentException
+   */
+
+  public function getDeliveryAddress(int $personId): string {
+    // We allow a Delivery Email Address Type to be specified via CoSettings,
+    // but to check we first need to map the Person to a CO.
+
+    $person = $this->People->get($personId);
+
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+    $settings = $CoSettings->find()->where(['co_id' => $person->co_id])->firstOrFail();
+
+    $whereClause = [
+      'person_id' => $personId,
+      // AR-EmailAddress-3 Only verified Email Addresses may be used for delivery of messages to a Person.
+      'verified'  => true
+    ];
+
+    if(!empty($settings->email_delivery_address_type_id)) {
+      $whereClause['type_id'] = $settings->email_delivery_address_type_id;
+    }
+
+    try {
+      $email = $this->find()
+                    ->where($whereClause)
+                    ->firstOrFail();
+    }
+    catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
+      // This error is probably going to render a lot, so map the type ID to the label
+      $Types = TableRegistry::getTableLocator()->get('Types');
+      $label = $Types->getTypeLabel($settings->email_delivery_address_type_id);
+
+      throw new \InvalidArgumentException(
+        !empty($settings->email_delivery_address_type_id)
+        ? __d('error', 'EmailAddresses.mail.delivery.type', [$label, $personId])
+        : __d('error', 'EmailAddresses.mail.delivery', [$personId])
+      );
+    }
+    
+    return $email->mail;
+  }
+
+  /**
+   * Force an Email Address to verified status.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id            EmailAddress ID
+   * @param  int $actorPersonId Actor Person ID
+   * @throws InvalidArgumentException
+   */
+
+  public function forceVerify(
+    int $id,
+    int $actorPersonId,
+  ) {
+    $email = $this->get($id);
+
+    // We only permit Email Addresses associated with a Person (not External Identity)
+    // to be force verified.
+
+    if(empty($email->person_id)) {
+      // AR-EmailAddress-1 Only Email Addresses associated with a Person may be verified
+      // by Registry.
+      throw new \InvalidArgumentException('error', 'EmailAddresses.mail.verify.force.person');
+    }
+
+    // Email Addresses that are already verified can't be re-verified.
+
+    if($email->verified) {
+      throw new \InvalidArgumentException('error', 'EmailAddresses.mail.verified');
+    }
+
+    // AR-EmailAddress-4 A frozen Email Address may be verified if it is otherwise
+    // eligible for verification.
+
+    // Flag the address as verified and record history.
+
+    $email->verified = true;
+    $this->save($email);
+
+    $HistoryRecords = TableRegistry::getTableLocator()->get('HistoryRecords');
+
+    $HistoryRecords->recordForPerson(
+      personId:       $email->person_id,
+      action:         ActionEnum::EmailForceVerified,
+      comment:        __d('result', 'EmailAddresses.verify.forced'),
+      actorPersonId:  $actorPersonId
+    );
+
+    // Request Provisioning
+    $this->requestProvisioning(id: $id, context: ProvisioningContextEnum::Automatic);
   }
   
   /**

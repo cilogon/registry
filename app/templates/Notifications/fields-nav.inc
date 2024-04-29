@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Controller
+ * COmanage Registry Notifications Links
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,36 +25,38 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
-
-namespace App\Controller;
-
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
-
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
-    ]
+if(!empty($vv_obj) && $vv_obj->canCancel()) {
+  $topLinks[] = [
+    'icon'  => 'cancel',
+    'order' => 'Default',
+    'label' => __d('operation', 'cancel'),
+    'link'  => [
+      'action' => 'cancel',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'Notifications.cancel.confirm'),
+      'dg_cancel_btn' => __d('enumeration', 'YesBooleanEnum.0'),
+      'dg_confirm_btn' => __d('enumeration', 'YesBooleanEnum.1')
+    ],
+    'class' => ''
   ];
+}
 
-  /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function forceVerify(string $id) {
-    try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+if(!empty($vv_obj) && $vv_obj->canNotify()) {
+  $topLinks[] = [
+    'icon'  => 'send',
+    'order' => 'Default',
+    'label' => __d('operation', 'resend'),
+    'link'  => [
+      'action' => 'resend',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'Notifications.resend.confirm'),
+      'dg_cancel_btn' => __d('enumeration', 'YesBooleanEnum.0'),
+      'dg_confirm_btn' => __d('enumeration', 'YesBooleanEnum.1')
+    ],
+    'class' => ''
+  ];
 }

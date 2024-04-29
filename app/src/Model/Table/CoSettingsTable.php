@@ -43,6 +43,7 @@ declare(strict_types = 1);
 namespace App\Model\Table;
 
 use \Cake\ORM\Table;
+use \Cake\ORM\TableRegistry;
 use \Cake\Validation\Validator;
 use \App\Lib\Enum\PermittedNameFieldsEnum;
 use \App\Lib\Enum\PermittedTelephoneNumberFieldsEnum;
@@ -83,18 +84,10 @@ class CoSettingsTable extends Table {
          ->setClassName('Types')
          ->setForeignKey('default_email_address_type_id')
          ->setProperty('default_email_address_type');
-    $this->belongsTo('PersonPickerEmailAddressType')
-         ->setClassName('Types')
-         ->setForeignKey('person_picker_email_address_type_id')
-         ->setProperty('person_picker_email_address_type');
     $this->belongsTo('DefaultIdentifierTypes')
          ->setClassName('Types')
          ->setForeignKey('default_identifier_type_id')
          ->setProperty('default_identifier_type');
-    $this->belongsTo('PersonPickerIdentifierTypes')
-      ->setClassName('Types')
-      ->setForeignKey('person_picker_identifier_type_id')
-      ->setProperty('person_picker_identifier_type');
     $this->belongsTo('DefaultNameTypes')
          ->setClassName('Types')
          ->setForeignKey('default_name_type_id')
@@ -111,6 +104,22 @@ class CoSettingsTable extends Table {
          ->setClassName('Types')
          ->setForeignKey('default_url_type_id')
          ->setProperty('default_url_type');
+    $this->belongsTo('EmailDeliveryAddressTypes')
+         ->setClassName('Types')
+         ->setForeignKey('email_delivery_address_type_id')
+         ->setProperty('email_delivery_address_type');
+    $this->belongsTo('EmailSmtpServers')
+         ->setClassName('Servers')
+         ->setForeignKey('email_smtp_server_id')
+         ->setProperty('email_smtp_server');
+    $this->belongsTo('PersonPickerEmailAddressType')
+         ->setClassName('Types')
+         ->setForeignKey('person_picker_email_address_type_id')
+         ->setProperty('person_picker_email_address_type');
+    $this->belongsTo('PersonPickerIdentifierTypes')
+      ->setClassName('Types')
+      ->setForeignKey('person_picker_identifier_type_id')
+      ->setProperty('person_picker_identifier_type');
 
     $this->setDisplayField('co_id');
     
@@ -132,14 +141,6 @@ class CoSettingsTable extends Table {
         'type' => 'type',
         'attribute' => 'Identifiers.type'
       ],
-      'personPickerEmailAddressTypes' => [
-        'type' => 'type',
-        'attribute' => 'EmailAddresses.type'
-      ],
-      'personPickerIdentifierTypes' => [
-        'type' => 'type',
-        'attribute' => 'Identifiers.type'
-      ],
       'defaultNameTypes' => [
         'type' => 'type',
         'attribute' => 'Names.type'
@@ -156,6 +157,15 @@ class CoSettingsTable extends Table {
         'type' => 'type',
         'attribute' => 'Urls.type'
       ],
+      'emailDeliveryAddressTypes' => [
+        'type' => 'type',
+        'attribute' => 'EmailAddresses.type'
+      ],
+      'emailSmtpServers' => [
+        'type' => 'select',
+        'model' => 'Servers',
+        'where' => ['plugin' => 'CoreServer.SmtpServers']
+      ],
       'permittedFieldsNames' => [
         'type' => 'enum',
         'class' => 'PermittedNameFieldsEnum'
@@ -163,6 +173,14 @@ class CoSettingsTable extends Table {
       'permittedFieldsTelephoneNumbers' => [
         'type' => 'enum',
         'class' => 'PermittedTelephoneNumberFieldsEnum'
+      ],
+      'personPickerEmailAddressTypes' => [
+        'type' => 'type',
+        'attribute' => 'EmailAddresses.type'
+      ],
+      'personPickerIdentifierTypes' => [
+        'type' => 'type',
+        'attribute' => 'Identifiers.type'
       ],
       'requiredFieldsAddresses' => [
         'type' => 'enum',
@@ -212,6 +230,8 @@ class CoSettingsTable extends Table {
       'default_pronoun_type_id'           => null,
       'default_telephone_number_type_id'  => null,
       'default_url_type_id'               => null,
+      'email_smtp_server_id'              => null,
+      'email_delivery_address_type_id'    => null,
       'permitted_fields_name'             => PermittedNameFieldsEnum::HGMFS,
       'permitted_fields_telephone_number' => PermittedTelephoneNumberFieldsEnum::CANE,
       'person_picker_email_type'          => null,
@@ -265,6 +285,40 @@ class CoSettingsTable extends Table {
   
   public function generateDisplayField(\App\Model\Entity\CoSetting $entity): string {
     return __d('controller', 'CoSettings', [99]);
+  }
+
+  /**
+   * Get the outgoing SMTP Server for the specified CO.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int          $coId CO ID
+   * @return SmtpServer         SmtpServer, or null if none configured
+   */
+
+  public function getSmtpServer(int $coId): ?\CoreServer\Model\Entity\SmtpServer {
+    // Note CoreServer should always be enabled
+
+    // The initial implementation has a per-CO SmtpServer setting, but at some point
+    // we might allow the COmanage CO's SmtpServer to either override any CO Setting
+    // or provide a default if there is no CO Setting.
+
+    $settings = $this->find()
+                     ->where(['CoSettings.co_id' => $coId])
+                     ->contain(['EmailSmtpServers'])
+                     ->firstOrFail();
+    
+    if(!empty($settings->email_smtp_server)) {
+      // Because dynamic plugin relations are tricky to query via contain, we just
+      // make a second query.
+
+      $SmtpServers = TableRegistry::getTableLocator()->get('CoreServer.SmtpServers');
+
+      return $SmtpServers->find()
+                         ->where(['server_id' => $settings->email_smtp_server->id])
+                         ->firstOrFail();
+    }
+    
+    return null;
   }
   
   /**
@@ -337,6 +391,16 @@ class CoSettingsTable extends Table {
     ]);
     $validator->allowEmptyString('default_url_type_id');
     
+    $validator->add('email_delivery_address_type_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('email_delivery_address_type_id');
+
+    $validator->add('email_smtp_server_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('email_smtp_server_id');
+
     $validator->add('permitted_name_fields', [
       'content' => ['rule' => ['inList', PermittedNameFieldsEnum::getConstValues()]]
     ]);
@@ -346,6 +410,21 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => ['inList', PermittedTelephoneNumberFieldsEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('permitted_fields_telephone_number');
+
+    $validator->add('person_picker_display_types', [
+      'content' => ['rule' => 'boolean']
+    ]);
+    $validator->allowEmptyString('person_picker_display_types');
+
+    $validator->add('person_picker_email_type', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('person_picker_email_type');
+
+    $validator->add('person_picker_identifier_type', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('person_picker_identifier_type');
 
     $validator->add('required_fields_address', [
       'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]
@@ -366,22 +445,6 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => ['comparison', '>', 0]]
     ]);
     $validator->notEmptyString('search_global_limit');
-
-    $validator->add('person_picker_email_type', [
-      'content' => ['rule' => 'isInteger']
-    ]);
-    $validator->allowEmptyString('person_picker_email_type');
-
-    $validator->add('person_picker_identifier_type', [
-      'content' => ['rule' => 'isInteger']
-    ]);
-    $validator->allowEmptyString('person_picker_identifier_type');
-
-
-    $validator->add('person_picker_display_types', [
-      'content' => ['rule' => 'boolean']
-    ]);
-    $validator->allowEmptyString('person_picker_display_types');
 
     return $validator;
   }

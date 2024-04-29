@@ -110,6 +110,21 @@ class PeopleTable extends Table {
     $this->hasMany('JobHistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('ActorNotifications')
+         ->setClassName('Notifications')
+         ->setForeignKey('actor_person_id')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('ResolverNotifications')
+         ->setClassName('Notifications')
+         ->setForeignKey('resolver_person_id')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('SubjectNotifications')
+         ->setClassName('Notifications')
+         ->setForeignKey('subject_person_id')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('PersonRoles')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -220,6 +235,7 @@ class PeopleTable extends Table {
           'HistoryRecords',
           'IdentifierAssignments',
           'Identifiers',
+          'Notifications',
           'PersonRoles',
           'ProvisioningTargets',
           'TelephoneNumbers',

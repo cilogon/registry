@@ -78,11 +78,11 @@ msgstr "Given Name of initial platform administrator"
 msgid "opt.admin-username"
 msgstr "Username of initial platform administrator"
 
+msgid "opt.co_id"
+msgstr "CO ID"
+
 msgid "opt.force"
 msgstr "Force a rerun of setup (only if you know what you are doing)"
-
-msgid "opt.job.co_id"
-msgstr "CO ID"
 
 msgid "opt.job.max"
 msgstr "Maximum number of concurrent queue runners (use with -r)"
@@ -104,6 +104,36 @@ msgstr "Run the requested job synchronously (use with -j)"
 
 msgid "opt.not"
 msgstr "Calculate changes but do not apply"
+
+msgid "opt.notify.action"
+msgstr "Action Code"
+
+msgid "opt.notify.actorid"
+msgstr "Actor Identifier"
+
+msgid "opt.notify.comment"
+msgstr "Comment"
+
+msgid "opt.notify.mustresolve"
+msgstr "This Notification must be resolved, not acknowledged"
+
+msgid "opt.notify.recipientid"
+msgstr "Recipient Identifier"
+
+msgid "opt.notify.resolve"
+msgstr "Resolve the Notification associated with this source"
+
+msgid "opt.notify.source"
+msgstr "Notification source"
+
+msgid "opt.notify.subjectid"
+msgstr "Subject Identifier"
+
+msgid "opt.notify.templateid"
+msgstr "Message Template ID"
+
+msgid "opt.notify.type"
+msgstr "Type (label) for provided Identifier"
 
 # msgid "se.admin"
 # msgstr "Creating initial administrator permission"
@@ -132,11 +162,11 @@ msgstr "COmanage Platform Administrator"
 msgid "se.salt"
 msgstr "Generating salt file {0}"
 
-msgid "opt.test.database.ok"
-msgstr "Database connection established"
-
 msgid "opt.test.database.source"
 msgstr "For database test, the datasource to use"
+
+msgid "opt.test.mail.recipient"
+msgstr "For email test, the Person ID (NOT email address) to try sending to"
 
 msgid "opt.test.test"
 msgstr "Test to perform"

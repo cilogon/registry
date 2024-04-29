@@ -33,6 +33,7 @@ class ActionEnum extends StandardEnum {
   // Codes beginning with 'X' (eg: 'XABC') are reserved for local use
   // Codes beginning with a lowercase 'p' (eg: 'pABC') are reserved for plugin use
   const CommentAdded                  = 'CMNT';
+  const EmailForceVerified            = 'EAFV';
   const GroupAdded                    = 'ACGR';
   const GroupDeleted                  = 'DCGR';
   const GroupEdited                   = 'ECGR';
@@ -46,6 +47,10 @@ class ActionEnum extends StandardEnum {
   const MVEADeleted                   = 'DMVE';
   const MVEAEdited                    = 'EMVE';
   const NamePrimary                   = 'PNAM';
+  const NotificationAcknowledged      = 'NOTA';
+  const NotificationCanceled          = 'NOTX';
+  const NotificationDelivered         = 'NOTD';
+  const NotificationResolved          = 'NOTR';
   const PersonAddedPipeline           = 'ACPL';
   const PersonMatchedPipeline         = 'MCPL';
   const PersonPipelineComplete        = 'CCPL';

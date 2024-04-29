@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Controller
+ * COmanage Registry Message Templates Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,36 +25,19 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
-
-namespace App\Controller;
-
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
-
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
-    ]
-  ];
-
-  /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function forceVerify(string $id) {
-    try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
-}
+$indexColumns = [
+  'description' => [
+    'type' => 'link',
+    'sortable' => true
+  ],
+  'status' => [
+    'type' => 'enum',
+    'class' => 'SuspendableStatusEnum',
+    'sortable' => true
+  ],
+  'context' => [
+    'type' => 'enum',
+    'class' => 'MessageTemplateContextEnum',
+    'sortable' => true
+  ]
+];

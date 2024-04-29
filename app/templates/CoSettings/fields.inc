@@ -74,4 +74,8 @@ if($vv_action == 'edit') {
     ],
     'person_picker_display_fields'
   );
+
+  print $this->Field->control('email_smtp_server_id');
+
+  print $this->Field->control('email_delivery_address_type_id');
 }

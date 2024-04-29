@@ -45,6 +45,22 @@ trait LabeledLogTrait {
   public function alog(string $level, ?array $msg) {
     return $this->llog($level, json_encode($msg, JSON_PRETTY_PRINT));
   }
+
+  /**
+   * Print formatted cli percentage
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $done      Number of iterations completed
+   * @param  string $total     Total number of iterations
+   * @return string            Formated string with line return offset
+   */
+
+  public function cliLogPercentage(int $done, int $total): void {
+    $perc = floor(($done / $total) * 100);
+    $left = 100 - $perc;
+    $out = sprintf("\033[0G\033[2K[%'={$perc}s>%-{$left}s] - $perc%% -- $done/$total", "", "");
+    fwrite(STDOUT, $out);
+  }
   
   /**
    * Log a message, with some standard metadata.
@@ -55,6 +71,16 @@ trait LabeledLogTrait {
    */
   
   public function llog(string $level, string $msg, int|string $id=null) {
+    self::slog($level, $msg, $id);
+  }
+
+  /**
+   * Static logger, similar to llog().
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public static function slog(string $level, string $msg, int|string $id=null) {
     $bt = debug_backtrace(0, 2);
 
     $m = getmypid() . " " . $bt[1]['class'] . "::" . $bt[1]['function'] 
@@ -72,21 +98,5 @@ trait LabeledLogTrait {
     } else {
       Log::write($level, $m);
     }
-  }
-
-  /**
-   * Print formatted cli percentage
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $done      Number of iterations completed
-   * @param  string $total     Total number of iterations
-   * @return string            Formated string with line return offset
-   */
-
-  public function cliLogPercentage(int $done, int $total): void {
-    $perc = floor(($done / $total) * 100);
-    $left = 100 - $perc;
-    $out = sprintf("\033[0G\033[2K[%'={$perc}s>%-{$left}s] - $perc%% -- $done/$total", "", "");
-    fwrite(STDOUT, $out);
   }
 }

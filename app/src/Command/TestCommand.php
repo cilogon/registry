@@ -34,6 +34,7 @@ use Cake\Console\Command;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionManager;
+use \App\Lib\Util\DeliveryUtilities;
 
 class TestCommand extends Command
 {
@@ -52,10 +53,12 @@ class TestCommand extends Command
     $parser->addOption('test', [
       'help'    => __d('command', 'opt.test.test'),
       'short'   => 't',
-      'choices' => ['database']
+      'choices' => ['database', 'mail']
     ])->addOption('datasource', [
       'help'    => __d('command', 'opt.test.database.source'),
       'default' => 'default'
+    ])->addOption('recipient', [
+      'help'    => __d('command', 'opt.test.mail.recipient')
     ]);
 
     return $parser;
@@ -82,17 +85,52 @@ class TestCommand extends Command
       case 'database':
         $this->testDatabase($args->getOption('datasource'));
         break;
+      case 'mail':
+        $this->testMail((int)$args->getOption('recipient'));
+        break;
+      default:
+        $io->out("Command $test unknown");
+        break;
     }
   }
 
   /**
-   * Test database connectivity for the default
+   * Test database connectivity for the requested datasource.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $source Datasource
+   * @return int            Return Code (CODE_SUCCESS or CODE_ERROR)
    */
 
   protected function testDatabase(string $source): int {
     try {
       $cxn = ConnectionManager::get($source);
-      $this->io->out(__d('command', 'opt.test.database.ok'));
+      $this->io->out(__d('result', 'test.database.ok'));
+    }
+    catch(\Exception $e) {
+      $this->io->error($e->getMessage());
+      $this->abort(static::CODE_ERROR);
+    }
+
+    return static::CODE_SUCCESS;
+  }
+
+  /**
+   * Test mail delivery to the specified address.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $recipient Recipient Person ID
+   * @return int            Return Code (CODE_SUCCESS or CODE_ERROR)
+   */
+
+  protected function testMail(int $recipient): int {
+    try {
+      DeliveryUtilities::sendEmailToPerson(
+        personId:   $recipient,
+        subject:    "TestCommand Test Message",
+        body_text:  "This is the test message requested via TestCommand."
+      );
+      $this->io->out(__d('result', 'test.mail.ok'));
     }
     catch(\Exception $e) {
       $this->io->error($e->getMessage());

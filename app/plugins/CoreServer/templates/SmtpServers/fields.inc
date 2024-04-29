@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Controller
+ * COmanage Registry SMTP Servers Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,36 +25,21 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+// This view does currently not support read-only, and add is not used
+if($vv_action == 'edit') {
+  print $this->Field->control('hostname');
 
-namespace App\Controller;
+  print $this->Field->control('port', ['default' => 587]);
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+  print $this->Field->control('username');
 
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
-    ]
-  ];
+  print $this->Field->control('password');
 
-  /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
+  print $this->Field->control('use_tls', ['default' => true]);
 
-  public function forceVerify(string $id) {
-    try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+  print $this->Field->control('default_from');
+
+  print $this->Field->control('default_reply_to');
+
+  print $this->Field->control('override_to');
 }

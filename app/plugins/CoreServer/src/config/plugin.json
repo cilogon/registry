@@ -1,11 +1,29 @@
 {
   "types": {
     "server": [
+      "SmtpServers",
       "SqlServers"
     ]
   },
   "schema": {
     "tables": {
+      "smtp_servers": {
+        "columns": {
+          "id": {},
+          "server_id": {},
+          "hostname": { "type": "string", "size": 128 },
+          "port": { "type": "integer" },
+          "username": { "type": "string", "size": 128 },
+          "password": { "type": "string", "size": 80 },
+          "use_tls": { "type": "boolean" },
+          "default_from": { "type": "string", "size": 256 },
+          "default_reply_to": { "type": "string", "size": 256 },
+          "override_to": { "type": "string", "size": 256 }
+        },
+        "indexes": {
+          "smtp_servers_i1": { "columns": [ "server_id"] }
+        }
+      },
       "sql_servers": {
         "columns": {
           "id": {},

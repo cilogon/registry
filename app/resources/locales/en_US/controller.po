@@ -90,8 +90,14 @@ msgstr "{0,plural,=1{Job History Record} other{Job History Records}}"
 msgid "Jobs"
 msgstr "{0,plural,=1{Job} other{Jobs}}"
 
+msgid "MessageTemplates"
+msgstr "{0,plural,=1{Message Template} other{Message Templates}}"
+
 msgid "Names"
 msgstr "{0,plural,=1{Name} other{Names}}"
+
+msgid "Notifications"
+msgstr "{0,plural,=1{Notification} other{Notifications}}"
 
 msgid "People"
 msgstr "{0,plural,=1{Person} other{People}}"

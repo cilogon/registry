@@ -1490,6 +1490,20 @@ class PipelinesTable extends Table {
             // There is an existing record, update it (if it changed) _unless_
             // the attribute record is frozen.
 
+            if($model == 'EmailAddresses' && $found->verified) {
+              // If the Person Email Address is verified and the EI Email Address
+              // is _not_, we preserve the verification flag _unless_ the mail address
+              // has changed.
+              
+              // This is effectively a combination of AR-EmailAddress-2 Editing an
+              // Email Address (but not its Type) associated with a Person will revert
+              // it to unverified and AR-EmailAddress-4 A frozen Email Address may be
+              // verified if it is otherwise eligible for verification.
+              if($newdata['mail'] == $found->mail) {
+                $newdata['verified'] = $found->verified;
+              }
+            }
+
             if($model == 'Names' && $found->primary_name) {
               // Preserve the primary name flag, if set
               $newdata['primary_name'] = true;

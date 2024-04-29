@@ -361,30 +361,34 @@ class StandardController extends AppController {
         // to save all that stuff by default, so we'll pull a new copy of the
         // object without the associated data.
         $saveObj = $table->findById($id)->firstOrFail();
-        
-        // Attempt the update the record
-        $table->patchEntity($saveObj, $this->request->getData(), $opts); 
-        
-        // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
-        // in afterSave
-        if($table->save($saveObj)) {
-          $this->Flash->success(__d('result', 'saved'));
-          
-          // Give the controller an opportunity to set additional Flash messages
-          if(method_exists($this, "setSupplementalFlash")) {
-            $this->setSupplementalFlash($obj);
-          }
-          
-          // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-          if(method_exists($table, "requestProvisioning")) {
-            $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
-            $table->requestProvisioning(id: (int)$id, context: ProvisioningContextEnum::Automatic);
-          }
 
-          return $this->generateRedirect($saveObj); 
+        try{
+          // Attempt the update the record
+          $table->patchEntity($saveObj, $this->request->getData(), $opts); 
+          
+          // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
+          // in afterSave
+          if($table->save($saveObj)) {
+            $this->Flash->success(__d('result', 'saved'));
+            
+            // Give the controller an opportunity to set additional Flash messages
+            if(method_exists($this, "setSupplementalFlash")) {
+              $this->setSupplementalFlash($obj);
+            }
+            
+            // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+            if(method_exists($table, "requestProvisioning")) {
+              $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
+              $table->requestProvisioning(id: (int)$id, context: ProvisioningContextEnum::Automatic);
+            }
+
+            return $this->generateRedirect($saveObj); 
+          } else {
+            $errors = $saveObj->getErrors();
+          }
+        } catch(\Exception $e) {
+          $errors = [0 => ['exception' => $e->getMessage()]];
         }
-        
-        $errors = $saveObj->getErrors();
         
         if(!empty($errors)) {
           $this->Flash->error(__d('error', 'fields', [ implode(',', 

@@ -258,6 +258,60 @@ msgstr "Identifier"
 msgid "MatchStrategyEnum.NO"
 msgstr "No Matching"
 
+msgid "MessageFormatEnum.both"
+msgstr "HTML and Plain Text"
+
+msgid "MessageFormatEnum.html"
+msgstr "HTML"
+
+msgid "MessageFormatEnum.text"
+msgstr "Plain Text"
+
+msgid "MessageTemplateContextEnum.AP"
+msgstr "Enrollment Approver"
+
+msgid "MessageTemplateContextEnum.AU"
+msgstr "Authenticator"
+
+msgid "MessageTemplateContextEnum.EA"
+msgstr "Enrollment Approval"
+
+msgid "MessageTemplateContextEnum.EF"
+msgstr "Enrollment Finalization"
+
+msgid "MessageTemplateContextEnum.EH"
+msgstr "Enrollment Handoff"
+
+# msgid "MessageTemplateContextEnum.EI"
+# msgstr "Enrollment Invitation"
+
+msgid "MessageTemplateContextEnum.EV"
+msgstr "Enrollment Verification"
+
+msgid "MessageTemplateContextEnum.PL"
+msgstr "Plugin"
+
+msgid "MessageTemplateContextEnum.XN"
+msgstr "Expiration Notification"
+
+msgid "NotificationStatusEnum.A"
+msgstr "Acknowledged"
+
+msgid "NotificationStatusEnum.D"
+msgstr "Deleted"
+
+msgid "NotificationStatusEnum.PA"
+msgstr "Pending Acknowledgment"
+
+msgid "NotificationStatusEnum.PR"
+msgstr "Pending Resolution"
+
+msgid "NotificationStatusEnum.R"
+msgstr "Resolved"
+
+msgid "NotificationStatusEnum.X"
+msgstr "Canceled"
+
 msgid "PermittedNameFieldsEnum.given,family"
 msgstr "Given, Family"
 

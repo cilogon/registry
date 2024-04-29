@@ -55,7 +55,7 @@ class JobCommand extends Command
       [
         'required'  => true,
         'short'     => 'c',
-        'help'      => __d('command', 'opt.job.co_id')
+        'help'      => __d('command', 'opt.co_id')
       ]
     )->addOption(
       'job',

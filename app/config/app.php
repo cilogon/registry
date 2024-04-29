@@ -204,7 +204,8 @@ return [
      */
     'Error' => [
         'errorLevel' => E_ALL,
-        'exceptionRenderer' => 'Cake\Error\ExceptionRenderer',
+// This is deprecated and could probably be completely removed
+//        'exceptionRenderer' => 'Cake\Error\ExceptionRenderer',
         'skipLog' => [],
         'log' => true,
         'trace' => true,
@@ -228,6 +229,8 @@ return [
      * You can add custom transports (or override existing transports) by adding the
      * appropriate file to src/Mailer/Transport. Transports should be named
      * 'YourTransport.php', where 'Your' is the name of the transport.
+     * 
+     * Note Registry uses dynamic configuration for EmailTransport.
      */
     'EmailTransport' => [
         'default' => [
@@ -254,6 +257,8 @@ return [
      * duplication across your application and makes maintenance and development
      * easier. Each profile accepts a number of keys. See `Cake\Mailer\Email`
      * for more information.
+     * 
+     * Note Registry uses dynamic configuration for Email.
      */
     'Email' => [
         'default' => [

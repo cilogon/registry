@@ -198,24 +198,17 @@ class HistoryRecordsTable extends Table {
                                   string $comment,
                                   ?int $personRoleId=null,
                                   ?int $externalIdentityId=null,
-                                  ?int $externalIdentityRoleId=null): int {
+                                  ?int $externalIdentityRoleId=null,
+                                  ?int $actorPersonId=null): int {
     $record = [
-      'person_id' => $personId,
-      'action'    => $action,
-      'comment'   => $comment
+      'person_id'                 => $personId,
+      'action'                    => $action,
+      'comment'                   => $comment,
+      'person_role_id'            => $personRoleId,
+      'external_identity_id'      => $externalIdentityId,
+      'external_identity_role_id' => $externalIdentityRoleId,
+      'actor_person_id'           => $actorPersonId
     ];
-    
-    if($personRoleId) {
-      $record['person_role_id'] = $personRoleId;
-    }
-    
-    if($externalIdentityId) {
-      $record['external_identity_id'] = $externalIdentityId;
-    }
-    
-    if($externalIdentityRoleId) {
-      $record['external_identity_role_id'] = $externalIdentityRoleId;
-    }
     
     $obj = $this->newEntity($record);
     
@@ -243,6 +236,8 @@ class HistoryRecordsTable extends Table {
 
     // We disable validateInput for the comment field since changesToString likes to
     // include > characters.
+// XXX should we maybe filter on input for manual history records? or maybe it's just
+//     ok since we filter on output anyway...
     $this->registerStringValidation($validator, $schema, 'comment', required: true, validateInput: false);
     
     return $validator; 

@@ -126,6 +126,13 @@ if(!empty($subnav)) {
         }
       }
       
+      if($perm && !empty($t['if'])) {
+        // If there's a conditional on the field, test the entity
+        $f = $t['if'];
+
+        $perm = $vv_obj->$f();
+      }
+      
       if($perm) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder($t['order']),

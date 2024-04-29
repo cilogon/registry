@@ -93,6 +93,19 @@
       }
     },
     
+    "servers": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {}
+      },
+      "indexes": {
+        "servers_i1": { "columns": [ "co_id" ] }
+      }
+    },
+
     "co_settings": {
       "comment": "Table definition not yet complete (CFM-80)",
       
@@ -106,6 +119,8 @@
         "default_pronoun_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_url_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "email_delivery_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "email_smtp_server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" } },
         "permitted_fields_name": { "type": "string", "size": 160 },
         "permitted_fields_telephone_number": { "type": "string", "size": 160 },
         "required_fields_address": { "type": "string", "size": 160 },
@@ -131,7 +146,9 @@
         "co_settings_i5": { "columns": [ "default_address_type_id" ] },
         "co_settings_i6": { "columns": [ "default_pronoun_type_id" ] },
         "co_settings_i7": { "columns": [ "default_telephone_number_type_id" ] },
-        "co_settings_i8": { "columns": [ "default_url_type_id" ] }
+        "co_settings_i8": { "columns": [ "default_url_type_id" ] },
+        "co_settings_i9": { "columns": [ "email_delivery_address_type_id" ] },
+        "co_settings_i10": { "columns": [ "email_smtp_server_id" ] }
       }
     },
     
@@ -521,6 +538,62 @@
       }
     },
 
+    "message_templates": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "status": {},
+        "context": {},
+        "format": { "type": "string", "size": 4 },
+        "subject": { "type": "string", "size": 256 },
+        "body_text": { "type": "text" },
+        "body_html": { "type": "text" },
+        "cc": { "type": "string", "size": 256 },
+        "bcc": { "type": "string", "size": 256 },
+        "reply_to": { "type": "string", "size": 256 }
+      },
+      "indexes": {
+        "message_templates_i1": { "columns": [ "co_id" ] }
+      }
+    },
+
+    "notifications": {
+      "columns": {
+        "id": {},
+        "subject_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "subject_group_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "recipient_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "recipient_group_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "resolver_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "action": {
+          "comment": "revert this to use the library definition after feature-cfm31 merge",
+          "type": "string", "size": 4
+        },
+        "comment": {},
+        "message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" } },
+        "source": { "type": "text" },
+        "email_subject": { "type": "string", "size": 256 },
+        "email_body_text": { "type": "text" },
+        "email_body_html": { "type": "text" },
+        "resolution_subject": { "type": "string", "size": 256 },
+        "resolution_body": { "type": "text" },
+        "status": {},
+        "notification_time": { "type": "datetime" },
+        "resolution_time": { "type": "datetime" }
+      },
+      "indexes": {
+        "notifications_i1": { "columns": [ "subject_person_id" ] },
+        "notifications_i2": { "columns": [ "subject_group_id" ] },
+        "notifications_i3": { "columns": [ "recipient_person_id" ] },
+        "notifications_i4": { "columns": [ "recipient_group_id" ] },
+        "notifications_i5": { "columns": [ "source" ] },
+        "notifications_i6": { "needed": false, "columns": [ "actor_person_id" ] },
+        "notifications_i7": { "needed": false, "columns": [ "resolver_person_id" ] }
+      }
+    },
+
     "jobs": {
       "columns": {
         "id": {},
@@ -567,19 +640,6 @@
         "job_history_records_i2": { "columns": [ "person_id" ] },
         "job_history_records_i3": { "columns": [ "external_identity_id" ] },
         "job_history_records_i4": { "columns": [ "job_id", "record_key" ] }
-      }
-    },
-
-    "servers": {
-      "columns": {
-        "id": {},
-        "co_id": {},
-        "description": {},
-        "plugin": {},
-        "status": {}
-      },
-      "indexes": {
-        "servers_i1": { "columns": [ "co_id" ] }
       }
     },
 

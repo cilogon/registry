@@ -348,6 +348,15 @@ msgstr "Default Telephone Number Type"
 msgid "CoSettings.default_url_type_id"
 msgstr "Default URL Type"
 
+msgid "CoSettings.email_delivery_address_type_id"
+msgstr "Delivery Email Address Type"
+
+msgid "CoSettings.email_delivery_address_type_id.desc"
+msgstr "If set, when sending email only verified Email Addresses of this type (attached to the Person record) will be used for delivery"
+
+msgid "CoSettings.email_smtp_server_id"
+msgstr "Outgoing SMTP Server"
+
 msgid "CoSettings.permitted_fields_name"
 msgstr "Name Permitted Fields"
 
@@ -497,6 +506,76 @@ msgstr "Start Summary"
 
 msgid "Jobs.start_time"
 msgstr "Started"
+
+msgid "MessageTemplates.body_html"
+msgstr "Message Body (HTML)"
+
+msgid "MessageTemplates.body_html.desc"
+msgstr "Body for message to be sent. See XXX LINK supported substitutions."
+
+msgid "MessageTemplates.body_text"
+msgstr "Message Body (Plain Text)"
+
+msgid "MessageTemplates.body_text.desc"
+msgstr "Body for message to be sent. See XXX LINK supported substitutions."
+
+msgid "MessageTemplates.bcc"
+msgstr "BCC"
+
+msgid "MessageTemplates.bcc.desc"
+msgstr "Comma separated list of valid email addresses to bcc"
+
+msgid "MessageTemplates.cc"
+msgstr "CC"
+
+msgid "MessageTemplates.cc.desc"
+msgstr "Comma separated list of valid email addresses to cc"
+
+msgid "MessageTemplates.reply_to"
+msgstr "Reply To"
+
+msgid "MessageTemplates.reply_to.desc"
+msgstr "Email Address to insert into the reply-to header"
+
+msgid "MessageTemplates.format"
+msgstr "Message Format"
+
+msgid "MessageTemplates.subject"
+msgstr "Message Subject"
+
+msgid "MessageTemplates.subject.desc"
+msgstr "Subject line for message to be sent. See XXX LINK supported substitutions."
+
+msgid "Notifications.actor_person_id"
+msgstr "Actor"
+
+msgid "Notifications.email_body_text"
+msgstr "Notification Email Body"
+
+msgid "Notifications.email_subject"
+msgstr "Notification Email Subject"
+
+msgid "Notifications.notification_time"
+msgstr "Notification Time"
+
+msgid "Notifications.recipient_person_id"
+msgstr "Recipient"
+
+msgid "Notifications.resolver_person_id"
+msgstr "Resolved By"
+
+msgid "Notifications.resolution_body"
+msgstr "Resolution Email Body"
+
+msgid "Notifications.resolution_subject"
+msgstr "Resolution Email Subject"
+
+msgid "Notifications.resolution_time"
+msgstr "Resolution Time"
+
+msgid "Notifications.subject_person_id"
+msgstr "Subject"
+
 msgid "Pipelines.match_email_address_type_id"
 msgstr "Email Address Type"
 

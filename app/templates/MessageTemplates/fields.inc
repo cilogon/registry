@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Addresses Controller
+ * COmanage Registry Message Templates Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -24,37 +24,29 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+?>
+<?php
+// This view does not support read-only
+if($vv_action == 'add' || $vv_action == 'edit') {
+  print $this->Field->control('description');
 
-declare(strict_types = 1);
+  print $this->Field->control('status');
 
-namespace App\Controller;
+  print $this->Field->control('context');
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+  print $this->Field->control('format');
 
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
-    ]
-  ];
+  print $this->Field->control('subject');
 
-  /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
+// XXX auto show/hide based on format
+  print $this->Field->control('body_text');
 
-  public function forceVerify(string $id) {
-    try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+// XXX auto show/hide based on format
+  print $this->Field->control('body_html');
+
+  print $this->Field->control('cc');
+
+  print $this->Field->control('bcc');
+
+  print $this->Field->control('reply_to');
 }

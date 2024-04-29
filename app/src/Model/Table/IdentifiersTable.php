@@ -233,6 +233,33 @@ class IdentifiersTable extends Table {
   }
 
   /**
+   * Look up a Person from a login Identifier within a CO. Because login Identifiers
+   * can be of any type, no type ID is required.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $coId       CO ID
+   * @param  string $identifier Identifier
+   * @return int                Person ID
+   * @throws Cake\Datasource\Exception\RecordNotFoundException
+   */
+
+  public function lookupPersonByLogin(int $coId, string $identifier): int {
+    $id = $this->find()
+               ->where([
+                 'Identifiers.identifier'  => $identifier,
+                 'Identifiers.login'       => true,
+                 'Identifiers.status'      => SuspendableStatusEnum::Active,
+                 'Identifiers.person_id IS NOT NULL'
+               ])
+               ->matching('People', function ($q) use($coId) {
+                 return $q->where(['People.co_id' => $coId]);
+               })
+               ->firstOrFail();
+
+    return $id->person_id;
+  }
+  
+  /**
    * Perform a keyword search.
    *
    * @since  COmanage Registry v5.0.0

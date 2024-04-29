@@ -22,6 +22,9 @@
 # @since         COmanage Registry v5.0.0
 # @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
+msgid "controller.SmtpServers"
+msgstr "{0,plural,=1{SMTP Server} other{SMTP Servers}}"
+
 msgid "controller.SqlServers"
 msgstr "{0,plural,=1{SQL Server} other{SQL Servers}}"
 
@@ -42,6 +45,31 @@ msgstr "Oracle"
 
 msgid "enumeration.RdbmsTypeEnum.PG"
 msgstr "Postgres"
+
+msgid "field.SmtpServers.default_from"
+msgstr "Default From Address"
+
+msgid "field.SmtpServers.default_reply_to"
+msgstr "Default Reply-To Address"
+
+msgid "field.SmtpServers.hostname"
+msgstr "Hostname"
+
+msgid "field.SmtpServers.override_to"
+msgstr "Delivery Override"
+
+msgid "field.SmtpServers.override_to.desc"
+msgstr "If set, all outgoing email will only be sent to this address"
+
+# XXX Temporary?
+msgid "field.SmtpServers.password"
+msgstr "Password"
+
+msgid "field.SmtpServers.port"
+msgstr "Port"
+
+msgid "field.SmtpServers.use_tls"
+msgstr "Use TLS"
 
 msgid "error.SqlServers.oracle.enabled"
 msgstr "Oracle support is not enabled"

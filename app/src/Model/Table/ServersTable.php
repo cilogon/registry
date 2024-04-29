@@ -67,6 +67,8 @@ class ServersTable extends Table {
     // In general, we don't want to propagate deletes of a Server to its
     // hasMany dependents since we want to throw an error for the administrator
     // first. (For deleting a CO, the dependent objects should be deleted first.)
+    $this->hasMany('CoSettings')
+         ->setForeignKey('email_smtp_server_id');
     $this->hasMany('Pipelines')
          ->setForeignKey('match_server_id');
 

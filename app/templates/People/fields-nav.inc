@@ -70,6 +70,20 @@ $topLinks = [
     'class' => ''
   ],
   [
+    'icon' => 'notifications',
+    'order' => 'Default',
+    'label' => __d('controller', 'Notifications', [99]),
+    'link' => [
+      'controller' => 'notifications',
+      'action' => 'index',
+      '?' => [
+        'subject_person_id' => $vv_obj->id
+// XXX person_id is auto-inserted but isn't needed
+      ]
+    ],
+    'class' => ''
+  ],
+  [
     'icon' => 'badge',
     'order' => 'Default',
     'label' => __d('operation', 'identifiers.assign'),

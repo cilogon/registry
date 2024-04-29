@@ -48,6 +48,9 @@ msgstr "{0} {1} Deleted: {2}"
 msgid "edited.mvea"
 msgstr "{0} {1} Edited: {2}"
 
+msgid "EmailAddresses.verify.forced"
+msgstr "Email Address force verified"
+
 msgid "ExternalIdentities.status.recalculated"
 msgstr "External Identity status recalculated from {0} to {1}"
 
@@ -108,6 +111,28 @@ msgstr "Job canceled by {0}"
 msgid "Jobs.registered"
 msgstr "Started via JobCommand by {0} (uid {1})"
 
+# These are for generating history records
+msgid "Notifications.A"
+msgstr "Notification acknowledged: {0}"
+
+msgid "Notifications.R"
+msgstr "Notification resolved: {0}"
+
+msgid "Notifications.X"
+msgstr "Notification canceled: {0}"
+
+msgid "Notifications.acknowledged"
+msgstr "Notiication acknowledged"
+
+msgid "Notifications.canceled"
+msgstr "Notification canceled"
+
+msgid "Notifications.delivered"
+msgstr "Notification {0} delivered to {1}"
+
+msgid "Notifications.resent"
+msgstr "Notification resent"
+
 msgid "People.added.pipeline"
 msgstr "Created new Person via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
 
@@ -158,3 +183,10 @@ msgstr "Search Results"
 
 msgid "search.retry"
 msgstr "Please select an option from a menu, or try your search again."
+
+# These are specifically for test command
+msgid "test.database.ok"
+msgstr "Database connection established"
+
+msgid "test.mail.ok"
+msgstr "Test message sent"

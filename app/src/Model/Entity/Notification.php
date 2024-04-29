@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Address Entity
+ * COmanage Registry Notification Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -30,26 +30,50 @@ declare(strict_types = 1);
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
+use \App\Lib\Enum\NotificationStatusEnum;
 
-class EmailAddress extends Entity {
-  use \App\Lib\Traits\EntityMetaTrait;
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
-  use \App\Lib\Traits\MVETrait;
-  
+class Notification extends Entity {
   protected $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
-  
+
   /**
-   * Determine if this Email Address has not been verified.
+   * Determine if this entity can be canceled.
    *
    * @since  COmanage Registry v5.0.0
-   * @return bool true if this is an unverified address, false otherwise
+   * @return bool         true if the entity can be canceled, false otherwise
    */
-  
-  public function notVerified(): bool {
-    return !$this->verified;
+
+  public function canCancel(): bool {
+    return in_array($this->status, [NotificationStatusEnum::PendingAcknowledgment,
+                                    NotificationStatusEnum::PendingResolution]);
+  }
+
+  /**
+   * Determine if this entity can generate a notification (email).
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return bool         true if the entity can be sent, false otherwise
+   */
+
+  public function canNotify(): bool {
+    return in_array($this->status, [NotificationStatusEnum::PendingAcknowledgment,
+                                    NotificationStatusEnum::PendingResolution]);
+  }
+
+  /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return boolean  True if the entity is read only, false otherwise
+   */
+
+  public function isReadOnly(): bool {
+    // All Notifications are effectively read only, at least from a UI standpoint.
+    // (Status can sometimes be changed, but only via actions, not directly.)
+
+    return true;
   }
 }
