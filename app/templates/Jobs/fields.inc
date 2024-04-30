@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Jobs Fields
+ * COmanage Registry Job History Records Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,78 +27,69 @@
 
 // This view does not support add or edit
 if($vv_action == 'view') {
-  print $this->Field->control('plugin', labelText: __d('controller', 'Jobs', [1]));
-  
-  print $this->Field->control('status');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'plugin',
+      'fieldLabel' => __d('controller', 'Jobs', [1])
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]
+  ]);
 
   if($vv_obj->status == \App\Lib\Enum\JobStatusEnum::InProgress) {
-    print $this->Field->statusControl(
-      fieldName: 'percent_complete',
-      status: (string)$vv_obj->percent_complete
-    );
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'percent_complete',
+        'status' => (string)$vv_obj->percent_complete
+      ]
+    ]);
   }
-  
-  $beforeField = '
-    <div class="field-suppliment">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="format-toggle">
-        <label class="form-check-label" for="format-toggle">' .
-          __d('field','format')
-        . '</label>
-      </div>
-    </div>
-  ';
-  $afterField = '
-    <script>
-      parametersValue = $("#parameters").val();
-      parametersJSON = JSON.parse(parametersValue);
-      $("#format-toggle").click(function() {
-        if($(this).is(":checked")) {         
-          $("#parameters").val(JSON.stringify(parametersJSON, null, 4));
-          paramsHeight = Object.keys(parametersJSON).length + 6 + "em";
-          $("#parameters").css("height",paramsHeight);
-        } else {
-          $("#parameters").val(parametersValue);
-          $("#parameters").css("height","4em");
-        }
-      });
-    </script>
-  ';
-  print $this->Field->control('parameters', beforeField: $beforeField, afterField: $afterField);
 
-  print $this->Field->control('register_time');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'parameters',
+      'check' => true
+    ]
+  ]);
 
-  print $this->Field->control('register_summary');
-
-  print $this->Field->control('assigned_host');
-
-  print $this->Field->control('assigned_pid');
-
-  print $this->Field->control('start_after_time');
-
-  print $this->Field->control('start_time');
-
-  print $this->Field->control('start_summary');
-
-  print $this->Field->control('finish_time');
-
-  print $this->Field->control('finish_summary');
-
-  print $this->Field->control('requeue_interval');
-
-  print $this->Field->control('retry_interval');
+  foreach([
+            'register_time',
+            'register_summary',
+            'assigned_host',
+            'assigned_pid',
+            'start_after_time',
+            'start_time',
+            'start_summary',
+            'finish_time',
+            'finish_summary',
+            'requeue_interval',
+            'retry_interval',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 
   if(!empty($vv_obj->requeued_from_job->id)) {
-    print $this->Field->statusControl(
-      fieldName: 'requeued_from_job_id',
-      status: (string)$vv_obj->requeued_from_job->id,
-      link: [
-        'url' => [
-          'controller'  => 'jobs',
-          'action'      => 'view',
-          $vv_obj->requeued_from_job->id
-        ]
+    $link = [
+      'url' => [
+        'controller'  => 'jobs',
+        'action'      => 'view',
+        $vv_obj->requeued_from_job->id
       ]
-    );
+    ];
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'requeued_from_job_id',
+        'status' => (string)$vv_obj->requeued_from_job->id,
+        'link' => $link,
+      ]
+    ]);
   }
 }

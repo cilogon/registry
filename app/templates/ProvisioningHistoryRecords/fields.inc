@@ -27,9 +27,15 @@
 
 // This view does not support add or edit
 if($vv_action == 'view') {
-  print $this->Field->control('comment');
-  
-  print $this->Field->control('status');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'comment'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]]);
 
   // Currently these records only apply to People and Groups, but that will probably change
   if(!empty($vv_obj->person->primary_name)) {
@@ -40,29 +46,41 @@ if($vv_action == 'view') {
         $vv_obj->person->id
       ],
     ];
-    
-    print $this->Field->statusControl(
-      'person_id',
-      $vv_obj->person->primary_name->full_name,
-      $viewLink
-    );
-  } else {
-    print $this->Field->statusControl(
-      'group_id',
-      $vv_obj->group->name,
-      [
-        'url' => [
-          'controller'  => 'groups',
-          'action'      => 'edit',
-          $vv_obj->group->id
-        ]
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'person_id',
+        'status' => $vv_obj->person->primary_name->full_name,
+        'link' => $viewLink,
       ]
-    );
+    ]);
+  } else {
+    $viewLink = [
+      'url' => [
+        'controller'  => 'groups',
+        'action'      => 'edit',
+        $vv_obj->group->id
+      ]
+    ];
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'group_id',
+        'status' => $vv_obj->group->name,
+        'link' => $viewLink,
+      ]
+    ]);
   }
 
-  print $this->Field->control('subject_model');
-
-  print $this->Field->control('subjectid');
-  
-  print $this->Field->control('created');
+  foreach([
+            'subject_model',
+            'subjectid',
+            'created',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]
+    ]);
+  }
 }

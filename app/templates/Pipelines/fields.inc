@@ -50,37 +50,46 @@
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('description');
-
-  print $this->Field->control('status');
-  
-  // Match Strategy
-  print $this->Field->control(
-    fieldName: 'match_strategy',
-    controlType: 'select',
-    options: [
-      'onChange' => 'updateGadgets()'
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description'
     ]
-  );
+  ]);
 
-  print $this->Field->control('match_email_address_type_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]
+  ]);
 
-  print $this->Field->control('match_identifier_type_id');
+  // Match Strategy
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'match_strategy',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()'
+      ],
+      'fieldType' => 'select'
+    ]
+  ]);
 
-  // Sync Strategy
-//  print $this->Field->control('sync_on_update');
-
-//  print $this->Field->control('sync_on_delete');
-
-  print $this->Field->control('sync_status_on_delete', ['empty' => false]);
-
-  print $this->Field->control('sync_cou_id');
-
-  print $this->Field->control('sync_replace_cou_id');
-
-  print $this->Field->control('sync_affiliation_type_id');
-
-  print $this->Field->control('sync_identifier_type_id');
+  foreach([
+            'match_email_address_type_id',
+            'match_identifier_type_id',
+//            'sync_on_update',
+//            'sync_on_delete',
+            'sync_status_on_delete',
+            'sync_cou_id',
+            'sync_replace_cou_id',
+            'sync_affiliation_type_id',
+            'sync_identifier_type_id',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 
   // Connections
 //XXX

@@ -423,7 +423,7 @@ class StandardController extends AppController {
     $this->set('vv_title', $title);
     $this->set('vv_supertitle', $supertitle);
     $this->set('vv_subtitle', $subtitle);
-    
+
     // Let the view render
     $this->render('/Standard/add-edit-view');
   }
@@ -870,7 +870,7 @@ class StandardController extends AppController {
     $this->set('vv_title', $title);
     $this->set('vv_supertitle', $supertitle);
     $this->set('vv_subtitle', $subtitle);
-    
+
     // Let the view render
     $this->render('/Standard/add-edit-view');
   }

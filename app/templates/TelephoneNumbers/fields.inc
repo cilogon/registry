@@ -31,15 +31,37 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   
   foreach(['country_code', 'area_code', 'number', 'extension'] as $f) {
     if(in_array($f, $vv_permitted_fields)) {
-      print $this->Field->control($f);
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => $f
+        ]]);
     }
   }
-  
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
 
-  print $this->Field->control('description');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_type
+      ]
+    ]]);
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description'
+    ]]);
 
-  print $this->Field->sourceControl($vv_obj);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
+
+}
+
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

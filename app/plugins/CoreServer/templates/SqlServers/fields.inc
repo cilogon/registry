@@ -27,15 +27,18 @@
 
 // This view does currently not support read-only, and add is not used
 if($vv_action == 'edit') {
-  print $this->Field->control('type');
-  
-  print $this->Field->control('hostname');
-
-  print $this->Field->control('port');
-
-  print $this->Field->control('databas');
-
-  print $this->Field->control('username');
-
-  print $this->Field->control('password');
+  foreach([
+            'type',
+            'hostname',
+            'port',
+            'databas',
+            'username',
+            'password',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 }

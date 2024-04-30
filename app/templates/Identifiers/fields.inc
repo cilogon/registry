@@ -26,20 +26,45 @@
  */
 
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->Field->control('identifier');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'identifier',
+    ]]);
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_type
+      ]
+    ]]);
 
   if($vv_primary_link_attr == 'person_id') {
     // AR-Identifier-1 Only Persons can have a login flag
-    print $this->Field->control('login');
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'login',
+      ]]);
   } else {
+    // Will be used by add-edit-view.php to append the hidden fields in the form
     $hidden['login'] = false;
   }
-  
-  print $this->Field->control('status', ['empty' => false]);
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status',
+    ]]);
 
-  print $this->Field->sourceControl($vv_obj);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
+}
+
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

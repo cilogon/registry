@@ -26,24 +26,55 @@
  */
 
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->Field->control('affiliation_type_id', labelText: __d('field', 'affiliation'));
-  
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->control('ordr');
-  
-  print $this->Field->control('title');
-  
-  print $this->Field->control('organization');
-  
-  print $this->Field->control('department');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'affiliation_type_id',
+      'fieldLabel' => __d('field', 'affiliation')
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]
+  ]);
+
+  foreach([
+            'ordr',
+            'title',
+            'organization'.
+            'department'
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
   
 // XXX need to clarify this is an _identifier_ not an actual Person FK
-  print $this->Field->control('sponsor_identifier', labelText: __d('field', 'sponsor'));
-  
-  print $this->Field->control('manager_identifier', labelText: __d('field', 'manager'));
-  
-  print $this->Field->dateControl('valid_from');
-  
-  print $this->Field->dateControl('valid_through');
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'sponsor_identifier',
+      'fieldLabel' => __d('field', 'sponsor')
+    ]
+  ]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'manager_identifier',
+      'fieldLabel' => __d('field', 'manager')
+    ]
+  ]);
+
+  foreach([
+            'valid_from',
+            'valid_through'
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 }

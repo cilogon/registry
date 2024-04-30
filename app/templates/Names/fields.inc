@@ -31,22 +31,54 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
 
   foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
     if(in_array($f, $vv_permitted_fields)) {
-      print $this->Field->control($f);
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => $f
+        ]]);
     }
   }
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_type
+      ]
+    ]]);
 
-  print $this->Field->control('language');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'language'
+    ]]);
 
-  print $this->Field->control('display_name');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'display_name'
+    ]]);
+
   
   // We don't allow unsetting of primary_name here because we need to know what
   // the new primary_name is, but we do allow this name to become primary
   // because afterSave will unset the old one.
-  print $this->Field->control('primary_name', ['readonly' => $vv_obj->primary_name]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description',
+      'fieldOptions' => [
+        'readonly' => $vv_obj->primary_name
+      ]
+    ]]);
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
 
-  print $this->Field->sourceControl($vv_obj);
+}
+
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

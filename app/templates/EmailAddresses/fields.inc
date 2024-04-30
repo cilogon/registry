@@ -26,16 +26,44 @@
  */
 
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->Field->control('mail');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'mail'
+    ]]);
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_type
+      ]
+    ]]);
 
-  print $this->Field->control('description');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description'
+    ]]);
 
 // XXX CFM-129 need to implement verification
-  print $this->Field->control('verified', ['readonly' => true]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'verified',
+      'fieldOptions' => [
+        'readonly' => true
+      ]
+    ]]);
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
 
-  print $this->Field->sourceControl($vv_obj);
+}
+
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

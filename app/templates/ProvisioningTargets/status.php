@@ -40,13 +40,13 @@ use App\Lib\Util\StringUtilities;
 
   <?php if(!empty($indexBanners)): ?>
     <?php foreach($indexBanners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
+      <?= $this->element('notify/alert', ['message' => $b]) ?>
     <?php endforeach; // $indexBanners ?>
   <?php endif; // $indexBanners ?>
 
   <?php if(!empty($banners)): ?>
     <?php foreach($banners as $b): ?>
-      <?= $this->Alert->alert($b, 'warning') ?>
+      <?= $this->element('notify/alert', ['message' => $b]) ?>
     <?php endforeach; // $banners ?>
   <?php endif; // $banners ?>
 </div>

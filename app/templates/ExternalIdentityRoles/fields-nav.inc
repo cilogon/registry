@@ -34,7 +34,7 @@ $mveas = [
 ];
 
 // Name the MVEAs Entity Type
-$mveasEntityType = "external_identity_role";
+$mveasEntityType = 'external_identity_role';
 
 // $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
 // it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.

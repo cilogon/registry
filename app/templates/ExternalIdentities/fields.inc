@@ -43,11 +43,23 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
         )
       ]
     );
-    
-    print $this->Alert->alert($noticeText, 'information', false);
+
+    $this->element('notify/alert', [
+      'message'     => $noticeText,
+      'type'        => 'information'
+    ]);
+
   }
 
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->dateControl('date_of_birth', \App\Lib\Enum\DateTypeEnum::DateOnly);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'date_of_birth', // date
+    ]
+  ]);
 }

@@ -26,22 +26,47 @@
  */
 
 if($vv_action == 'add') {
-  print $this->Field->control('target_group_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'target_group_id',
+    ]
+  ]);
 } elseif($vv_action == 'edit') {
+  $link = [
+    'url' => [
+      'controller' => 'groups',
+      'action'     => 'edit',
+      $vv_obj->target_group_id]
+  ];
   // The target group can't be changed after adding
-  print $this->Field->statusControl('target_group_id',
-                                    $vv_obj->target_group->name, 
-                                    ['url' => ['controller' => 'groups',
-                                               'action'     => 'edit',
-                                               $vv_obj->target_group_id]]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'target_group_id',
+      'status' => $vv_obj->target_group->name,
+      'link' => $link,
+    ]
+  ]);
 }
   
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->statusControl('group_id',
-                                    $vv_bc_parent_obj->name, 
-                                    ['url' => ['controller' => 'groups',
-                                               'action'     => 'edit',
-                                               $vv_bc_parent_obj->id]]);
-  
-  print $this->Field->control('negate');
+  $link = [
+    'url' => [
+      'controller' => 'groups',
+      'action'     => 'edit',
+      $vv_bc_parent_obj->id]
+  ];
+  // The target group can't be changed after adding
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'group_id',
+      'status' => $vv_bc_parent_obj->name,
+      'link' => $link,
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'negate',
+    ]
+  ]);
 }

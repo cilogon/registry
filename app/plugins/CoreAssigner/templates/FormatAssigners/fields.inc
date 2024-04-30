@@ -47,18 +47,30 @@
 <?php
 // This view does currently not support read-only, and add is not used
 if($vv_action == 'edit') {
-  print $this->Field->control('format');
-  
-  print $this->Field->control(
-    fieldName: 'collision_mode',
-    options: [
-      'onChange' => 'updateGadgets()'
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'format'
     ]
-  );
+  ]);
 
-  print $this->Field->control('permitted_characters');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'collision_mode',
+      'options'   => [
+        'onChange' => 'updateGadgets()'
+      ]
+    ]
+  ]);
 
-  print $this->Field->control('minimum');
-
-  print $this->Field->control('maximum');
+  foreach([
+            'permitted_characters',
+            'minimum',
+            'maximum',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 }

@@ -25,8 +25,18 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-print $this->Field->banner(__d('information', 'api.key'));
+print $this->element('notify/banner', [ 'info' => __d('information', 'api.key')]);
 
-print $this->Field->statusControl('username', $vv_obj->username);
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'username',
+    'status' => $vv_obj->username,
+  ]
+]);
 
-print $this->Field->statusControl('api_key', $vv_api_key);
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'api_key',
+    'status' => $vv_api_key,
+  ]
+]);

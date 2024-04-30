@@ -27,9 +27,15 @@
 
 // This view does currently not support read-only, and add is not used
 if($vv_action == 'edit') {
-  print $this->Field->control('server_id');
-  
-  print $this->Field->control('source_table');
-
-  print $this->Field->control('type_id');
+  foreach([
+            'server_id',
+            'source_table',
+            'type_id',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 }

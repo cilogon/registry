@@ -189,7 +189,7 @@ class ApiSourcesTable extends Table {
    */
 
   public function remove(
-    \App\Model\Entity\ExternalIdentitySource $source, 
+    \App\Model\Entity\ExternalIdentitySource $source,
     string $sorId
   ): array {
     // We call this remove() so as not to interfere with the default table::delete().
@@ -293,7 +293,7 @@ class ApiSourcesTable extends Table {
    */
 
   public function retrieve(
-    \App\Model\Entity\ExternalIdentitySource $source, 
+    \App\Model\Entity\ExternalIdentitySource $source,
     string $source_key
   ): array {
     $ret = [
@@ -328,7 +328,7 @@ class ApiSourcesTable extends Table {
    */
 
   public function search(
-    \App\Model\Entity\ExternalIdentitySource $source, 
+    \App\Model\Entity\ExternalIdentitySource $source,
     array $searchAttrs
   ): array {
     $ret = [];

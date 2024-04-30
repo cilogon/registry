@@ -28,14 +28,23 @@
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('description');
-
-  print $this->Field->control('status', 
-                              ['default'  => \App\Lib\Enum\SyncModeEnum::Disabled]);
-  
-  print $this->Field->control('plugin');
-
-  print $this->Field->control('pipeline_id');
-  
-  print $this->Field->control('sor_label');
+  foreach([
+            'description',
+            'status',
+            'plugin',
+            'pipeline_id',
+            'sor_label',
+          ] as $field) {
+    $params =  [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ];
+    if($field == 'status') {
+      $params['arguments']['fieldOptions'] = [
+        'default'  => \App\Lib\Enum\SyncModeEnum::Disabled
+      ];
+    }
+    print $this->element('form/listItem', $params);
+  }
 }

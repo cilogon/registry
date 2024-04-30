@@ -27,13 +27,17 @@
 
 // This view does currently not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('filename');
-
-  print $this->Field->control('format');
-
-  print $this->Field->control('archivedir');
-
-  print $this->Field->control('threshold_warn');
-
-  print $this->Field->control('threshold_override');
+  foreach([
+            'filename',
+            'format',
+            'archivedir',
+            'threshold_warn',
+            'threshold_override',
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 }

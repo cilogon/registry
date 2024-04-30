@@ -28,54 +28,103 @@
 <?php
 // This view does not support add or read-only
 if($vv_action == 'edit') {
-  print $this->Field->control('required_fields_address', ['suppressBlank' => true]);
-  
-  print $this->Field->control('default_address_type_id');
-  
-  print $this->Field->control('default_email_address_type_id');
-  
-  print $this->Field->control('default_identifier_type_id');
-  
-  print $this->Field->control('default_name_type_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'required_fields_address',
+      'fieldOptions' => ['empty' => false]
+    ]]);
 
-  print $this->Field->control('permitted_fields_name', ['suppressBlank' => true]);
-  
-  print $this->Field->control('required_fields_name', ['suppressBlank' => true]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_address_type_id'
+    ]]);
 
-  print $this->Field->control('default_pronoun_type_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_email_address_type_id'
+    ]]);
 
-  print $this->Field->control('default_telephone_number_type_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_identifier_type_id'
+    ]]);
 
-  print $this->Field->control('permitted_fields_telephone_number', ['suppressBlank' => true]);
-  
-  print $this->Field->control('default_url_type_id');
-  
-  print $this->Field->control('search_global_limit');
-  
-  print $this->Field->control('search_global_limited_models');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_name_type_id'
+    ]]);
 
-  print $this->Field->groupedControls(
-    [
-      'person_picker_email_address_type_id' => [
-        'options' => [
-          'suppressBlank' => true,
-          'label' => __d('field', 'mail'),
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'permitted_fields_name',
+      'fieldOptions' => ['empty' => false]
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'required_fields_name',
+      'fieldOptions' => ['empty' => false]
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_pronoun_type_id'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_telephone_number_type_id'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'permitted_fields_telephone_number',
+      'fieldOptions' => ['empty' => false]
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'default_url_type_id'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'search_global_limit'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'search_global_limited_models'
+    ]]);
+
+    print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'person_picker_display_fields',
+      'groupedControls' =>  [
+        // each key is the fieldName of the control we are going to create
+        'person_picker_email_address_type_id' => [
+          'fieldOptions' => [
+            'label' => __d('field', 'mail'),
+          ],
         ],
-      ],
-      'person_picker_identifier_type_id' => [
-        'options' => [
-          'suppressBlank' => true,
-          'label' => __d('field', 'identifier'),
+        'person_picker_identifier_type_id' => [
+          'fieldOptions' => [
+            'label' => __d('field', 'identifier'),
+          ],
         ],
+        'person_picker_display_types' => [
+          'singleRowItem' => true
+        ]
       ],
-      'person_picker_display_types' => [
-        'singleRowItem' => true
-      ]
-    ],
-    'person_picker_display_fields'
-  );
+    ]]);
 
-  print $this->Field->control('email_smtp_server_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'email_smtp_server_id'
+    ]]);
 
-  print $this->Field->control('email_delivery_address_type_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'email_delivery_address_type_id'
+    ]]);
 }

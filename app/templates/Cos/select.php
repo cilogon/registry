@@ -35,7 +35,7 @@
 </div>
 
 <?php if(count($vv_available_cos) == 0): ?>
-  <?= $this->Alert->alert(__d('information','cos.none'), 'warning') ?>
+  <?= $this->element('notify/alert', ['message' => __d('information','cos.none')]) ?>
 <?php else: // vv_available_cos ?>
   <p><?= __d('information', 'cos.select'); ?></p>
   <div id="fpList" class="co-grid co-grid-with-header container">

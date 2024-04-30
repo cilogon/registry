@@ -26,19 +26,35 @@
  */
 
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->Field->control('cou_id');
-  
-  print $this->Field->control('affiliation_type_id', labelText: __d('field', 'affiliation'));
-  
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->control('ordr');
-  
-  print $this->Field->control('title');
-  
-  print $this->Field->control('organization');
-  
-  print $this->Field->control('department');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'cou_id',
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' =>'affiliation_type_id',
+      'fieldLabel' => __d('field', 'affiliation')
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' =>'status'
+    ]
+  ]);
+
+  foreach(['ordr',
+           'title',
+           'organization',
+           'department'] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
   
   // For now, we render sponsor and manager as read only.
   // XXX Need People Picker (CFM-150)
@@ -52,15 +68,39 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
       $fname = $vv_obj->$fp->names[0]->full_name;
       $flink = ['url' => ['controller' => 'people', 'action' => 'edit', $vv_obj->$fp->id]];
     }
-    
-    print $this->Field->statusControl($f.'_person_id', $fname, $flink, __d('field', $f));
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $f.'_person_id',
+        'status' => $fname,
+        'link' => $flink,
+        'fieldLabel' => __d('field', $f)
+      ]
+    ]);
   }
-  
-  print $this->Field->dateControl('valid_from');
-  
-  print $this->Field->dateControl('valid_through');
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'valid_from', // timestamp
+    ]
+  ]);
 
-  print $this->Field->sourceControl($vv_obj);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'valid_through', // timestamp
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
+}
+
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

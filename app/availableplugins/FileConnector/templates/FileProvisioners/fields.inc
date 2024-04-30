@@ -27,5 +27,9 @@
 
 // This view does currently not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('filename');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'filename',
+    ]
+  ]);
 }

@@ -28,26 +28,42 @@
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   // Dynamic required fields is automatically handled by FormHelper via the
   // validation rules
-  
-  print $this->Field->control('street');
+  foreach (['street',
+             'room',
+             'locality',
+             'state',
+             'postal_code',
+             'country',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 
-  print $this->Field->control('room');
-  
-  print $this->Field->control('locality');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_type
+      ]
+    ]]);
 
-  print $this->Field->control('state');
-  
-  print $this->Field->control('postal_code');
-  
-  print $this->Field->control('country');
+  foreach (['language',
+             'description',
+             'frozen',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
+}
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
-
-  print $this->Field->control('language');
-
-  print $this->Field->control('description');
-
-  print $this->Field->control('frozen');
-
-  print $this->Field->sourceControl($vv_obj);
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

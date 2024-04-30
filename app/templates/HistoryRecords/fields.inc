@@ -27,7 +27,10 @@
 
 // This view does not support edit
 if($vv_action == 'add' || $vv_action == 'view') {
-  print $this->Field->control('comment');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'comment',
+    ]]);
   
   if($vv_action == 'add') {
     // On manual add insert action
@@ -39,7 +42,10 @@ if($vv_action == 'add' || $vv_action == 'view') {
   }
   
   if($vv_action == 'view') {
-    print $this->Field->control('action');
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'action',
+      ]]);
     
     if(!empty($vv_obj->person->primary_name)) {
       $viewLink = [
@@ -49,12 +55,14 @@ if($vv_action == 'add' || $vv_action == 'view') {
           $vv_obj->person->id
         ],
       ];
-      
-      print $this->Field->statusControl(
-        'person_id',
-        $vv_obj->person->primary_name->full_name,
-        $viewLink
-      );
+
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'person_id',
+          'status' => $vv_obj->person->primary_name->full_name,
+          'link' => $viewLink
+        ]
+      ]);
     }
     
     if(!empty($vv_obj->person_role_id)) {
@@ -65,12 +73,14 @@ if($vv_action == 'add' || $vv_action == 'view') {
           $vv_obj->person_role_id
         ],
       ];
-      
-      print $this->Field->statusControl(
-        'person_role_id',
-        $vv_obj->person_role_id,
-        $viewLink
-      );
+
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'person_role_id',
+          'status' => $vv_obj->person_role_id,
+          'link' => $viewLink
+        ]
+      ]);
     }
     
     if(!empty($vv_obj->external_identity->primary_name)) {
@@ -81,12 +91,14 @@ if($vv_action == 'add' || $vv_action == 'view') {
           $vv_obj->external_identity->id
         ],
       ];
-      
-      print $this->Field->statusControl(
-        'external_identity_id',
-        $vv_obj->external_identity->primary_name->full_name,
-        $viewLink
-      );
+
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'external_identity_id',
+          'status' => $vv_obj->external_identity->primary_name->full_name,
+          'link' => $viewLink
+        ]
+      ]);
     }
     
     if(!empty($vv_obj->external_identity_role_id)) {
@@ -97,12 +109,14 @@ if($vv_action == 'add' || $vv_action == 'view') {
           $vv_obj->external_identity_role_id
         ],
       ];
-      
-      print $this->Field->statusControl(
-        'external_identity_role_id',
-        $vv_obj->external_identity_role_id,
-        $viewLink
-      );
+
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'external_identity_role_id',
+          'status' => $vv_obj->external_identity_role_id,
+          'link' => $viewLink
+        ]
+      ]);
     }
     
     if(!empty($vv_obj->group_id)) {
@@ -113,12 +127,14 @@ if($vv_action == 'add' || $vv_action == 'view') {
           $vv_obj->group_id
         ],
       ];
-      
-      print $this->Field->statusControl(
-        'group_id',
-        $vv_obj->group->name,
-        $viewLink
-      );
+
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'group_id',
+          'status' => $vv_obj->group->name,
+          'link' => $viewLink
+        ]
+      ]);
     }
     
     if(!empty($vv_obj->actor_person->names)) {
@@ -129,15 +145,20 @@ if($vv_action == 'add' || $vv_action == 'view') {
           $vv_obj->actor_person->id
         ],
       ];
-      
-      print $this->Field->statusControl(
-        'actor_person_id',
-        $vv_obj->actor_person->names[0]->full_name,
-        $viewLink,
-        __d('field', 'actor')
-      );
+
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'actor_person_id',
+          'status' => $vv_obj->actor_person->names[0]->full_name,
+          'link' => $viewLink,
+          'fieldLabel' => __d('field', 'actor')
+        ]
+      ]);
     }
-    
-    print $this->Field->control('created');
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'created',
+      ]]);
   }
 }

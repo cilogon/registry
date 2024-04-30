@@ -26,11 +26,26 @@
  */
 
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->Field->control('tag');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'tag'
+    ]]);
 
-  print $this->Field->control('value');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'value'
+    ]]);
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
+}
 
-  print $this->Field->sourceControl($vv_obj);
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

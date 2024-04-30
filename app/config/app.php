@@ -171,6 +171,17 @@ return [
             'duration' => '+1 years',
             'url' => env('CACHE_CAKEROUTES_URL', null),
         ],
+      /**
+       * Configure the cache for html elements.
+       * Duration will be set to '+2 seconds' in bootstrap.php when debug = true
+       */
+        '_html_elements' => [
+          'className' => 'Cake\Cache\Engine\FileEngine',
+          'prefix' => 'myapp_cake_elements_',
+          'duration' => '+1 week',
+          'probability' => 100,
+          'url' => env('CACHE_HTMLELEMENT_URL', null),
+        ]
     ],
 
     /**

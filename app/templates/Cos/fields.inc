@@ -27,9 +27,18 @@
 
 // This view supports read-only only for the COmanage CO
 if($vv_action == 'add' || $vv_action == 'edit' || ($vv_action == 'view' && $vv_obj->name == 'COmanage')) {
-  print $this->Field->control('name');
-  
-  print $this->Field->control('description');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'name'
+    ]]);
 
-  print $this->Field->control('status', ['empty' => false]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]]);
 }

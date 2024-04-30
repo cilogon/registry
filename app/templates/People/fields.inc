@@ -33,19 +33,25 @@ if($vv_action == 'add') {
   
   foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
     if(in_array($f, $vv_permitted_name_fields)) {
-      print $this->Field->control(
-        fieldName: 'names.0.'.$f,
-        options: ['required' => in_array($f, $vv_required_name_fields)],
-        controlType: 'string'
-      );
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'names.0.'.$f,
+          'fieldOptions' => [
+            'required' => in_array($f, $vv_required_name_fields)
+          ],
+          'fieldType' => 'string'
+        ]]);
     }
   }
-  
-  print $this->Field->control(
-    fieldName: 'names.0.type_id',
-    options: ['empty' => false, 'default' => $vv_default_name_type],
-    controlType: 'string'
-  );
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'names.0.type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_name_type
+      ],
+      'fieldType' => 'string'
+    ]]);
   
   // AR-Name-1 Since this is the first name for this Person, it must be
   // designated primary
@@ -58,7 +64,13 @@ if($vv_action == 'add') {
 }
 
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->dateControl('date_of_birth', \App\Lib\Enum\DateTypeEnum::DateOnly);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status'
+    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'date_of_birth'
+    ]]);
 }

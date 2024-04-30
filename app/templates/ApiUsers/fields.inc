@@ -26,18 +26,23 @@
  */
 
 // This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {  
+if($vv_action == 'add' || $vv_action == 'edit') {
   if($vv_cur_co->id == 1) {
-    print $this->Field->banner(__d('information', 'api.cmp'));
+    print $this->element('banner', ['info' => __d('information', 'api.cmp')]);
   }
-  
+
   // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
-  print $this->Field->control('username', prefix: 'co_' . $vv_cur_co->id . '.');
-  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'username',  // string
+      'fieldPrefix' => 'co_' . $vv_cur_co->id . '.'
+    ]
+  ]);
+
   // We link to the "Generate" button on edit only
   $generateLink = [];
   $labelIsTextOnly = false;
-  
+
   if(!empty($vv_obj->id)) {
     $generateLink = [
       'url' => [
@@ -49,22 +54,46 @@ if($vv_action == 'add' || $vv_action == 'edit') {
      'class' => 'provisionbutton nospin btn btn-primary btn-sm',
      'confirm' => __d('operation', 'api.key.generate.confirm')
     ];
-    
+
     $labelIsTextOnly = true;
   }
-  
-  print $this->Field->statusControl('api_key',
-                                    !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
-                                    $generateLink,
-                                    labelIsTextOnly: $labelIsTextOnly);
-  
-  print $this->Field->control('status', ['empty' => false]);
-  
-  print $this->Field->dateControl('valid_from');
-  
-  print $this->Field->dateControl('valid_through');
-  
-  print $this->Field->control('remote_ip');
-  
-  print $this->Field->control('privileged');
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'api_key',
+      'status' => !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
+      'link' => $generateLink,
+      'labelIsTextOnly' => $labelIsTextOnly
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status', // select
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'valid_from', // timestamp
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'valid_through', // timestamp
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'remote_ip', // string
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'privileged', // boolean
+    ]
+  ]);
 }

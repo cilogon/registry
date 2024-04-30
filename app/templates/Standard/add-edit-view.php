@@ -176,10 +176,6 @@ if(!empty($subnav)) {
 <?php endif; ?>
 
 <?php
-// By default, the form will POST to the current controller
-// Note we need to open the form for view so Cake will autopopulate values
-print $this->Form->create($vv_obj);
-
 $linkId = null;
 
 if(!empty($vv_primary_link)) {
@@ -192,52 +188,29 @@ if(!empty($vv_primary_link)) {
   }
 }
 
-print $this->Field->startControlSet(
-  modelName: $this->name,
-  action: $vv_action,
-  // XXX We need a model specific mechanism to disable read-only
-  editable: ($vv_action == 'add' || $vv_action == 'edit'),
-  reqFields: $vv_required_fields,
-  pluginName: $this->getPlugin()
-);
+/*
+ * Views have a set() method that is analogous to the set() found in Controller objects.
+ * Using set() from your view file will add the variables to the layout and elements
+ * that will be rendered later.
+ */
 
-// We allow the fields.inc file to be specified for Controllers that have more
-// complicated/non-default actions.
-$fieldsFile = "fields.inc";
+// By default, the form will POST to the current controller
+// Note we need to open the form for view so Cake will autopopulate values
+print $this->Form->create($vv_obj);
 
-if(!empty($vv_fields_inc)) {
-  $fieldsFile = $vv_fields_inc;
-}
+// List of records to collect
+// Form body
+print $this->element('form/unorderedList');
 
-// The controller will calculate the template path for us, since it could be
-// in one of several paths if we are in a plugin context.
-include($vv_template_path . DS . $fieldsFile);
-
-if(!empty($hidden)) {
-  // Inject any hidden variables set by the include file
-  foreach($hidden as $attr => $v) {
-    print $this->Form->hidden($attr, ['value' => $v]);
-  }
-}
-
-if($vv_action != 'add') {
-  print '<li id="cm-entity-id">' . __d('information', 'entity.id', $vv_obj->id) . '</li>';  
-}
-
-if($vv_action == 'add' || $vv_action == 'edit') {
+if(!empty($linkId)
+   && ($vv_action == 'add' || $vv_action == 'edit')) {
   // We don't want/need to output these for view actions
-  
-  if(!empty($linkId)) {
-    // Hidden values used to link to parent objects (eg: matchgrid_id)
-    print $this->Form->hidden($vv_primary_link, ['value' => $linkId]);
-  }
-  
-  print $this->Field->submit(__d('operation', 'save'));
+  print $this->Form->hidden($vv_primary_link, ['value' => $linkId]);
 }
 
+// Close the Form
 print $this->Form->end();
 
-print $this->Field->endControlSet();
 
 /** MVEA Canvas output **/
 if($vv_action != 'add' && !empty($mveas)) {

@@ -28,25 +28,23 @@
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('description');
-
-  print $this->Field->control('status');
-
-  print $this->Field->control('context');
-
-  print $this->Field->control('format');
-
-  print $this->Field->control('subject');
-
+  foreach ([
+             'description',
+             'status',
+             'context',
+             'format',
+             'subject',
 // XXX auto show/hide based on format
-  print $this->Field->control('body_text');
-
+             'body_text',
 // XXX auto show/hide based on format
-  print $this->Field->control('body_html');
-
-  print $this->Field->control('cc');
-
-  print $this->Field->control('bcc');
-
-  print $this->Field->control('reply_to');
+             'body_html',
+             'cc',
+             'bcc',
+             'reply_to',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 }

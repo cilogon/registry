@@ -485,7 +485,11 @@
       ];
       ?>
       <div class="config-platform-notice">
-        <?= $this->Alert->alert(__d('information','cmp.config.notice', $noticeUrls), 'information', true) ?>
+        <?= $this->element('notify/alert', [
+          'message' => __d('information','cmp.config.notice', $noticeUrls),
+          'type' => 'information',
+          'dismissible' => true
+          ]) ?>
       </div>
     <?php endif; ?>
     <div class="comanage-version">

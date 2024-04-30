@@ -48,19 +48,23 @@
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control(
-    fieldName: 'attribute', 
-    options: [
-      'onChange' => 'updateGadgets()', 
-      'readonly' => $vv_action == 'edit'
-    ]
-  );
-  
-  print $this->Field->control('display_name');
-  
-  print $this->Field->control('value');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'attribute',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()',
+        'readonly' => $vv_action == 'edit'
+      ]
+    ]]);
 
-  print $this->Field->control('status');
-  
-  print $this->Field->control('edupersonaffiliation');
+  foreach (['display_name',
+             'value',
+             'status',
+             'edupersonaffiliation'
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 }

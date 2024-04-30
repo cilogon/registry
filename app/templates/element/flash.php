@@ -32,13 +32,13 @@
   
   <?php if(!empty($vv_index_banners)): ?>
     <?php foreach($vv_index_banners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
+      <?= $this->element('notify/alert', ['message' => $b]) ?>
     <?php endforeach; // $vv_index_banners ?>
   <?php endif; // $vv_index_banners ?>
   
   <?php if(!empty($vv_banners)): ?>
     <?php foreach($vv_banners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
+      <?= $this->element('notify/alert', ['message' => $b]) ?>
     <?php endforeach; // $vv_banners ?>
   <?php endif; // $vv_banners ?>
 </div>

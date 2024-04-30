@@ -27,11 +27,16 @@
 
 // This view does not support add or edit
 if($vv_action == 'view') {
-  print $this->Field->control('record_key');
-  
-  print $this->Field->control('comment');
-  
-  print $this->Field->control('status');
+  foreach(['record_key',
+           'comment',
+           'status'
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]
+    ]);
+  }
 
 // Rewrite these to always emit the column even if the field is blank
   if(!empty($vv_obj->person->primary_name)) {
@@ -42,12 +47,14 @@ if($vv_action == 'view') {
         $vv_obj->person->id
       ],
     ];
-    
-    print $this->Field->statusControl(
-      'person_id',
-      $vv_obj->person->primary_name->full_name,
-      $viewLink
-    );
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'person_id',
+        'status' => $vv_obj->person->primary_name->full_name,
+        'link' => $viewLink,
+      ]
+    ]);
   }
   
   if(!empty($vv_obj->external_identity->primary_name)) {
@@ -58,13 +65,19 @@ if($vv_action == 'view') {
         $vv_obj->external_identity->id
       ],
     ];
-    
-    print $this->Field->statusControl(
-      'external_identity_id',
-      $vv_obj->external_identity->primary_name->full_name,
-      $viewLink
-    );
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'external_identity_id',
+        'status' => $vv_obj->external_identity->primary_name->full_name,
+        'link' => $viewLink,
+      ]
+    ]);
   }
 
-  print $this->Field->control('created');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'created'
+    ]
+  ]);
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Identifier Assignment Fields
+ * COmanage Registry Identifier Assignments Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -56,7 +56,10 @@
   }
 
   function resetType(id) {
-    document.getElementById(id).value = "";
+    const dropDown = document.getElementById(id);
+    dropDown.value = "";
+    dropDown.selectedIndex = 0;
+
     updateGadgets();
   }
 
@@ -68,41 +71,57 @@
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('description');
+  foreach([
+            'description',
+            'status',
+            'plugin'
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]]);
+  }
 
-  print $this->Field->control('status');
-  
-  print $this->Field->control('plugin');
-  
-  print $this->Field->control(
-    fieldName: 'context',
-    options: [
-      'onChange' => 'updateGadgets()'
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'context',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()'
+      ]
     ]
-  );
-  
-  print $this->Field->control(
-    fieldName: 'identifier_type_id',
-    options: [
-      'onChange' => 'resetType("email-address-type-id")'
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'identifier_type_id',
+      'fieldOptions' => [
+        'onChange' => 'resetType("email-address-type-id")'
+      ]
     ]
-  );
-  
-  print $this->Field->control(
-    fieldName: 'login',
-    cssClass: 'subfield'
-  );
+  ]);
 
-  print $this->Field->control(
-    fieldName: 'email_address_type_id',
-    options: [
-      'onChange' => 'resetType("identifier-type-id")'
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'login'
     ]
-  );
+  ]);
 
-  print $this->Field->control('group_id');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'email_address_type_id',
+      'fieldOptions' => [
+        'onChange' => 'resetType("identifier-type-id")'
+      ]
+    ]
+  ]);
 
-  print $this->Field->control('allow_empty');
-
-  print $this->Field->control('ordr');
+  foreach(['group_id',
+           'allow_empty',
+           'ordr'
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]]);
+  }
 }

@@ -62,7 +62,8 @@ class ApiUsersController extends StandardController {
                                                            'api.key',
                                                            $this->request->getParam('action'));
     $this->set('vv_title', $title);
-    
+
+    // Let the view render
     $this->render('/Standard/add-edit-view');
   }
 }

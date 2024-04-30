@@ -42,7 +42,10 @@
 </div>
 
 <?php if(empty($vv_search_attrs)): ?>
-  <?= $this->Alert->alert(__d('information', 'ExternalIdentitySources.search.attrs.none'), 'information', false)  ?>
+  <?= $this->element('notify/alert', [
+    'message' => __d('information', 'ExternalIdentitySources.search.attrs.none'),
+    'type' => 'information'
+  ]) ?>
 <?php else: // vv_search_attrs ?>
   <?php
     // Begin the form

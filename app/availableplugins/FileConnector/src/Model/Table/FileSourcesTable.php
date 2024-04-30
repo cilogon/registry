@@ -349,7 +349,7 @@ class FileSourcesTable extends Table {
    */
 
   public function retrieve(
-    \App\Model\Entity\ExternalIdentitySource $source, 
+    \App\Model\Entity\ExternalIdentitySource $source,
     string $source_key
   ): array {
     // Read the field configuration (for resultToEntity)
@@ -423,7 +423,7 @@ class FileSourcesTable extends Table {
    */
 
   public function search(
-    \App\Model\Entity\ExternalIdentitySource $source, 
+    \App\Model\Entity\ExternalIdentitySource $source,
     array $searchAttrs
   ): array {
     // Read the field configuration (for resultToEntity)

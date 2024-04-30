@@ -42,17 +42,23 @@ $noticeText = __d(
   ]
 );
 
-print $this->Alert->alert($noticeText, 'information', false);
+print $this->element('notify/alert', [
+  'message'     => $noticeText,
+  'type'        => 'information'
+]);
 
 // This view does not support add or edit
 if($vv_action == 'view') {
 // Link to External Identity, if known
-
-  print $this->Field->control('source_key');
-
-  print $this->Field->control('last_update');
-
-  print $this->Field->control('reference_identifier');
-
-  print $this->Field->control(fieldName: 'source_record', cssClass: 'source-record');
+  foreach([
+            'source_key',
+            'last_update',
+            'reference_identifier',
+            'source_record'
+          ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field,
+      ]]);
+  }
 }

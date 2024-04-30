@@ -26,13 +26,34 @@
  */
 
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->Field->control('url');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'url'
+    ]]);
 
-  print $this->Field->control('type_id', ['default' => $vv_default_type]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'type_id',
+      'fieldOptions' => [
+        'default' => $vv_default_type
+      ]
+    ]]);
 
-  print $this->Field->control('description');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description'
+    ]]);
 
-  print $this->Field->control('frozen');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'frozen'
+    ]]);
+}
 
-  print $this->Field->sourceControl($vv_obj);
+if($vv_action == 'edit' || $vv_action == 'view') {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'source',
+      'entity' => $vv_obj
+    ]]);
 }

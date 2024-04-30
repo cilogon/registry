@@ -129,7 +129,7 @@ $hasActiveFilters = false;
             print '<div class="top-filters-fields-date filter-standard ' . $wrapperCssClass . '">';
             print $this->Form->label($key, $label);
             print '<div class="d-flex">';
-            print $this->Field->dateField($key, DateTypeEnum::DateOnly, $query)['controlCode'];
+            print $this->Field->dateField($key, DateTypeEnum::DateOnly, $query);
             print '</div>';
             print '</div>';
           } else {

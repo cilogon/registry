@@ -30,96 +30,109 @@ use \App\Lib\Enum\NotificationStatusEnum;
 <?php
 // This view does not support add or edit
 if($vv_action == 'view') {
-  print $this->Field->control('comment');
-
-  print $this->Field->control('action');
-
-  print $this->Field->control('source');
-
-  print $this->Field->control('created');
+  foreach ([
+             'comment',
+             'action',
+             'source',
+             'created',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 
   if($vv_obj->status == NotificationStatusEnum::PendingAcknowledgment) {
-    print $this->Field->statusControl(
-      fieldName:  'status',
-      status:     __d('enumeration', 'NotificationStatusEnum.PA'),
-      link:       [
-                    'url' => [
-                      'action' => 'acknowledge',
-                      $vv_obj->id
-                    ],
-                    'label' => __d('operation', 'acknowledge'),
-                    'confirm' => __d('operation', 'Notifications.acknowledge.confirm')
-                  ]
-    );
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'status',
+        'status'    => __d('enumeration', 'NotificationStatusEnum.PA'),
+        'link'      => [
+                        'url' => [
+                          'action' => 'acknowledge',
+                          $vv_obj->id
+                        ],
+                        'label' => __d('operation', 'acknowledge'),
+                        'confirm' => __d('operation', 'Notifications.acknowledge.confirm')
+                      ]
+      ]
+    ]);
   } else {
     print $this->Field->control('status');
-  }  
+  }
 
-  print $this->Field->statusControl(
-    fieldName:  'subject_person_id',
-    status:     !empty($vv_obj->subject_person->primary_name)
-                ? $vv_obj->subject_person->primary_name->full_name
-                : "",
-    link:       !empty($vv_obj->subject_person)
-                ? ['url' => [
-                    'controller' => 'people',
-                    'action' => 'edit',
-                    $vv_obj->subject_person->id
-                  ]]
-                : []
-  );
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'subject_person_id',
+      'status'    => $vv_obj->subject_person->primary_name?->full_name ?? '',
+      'link'      => !empty($vv_obj->subject_person)
+                     ? ['url' => [
+                       'controller' => 'people',
+                       'action' => 'edit',
+                       $vv_obj->subject_person->id
+                     ]]
+                     : []
+    ]
+  ]);
 
-  print $this->Field->statusControl(
-    fieldName:  'recipient_person_id',
-    status:     !empty($vv_obj->recipient_person->primary_name)
-                ? $vv_obj->recipient_person->primary_name->full_name
-                : "",
-    link:       !empty($vv_obj->recipient_person)
-                ? ['url' => [
-                    'controller' => 'people',
-                    'action' => 'edit',
-                    $vv_obj->recipient_person->id
-                  ]]
-                : []
-  );
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'recipient_person_id',
+      'status'    => $vv_obj->recipient_person->primary_name?->full_name ?? '',
+      'link'      => !empty($vv_obj->recipient_person)
+                     ? ['url' => [
+                       'controller' => 'people',
+                       'action' => 'edit',
+                       $vv_obj->recipient_person->id
+                     ]]
+                     : []
+    ]
+  ]);
 
-  print $this->Field->statusControl(
-    fieldName:  'actor_person_id',
-    status:     !empty($vv_obj->actor_person->primary_name)
-                ? $vv_obj->actor_person->primary_name->full_name
-                : "",
-    link:       !empty($vv_obj->actor_person)
-                ? ['url' => [
-                    'controller' => 'people',
-                    'action' => 'edit',
-                    $vv_obj->actor_person->id
-                  ]]
-                : []
-  );
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'actor_person_id',
+      'status'    => $vv_obj->actor_person->primary_name?->full_name ?? '',
+      'link'      => !empty($vv_obj->actor_person)
+                     ? ['url' => [
+                       'controller' => 'people',
+                       'action' => 'edit',
+                       $vv_obj->actor_person->id
+                     ]]
+                     : []
+    ]
+  ]);
 
-  print $this->Field->control('resolution_time');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'resolution_time',
+    ]
+  ]);
 
-  print $this->Field->statusControl(
-    fieldName:  'resolver_person_id',
-    status:     !empty($vv_obj->resolver_person->primary_name)
-                ? $vv_obj->resolver_person->primary_name->full_name
-                : "",
-    link:       !empty($vv_obj->resolver_person)
-                ? ['url' => [
-                    'controller' => 'people',
-                    'action' => 'edit',
-                    $vv_obj->resolver_person->id
-                  ]]
-                : []
-  );
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'resolver_person_id',
+      'status'    => $vv_obj->resolver_person->primary_name?->full_name ?? '',
+      'link'      => !empty($vv_obj->resolver_person)
+                     ? ['url' => [
+                       'controller' => 'people',
+                       'action' => 'edit',
+                       $vv_obj->resolver_person->id
+                     ]]
+                     : []
+    ]
+  ]);
 
-  print $this->Field->control('notification_time');
-
-  print $this->Field->control('email_subject');
-
-  print $this->Field->control('email_body_text');
-
-  print $this->Field->control('resolution_subject');
-
-  print $this->Field->control('resolution_body');
+  foreach ([
+             'notification_time',
+             'email_subject',
+             'email_body_text',
+             'resolution_subject',
+             'resolution_body',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 }

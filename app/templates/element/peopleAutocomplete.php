@@ -104,7 +104,15 @@
         console.error(res);
         console.log('Status Code: ', res.status)
       }
-    }
+    },
+    template: `
+        <autocomplete-people
+          :options="this.autocompleteOptions"
+          :core="this.core"
+          appendTo='self'
+          :txt="this.txt">
+        </autocomplete-people>
+    `
   });
 
 
@@ -118,10 +126,4 @@
   window.<?= $htmlId ?> = app.mount("#<?= $htmlId ?>-container");
 </script>
 
-<div id="<?= $htmlId ?>-container" class="cm-autocomplete-container">
-  <autocomplete-people
-    :options="this.autocompleteOptions"
-    :core="this.core"
-    :txt="this.txt">
-  </autocomplete-people>
-</div>
+<div id="<?= $htmlId ?>-container" class="cm-autocomplete-container"></div>

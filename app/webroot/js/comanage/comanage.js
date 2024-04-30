@@ -64,7 +64,7 @@ function showFields(fields, isPageLoad) {
       $('#' + field).closest('li').addClass('collapse show');
     } else {
       $('#' + field).closest('li').collapse('show');
-    }  
+    }
   }
 }
 

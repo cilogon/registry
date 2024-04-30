@@ -28,9 +28,14 @@
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('description');
+  foreach (['description',
+             'status',
+             'plugin'
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 
-  print $this->Field->control('status');
-  
-  print $this->Field->control('plugin');
 }

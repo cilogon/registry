@@ -27,7 +27,18 @@
 
 // This view does currently not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('server_id');
-  
-  print $this->Field->control('table_prefix', ['default' => 'sp_']);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'server_id',
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'table_prefix',
+      'options' => [
+        'default' => 'sp_'
+      ]
+    ]
+  ]);
 }

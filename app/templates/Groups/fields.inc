@@ -32,50 +32,53 @@ if($vv_obj->isOwners()) {
   $options['readonly'] = true;
 }
 
-print $this->Field->control(
-  fieldName: 'name',
-  options: $options
-);
+foreach(['name',
+          'description',
+          'status',
+          'open',] as $field) {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => $field,
+      'fieldOptions' => $options
+    ]
+  ]);
+}
 
-print $this->Field->control(
-  fieldName: 'description',
-  options: $options
-);
-
-print $this->Field->control(
-  fieldName: 'status',
-  options: $options
-);
-
-print $this->Field->control(
-  fieldName: 'open',
-  options: $options
-);
-
-print $this->Field->control('nesting_mode_all');
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'nesting_mode_all',
+  ]
+]);
 
 if($vv_action != 'add') {
-  print $this->Field->control(
-    fieldName: 'group_type',
-    options: ['readonly' => true]
-  );
-  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'group_type',
+      'fieldOptions' => [
+        'readonly' => true
+      ]
+    ]
+  ]);
+
   if($vv_obj->isOwners()) {
     // Link to the main group
     if(!empty($vv_obj->owners_for_group)) {
-      print $this->Field->statusControl(
-        fieldName: 'owners_group_id',
-        status: $vv_obj->owners_for_group->name,
-        link: ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]]
-      );
+      print $this->element('form/listItem', [
+        'arguments' => [
+          'fieldName' => 'owners_group_id',
+          'status' => $vv_obj->owners_for_group->name,
+          'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]],
+        ]
+      ]);
     }
   } else {
     // Link to the owners group
-
-    print $this->Field->statusControl(
-      fieldName: 'owners_group_id',
-      status: $vv_obj->owners_group->name ?? '',
-      link: ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]]
-    );
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'owners_group_id',
+        'status' => $vv_obj->owners_group->name ?? '',
+        'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]]
+      ]
+    ]);
   }
 }

@@ -49,28 +49,41 @@ alert("Queue modes not yet implemented"); // XXX CFM-26
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->Field->control('description');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'description'
+    ]]);
 
-  print $this->Field->control(
-    fieldName: 'status', 
-    options: [
-      'onChange' => 'updateGadgets()',
-      'default'  => \App\Lib\Enum\ProvisionerModeEnum::QueueOnError
-    ]
-  );
-  
-  print $this->Field->control(
-    fieldName: 'retry_interval', 
-    options: [
-      'default' => 900
-    ],
-    cssClass: 'subfield'
-  );
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'status',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()',
+        'default'  => \App\Lib\Enum\ProvisionerModeEnum::QueueOnError
+      ]
+    ]]);
 
-  print $this->Field->control('plugin');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'retry_interval',
+      'fieldOptions' => [
+        'default' => 900
+      ]
+    ]]);
 
-// Not yet implemented (CFM-26)
-//  print $this->Field->control('provisioning_group_id');
-  
-  print $this->Field->control('ordr');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'plugin'
+    ]]);
+
+//  // todo: Not yet implemented (CFM-26)
+//  print $this->element('form/listItem', [
+//    'arguments' => [
+//      'fieldName' => 'provisioning_group_id'
+//    ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'ordr'
+    ]]);
 }

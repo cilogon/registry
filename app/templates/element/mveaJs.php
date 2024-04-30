@@ -67,7 +67,8 @@ $vueHelper = $this->loadHelper('Vue');
           action:  '<?= $vv_action ?>'
         },
         txt: JSON.parse('<?= json_encode($vueHelper->locales()) ?>'),
-        isLoading: true
+        isLoading: true,
+        title: '<?= $title?>'
       }
     },
     components: {
@@ -113,32 +114,33 @@ $vueHelper = $this->loadHelper('Vue');
     },
     created() {
       this.refreshComponent();
-    }
+    },
+    template:
+    `<div class="card h-100">
+        <div class="card-body">
+          <h2 class="card-title">
+            {{ title }}
+            <span v-show="isLoading" class="co-loading-mini" role="status">
+              <span></span><span></span><span></span>
+            </span>
+          </h2>
+          <div class="card-text">
+            <ul v-show="isLoading" class="cm-mvea fields data-list skeleton-list">
+              <li><span class="visually-hidden">Loading...</span></li>
+            </ul>
+            <mveas
+              :mveas="this.mveas"
+              :core="this.core"
+              :txt="this.txt">
+            </mveas>
+          </div>
+        </div>
+      </div>
+    `
   });
 
   // Mount the component and provide a global reference for this app instance.
   window.mvea<?= $mveaType ?> = app.mount("#<?= $htmlId ?>");
 </script>
 
-<div id="<?= $htmlId ?>" class="col cm-mvea-col">
-  <div class="card h-100">
-    <div class="card-body">
-      <h2 class="card-title">
-        <?= $title ?>
-        <span v-show="isLoading" class="co-loading-mini" role="status">
-          <span></span><span></span><span></span>
-        </span>
-      </h2>
-      <div class="card-text">
-        <ul v-show="isLoading" class="cm-mvea fields data-list skeleton-list">
-          <li><span class="visually-hidden">Loading...</span></li>
-        </ul>
-        <mveas
-          :mveas="this.mveas"
-          :core="this.core"
-          :txt="this.txt">
-        </mveas>
-      </div>
-    </div>
-  </div>
-</div>
+<div id="<?= $htmlId ?>" class="col cm-mvea-col"></div>

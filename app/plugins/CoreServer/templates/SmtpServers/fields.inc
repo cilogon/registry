@@ -27,19 +27,48 @@
 
 // This view does currently not support read-only, and add is not used
 if($vv_action == 'edit') {
-  print $this->Field->control('hostname');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'hostname',
+    ]
+  ]);
 
-  print $this->Field->control('port', ['default' => 587]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'port',
+      'fieldOptions' => [
+        'default' => 587
+      ]
+    ]]);
 
-  print $this->Field->control('username');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'username',
+    ]
+  ]);
 
-  print $this->Field->control('password');
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'password',
+    ]
+  ]);
 
-  print $this->Field->control('use_tls', ['default' => true]);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'use_tls',
+      'fieldOptions' => [
+        'default' => true
+      ]
+    ]]);
 
-  print $this->Field->control('default_from');
-
-  print $this->Field->control('default_reply_to');
-
-  print $this->Field->control('override_to');
+  foreach ([
+             'default_from',
+             'default_reply_to',
+             'override_to',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 }

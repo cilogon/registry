@@ -42,7 +42,7 @@ use Cake\Utility\Inflector;
           <?php
           // Create a text field to hold our value.
           print $this->Form->label("{$key}_starts_at", __d('field', 'starts_at'), ['class' => 'filter-datepicker-lbl']);
-          print $this->Field->dateField("{$key}_starts_at", DateTypeEnum::DateOnly, $query)['controlCode'];
+          print $this->Field->dateField("{$key}_starts_at", DateTypeEnum::DateOnly, $query);
           ?>
         </div>
         <!--     Ends at       -->
@@ -50,7 +50,7 @@ use Cake\Utility\Inflector;
           <?php
           // Create a text field to hold our value.
           print $this->Form->label("{$key}_ends_at", __d('field','ends_at'), ['class' => 'filter-datepicker-lbl']);
-          print $this->Field->dateField("{$key}_ends_at", DateTypeEnum::DateOnly, $query)['controlCode'];
+          print $this->Field->dateField("{$key}_ends_at", DateTypeEnum::DateOnly, $query);
           ?>
         </div>
       </div>

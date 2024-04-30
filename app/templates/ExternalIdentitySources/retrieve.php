@@ -105,8 +105,7 @@ use \Cake\Utility\Inflector;
     );
   }
 ?>
-<?= $this->Alert->alert($noticeText, 'information', false) ?>
-
+<?= $this->element('notify/alert', ['message' => $noticeText,'type' => 'information']) ?>
 <div class="innerContent">
   <div class="table-container">
     <h3><?= __d('information','ExternalIdentitySourceRecords.metadata') ?></h3>

@@ -43,7 +43,8 @@ class AdHocAttributesTable extends Table {
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\QueryModificationTrait;
-  
+  use \App\Lib\Traits\AutoViewVarsTrait;
+
   /**
    * Provide the default layout
    *

@@ -30,8 +30,15 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print '<li class="info-title"><h3>' . __d('api_connector', 'field.ApiSources.push_mode') . '</h3></li>';
 
-  print $this->Field->banner(__d('api_connector', 'information.endpoint.push', [$vv_push_endpoint]));
+  print $this->element('banner', [
+    'info' => __d('api_connector', 'information.endpoint.push', [$vv_push_endpoint])
+  ]);
 
-  print $this->Field->control('api_user_id');
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'api_user_id',
+    ]
+  ]);
   
 }
