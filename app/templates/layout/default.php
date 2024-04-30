@@ -64,13 +64,13 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     ]) . PHP_EOL ?>
 
     <!-- Load Bootstrap, jQuery, and Vue (other scripts at bottom) -->
-    <!-- https://unpkg.com/browse/primevue@3.51.0  -->
+    <!-- https://unpkg.com/primevue@3.52.0  -->
     <?= $this->Html->script([
       'bootstrap/bootstrap.bundle.min.js',
       'jquery/jquery.min.js',
       'vue/vue-3.2.31.global.prod.js',
-      'vue/primevue-3.51.0.core.min.js',
-      'vue/primevue-3.51.0.autocomplete.min.js'
+      'vue/primevue-3.52.0.core.min.js',
+      'vue/primevue-3.52.0.autocomplete.min.js'
     ]) . PHP_EOL ?>
 
     <!-- Include external files and scripts -->
