@@ -415,8 +415,10 @@ class TransmogrifyCommand extends Command {
           
           $this->cache[$table][$label][$key] = $row['id'];
         } else {
-          // Map id to the requested field
-          $this->cache[$table]['id'][ $row['id'] ][$field] = $row[$field];
+          // If the row has the field then map id to the requested field.
+          if(array_key_exists($field, $row)) {
+            $this->cache[$table]['id'][ $row['id'] ][$field] = $row[$field];
+          }
         }
       }
     }
