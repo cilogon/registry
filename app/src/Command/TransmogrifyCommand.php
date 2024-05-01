@@ -134,6 +134,7 @@ class TransmogrifyCommand extends Command {
     ],
     'person_roles' => [
       'source' => 'cm_co_person_roles',
+      'sqlSelect' => 'roleSqlSelect',
       'displayField' => 'id',
       // We don't currently need status specifically, just that the role exists
       'cache' => [ 'status' ],
@@ -1287,6 +1288,48 @@ class TransmogrifyCommand extends Command {
     }
   }
   
+  /**
+   * Return SQL used to select CO Person Roles from inbound database.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  string $tableName Name of the SQL table
+   * @return string SQL string to select rows from inbound database
+   */
+
+  protected function roleSqlSelect(string $tableName): string {
+    // Cast the affiliation value to 'member' when NULL or empty string.
+    define("ROLE_SQL_SELECT", <<<SQL
+      SELECT
+          id,
+          co_person_id,
+          sponsor_co_person_id,
+          manager_co_person_id,
+          cou_id,
+          CASE
+            WHEN affiliation IS NULL THEN "member"
+            WHEN affiliation = "" THEN "member"
+            ELSE affiliation
+          END as affiliation,
+          title,
+          o,
+          ou,
+          valid_from,
+          valid_through,
+          ordr,
+          status,
+          source_org_identity_id,
+          created,
+          modified,
+          co_person_role_id,
+          revision,
+          deleted,
+          actor_identifier
+      FROM cm_co_person_roles;
+      SQL);
+
+    return ROLE_SQL_SELECT;
+  }
+
   /**
    * Split an External Identity into an External Identity Role.
    *
