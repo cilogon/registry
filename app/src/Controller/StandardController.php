@@ -660,6 +660,10 @@ class StandardController extends AppController {
           case 'select':
             $avvmodel = $avv['model'];
             $this->$avvmodel = TableRegistry::getTableLocator()->get($avvmodel);
+            if($this->$avvmodel->getSchema()->hasColumn('co_id')) {
+              $avv['where']['co_id'] = $this->getCOID();
+            }
+
             $query = $this->$avvmodel->find($avv['type'] == 'auxiliary' ? 'all' : 'list');
 
             if(!empty($avv['find'])) {
