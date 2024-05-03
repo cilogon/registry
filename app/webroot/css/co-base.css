@@ -842,6 +842,9 @@ ul.form-list li.alert-banner .co-alert {
   display: none;
   padding: 0.25em 0.5em;
 }
+#top-filters-fields .filter-standard {
+  margin-bottom: 0.25em;
+}
 #top-filters-fields .filter-inactive {
   display: none;
 }

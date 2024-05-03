@@ -42,7 +42,7 @@ if ((count($vv_searchable_attributes) - $inactiveFiltersCount) % 2 === 1
     &&
     empty($field_booleans_columns)
 ) {
-  $classes .= ' class="tss-rebalance';
+  $classes .= ' class="tss-rebalance"';
 }
 
 ?>
