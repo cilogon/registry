@@ -25,12 +25,24 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+/*
+ * Parameters:
+ * $field_datetime_columns : array, required
+ */
+
+declare(strict_types = 1);
+
+
 use App\Lib\Enum\DateTypeEnum;
 use Cake\Utility\Inflector;
 
+// $columns = the passed parameter $indexColumns as found in columns.inc;
+// provides overrides for labels and sorting.
+$columns = $vv_indexColumns;
+
 ?>
 
-<div class="top-filters-fields-subgroups">
+<?php if(!empty($field_datetime_columns)): ?>
   <?php foreach($field_datetime_columns as $key => $options): ?>
     <div class="input">
       <div class="top-search-date-label">
@@ -42,7 +54,7 @@ use Cake\Utility\Inflector;
           <?php
           // Create a text field to hold our value.
           print $this->Form->label("{$key}_starts_at", __d('field', 'starts_at'), ['class' => 'filter-datepicker-lbl']);
-          print $this->Field->dateField("{$key}_starts_at", DateTypeEnum::DateOnly, $query);
+          print $this->Field->dateField("{$key}_starts_at", DateTypeEnum::DateOnly);
           ?>
         </div>
         <!--     Ends at       -->
@@ -50,10 +62,10 @@ use Cake\Utility\Inflector;
           <?php
           // Create a text field to hold our value.
           print $this->Form->label("{$key}_ends_at", __d('field','ends_at'), ['class' => 'filter-datepicker-lbl']);
-          print $this->Field->dateField("{$key}_ends_at", DateTypeEnum::DateOnly, $query);
+          print $this->Field->dateField("{$key}_ends_at", DateTypeEnum::DateOnly);
           ?>
         </div>
       </div>
     </div>
   <?php endforeach; ?>
-</div>
+<?php endif; ?>

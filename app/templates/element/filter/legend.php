@@ -25,7 +25,14 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// $search_params passed as a parameter
+
+/*
+ * Parameters:
+ * $search_params : array, required
+ */
+
+declare(strict_types = 1);
+
 
 $hasActiveFilters = false;
 
@@ -44,12 +51,12 @@ $hasActiveFilters = false;
         foreach($search_params as $key => $params) {
           // We have active filters - not just a sort.
           $hasActiveFilters = true;
-          print $this->element('filter/activeTopButton', compact('key', 'params'));
+          print $this->element('filter/topButtons', compact('key', 'params'));
         }
         ?>
       <?php if($hasActiveFilters): ?>
         <button id="top-filters-clear-all-button" class="filter-clear-all-button spin btn" type="button" aria-controls="top-filters-clear" onclick="event.stopPropagation()">
-            <?= __d('operation', 'clear.filters',[2]); ?>
+            <?= __d('operation', 'clear.filters',[2]) ?>
           </button>
       <?php endif; ?>
       </span>

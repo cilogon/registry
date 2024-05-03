@@ -1,0 +1,160 @@
+<?php
+/**
+ * COmanage Registry Filter Helper
+ *
+ * Portions licensed to the University Corporation for Advanced Internet
+ * Development, Inc. ("UCAID") under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * UCAID licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @link          https://www.internet2.edu/comanage COmanage Project
+ * @package       registry
+ * @since         COmanage Registry v5.0.0
+ * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ */
+
+declare(strict_types = 1);
+
+namespace App\View\Helper;
+
+use Cake\Collection\Collection;
+use Cake\Utility\{Inflector, Hash};
+use Cake\View\Helper;
+
+class FilterHelper extends Helper
+{
+  /**
+   * Calculate Form Default Field Options
+   *
+   * @param   string  $columnName
+   * @param   string  $label
+   *
+   * @return array
+   */
+  public function calculateFieldParams(string $columnName, string $label): array{
+    $queryParameters = $this->getView()->getRequest()->getQueryParams();
+    $searchableAttributesExtras = $this->getView()->get('vv_searchable_attributes_extras') ?? [];
+    $populatedVarData = $this->getView()->get(
+    // The populated variables are in plural while the column names are singular
+    // Convention: It is a prerequisite that the vvar should be the plural of the column name
+      lcfirst(Inflector::pluralize(Inflector::camelize($columnName)))
+    );
+
+    // Field options
+    $formParams = [
+      'label' => $label,
+      'type' => isset($populatedVarData) ? 'select' : 'text',
+      // Options will be ignored for non-select fields
+      'options' => $populatedVarData,
+      'value' => $queryParameters[$columnName] ?? '',
+      'required' => false,
+      'class' => 'form-control',
+      // Empty will be ignored for non-select fields
+      'empty' => true
+    ];
+
+    // Custom/Additional option items defined in the ModelTable::initialize::setFilterConfig
+    // Example: CousTable
+    if(isset($searchableAttributesExtras[$columnName]['options'])) {
+      // Flatten the custom options
+      $customOptionsFlattened = Hash::flatten($searchableAttributesExtras[$columnName]['options']);
+      // Get the key of the placeholder string
+      $dataKey = array_search('@DATA@', $customOptionsFlattened, true);
+      if($dataKey !== false) {
+        $customOptionsFlattened[$dataKey] = $formParams['options'];
+        $formParams['options'] = Hash::expand($customOptionsFlattened);
+      }
+    }
+
+    return $formParams;
+  }
+
+  /**
+   *
+   * @return array[]   [search_params, $field_booleans_columns, $field_datetime_columns, $field_generic_columns]
+   */
+  public function explodeFieldsByType(): array
+  {
+     // Get the query string and separate the search params from the non-search params
+    $queryParameters = $this->getView()->getRequest()->getQueryParams();
+    $searchableAttributes = $this->getView()->get('vv_searchable_attributes') ?? [];
+
+    // Filter the search params and take params with aliases into consideration
+    $search_params = [];
+    $field_booleans_columns = [];
+    $field_datetime_columns = [];
+    $field_generic_columns = [];
+    foreach ($searchableAttributes as $attr => $value) {
+      if($value['type'] == 'boolean') {
+        $field_booleans_columns[$attr] = $value;
+      } elseif ($value['type'] == 'timestamp') {
+        $field_datetime_columns[$attr] = $value;
+      } else {
+        $field_generic_columns[$attr] = $value;
+      }
+
+      if(isset($queryParameters[$attr])) {
+        $search_params[$attr] = $queryParameters[$attr];
+        continue;
+      }
+
+      if(isset($value['alias']) && is_array($value['alias'])) {
+        foreach ($value['alias'] as $alias_key) {
+          if(isset($queryParameters[$alias_key])) {
+            $search_params[$attr][$alias_key] = $queryParameters[$alias_key];
+          }
+        }
+      }
+    }
+
+    return [
+        $search_params,
+        $field_booleans_columns,
+        $field_datetime_columns,
+        $field_generic_columns,
+    ];
+  }
+
+  /**
+   * Return an array of the Form hidden fields and values
+   *
+   * @return array
+   */
+  public function getHiddenFields(): array
+  {
+    // Get the query string and separate the search params from the non-search params
+    $queryParameters = $this->getView()->getRequest()->getQueryParams();
+    $searchableAttributes = $this->getView()->get('vv_searchable_attributes') ?? [];
+
+    // Search attributes collection
+    $alias_params = (new Collection($searchableAttributes))
+      ->filter(fn ($val, $attr) => (\is_array($val) && \array_key_exists('alias', $val)) )
+      ->extract('alias')
+      ->unfold()
+      ->toArray();
+
+    // For the non-search params, we need to search the alias params as well
+    $searchable_parameters = [
+      ...array_keys($searchableAttributes),
+      ...$alias_params
+    ];
+
+    // Pass back the non-search params as hidden fields, but always exclude the page parameter
+    // because we need to start new searches on-page one (or we're likely to end up with a 404).
+    return (new Collection($queryParameters))
+      ->filter(fn($value, $key) => !\in_array($key, $searchable_parameters, true) && $key != 'page')
+      ->toArray();
+  }
+}

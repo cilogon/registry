@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+declare(strict_types = 1);
+
 use Cake\Utility\{Inflector, Hash};
 
 // Construct aria-controls string

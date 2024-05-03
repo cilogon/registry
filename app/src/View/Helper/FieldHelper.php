@@ -172,9 +172,8 @@ class FieldHelper extends Helper {
    * Emit a date/time form control.
    * This is a wrapper function for $this->control()
    *
-   * @param   string       $fieldName    Form field
-   * @param   string       $dateType     Standard, DateOnly, FromTime, ThroughTime
-   * @param   array|null   $queryParams  Request Query parameters used by the filtering Blocks to get the date values
+   * @param   string       $fieldName  Form field
+   * @param   string       $dateType   Standard, DateOnly, FromTime, ThroughTime
    * @param   string|null  $label
    *
    * @return string HTML element
@@ -183,24 +182,16 @@ class FieldHelper extends Helper {
 
   public function dateField(string $fieldName,
                             string $dateType=DateTypeEnum::Standard,
-                            array $queryParams=null,
                             string $label=null): string
   {
     // Initialize
     $dateFormat = $dateType === DateTypeEnum::DateOnly ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:mm:ss';
     $dateTitle = $dateType === DateTypeEnum::DateOnly ? 'datepicker.enterDate' : 'datepicker.enterDateTime';
     $datePattern = $dateType === DateTypeEnum::DateOnly ? '\d{4}-\d{2}-\d{2}' : '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
-    $date_object = null;
-
-    if(isset($queryParams)) {
-      if(!empty($queryParams[$fieldName])) {
-        $date_object = FrozenTime::parse($queryParams[$fieldName]);
-      }
-    } else {
-      // This is an entity view. We are getting the data from the object
-      $entity = $this->getView()->get('vv_obj');
-      $date_object = $entity->$fieldName;
-    }
+    $queryParams = $this->getView()->getRequest()->getQueryParams();
+    $date_object = !empty($queryParams[$fieldName])
+                   ? FrozenTime::parse($queryParams[$fieldName])
+                   : $this->getEntity()?->$fieldName;
 
     // Create the options array for the (text input) form control
     $coptions = [];
