@@ -28,14 +28,16 @@
 
 declare(strict_types = 1);
 
-// vv_selected_person parameter is set by the controller.
+// the controller sets vv_selected_person parameter.
 ?>
 
 <?php if(isset($vv_selected_person)): ?>
-<span class="group-member-to-add-name">
-  <?= $vv_selected_person['name'] ?>
-</span>
-<span class="group-member-to-add-id">
-  (<?= __d('information', 'entity.id', [$vv_selected_person['id']]) ?>)
-</span>
+<div class="field-info">
+  <span class="group-member-to-add-name">
+    <?= $vv_selected_person['name'] ?>
+  </span>
+      <span class="group-member-to-add-id">
+    (<?= __d('information', 'entity.id', [$vv_selected_person['id']]) ?>)
+  </span>
+</div>
 <?php endif; ?>

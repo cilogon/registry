@@ -33,7 +33,7 @@ if($vv_action == 'add') {
     ];
     
     // Present the person information in the view
-    $this->element('form/listItem', [
+    print $this->element('form/listItem', [
       'arguments' => [
         'fieldName' => '',
         'fieldLabel' => __d('field','name'),
