@@ -169,6 +169,40 @@ class FieldHelper extends Helper {
   }
 
   /**
+   * Calculate the list of classes for the li element
+   *
+   * @return string
+   */
+  public function calculateLiClasses(): string
+  {
+    $fieldName = $this->getView()->get('fieldName');
+    $vv_field_arguments = $this->getView()->get('vv_field_arguments');
+
+    // Class calculation by field Type
+    $classes = match ($this->getFieldType($fieldName)) {
+      'date',
+      'datetime',
+      'timestamp'     => 'fields-datepicker ',
+      default         => ''
+    };
+
+    // Class calculation by field name
+    $classes .= match ($fieldName) {
+      'source_record' => 'source-record ',
+      'retry_interval',
+      'login'         => 'subfield ',
+      default         => ''
+    };
+
+    // Class calculation by type of Info Div
+    if(isset($vv_field_arguments['autocomplete'])) {
+      $classes .= 'fields-people-autocomplete ';
+    }
+
+    return $classes;
+  }
+
+  /**
    * Emit a date/time form control.
    * This is a wrapper function for $this->control()
    *

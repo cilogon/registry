@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\View\Helper;
 
 use Cake\Collection\Collection;
+use Cake\ORM\TableRegistry;
 use Cake\Utility\{Inflector, Hash};
 use Cake\View\Helper;
 
@@ -156,5 +157,22 @@ class FilterHelper extends Helper
     return (new Collection($queryParameters))
       ->filter(fn($value, $key) => !\in_array($key, $searchable_parameters, true) && $key != 'page')
       ->toArray();
+  }
+
+  /**
+   * Construct Full Name from Person ID
+   *
+   * @param   int  $personId
+   *
+   * @return string
+   */
+  public function getFullName(int $personId): string
+  {
+    if(empty($personId)) {
+      return '';
+    }
+    $ModelTable = TableRegistry::getTableLocator()->get('Names');
+    $person = $ModelTable->primaryName($personId);
+    return "{$person->given} {$person->family}";
   }
 }

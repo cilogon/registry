@@ -159,7 +159,11 @@ trait IndexQueryTrait {
                                                               $this->viewBuilder()
                                                                    ->getVar('vv_tz'));
 
-      // Pass any additional field filter confiration in the view
+      // Extra View Variables
+      foreach ($table->getViewVars() as $key => $variable) {
+        $this->set($key, $variable);
+      }
+      // Pass any additional field filter configuration in the view
       $this->set('vv_searchable_attributes_extras', $table->getSearchFiltersExtras());
       if(!empty($searchableAttributes)) {
         $this->set('vv_searchable_attributes', $searchableAttributes);

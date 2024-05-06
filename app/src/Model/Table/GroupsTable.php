@@ -145,6 +145,16 @@ class GroupsTable extends Table {
       'groupTypes' => [
         'type' => 'enum',
         'class' => 'GroupTypeEnum'
+      ],
+      // Required for peoplePicker
+      'cosettings' => [
+        'type' => 'auxiliary',
+        'model' => 'CoSettings'
+      ],
+      // Required for peoplePicker
+      'types' => [
+        'type' => 'auxiliary',
+        'model' => 'Types'
       ]
     ]);
 
@@ -154,6 +164,22 @@ class GroupsTable extends Table {
         'model' => 'Identifiers',
         'active' => true,
         'order' => 4
+      ],
+      'person_id' => [
+        'type' => 'integer',
+        'model' => 'GroupMembers',
+        'active' => true,
+        'order' => 5,
+        'picker' => [
+          'type' => 'person',
+          'configuration' => [
+            // For the Groups Filtering block we want to
+            // pick/GET from the entire CO pool of people
+            'action' => 'GET',
+            // The co configuration will fall throught the default configuration
+            'for' => 'co'
+          ]
+        ]
       ]
     ]);
     

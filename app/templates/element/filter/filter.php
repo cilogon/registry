@@ -27,8 +27,23 @@
 
 declare(strict_types = 1);
 
-use Cake\Utility\Inflector;
+?>
 
+<script type="text/javascript">
+  $(function() {
+    // Remove the friendly representation of the person_id input element before submiting
+    const filterForm = document.getElementById("top-filters-form");
+    filterForm.addEventListener('formdata', (event) => {
+      if(event.formData.has('person_id')) {
+        const personId = $(filterForm).find('#person_id')[0].getAttribute('datapersonid')
+        event.formData.set('person_id', personId)
+      }
+    });
+  });
+</script>
+
+<?php
+use Cake\Utility\Inflector;
 
 // $this->name = Models
 $modelsName = $this->name;
@@ -68,8 +83,17 @@ foreach($this->Filter->getHiddenFields() as $param => $value) {
       <?php
         foreach($field_generic_columns as $key => $options) {
           $elementArguments = compact('options', 'key');
+          // Set in SearchfilterTrait.php
+          if($vv_autocomplete_arguments['fieldName'] === $key) {
+            // Picker is a custom type.
+            // This is why we calculate it here, and we
+            // only use it to pick the correct element
+            $options['type'] = 'picker';
+          }
+
           print match($options['type']) {
             'date'      => $this->element('filter/dateSingle', $elementArguments),
+            'picker'    => $this->element('filter/peoplePicker', $elementArguments),
             default     => $this->element('filter/default', $elementArguments),
           };
         }

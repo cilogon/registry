@@ -27,7 +27,7 @@
 
   // Get parameters
   $type = $type ?? 'stand-alone'; // autocomplete person picker type: 'stand-alone' or 'field', defaults to 'stand-alone'.
-  $label = $label ?? __d('operation','autocomplete.people.label');
+  $label = $label ?? $formParams['label'] ?? __d('operation','autocomplete.people.label');
   $fieldName = $fieldName ?? 'person_id';
   $personType = $personType ?? 'coperson';
   $htmlId = $htmlId ?? 'cmPersonPickerId';
@@ -38,6 +38,7 @@
   $token = $this->request->getAttribute('csrfToken');
   // Load my helper functions
   $vueHelper = $this->loadHelper('Vue');
+  $inputValue = $inputValue ?? $formParams['value'] ?? '';
   
   // If we have the $actionUrl array, construct the URL
   $constructedActionUrl = '';
@@ -80,7 +81,14 @@
           personType: '<?= $personType ?>',
           minLength: 2, // XXX probably should be set by config and default to 3
           htmlId: '<?= $htmlId ?>',
-          actionUrl: '<?= $constructedActionUrl ?>'
+          actionUrl: '<?= $constructedActionUrl ?>',
+          inputValue: '<?= $inputValue ?>',
+          inputProps: {
+            name: '<?= $htmlId ?>',
+            // This is not translated to data-personid but to datapersonid.
+            dataPersonid: '<?= $inputValue ?>'
+          },
+          formParams: <?= json_encode($formParams ?? []) ?>,
         },
         error: ''
       }

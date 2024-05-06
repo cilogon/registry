@@ -159,10 +159,12 @@ export default {
       })
     },
     setPerson() {
-      if(this.options.type == 'field') {
+      if(this.options.type == 'default') {
+        this.options.inputProps.dataPersonid = this.person.value
+      } else if(this.options.type == 'field') {
         // The picker is part of a standard form field
         const field = document.getElementById(this.options.fieldName);
-        field.value = this.person.value;  
+        field.value = this.person.value;
       } else {
         // The picker is stand-alone, and should render the configured page in a modal on @item-select
         const urlForModal = this.options.actionUrl + '&person_id=' + this.person.value;
@@ -178,6 +180,13 @@ export default {
         return str.substring(0,30) + '...'
       }
       return str
+    }
+  },
+  mounted() {
+    if(this.options.inputValue != undefined
+       && this.options.inputValue != ''
+       && this.options.htmlId == 'person_id') {
+      this.options.inputProps.value = `${this.options.formParams?.fullName} (ID: ${this.options.inputValue})`
     }
   },
   computed: {
@@ -206,17 +215,18 @@ export default {
     <MiniLoader :isLoading="loading" classes="co-loading-mini-container d-inline ms-1"/>
     <AutoComplete 
       v-model="person"
-      @complete="searchPeople"
       inputClass="cm-autocomplete"
+      :inputId="this.options.htmlId"
+      :inputProps="this.options.inputProps"
+      :placeholder="this.txt['autocomplete.people.placeholder']"
       panelClass="cm-autocomplete-panel"
-      :inputId="this.options.htmlId" 
-      :suggestions="this.people" 
       optionLabel="label"
       :minLength="this.options.minLength"
-      :placeholder="this.txt['autocomplete.people.placeholder']"
       :delay="500"
       loadingIcon=null
+      :suggestions="this.people" 
       forceSelection
+      @complete="searchPeople"
       @item-select="setPerson">
       <template #option="slotProps">
         <div class="cm-ac-item">

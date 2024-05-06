@@ -175,7 +175,7 @@
           $('#top-filters-submit').addClass("tss-rebalance"); 
         } else {
           $('#top-filters-submit').removeClass("tss-rebalance");
-        }          
+        }
       }
     });
 

@@ -53,6 +53,12 @@ trait SearchFilterTrait {
   private array $searchFiltersExtras = [];
 
   /**
+   * List of view Vars
+   * @var array
+   */
+  private array $viewVars = [];
+
+  /**
    * Optional filter configuration that dictates display state and allows for related models
    *
    * @var array
@@ -135,7 +141,7 @@ trait SearchFilterTrait {
    * @since  COmanage Registry v5.0.0
    */
   public function constructDateComparisonClause(QueryExpression $exp, string $attributeWithModelPrefix, array $dates): QueryExpression {
-    // Both are empty, just return
+    // Both are empty, return
     if (empty($dates[0]) && empty($dates[1])) {
       return $exp;
     }
@@ -243,9 +249,22 @@ trait SearchFilterTrait {
       }
 
       $filterType = $f['type'] ?? 'string';
+      // Custom boolean use cases
       if(\in_array($f['type'], ['isNull', 'isNotNull'])) {
         $filterType = 'boolean';
       }
+      // Picker configuration
+      if(isset($f['picker'])) {
+        $autocompleteArgs = [
+          'type' => 'default',
+          'fieldName' => $field,
+          'personType' => $f['picker']['type'],
+          'htmlId' => $field, // This is the input ID
+          'viewConfigParameters' => $f['picker']['configuration']
+        ];
+        $this->viewVars['vv_autocomplete_arguments'] = $autocompleteArgs;
+      }
+
       $this->searchFilters[$field] = [
         'type' => $filterType,
         'label' => $f['label'] ?? StringUtilities::columnKey($fieldName, $field, $vv_tz, true),
@@ -256,7 +275,7 @@ trait SearchFilterTrait {
     }
 
     foreach ($this->filterMetadataFields() as $column => $type) {
-      // If the column is an array then we are accessing the Metadata fields. Skip
+      // If the column is an array, then we are accessing the Metadata fields. Skip
       if(is_array($type)) {
         continue;
       }
@@ -323,4 +342,13 @@ trait SearchFilterTrait {
     return $this->searchFiltersExtras;
   }
 
+  /**
+   * Get View Vars
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  public function getViewVars(): array
+  {
+    return $this->viewVars;
+  }
 }

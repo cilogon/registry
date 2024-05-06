@@ -41,10 +41,12 @@ $data_identifier = is_array($params) ? implode(':', array_keys($params)) : $key;
 $populated_vvar = lcfirst(Inflector::pluralize(Inflector::camelize($key)));
 $button_label = 'Range';
 if(isset($$populated_vvar) && isset($$populated_vvar[$params])) {
+  // Get label name from AutoViewPopulated vars
   $button_label = $$populated_vvar[$params];
 } elseif(!is_array($params)) {
   $button_label = $params;
-  if(isset($vv_searchable_attributes_extras)) {
+  // Extras use case
+  if(!empty($vv_searchable_attributes_extras)) {
     $flattenedSearchableAttributesExtras = Hash::flatten($vv_searchable_attributes_extras);
     $filteredFlattenedSearchableAttributesExtras = array_filter(
       $flattenedSearchableAttributesExtras,
@@ -54,6 +56,8 @@ if(isset($$populated_vvar) && isset($$populated_vvar[$params])) {
     if(!empty($filteredFlattenedSearchableAttributesExtras)) {
       $button_label = array_pop($filteredFlattenedSearchableAttributesExtras);
     }
+  } elseif ($key == 'person_id') {
+    $button_label = $this->Filter->getFullName((int)$params);
   }
 }
 

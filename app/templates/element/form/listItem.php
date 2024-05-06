@@ -38,28 +38,6 @@ $this->set('fieldName', $arguments['fieldName']);
 $fieldName = $arguments['fieldName'];
 $this->set('vv_field_arguments', $arguments);
 
-// Class calculation by field Type
-$classes = match ($this->Field->getFieldType($fieldName)) {
-  'date',
-  'datetime',
-  'timestamp'     => 'fields-datepicker ',
-  default         => ''
-};
-
-// Class calculation by field name
-$classes .= match ($fieldName) {
-  'source_record' => 'source-record ',
-  'retry_interval',
-  'login'         => 'subfield ',
-  default         => ''
-};
-
-// Class calculation by type of Info Div
-if(isset($arguments['autocomplete'])) {
-  $classes .= 'fields-people-autocomplete ';
-}
-
-
 // If an attribute is frozen, inject a special link to unfreeze it, since
 // the attribute is read-only and the admin can't simply uncheck the setting
 if($fieldName == 'frozen' && $this->Field->getEntity()->frozen) {
@@ -101,6 +79,6 @@ if($fieldName == 'plugin' && $vv_action == 'edit') {
 
 ?>
 
-<li class="<?= trim($classes) ?>">
+<li class="<?= trim($this->Field->calculateLiClasses()) ?>">
   <?= $this->element('form/fieldDiv')?>
 </li>
