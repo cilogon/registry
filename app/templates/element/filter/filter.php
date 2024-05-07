@@ -36,7 +36,9 @@ declare(strict_types = 1);
     filterForm.addEventListener('formdata', (event) => {
       if(event.formData.has('person_id')) {
         const personId = $(filterForm).find('#person_id')[0].getAttribute('datapersonid')
-        event.formData.set('person_id', personId)
+        if(personId != undefined && personId != '') {
+          event.formData.set('person_id', personId)
+        }
       }
     });
   });
@@ -84,7 +86,8 @@ foreach($this->Filter->getHiddenFields() as $param => $value) {
         foreach($field_generic_columns as $key => $options) {
           $elementArguments = compact('options', 'key');
           // Set in SearchfilterTrait.php
-          if($vv_autocomplete_arguments['fieldName'] === $key) {
+          if(isset($vv_autocomplete_arguments)
+             && $vv_autocomplete_arguments['fieldName'] === $key) {
             // Picker is a custom type.
             // This is why we calculate it here, and we
             // only use it to pick the correct element
