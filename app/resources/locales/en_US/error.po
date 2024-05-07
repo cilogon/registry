@@ -51,6 +51,9 @@ msgstr "API User \"{0}\" is not yet valid"
 msgid "auth.api.unknown"
 msgstr "Username \"{0}\" not found in api_users table"
 
+msgid "auto.viewvar.type.unknown"
+msgstr "Unknown Auto View Var Type {0}"
+
 msgid "coid"
 msgstr "CO ID not found"
 

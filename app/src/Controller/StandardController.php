@@ -660,6 +660,12 @@ class StandardController extends AppController {
           case 'select':
             $avvmodel = $avv['model'];
             $this->$avvmodel = TableRegistry::getTableLocator()->get($avvmodel);
+            // XXX We should probably move to a more generic approach.
+            // Models can have various types of parent keys (and sometimes multiple concurrently),
+            // so it’s better to use PrimaryLinkTrait to handle this.
+            // if(method_exists($this->$avvmodel, "calculateCoForRecord")) {
+            //  $avv['where']['co_id'] = $this->$avvmodel->calculateCoForRecord($obj)
+            // }
             if($this->$avvmodel->getSchema()->hasColumn('co_id')) {
               $avv['where']['co_id'] = $this->getCOID();
             }
@@ -742,8 +748,7 @@ class StandardController extends AppController {
             break;
           default:
 // XXX I18n? and in match?
-            throw new \LogicException('Unknonwn Auto View Var Type {0}', $avv['type']);
-            break;
+            throw new \LogicException(__d('error', 'auto.viewvar.type.unknown', [$avv['type']]));
         }
       }
     }    
