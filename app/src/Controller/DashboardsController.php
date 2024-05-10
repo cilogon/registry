@@ -103,7 +103,7 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ],
       __d('controller', 'MessageTemplates', [99]) => [
-        'icon'          => 'message',
+        'icon'          => 'email',
         'controller'    => 'message_templates',
         'action'        => 'index'
       ],

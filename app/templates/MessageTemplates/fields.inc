@@ -25,6 +25,30 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 ?>
+  
+<script>
+  // JS specific to these fields
+  
+  function updateGadgets(isPageLoad) {
+    // Hide or show gadgets according to current state
+    var format = document.getElementById('format').value;
+    
+    if(format == '<?= \App\Lib\Enum\MessageFormatEnum::HTML ?>') {
+      hideFields(['body-text'], isPageLoad);
+      showFields(['body-html'], isPageLoad);
+    } else if(format == '<?= \App\Lib\Enum\MessageFormatEnum::PlainText ?>') {
+      hideFields(['body-html'], isPageLoad);
+      showFields(['body-text'], isPageLoad);
+    } else {
+      showFields(['body-html','body-text'], isPageLoad);
+    }
+  }
+  
+  function jsLocalOnLoad() {
+    updateGadgets(true);
+  }
+</script>
+  
 <?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
@@ -32,11 +56,26 @@ if($vv_action == 'add' || $vv_action == 'edit') {
              'description',
              'status',
              'context',
-             'format',
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'format',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()'
+      ],
+      'fieldType' => 'select'
+    ]
+  ]);
+  
+  foreach ([
              'subject',
-// XXX auto show/hide based on format
              'body_text',
-// XXX auto show/hide based on format
              'body_html',
              'cc',
              'bcc',

@@ -434,16 +434,16 @@
               ?>
               <a href="<?= $menuUrl ?>">
                 <em class="material-icons" aria-hidden="true">widgets</em>
-                Types
+                <span class="menu-panel-link-text"><?= __d('controller', 'Types', [99]) ?></span>
               </a>
             </li>
           </ul>
         </li>
       </ul>
 
-      <?php /* XXX The "Personalization" links are disabled until needed, but we will leave them in the code to 
+      <?php /* XXX Most "Personalization" links are disabled until needed, but we will leave them in the code to 
                provide hints to where they belong. The description ('co.configuration.panel.personalization.desc')
-               reads "Dashboards, custom text, and theming". When such things are ready, place them here.
+               reads "Dashboards, custom text, and theming". When such things are ready, place them here. */ ?>
  
       <ul class="menu-panel-links">
         <li>
@@ -455,8 +455,24 @@
             <li><a href="#"><em class="material-icons" aria-hidden="true">navigation</em> CO Navigation Links</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">dashboard</em> Dashboards</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">book</em> Dictionaries</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">translate</em> Localizations</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">email</em> Message Templates</a></li>
+            <li><a href="#"><em class="material-icons" aria-hidden="true">translate</em> Localizations</a></li> */ ?>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'message_templates',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>">
+                <em class="material-icons" aria-hidden="true">email</em>
+                <span class="menu-panel-link-text"><?= __d('controller', 'MessageTemplates', [99]) ?></span>
+              </a>
+            </li>
+            <?php /* More placeholders:
             <li><a href="#"><em class="material-icons" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
             <li><a href="#"><em class="material-icons" aria-hidden="true">wallpaper</em> Themes</a></li>
             * / ? >
