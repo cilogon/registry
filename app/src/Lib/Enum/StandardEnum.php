@@ -82,4 +82,43 @@ class StandardEnum {
     
     return array_values($consts);
   }
+
+  /**
+   * Get the Keys for the constants in the Enumeration in Humanized form.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of enumeration keys
+   */
+
+  public static function getConstHumanized() : array {
+    // Get the keys for this enum
+    $reflect = new ReflectionClass(get_called_class());
+
+    $consts = $reflect->getConstants();
+
+    return collection(array_keys($consts))->map(
+      fn($key) => Inflector::humanize(Inflector::underscore($key))
+    )->toList();
+  }
+
+  /**
+   * Reverse the Const. The key is now the value is the humanized form
+   * of the key. Ideal for Select elements
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array
+   */
+
+  public static function getHumanized() : array {
+    // Get the keys for this enum
+    $reflect = new ReflectionClass(get_called_class());
+
+    $consts = $reflect->getConstants();
+
+    $humanized =  collection(array_keys($consts))->map(
+      fn($key) => Inflector::humanize(Inflector::underscore($key))
+    )->toList();
+
+    return array_combine(array_values($consts), $humanized);
+  }
 }

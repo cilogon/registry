@@ -169,14 +169,21 @@ if(!empty($subnav)) {
     </div>
   <?php endif; ?>
 </div>
-
+  
 <?php if(empty($subnav)): ?>
+  <!-- Subnavigation -->
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
   <?= $this->element('flash', $flashArgs); ?>
 <?php endif; ?>
+
+<?php if(!empty($bulkActions)): ?>
+  <!-- Bulk actions block -->
+  <?php /* Pass along the simple array of actions defined in columns.inc. */ ?>
+  <?= $this->element('bulk/bulk', ['bulkActions' => $bulkActions]); ?>
+<?php endif; ?>  
   
-<!-- Search block -->
 <?php if(isset($vv_searchable_attributes)): ?>
+  <!-- Filters block -->
   <?php 
     $filterArgs = array();
     if(!empty($indexColumns)) {
@@ -238,14 +245,9 @@ if(!empty($subnav)) {
               print '</span>';
             }
             ?>
-            <?php if($firstHeading && !empty($bulkActions)): ?>
-              <div class="form-check bulk-action-checkbox-container">
-                <input class="form-check-input" type="checkbox" value="" id="bulk-action-select-all">
-                <label class="form-check-label" for="bulk-action-select-all">
-                  <?= $label; ?>
-                </label>
-              </div>
-            <?php endif; ?>
+            <?php if($firstHeading && !empty($bulkActions)) {
+              print $this->element('bulk/checkbox', compact('label'));
+            } ?>
           </th>
           <?php
             $firstHeading = false;
@@ -384,6 +386,7 @@ if(!empty($subnav)) {
             
             // Output the row actions if present
             if($isFirstLink && !empty($rowActions)) {
+              print '<div class="field-actions-container">';
               print '<div class="field-actions">';
               print  $this->element('menuAction', $action_args);
               print '</div>';
@@ -498,12 +501,7 @@ if(!empty($subnav)) {
 
                 // Output the bulk-action checkbox and label if present
                 if($isFirstLink && !empty($bulkActions)) {
-                  print '<div class="form-check bulk-action-checkbox-container">';
-                  print '<input class="form-check-input" type="checkbox" value="" id="bulk-action-id-' . $entity->id . '" data-entity-id="' . $entity->id . '">';
-                  print '<label class="form-check-label" for="bulk-action-id-' . $entity->id . '">';
-                  print $label;
-                  print '</label>';
-                  print '</div>';
+                  print $this->element('bulk/checkbox', compact('label', 'entity'));
                 }
                 
                 // $linkActions can be overridden in columns.inc to apply to all
@@ -602,6 +600,10 @@ if(!empty($subnav)) {
                   $isFirstLink = false;
                 }
                 break;
+            }
+
+            if($isFirstLink && !empty($rowActions)) {
+              print '</div>'; // field-actions-container
             }
           ?>
         </td>

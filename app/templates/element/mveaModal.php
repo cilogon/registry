@@ -36,9 +36,9 @@ $vueHelper = $this->loadHelper('Vue');
 
 <script type="module">
   <?php if(Cake\Core\Configure::read('debug')): ?>
-    import MveaModal from "<?= $this->Url->script('comanage/components/mvea/mvea-modal.js') ?>?time=<?= time() ?>";
+    import Modal from "<?= $this->Url->script('comanage/components/common/modal.js') ?>?time=<?= time() ?>";
   <?php else: ?>
-    import MveaModal from "<?= $this->Url->script('comanage/components/mvea/mvea-modal.js') ?>";
+    import Modal from "<?= $this->Url->script('comanage/components/common/modal.js') ?>";
   <?php endif; ?>
   
   const mveaModalApp = Vue.createApp({
@@ -59,7 +59,12 @@ $vueHelper = $this->loadHelper('Vue');
       }
     },
     components: {
-      MveaModal
+      Modal
+    },
+    provide() {
+      return {
+        txt: this.txt
+      }
     },
     methods: {
       launch(title, url, componentRef) {
@@ -91,22 +96,23 @@ $vueHelper = $this->loadHelper('Vue');
     mounted() {
       this.modalElement = document.getElementById('mvea-modal');
       this.mveaModal = new bootstrap.Modal(this.modalElement);
-      var thisComponent = this;
+      const thisComponent = this;
       // When the modal is hidden, refresh the relevant component
       this.modalElement.addEventListener('hide.bs.modal', function (e) {
         thisComponent.refreshMveaComponent();
       })
-    }
+    },
+    template: `
+      <Modal id="mvea":title="this.modal.title">
+        <template v-slot:body="body">
+          <iframe :src="this.modal.url"/>
+        </template>
+      </Modal>
+    `
   });
   
   // Mount the component and provide a global reference for this app instance.
   window.cmMveaModal = mveaModalApp.mount("#mvea-modal-container");
 </script>
 
-<div id="mvea-modal-container">
-  <mvea-modal
-    :modal="this.modal"
-    :core="this.core"
-    :txt="this.txt">
-  </mvea-modal>
-</div>
+<div id="mvea-modal-container"></div>

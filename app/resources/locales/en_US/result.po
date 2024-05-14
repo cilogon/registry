@@ -57,6 +57,9 @@ msgstr "External Identity status recalculated from {0} to {1}"
 msgid "ExternalIdentitySources.synced"
 msgstr "External Identity Source sync complete"
 
+msgid "failed"
+msgstr "failed"
+
 msgid "Groups.added"
 msgstr "Group {0} created"
 
@@ -154,6 +157,9 @@ msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({
 msgid "Pipelines.started"
 msgstr "Pipeline {0} ({1}) started for EIS {2} ({3}) source key {4}"
 
+msgid "removed"
+msgstr "removed"
+
 msgid "saved"
 msgstr "Saved"
 
@@ -190,3 +196,6 @@ msgstr "Database connection established"
 
 msgid "test.mail.ok"
 msgstr "Test message sent"
+
+msgid "updated"
+msgstr "updated"

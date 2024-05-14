@@ -59,9 +59,11 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     <!-- Load CSS -->
     <?= $this->Html->css([
       'bootstrap/bootstrap.min',
+      'datatables/datatables-2.0.7.net.min',
+      'datatables/dataTables.bootstrap5',
       'co-color',
       'co-base',
-      'co-responsive'
+      'co-responsive',
     ]) . PHP_EOL ?>
 
     <!-- Load Bootstrap, jQuery, and Vue (other scripts at bottom) -->
@@ -71,7 +73,8 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       'jquery/jquery.min.js',
       'vue/vue-3.2.31.global.prod.js',
       'vue/primevue-3.52.0.core.min.js',
-      'vue/primevue-3.52.0.autocomplete.min.js'
+      'vue/primevue-3.52.0.autocomplete.min.js',
+      'datatables/datatables-2.0.7.net.min.js',
     ]) . PHP_EOL ?>
 
     <!-- Include external files and scripts -->

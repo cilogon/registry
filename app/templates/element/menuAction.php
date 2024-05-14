@@ -149,7 +149,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
     <?php endforeach;?>
     <?php if(!empty($vv_bulk_actions) && $actionsType == 'top-links'): ?>
       <li id="bulk-edit-switch-container" class="action-list-item">
-        <div class="form-check form-switch">
+        <div class="form-switch">
           <input class="form-check-input" type="checkbox" role="switch" id="bulk-edit-switch">
           <label class="form-check-label" for="bulk-edit-switch">Bulk edit</label>
         </div>

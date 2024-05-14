@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+use App\Lib\Enum\BulkActionEnum;
+
 $indexColumns = [
   'name' => [
     'type' => 'link'
@@ -73,10 +75,7 @@ $rowActions = [
   ]
 ];
 
-/*
-// When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index. 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder.
-  'delete' => true
-];
-*/
+
+// When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index.
+// The array should contain a list of actions to be made available.
+$bulkActions = [BulkActionEnum::Delete];

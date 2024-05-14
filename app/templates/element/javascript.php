@@ -271,8 +271,10 @@
     // Bulk edit switch
     $('#bulk-edit-switch').click(function() {
       if($("#bulk-edit-switch").is(':checked')) {
+        $("body").addClass('bulk-mode');
         $("table.index-table").removeClass('list-mode').addClass('bulk-edit-mode');
       } else {
+        $("body").removeClass('bulk-mode');
         $("table.index-table").removeClass('bulk-edit-mode').addClass('list-mode');
       }
     });

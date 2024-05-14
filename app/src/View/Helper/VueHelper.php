@@ -51,11 +51,14 @@ class VueHelper extends Helper {
       'login',
       'primary',
       'datepicker.hour',
+      'status',
       'unverified'
     ],
     'information' => [
       'global.value.none',
-      'datepicker.hour'
+      'datepicker.hour',
+      'record',
+      'report.for'
     ],
     'operation' => [
       'add',
@@ -65,6 +68,11 @@ class VueHelper extends Helper {
       'autocomplete.people.label',
       'autocomplete.people.placeholder',
       'close'
+    ],
+    'result' => [
+      'failed',
+      'removed',
+      'updated'
     ]
   ];
 

@@ -1,5 +1,5 @@
 /**
- * COmanage Registry MVEA Modal JavaScript
+ * COmanage Registry Modal Vue Element
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -26,21 +26,39 @@
 
 export default {
   props: {
-    modal: Object,
-    core: Object,
-    txt: Object
+    id: {
+      type: String
+    },
+    title: {
+      type: String,
+      default: 'Title'
+    },
+    buttonLabel: {
+      type: String
+    }
   },
+  inject: ['txt'],
   template: `
-    <div className="modal fade cm-modal" id="mvea-modal" aria-labelledby="mvea-modal-title" tabIndex="-1" aria-hidden="true">
+    <div className="modal fade cm-modal"
+         :id="id + '-modal'"
+         aria-labelledby="modal-title"
+         tabIndex="-1"
+         aria-hidden="true">
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h2 class="modal-title" id="mvea-modal-title">{{ this.modal.title }}</h2>
-            <button type="button" className="btn-close nospin" data-bs-dismiss="modal"
+            <h2 class="modal-title" id="modal-title">{{ title }}</h2>
+            <button type="button"
+                    @click="reload"
+                    className="btn-close nospin"
+                    data-bs-dismiss="modal"
                     :aria-label="txt.close"></button>
           </div>
-          <div id="mvea-modal-text" className="modal-body">
-            <iframe :src="this.modal.url"/>
+          <div id="modal-text" className="modal-body">
+            <slot name="body"/>
+          </div>
+          <div v-if="buttonLabel != undefined" class="modal-footer">
+            <button type="button" class="btn btn-primary">{{ buttonLabel }}</button>
           </div>
         </div>
       </div>

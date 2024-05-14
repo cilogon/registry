@@ -252,11 +252,20 @@ class RegistryAuthComponent extends Component
         }
         
         if(Configure::read('debug')) {
-          // For testing purposes throw an error, but in production we want to
+          // For testing purposes, throw an error, but in production we want to
           // redirect to /login
+          if($request->is('ajax') || $request->is('restful')) {
+            // Permission denied
+            throw new ForbiddenException(__d('error', 'perm'));
+          }
           $controller->Flash->error("Authorization Failed (RegistryAuthComponent)");
           return $controller->redirect("/");
         }
+      }
+
+      if($request->is('ajax') || $request->is('restful')) {
+        // Permission denied
+        throw new ForbiddenException(__d('error', 'perm'));
       }
       
       // No authentication, redirect to login

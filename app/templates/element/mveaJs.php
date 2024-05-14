@@ -35,7 +35,7 @@ $entityType = $entityType;  // the type of entity continaing the MVEA (person, p
 $mveaController = Cake\Utility\Inflector::camelize($mveaType);
 $title = __d('controller', $mveaController, [99]);
 
-// Get the CSRF Token in JavaScript  
+// Get the CSRF Token in JavaScript
 $token = $this->request->getAttribute('csrfToken');
 // Load my helper functions
 $vueHelper = $this->loadHelper('Vue');
@@ -47,10 +47,8 @@ $vueHelper = $this->loadHelper('Vue');
 <script type="module">
   <?php if(Cake\Core\Configure::read('debug')): ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>?time=<?= time() ?>";
-    import MveaModal from "<?= $this->Url->script('comanage/components/mvea/mvea-modal.js') ?>?time=<?= time() ?>";
   <?php else: ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>";
-    import MveaModal from "<?= $this->Url->script('comanage/components/mvea/mvea-modal.js') ?>";
   <?php endif; ?>
   
   const app = Vue.createApp({

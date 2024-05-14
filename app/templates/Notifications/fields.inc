@@ -58,7 +58,10 @@ if($vv_action == 'view') {
       ]
     ]);
   } else {
-    print $this->Field->control('status');
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'status'
+      ]]);
   }
 
   print $this->element('form/listItem', [

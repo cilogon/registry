@@ -49,7 +49,20 @@ const camelize = (word) => {
   return word.split("_").map(word => (word[0].toUpperCase() + word.slice(1))).join('')
 }
 
+// Capitalize String
+const capitalize = (sentence) => {
+  let capitalized = []
+  sentence?.split(' ').forEach(word => {
+    capitalized.push(
+      word.charAt(0).toUpperCase() +
+      word.slice(1).toLowerCase()
+    )
+  })
+  return capitalized.join(' ')
+}
+
 export {
   constructLanguageString,
-  camelize
+  camelize,
+  capitalize
 }

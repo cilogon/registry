@@ -375,6 +375,24 @@
     margin-top: -3.5em;
     float: right;
   }
+  /* BULK EDIT */
+  body.bulk-mode #bulk-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+    align-items: center;
+  }
+  #bulk-actions legend {
+    margin: 0;
+  }
+  #bulk-action-select {
+    flex-grow: 1;
+    width: auto;
+    margin: 0;
+  }
+  .field-actions.top-links #bulk-edit-switch-container {
+    padding: 0 1em;
+  }
   /* CO CONFIGURATION DASHBOARD */
   .page-title-features {
     display: flex;
@@ -412,6 +430,7 @@
     border: none;
     background-color: transparent;
     white-space: nowrap;
+    padding: 1.5em 0;
   }
   .field-actions.top-links .actions-expanded  .action-list-item {
     display: inline-block;

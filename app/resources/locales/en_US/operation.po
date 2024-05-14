@@ -36,11 +36,11 @@ msgstr "Add"
 msgid "add.a"
 msgstr "Add a New {0}"
 
-msgid "add.bulk"
-msgstr "Bulk add"
-
 msgid "add.member"
 msgstr "Add member: "
+
+msgid "apply"
+msgstr "Apply"
 
 msgid "autocomplete.pager.show.more"
 msgstr "show more"
@@ -68,6 +68,12 @@ msgstr "Assign"
 
 msgid "any"
 msgstr "Any"
+
+msgid "bulk.actions"
+msgstr "Bulk Actions"
+
+msgid "bulk.add"
+msgstr "Bulk add"
 
 msgid "cancel"
 msgstr "Cancel"
@@ -171,6 +177,9 @@ msgstr "Display records"
 msgid "page.goto"
 msgstr "Go to page"
 
+msgid "pick"
+msgstr "Pick"
+
 msgid "previous"
 msgstr "Previous"
 
@@ -209,6 +218,9 @@ msgstr "Search"
 
 msgid "search.global"
 msgstr "Global Search"
+
+msgid "select.prompt"
+msgstr "Please select..."
 
 msgid "skip_to_content"
 msgstr "Skip to main content"
