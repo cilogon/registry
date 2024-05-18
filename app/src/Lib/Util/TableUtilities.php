@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Provisioning Target Entity
+ * COmanage Registry Table Utilities
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,28 +27,35 @@
 
 declare(strict_types = 1);
 
-namespace App\Model\Entity;
+namespace App\Lib\Util;
 
-use Cake\ORM\Entity;
-use \App\Lib\Enum\ProvisionerModeEnum;
+use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 
-class ProvisioningTarget extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
-  
-  protected $_accessible = [
-    '*' => true,
-    'id' => false,
-    'slug' => false, 
-  ];
-
+class TableUtilities {
   /**
-   * Determine if this entity is Active.
+   * Dynamically create a Table model via the Table Registry.
    * 
    * @since  COmanage Registry v5.0.0
-   * @return bool True if the record is active, false otherwise.
+   * @param  string $alias    Table alias
+   * @param  array  $options  Table options
+   * @return Table            Table
    */
 
-  public function isActive(): bool {
-    return $this->status != ProvisionerModeEnum::Disabled;
+  public static function getTableFromRegistry(string $alias, array $options): Table {
+    // When creating a dynamic table, Cake will throw an Exception if get() is called 
+    // with $options after the table is first instantiated. While this is probably a
+    // preventative measure to avoid issues with the same table being instantiated
+    // twice with different options, in our case we typically try to create the table
+    // a second time when the same code is called again -- eg when SqlProvisioner is
+    // called on a second entity, for example via ProvisionerJob.
+
+    $Locator = TableRegistry::getTableLocator();
+
+    if($Locator->exists($alias)) {
+      return $Locator->get($alias);
+    } else {
+      return $Locator->get($alias, $options);
+    }
   }
 }

@@ -31,6 +31,7 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
 use \App\Lib\Util\StringUtilities;
 
 class IdentifierAssignmentsController extends StandardPluggableController {
@@ -48,33 +49,65 @@ class IdentifierAssignmentsController extends StandardPluggableController {
 
   public function assign() {
     $link = $this->getPrimaryLink(true);
-    
-    try {
-      $results = $this->IdentifierAssignments->assign(
-        entityType: StringUtilities::foreignKeyToClassName($link->attr),
-        entityId: (int)$link->value
-      );
 
-      if(!empty($results)) {
-        // We could get multiple types of results from different Identifier Assignments
+    if($link->attr == 'co_id') {
+      // We've been asked to assign Identifiers for all entities within a CO,
+      // which we do by queuing a job.
 
-        if(!empty($results['assigned'])) {
-          $this->Flash->success(__d('result', 'IdentifierAssignments.assigned.ok', implode(',', array_keys($results['assigned']))));
+      $JobTable = TableRegistry::getTableLocator()->get("Jobs");
+
+      try {
+        $contexts = ['People', 'Groups'];
+
+        foreach($contexts as $context) {
+          $JobTable->register(
+            coId:             (int)$link->value,
+            plugin:           'CoreJob.AssignerJob',
+            parameters:       ['context' => $context],
+            registerSummary:  __d('result', 'IdentifierAssignments.queued.ok', [$context, $link->value])
+          );
         }
 
-        if(!empty($results['errors'])) {
-          $this->Flash->error(implode(',', $results['errors']));
-        }
+        $this->Flash->success(__d('result', 'IdentifierAssignments.queued.ok', [implode(', ', $contexts), $link->value]));
+      }
+      catch(\Exception $e) {
+        $this->Flash->error($e->getMessage());
+      }
 
-        if(!empty($results['already'])) {
-          $this->Flash->information(__d('result', 'IdentifierAssignments.assigned.already', implode(',', array_keys($results['already']))));
+      // We need to explicitly set the redirect since generateRedirect() will miscalculate
+      return $this->redirect([
+        'action'  => 'index',
+        '?'       => ['co_id' => $link->value]
+      ]);
+    } else {
+      // We're assigning Identifiers for a single entity
+      try {
+        $results = $this->IdentifierAssignments->assign(
+          entityType: StringUtilities::foreignKeyToClassName($link->attr),
+          entityId: (int)$link->value
+        );
+
+        if(!empty($results)) {
+          // We could get multiple types of results from different Identifier Assignments
+
+          if(!empty($results['assigned'])) {
+            $this->Flash->success(__d('result', 'IdentifierAssignments.assigned.ok', implode(',', array_keys($results['assigned']))));
+          }
+
+          if(!empty($results['errors'])) {
+            $this->Flash->error(implode(',', $results['errors']));
+          }
+
+          if(!empty($results['already'])) {
+            $this->Flash->information(__d('result', 'IdentifierAssignments.assigned.already', implode(',', array_keys($results['already']))));
+          }
         }
       }
-    }
-    catch(\Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
+      catch(\Exception $e) {
+        $this->Flash->error($e->getMessage());
+      }
 
-    $this->generateRedirect(null);
+      $this->generateRedirect(null);
+    }
   }
 }

@@ -88,6 +88,10 @@ class JobsTable extends Table {
     $this->setAllowLookupPrimaryLink(['cancel']);
     
     $this->setAutoViewVars([
+      'plugins' => [
+        'type'        => 'plugin',
+        'pluginType'  => 'job'
+      ],
       'statuses' => [
         'type'  => 'enum',
         'class' => 'JobStatusEnum'
@@ -108,7 +112,7 @@ class JobsTable extends Table {
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
-        'add' =>      false, // ['platformAdmin', 'coAdmin'],
+        'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']
       ],
       'readOnly' => ['cancel'],
@@ -127,7 +131,7 @@ class JobsTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  Job $job Job to assign
-   * @throws InvalidArgumentException
+   * @throws ArgumentException
    */
 
   public function assign(Job $job) {
@@ -286,8 +290,10 @@ class JobsTable extends Table {
 
   public function finish(Job $job, string $summary="", string $result=JobStatusEnum::Complete) {
     // The Job must be InProgress to be finished, unless we're canceling it
+    // or we're recording a failure
     if($job->status != JobStatusEnum::InProgress
-       && !($result == JobStatusEnum::Canceled && $job->canCancel())) {
+       && !($result == JobStatusEnum::Canceled && $job->canCancel())
+       && $result != JobStatusEnum::Failed) {
       throw new \InvalidArgumentException(
         __d('error',
             'Jobs.status.invalid', 
@@ -388,20 +394,30 @@ class JobsTable extends Table {
       );
     }
 
+    // First create an instance of the Entry Point Model
+    $pClass = $this->instantiatePluginModel($job->plugin, '\Lib\Jobs');
+
+    $JobHistoryRecords = TableRegistry::getTableLocator()->get('JobHistoryRecords');
+
+    // Maybe set the connection on the JobHistoryTable (if we were run via
+    // the queue runner).
     try {
-      // First create an instance of the Entry Point Model
-      $pClass = $this->instantiatePluginModel($job->plugin, '\Lib\Jobs');
-
-      $JobHistoryRecords = TableRegistry::getTableLocator()->get('JobHistoryRecords');
-
-      // Maybe set the connection on the JobHistoryTable (if we were run via
-      // the queue runner).
       $cxn = ConnectionManager::get('plugin');
 
       if(!empty($cxn)) {
         $JobHistoryRecords->setConnection($cxn);
       }
-    
+    }
+    catch(\Cake\Datasource\Exception\MissingDatasourceConfigException $e) {
+      // plugin datasource not defined, so we're not in the queue runner
+    }
+    catch(\Exception $e) {
+      $this->finish($job, $e->getMessage(), JobStatusEnum::Failed);
+    }
+
+    // We need a separate try block here because we want to specially handle
+    // MissingDatasourceConfigException, above
+    try {    
       $pClass->run(
         $this,
         $JobHistoryRecords,
@@ -561,7 +577,7 @@ class JobsTable extends Table {
         __d('error',
             'Jobs.status.invalid',
             [
-              $jobs->id, 
+              $job->id, 
               __d('enumeration', 'JobStatusEnum.Assigned'),
               __d('enumeration', 'JobStatusEnum.InProgress'),
               __d('enumeration', 'JobStatusEnum.'.$job->status)
@@ -612,8 +628,9 @@ class JobsTable extends Table {
             }
             break;
           case 'select':
-            throw new \RuntimeException('not implemented');
-// XXX implement
+            if(!in_array($val, $pluginParameters[$p]['choices'])) {
+              $ret[$p] = __d('error', 'Jobs.plugin.parameter.select');
+            }
             break;
           case 'string':
             // For now, anything can pass as a string

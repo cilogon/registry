@@ -1,0 +1,68 @@
+# COmanage Registry Localizations (core_job domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.0.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+msgid "error.co_id"
+msgstr "Requested {0} entity {1} is not in CO {2}"
+
+msgid "opt.assigner.context"
+msgstr "Identifier Assignment context"
+
+msgid "opt.entities"
+msgstr "Comma separated list of entity IDs to process"
+
+msgid "opt.provisioner.model"
+msgstr "Model to provision"
+
+msgid "opt.provisioner.provisioning_target_id"
+msgstr "Provisioning Target ID"
+
+msgid "Assigner.cancel_summary"
+msgstr "Job canceled after reviewing {0} entities and assigning {1} Identifier(s)"
+
+msgid "Assigner.error.assign"
+msgstr "Error assigning {0}: {1}"
+
+msgid "Assigner.finish_summary"
+msgstr "Reviewed {0} entities and assigned {1} Identifier(s)"
+
+msgid "Assigner.result.assigned"
+msgstr "Assigned {0}: {1}"
+
+msgid "Assigner.start_summary"
+msgstr "Assigning all Identifiers in context {0} for CO {1} ({2} entities)"
+
+msgid "Provisioner.cancel_summary"
+msgstr "Job canceled after provisioning {0} entities ({1} errors)"
+
+msgid "Provisioner.error.status"
+msgstr "Provisioner is disabled"
+
+msgid "Provisioner.finish_summary"
+msgstr "Reprovisioned {0} entities ({1} errors)"
+
+msgid "Provisioner.result.provisioned"
+msgstr "Reprovisioned"
+
+msgid "Provisioner.start_summary"
+msgstr "Reprovisioning {0} {1} entities for Provisioning Target {2}"

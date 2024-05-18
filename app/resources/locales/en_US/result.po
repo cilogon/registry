@@ -102,6 +102,9 @@ msgstr "Identifier Auto Assigned: {0} ({1}, {2})"
 msgid "IdentifierAssignments.assigned.ok"
 msgstr "Identifiers Assigned ({0})"
 
+msgid "IdentifierAssignments.queued.ok"
+msgstr "Identifiers Assignment for context {0} queued for CO {1}"
+
 msgid "Names.primary_name"
 msgstr "Primary Name Updated"
 
@@ -156,6 +159,9 @@ msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({
 
 msgid "Pipelines.started"
 msgstr "Pipeline {0} ({1}) started for EIS {2} ({3}) source key {4}"
+
+msgid "ProvisioningTargets.queued.ok"
+msgstr "Reprovisioning for {0} queued for {1} ({2})"
 
 msgid "removed"
 msgstr "removed"

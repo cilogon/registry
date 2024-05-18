@@ -93,7 +93,7 @@ class PaginatedSqlIterator implements \Iterator {
       $this->loadCount();
     }
     
-    return $this->initialCount;
+    return $this->count;
   }
   
   /**
@@ -120,7 +120,7 @@ class PaginatedSqlIterator implements \Iterator {
       $query = $query->where($this->conditions);
     }
     
-    $this->initialCount = $query->count();
+    $this->count = $query->count();
   }
   
   /**

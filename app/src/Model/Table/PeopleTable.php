@@ -418,6 +418,7 @@ class PeopleTable extends Table {
         'Addresses' => [ 'Types' ],
         'AdHocAttributes',
         'EmailAddresses' => [ 'Types' ],
+/* External Identities are not provisionable
         'ExternalIdentities' => [
           'Addresses' => [ 'Types' ],
           'AdHocAttributes',
@@ -433,7 +434,7 @@ class PeopleTable extends Table {
           'Pronouns',
           'TelephoneNumbers' => [ 'Types' ],
           'Urls' => [ 'Types' ]
-        ],
+        ],*/
         'GroupMembers' => [ 'Groups' ],
         'Identifiers' => [ 'Types' ],
         'Names' => [ 'Types' ],

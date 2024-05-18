@@ -86,6 +86,7 @@ class ProvisioningTargetsTable extends Table {
     
     $this->setPrimaryLink(['co_id', 'group_id', 'person_id']);
     $this->setRequiresCO(true);
+    $this->setAllowLookupPrimaryLink(['reprovision']);
     $this->setAllowUnkeyedPrimaryLink(['status']);
 
     $this->setAutoViewVars([
@@ -106,10 +107,11 @@ class ProvisioningTargetsTable extends Table {
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
-        'configure' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
+        'configure' =>    ['platformAdmin', 'coAdmin'],
+        'delete' =>       ['platformAdmin', 'coAdmin'],
+        'edit' =>         ['platformAdmin', 'coAdmin'],
+        'reprovision' =>  ['platformAdmin', 'coAdmin'],
+        'view' =>         ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [

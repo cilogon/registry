@@ -36,6 +36,7 @@ use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Validation\Validator;
+use App\Lib\Util\TableUtilities;
 
 class SqlAssignersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -128,7 +129,7 @@ class SqlAssignersTable extends Table {
       'connection'  => ConnectionManager::get('sqlassigner')
     ];
 
-    $SourceTable = TableRegistry::getTableLocator()->get(
+    $SourceTable = TableUtilities::getTableFromRegistry(
       alias: 'SourceIdentifiers',
       options: $options
     );

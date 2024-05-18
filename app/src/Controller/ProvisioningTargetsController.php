@@ -78,6 +78,41 @@ class ProvisioningTargetsController extends StandardPluggableController {
   }
 
   /**
+   * Register a (re)provisioning job.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function reprovision(string $id) {
+    // We call this "reprovision" and not "provision" to avoid conflicts with
+    // StandardController::provision.
+
+    $JobTable = TableRegistry::getTableLocator()->get("Jobs");
+
+    try {
+      $target = $this->ProvisioningTargets->get((int)$id);
+
+      $models = ['People', 'Groups'];
+
+      foreach($models as $model) {
+        $JobTable->register(
+          coId:             $this->getCOID(),
+          plugin:           'CoreJob.ProvisionerJob',
+          parameters:       ['model' => $model, 'provisioning_target_id' => $id],
+          registerSummary:  __d('result', 'ProvisioningTargets.queued.ok', [$model, $target->description, $target->id])
+        );
+      }
+
+      $this->Flash->success(__d('result', 'ProvisioningTargets.queued.ok', [implode(', ', $models), $target->description, $target->id]));
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
+
+    return $this->generateRedirect($target ?? null);
+  }
+
+  /**
    * Generate a status index.
    *
    * @since  COmanage Registry v5.0.0

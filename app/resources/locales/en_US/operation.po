@@ -141,6 +141,9 @@ msgstr "First"
 msgid "go"
 msgstr "Go"
 
+msgid "IdentifierAssignments.assign.all"
+msgstr "Assign Identifiers for All"
+
 msgid "identifiers.assign"
 msgstr "Assign Identifiers"
 
@@ -194,6 +197,9 @@ msgstr "Are you sure you want to run provisioning?"
 
 msgid "provisioning.status"
 msgstr "Provisioning Status"
+
+msgid "ProvisioningTargets.provision.all"
+msgstr "Reprovision All"
 
 msgid "Types.restore"
 msgstr "Add/Restore Default Types"

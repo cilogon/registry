@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Job History Records Fields
+ * COmanage Registry Jobs Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,8 +25,18 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not support add or edit
-if($vv_action == 'view') {
+// This view does not support edit
+if($vv_action == 'add') {
+  // We are registering a Job, so the fields we accept are somewhat limited/different
+  // from view
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'plugin',
+      'fieldLabel' => __d('controller', 'Jobs', [1])
+    ]
+  ]);
+} elseif($vv_action == 'view') {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'plugin',

@@ -53,6 +53,18 @@ $indexColumns = [
   ]
 ];
 
+$topLinks = [
+  [
+    'icon'  => 'add_to_queue',
+    'order' => 'Default',
+    'label' => __d('operation', 'IdentifierAssignments.assign.all'),
+    'link'  => [
+      'action' => 'assign'
+    ],
+    'class' => ''
+  ]
+];
+
 // $rowActions appear as row-level menu items in the index view gear icon
 $rowActions = [
   [

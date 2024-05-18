@@ -606,7 +606,7 @@ class GroupsTable extends Table {
     
     // Provisioning Eligibility is
     // - Deleted if the changelog deleted flag is true
-    // - Eligible if the status is Active
+    // - Eligible if the status is Active and the group type is not Owners
     // - Ineligible otherwise
 
     $ret['eligibility'] = ProvisioningEligibilityEnum::Ineligible;
@@ -620,7 +620,8 @@ class GroupsTable extends Table {
       // but we leave the Identifiers in place.
 
       $ret['data']->group_members = [];
-    } elseif($ret['data']->status == SuspendableStatusEnum::Active) {
+    } elseif($ret['data']->status == SuspendableStatusEnum::Active
+             && !$ret['data']->isOwners()) {
       $ret['eligibility'] = ProvisioningEligibilityEnum::Eligible;
 
       // For Eligible, we still need to remove Group Memberships that are

@@ -51,6 +51,12 @@ $rowActions = [
     'action'  => 'configure',
     'label'   => __d('operation', 'configure.plugin'),
     'icon'    => 'electrical_services'
+  ],
+  [
+    'action'  => 'reprovision',
+    'label'   => __d('operation', 'ProvisioningTargets.provision.all'),
+    'icon'    => 'add_to_queue',
+    'if'      => 'isActive'
   ]
 ];
 

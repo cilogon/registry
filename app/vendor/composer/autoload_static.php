@@ -136,6 +136,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'CoreServer\\' => 11,
             'CoreReport\\Test\\' => 16,
             'CoreReport\\' => 11,
+            'CoreJob\\Test\\' => 13,
+            'CoreJob\\' => 8,
             'CoreEnroller\\Test\\' => 18,
             'CoreEnroller\\' => 13,
             'CoreAssigner\\Test\\' => 18,
@@ -411,6 +413,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreReport\\' => 
         array (
             0 => __DIR__ . '/../..' . '/availableplugins/CoreReport/src',
+        ),
+        'CoreJob\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreJob/tests',
+        ),
+        'CoreJob\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreJob/src',
         ),
         'CoreEnroller\\Test\\' => 
         array (

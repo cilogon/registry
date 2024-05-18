@@ -40,6 +40,7 @@ use App\Lib\Enum\ProvisioningEligibilityEnum;
 use App\Lib\Enum\ProvisioningStatusEnum;
 use App\Lib\Util\SchemaManager;
 use App\Lib\Util\StringUtilities;
+use App\Lib\Util\TableUtilities;
 
 class SqlProvisionersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -64,7 +65,8 @@ class SqlProvisionersTable extends Table {
         'AdHocAttributes',
         'Addresses',
         'EmailAddresses',
-        'ExternalIdentities',
+// External Identities are not provisionable
+//        'ExternalIdentities',
         'GroupMembers',
         'Identifiers',
         'Names',
@@ -108,7 +110,7 @@ class SqlProvisionersTable extends Table {
       'source_table' => 'email_addresses',
       'related' => []
     ],
-    'ExternalIdentities' => [
+/*    'ExternalIdentities' => [
       'table'   => 'external_identities',
       'name'    => 'SpExternalIdentities',
       'source'  => 'ExternalIdentities',
@@ -135,7 +137,7 @@ class SqlProvisionersTable extends Table {
         'Addresses',
         'TelephoneNumbers'
       ]
-    ],
+    ],*/
     'GroupMembers' => [
       'table'   => 'group_members',
       'name'    => 'SpGroupMembers',
@@ -412,7 +414,7 @@ class SqlProvisionersTable extends Table {
       'connection'  => ConnectionManager::get($dataSource)
     ];
 
-    $SpTable = TableRegistry::getTableLocator()->get(alias: $mconfig['name'], options: $options);
+    $SpTable = TableUtilities::getTableFromRegistry(alias: $mconfig['name'], options: $options);
 
     try {
       $curEntity = $SpTable->get($data->id);
@@ -568,7 +570,7 @@ class SqlProvisionersTable extends Table {
         'connection'  => ConnectionManager::get($dataSource)
       ];
 
-      $SpTable = TableRegistry::getTableLocator()->get(alias: $m['name'], options: $options);
+      $SpTable = TableUtilities::getTableFromRegistry(alias: $m['name'], options: $options);
 
       // Next get the source table model
 
@@ -660,7 +662,7 @@ class SqlProvisionersTable extends Table {
       'connection'  => ConnectionManager::get($dataSource)
     ];
 
-    $SpTable = TableRegistry::getTableLocator()->get(alias: $mconfig['name'], options: $options);
+    $SpTable = TableUtilities::getTableFromRegistry(alias: $mconfig['name'], options: $options);
 
     // We have the source values, but we need to convert them to arrays
     // for patchEntities
@@ -744,7 +746,7 @@ class SqlProvisionersTable extends Table {
             'connection'  => ConnectionManager::get($dataSource)
           ];
 
-          $SubTable = TableRegistry::getTableLocator()->get(alias: $subconfig['name'], options: $options);
+          $SubTable = TableUtilities::getTableFromRegistry(alias: $subconfig['name'], options: $options);
 
           foreach($toDelete as $d) {
             // We shouldn't get here if either $parentKey or $d->id is null...

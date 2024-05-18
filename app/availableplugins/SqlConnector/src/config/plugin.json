@@ -93,41 +93,6 @@
         },
         "changelog": false
       },
-
-      "external_identities": {
-        "columns": {
-          "id": {},
-          "person_id": { "notnull": true },
-          "status": {},
-          "date_of_birth": { "type": "date" }
-        },
-        "indexes": {
-          "external_identities_i1": { "columns": [ "person_id" ] }
-        },
-        "changelog": false
-      },
-
-      "external_identity_roles": {
-        "columns": {
-          "id": {},
-          "external_identity_id": { "notnull": true },
-          "status": {},
-          "ordr": {},
-          "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-          "title": { "type": "string", "size": 128 },
-          "organization": { "type": "string", "size": 128 },
-          "department": { "type": "string", "size": 128 },
-          "manager_identifier": { "type": "string", "size": 512 },
-          "sponsor_identifier": { "type": "string", "size": 512 },
-          "valid_from": {},
-          "valid_through": {}
-        },
-        "indexes": {
-          "external_identity_roles_i1": { "columns": [ "external_identity_id" ] },
-          "external_identity_roles_i2": { "columns": [ "affiliation_type_id" ] }
-        },
-        "changelog": false
-      },
       
       "groups": {
         "columns": {
@@ -153,7 +118,7 @@
         },
         "indexes": {
         },
-        "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
+        "mvea": [ "person", "person_role" ],
         "changelog": false
       },
 
@@ -173,7 +138,7 @@
         "indexes": {
           "addresses_i1": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
+        "mvea": [ "person", "person_role" ],
         "changelog": false
       },
 
@@ -188,7 +153,7 @@
         "indexes": {
           "email_addresses_i3": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "external_identity" ],
+        "mvea": [ "person" ],
         "changelog": false
       },
 
@@ -203,7 +168,7 @@
         "indexes": {
           "identifiers_i3": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "external_identity", "group" ],
+        "mvea": [ "person", "group" ],
         "changelog": false
       },
 
@@ -223,7 +188,7 @@
         "indexes": {
           "names_i1": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "external_identity" ],
+        "mvea": [ "person" ],
         "changelog": false
       },
 
@@ -237,7 +202,7 @@
         "indexes": {
           "pronouns_i1": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "external_identity" ],
+        "mvea": [ "person" ],
         "changelog": false
       },
 
@@ -254,7 +219,7 @@
         "indexes": {
           "telephone_numbers_i1": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
+        "mvea": [ "person", "person_role" ],
         "changelog": false
       },
 
@@ -268,7 +233,7 @@
         "indexes": {
           "urls_i1": { "columns": [ "type_id" ] }
         },
-        "mvea": [ "person", "external_identity" ],
+        "mvea": [ "person" ],
         "changelog": false
       },
 

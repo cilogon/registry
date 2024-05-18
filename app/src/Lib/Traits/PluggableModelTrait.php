@@ -151,7 +151,7 @@ trait PluggableModelTrait {
         // This plugin is not valid. We could filter this in the find() using a
         // where() clause, but checking here allows us to emit a warning.
 
-        $this->llog('error', "Ignoring invalid plugin found in " . $this->getTable() . " record " . $m->id);
+        $this->llog('error', "Ignoring invalid plugin '" . $m->plugin . "' found in " . $this->getTable() . " record " . $m->id);
         continue;
       }
 

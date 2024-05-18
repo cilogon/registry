@@ -51,6 +51,11 @@ class IdentifierAssignmentsTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
+  // Cache of Identifier Assignments, by CO ID and Context. Intended primarily
+  // for use with AssignerJob, which might call assign() hundreds or thousands
+  // of times, but for the same set of Identifier Assignments.
+  private $iacache = null;
+
   /**
    * Perform Cake Model initialization.
    *
@@ -140,6 +145,9 @@ class IdentifierAssignmentsTable extends Table {
    * @param  int    $entityId       Entity ID
    * @param  bool   $provision      Whether or not to run provisioners after assignment
    * @param  int    $actorPersonId  Person ID of Actor assigning identifiers
+   * @return array                  'already': Identifiers already assigned, keyed by IA description
+   *                                'assigned': Identifiers newly assigned, keyed by IA description
+   *                                'errors': Errors, keyed by IA description
    */
 
   public function assign(
@@ -176,15 +184,26 @@ class IdentifierAssignmentsTable extends Table {
                 ? IdentifierAssignmentContextEnum::Group
                 : IdentifierAssignmentContextEnum::Person);
 
-    $ias = $this->find()
-                ->where([
-                  'IdentifierAssignments.co_id' => $coId,
-                  'IdentifierAssignments.status' => SuspendableStatusEnum::Active,
-                  'IdentifierAssignments.context' => $context
-                ])
-                ->order(['IdentifierAssignments.ordr' => 'ASC'])
-                ->contain($this->getPluginRelations())
-                ->all();
+    // We cache the Identifier Assignments, in particular for use with
+    // AssignerJob.
+
+    $ias = null;
+
+    if(!empty($this->iacache[$coId][$context])) {
+      $ias = $this->iacache[$coId][$context];
+    } else {
+      $ias = $this->find()
+                  ->where([
+                    'IdentifierAssignments.co_id' => $coId,
+                    'IdentifierAssignments.status' => SuspendableStatusEnum::Active,
+                    'IdentifierAssignments.context' => $context
+                  ])
+                  ->order(['IdentifierAssignments.ordr' => 'ASC'])
+                  ->contain($this->getPluginRelations())
+                  ->all();
+      
+      $this->iacache[$coId][$context] = $ias;
+    }
     
     foreach($ias as $ia) {
 // XXX CFM-57 If not group eligible skip this (but log that we skipped it)

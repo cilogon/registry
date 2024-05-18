@@ -205,6 +205,9 @@ msgstr "Invalid parameter"
 msgid "Jobs.plugin.parameter.required"
 msgstr "Required parameter not provided"
 
+msgid "Jobs.plugin.parameter.select"
+msgstr "Provided value is not a valid choice"
+
 msgid "Jobs.plugin.parameter.type"
 msgstr "Unknown parameter type {0}"
 

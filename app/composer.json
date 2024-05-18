@@ -34,7 +34,8 @@
             "CoreAssigner\\": "plugins/CoreAssigner/src/",
             "CoreServer\\": "plugins/CoreServer/src/",
             "FileConnector\\": "availableplugins/FileConnector/src/",
-            "SqlConnector\\": "availableplugins/SqlConnector/src/"
+            "SqlConnector\\": "availableplugins/SqlConnector/src/",
+            "CoreJob\\": "plugins/CoreJob/src/"
         }
     },
     "autoload-dev": {
@@ -45,7 +46,8 @@
             "CoreAssigner\\Test\\": "plugins/CoreAssigner/tests/",
             "CoreServer\\Test\\": "plugins/CoreServer/tests/",
             "FileConnector\\Test\\": "availableplugins/FileConnector/tests/",
-            "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/"
+            "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/",
+            "CoreJob\\Test\\": "plugins/CoreJob/tests/"
         }
     },
     "scripts": {

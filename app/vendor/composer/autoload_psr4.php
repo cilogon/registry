@@ -66,6 +66,8 @@ return array(
     'CoreServer\\' => array($baseDir . '/plugins/CoreServer/src'),
     'CoreReport\\Test\\' => array($baseDir . '/availableplugins/CoreReport/tests'),
     'CoreReport\\' => array($baseDir . '/availableplugins/CoreReport/src'),
+    'CoreJob\\Test\\' => array($baseDir . '/plugins/CoreJob/tests'),
+    'CoreJob\\' => array($baseDir . '/plugins/CoreJob/src'),
     'CoreEnroller\\Test\\' => array($baseDir . '/plugins/CoreEnroller/tests'),
     'CoreEnroller\\' => array($baseDir . '/plugins/CoreEnroller/src'),
     'CoreAssigner\\Test\\' => array($baseDir . '/plugins/CoreAssigner/tests'),
