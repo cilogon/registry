@@ -28,6 +28,9 @@
 
 declare(strict_types = 1);
 
+// We need to uncheck the control key before passing the form parameters to the helper
+unset($vv_field_arguments['check']);
+
 ?>
 
 <div class="field-info">
