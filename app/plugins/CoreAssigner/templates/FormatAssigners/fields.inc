@@ -56,7 +56,7 @@ if($vv_action == 'edit') {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'collision_mode',
-      'options'   => [
+      'fieldOptions'   => [
         'onChange' => 'updateGadgets()'
       ]
     ]
