@@ -36,7 +36,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'table_prefix',
-      'options' => [
+      'fieldOptions' => [
         'default' => 'sp_'
       ]
     ]
