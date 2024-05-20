@@ -358,15 +358,10 @@ class RegistryAuthComponent extends Component
         $query = $query->contain($table->$getActionMethod());
       }
 
-      try {
-        // Pull the current record
-        $obj = $query->firstOrFail();
-      }
-      catch(\Exception $e) {
-        // findById throws Cake\Datasource\Exception\RecordNotFoundException
-        $this->Flash->error($e->getMessage());
-        return $this->generateRedirect(null);
-      }
+      // Pull the current record
+      // This may throw Cake\Datasource\Exception\RecordNotFoundException,
+      // which we let bubble up
+      $obj = $query->firstOrFail();
       
       if(method_exists($obj, "isReadOnly")) {
         $readOnly = $obj->isReadOnly();

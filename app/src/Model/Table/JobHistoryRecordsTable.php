@@ -79,7 +79,7 @@ class JobHistoryRecordsTable extends Table {
 
     $this->setViewContains([
       'People' => ['PrimaryName'],
-      'ExternalIdentities' => ['PrimaryName']
+      'ExternalIdentities' => ['Names']
     ]);
     
     $this->setPermissions([
