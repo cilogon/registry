@@ -49,6 +49,12 @@ $rowActions = [
     'icon'    => 'search'
   ],
   [
+    'controller'  => 'ExtIdentitySourceRecords',
+    'action'      => 'index',
+    'label'       => __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 99)]),
+    'icon'        => 'view_list'
+  ],
+  [
     'action'  => 'edit',
     'label'   => __d('operation', 'edit.a', [__d('controller', 'ExternalIdentitySources', 1)]),
     'icon'    => 'edit'

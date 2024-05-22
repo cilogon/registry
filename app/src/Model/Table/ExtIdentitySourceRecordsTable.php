@@ -39,6 +39,7 @@ use Cake\Validation\Validator;
 // This should be ExternalIdentitySourceRecordsTable but then alias.field assembly
 // exceeds Cake's 61 character limit
 class ExtIdentitySourceRecordsTable extends Table {
+  use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\LabeledLogTrait;

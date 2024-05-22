@@ -423,6 +423,9 @@ class PipelinesTable extends Table {
     foreach(['valid_from', 'valid_through'] as $attr) {
       if(!empty($entity->$attr)) {
         $newdata[$attr] = $entity->$attr->i18nFormat('yyyy-MM-dd HH:mm:ss');
+      } else {
+        // Populate a blank value so removal works correctly
+        $newdata[$attr] = "";
       }
     }
 

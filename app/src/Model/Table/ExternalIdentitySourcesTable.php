@@ -113,6 +113,11 @@ class ExternalIdentitySourcesTable extends Table {
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin'],
         'status' =>   ['platformAdmin', 'coAdmin']
+      ],
+      'related' => [
+        'table' => [
+          'ExtIdentitySourceRecords'
+        ]
       ]
     ]);
   }

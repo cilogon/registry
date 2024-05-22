@@ -28,7 +28,8 @@
 $indexColumns = [
   // We start with id to ensure there is a clickable field in the row
   'id' => [
-    'type' => 'link'
+    'type' => 'link',
+    'sortable' => true
   ],
   'external_identity_source_id' => [
     'type' => 'relatedLink',
