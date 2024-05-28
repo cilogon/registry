@@ -202,32 +202,17 @@ class IdentifiersTable extends Table {
    * @since  COmanage Registry v5.0.0
    */
 
-  public function lookupPerson(int $typeId, string $identifier, ?int $coId, bool $login=false): int {
-    $whereClause = [
-      'identifier'  => $identifier,
-      'status'      => SuspendableStatusEnum::Active,
-      'person_id IS NOT NULL'
-    ];
-
-    if($typeId) {
-      $whereClause['type_id'] = $typeId;
-    }
-
-    if($login) {
-      $whereClause['login'] = true;
-    }
-
-    $query = $this->find()
-                  ->where($whereClause);
-
-    if($coId) {
-      $query->matching(
-        'People',
-        fn(QueryExpression $exp, Query $query) => $query->where(['People.co_id' => $coId])
-      );
-    }
-
-    $id = $query->firstOrFail();
+  public function lookupPerson(int $typeId, string $identifier): int {
+    // Note this function signature is intentionally the same as
+    // EmailAddresses::lookupPerson()
+    $id = $this->find()
+               ->where([
+                'identifier'  => $identifier,
+                'type_id'     => $typeId,
+                'status'      => SuspendableStatusEnum::Active,
+                'person_id IS NOT NULL'
+               ])
+               ->firstOrFail();
 
     return $id->person_id;
   }
