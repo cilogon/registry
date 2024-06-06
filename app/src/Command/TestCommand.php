@@ -53,7 +53,7 @@ class TestCommand extends Command
     $parser->addOption('test', [
       'help'    => __d('command', 'opt.test.test'),
       'short'   => 't',
-      'choices' => ['database', 'mail']
+      'choices' => ['database', 'mail', 'setup']
     ])->addOption('datasource', [
       'help'    => __d('command', 'opt.test.database.source'),
       'default' => 'default'
@@ -87,6 +87,9 @@ class TestCommand extends Command
         break;
       case 'mail':
         $this->testMail((int)$args->getOption('recipient'));
+        break;
+      case 'setup':
+        $this->testSetup();
         break;
       default:
         $io->out("Command $test unknown");
@@ -134,6 +137,29 @@ class TestCommand extends Command
     }
     catch(\Exception $e) {
       $this->io->error($e->getMessage());
+      $this->abort(static::CODE_ERROR);
+    }
+
+    return static::CODE_SUCCESS;
+  }
+
+  /**
+   * Test COmanage setup
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return int            Return Code (CODE_SUCCESS or CODE_ERROR)
+   */
+
+  protected function testSetup(): int {
+
+    // Check if the COmanage CO already exists, and if so abort.
+
+    $coTable = $this->getTableLocator()->get('Cos');
+    $query = $coTable->find();
+    $comanageCO = $coTable->findCOmanageCO($query)->first();
+
+    if($comanageCO !== null) {
+      $this->io->out(__d('command', 'se.already'));
       $this->abort(static::CODE_ERROR);
     }
 

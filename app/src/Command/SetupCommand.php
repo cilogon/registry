@@ -79,17 +79,9 @@ class SetupCommand extends Command
     $force = $args->getOption('force');
 
     // Check if the COmanage CO already exists, and if so abort.
-
-    $coTable = $this->getTableLocator()->get('Cos');
-    $query = $coTable->find();
-    $comanageCO = $coTable->findCOmanageCO($query)->first();
-
-    if(!is_null($comanageCO)) {
-      $io->out(__d('command', 'se.already'));
-
-      if(!$force) {
-        exit;
-      }
+    if($this->executeCommand(TestCommand::class, ['-t', 'setup']) === static::CODE_ERROR
+       && !$force) {
+      $this->abort(static::CODE_ERROR);
     }
 
     // Collect the admin info before we try to do anything.
