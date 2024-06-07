@@ -22,7 +22,7 @@ FROM php:${PHP_IMAGE_VERSION}-apache-bookworm
 # Official PHP image with Apache HTTPD includes
 # --with-openssl
 # --with-mbstring
-# but xls, pdo, pdo_mysql, pdo_pgsql, mysqli, pgsql, 
+# but gd, xls, pdo, pdo_mysql, pdo_pgsql, mysqli, pgsql, oci8 (Oracle support)
 # and ldap extensions must be built.
 RUN apt-get update && apt-get install -y \
          libldap-2.5-0 \
@@ -36,21 +36,62 @@ RUN apt-get update && apt-get install -y \
          wget \
          zlib1g \
          libpcre3-dev \
-      && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-      && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu \
-      && docker-php-ext-configure mysqli \
-      && docker-php-ext-install intl xsl pdo pdo_mysql pdo_pgsql mysqli pgsql ldap pcntl \
-      && docker-php-source delete \
-      && apt-get purge -y \
-         libldap2-dev \
-         libmysqlclient-dev \
+         libz-dev \
          libpq-dev \
-      && apt-get clean
+         libjpeg-dev \
+         libpng-dev \
+         libfreetype6-dev \
+         libssl-dev \
+         libmcrypt-dev \
+         zip \
+         unzip \
+         build-essential \
+         libaio1 \
+         libzip-dev \
+         && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+         && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu \
+         && docker-php-ext-configure mysqli \
+         && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ \
+         && docker-php-ext-install intl xsl pdo pdo_mysql pdo_pgsql mysqli pgsql ldap pcntl gd \
+         && docker-php-source delete \
+         && apt-get purge -y \
+            libldap2-dev \
+            libmysqlclient-dev \
+         && apt-get clean
 
-# Configure TLS CA signing certificates for LDAP TLS libraries.
-ARG LDAPTLS_CACERT
-ENV LDAPTLS_CACERT ${LDAPTLS_CACERT:-/etc/ssl/certs/ca-certificates.crt}
-LABEL ldaptls_cacert=${LDAPTLS_CACERT}
+#
+#--------------------------------------------------------------------------
+# Application Dependencies
+#--------------------------------------------------------------------------
+#
+
+ARG ORACLE_VERSION=19.23.0.0
+ARG ORACLE_DIR=/usr/lib/oracle
+ARG ORACLE_INSTACLIENT_DIR=instantclient_19_23
+
+# Download oracle packages and install OCI8
+RUN mkdir -p ${ORACLE_DIR} \
+    && wget -O instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip \
+    && unzip -o instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip -d ${ORACLE_DIR}/ \
+    && rm instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip \
+    && wget -O instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip \
+    && unzip -o instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip -d ${ORACLE_DIR}/ \
+    && rm instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip \
+    && wget -O instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip https://download.oracle.com/otn_software/linux/instantclient/1923000/instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip \
+    && unzip -o instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip -d ${ORACLE_DIR}/ \
+    && rm instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip \
+    && echo ${ORACLE_DIR}/${ORACLE_INSTACLIENT_DIR} > /etc/ld.so.conf.d/oracle-instantclient.conf \
+    && ldconfig
+
+# Setting the LD_LIBRARY_PATH environment variable so the systems dynamic linker can find the newly installed libraries.
+ENV LD_LIBRARY_PATH ${ORACLE_DIR}/${ORACLE_INSTACLIENT_DIR}
+# Updating PATH environment program so that utility binaries installed by the various libraries will be found.
+ENV PATH="${PATH}:${ORACLE_DIR}/${ORACLE_INSTACLIENT_DIR}"
+
+# Install our compiled oci8 extensions
+RUN docker-php-ext-configure oci8 --with-oci8=instantclient,${ORACLE_DIR}/${ORACLE_INSTACLIENT_DIR} \
+    && docker-php-ext-install -j$(nproc) oci8 \
+    && docker-php-source delete
 
 # Build the redis extension to use Redis for session storage.
 RUN docker-php-source extract \
@@ -61,6 +102,11 @@ RUN docker-php-source extract \
 
 # Copy the production php.ini into place.
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# Configure TLS CA signing certificates for LDAP TLS libraries.
+ARG LDAPTLS_CACERT
+ENV LDAPTLS_CACERT ${LDAPTLS_CACERT:-/etc/ssl/certs/ca-certificates.crt}
+LABEL ldaptls_cacert=${LDAPTLS_CACERT}
 
 # Signal the PHP code to configure itself for container deployment.
 ENV COMANAGE_REGISTRY_CONTAINER 1
