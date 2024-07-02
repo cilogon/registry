@@ -33,6 +33,7 @@ class SyncModeEnum extends StandardEnum {
   const Disabled  = 'X';
   const Full      = 'F';
   const Manual    = 'M';
-  const Query     = 'Q';
+// Query is not yet supported (CFM-372)
+  // const Query     = 'Q';
   const Update    = 'U';
 }

@@ -167,6 +167,9 @@ msgstr "Email Address"
 msgid "manager"
 msgstr "Manager"
 
+msgid "manager_identifier"
+msgstr "Manager Identifier"
+
 msgid "middle"
 msgstr "Middle"
 
@@ -242,6 +245,9 @@ msgstr "Source Record"
 
 msgid "sponsor"
 msgstr "Sponsor"
+
+msgid "sponsor_identifier"
+msgstr "Sponsor Identifier"
 
 msgid "starts_at"
 msgstr "Starts at:"
@@ -387,8 +393,17 @@ msgstr "Limit Global Search Scope"
 msgid "CoSettings.search_global_limited_models.desc"
 msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
+msgid "ExternalIdentitySources.hash_source_record"
+msgstr "Hash Source Records"
+
 msgid "ExternalIdentitySources.source_record.empty"
 msgstr "The source record is empty. This suggests the record is no longer available from the datasource."
+
+msgid "ExternalIdentitySources.suppress_noop_logs"
+msgstr "Suppress No-op Logs"
+
+msgid "ExternalIdentitySources.suppress_noop_logs.desc"
+msgstr "Do not record Job History Records for records that were unchanged or not processed"
 
 msgid "GroupMembers.source"
 msgstr "Membership Source"

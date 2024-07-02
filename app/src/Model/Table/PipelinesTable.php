@@ -140,8 +140,8 @@ class PipelinesTable extends Table {
       ],
       'syncIdentifierTypes' => [
         'type' => 'select',
-// XXX We need to filter this to just Person Identifiers
-        'model' => 'Types'
+        'model' => 'Types',
+        'where' => ['attribute' => 'Identifiers.type']
       ],
       'syncReplaceCous' => [
         'type' => 'select',
@@ -441,6 +441,7 @@ class PipelinesTable extends Table {
    * @param  int    $eisId            Exxternal Identity Source ID
    * @param  array  $eisBackendRecord Record returned by EIS Backend
    * @param  bool   $force            Force the Pipeline to run all steps, even if no changes were detected
+   * @return string                   Record status (new, unchanged, unknown, updated)
    */
 
   public function execute(
@@ -448,7 +449,7 @@ class PipelinesTable extends Table {
     int   $eisId, 
     array $eisBackendRecord,
     bool  $force=false
-  ) {
+  ): string {
     // Start with our configuration(s)
     $pipeline = $this->get($id);
     $eis = $this->ExternalIdentitySources->get($eisId);
@@ -473,7 +474,7 @@ class PipelinesTable extends Table {
         $this->llog('trace', "Record for EIS $eisId source key " . $eisBackendRecord['source_key'] . " is unchanged, stopping Pipeline");
 
         $cxn->commit();
-        return;
+        return $eisRecord['status'];
       }
 
       // (2) Match against an existing Person or create a new Person, in
@@ -567,6 +568,8 @@ class PipelinesTable extends Table {
       $this->llog('trace', "Pipeline $id complete for EIS $eisId source key " . $eisBackendRecord['source_key']);
 
       $cxn->commit();
+
+      return $eisRecord['status'];
     }
     catch(\Exception $e) {
       $cxn->rollback();
@@ -597,6 +600,9 @@ class PipelinesTable extends Table {
   ): array {
     $status = 'unknown';
 
+    // Are we supposed to use record hashes instead?
+    $useHash = isset($eis->hash_source_record) && $eis->hash_source_record;
+
     // Do we already have an EISRecord for this source_key?
     $eisRecord = $this->ExternalIdentitySources->ExtIdentitySourceRecords
                       ->find()
@@ -613,17 +619,20 @@ class PipelinesTable extends Table {
       // EIS record as changed, even if it's not material to the attributes
       // that construct the External Identity.
 
-// XXX update this to test hashed value, once implemented
-      if((empty($eisRecord->source_record) && !empty($sourceRecord))
-         || (!empty($eisRecord->source_record) && empty($sourceRecord))
-         || (!empty($eisRecord->source_record) && !empty($sourceRecord)
-             && $eisRecord->source_record != $sourceRecord)) {
+      if((empty($eisRecord->source_record) && !empty($sourceRecord))    // New record
+         || (!empty($eisRecord->source_record) && empty($sourceRecord)) // Deleted record
+         || (!empty($eisRecord->source_record) && !empty($sourceRecord) // Updated record?
+             // Note when $useHash we don't md5 the $eisRecord because it was
+             // stored as an md5 hash. (This does mean the first time we sync
+             // a record after hash_source_record is enabled we'll reprocess it
+             // even if nothing changed.)
+             && (($useHash && ($eisRecord->source_record != md5($sourceRecord)))
+                 || (!$useHash && ($eisRecord->source_record != $sourceRecord))))) {
         // We have an update of some form or another, including, possibly, a delete
 
         $this->llog('trace', "Updating Record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
 
-  // XXX support hashing here
-        $eisRecord->source_record = $sourceRecord;
+        $eisRecord->source_record = $useHash ? md5($sourceRecord) : $sourceRecord;
         $eisRecord->last_update = date('Y-m-d H:i:s', time());
 
         $status = 'updated';
@@ -640,8 +649,7 @@ class PipelinesTable extends Table {
                         ->newEntity([
                           'external_identity_source_id' => $eis->id,
                           'source_key'                  => $sourceKey,
-// XXX support hashing here
-                          'source_record'               => $sourceRecord,
+                          'source_record'               => $useHash ? md5($sourceRecord) : $sourceRecord,
                           'last_update'                 => date('Y-m-d H:i:s', time())
                         ]);
       

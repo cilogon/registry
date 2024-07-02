@@ -165,7 +165,8 @@ class SqlServersTable extends Table {
         // when we try to connect.
 
         $dbconfig['className'] = 'CakeDC\OracleDriver\Database\OracleConnection';
-        $dbconfig['driver'] = 'CakeDC\OracleDriver\Database\Driver\OracleOCI'; # For OCI8
+        $dbconfig['driver'] = 'CakeDC\OracleDriver\Database\Driver\OracleOCI'; // For OCI8
+        $dbconfig['quoteIdentifiers'] = true;
 
         // Use 'CakeDC\\OracleDriver\\Database\\Driver\\OraclePDO' for PDO_OCI, but CakeDC
         // recommends OCI8

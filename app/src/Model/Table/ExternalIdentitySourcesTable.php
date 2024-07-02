@@ -48,6 +48,9 @@ class ExternalIdentitySourcesTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
+
+  // Cache of the EIS configuration, keyed on id
+  protected $eisCache = null;
   
   /**
    * Perform Cake Model initialization.
@@ -123,26 +126,113 @@ class ExternalIdentitySourcesTable extends Table {
   }
 
   /**
+   * Obtain the changelist from the backend, if supported.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id         External Identity Source ID
+   * @param  int    $lastStart  Timestamp of last run
+   * @param  int    $curStart   Timestamp of current run
+   * @return array|bool     Array of updated source keys, or false if not supported
+   */
+
+  public function getChangeList(
+    int $id,
+    int $lastStart,
+    int $curStart
+  ): array|bool {
+    $source = $this->getEIS($id);
+
+    // We directly retrieve the table object here rather than use $this->$model
+    // because the latter is actually an instance of \Cake\ORM\Association\HasOne,
+    // so we can't tell if the plugin has implemented getChangeList that way.
+    $Plugin = TableRegistry::getTableLocator()->get($source->plugin);
+
+    if(method_exists($Plugin, 'getChangeList')) {
+      return $Plugin->getChangeList($source, $lastStart, $curStart);
+    }
+
+    return false;
+  }
+
+  /**
+   * Get an EIS configuration, possibly via the cache.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id         External Identity Source ID
+   * @return ExternalIdentitySource
+   */
+
+  protected function getEIS(int $id) {
+    // We want to pull the plugin configuration along with the EIS, to make
+    // the query simpler we contain all possible relations, which will
+    // usually only be a small number.
+    if(empty($this->eisCache[$id])) {
+      $this->eisCache[$id] = $this->get($id, ['contain' => $this->getPluginRelations()]);
+    }
+    
+    return $this->eisCache[$id];
+  }
+
+  /**
+   * Obtain all known source keys for an EIS.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int $id  External Identity Source ID
+   * @return array    Source keys
+   */
+
+  public function getKnownSourceKeys(int $id): array {
+    // For now we don't use an iterator (like PaginatedSqlIterator) because
+    // even for the larger deployments we expect to work with, the array of
+    // source keys _should_ fit in memory (for a reasonably sized VM/etc).
+
+    $records = $this->ExtIdentitySourceRecords
+                    ->find('list', [
+                            'keyField' => 'source_key',
+                            'valueField' => 'external_identity_id'
+                          ])
+                    ->where(['external_identity_source_id' => $id])
+                    ->toArray();
+    
+    return array_keys($records); 
+  }
+
+  /**
+   * Obtain the inventory from the backend.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id         External Identity Source ID
+   * @return array              Array of all source keys
+   */
+
+  public function inventory(
+    int $id,
+  ): array|bool {
+    $source = $this->getEIS($id);
+
+    $pModel = StringUtilities::pluginModel($source->plugin);
+
+    return $this->$pModel->inventory($source);
+  }
+
+  /**
    * Retrieve a record from an External Identity Source.
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int    $id         External Identity Source ID
-   * @param  string $source_key EIS Backend Source Key
+   * @param  string $sourceKey  EIS Backend Source Key
    * @return array              Array of source_key, source_record, and entity_data
    */
 
-  public function retrieve(int $id, string $source_key): array {
-    // We want to pull the plugin configuration along with the EIS, to make
-    // the query simpler we contain all possible relations, which will
-    // usually only be a small number.
-    $source = $this->get($id, ['contain' => $this->getPluginRelations()]);
+  public function retrieve(int $id, string $sourceKey): array {
+    $source = $this->getEIS($id);
 
     $pModel = StringUtilities::pluginModel($source->plugin);
 
-    $record = $this->$pModel->retrieve($source, $source_key);
+    $record = $this->$pModel->retrieve($source, $sourceKey);
 
     // Inject the source key so every backend doesn't have to do this
-    $record['entity_data']['source_key'] = $source_key;
+    $record['entity_data']['source_key'] = $sourceKey;
 
     return $record;
   }
@@ -157,10 +247,7 @@ class ExternalIdentitySourcesTable extends Table {
    */
 
   public function search(int $id, array $attrs): array {
-    // We want to pull the plugin configuration along with the EIS, to make
-    // the query simpler we contain all possible relations, which will
-    // usually only be a small number.
-    $source = $this->get($id, ['contain' => $this->getPluginRelations()]);
+    $source = $this->getEIS($id);
 
     $pModel = StringUtilities::pluginModel($source->plugin);
 
@@ -185,23 +272,25 @@ class ExternalIdentitySourcesTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int    $id         External Identity Source ID
-   * @param  string $source_key EIS Backend Source Key
+   * @param  string $sourceKey  EIS Backend Source Key
+   * @param  bool   $force      Whether to force the full Pipeline to run even if the backend record didn't change
+   * @return string                   Record status (new, unchanged, unknown, updated)
    */
   
-  public function sync(int $id, string $source_key) {
+  public function sync(int $id, string $sourceKey, bool $force=true): string {
     // All work is actually handled by the Pipeline, but we need our configuration
     // to know which Pipeline.
-    $eis = $this->get($id);
+    $source = $this->getEIS($id);
 
     // Also get the current record from the Backend, which might have been deleted
-    $eisBackendRecord = $this->retrieve($id, $source_key);
+    $eisBackendRecord = $this->retrieve($id, $sourceKey);
 
-    $this->Pipelines->execute(
-      id:               $eis->pipeline_id,
+    return $this->Pipelines->execute(
+      id:               $source->pipeline_id,
       eisId:            $id,
       eisBackendRecord: $eisBackendRecord,
       // Force the full Pipeline run even if the backend record didn't change
-      force:            true
+      force:            $force
     );
   }
 
@@ -221,7 +310,7 @@ class ExternalIdentitySourcesTable extends Table {
     ]);
     $validator->notEmptyString('co_id');
     
-    $this->registerStringValidation($validator, $schema, 'description', false);
+    $this->registerStringValidation($validator, $schema, 'description', true);
     
     $validator->add('status', [
       'content' => ['rule' => ['inList', SyncModeEnum::getConstValues()]]
@@ -237,6 +326,16 @@ class ExternalIdentitySourcesTable extends Table {
     ]);
     $validator->notEmptyString('pipeline_id');
     
+    $validator->add('hash_source_record', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('hash_source_record');
+
+    $validator->add('suppress_noop_logs', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('suppress_noop_logs');
+
     return $validator; 
   }
 }

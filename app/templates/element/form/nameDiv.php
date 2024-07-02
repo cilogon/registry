@@ -58,10 +58,14 @@ if(str_contains($fieldName, '.')) {
 [$label, $desc] = $this->Field->calculateLabelAndDescription($fn);
 $label = $vv_field_arguments['fieldLabel'] ?? $label;
 
-// Override the default required behavior if the field has the required
-// option set
-$optionsRequired = isset($vv_field_arguments['fieldOptions']['required'])
-                   && $vv_field_arguments['fieldOptions']['required'];
+// We determine if a field is rquired by first getting the "expected" value
+// from FieldHelper, then overriding that value if an argument was passed in.
+$isRequired = $this->Field->isReqField($fn);
+
+if(isset($vv_field_arguments['fieldOptions']['required'])) {
+  // Use this value (which could be either false or true)
+  $isRequired = $vv_field_arguments['fieldOptions']['required'];
+}
 
 // Extra class required for the grouped controls elements
 if(isset($groupedControls)) {
@@ -88,10 +92,7 @@ if(isset($groupedControls)) {
     /*
      * Required Span
      */
-    if($this->Field->isEditable()
-       &&
-       ($this->Field->isReqField($fn) || $optionsRequired)
-    ) {
+    if($this->Field->isEditable() && $isRequired) {
       print $this->element('form/requiredSpan', [], [
         'cache' => '_html_elements',
       ]);

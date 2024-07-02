@@ -196,6 +196,12 @@ msgstr "Invalid value \"{0}\""
 msgid "Jobs.failed.abnormal"
 msgstr "The Job terminated unexpectedly"
 
+msgid "Jobs.plugin.parameter.bool"
+msgstr "Boolean values may only be 0 or 1"
+
+msgid "Jobs.plugin.parameter.fk"
+msgstr "Record {0} is not in CO {1}"
+
 msgid "Jobs.plugin.parameter.int"
 msgstr "Provided value is not an integer"
 

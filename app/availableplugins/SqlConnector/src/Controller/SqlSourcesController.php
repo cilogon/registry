@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry External Identity Sources Fields
+ * COmanage Registry SQL Sources Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,34 +20,21 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
+ * @package       registry-plugins
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach([
-            'description',
-            'status',
-            'plugin',
-            'pipeline_id',
-// Not yet implemented
-//            'sor_label',
-            'hash_source_record',
-            'suppress_noop_logs'
-          ] as $field) {
-    $params =  [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ];
-    if($field == 'status') {
-      $params['arguments']['fieldOptions'] = [
-        'default'  => \App\Lib\Enum\SyncModeEnum::Disabled
-      ];
-    }
-    print $this->element('form/listItem', $params);
-  }
+
+declare(strict_types=1);
+
+namespace SqlConnector\Controller;
+
+use App\Controller\StandardPluginController;
+
+class SqlSourcesController extends StandardPluginController {
+  public $paginate = [
+    'order' => [
+      'SqlSources.id' => 'asc'
+    ]
+  ];
 }

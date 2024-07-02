@@ -34,8 +34,10 @@ use Cake\Console\Command;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionManager;
+use Cake\Event\EventManager;
 use Cake\Utility\Security;
 use App\Lib\Enum\JobStatusEnum;
+use App\Lib\Events\CoIdEventListener;
 
 class JobCommand extends Command
 {
@@ -148,6 +150,12 @@ class JobCommand extends Command
       $maxjobs = 100;
 
       foreach($coIds as $coId) {
+        // We probably need to do something like this (from synchronous running, below)
+        //       $CoIdEventListener = new CoIdEventListener((int)$args->getOption('co_id'));
+        //      EventManager::instance()->on($CoIdEventListener);
+        // but this wouldn't remove the previous $coId, so for now Sync Jobs can't be run
+        // via the queue. See CFM-400.
+
         // We start counting from 1 rather than 0 to simplify console output
         for($i = 1;$i <= $parallel;$i++) {
           $io->out(__d('command', 'job.run.start', [$i, $parallel, $coId]));
@@ -254,6 +262,9 @@ class JobCommand extends Command
 
         $params[ $p[0] ] = $p[1];
       }
+
+      $CoIdEventListener = new CoIdEventListener((int)$args->getOption('co_id'));
+      EventManager::instance()->on($CoIdEventListener);
 
       $job = $JobTable->register(
         coId:             (int)$args->getOption('co_id'),

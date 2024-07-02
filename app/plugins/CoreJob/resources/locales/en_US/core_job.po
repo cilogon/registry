@@ -37,6 +37,18 @@ msgstr "Model to provision"
 msgid "opt.provisioner.provisioning_target_id"
 msgstr "Provisioning Target ID"
 
+msgid "opt.sync.co_id"
+msgstr "CO ID (to process all sources)"
+
+msgid "opt.sync.external_identity_source_id"
+msgstr "External Identity Source ID (to process a single source)"
+
+msgid "opt.sync.force"
+msgstr "If true, force records to process even if no changes have been detected"
+
+msgid "opt.sync.source_keys"
+msgstr "Source Keys to process, comma separated (requires external_identity_source_id)"
+
 msgid "Assigner.cancel_summary"
 msgstr "Job canceled after reviewing {0} entities and assigning {1} Identifier(s)"
 
@@ -66,3 +78,33 @@ msgstr "Reprovisioned"
 
 msgid "Provisioner.start_summary"
 msgstr "Reprovisioning {0} {1} entities for Provisioning Target {2}"
+
+msgid "Sync.error.disabled"
+msgstr "This EIS is currently disabled"
+
+msgid "Sync.error.post_run_tasks"
+msgstr "Post-Run Tasks failed: {0}"
+
+msgid "Sync.error.pre_run_checks"
+msgstr "Pre-Run Checks failed: {0}"
+
+msgid "Sync.finish_summary"
+msgstr "Sync Finished"
+
+msgid "Sync.finish_summary.count"
+msgstr "Sync Finished ({0} new, {1} updated, {2} errors, {3} total)"
+
+msgid "Sync.record.new"
+msgstr "New record loaded from source"
+
+msgid "Sync.record.unchanged"
+msgstr "Source record is unchanged, no changes were processed"
+
+msgid "Sync.record.updated"
+msgstr "Record updated based on updated source record"
+
+msgid "Sync.start_summary.eis"
+msgstr "Processing EIS {0} in {1} mode"
+
+msgid "Sync.start_summary.keys"
+msgstr "Processing EIS {0} with {1} requested record(s)"

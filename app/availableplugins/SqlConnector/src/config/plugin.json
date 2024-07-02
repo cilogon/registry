@@ -2,6 +2,9 @@
   "types": {
     "provisioner": [
       "SqlProvisioners"
+    ],
+    "source": [
+      "SqlSources"
     ]
   },
   "schema": {
@@ -15,6 +18,35 @@
         },
         "indexes": {
           "sql_provisioners_i1": { "columns": [ "provisioning_target_id" ]}
+        }
+      },
+      "sql_sources": {
+        "columns": {
+          "id": {},
+          "external_identity_source_id": {},
+          "server_id": { "notnull": false },
+          "table_mode": { "type": "string", "size": 2 },
+          "source_table": { "type": "string", "size": 80 },
+          "address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "pronouns_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "url_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "threshold_check": { "type": "integer" },
+          "threshold_override": { "type": "boolean" }
+        },
+        "indexes": {
+          "sql_sources_i1": { "columns": [ "external_identity_source_id" ]},
+          "sql_sources_i2": { "columns": [ "server_id" ]},
+          "sql_sources_i3": { "needed": false, "columns": [ "address_type_id" ]},
+          "sql_sources_i4": { "needed": false, "columns": [ "email_address_type_id" ]},
+          "sql_sources_i5": { "needed": false, "columns": [ "identifier_type_id" ]},
+          "sql_sources_i6": { "needed": false, "columns": [ "name_type_id" ]},
+          "sql_sources_i7": { "needed": false, "columns": [ "pronouns_type_id" ]},
+          "sql_sources_i8": { "needed": false, "columns": [ "telephone_number_type_id" ]},
+          "sql_sources_i9": { "needed": false, "columns": [ "url_type_id" ]}
         }
       }
     }

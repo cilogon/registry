@@ -118,7 +118,7 @@
       <table id="<?= 'eis-search-table'; ?>" class="<?= $indexTableClasses; ?>">
         <thead>
           <tr>
-            <th><?= __d('field', 'sorid'); ?></th>
+            <th><?= __d('field', 'source_key'); ?></th>
             <!-- Because we get array data rather than entities, we can't construct
                  a full name using the entity virtual field -->
             <th><?= __d('field', 'given'); ?></th>

@@ -702,7 +702,8 @@
         "status": {},
         "sor_label": { "type": "string", "size": 40 },
         "pipeline_id": { "type": "integer", "foreignkey": { "table": "pipelines", "column": "id" }, "notnull": true },
-        "hash_source_record": { "type": "boolean" }
+        "hash_source_record": { "type": "boolean" },
+        "suppress_noop_logs": { "type": "boolean" }
       },
       "indexes": {
         "external_identity_sources_i1": { "columns": [ "co_id" ] },

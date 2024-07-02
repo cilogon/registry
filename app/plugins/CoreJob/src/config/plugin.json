@@ -2,7 +2,27 @@
   "types": {
     "job": [
       "AssignerJob",
-      "ProvisionerJob"
+      "ProvisionerJob",
+      "SyncJob"
     ]
+  },
+  "schema": {
+    "tables": {
+      "sync_job_last_runs": {
+        "comment": "This is a meta-table for SyncJob, and does not have a corresponding MVC",
+        "columns": {
+          "id": {},
+          "external_identity_source_id": {},
+          "job_id": { "type": "integer", "foreignkey": { "table": "jobs", "column": "id" } },
+          "start_time": { "type": "datetime" }
+        },
+        "indexes": {
+          "sync_job_last_runs_i1": { "columns": [ "external_identity_source_id" ] },
+          "sync_job_last_runs_i2": { "needed": false, "columns": [ "job_id" ] }
+        },
+        "changelog": false,
+        "timestamps": false
+      }
+    }
   }
 }

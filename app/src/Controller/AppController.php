@@ -564,12 +564,11 @@ class AppController extends Controller {
           $this->$modelsName->setCurCoId((int)$coid);
         }
         
-        /* This doesn't work for the current model since it has already been
-           initialized, but it could be an option for related models later...
-           (eg when we try to save a name via EIS or EF). But see also the new
-           approach below.
-        $CoIdEventListener = new CoIdEventListener($coid);
-        EventManager::instance()->on($CoIdEventListener);*/
+        // This doesn't work for the current model since it has already been
+        // initialized, but it should work for related models later...
+        // (eg when we try to save a name via EIS or EF). But see also CFM-400.
+        $CoIdEventListener = new CoIdEventListener((int)$coid);
+        EventManager::instance()->on($CoIdEventListener);
         
         // Walk through the first level associations and pass the CO ID to them,
         // as well. We could ultimately cascade this via the table once we have

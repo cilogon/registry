@@ -481,6 +481,8 @@ class JobsTable extends Table {
       }
 
       $cxn->rollback();
+
+      $this->llog(level: 'error', msg: rtrim($err, ","));
       throw new \InvalidArgumentException(rtrim($err, ","));
     }
 
@@ -618,8 +620,31 @@ class JobsTable extends Table {
         switch($pluginParameters[$p]['type']) {
           case 'bool':
           case 'boolean':
-            throw new \RuntimeException('not implemented');
-// XXX implement
+            // Because we want code that uses these parameters to be able to do
+            // something like if($params['p']), we only accept values that PHP
+            // will correctly parse in that context. For simplicity, we allow only
+            // 0 and 1.
+            if($val != 0 && $val != 1) {
+              $ret[$p] = __d('error', 'Jobs.plugin.parameter.bool');
+            }
+            break;
+          case 'fk':
+            // The provided parameter must be in $coId. We don't actually need
+            // to verify the format since the value either exists in the database
+            // or it doesn't.
+            $className = StringUtilities::foreignKeyToClassName($p);
+            $Table = TableRegistry::getTableLocator()->get($className);
+
+            $vals = explode(',', $val);
+
+            foreach($vals as $v) {
+              $entity = $Table->get($val);
+              
+              if($Table->calculateCoForRecord($entity) != $coId) {
+                $ret[$p] = __d('error', 'Jobs.plugin.parameter.fk', [$v, $coId]);
+                break;
+              }
+            }
             break;
           case 'int':
           case 'integer':

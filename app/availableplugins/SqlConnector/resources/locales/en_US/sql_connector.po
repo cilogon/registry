@@ -25,14 +25,65 @@
 msgid "controller.SqlProvisioners"
 msgstr "{0,plural,=1{SQL Provisioner} other{SQL Provisioners}}"
 
+msgid "enumeration.SqlSourceTableModeEnum.FL"
+msgstr "Flat"
+
+msgid "enumeration.SqlSourceTableModeEnum.RL"
+msgstr "Relational"
+
 msgid "error.table_prefix"
 msgstr "Table Name Prefix must be alphanumeric and end with an underscore"
+
+msgid "error.SqlSources.threshold"
+msgstr "Aborting sync due to {0}% of records changed (threshold is {1}%)"
+
+msgid "error.SqlSources.type"
+msgstr "Type must be set when using Flat Mode"
 
 msgid "field.SqlProvisioners.table_prefix"
 msgstr "Table Name Prefix"
 
 msgid "field.SqlProvisioners.table_prefix.desc"
 msgstr "Prefix used when constructing table names, must be alphanumeric and end with an underscore (_)"
+
+msgid "field.SqlSources.address_type_id"
+msgstr "Address Type"
+
+msgid "field.SqlSources.email_address_type_id"
+msgstr "Email Address Type"
+
+msgid "field.SqlSources.identifier_type_id"
+msgstr "Identifier Type"
+
+msgid "field.SqlSources.name_type_id"
+msgstr "Name Type"
+
+msgid "field.SqlSources.pronouns_type_id"
+msgstr "Pronouns Type"
+
+msgid "field.SqlSources.source_table"
+msgstr "Source Table"
+
+msgid "field.SqlSources.table_mode"
+msgstr "Table Mode"
+
+msgid "field.SqlSources.telephone_number_type_id"
+msgstr "Telephone Number Type"
+
+msgid "field.SqlSources.threshold_check"
+msgstr "Check Threshold"
+
+msgid "field.SqlSources.threshold_check.desc"
+msgstr "If set, and this percentage of records have changed, a full sync will not be performed"
+
+msgid "field.SqlSources.threshold_override"
+msgstr "Threshold Override"
+
+msgid "field.SqlSources.threshold_override.desc"
+msgstr "If set, and the next run exceeds the Check Threshold, complete the sync anyway"
+
+msgid "field.SqlSources.url_type_id"
+msgstr "URL Type"
 
 msgid "operation.reapply"
 msgstr "Reapply Target Database Schema"

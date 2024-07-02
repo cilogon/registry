@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry External Identity Sources Fields
+ * COmanage Registry SQL Source Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,34 +20,30 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
+ * @package       registry-plugins
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach([
-            'description',
-            'status',
-            'plugin',
-            'pipeline_id',
-// Not yet implemented
-//            'sor_label',
-            'hash_source_record',
-            'suppress_noop_logs'
-          ] as $field) {
-    $params =  [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ];
-    if($field == 'status') {
-      $params['arguments']['fieldOptions'] = [
-        'default'  => \App\Lib\Enum\SyncModeEnum::Disabled
-      ];
-    }
-    print $this->element('form/listItem', $params);
-  }
+
+declare(strict_types=1);
+
+namespace SqlConnector\Model\Entity;
+
+use Cake\ORM\Entity;
+
+class SqlSource extends Entity {
+  /**
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * Note that when '*' is set to true, this allows all unspecified fields to
+   * be mass assigned. For security purposes, it is advised to set '*' to false
+   * (or remove it), and explicitly make individual fields accessible as needed.
+   *
+   * @var array<string, bool>
+   */
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
+  ];
 }
