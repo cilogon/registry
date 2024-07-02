@@ -40,7 +40,7 @@ fi
 #   None
 ##########################################
 function comanage_utils::configure_cache_disable() {
-    sed -i -e '/Cache.disable/ s+/++g' "$COMANAGE_REGISTRY_DIR/app/Config/core.php" 
+    sed -i -e '/Cache.disable/ s+/++g' "$COMANAGE_REGISTRY_DIR/app/config/boostrap.php"
 }
 
 ##########################################
@@ -54,7 +54,7 @@ function comanage_utils::configure_cache_disable() {
 #   None
 ##########################################
 function comanage_utils::configure_cakephp_debug() {
-    sed -i -e '/Configure::write(.debug/ s/0/2/' "$COMANAGE_REGISTRY_DIR/app/Config/core.php" 
+    sed -i -e '/Configure::write(.debug/ s/0/2/' "$COMANAGE_REGISTRY_DIR/app/config/app.php"
 }
 
 ##########################################
@@ -69,6 +69,30 @@ function comanage_utils::configure_cakephp_debug() {
 ##########################################
 function comanage_utils::configure_cakephp_debugkit() {
     sed -i -e '/\$components = array/ s/$/'"'"'DebugKit.Toolbar'"'"',/' "$COMANAGE_REGISTRY_DIR/app/Controller/AppController.php" 
+}
+
+##########################################
+# Configure CakePHP security.salt and security.seed files
+# Globals:
+#   COMANAGE_REGISTRY_SECURITY_SALT
+#   COMANAGE_REGISTRY_SECURITY_SEED
+#   COMANAGE_REGISTRY_DIR
+#   OUTPUT
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_utils::configure_seed_salt() {
+    if [[ -n "$COMANAGE_REGISTRY_SECURITY_SALT" && ( ! -e "$COMANAGE_REGISTRY_DIR/local/config/security.salt" ) ]]; then
+        echo "Configure security.salt"
+        echo "$COMANAGE_REGISTRY_SECURITY_SALT" > "$COMANAGE_REGISTRY_DIR/local/config/security.salt"
+    fi
+
+    if [[ -n "$COMANAGE_REGISTRY_SECURITY_SEED" && ( ! -e "$COMANAGE_REGISTRY_DIR/local/config/security.seed" ) ]]; then
+        echo "Configure security.seed"
+        echo "$COMANAGE_REGISTRY_SECURITY_SEED" > "$COMANAGE_REGISTRY_DIR/local/config/security.seed"
+    fi
 }
 
 ##########################################
@@ -153,6 +177,7 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_VIRTUAL_HOST_REDIRECT_HTTP_NO
         COMANAGE_REGISTRY_VIRTUAL_HOST_SCHEME
         COMANAGE_REGISTRY_VIRTUAL_HOST_PORT
+        COMANAGE_REGISTRY_WEBROOT
         HTTPS_CERT_FILE
         HTTPS_PRIVKEY_FILE
         SERVER_NAME
@@ -276,6 +301,8 @@ function comanage_utils::exec_apache_http_server() {
     comanage_utils::wait_database_connectivity
 
     comanage_utils::registry_setup
+
+    comanage_utils::configure_seed_salt
 
     comanage_utils::registry_clear_cache
 
@@ -1123,6 +1150,7 @@ function comanage_utils::transmogrify() {
 #  COMANAGE_REGISTRY_OIDC_SESSION_INACTIVITY_TIMEOUT
 #  COMANAGE_REGISTRY_OIDC_SESSION_MAX_DURATION
 #  COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
+#  COMANAGE_REGISTRY_WEBROOT
 # Arguments:
 #   Path to file
 # Returns:
@@ -1191,7 +1219,7 @@ EOF
   Require valid-user
 </Location>
 
-<Directory /var/www/html/registry>
+<Directory /var/www/html/${COMANAGE_REGISTRY_WEBROOT:-registry}>
 Options Indexes FollowSymLinks
 DirectoryIndex index.php
 AllowOverride All
@@ -1200,7 +1228,7 @@ OIDCUnAuthAction pass
 Require valid-user
 </Directory>
 
-<Directory /var/www/html/registry/auth/login>
+<Directory /var/www/html/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/login>
 AuthType openid-connect
 OIDCUnAuthAction auth
 Require valid-user
@@ -1208,7 +1236,7 @@ Require valid-user
 
 RewriteEngine On
 RewriteCond %{QUERY_STRING} !after_redirect
-RewriteRule ^/registry/auth/logout.* https://%{HTTP_HOST}/secure/redirect?logout=https://%{HTTP_HOST}/registry/auth/logout/?after_redirect [L,R]
+RewriteRule ^/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout.* https://%{HTTP_HOST}/secure/redirect?logout=https://%{HTTP_HOST}/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout/?after_redirect [L,R]
 EOF
 
         # Write shib if module enabled.
@@ -1219,7 +1247,7 @@ EOF
 SetHandler shib
 </Location>
 
-<Directory /var/www/html/registry/auth/login>
+<Directory /var/www/html/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/login>
 AuthType shibboleth
 ShibRequestSetting requireSession 1
 Require valid-user
@@ -1232,14 +1260,14 @@ Require shibboleth
 
 RewriteEngine On
 RewriteCond %{QUERY_STRING} !after_redirect
-RewriteRule ^/registry/auth/logout.* https://%{HTTP_HOST}/Shibboleth.sso/Logout?return=https://%{HTTP_HOST}/registry/auth/logout/?after_redirect [L,R]
+RewriteRule ^/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout.* https://%{HTTP_HOST}/Shibboleth.sso/Logout?return=https://%{HTTP_HOST}/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout/?after_redirect [L,R]
 EOF
 
         # Else assume basic authentication.
         else
             cat >> $virtual_host_config <<EOF
 
-<Directory /var/www/html/registry/auth/login>
+<Directory /var/www/html/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/login>
 AuthType Basic
 AuthName "COmanage Registry Login"
 AuthBasicProvider file
@@ -1272,6 +1300,7 @@ EOF
 ##########################################
 # Write virtual host general configuration
 # Globals:
+#  COMANAGE_REGISTRY_WEBROOT
 # Arguments:
 #   Path to file
 # Returns:
@@ -1282,23 +1311,28 @@ function comanage_utils::virtual_host_general_config() {
         local virtual_host_config
         virtual_host_config="$1"
 
-        cat >> $virtual_host_config <<"EOF"
+        cat >> $virtual_host_config <<EOT
 DocumentRoot /var/www/html
 
-RedirectMatch ^/$ /registry/
-
+RedirectMatch ^/$ /${COMANAGE_REGISTRY_WEBROOT:-registry}/
 LogFormat "%a %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogLevel warn
+EOT
+
+        cat >> $virtual_host_config <<"EOF"
 ErrorLog ${APACHE_LOG_DIR}/error.log
 CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-<Directory /var/www/html/registry>
+EOF
+
+        cat >> $virtual_host_config <<CNT
+<Directory /var/www/html/${COMANAGE_REGISTRY_WEBROOT:-registry}>
 Options Indexes FollowSymLinks
 DirectoryIndex index.php
 AllowOverride All
 Require all granted
 </Directory>
-EOF
+CNT
 
 }
 

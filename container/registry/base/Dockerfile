@@ -120,6 +120,10 @@ ARG COMANAGE_REGISTRY_DIR
 ENV COMANAGE_REGISTRY_DIR ${COMANAGE_REGISTRY_DIR:-/srv/comanage-registry}
 LABEL comanage_registry_dir=${COMANAGE_REGISTRY_DIR}
 
+ARG COMANAGE_REGISTRY_WEBROOT
+ENV COMANAGE_REGISTRY_WEBROOT ${COMANAGE_REGISTRY_WEBROOT:-registry}
+LABEL comanage_registry_webroot=${COMANAGE_REGISTRY_WEBROOT}
+
 WORKDIR $COMANAGE_REGISTRY_DIR
 
 COPY app ${COMANAGE_REGISTRY_DIR}/app/
@@ -135,8 +139,8 @@ RUN mkdir -p ${COMANAGE_REGISTRY_DIR}/local/tmp/sessions \
     && chown -R www-data:www-data ${COMANAGE_REGISTRY_DIR}/local/logs \
     && chown -R www-data:www-data ${COMANAGE_REGISTRY_DIR}/local/tmp \
     && cd /var/www/html \
-    && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
-    && chown -h www-data:www-data registry
+    && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot ${COMANAGE_REGISTRY_WEBROOT} \
+    && chown -h www-data:www-data ${COMANAGE_REGISTRY_WEBROOT}
 
 RUN a2enmod headers \
       && a2enmod ssl \
