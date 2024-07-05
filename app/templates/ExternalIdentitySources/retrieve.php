@@ -210,7 +210,10 @@ use \Cake\Utility\Inflector;
       </tbody>
     </table>
     
-    <?php if(!empty($vv_eis_record['entity_data']['external_identity_roles'])): ?>
+    <?php 
+      if(!empty($vv_eis_record['entity_data']['external_identity_roles'])):
+        foreach($vv_eis_record['entity_data']['external_identity_roles'] as $role):
+    ?>
       <h3><?= __d('controller', 'ExternalIdentityRoles', 1) ?></h3>
       <table id="view-external-identity-source-record" class="eis-table">
         <thead>
@@ -223,25 +226,20 @@ use \Cake\Utility\Inflector;
         <tbody>
         <!-- External Identity Roles, with their associated single value attributes -->
         <?php
-          if(!empty($vv_eis_record['entity_data']['external_identity_roles'])) {
-            foreach($vv_eis_record['entity_data']['external_identity_roles'] as $role) {
+          print "<tr>\n";
+          print "<td class=\"eis-eir eis-item\">" . __d('field', 'role_key') . "</td>\n";
+          print "<td class=\"eis-eir eis-type\"></td>\n";
+          print "<td class=\"eis-eir eis-value\">" . $role['role_key'] . "</td>\n";
+          print "</tr>\n";
 
-              print "<tr>\n";
-              print "<td class=\"eis-eir eis-item\">" . __d('field', 'role_key') . "</td>\n";
-              print "<td class=\"eis-eir eis-type\"></td>\n";
-              print "<td class=\"eis-eir eis-value\">" . $role['role_key'] . "</td>\n";
-              print "</tr>\n";
+          foreach(array_keys($role) as $field) {
+            if($field == 'role_key' || is_array($role[$field])) continue;
 
-              foreach(array_keys($role) as $field) {
-                if($field == 'role_key' || is_array($role[$field])) continue;
-
-                print "<tr>\n";
-                print "<td class=\"eis-eir eis-item\">" . __d('field', $field) . "</td>\n";
-                print "<td class=\"eis-eir eis-type\"></td>\n";
-                print "<td class=\"eis-eir eis-value\">" . $role[$field] . "</td>\n";
-                print "</tr>\n";
-              }
-            }
+            print "<tr>\n";
+            print "<td class=\"eis-eir eis-item\">" . __d('field', $field) . "</td>\n";
+            print "<td class=\"eis-eir eis-type\"></td>\n";
+            print "<td class=\"eis-eir eis-value\">" . $role[$field] . "</td>\n";
+            print "</tr>\n";
           }
         ?>
         <!-- MVEAs associated with the External Identity Role -->
@@ -282,7 +280,7 @@ use \Cake\Utility\Inflector;
         ?>
         </tbody>
       </table>
-    <?php endif; ?>
+    <?php endforeach; endif; // external_identity_roles ?>
 
     <!-- Finally the raw source record -->
     <h3><?= __d('field', 'source_record'); ?></h3>
