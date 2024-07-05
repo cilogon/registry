@@ -300,9 +300,10 @@ trait ValidationTrait {
     // Valid (portable) SQL identifiers begin with a letter or underscore, and
     // subsequent characters can also include digits. We'll be a little stricter
     // than we need to be for now by only accepting A-Z, when in fact certain
-    // additional characters (like á) are also acceptable.
+    // additional characters (like á) are also acceptable. We also accept dots
+    // to allow for schema.table notation.
     
-    if(!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $value)) {
+    if(!preg_match('/^[a-zA-Z_][a-zA-Z0-9_\.]*$/', $value)) {
       return __d('error', 'input.invalid');
     }
     

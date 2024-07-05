@@ -786,12 +786,13 @@ class SqlProvisionersTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'table_prefix', true);
 
-    // Table prefixes must be alphanumeric and end in an underscore.
+    // Table prefixes must be alphanumeric and end in an underscore. We also allow
+    // dots for schema.table notation.
     // (We don't use validateSqlIdentifier because of the trailing underscore requirement.)
     $validator->add('table_prefix', [
       'format' => [
         'rule' => function ($value, $context) {
-          return (preg_match('/[\w]+_/', $value) ? true : __d('sql_connector', 'error.table_prefix'));
+          return (preg_match('/^[\w\.]+_$/', $value) ? true : __d('sql_connector', 'error.table_prefix'));
         }
       ]
     ]);
