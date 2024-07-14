@@ -30,7 +30,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print '<li class="info-title"><h3>' . __d('api_connector', 'field.ApiSources.push_mode') . '</h3></li>';
 
-  print $this->element('banner', [
+  print $this->element('notify/banner', [
     'info' => __d('api_connector', 'information.endpoint.push', [$vv_push_endpoint])
   ]);
 

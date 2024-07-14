@@ -154,7 +154,7 @@ class EmailAddressesTable extends Table {
     \ArrayObject $data, 
     \ArrayObject $options
   ) {
-    if(!empty($entity->person_id) && $entity->isDirty('mail')) {
+    if(!$entity->isNew() && !empty($entity->person_id) && $entity->isDirty('mail')) {
       // AR-EmailAddress-2 Editing an Email Address (but not its Type) associated
       // with a Person will revert it to unverified.
 
