@@ -33,8 +33,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
             'status',
             'plugin',
             'pipeline_id',
-// Not yet implemented
-//            'sor_label',
+            'sor_label',
             'hash_source_record',
             'suppress_noop_logs'
           ] as $field) {

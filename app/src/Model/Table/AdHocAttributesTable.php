@@ -77,8 +77,8 @@ class AdHocAttributesTable extends Table {
     $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
-    $this->belongsTo('ExtIdentitySourceRecords')
-         ->setClassName('ExtIdentitySourceRecords')
+    $this->belongsTo('SourceAdHocAttributes')
+         ->setClassName('AdHocAttributes')
          ->setForeignKey('source_ad_hoc_attribute_id')
          ->setProperty('source_ad_hoc_attribute');
 

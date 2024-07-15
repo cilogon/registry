@@ -97,8 +97,8 @@ class NamesTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
-    $this->belongsTo('ExtIdentitySourceRecords')
-         ->setClassName('ExtIdentitySourceRecords')
+    $this->belongsTo('SourceNames')
+         ->setClassName('Names')
          ->setForeignKey('source_name_id')
          ->setProperty('source_name');
 

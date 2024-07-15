@@ -98,8 +98,8 @@ class EmailAddressesTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
-    $this->belongsTo('ExtIdentitySourceRecords')
-         ->setClassName('ExtIdentitySourceRecords')
+    $this->belongsTo('SourceEmailAddresses')
+         ->setClassName('EmailAddresses')
          ->setForeignKey('source_email_address_id')
          ->setProperty('source_email_address');
 

@@ -396,6 +396,9 @@ msgstr "If true, Global Search will only search Names, Email Addresses, and Iden
 msgid "ExternalIdentitySources.hash_source_record"
 msgstr "Hash Source Records"
 
+msgid "ExternalIdentitySources.sor_label"
+msgstr "System of Record Label"
+
 msgid "ExternalIdentitySources.source_record.empty"
 msgstr "The source record is empty. This suggests the record is no longer available from the datasource."
 

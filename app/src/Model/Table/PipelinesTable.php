@@ -48,6 +48,7 @@ use \App\Lib\Enum\MatchStrategyEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Util\StringUtilities;
 
 class PipelinesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -1458,6 +1459,10 @@ class PipelinesTable extends Table {
       $amodel = Inflector::underscore($model);
       // sourcefk = eg source_name_id
       $sourcefk = $this->Cos->People->$model->sourceForeignKey();
+      // sourceModel = eg SourceName
+      $sourceModel = StringUtilities::foreignKeyToClassName($sourcefk);
+      // sourceEntity = eg source_name
+      $sourceEntity = "source_" . $amodel;
 
       // Pull the current set of associated records for this model.
       // We can filter down to those that came from _any_ source (ie
@@ -1471,6 +1476,7 @@ class PipelinesTable extends Table {
                             $model.'.person_id'             => $person->id,
                             $model.'.'.$sourcefk." IS NOT"  => null
                           ])
+                          ->contain([$sourceModel])
                           ->all();
       
       // Track which IDs we've seen to facilitate deletes.
@@ -1555,20 +1561,26 @@ class PipelinesTable extends Table {
       // Now walk through the Person entities, and delete any that we didn't see.
       // In theory we could make Cake do this automatically via a HasOne
       // relation, but it's a bit tricky to make Cake handle relations within
-      // the same object correctly to cascade the delete.
+      // the same object correctly to cascade the delete. Also, we need to
+      // filter entities that aren't associated with this EIS.
 
       if(!empty($curentities)) {
         foreach($curentities as $aentity) {
-          // $aentity is an entity attached to the Person, we search through the
-          // source attributes for one with a corresponding source key ID
-          $found = Hash::extract($externalIdentity[$amodel], '{n}[id='.$aentity->$sourcefk.']');
+          if(!empty($aentity->$sourceEntity->external_identity_id)
+             && $aentity->$sourceEntity->external_identity_id == $externalIdentityId) {
+            // $aentity is an entity attached to the Person and was sourced from
+            // an attribute associated with the current External Identity (as opposed
+            // to another EI associated with the Person); we search through the
+            // source attributes for one with a corresponding source key ID
+            $found = Hash::extract($externalIdentity[$amodel], '{n}[id='.$aentity->$sourcefk.']');
 
-          if(!$found) {
-            if(isset($aentity->frozen) && $aentity->frozen) {
-              $this->llog('trace', "Refusing to delete frozen $model " . $aentity->id . " on Person from External Identity " . $externalIdentity->id);
-            } else {
-              $this->llog('trace', "Deleted $model " . $aentity->id . " for Person " . $person->id);
-              $this->Cos->People->$model->deleteOrFail($aentity);
+            if(!$found) {
+              if(isset($aentity->frozen) && $aentity->frozen) {
+                $this->llog('trace', "Refusing to delete frozen $model " . $aentity->id . " on Person from External Identity " . $externalIdentity->id);
+              } else {
+                $this->llog('trace', "Deleted $model " . $aentity->id . " for Person " . $person->id);
+                $this->Cos->People->$model->deleteOrFail($aentity);
+              }
             }
           }
         }

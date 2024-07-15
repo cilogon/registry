@@ -92,8 +92,8 @@ class TelephoneNumbersTable extends Table {
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
     $this->belongsTo('Types');
-    $this->belongsTo('ExtIdentitySourceRecords')
-         ->setClassName('ExtIdentitySourceRecords')
+    $this->belongsTo('SourceTelephoneNumbers')
+         ->setClassName('TelephoneNumbers')
          ->setForeignKey('source_telephone_number_id')
          ->setProperty('source_telephone_number');
 

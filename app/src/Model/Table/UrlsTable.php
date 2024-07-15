@@ -85,6 +85,10 @@ class UrlsTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
+    $this->belongsTo('SourceUrls')
+         ->setClassName('Urls')
+         ->setForeignKey('source_url_id')
+         ->setProperty('source_url');
     
     $this->setDisplayField('url');
     

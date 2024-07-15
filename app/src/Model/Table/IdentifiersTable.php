@@ -108,8 +108,8 @@ class IdentifiersTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ProvisioningTargets');
     $this->belongsTo('Types');
-    $this->belongsTo('ExtIdentitySourceRecords')
-         ->setClassName('ExtIdentitySourceRecords')
+    $this->belongsTo('SourceIdentifiers')
+         ->setClassName('Identifiers')
          ->setForeignKey('source_identifier_id')
          ->setProperty('source_identifier');
 

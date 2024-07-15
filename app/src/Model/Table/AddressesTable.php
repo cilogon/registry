@@ -91,6 +91,10 @@ class AddressesTable extends Table {
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
     $this->belongsTo('Types');
+    $this->belongsTo('SourceAddresses')
+         ->setClassName('Addresses')
+         ->setForeignKey('source_address_id')
+         ->setProperty('source_address');
     
     $this->setDisplayField('street');
     

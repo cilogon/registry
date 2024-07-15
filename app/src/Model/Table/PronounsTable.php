@@ -85,6 +85,10 @@ class PronounsTable extends Table {
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('Types');
+    $this->belongsTo('SourcePronouns')
+         ->setClassName('Pronouns')
+         ->setForeignKey('source_pronoun_id')
+         ->setProperty('source_pronoun');
     
     $this->setDisplayField('pronouns');
     
