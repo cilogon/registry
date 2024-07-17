@@ -1187,7 +1187,8 @@ class PipelinesTable extends Table {
               // We do rely on this block to process EIR related models,
               // which have roleIdentifiers that allow us to match records.
 
-              foreach($externalIdentity->$amodel as $aentity) {
+              // $akey is just the index into the array
+              foreach($externalIdentity->$amodel as $akey => $aentity) {
                 if($aentity->id == $arecord['id']) {
                   // This is the record we mapped in the backend data
                   $this->Cos->People->ExternalIdentities->$model->patchEntity(
@@ -1217,7 +1218,7 @@ class PipelinesTable extends Table {
                       $aeirmodel = Inflector::underscore($eirmodel);
 
                       if(!empty($arecord[$aeirmodel])) {
-                        // We have one or more Role related model is the mapped
+                        // We have one or more Role related model in the mapped
                         // backend data, check for update vs insert.
 
                         foreach($arecord[$aeirmodel] as $aeirrecord) {
@@ -1251,9 +1252,13 @@ class PipelinesTable extends Table {
                             $this->Cos->People->ExternalIdentities->$model->$eirmodel->saveOrFail($newentity);
                             $this->llog('trace', "Added $eirmodel " . $newentity->id . " for $model " . $aentity->id);
 
-                            // Inject the new entity so syncPerson sees it
-                            $externalIdentity->$model->$eirmodel[] = $newentity;
-                            $newEntities[$amodel][] = $newentity->id;
+                            // Inject the new entity so syncPerson sees it.
+                            // Note that $externalIdentity->$amodel is an array
+                            // of ExternalIdentityRoles, so we need to attach the
+                            // related model entity to the correct role.
+                            
+                            $externalIdentity->$amodel[$akey]->$aeirmodel[] = $newentity;
+                            $newEntities[$aeirmodel][] = $newentity->id;
                           }
                         }
                       }

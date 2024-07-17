@@ -234,6 +234,11 @@ class ExternalIdentitySourcesTable extends Table {
     // Inject the source key so every backend doesn't have to do this
     $record['entity_data']['source_key'] = $sourceKey;
 
+    $record['entity_data']['identifiers'][] = [
+      'identifier' => $sourceKey,
+      'type' => 'sorid'
+    ];
+    
     return $record;
   }
 

@@ -106,8 +106,9 @@ msgstr "SAML Pairwise"
 msgid "Identifiers.type.subjectid"
 msgstr "SAML Subject"
 
+# Because this was called "sorid" in v4, we keep that as the internal key
 msgid "Identifiers.type.sorid"
-msgstr "System of Record"
+msgstr "Source Key"
 
 msgid "Identifiers.type.uid"
 msgstr "UID"
