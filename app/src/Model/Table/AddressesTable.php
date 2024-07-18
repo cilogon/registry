@@ -42,6 +42,7 @@ class AddressesTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -104,6 +105,7 @@ class AddressesTable extends Table {
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
+    $this->setEditContains(['ExternalIdentities', 'ExternalIdentityRoles', 'SourceAddresses']);
     
     $this->setAutoViewVars([
       'languages' => [

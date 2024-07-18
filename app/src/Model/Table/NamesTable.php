@@ -47,11 +47,11 @@ class NamesTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\SearchFilterTrait;
-  use \App\Lib\Traits\QueryModificationTrait;
 
 
   // Default "out of the box" types for this model. Entries here should be
@@ -110,8 +110,7 @@ class NamesTable extends Table {
     // Models that AcceptCoId should be explicitly added to StandardApiController::initialize()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
-    $this->setEditContains(['ExternalIdentities', 'ExtIdentitySourceRecords']);
-
+    $this->setEditContains(['ExternalIdentities', 'SourceNames']);
 
     $this->setAutoViewVars([
       'languages' => [
