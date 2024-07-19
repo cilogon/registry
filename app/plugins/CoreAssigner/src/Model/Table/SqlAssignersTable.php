@@ -125,12 +125,12 @@ class SqlAssignersTable extends Table {
 
     $options = [
       'table'       => $ia->sql_assigner->source_table,
-      'alias'       => 'SourceIdentifiers',
+      'alias'       => 'SqlSourceIdentifiers',
       'connection'  => ConnectionManager::get('sqlassigner')
     ];
 
     $SourceTable = TableUtilities::getTableFromRegistry(
-      alias: 'SourceIdentifiers',
+      alias: 'SqlSourceIdentifiers',
       options: $options
     );
 
