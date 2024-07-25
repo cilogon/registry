@@ -49,8 +49,12 @@ declare(strict_types = 1);
   include($vv_template_path . DS . $fieldsFile);
   // Element ID
   print $this->element('form/entityID');
-  // The Submit element will be printed only if we are adding or updating
-  print $this->element('form/submit', ['label' => __d('operation', 'save')]);
+  
+  if(!isset($suppress_submit) || !$suppress_submit) {
+    // The Submit element will be printed only if we are adding or updating, and if not
+    // suppressed by the field configuration
+    print $this->element('form/submit', ['label' => __d('operation', 'save')]);
+  }
   ?>
 </ul>
 

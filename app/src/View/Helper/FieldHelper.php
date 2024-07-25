@@ -322,8 +322,14 @@ class FieldHelper extends Helper {
 
     // Selects, Checkboxes, and Radio Buttons use "disabled"
     $fieldArgs['disabled'] = $fieldArgs['readonly'];
-    $fieldArgs['required'] = $this->isReqField($fieldName)
-                             || (isset($fieldOptions['required']) && $fieldOptions['required']);
+
+    // required can be overridden by the fields.inc, but start with the default expectation
+    $fieldArgs['required'] = $this->isReqField($fieldName);
+
+    if(isset($fieldOptions['required'])) {
+      // This could be either true or false
+      $fieldArgs['required'] = $fieldOptions['required'];
+    }
 
     // Cause any select (except status) to render with a blank option, even
     // if the field is required. This makes it clear when a value needs to be set.

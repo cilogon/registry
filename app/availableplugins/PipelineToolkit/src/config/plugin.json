@@ -1,0 +1,40 @@
+{
+  "types": {
+    "pipeline": [
+      "PersonRoleMappers"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "person_role_mappers": {
+        "columns": {
+          "id": {},
+          "flange_id": { "type": "integer", "foreignkey": { "table": "flanges", "column": "id" } }
+        },
+        "indexes": {
+          "person_role_mappers_i1": { "columns": [ "flange_id" ] }
+        }
+      },
+      "person_role_mappings": {
+        "columns": {
+          "id": {},
+          "person_role_mapper_id": { "type": "integer", "foreignkey": { "table": "person_role_mappers", "column": "id" } },
+          "attribute": { "type": "string", "size": 80 },
+          "ad_hoc_tag": { "type": "string", "size": 128 },
+          "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "comparison": { "type": "string", "size": 4 },
+          "pattern": { "type": "string", "size": 80 },
+          "target_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
+          "target_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "ordr": {}
+        },
+        "indexes": {
+          "person_role_mappings_i1": { "columns": [ "person_role_mapper_id" ] },
+          "person_role_mappings_i2": { "needed": false, "columns": [ "affiliation_type_id" ] },
+          "person_role_mappings_i3": { "needed": false, "columns": [ "target_cou_id" ] },
+          "person_role_mappings_i4": { "needed": false, "columns": [ "target_affiliation_type_id" ] }
+        }
+      }
+    }
+  }
+}

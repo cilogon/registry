@@ -31,6 +31,7 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
 
 use \App\Lib\Util\StringUtilities;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -86,11 +87,12 @@ class StandardPluginController extends StandardController {
 
     $link = $this->getPrimaryLink(true);
     
-    if(!empty($link->value)) {
-      $parentClassName = StringUtilities::foreignKeyToClassName($link->attr);
-      
-      $parentObj = $table->$parentClassName->get($link->value);
-      $parentDisplayField = $table->$parentClassName->getDisplayField();
+    if(!empty($link->value) && !empty($link->model_name)) {
+      // This might be a plugin table in Plugin.Model notation
+      $parentTable = TableRegistry::getTableLocator()->get($link->model_name);
+
+      $parentObj = $parentTable->get($link->value);
+      $parentDisplayField = $parentTable->getDisplayField();
 
       $this->set('vv_bc_parent_obj', $parentObj);
       $this->set('vv_bc_parent_displayfield', $parentDisplayField);
@@ -98,7 +100,7 @@ class StandardPluginController extends StandardController {
       // Override the title set in StandardController. Since that was set in edit()
       // which is called before the rendering hooks, this title will take precedence.
 
-      [$title, , ] = StringUtilities::entityAndActionToTitle($parentObj, $parentClassName, 'configure');
+      [$title, , ] = StringUtilities::entityAndActionToTitle($parentObj, $link->model_name, 'configure');
       $this->set('vv_title', $title);
     }
 

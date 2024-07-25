@@ -36,6 +36,33 @@ msgstr "False"
 msgid "BooleanEnum.1"
 msgstr "True"
 
+msgid "ComparisonEnum.CTS"
+msgstr "Contains"
+
+msgid "ComparisonEnum.CTI"
+msgstr "Contains (case insensitive)"
+
+msgid "ComparisonEnum.EQS"
+msgstr "Is Exactly"
+
+msgid "ComparisonEnum.EQI"
+msgstr "Is Exactly (case insensitive)"
+
+msgid "ComparisonEnum.NCT"
+msgstr "Does Not Contain"
+
+msgid "ComparisonEnum.NCTI"
+msgstr "Does Not Contain (case insensitive)"
+
+msgid "ComparisonEnum.NEQ"
+msgstr "Is Not Exactly"
+
+msgid "ComparisonEnum.NEQI"
+msgstr "Is Not Exactly (case insensitive)"
+
+msgid "ComparisonEnum.REGX"
+msgstr "Matches Regular Expression"
+
 msgid "DeletedRoleStatusEnum.D"
 msgstr "Archived"
 
@@ -92,6 +119,15 @@ msgstr "Suspended"
 
 msgid "ExternalIdentityStatusEnum.DX"
 msgstr "Deleted"
+
+msgid "FlangeModeEnum.EI"
+msgstr "Retrieve External Identity"
+
+msgid "FlangeModeEnum.PR"
+msgstr "Build Person Role"
+
+msgid "FlangeModeEnum.X"
+msgstr "Disabled"
 
 msgid "GroupTypeEnum.MA"
 msgstr "Active Members"

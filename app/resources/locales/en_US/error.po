@@ -271,6 +271,9 @@ msgstr "Permission Denied"
 msgid "PersonRoles.valid_from.after"
 msgstr "Valid From date must be earlier than Valid Through date"
 
+msgid "Pipelines.plugin.notimpl"
+msgstr "Pipeline plugin does not implement {0}"
+
 msgid "Plugins.inactive"
 msgstr "The plugin {0} is not active"
 

@@ -44,6 +44,7 @@ use \App\Model\Entity\Pipeline;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\DeletedRoleStatusEnum;
 use \App\Lib\Enum\ExternalIdentityStatusEnum;
+use \App\Lib\Enum\FlangeModeEnum;
 use \App\Lib\Enum\MatchStrategyEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\StatusEnum;
@@ -108,6 +109,7 @@ class PipelinesTable extends Table {
          ->setProperty('sync_identifier_type');
     
     $this->hasMany('ExternalIdentitySources');
+    $this->hasMany('Flanges');
     
     $this->setDisplayField('description');
     
@@ -166,6 +168,12 @@ class PipelinesTable extends Table {
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']
+      ],
+      // Related models whose permissions we'll need, typically for table views
+      'related' => [
+        'table' => [
+          'Flanges'
+        ]
       ]
     ]);
   }
@@ -454,6 +462,15 @@ class PipelinesTable extends Table {
     // Start with our configuration(s)
     $pipeline = $this->get($id);
     $eis = $this->ExternalIdentitySources->get($eisId);
+
+    // We'll pull Flanges separately to make it a bit clearer what we're doing,
+    // but we'll stuff it into the $pipeline configuration to make it easier to
+    // pass around.
+    $pipeline->flanges = $this->Flanges->find()
+                              ->where(['pipeline_id' => $id])
+                              ->order(['Flanges.ordr' => 'ASC'])
+                              ->contain($this->Flanges->getPluginRelations())
+                              ->all();
 
     // Start a Transaction
     $cxn = $this->getConnection();
@@ -936,8 +953,11 @@ class PipelinesTable extends Table {
    * Search for an existing Person using an attribute provided in the EIS Record.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  ExternalIdentitySource   $eis            External Identity Source
-   * XXX params/return
+   * @param  ExternalIdentitySource   $eis              External Identity Source
+   * @param  ExtIdentitySourceRecord  $eisRecord        External Identity Source Record
+   * @param  string                   $matchStrategy    MatchStrategyEnum
+   * @param  int                      $attributeTypeId  Attribute Type to search on
+   * @param  array                    $attributes       Attributes to use for searching
    * @return Person                   Person if found, null otherwise
    * @throws InvalidArgumentException
    */
@@ -1673,6 +1693,27 @@ class PipelinesTable extends Table {
         } else {
           // Default to Active status for this Role (subject to validity date recalculation)
           $newdata['status'] = StatusEnum::Active;
+        }
+
+        if(!empty($pipeline->flanges)) {
+          // These should already be order by ordr. Note that ordr operates a bit
+          // unexpectedly here... the later flanges to get called can override the
+          // values returned by earlier flanges, since we always call all active
+          // flanges, so the later flanges take precedence over the earlier ones.
+          foreach($pipeline->flanges as $flange) {
+            if($flange->status == FlangeModeEnum::BuildPersonRole) {
+              $this->llog('trace', 'Running Flange ' . $flange->description . ' for BuildPersonRole');
+
+              $PluginTable = TableRegistry::getTableLocator()->get($flange->plugin);
+
+              if(!method_exists($PluginTable, 'buildPersonRole')) {
+                throw new \RuntimeException(__d('Pipelines.plugin.notimpl', ['buildPersonRole']));
+              }
+
+              // The plugin should modify $newdata as needed, then return it
+              $newdata = $PluginTable->buildPersonRole($flange, $newdata, $eirentity);
+            }
+          }
         }
 
         // Do we have a corresponding record on the Person?

@@ -63,6 +63,9 @@ msgstr "{0,plural,=1{External Identity Source} other{External Identity Sources}}
 msgid "ExtIdentitySourceRecords"
 msgstr "{0,plural,=1{External Identity Source Record} other{External Identity Source Records}}"
 
+msgid "Flanges"
+msgstr "{0,plural,=1{Flange} other{Flanges}}"
+
 msgid "GroupMembers"
 msgstr "{0,plural,=1{Group Member} other{Group Members}}"
 

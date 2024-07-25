@@ -693,6 +693,20 @@
       }
     },
 
+    "flanges": {
+      "columns": {
+        "id": {},
+        "pipeline_id": { "type": "integer", "foreignkey": { "table": "pipelines", "column": "id" } },
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "ordr": {}
+      },
+      "indexes": {
+        "flanges_i1": { "columns": [ "pipeline_id" ] }
+      }
+    },
+
     "external_identity_sources": {
       "columns": {
         "id": {},

@@ -92,6 +92,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
+            'PipelineToolkit\\Test\\' => 21,
+            'PipelineToolkit\\' => 16,
             'PhpParser\\' => 10,
             'Phinx\\' => 6,
             'PHPStan\\PhpDocParser\\' => 21,
@@ -309,6 +311,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
+        ),
+        'PipelineToolkit\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/PipelineToolkit/tests',
+        ),
+        'PipelineToolkit\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/PipelineToolkit/src',
         ),
         'PhpParser\\' => 
         array (

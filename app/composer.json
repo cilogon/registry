@@ -34,6 +34,7 @@
             "CoreAssigner\\": "plugins/CoreAssigner/src/",
             "CoreServer\\": "plugins/CoreServer/src/",
             "FileConnector\\": "availableplugins/FileConnector/src/",
+            "PipelineToolkit\\": "availableplugins/PipelineToolkit/src/",
             "SqlConnector\\": "availableplugins/SqlConnector/src/",
             "CoreJob\\": "plugins/CoreJob/src/"
         }
@@ -46,6 +47,7 @@
             "CoreAssigner\\Test\\": "plugins/CoreAssigner/tests/",
             "CoreServer\\Test\\": "plugins/CoreServer/tests/",
             "FileConnector\\Test\\": "availableplugins/FileConnector/tests/",
+            "PipelineToolkit\\Test\\": "availableplugins/PipelineToolkit/tests/",
             "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/",
             "CoreJob\\Test\\": "plugins/CoreJob/tests/"
         }
