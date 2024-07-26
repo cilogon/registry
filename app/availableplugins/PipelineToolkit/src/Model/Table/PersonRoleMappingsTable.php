@@ -159,12 +159,12 @@ class PersonRoleMappingsTable extends Table {
     ]);
     $validator->notEmptyString('attribute');
 
+    // The required fields here aren't ideal, since they vary by attribute
     $validator->add('affiliation_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('affiliation_type_id');
+    $validator->allowEmptyString('affiliation_type_id');
 
-    // The required fields here aren't ideal, since they vary by attribute
     $this->registerStringValidation($validator, $schema, 'ad_hoc_tag', false);
 
     $validator->add('comparison', [
@@ -182,12 +182,12 @@ class PersonRoleMappingsTable extends Table {
     $validator->add('target_cou_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('target_cou_id');
+    $validator->allowEmptyString('target_cou_id');
 
     $validator->add('target_affiliation_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('target_affiliation_type_id');
+    $validator->allowEmptyString('target_affiliation_type_id');
     
     return $validator; 
   }
