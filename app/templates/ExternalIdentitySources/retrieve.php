@@ -130,6 +130,7 @@ use \Cake\Utility\Inflector;
     </table>
 
     <h3><?= __d('controller', 'ExternalIdentities', 1) ?></h3>
+    <?php if($vv_eis_record['entity_data'] != null): ?>
     <table id="view-external-identity-source-record" class="eis-table">
       <thead>
         <tr>
@@ -139,7 +140,6 @@ use \Cake\Utility\Inflector;
         </tr>
       </thead>
       <tbody>
-    
         <!-- We order attributes according to their likely importance,
              starting with names. Because $vv_eis_record is an array and
              not an entity, we can't use entity methods to get virtual fields
@@ -209,7 +209,7 @@ use \Cake\Utility\Inflector;
         ?>
       </tbody>
     </table>
-    
+    <?php endif; // !empty(entity_data) ?>
     <?php 
       if(!empty($vv_eis_record['entity_data']['external_identity_roles'])):
         foreach($vv_eis_record['entity_data']['external_identity_roles'] as $role):

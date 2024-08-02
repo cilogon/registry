@@ -307,12 +307,18 @@ class ApiSourcesTable extends Table {
                                                 'api_source_id' => $source->api_source->id,
                                                 'source_key'    => $source_key
                                               ])
-                                              ->firstOrFail();
+                                              ->first();
 
-    $ret['source_record'] = $apiSourceRecord->source_record;
-    $ret['entity_data'] = $this->resultToEntityData(
-      json_decode(json: $apiSourceRecord->source_record, associative: true)
-    );
+    if(!$apiSourceRecord) {
+      // Record was deleted
+      $ret['source_record'] = null;
+      $ret['entity_data'] = null;
+    } else {
+      $ret['source_record'] = $apiSourceRecord->source_record;
+      $ret['entity_data'] = $this->resultToEntityData(
+        json_decode(json: $apiSourceRecord->source_record, associative: true)
+      );
+    }
 
     return $ret;
   }

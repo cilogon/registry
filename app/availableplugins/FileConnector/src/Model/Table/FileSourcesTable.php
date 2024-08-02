@@ -373,6 +373,10 @@ class FileSourcesTable extends Table {
     // The first line of a CSV v3 file is our configuration
     fgetcsv($handle);
 
+    // Set null defaults in case we don't find a matching record
+    $ret['source_record'] = null;
+    $ret['entity_data'] = null;
+
     while(($data = fgetcsv($handle)) !== false) {
       if($data[0] == $source_key) {
         // This is our record

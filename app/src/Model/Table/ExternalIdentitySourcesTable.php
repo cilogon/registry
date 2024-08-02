@@ -231,13 +231,16 @@ class ExternalIdentitySourcesTable extends Table {
 
     $record = $this->$pModel->retrieve($source, $sourceKey);
 
-    // Inject the source key so every backend doesn't have to do this
-    $record['entity_data']['source_key'] = $sourceKey;
+    if($record['entity_data']) {
+      // Inject the source key so every backend doesn't have to do this,
+      // but only if the backend returned a record.
+      $record['entity_data']['source_key'] = $sourceKey;
 
-    $record['entity_data']['identifiers'][] = [
-      'identifier' => $sourceKey,
-      'type' => 'sorid'
-    ];
+      $record['entity_data']['identifiers'][] = [
+        'identifier' => $sourceKey,
+        'type' => 'sorid'
+      ];
+    }
     
     return $record;
   }

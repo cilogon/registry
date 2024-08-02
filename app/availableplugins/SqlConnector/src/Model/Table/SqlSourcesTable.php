@@ -662,8 +662,14 @@ class SqlSourcesTable extends Table {
                               // multi-role support in flat mode
                               ->all();
         
-        $ret['entity_data'] = $this->resultsToEntityData($source->sql_source, $results->toArray());
-        $ret['source_record'] = json_encode($results);
+        if($results->count()==0) {
+          // Record was probably deleted
+          $ret['entity_data'] = null;
+          $ret['source_record'] = null;
+        } else {
+          $ret['entity_data'] = $this->resultsToEntityData($source->sql_source, $results->toArray());
+          $ret['source_record'] = json_encode($results);
+        }
       }
       catch(\Exception $e) {
         throw new \InvalidArgumentException(__d('error', 'notfound', [$source_key]));
@@ -688,6 +694,14 @@ class SqlSourcesTable extends Table {
       }
       catch(\Exception $e) {
         throw new \InvalidArgumentException(__d('error', 'notfound', [$source_key]));
+      }
+
+      if($results->count()==0) {
+        // Record was probably deleted, so just return
+        $ret['entity_data'] = null;
+        $ret['source_record'] = null;
+
+        return $ret;
       }
 
       // From here on out if a table doesn't exist we simply ignore it.

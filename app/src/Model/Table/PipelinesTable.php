@@ -541,7 +541,7 @@ class PipelinesTable extends Table {
       // (4) Sync the External Identity attributes with the Person record
       $person = $this->syncPerson(
         $pipeline,
-        $externalIdentity->id,
+        isset($externalIdentity->id) ? $externalIdentity->id : null,
         $person
       );
 
@@ -614,12 +614,19 @@ class PipelinesTable extends Table {
     Pipeline                $pipeline, 
     ExternalIdentitySource  $eis,
     string                  $sourceKey,
-    string                  $sourceRecord,
+    ?string                 $sourceRecord,
   ): array {
     $status = 'unknown';
 
     // Are we supposed to use record hashes instead?
     $useHash = isset($eis->hash_source_record) && $eis->hash_source_record;
+
+    // We calculate the hash here to simplify the code below
+    $sourceHash = null;
+
+    if($useHash && !empty($sourceRecord)) {
+      $sourceHash = md5($sourceRecord);
+    }
 
     // Do we already have an EISRecord for this source_key?
     $eisRecord = $this->ExternalIdentitySources->ExtIdentitySourceRecords
@@ -644,13 +651,17 @@ class PipelinesTable extends Table {
              // stored as an md5 hash. (This does mean the first time we sync
              // a record after hash_source_record is enabled we'll reprocess it
              // even if nothing changed.)
-             && (($useHash && ($eisRecord->source_record != md5($sourceRecord)))
+             && (($useHash && ($eisRecord->source_record != $sourceHash))
                  || (!$useHash && ($eisRecord->source_record != $sourceRecord))))) {
         // We have an update of some form or another, including, possibly, a delete
 
         $this->llog('trace', "Updating Record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
 
-        $eisRecord->source_record = $useHash ? md5($sourceRecord) : $sourceRecord;
+        if(empty($sourceRecord)) {
+          $this->llog('trace', "Record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey has been deleted");
+        }
+
+        $eisRecord->source_record = $useHash ? $sourceHash : $sourceRecord;
         $eisRecord->last_update = date('Y-m-d H:i:s', time());
 
         $status = 'updated';
@@ -667,7 +678,7 @@ class PipelinesTable extends Table {
                         ->newEntity([
                           'external_identity_source_id' => $eis->id,
                           'source_key'                  => $sourceKey,
-                          'source_record'               => $useHash ? md5($sourceRecord) : $sourceRecord,
+                          'source_record'               => $useHash ? $sourceHash : $sourceRecord,
                           'last_update'                 => date('Y-m-d H:i:s', time())
                         ]);
       
@@ -696,8 +707,13 @@ class PipelinesTable extends Table {
 
   protected function mapAttributesToCO(
     Pipeline          $pipeline,
-    array             $eisAttributes
+    ?array            $eisAttributes
   ): array {
+    // Check if we'er handling a deleted record
+    if(empty($eisAttributes)) {
+      return [];
+    }
+
     // We explicitly list the valid models, which will effectively filter
     // out any unsupported noise from the backend. (Unsupported attributes
     // will be ignored on save or throw errors.)
@@ -886,7 +902,7 @@ class PipelinesTable extends Table {
     Pipeline                $pipeline,
     ExternalIdentitySource  $eis,
     ExtIdentitySourceRecord $eisRecord,
-    array                   $eisAttributes
+    ?array                  $eisAttributes
   ): array {
     // Shorthand...
     $sourceKey = $eisRecord->source_key;
@@ -900,6 +916,12 @@ class PipelinesTable extends Table {
         'person' => $eisRecord->external_identity->person,
         'status' => 'linked'
       ];
+    }
+
+    if(empty($eisAttributes)) {
+      // We shouldn't get here since attributes should only be null on a delete,
+      // which should only happen for previously processed records.
+      throw new \RuntimeException('$eisAttributes unexpectedly empty in Pipeline::obtainPerson');
     }
 
     // There isn't a Person associated with the request, run the configured
@@ -1054,8 +1076,8 @@ class PipelinesTable extends Table {
     Person                  $person,
     ExternalIdentitySource  $eis,
     ExtIdentitySourceRecord $eisRecord,
-    array                   $eisAttributes
-  ): ExternalIdentity {
+    ?array                  $eisAttributes
+  ): ?ExternalIdentity {
     if(empty($eisRecord->external_identity_id)) {
       $this->llog('trace', "Creating new External Identity for Person " . $person->id . " from EIS " . $eis->description . " (" . $eis->id . ")");
 
@@ -1120,6 +1142,17 @@ class PipelinesTable extends Table {
       );
 
       return $entity;
+    } elseif(empty($eisAttributes)) {
+      // We're deleting the full External Identity, which we'll do using cascading
+      // deletes (and to trigger ExternalIdentitiesTable callbacks) rather than
+      // do it model by model, below.
+
+      $this->llog('trace', "Deleting removed External Identity " . $eisRecord->external_identity_id . " for Person " . $person->id . " from EIS " . $eis->description . " (" . $eis->id . ")");
+
+      $entity = $this->Cos->People->ExternalIdentities->get($eisRecord->external_identity_id);
+      $this->Cos->People->ExternalIdentities->deleteOrFail($entity);
+
+      return null;
     } else {
       $this->llog('trace', "Updating existing External Identity " . $eisRecord->external_identity_id . " for Person " . $person->id . " from EIS " . $eis->description . " (" . $eis->id . ")");
 
@@ -1441,29 +1474,35 @@ class PipelinesTable extends Table {
 
   protected function syncPerson(
     Pipeline          $pipeline,
-    int               $externalIdentityId,
+    ?int              $externalIdentityId,
     Person            $person
   ): Person {
     // We re-pull the External Identity to account for any changes that might have
-    // been processed by syncExternalIdentity.
-    $externalIdentity = $this->Cos->People->ExternalIdentities->get(
-      $externalIdentityId,
-      ['contain' => [
-        'Addresses',
-        'AdHocAttributes',
-        'EmailAddresses',
-        'Identifiers',
-        'Names',
-        'Pronouns',
-        'TelephoneNumbers',
-        'Urls',
-        'ExternalIdentityRoles' => [
+    // been processed by syncExternalIdentity. Note if the ID is null, the External
+    // Identity was deleted.
+
+    if($externalIdentityId) {
+      $externalIdentity = $this->Cos->People->ExternalIdentities->get(
+        $externalIdentityId,
+        ['contain' => [
+          'Addresses',
           'AdHocAttributes',
-          'Addresses', 
-          'TelephoneNumbers'
-        ]
-      ]]
-    );
+          'EmailAddresses',
+          'Identifiers',
+          'Names',
+          'Pronouns',
+          'TelephoneNumbers',
+          'Urls',
+          'ExternalIdentityRoles' => [
+            'AdHocAttributes',
+            'Addresses', 
+            'TelephoneNumbers'
+          ]
+        ]]
+      );
+    } else {
+      $externalIdentity = null;
+    }
 
     // Because ExternalIdentities belongTo People, we can assume we have at least
     // a Person object here (it would have been created by obtainPerson if there
