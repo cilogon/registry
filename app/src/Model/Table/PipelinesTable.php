@@ -1147,10 +1147,16 @@ class PipelinesTable extends Table {
       // deletes (and to trigger ExternalIdentitiesTable callbacks) rather than
       // do it model by model, below.
 
+      // This delete will cascade to ExternalIdentityRoles, where the beforeDelete
+      // callback will handle updating any associated Person Roles.
+      
       $this->llog('trace', "Deleting removed External Identity " . $eisRecord->external_identity_id . " for Person " . $person->id . " from EIS " . $eis->description . " (" . $eis->id . ")");
 
       $entity = $this->Cos->People->ExternalIdentities->get($eisRecord->external_identity_id);
-      $this->Cos->People->ExternalIdentities->deleteOrFail($entity);
+      $this->Cos->People->ExternalIdentities->deleteOrFail(
+        $entity,
+        ['sync_status_on_delete' => $pipeline->sync_status_on_delete]
+      );
 
       return null;
     } else {
@@ -1398,57 +1404,14 @@ class PipelinesTable extends Table {
             }
 
             if(!$found) {
-              if($model == 'ExternalIdentityRoles') {
-                // We have to handle the link to PersonRoles a bit carefully.
-                // First, we'll set the status of the Role in accordance with the
-                // Pipeline configuration. We do this here because 
-                // ExternalIdentityRolesTable::beforeDelete() will set the Person
-                // Role foreign key to null to avoid problems with cascading deletes,
-                // but then when we sync the Person record later we won't see this
-                // PersonRole since the foreign key was nulled out.
-
-                // We don't set the foreign key to null here because we want it
-                // to be cleared regardless of how the ExternalIdentity was deleted.
-                // eg: If an admin deletes it, the delete should complete but there
-                // is no Pipeline context so the PersonRole status won't be updated.
-
-                $prole = $this->Cos->People->PersonRoles->find()
-                              ->where(['PersonRoles.source_external_identity_role_id' => $aentity->id])
-                              ->contain(['AdHocAttributes', 'Addresses', 'TelephoneNumbers'])
-                              ->first();
-      
-                if(!empty($prole)) {
-                  if(isset($prole->frozen) && $prole->frozen) {
-                    $this->llog('trace', "Refusing to update frozen Person Role " . $prole->id . " from deleted External Identity Role " . $aentity->id);
-                  } else {
-                    // Update the status in accordance with the Pipeline configuration
-                    $this->llog('trace', "Updating status on PersonRole " . $prole->id . " to " . $pipeline->sync_status_on_delete . " following deletion of source ExternalIdentityRole " . $aentity->id);
-
-                    $prole->status = $pipeline->sync_status_on_delete;
-                    $this->Cos->People->PersonRoles->saveOrFail($prole);
-
-                    // Delete the MVEAs associated with this Person Role. We do this here
-                    // rather than in syncPerson since we're doing all the other work here.
-                    foreach([
-                      'Addresses', 
-                      'AdHocAttributes', 
-                      'TelephoneNumbers'
-                    ] as $eirmodel) {
-                      $aeirmodel = Inflector::underscore($eirmodel);
-
-                      if(!empty($prole->$aeirmodel)) {
-                        foreach($prole->$aeirmodel as $aeirentity) {
-                          $this->llog('trace', "Deleted $aeirmodel " . $aeirentity->id . " for Person Role " . $prole->id);
-                          $this->Cos->People->PersonRoles->$eirmodel->deleteOrFail($aeirentity);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              // Note there is logic in ExternalIdentityRolesTable::beforeDelete()
+              // to handle AR-ExternalIdentityRole-1.
 
               $this->llog('trace', "Deleted $model " . $aentity->id . " for External Identity " . $externalIdentityEntity->id);
-              $this->Cos->People->ExternalIdentities->$model->deleteOrFail($aentity);
+              $this->Cos->People->ExternalIdentities->$model->deleteOrFail(
+                $aentity,
+                ['sync_status_on_delete' => $pipeline->sync_status_on_delete]
+              );
               // Note deleted related models remain on the ExternalIdentity in case they
               // are needed later in the Pipeline.
             }

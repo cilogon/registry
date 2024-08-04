@@ -32,6 +32,7 @@ namespace App\Model\Table;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\ExternalIdentityStatusEnum;
@@ -146,10 +147,20 @@ class ExternalIdentityRolesTable extends Table {
    */
 
   public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    // AR-ExternalIdentityRole-1 When an External Identity Role is deleted via a Pipeline
+    // action, any associated Person Role will be set to the status as configured in the
+    // associated Pipeline, and any associated MVEAs will be deleted from the Person Role.
+
+    // Note the above does _not_ currently apply to manual deletions. It could, and
+    // we could walk EIR -> EI -> EISR -> EIS -> Pipeline to get the appropriate
+    // configuration, but for now at least we let manual operations require further
+    // manual work.
+    
     // Is there a Person Role associated with this EI Role?
     if(!empty($entity->id)) {
       $prole = $this->PersonRoles->find()
                                  ->where(['PersonRoles.source_external_identity_role_id' => $entity->id])
+                                 ->contain(['AdHocAttributes', 'Addresses', 'TelephoneNumbers'])
                                  ->first();
       
       if(!empty($prole)) {
@@ -157,8 +168,38 @@ class ExternalIdentityRolesTable extends Table {
         // deletes or otherwise mess things up.
 
         $this->llog('trace', "Removing link from PersonRole " . $prole->id . " to source ExternalIdentityRole " . $entity->id);
-
         $prole->source_external_identity_role_id = null;
+
+        if(!empty($options['sync_status_on_delete'])) {
+          // Update the associated Person Role, unless it is Frozen
+
+          if(isset($prole->frozen) && $prole->frozen) {
+            $this->llog('trace', "Refusing to update frozen Person Role " . $prole->id . " from deleted External Identity Role " . $entity->id);
+          } else {
+            // Update the status in accordance with the Pipeline configuration
+            $this->llog('rule', "AR-ExternalIdentityRole-1 Updating status on PersonRole " . $prole->id . " to " . $options['sync_status_on_delete'] . " following deletion of source ExternalIdentityRole " . $entity->id);
+
+            $prole->status = $options['sync_status_on_delete'];
+
+            // Delete the MVEAs associated with this Person Role. We do this here
+            // rather than in syncPerson since we're doing all the other work here.
+            foreach([
+              'Addresses', 
+              'AdHocAttributes', 
+              'TelephoneNumbers'
+            ] as $eirmodel) {
+              $aeirmodel = Inflector::underscore($eirmodel);
+
+              if(!empty($prole->$aeirmodel)) {
+                foreach($prole->$aeirmodel as $aeirentity) {
+                  $this->llog('rule', "AR-ExternalIdentityRole-1 Deleted $aeirmodel " . $aeirentity->id . " for Person Role " . $prole->id);
+                  $this->PersonRoles->$eirmodel->deleteOrFail($aeirentity);
+                }
+              }
+            }
+          }
+        }
+
         $this->PersonRoles->saveOrFail($prole);
       }
     }
