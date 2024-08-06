@@ -169,7 +169,9 @@ class SyncJob {
           $this->llog('trace', "EIS " . $this->runContext->eis->description 
                                . " updating entry $sourceKey");
           
-          $this->syncRecord($sourceKey);
+          // Cast $sourceKey to a string in case the backend return an int or 
+          // PHP decides to interpret the key as an int
+          $this->syncRecord((string)$sourceKey);
         } else {
           $this->llog('trace', "EIS " . $this->runContext->eis->description 
                                . " skipping changelist entry $sourceKey on update since record is not already synced");
@@ -192,7 +194,7 @@ class SyncJob {
         $this->llog('trace', "EIS " . $this->runContext->eis->description 
                              . " processing new entry $sourceKey");
         
-        $this->syncRecord($sourceKey);
+        $this->syncRecord((string)$sourceKey);
       }
     }
 
