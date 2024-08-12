@@ -77,6 +77,9 @@ class DatabaseCommand extends Command {
                                     diffOnly: $args->getOption('not'));
 
     // Next see which plugins are active and have database configurations
+    // Note running database -n on a brand new (empty) database will throw
+    // a stack trace here, since the plugins table doesn't exist. But we don't
+    // want to skip this with -n since most of the time the database won't be empty.
     $Plugins = TableRegistry::getTableLocator()->get('Plugins');
 
     // AR-Plugin-6 Only apply schemas from active plugins

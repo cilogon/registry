@@ -281,11 +281,12 @@ class CosTable extends Table {
    * Find the COmanage CO.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  \Cake\ORM\Query $query Query
-   * @return \Cake\ORM\Query        Query
+   * @param  \Cake\ORM\Query $query   Query
+   * @param  array           $options Query options
+   * @return \Cake\ORM\Query          Query
    */
   
-  public function findCOmanageCO(Query $query): Query {
+  public function findCOmanageCO(Query $query, array $options): Query {
     return $query->where(['lower(name)' => 'comanage']);
   }
 

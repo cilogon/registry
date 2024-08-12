@@ -102,9 +102,27 @@ class SetupCommand extends Command
       $username = $io->ask(__d('command', 'opt.admin-username'));
     }
     
-    // Setup the COmanage CO.
-    
-    if(is_null($comanageCO)) {
+    // Setup the COmanage CO, but first check if it already exists.
+
+    $coTable = $this->getTableLocator()->get('Cos');
+
+    $coExists = $this->executeCommand(TestCommand::class, ['-t', 'setup']) === static::CODE_ERROR;
+    $co_id = null;
+
+    if($coExists) {
+      if(!$force) {
+        // TestCommand already echoed an error
+        $this->abort(static::CODE_ERROR);
+      }
+
+      // Pull the CO ID and keep going. We're basically reimplementing the same logic
+      // that was refactored into TestCommand because we need the CO ID.
+
+      $comanageCO = $coTable->find('COmanageCO')->first();
+      $co_id = $comanageCO->id;
+    }
+
+    if(is_null($co_id)) {
       $io->out(__d('command', 'se.db.co'));
       $co_id = $coTable->setupCOmanageCO();
 

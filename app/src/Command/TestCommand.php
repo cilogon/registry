@@ -144,25 +144,25 @@ class TestCommand extends Command
   }
 
   /**
-   * Test COmanage setup
+   * Test COmanage setup. Primarily intended for use by SetupCommand.
    *
    * @since  COmanage Registry v5.0.0
-   * @return int            Return Code (CODE_SUCCESS or CODE_ERROR)
+   * @return int            CODE_SUCCESS if the CO does NOT exist or CODE_ERROR if it does
    */
 
   protected function testSetup(): int {
-
     // Check if the COmanage CO already exists, and if so abort.
 
     $coTable = $this->getTableLocator()->get('Cos');
-    $query = $coTable->find();
-    $comanageCO = $coTable->findCOmanageCO($query)->first();
+    $comanageCO = $coTable->find('COmanageCO')->first();
 
     if($comanageCO !== null) {
       $this->io->out(__d('command', 'se.already'));
       $this->abort(static::CODE_ERROR);
     }
 
+    // Because this is primarily intended for use by SetupCommand, we want to return
+    // SUCCESS if there is no COmanage CO, ie it is OK to proceed.
     return static::CODE_SUCCESS;
   }
 }
