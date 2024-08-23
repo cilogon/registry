@@ -56,33 +56,7 @@
         </li>
       <?php endforeach; // $vv_configuration_menu_items ?>
     </ul>
-
-    <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration') ?></h2>
-    <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.desc') ?></p>
   <?php endif; // $vv_platform_menu_items ?>
-  
-  <?php if(empty($vv_platform_menu_items)): ?>
-    <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration') ?></h2>
-  <?php endif; ?>
-  
-  <ul id="configuration-menu" class="config-menu">
-    <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
-      <li>
-        <?php 
-          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
-            . '<span class="menu-title">' . $label . '</span>';
-          print $this->Html->link(
-            $linkContent,
-            ['plugin'     => null,
-             'controller' => $cfg['controller'],
-             'action'     => $cfg['action'],
-             '?'          => ['co_id' => $vv_cur_co->id]],
-             ['escape' => false]
-            ); 
-        ?>
-      </li>
-    <?php endforeach; // $vv_configuration_menu_items ?>
-  </ul>
   
   <h2 class="config-subtitle mb-2"><?= __d('menu','co.registries') ?></h2>
   <ul id="registries-menu" class="config-menu">
@@ -122,6 +96,29 @@
         ?>
       </li>
     <?php endforeach; // $vv_artifacts_menu_items ?>
+  </ul>
+
+  <h2 class="config-subtitle mb-2"><?= __d('menu','co.configuration') ?></h2>
+<!-- can we toss tihs localization?
+  <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.desc') ?></p>
+  -->
+  <ul id="configuration-menu" class="config-menu">
+    <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
+      <li>
+        <?php 
+          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+            . '<span class="menu-title">' . $label . '</span>';
+          print $this->Html->link(
+            $linkContent,
+            ['plugin'     => null,
+             'controller' => $cfg['controller'],
+             'action'     => $cfg['action'],
+             '?'          => ['co_id' => $vv_cur_co->id]],
+             ['escape' => false]
+            ); 
+        ?>
+      </li>
+    <?php endforeach; // $vv_configuration_menu_items ?>
   </ul>
 </section>
 
