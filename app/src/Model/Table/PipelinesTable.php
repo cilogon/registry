@@ -432,8 +432,9 @@ class PipelinesTable extends Table {
     foreach(['valid_from', 'valid_through'] as $attr) {
       if(!empty($entity->$attr)) {
         $newdata[$attr] = $entity->$attr->i18nFormat('yyyy-MM-dd HH:mm:ss');
-      } else {
-        // Populate a blank value so removal works correctly
+      } elseif(isset($entity->$attr)) {
+        // Populate a blank value so removal works correctly (but don't inject
+        // the fields to models that don't have them)
         $newdata[$attr] = "";
       }
     }
@@ -1496,7 +1497,7 @@ class PipelinesTable extends Table {
       // sourceModel = eg SourceName
       $sourceModel = StringUtilities::foreignKeyToClassName($sourcefk);
       // sourceEntity = eg source_name
-      $sourceEntity = "source_" . $amodel;
+      $sourceEntity = "source_" . Inflector::singularize($amodel);
 
       // Pull the current set of associated records for this model.
       // We can filter down to those that came from _any_ source (ie
@@ -1600,13 +1601,28 @@ class PipelinesTable extends Table {
 
       if(!empty($curentities)) {
         foreach($curentities as $aentity) {
-          if(!empty($aentity->$sourceEntity->external_identity_id)
-             && $aentity->$sourceEntity->external_identity_id == $externalIdentityId) {
-            // $aentity is an entity attached to the Person and was sourced from
-            // an attribute associated with the current External Identity (as opposed
-            // to another EI associated with the Person); we search through the
-            // source attributes for one with a corresponding source key ID
-            $found = Hash::extract($externalIdentity[$amodel], '{n}[id='.$aentity->$sourcefk.']');
+          if(!empty($aentity->$sourcefk)) {
+            $found = false;
+
+            if(!empty($aentity->$sourceEntity->external_identity_id)) {
+              // This is a sourced attribute associated with an External Identity,
+              // only process if it's the External Identity we're currently working with
+
+              if($aentity->$sourceEntity->external_identity_id == $externalIdentityId) {
+                // $aentity is an entity attached to the Person and was sourced from
+                // an attribute associated with the current External Identity (as opposed
+                // to another EI associated with the Person); we search through the
+                // source attributes for one with a corresponding source key ID.
+                $found = Hash::extract($externalIdentity[$amodel], '{n}[id='.$aentity->$sourcefk.']');
+              } else {
+                // This doesn't belong to our current External Identity, so flag it as
+                // "found" so we don't delete it
+                $found = true;
+              }
+            } else {
+              // This is probably a deleted attribute on the EI that the Person attribute
+              // still points to. Clean it up.
+            }
 
             if(!$found) {
               if(isset($aentity->frozen) && $aentity->frozen) {
@@ -1617,6 +1633,7 @@ class PipelinesTable extends Table {
               }
             }
           }
+          // else this is a manual attribute, ignore it
         }
       }
     }
