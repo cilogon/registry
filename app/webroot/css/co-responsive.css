@@ -524,9 +524,6 @@
   .config-menu {
     column-count: 4;
   }
-  .item-with-type {
-    grid-template-columns: 1fr 2fr;
-  }
 }
 
 /* SPECIAL */

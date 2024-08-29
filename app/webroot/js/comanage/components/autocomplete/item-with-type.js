@@ -47,7 +47,10 @@ export default {
       return this.app.types?.find((t) => t.id == this.item.type_id)?.display_name
     },
     itemClasses: function() {
-      return "item-with-type item-type-" + this.item.type_id; 
+      if(this.app.cosettings[0]?.person_picker_display_types) {
+        return "item-with-type item-type-" + this.item.type_id;
+      }
+      return "item-type-" + this.item.type_id;
     }
   },
   template: `
