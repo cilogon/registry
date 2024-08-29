@@ -1633,37 +1633,63 @@ ul.form-list .cm-time-picker-vals li {
 }
 /* Autocomplete */
 .cm-autocomplete-panel {
-  overflow-y: scroll;
+  overflow-y: auto;
   max-height: 50vh !important;
+  max-width: 800px;
+  border: 1px solid var(--cmg-color-bg-008);
+  background-color: var(--cmg-color-body-bg);
+  line-height: 1.75em;
 }
 .cm-autocomplete-panel ul {
   padding: 0;
   margin: 0;
-  background-color: var(--cmg-color-body-bg);
-  border: 1px solid var(--cmg-color-bg-008);
+}
+.cm-autocomplete-panel .cm-ac-item {
+  padding: 1em;
 }
 .cm-autocomplete-panel li {
-  padding: 1em;
   list-style: none;
   border-collapse: collapse;
   border-bottom: 1px solid var(--cmg-color-bg-006);
 }
-.cm-autocomplete-panel li[data-p-focus=true] {
-  background-color: var(--cmg-color-bg-001);
-  box-shadow: inset 0 0 0.5em var(--cmg-color-btn-bg-001);
+.cm-autocomplete-panel li[data-p-focus="true"] {
+  background-color: var(--cmg-color-highlight-002);
+  box-shadow: inset 0 0 0.1em var(--cmg-color-bg-001);
+  cursor: pointer;
+}
+.cm-autocomplete-panel li[data-p-focus="true"] > .cm-ac-item-is-member {
+  background-color: var(--cmg-color-body-bg);
+  box-shadow: inset 0 0 0.1em var(--cmg-color-highlight-007);
+  cursor: default;
 }
 .cm-autocomplete-panel .cm-ac-subitems {
   font-size: 0.9em;
   margin-left: 1em;
 }
+.cm-autocomplete-panel .disabled {
+  pointer-events:none;
+  opacity:0.65;
+  box-shadow: inset 0 0 0.2em var(--cmg-color-highlight-007);
+}
+.cm-ac-item-primary {
+  display: flex;
+  justify-content: space-between;
+}
+.cm-ac-name {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+.cm-ac-name-value {
+  font-weight: bold;
+}
+.cm-ac-item-id {
+  font-size: 0.9em;
+}
 .cm-ac-subitem {
   display: grid;
   grid-template-columns: 1fr 8fr;
-  padding: 0.25em 0 0;
-}
-.cm-ac-subitem.cm-ac-email {
-  border-bottom: 1px solid var(--cmg-color-bg-006);
-  padding-bottom: 2px;
+  gap: 0.5em;
 }
 .cm-ac-pager a {
   display: block;
@@ -1673,12 +1699,12 @@ ul.form-list .cm-time-picker-vals li {
 .cm-ac-pager a:focus,
 .cm-ac-pager a:hover {
   text-decoration: underline;
+  background-color: var(--cmg-color-bg-002);
 }
 .item-with-type {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  padding: 0.1em;
-  border-bottom: 1px solid var(--cmg-color-bg-006);
+  gap: 0.5em;
 }
 .item-with-type:last-child {
   border-bottom: none;
@@ -1693,6 +1719,9 @@ ul.form-list .cm-time-picker-vals li {
 .query-highlight {
   background-color: var(--cmg-color-highlight-018);
   color: black;
+}
+li[data-pc-section="emptymessage"] {
+  padding: 0.1em 0.5em;
 }
 /* PEOPLE PICKER */
 #cm-people-picker {

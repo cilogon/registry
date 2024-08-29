@@ -114,6 +114,9 @@ $routes->scope('/api/ajax/v2',
     ['controller' => 'ApiV2', 'action' => 'generateApiKey', 'model' => 'api_users'])
     ->setPass(['id'])
     ->setPatterns(['id' => '[0-9]+']);
+  $builder->get(
+    '/people/pick',
+    ['controller' => 'ApiV2', 'action' => 'pick', 'model' => 'people']);
   // These establish the usual CRUD options on all models:
   $builder->delete(
     '/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'delete'])

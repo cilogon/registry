@@ -66,6 +66,9 @@ msgstr "Apply Database Schema"
 msgid "assign"
 msgstr "Assign"
 
+msgid "all"
+msgstr "All"
+
 msgid "any"
 msgstr "Any"
 

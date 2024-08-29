@@ -105,15 +105,20 @@ if($vv_action == 'edit') {
         'person_picker_email_address_type_id' => [
           'fieldOptions' => [
             'label' => __d('field', 'mail'),
+            'empty' => '(' . __d('operation', 'all') . ')',
+//            'all' => '(' . __d('operation', 'all') . ')'
           ],
         ],
         'person_picker_identifier_type_id' => [
           'fieldOptions' => [
             'label' => __d('field', 'identifier'),
+            'empty' => '(' . __d('operation', 'all') . ')',
+//            'all' => '(' . __d('operation', 'all') . ')',
           ],
         ],
         'person_picker_display_types' => [
-          'singleRowItem' => true
+          'singleRowItem' => true,
+          'fieldLabel' => __d('field', 'CoSettings.person_picker_display_types')
         ]
       ],
     ]]);

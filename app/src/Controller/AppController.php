@@ -346,7 +346,8 @@ class AppController extends Controller {
           }
         }
         
-        if(empty($this->cur_pl->value) && !$this->$modelsName->allowEmptyPrimaryLink()) {
+        if(empty($this->cur_pl->value)
+           && !$this->$modelsName->allowEmptyPrimaryLink($this->request->getParam('action'))) {
           throw new \RuntimeException(__d('error', 'primary_link'));
         }
       }

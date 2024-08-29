@@ -222,25 +222,25 @@ class CoSettingsTable extends Table {
     // Default values for each setting
     
     $defaultSettings = [
-      'co_id'                             => $coId,
-      'default_address_type_id'           => null,
-      'default_email_address_type_id'     => null,
-      'default_identifier_type_id'        => null,
-      'default_name_type_id'              => null,
-      'default_pronoun_type_id'           => null,
-      'default_telephone_number_type_id'  => null,
-      'default_url_type_id'               => null,
-      'email_smtp_server_id'              => null,
-      'email_delivery_address_type_id'    => null,
-      'permitted_fields_name'             => PermittedNameFieldsEnum::HGMFS,
-      'permitted_fields_telephone_number' => PermittedTelephoneNumberFieldsEnum::CANE,
-      'person_picker_email_type'          => null,
-      'person_picker_identifier_type'     => null,
-      'person_picker_display_types'       => true,
-      'required_fields_address'           => RequiredAddressFieldsEnum::Street,
-      'required_fields_name'              => RequiredNameFieldsEnum::Given,
-      'search_global_limit'               => DEF_GLOBAL_SEARCH_LIMIT,
-      'search_limited_models'             => false
+      'co_id'                                => $coId,
+      'default_address_type_id'              => null,
+      'default_email_address_type_id'        => null,
+      'default_identifier_type_id'           => null,
+      'default_name_type_id'                 => null,
+      'default_pronoun_type_id'              => null,
+      'default_telephone_number_type_id'     => null,
+      'default_url_type_id'                  => null,
+      'email_smtp_server_id'                 => null,
+      'email_delivery_address_type_id'       => null,
+      'permitted_fields_name'                => PermittedNameFieldsEnum::HGMFS,
+      'permitted_fields_telephone_number'    => PermittedTelephoneNumberFieldsEnum::CANE,
+      'person_picker_email_address_type_id'  => null,
+      'person_picker_identifier_type_id'     => null,
+      'person_picker_display_types'          => true,
+      'required_fields_address'              => RequiredAddressFieldsEnum::Street,
+      'required_fields_name'                 => RequiredNameFieldsEnum::Given,
+      'search_global_limit'                  => DEF_GLOBAL_SEARCH_LIMIT,
+      'search_limited_models'                => false
 // XXX to add new settings, set a default here, then add a validation rule below
 //     also update data model documentation
       // 'disable_expiration'         => false,
@@ -416,15 +416,15 @@ class CoSettingsTable extends Table {
     ]);
     $validator->allowEmptyString('person_picker_display_types');
 
-    $validator->add('person_picker_email_type', [
+    $validator->add('person_picker_email_address_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('person_picker_email_type');
+    $validator->allowEmptyString('person_picker_email_address_type_id');
 
-    $validator->add('person_picker_identifier_type', [
+    $validator->add('person_picker_identifier_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->allowEmptyString('person_picker_identifier_type');
+    $validator->allowEmptyString('person_picker_identifier_type_id');
 
     $validator->add('required_fields_address', [
       'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]

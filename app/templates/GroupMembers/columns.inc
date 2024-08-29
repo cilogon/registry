@@ -100,8 +100,6 @@ $subnav = [
 $peoplePicker = [
   'label' => __d('operation','add.member'),
   'viewConfigParameters' => [
-    'for' => 'GroupMembers',
-    'action' => $vv_action,
     'groupId' => $this->getRequest()?->getQuery('group_id')
   ],
   'actionUrl' => [

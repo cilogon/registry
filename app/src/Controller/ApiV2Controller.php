@@ -136,6 +136,25 @@ class ApiV2Controller extends AppController {
     
     return parent::beforeRender($event);
   }
+
+  /**
+   * Calculate the CO ID associated with the request.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return int      CO ID, or null if no CO contextwas found
+   */
+
+  public function calculateRequestedCOID(): ?int {
+    if($this->request->getQuery('group_id') !== null) {
+      $groupId = $this->request->getQuery('group_id');
+      $Group = TableRegistry::getTableLocator()->get('Groups');
+
+      $groupRecord = $Group->get($groupId);
+      return $groupRecord->co_id;
+    }
+
+    return null;
+  }
   
   /**
    * Handle a delete action for a Standard object.
@@ -181,7 +200,42 @@ class ApiV2Controller extends AppController {
       throw new BadRequestException($this->exceptionToError($e));
     }
   }
-  
+
+  protected function dispatchIndex(string $mode = 'default') {
+    // There are use cases where we will pass co_id and another model_id as a query parameter. The co_id might be
+    // required for the primary link calculations while the foreign key for filtering. Since we are using the
+    // most constrained identifier to calculate the co_id, we then check if the two parameters match. If not,
+    // the request should fail, so as to prevent any security holes.
+    if($this->request->getQuery('co_id') !== null
+      && $this->getCOID() !== null
+      && (int)$this->getCOID() !== (int)$this->request->getQuery('co_id')) {
+      $this->llog('error', 'CO Id calculated from Group ID does not match CO Id query parameter');
+      // Mask this with a generic UnauthorizedException
+      throw new UnauthorizedException(__d('error', 'perm'));
+    }
+
+    // $modelsName = Models
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+
+    $reqParameters = [...$this->request->getQuery()];
+    $pickerMode = ($mode === 'picker');
+
+    // Construct the Query
+    $query = $this->getIndexQuery($pickerMode, $reqParameters);
+
+    if(method_exists($table, 'findIndexed')) {
+      $query = $table->findIndexed($query);
+    }
+    // This magically makes REST calls paginated... can use eg direction=,
+    // sort=, limit=, page=
+    $this->set($this->tableName, $this->paginate($query));
+
+    // Let the view render
+    $this->render('/Standard/api/v2/json/index');
+  }
+
   /**
    * Handle an edit action for a Standard object.
    *
@@ -300,33 +354,7 @@ class ApiV2Controller extends AppController {
    */
   
   public function index() {
-    // $modelsName = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
-
-    $reqParameters = [];
-    $pickerMode = false;
-    if($this->request->is('ajax')) {
-      $reqParameters = [...$this->request->getQuery()];
-      if($this->request->getQuery('picker') !== null) {
-        $pickerMode = filter_var($this->request->getQuery('picker'), FILTER_VALIDATE_BOOLEAN);
-      }
-    }
-
-
-    // Construct the Query
-    $query = $this->getIndexQuery($pickerMode, $reqParameters);
-
-    if(method_exists($table, 'findIndexed')) {
-      $query = $table->findIndexed($query);
-    }
-      // This magically makes REST calls paginated... can use eg direction=,
-    // sort=, limit=, page= 
-    $this->set($this->tableName, $this->paginate($query));
-    
-    // Let the view render
-    $this->render('/Standard/api/v2/json/index');
+    $this->dispatchIndex();
   }
 
   /**
@@ -353,5 +381,15 @@ class ApiV2Controller extends AppController {
     
     // Let the view render
     $this->render('/Standard/api/v2/json/index');
+  }
+
+  /**
+   * Pick a set of Standard Objects.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function pick() {
+    $this->dispatchIndex(mode: 'picker');
   }
 }

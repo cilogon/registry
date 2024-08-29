@@ -49,7 +49,9 @@ export default {
       loading: false,
       page: 1,
       limit: 7,
-      query: null
+      query: null,
+      liItemLast: {},
+      listLastPos: -1
     }
   },
   methods: {
@@ -63,16 +65,13 @@ export default {
       const url = new URL(urlString);
       let queryParams = url.searchParams;
       // Query parameters
-      queryParams.append('extended', 'PrimaryName,Identifiers,EmailAddresses')
       queryParams.append('identifier', query)
       queryParams.append('mail', query)
       queryParams.append('given', query)
+      queryParams.append('middle', query)
       queryParams.append('family', query)
       if(this.api.viewConfigParameters.groupId != undefined) {
-        queryParams.append('groupid', this.api.viewConfigParameters.groupId)
-      }
-      if(this.api.viewConfigParameters.action != undefined) {
-        queryParams.append('action', this.api.viewConfigParameters.action)
+        queryParams.append('group_id', this.api.viewConfigParameters.groupId)
       }
       // Pagination
       // XXX Move this to configuration
@@ -120,6 +119,16 @@ export default {
       this.query = event.query
       await this.findPeople(event.query, true)
     },
+    calculateDisabled() {
+      $('.cm-autocomplete-panel').hide()
+      $('.cm-autocomplete-panel > ul > li').map((idx, litem) => {
+        if(litem.hasAttribute('data-p-disabled')
+           && litem?.getAttribute('data-p-disabled')?.toLowerCase() === "true") {
+          litem.classList.add("disabled");
+        }
+      })
+      $('.cm-autocomplete-panel').show()
+    },
     constructEmailCsv(emailList) {
       const emailWithType = emailList.map( (mail) => {
           return mail.mail + " (" + this.app.types?.find((t) => t.id == mail.type_id)?.display_name + ")"
@@ -144,17 +153,39 @@ export default {
       }
       return str
     },
+    filterByEmailAddressType(items) {
+      if(this.app.cosettings[0].person_picker_email_address_type_id == null
+        || this.app.cosettings[0].person_picker_email_address_type_id == '') {
+        return items
+      }
+
+      return items.filter((item) => {
+        return item.type_id == this.app.cosettings[0].person_picker_email_address_type_id;
+      })
+    },
+    filterByIdentifierType(items) {
+      if(this.app.cosettings[0].person_picker_identifier_type_id == ''
+        || this.app.cosettings[0].person_picker_identifier_type_id == null) {
+        return items
+      }
+
+      return items.filter((item) => {
+        return item.type_id == this.app.cosettings[0].person_picker_identifier_type_id;
+      })
+    },
     parseResponse(data) {
       return data?.People?.map((item) => {
-       return {
-         "value": item.id,
-         "label": `${item?.primary_name?.given} ${item?.primary_name?.family} (ID: ${item?.id})`,
-         "email": item?.email_addresses,
-         "emailPretty": this.shortenString(this.constructEmailCsv(item?.email_addresses)),
-         "emailLabel": this.txt['email'] + ": ",
-         "identifier": item?.identifiers,
-         "identifierPretty": this.shortenString(this.constructIdentifierCsv(item?.identifiers)),
-         "identifierLabel": this.txt['Identifiers'] + ": "
+        return {
+          "value": item.id,
+          "label": `${item?.primary_name?.given} ${item?.primary_name?.family}`,
+          "itemId": `${item?.id}`,
+          "email": this.filterByEmailAddressType(item?.email_addresses),
+          "emailPretty": this.shortenString(this.constructEmailCsv(this.filterByEmailAddressType(item?.email_addresses))),
+          "emailLabel": this.txt['email'] + ": ",
+          "identifier": this.filterByIdentifierType(item?.identifiers),
+          "identifierPretty": this.shortenString(this.constructIdentifierCsv(this.filterByIdentifierType(item?.identifiers))),
+          "identifierLabel": this.txt['Identifiers'] + ": ",
+          "isMember": !!item?._matchingData?.GroupMembers?.id
         }
       })
     },
@@ -180,12 +211,45 @@ export default {
         return str.substring(0,30) + '...'
       }
       return str
+    },
+    onListNavigate(ev) {
+      const listItemId = ev.target.getAttribute('aria-activedescendant')
+      const $more = $('.cm-ac-pager')[0]
+      // Get the option item
+      const $option = $('#' + listItemId)[0];
+      $('.cm-autocomplete-panel > ul > li').map((idx, litem) => {
+        litem.classList.remove("cm-al-last-item");
+      })
+      if($option == undefined) {
+        return
+      }
+      let listSize = $option.getAttribute('aria-setsize')
+      let itemPosition = $option.getAttribute('aria-posinset')
+
+      // Handle down key. Navigate from list to footer
+      if(this.listLastPos ==  listSize
+        && ev.keyCode == '40'
+        && $more != undefined // If the footer is present, it means that the hasMorePages
+                              // computed method has been evaluated to true
+        && listItemId == this.liItemLast.getAttribute('id')) {
+        // this.fetchMorePeople()
+        $('.cm-ac-pager > a')[0].click()
+      }
+
+      if(itemPosition == listSize) {
+        // Mark as last option in the list
+        this.liItemLast = $option
+        if($more != undefined) {
+          $option.classList.add('cm-al-last-item')
+        }
+      }
+      this.listLastPos = itemPosition
     }
   },
   mounted() {
     if(this.options.inputValue != undefined
-       && this.options.inputValue != ''
-       && this.options.htmlId == 'person_id') {
+      && this.options.inputValue != ''
+      && this.options.htmlId == 'person_id') {
       this.options.inputProps.value = `${this.options.formParams?.fullName} (ID: ${this.options.inputValue})`
     }
   },
@@ -221,27 +285,40 @@ export default {
       :placeholder="this.txt['autocomplete.people.placeholder']"
       panelClass="cm-autocomplete-panel"
       optionLabel="label"
+      optionDisabled="isMember"
       :minLength="this.options.minLength"
       :delay="500"
       loadingIcon=null
       :suggestions="this.people" 
       forceSelection
       @complete="searchPeople"
+      @show="calculateDisabled"
+      @keyup.arrow-down="onListNavigate"
+      @keyup.arrow-up="onListNavigate"
       @item-select="setPerson">
       <template #option="slotProps">
         <div class="cm-ac-item">
-          <div class="cm-ac-item-primary cm-ac-name">
-            <span v-html="this.highlightedquery(slotProps.option.label, query)"></span></div>
+          <div class="cm-ac-item-primary">
+            <div class="cm-ac-name">
+              <span class="cm-ac-name-value" v-if="slotProps.option.isMember" v-html="slotProps.option.label"></span>
+              <span class="cm-ac-name-value" v-else v-html="this.highlightedquery(slotProps.option.label, query)"></span>
+              <span class="mr-1 badge bg-success" v-if="slotProps.option.isMember">{{ this.txt['GroupMembers'] }}</span>
+            </div>
+            <div class="cm-ac-item-id">
+              ID: {{ slotProps.option.itemId }}
+            </div>
+          </div>
           <div class="cm-ac-subitems">
             <div class="cm-ac-subitem cm-ac-email" v-if="slotProps.option.email">
               <span class="cm-ac-label" v-if="slotProps.option.emailLabel">{{ slotProps.option.emailLabel }}</span>
               <span class="cm-ac-value">
-                <ItemWithType 
+                <ItemWithType
                   v-for="item in slotProps.option.email" 
                   :item="item"
                   kind="email"  
                   :query="query"
                   :highlightedquery="highlightedquery"
+                  :isMember="slotProps.option.isMember"
                 />
               </span>
             </div>
@@ -254,6 +331,7 @@ export default {
                   :item="item"
                   kind="identifier"
                   :highlightedquery="highlightedquery"
+                  :isMember="slotProps.option.isMember"
                 />
               </span>
             </div>

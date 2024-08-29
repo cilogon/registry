@@ -335,7 +335,27 @@ class FieldHelper extends Helper {
     // if the field is required. This makes it clear when a value needs to be set.
     // Note this will be ignored for non-select controls.
     $fieldArgs['empty'] = !\in_array($fieldName, ['status', 'sync_status_on_delete'], true)
-                          || (isset($fieldOptions['empty']) && $fieldOptions['empty']);
+                          || (isset($fieldOptions['empty']) && !empty($fieldOptions['empty']));
+
+    // Check if the empty option comes with a value
+    if($fieldArgs['empty']
+       && !empty($fieldOptions['empty'])
+       && \is_string($fieldOptions['empty'])) {
+      $fieldArgs['empty'] = $fieldOptions['empty'];
+    }
+
+    if(!empty($fieldOptions['all'])) {
+      $optionName = lcfirst(StringUtilities::foreignKeyToClassName($fieldName));
+      $optionValues = $this->getView()->get($optionName);
+      $optionValues = [
+        '-1' => $fieldOptions['all'],
+        ...$optionValues
+      ];
+      $this->getView()->set($optionName, $optionValues);
+    }
+
+    // Is this a multiple select
+    $fieldArgs['multiple'] = !empty($fieldOptions['multiple']);
 
     // Manipulate the vv_object for the hasPrefix use case
     $this->handlePrefix($fieldPrefix, $fieldName);

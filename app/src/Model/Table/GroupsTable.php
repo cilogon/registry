@@ -176,7 +176,7 @@ class GroupsTable extends Table {
             // For the Groups Filtering block we want to
             // pick/GET from the entire CO pool of people
             'action' => 'GET',
-            // The co configuration will fall throught the default configuration
+            // The co configuration will fall through the default configuration
             'for' => 'co'
           ]
         ]

@@ -57,8 +57,33 @@ trait IndexQueryTrait {
       $containClause = $table->getIndexContains();
     }
 
-    if($this->request->is('restful')|| $this->request->is('ajax')) {
+    if($this->request->is('restful') || $this->request->is('ajax')) {
       $containClause = $this->containClauseFromQueryParams();
+    }
+
+    return empty($containClause) ? $query : $query->contain($containClause);
+  }
+
+  /**
+   * Construct the Picker Contain array
+   *
+   * @param   Query  $query
+   *
+   * @return object Cake ORM Query object
+   * @since  COmanage Registry v5.0.0
+   */
+  public function constructGetPickerContains(Query $query): object {
+    // $this->name = Models
+    $modelsName = $this->name;
+    // $table = the actual table object
+    $table = $this->$modelsName;
+    // Initialize the containClause
+    $containClause = [];
+
+    // Get whatever the table configuration has
+    if(method_exists($table, 'getPickerContains')
+      && $table->getPickerContains()) {
+      $containClause = $table->getPickerContains();
     }
 
     return empty($containClause) ? $query : $query->contain($containClause);
@@ -151,7 +176,7 @@ trait IndexQueryTrait {
     }
 
     // Get Associated Model Data
-    $query = $this->constructGetIndexContains($query);
+    $query = $pickerMode ? $this->constructGetPickerContains($query) : $this->constructGetIndexContains($query);
 
     // Attributes to search for
     if(method_exists($table, 'getSearchableAttributes')) {
@@ -170,8 +195,25 @@ trait IndexQueryTrait {
 
         // Here we iterate over the attributes, and we add a new where clause for each one
         foreach($searchableAttributes as $attribute => $options) {
+          $jointype = 'INNER';
+          if (
+            $pickerMode
+            && !empty($options['model'])
+            && \in_array($options['model'], ['Identifiers', 'EmailAddresses'], true)
+          ) {
+            // XXX People picker is different than people filtering. A people picker has the following requirements:
+            //     - Name is required
+            //     - Identifiers, EmailAddresses are optional
+            //     Having that said, we LEFT JOIN the Identifiers and EmailAddresses models instead of INNER JOIN them.
+            $jointype = 'LEFT';
+          }
           // Add the Join Clauses
-          $query = $table->addJoins($query, $attribute, $this->request);
+          $query = $table->addJoins(
+              $query,
+              $attribute,
+              $this->request,
+              $jointype
+          );
 
           // Construct and apply the where Clause
           if(!empty($this->request->getQuery($attribute))) {
@@ -199,11 +241,13 @@ trait IndexQueryTrait {
       $query = $query->where(fn(QueryExpression $exp, Query $query) => $exp->in($table->getAlias().'.status', [StatusEnum::Active, StatusEnum::GracePeriod]));
 
       // Specific expressions per view
-      $query = match($requestParams['for'] ?? '') {
+      $query = match(true) {
         // GroupMembers Add view: We need to filter the active members
-        'GroupMembers' => $query->leftJoinWith('GroupMembers', fn($q) => $q->where(['GroupMembers.group_id' => (int)($requestParams['groupid'] ?? -1)]))
-                                ->where($this->getTableLocator()->get('GroupMembers')->checkValidity($query))
-                                ->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('GroupMembers.' . StringUtilities::classNameToForeignKey($table->getAlias()))),
+        (isset($requestParams['group_id']) && $modelsName === 'People') => $query
+          ->leftJoinWith('GroupMembers', fn($q) => $q->where(['GroupMembers.group_id' => (int)($requestParams['group_id'] ?? -1)])),
+//   XXX We want to get both members and not members. The frontend will handle the rest
+//        ->where($this->getTableLocator()->get('GroupMembers')->checkValidity($query))
+//        ->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('GroupMembers.' . StringUtilities::classNameToForeignKey($table->getAlias()))),
         // Just return the query
         default => $query
       };

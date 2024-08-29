@@ -29,7 +29,8 @@ export default {
     item: Object,
     kind: '',
     query: '',
-    highlightedquery: Object
+    highlightedquery: Object,
+    isMember: false
   },
   inject: ['app'],
   computed: {
@@ -52,9 +53,10 @@ export default {
   template: `
     <div :class="itemClasses">
       <span class="value">
-        <span v-html="highlightedquery(this.val, query)"></span>
+        <span v-if="this.isMember" v-html="this.val"></span>
+        <span v-else v-html="highlightedquery(this.val, query)"></span>
       </span>
-      <span class="type">
+      <span v-if="app.cosettings[0].person_picker_display_types" class="type">
        {{ this.type }}
       </span>
     </div>

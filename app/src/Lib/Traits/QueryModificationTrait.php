@@ -52,6 +52,9 @@ trait QueryModificationTrait {
   // Array of associated models to pull during a view
   private $viewContains = false;
 
+  // Array of associated models to pull during a pick action
+  private $pickerContains = false;
+
 
   /**
    * Construct the checkValidity for the fields valid_from and valid_through
@@ -121,7 +124,18 @@ trait QueryModificationTrait {
   public function getPatchAssociated() {
     return $this->patchAssociated;
   }
-  
+
+  /**
+   * Obtain the set of associated models to pull during a pick.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return array Array of associated models
+   */
+
+  public function getPickerContains() {
+    return $this->pickerContains;
+  }
+
   /**
    * Obtain the set of associated models to pull during a view.
    *
@@ -187,7 +201,18 @@ trait QueryModificationTrait {
   public function setPatchAssociated(array $a) {
     $this->patchAssociated = $a;
   }
-  
+
+  /**
+   * Set the associated models to pull during a pick.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  array $c Array of associated models
+   */
+
+  public function setPickerContains(array $c) {
+    $this->pickerContains = $c;
+  }
+
   /**
    * Set the associated models to pull during a view.
    *

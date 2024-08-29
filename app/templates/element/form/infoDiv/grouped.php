@@ -42,10 +42,10 @@ $classes = '';
       unset($fieldArguments['singleRowItem']);
     }
     ?>
-  <div class="subfield subfield-cols <?= $classes ?>">
-    <div class="field-col">
-    <?= $this->Field->formField($fieldName, ...$fieldArguments) ?>
+    <div class="subfield subfield-cols <?= $classes ?>">
+      <div class="field-col">
+      <?= $this->Field->formField($fieldName, ...$fieldArguments) ?>
+      </div>
     </div>
-  </div>
   <?php endforeach; ?>
 </div>

@@ -124,7 +124,7 @@ trait SearchFilterTrait {
 
 
     return $query->join($joinAssociations);
-    // XXX We can not use the inenerJoinWith since it applies EagerLoading and includes all the fields which
+    // XXX We can not use the innerJoinWith since it applies EagerLoading and includes all the fields which
     //     causes problems
 //    return $query->innerJoinWith($this->searchFilters[$attribute]['model']);
   }

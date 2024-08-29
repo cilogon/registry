@@ -32,7 +32,7 @@ $responseMeta = [
   'version' => '2'
 ];
 
-if($this->request->getParam('action') == 'index') {
+if(in_array($this->request->getParam('action'), ['index', 'pick'])) {
   $responseMeta['totalResults'] = $this->Paginator->counter('{{count}}');
   $responseMeta['startIndex'] = $this->Paginator->counter('{{start}}');
   $responseMeta['itemsPerPage'] = $this->Paginator->counter('{{current}}'); // confusingly this is different than ->current()

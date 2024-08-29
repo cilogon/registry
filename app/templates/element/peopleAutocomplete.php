@@ -67,7 +67,8 @@
     api: {
       viewConfigParameters: <?= json_encode($viewConfigParameters) ?>,
       webroot: '<?= $this->request->getAttribute('webroot') ?>',
-      searchPeople: `<?= $this->request->getAttribute('webroot') ?>api/ajax/v2/people?co_id=<?= $vv_cur_co->id ?>&picker=on&for=<?= $viewConfigParameters['for'] ?>`
+      // co_id query parameter is required since it is the People's primary link
+      searchPeople: `<?= $this->request->getAttribute('webroot') ?>api/ajax/v2/people/pick?co_id=<?= $vv_cur_co->id ?>`
     }
   }
 

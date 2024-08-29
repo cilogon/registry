@@ -72,8 +72,8 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       'bootstrap/bootstrap.bundle.min.js',
       'jquery/jquery.min.js',
       'vue/vue-3.2.31.global.prod.js',
-      'vue/primevue-3.52.0.core.min.js',
-      'vue/primevue-3.52.0.autocomplete.min.js',
+      'vue/primevue-3.53.0.core.min.js',
+      'vue/primevue-3.53.0.autocomplete.min.js',
       'datatables/datatables-2.0.7.net.min.js',
     ]) . PHP_EOL ?>
 

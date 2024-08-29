@@ -148,6 +148,7 @@ class PeopleTable extends Table {
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['provision']);
+    $this->setAllowUnkeyedPrimaryLink(['pick']);
     
 // XXX does some of this stuff really belong in the controller?
     $this->setEditContains([
@@ -164,6 +165,11 @@ class PeopleTable extends Table {
     ]);
     $this->setIndexContains(['PrimaryName']);
     $this->setViewContains(['PrimaryName']);
+    $this->setPickerContains([
+      'EmailAddresses',
+      'Identifiers',
+      'PrimaryName',
+    ]);
 
     $this->setAutoViewVars([
       'statuses' => [
@@ -182,6 +188,12 @@ class PeopleTable extends Table {
         'type' => 'string',
         'model' => 'Names',
         'active' => true,
+        'order' => 3
+      ],
+      'middle' => [
+        'type' => 'string',
+        'model' => 'Names',
+        'active' => true,
         'order' => 2
       ],
       'given' => [
@@ -194,7 +206,7 @@ class PeopleTable extends Table {
         'type' => 'string',
         'model' => 'EmailAddresses',
         'active' => true,
-        'order' => 3
+        'order' => 5
       ],
       'identifier' => [
         'type' => 'string',
@@ -222,7 +234,8 @@ class PeopleTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'pick' =>     ['platformAdmin', 'coAdmin'],
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [
