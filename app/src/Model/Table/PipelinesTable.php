@@ -1333,6 +1333,13 @@ class PipelinesTable extends Table {
                             $found = Hash::extract($arecord[$aeirmodel], '{n}[id='.$aeirentity->id.']');
                           }
 
+                          if(!$found
+                            && !empty($newEntities[$aeirmodel])
+                            && in_array($aeirentity->id, $newEntities[$aeirmodel])) {
+                            // This is a new entity we just added
+                            $found = true;
+                          }
+
                           if(!$found) {
                             $this->llog('trace', "Deleted $eirmodel " . $aeirentity->id . " for $model " . $aentity->id);
                             $this->Cos->People->ExternalIdentities->$model->$eirmodel->deleteOrFail($aeirentity);

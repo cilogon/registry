@@ -42,7 +42,7 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   foreach([
             'ordr',
             'title',
-            'organization'.
+            'organization',
             'department'
           ] as $field) {
     print $this->element('form/listItem', [
