@@ -427,15 +427,24 @@ class PipelinesTable extends Table {
       $newdata['status']
     );
 
+    // Get the list of "visible" fields -- this should correlate with the
+    // set of fields defined on the entity, whether or not they are populated,
+    // including metadata fields.
+
+    $visible = $entity->getVisible();
+
     // Timestamps are FrozenTime objects in the entity data, and is_scalar
     // will filter them out, so convert them to strings
+
     foreach(['valid_from', 'valid_through'] as $attr) {
-      if(!empty($entity->$attr)) {
-        $newdata[$attr] = $entity->$attr->i18nFormat('yyyy-MM-dd HH:mm:ss');
-      } elseif(isset($entity->$attr)) {
-        // Populate a blank value so removal works correctly (but don't inject
-        // the fields to models that don't have them)
-        $newdata[$attr] = "";
+      if(in_array($attr, $visible)) {
+        if(!empty($entity->$attr)) {
+          $newdata[$attr] = $entity->$attr->i18nFormat('yyyy-MM-dd HH:mm:ss');
+        } else {
+          // Populate a blank value so removal works correctly (but don't inject
+          // the fields to models that don't have them)
+          $newdata[$attr] = "";
+        }
       }
     }
 
