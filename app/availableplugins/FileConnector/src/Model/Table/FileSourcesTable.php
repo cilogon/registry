@@ -449,9 +449,11 @@ class FileSourcesTable extends Table {
     while(($data = fgetcsv($handle)) !== false) {
       // strtolower, previous behavior was full string only so dupe that
 
-      $match = array_search(strtolower($searchAttrs['q']), array_map('strtolower', $data));
+      $match = collection($data)
+        ->map(fn($value, $key) => strtolower($value ?? ''))
+        ->filter(fn($item, $key) => strtolower($searchAttrs['q']) === $item);
 
-      if($match !== false) {
+      if($match->count() > 0) {
         // $match will be the CSV column that matched, but for now we ignore that
         // since we just need to know that the row matched somewhere. Note the first
         // column is always the SORID.

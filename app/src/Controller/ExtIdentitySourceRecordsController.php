@@ -39,4 +39,18 @@ class ExtIdentitySourceRecordsController extends StandardController {
       'ExtIdentitySourceRecords.id' => 'asc'
     ]
   ];
+
+  /**
+   * Perform Controller initialization.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function initialize(): void
+  {
+    parent::initialize();
+
+    // Configure breadcrumb rendering
+    $this->Breadcrumb->skipParents(['/^\/ext-identity-source-records/']);
+  }
 }

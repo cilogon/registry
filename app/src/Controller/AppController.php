@@ -44,6 +44,7 @@ use Cake\Event\EventManager;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use InvalidArgumentException;
+use JsonSchema\Iterator\ObjectIterator;
 
 class AppController extends Controller {
   use \App\Lib\Traits\LabeledLogTrait;
@@ -187,12 +188,12 @@ class AppController extends Controller {
     // We'll return null if no CO, since some contexts may need to know that
     return $this->cur_co;
   }
-  
+
   /**
    * Get the current CO ID.
    *
+   * @return int|null CO ID, or null
    * @since  COmanage Registry v5.0.0
-   * @return int CO ID, or null
    */
   
   public function getCOID(): ?int {
@@ -202,7 +203,171 @@ class AppController extends Controller {
   }
 
   /**
-   * Obtain information about the Standard Object's Primary Link, if set.
+   * @param   string  $potentialPrimaryLink
+   *
+   * @return Object|bool
+   * @since  COmanage Registry v5.0.0
+   */
+
+  protected function primaryLinkOnGet(string $potentialPrimaryLink): Object|bool
+  {
+    // $this->name = Models
+    $modelsName = $this->name;
+
+    // If this action allows unkeyed, asserted primary link IDs, check the query
+    // string (e.g.: 'add' or 'index' allow matchgrid_id to be passed in)
+    $actionParam = $this->request->getParam('action');
+    $allowsUnkeyed = $this->$modelsName->allowUnkeyedPrimaryLink($actionParam);
+    $allowsLookup = $this->$modelsName->allowLookupPrimaryLink($actionParam);
+    $param = (int)$this->request->getParam('pass.0');
+
+    if($allowsUnkeyed) {
+      $query = $this->request->getQuery();
+      if($query) {
+        return $this->populatedPrimaryLink($potentialPrimaryLink);
+      }
+    }
+
+    if(!$allowsLookup || empty($param)) {
+      return false;
+    }
+
+    return $this->$modelsName->findPrimaryLink($param);
+  }
+
+  /**
+   * @param   string  $potentialPrimaryLink
+   *
+   * @return Object|bool
+   * @since  COmanage Registry v5.0.0
+   *
+   */
+
+  protected function primaryLinkOnPost(string $potentialPrimaryLink): Object|bool
+  {
+    // $this->name = Models
+    $modelsName = $this->name;
+
+    // Post = add, where we can have a list of objects and nothing in /objects/{id}
+    // We don't support different primary links across objects, so we throw an error
+    // if different parent keys are provided.
+    // Data in API format | Data in POST format
+    $reqData = $this->request->getData($modelsName) ?? $this->request->getData() ?? [];
+    $potentialPrimaryLinkRecords = collection($reqData)->filter(fn($value, $key) => $key === $potentialPrimaryLink);
+    if($potentialPrimaryLinkRecords->count() > 1) {
+      // We don't support multiple records with different parents
+      throw new \InvalidArgumentException(__d('error', 'primary_link.mismatch'));
+    }
+    if($potentialPrimaryLinkRecords->count() === 1) {
+      return $this->populatedPrimaryLink($potentialPrimaryLink);
+    }
+
+    // If we didn't find the primary link in the submitted form or API
+    // request, it might be available via the URL.
+
+    return $this->primaryLinkOnPut();
+  }
+
+  /**
+   * Primary link available via the URL.
+   *
+   * @return Object|bool
+   * @since  COmanage Registry v5.0.0
+   *
+   */
+
+  protected function primaryLinkOnPut(): Object|bool
+  {
+    // $this->name = Models
+    $modelsName = $this->name;
+    $param = (int)$this->request->getParam('pass.0');
+
+    // Put = edit, so we should look up the parent ID via the object itself
+    if (
+      empty($param)
+      ||
+      !$this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))
+    ) {
+      return false;
+    }
+
+    return $this->$modelsName->findPrimaryLink($param);
+  }
+
+  /**
+   * @param   string  $potentialPrimaryLink
+   *
+   * @return Object|\stdClass
+   */
+  protected function populatedPrimaryLink(string $potentialPrimaryLink): Object
+  {
+    // $this->name = Models
+    $modelsName = $this->name;
+    // $potentialPrimaryLink will be something like 'attribute_collector_id'
+    // $potentialPrimaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'
+    $potentialPrimaryLinkTable = $this->$modelsName->getPrimaryLinkTableName($potentialPrimaryLink);
+
+    // For looking up values in records here, we want only the attribute
+    // itself and not the plugin name (used for hacky notation by
+    // PrimaryLinkTrait::setPrimaryLink(). Note this is a field and not
+    // a model, but pluginModel() gets us the bit we need.
+
+    // Store the plugin for possible later reference.
+    $potentialPlugin = str_contains($potentialPrimaryLinkTable, '.')
+      ? StringUtilities::pluginPlugin($potentialPrimaryLinkTable)
+      : null;
+
+    $cur = new \stdClass();
+    $cur->value = $this->request->getQuery($potentialPrimaryLink);
+    // We found a populated primary link. Store the attribute and break the loop.
+    $cur->attr = $potentialPrimaryLink;
+    if($potentialPlugin) {
+      $cur->plugin = $potentialPlugin;
+    }
+
+    return $cur;
+  }
+
+
+  /**
+   * Perform primary link lookup.
+   *
+   * @throws \RuntimeException  Exception thrown if a primary link is empty and it is not allowed
+   * @since  COmanage Registry v5.0.0
+ */
+
+  protected function primaryLinkLookup(): void
+  {
+    // $this->name = Models
+    $modelsName = $this->name;
+    $availablePrimaryLinks = $this->$modelsName->getPrimaryLinks();
+
+    // Iterate over all the potential primary links and pick the appropriate one
+    foreach($availablePrimaryLinks as $potentialPrimaryLink) {
+      $cur = match(true) {
+        $this->request->is('get') => $this->primaryLinkOnGet($potentialPrimaryLink),
+        ($this->request->is('post') && $this->request->getParam('action') != 'delete') => $this->primaryLinkOnPost($potentialPrimaryLink),
+        ($this->request->is('put') || $this->request->getParam('action') == 'delete') => $this->primaryLinkOnPut(),
+        default => false,
+      };
+
+      if($cur !== false && $cur->value !== null) {
+        $this->cur_pl = $cur;
+        $this->set('vv_primary_link', $this->cur_pl->attr);
+        // Exit the for loop
+        break;
+      }
+    } // foreach
+
+    // At the end we need to have a Primary Link
+    if(empty($this->cur_pl->value)
+      && !$this->$modelsName->allowEmptyPrimaryLink($this->request->getParam('action'))) {
+      throw new \RuntimeException(__d('error', 'primary_link'));
+    }
+  }
+
+  /**
+   * Collect information about the Standard Object's Primary Link, if set.
    * The $vv_primary_link view variable is also set.
    *
    * @since  COmanage Registry v5.0.0
@@ -210,185 +375,73 @@ class AppController extends Controller {
    * @return object          Object holding the primary link attribute, and optionally its value
    * @throws \RuntimeException
    */
-  
-  public function getPrimaryLink(bool $lookup=false) {
+
+  public function getPrimaryLink(bool $lookup=false): Object
+  {
     // Did we already figure this out? (But only if $lookup)
     if($lookup && isset($this->cur_pl->value)) {
       return $this->cur_pl;
     }
-    
+
     // $this->name = Models
     $modelsName = $this->name;
-    // $modelName = Model
-    $modelName = \Cake\Utility\Inflector::singularize($modelsName);
 
     $this->cur_pl = new \stdClass();
-    
+
+    if(!(method_exists($this->$modelsName, 'getPrimaryLinks')
+         && $this->$modelsName->getPrimaryLinks())
+    ) {
+      return $this->cur_pl;
+    }
+
     // PrimaryLinkTrait
-    if(method_exists($this->$modelsName, "getPrimaryLinks")
-       && $this->$modelsName->getPrimaryLinks()) {
-      // Some models, in particular MVEAs, can have multiple potential primary
-      // links. In these cases, only one primary link is valid at a time, so we
-      // have to look through the available primary links and find one.
-      
-      $availablePrimaryLinks = $this->$modelsName->getPrimaryLinks();
-      
-      if($lookup) {
-        foreach($availablePrimaryLinks as $potentialPrimaryLink) {
-          // $potentialPrimaryLink will be something like 'attribute_collector_id'
-          // $potentialPrimaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'
-          $potentialPrimaryLinkTable = $this->$modelsName->getPrimaryLinkTableName($potentialPrimaryLink);
-          $potentialPlugin = null;
+    // Some models, in particular MVEAs, can have multiple potential primary
+    // links. In these cases, only one primary link is valid at a time, so we
+    // have to look through the available primary links and find one.
 
-          // Try to find a value
+    if($lookup) {
+      $this->primaryLinkLookup();
+    }
 
-          if(strstr($potentialPrimaryLinkTable, '.')) {
-            // For looking up values in records here, we want only the attribute
-            // itself and not the plugin name (used for hacky notation by
-            // PrimaryLinkTrait::setPrimaryLink(). Note this is a field and not
-            // a model, but pluginModel() gets us the bit we need.
+    if(empty($this->cur_pl->value)) {
+      return $this->cur_pl;
+    }
 
-            // Store the plugin for possible later reference.
-            $potentialPlugin = StringUtilities::pluginPlugin($potentialPrimaryLinkTable);
-          }
-          
-          if($this->request->is('get')) {
-            // If this action allows unkeyed, asserted primary link IDs, check the query
-            // string (eg: 'add' or 'index' allow matchgrid_id to be passed in)
-            if($this->$modelsName->allowUnkeyedPrimaryLink($this->request->getParam('action'))
-               && $this->request->getQuery()) {
-              $this->cur_pl->value = $this->request->getQuery($potentialPrimaryLink);
-            } elseif($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
-              // Try to map the requested object ID
-              $param = (int)$this->request->getParam('pass.0');
-              
-              if(!empty($param)) {
-                $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
-                // Break the loop here since we also have the link attribute, 
-                // which might not be $potentialPrimaryLink
-                $this->set('vv_primary_link', $this->cur_pl->attr);
-                break;
-              }
-            }
-          } elseif($this->request->is('post') && $this->request->getParam('action') != 'delete') {
-            // Post = add, where we can have a list of objects and nothing in /objects/{id}
-            // We don't support different primary links across objects, so we throw an error
-            // if different parent keys are provided.
-            
-            $linkValue = null;
-            
-            // Data in API format
-            $reqData = $this->request->getData($modelsName);
-            
-            if(!$reqData 
-               // Don't create $reqData if the POST data is also empty
-               && !empty($this->request->getData())) {
-              // Data in POST format
-              $reqData[] = $this->request->getData();
-            }
-            
-            if(!empty($reqData)) {
-              foreach($reqData as $rec) {
-                if(!empty($rec[$potentialPrimaryLink])) {
-                  if(!$linkValue) {
-                    // This is the first record we've seen, use this primary link value
-                    $linkValue = $rec[$potentialPrimaryLink];
-                  } elseif($linkValue != $rec[$potentialPrimaryLink]) {
-                    // We don't support multiple records with different parents
-                    throw new \InvalidArgumentException(__d('error', 'primary_link.mismatch'));
-                  }
-                }
-                
-                $this->cur_pl->value = $linkValue;
-              }
-            }
-            
-            // If we didn't find the primary link in the submitted form or API
-            // request, it might be available via the URL.
+    // Look up the link value to find the related entity
 
-            if(!$linkValue
-               && $this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
-              // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
-              $param = (int)$this->request->getParam('pass.0');
-              
-              if(!empty($param)) {
-                $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
-                // Break the loop here since we also have the link attribute, 
-                // which might not be $potentialPrimaryLink
-                $this->set('vv_primary_link', $this->cur_pl->attr);
-                break;
-              }
-            }
-          } elseif($this->request->is('put') || $this->request->getParam('action') == 'delete') {
-            // Put = edit, so we should look up the parent ID via the object itself
-            if($this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))) {
-              // Try to map the requested object ID (this is probably a delete, so no attribute in post body)
-              $param = (int)$this->request->getParam('pass.0');
-              
-              if(!empty($param)) {
-                $this->cur_pl = $this->$modelsName->findPrimaryLink($param);
-                // Break the loop here since we also have the link attribute, 
-                // which might not be $potentialPrimaryLink
-                $this->set('vv_primary_link', $this->cur_pl->attr);
-                break;
-              }
-            }
-          }
-          
-          if(!empty($this->cur_pl->value)) {
-            // We found a populated primary link. Store the attribute and break the loop.
-            $this->cur_pl->attr = $potentialPrimaryLink;
-            if($potentialPlugin) {
-              $this->cur_pl->plugin = $potentialPlugin;
-            }
-            $this->set('vv_primary_link', $this->cur_pl->attr);
-            break;
-          }
-        }
-        
-        if(empty($this->cur_pl->value)
-           && !$this->$modelsName->allowEmptyPrimaryLink($this->request->getParam('action'))) {
-          throw new \RuntimeException(__d('error', 'primary_link'));
-        }
-      }
-      
-      if(!empty($this->cur_pl->value)) {
-        // Look up the link value to find the related entity
-        
-        $linkTableName = $this->$modelsName->getPrimaryLinkTableName($this->cur_pl->attr);
-        $linkTable = $this->getTableLocator()->get($linkTableName);
-        
-        $this->set('vv_primary_link_model', $linkTableName);
-        
-        try {
-          $plObj = $linkTable->findById($this->cur_pl->value)->firstOrFail();
-          
-          $this->set('vv_primary_link_obj', $plObj);
-          
-          // While we're here, note the CO since we'll probably need it soon
-          if(!empty($plObj->co_id)) {
-            $this->cur_pl->co_id = $plObj->co_id;
-          } elseif(method_exists($linkTable, "findCoForRecord")) {
-            $this->cur_pl->co_id = $linkTable->findCoForRecord((int)$this->cur_pl->value);
-          }
-        }
-        catch(RecordNotFoundException $e) {
-          $this->llog('error', "Could not find value '" . $this->cur_pl->value . "' for primary link object " . $linkTableName);
-          // Mask this with a generic UnauthorizedException
-          throw new UnauthorizedException(__d('error', 'perm'));
-        }
+    $linkTableName = $this->$modelsName->getPrimaryLinkTableName($this->cur_pl->attr);
+    $linkTable = $this->getTableLocator()->get($linkTableName);
+
+    $this->set('vv_primary_link_model', $linkTableName);
+
+    try {
+      $plObj = $linkTable->findById($this->cur_pl->value)->firstOrFail();
+
+      $this->set('vv_primary_link_obj', $plObj);
+
+      // While we're here, note the CO since we'll probably need it soon
+      if(!empty($plObj->co_id)) {
+        $this->cur_pl->co_id = $plObj->co_id;
+      } elseif(method_exists($linkTable, 'findCoForRecord')) {
+        $this->cur_pl->co_id = $linkTable->findCoForRecord((int)$this->cur_pl->value);
       }
     }
-    
+    catch(RecordNotFoundException $e) {
+      $this->llog('error', "Could not find value '" . $this->cur_pl->value . "' for primary link object " . $linkTableName);
+      // Mask this with a generic UnauthorizedException
+      throw new UnauthorizedException(__d('error', 'perm'));
+    }
+
     return $this->cur_pl;
   }
-  
+
   /**
    * Get the redirect goal for this table.
    *
+   * @param   string  $action  Action
+   *
+   * @return string|null Redirect goal
    * @since  COmanage Registry v5.0.0
-   * @param  string $action   Action
-   * @return string           Redirect goal
    */
   
   protected function getRedirectGoal(string $action): ?string {

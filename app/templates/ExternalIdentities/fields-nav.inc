@@ -55,17 +55,24 @@ $topLinks = [
       ]
     ]
   ],
-  [
+];
+
+if($vv_obj?->ext_identity_source_record?->id !== null) {
+  $topLinks[] =   [
     'icon' => 'visibility',
     'order' => 'Default',
+    'class' => 'cm-modal-link nospin', // launch this in a modal
+    'dataAttrs' => [
+      ['data-cm-modal-title',__d('controller', 'ExtIdentitySourceRecords', 1)]
+    ],
     'label' => __d('operation', 'view.a', [__d('controller', 'ExtIdentitySourceRecords', 1)]),
     'link' => [
       'controller' => 'ext_identity_source_records',
       'action' => 'view',
       $vv_obj->ext_identity_source_record->id
     ]
-  ]
-];
+  ];
+}
 
 // $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
 // it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.

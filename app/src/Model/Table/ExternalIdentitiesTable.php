@@ -117,6 +117,7 @@ class ExternalIdentitiesTable extends Table {
       'Addresses',
       'AdHocAttributes',
       'EmailAddresses',
+      'ExtIdentitySourceRecords' => ['ExternalIdentitySources'],
       'Identifiers',
       'Names',
       //'ExternalIdentityRoles',

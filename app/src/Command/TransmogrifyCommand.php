@@ -1308,8 +1308,8 @@ class TransmogrifyCommand extends Command {
           manager_co_person_id,
           cou_id,
           CASE
-            WHEN affiliation IS NULL THEN "member"
-            WHEN affiliation = "" THEN "member"
+            WHEN affiliation IS NULL THEN 'member'
+            WHEN affiliation = '' THEN 'member'
             ELSE affiliation
           END as affiliation,
           title,

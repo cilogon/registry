@@ -61,7 +61,10 @@ msgid "ExternalIdentitySources.records"
 msgstr "Source Records"
 
 msgid "ExternalIdentitySources.retrieve"
-msgstr "This is the current record retrieved directly from the source. <a href="{0}">View the latest record cached by Registry</a>."
+msgstr "This is the current record retrieved directly from the source. {0}"
+
+msgid "ExternalIdentitySources.cached"
+msgstr "View the latest record cached by Registry"
 
 msgid "ExternalIdentitySources.retrieve.notSynced"
 msgstr "This is the current record available directly from the source."
@@ -70,7 +73,7 @@ msgid "ExternalIdentitySourceRecords.metadata"
 msgstr "Metadata"
 
 msgid "ExternalIdentitySourceRecords.view"
-msgstr "This is the latest record from the source as cached by Registry. <a href="{0}">Retrieve the current record directly from the source</a>."
+msgstr "This is the latest record from the source as cached by Registry. <a href="{0}" target="_top">Retrieve the current record directly from the source</a>."
 
 msgid "ExternalIdentitySources.search.attrs.none"
 msgstr "The External Identity Source cannot be searched."

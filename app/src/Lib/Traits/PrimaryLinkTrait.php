@@ -464,7 +464,7 @@ trait PrimaryLinkTrait {
   }
   
   /**
-   * Set the primary link attribute. Several formats are acceepted:
+   * Set the primary link attribute. Several formats are accepted:
    * 
    * 1: ('person_id'): Primary link is to People
    * 2: (['person_id', 'group_id']): Primary link can be to People _or_ Groups

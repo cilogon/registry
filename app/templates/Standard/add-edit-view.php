@@ -134,14 +134,13 @@ if(!empty($subnav)) {
       }
       
       if($perm) {
-        $action_args['vv_actions'][] = [
-          'order' => $this->Menu->getMenuOrder($t['order']),
-          'icon' => $this->Menu->getMenuIcon($t['icon']),
-          'url' => $t['link'],
-          'label' => $t['label'],
-          'class' => !empty($t['class']) ? $t['class'] : '',
-          'confirm' => !empty($t['confirm']) ? $t['confirm'] : []
-        ];
+        $action_args['vv_actions'][] = $t;
+        $key = array_key_last($action_args['vv_actions']);
+        $action_args['vv_actions'][$key]['order'] = $this->Menu->getMenuOrder($t['order']);
+        $action_args['vv_actions'][$key]['icon'] = $this->Menu->getMenuIcon($t['icon']);
+        $action_args['vv_actions'][$key]['url'] = $t['link'] ?? '';
+        $action_args['vv_actions'][$key]['class'] = $t['class'] ?? '';
+        $action_args['vv_actions'][$key]['confirm'] = $t['confirm'] ?? '';
       }
     }
   

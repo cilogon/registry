@@ -49,7 +49,19 @@ class ExtIdentitySourceRecordsTable extends Table {
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  
+
+  /**
+   * Provide the default layout
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string  Type of redirect
+   */
+  public function getLayout(string $action = ''): string {
+    return match($action) {
+      default => 'iframe'
+    };
+  }
+
   /**
    * Perform Cake Model initialization.
    *
@@ -71,11 +83,11 @@ class ExtIdentitySourceRecordsTable extends Table {
     
     $this->setDisplayField('source_key');
     
-    $this->setPrimaryLink(['external_identity_source_id']);
+    $this->setPrimaryLink(['external_identity_source_id', 'external_identity_id']);
     $this->setRequiresCO(true);
 
     // These are required for the link to work from the Artifacts page
-    $this->setAllowUnkeyedPrimaryCO(['index']);
+    $this->setAllowUnkeyedPrimaryCO(['index', 'view']);
     $this->setAllowEmptyPrimaryLink(['index']);
 
     $this->setIndexContains([

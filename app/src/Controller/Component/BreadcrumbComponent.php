@@ -57,11 +57,11 @@ class BreadcrumbComponent extends Component
   // Don't render the parent links
   protected $skipParentPaths = [];
   // Inject parent links (these render before the index link, if set)
-  // The parent links are constructed as part of the injectPrimaryLink function. This in the StandardController as well
-  // as in the StandardPluginController, MVEAController, ProvisioningHistoryRecordController, etc. These controllers are
-  // a descendant from the StandardController we will calculate the Parents twice. In order to avoid duplicates the
-  // injectParents table has to be an associative array. The uniqueness of the key will preserve the uniqueness of the parent
-  // path while the order of firing will create the correct breadcumb path order
+  // The parent links are constructed as part of the injectPrimaryLink function, as well as in the StandardController and
+  // in the StandardPluginController, MVEAController, ProvisioningHistoryRecordController, etc. These controllers are
+  // a descendant from the StandardController we will calculate the Parents twice. To avoid duplicates, the
+  // injectParents table has to be an associative array. The uniqueness of the key will preserve the uniqueness of
+  // the parent path while the order of firing will create the correct breadcrumb path order
   protected $injectParents = [];
   // Inject title links (immediately before the title breadcrumb)
   protected $injectTitleLinks = [];
@@ -111,8 +111,9 @@ class BreadcrumbComponent extends Component
 
     // Do we have a target model, and if so is it a configuration
     // model (eg: ApiUsers) or an object model (eg: CoPeople)?
-    if(isset($controller->$modelsName) // May not be set under certain error conditions
-      && method_exists($controller->$modelsName, "isConfigurationTable")) {
+    if(\is_object($controller->$modelsName)
+       && method_exists($controller->$modelsName, "isConfigurationTable")
+    ) {
       $controller->set('vv_bc_configuration_link', $controller->$modelsName->isConfigurationTable());
     } else {
       $controller->set('vv_bc_configuration_link', false);

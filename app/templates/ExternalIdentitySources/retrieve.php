@@ -71,6 +71,10 @@ use \Cake\Utility\Inflector;
       $action_args['vv_actions'][] = [
         'order' => 3,
         'icon' => 'visibility',
+        'class' => 'cm-modal-link nospin', // launch this in a modal
+        'dataAttrs' => [
+          ['data-cm-modal-title',__d('controller', 'ExtIdentitySourceRecords', 1)]
+        ],
         'url' => [
           'controller'  => 'ext-identity-source-records',
           'action'      => 'view',
@@ -90,18 +94,26 @@ use \Cake\Utility\Inflector;
 <?php
   $noticeText = __d('information', 'ExternalIdentitySources.retrieve.notSynced');
   if(!empty($vv_external_identity_record->id)) {
+    // Construct the link
+    $link = $this->Html->link(
+      __d('information', 'ExternalIdentitySources.cached'),
+      [
+        'controller' => 'ext-identity-source-records',
+        'action' => 'view',
+        $vv_external_identity_record->id
+      ],
+      [
+        'class' => 'cm-modal-link nospin',
+        'target' => '_top',
+        'data-cm-modal-title' => __d('controller', 'ExtIdentitySourceRecords', 1)
+      ],
+    );
+
+    // Construct the message
     $noticeText = __d(
       'information',
       'ExternalIdentitySources.retrieve',
-      [
-        $this->Url->build(
-          [
-            'controller' => 'ext-identity-source-records',
-            'action' => 'view',
-            $vv_external_identity_record->id
-          ]
-        )
-      ]
+      $link
     );
   }
 ?>

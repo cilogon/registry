@@ -207,12 +207,12 @@ class StandardController extends AppController {
     // Primarily of interest to detailed record views, if this attribute supports
     // Pipeline sourcing (ie: has a source_foo_id field) set the name of the source
     // foreign key into a view var since it's not always calculable.
-    if(method_exists($table, "sourceForeignKey")) {
+    if(method_exists($table, 'sourceForeignKey')) {
       $this->set('vv_source_fk', $table->sourceForeignKey());
     }
 
     // Check to see if the model names a specific layout
-    if(method_exists($table, "getLayout")) {
+    if(method_exists($table, 'getLayout')) {
       $this->viewBuilder()->setLayout($table->getLayout($this->request->getParam('action')));
     }
 
