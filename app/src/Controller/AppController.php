@@ -318,7 +318,8 @@ class AppController extends Controller {
       : null;
 
     $cur = new \stdClass();
-    $cur->value = $this->request->getQuery($potentialPrimaryLink);
+    // Check both the query parameters(GET request) and the body(POST request).
+    $cur->value = $this->request->getQuery($potentialPrimaryLink) ?? $this->request->getData($potentialPrimaryLink);
     // We found a populated primary link. Store the attribute and break the loop.
     $cur->attr = $potentialPrimaryLink;
     if($potentialPlugin) {
