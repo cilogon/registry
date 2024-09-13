@@ -1914,6 +1914,9 @@ code,
   color: var(--cmg-color-body-txt);
   font-size: 1em;
 }
+code.source-record {
+  overflow-wrap: anywhere;
+}
 /* INDEX VIEWS and TABLES */
 table {
   width: 100%;
