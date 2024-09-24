@@ -102,6 +102,12 @@ msgstr "Configure {0}"
 msgid "configure.plugin"
 msgstr "Configure Plugin"
 
+msgid "copy"
+msgstr "Copy"
+
+msgid "copy.value"
+msgstr "Copy value"
+
 msgid "dashboard.configuration"
 msgstr "{0} Configuration"
 

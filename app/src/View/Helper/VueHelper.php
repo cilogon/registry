@@ -46,6 +46,9 @@ class VueHelper extends Helper {
     'enumeration' => [
       'SuspendableStatusEnum.S'
     ],
+    'error' => [
+      'copy.error'
+    ],
     'field' => [
       'email',
       'login',
@@ -58,7 +61,8 @@ class VueHelper extends Helper {
       'global.value.none',
       'datepicker.hour',
       'record',
-      'report.for'
+      'report.for',
+      'value.copied'
     ],
     'operation' => [
       'add',
@@ -67,7 +71,9 @@ class VueHelper extends Helper {
       'autocomplete.pager.show.more',
       'autocomplete.people.label',
       'autocomplete.people.placeholder',
-      'close'
+      'close',
+      'copy',
+      'copy.value'
     ],
     'result' => [
       'failed',

@@ -119,3 +119,6 @@ msgstr "Report for "
 
 msgid "table.list"
 msgstr "{0} List"
+
+msgid "value.copied"
+msgstr "Value copied to clipboard."

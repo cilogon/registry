@@ -1917,6 +1917,34 @@ code,
 code.source-record {
   overflow-wrap: anywhere;
 }
+.with-copy-icon {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+  align-items: center;
+}
+button.cm-copy-value-button {
+  display: flex;
+  align-items: center;
+  gap: 0.1em;
+  padding: 0 0.5em 0.2em;
+  text-transform: unset;
+  box-shadow: none;
+  background-color: var(--cmg-color-body-bg);
+  border: 1px solid var(--cmg-color-bg-006);
+  color: var(--cmg-color-link);
+  white-space: nowrap;
+}
+button.cm-copy-value-button:hover,
+button.cm-copy-value-button:active,
+button.cm-copy-value-button:focus {
+  background-color: var(--cmg-color-btn-bg-001);
+  border: 1px solid var(--cmg-color-btn-bg-001);
+  color: var(--cmg-color-txt-inverse) !important;
+}
+.cm-copy-value-button .material-icons-outlined {
+  font-size: 1em !important;
+}
 /* INDEX VIEWS and TABLES */
 table {
   width: 100%;

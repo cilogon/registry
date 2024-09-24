@@ -100,6 +100,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
+    min-height: 2.5em;
   }
   #mvea-canvas-roles .field-data-container {
     grid-template-columns: 1fr 1fr 2fr auto;
@@ -202,6 +203,24 @@
   #global-search #global-search-clear {
     padding: 0 0.75em;
     border-right: 1px dashed var(--cmg-color-bg-006);
+  }
+  .with-copy-icon {
+    justify-content: flex-start;
+    position: relative;
+  }
+  .with-copy-icon .cm-copy-value-button {
+    display: none;
+    /* The following two rules are a trade-off; remove them to make the copy button appear just to the right of the 
+       value being copied; the trade-off is that long lines will wrap when the button appears causing the row to 
+       jump in size which can also be distracting. */
+    position: absolute;
+    right: 1em;
+  }
+  .field-data-container:hover .with-copy-icon .cm-copy-value-button,
+  .field-data-container:active .with-copy-icon .cm-copy-value-button,
+  .field-data-container:focus .with-copy-icon .cm-copy-value-button,
+  .field-data-container:focus-within .with-copy-icon .cm-copy-value-button {
+    display: flex;
   }
   /* SEARCH RESULTS */
   body.search .page-title-container {

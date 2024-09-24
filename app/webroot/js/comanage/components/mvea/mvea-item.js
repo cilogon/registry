@@ -24,6 +24,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+import CopyValueButton from '../common/copy-value-button.js';
 import {
   constructLanguageString
 } from '../utils/helpers.js';
@@ -34,9 +35,15 @@ export default {
     core: Object,
     txt: Object
   },
+  components: {
+    CopyValueButton
+  },
   computed: {
     mveaLink: function() {
       return this.core.webroot + this.core.mveaController + (this.core.action == 'edit' ? '/edit/' : '/view/') + this.mvea.id;
+    },
+    mveaAddress: function() {
+      return this.mvea.room + ' ' + this.mvea.street + ' ' + this.mvea.locality + ' ' + this.mvea.state + ' ' + this.mvea.postal_code + ' ' + this.mvea.country;
     }
   },
   methods: {
@@ -57,7 +64,7 @@ export default {
   template: `
     <!-- Names -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'names'" @click="followRowLink">
-      <div class="field-data force-wrap">
+      <div class="field-data force-wrap with-copy-icon">
         <a :href="mveaLink" class="row-link" @click.prevent>
           <!-- If there is a display name use it. Otherwise, check language and produce right-to-left 
             order or left-to-right order. This approach is similar to Model/Entity/Name.php::_getFullName(). 
@@ -73,7 +80,23 @@ export default {
           <span v-else class="mvea-name-ltr">
             {{ this.mvea.honorific }} {{ this.mvea.given }} {{ this.mvea.middle }} {{ this.mvea.family }} {{ this.mvea.suffix }}
           </span>
-        </a>                                                
+        </a>
+        <!-- XXX As noted above, replace the following logic when full_name is available. -->
+        <copy-value-button 
+          v-if="this.mvea.display_name"
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.display_name">
+        </copy-value-button>
+        <copy-value-button 
+          v-else-if="['hu', 'ja', 'ko', 'za-Hans', 'za-Hant'].indexOf(this.mvea.language) != -1"
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.family + ' ' + this.mvea.given">
+        </copy-value-button>
+        <copy-value-button 
+          v-else
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.honorific + ' ' + this.mvea.given + ' ' + this.mvea.middle + ' ' + this.mvea.family + ' ' + this.mvea.suffix">
+        </copy-value-button>                                        
       </div>
       <div class="field-data data-label">
         <span v-if="this.mvea.primary_name" class="mr-1 badge bg-outline-secondary primary">{{ this.txt.primary }}</span>
@@ -83,8 +106,12 @@ export default {
     </li>
     <!-- Email Addresses -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'email_addresses'" @click="followRowLink">
-      <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.mail }}</a>                                              
+      <div class="field-data force-wrap with-copy-icon">
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.mail }}</a> 
+        <copy-value-button 
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.mail">
+        </copy-value-button>
       </div>
       <div class="field-data data-label">
         <span v-if="!(this.mvea.verified)" class="mr-1 badge bg-warning unverified">{{ this.txt.unverified }}</span>
@@ -93,8 +120,12 @@ export default {
     </li>
     <!-- Identifiers -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'identifiers'" @click="followRowLink">
-      <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.identifier }}</a>                                              
+      <div class="field-data force-wrap with-copy-icon">
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.identifier }}</a>   
+        <copy-value-button 
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.identifier">
+        </copy-value-button>                                           
       </div>
       <div class="field-data data-label">
         <span v-if="this.mvea.status == 'S'" class="mr-1 badge bg-danger">{{ this.txt["SuspendableStatusEnum.S"] }}</span>
@@ -104,8 +135,13 @@ export default {
     </li>
     <!-- Ad Hoc Attributes -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'ad_hoc_attributes'" @click="followRowLink">
-      <div class="field-data force-wrap">
+      <div class="field-data force-wrap with-copy-icon">
         <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.value != '' ? this.mvea.value : this.txt["global.value.none"] }}</a>
+        <copy-value-button 
+          v-if="this.mvea.value != ''"
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.value">
+        </copy-value-button>   
       </div>
       <div v-if="this.mvea.tag != ''" class="field-data data-label">
         <span class="mr-1 badge bg-light ad-hoc">{{ this.mvea.tag }}</span>
@@ -113,16 +149,22 @@ export default {
     </li>
     <!-- Addresses -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'addresses'" @click="followRowLink">
-      <div class="field-data force-wrap">
+      <div class="field-data force-wrap with-copy-icon">
         <address>
-          <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.room }} {{ this.mvea.street }}</a>
-          <span v-if="this.mvea.locality != '' || this.mvea.state != ''" class="addr-locality-state">
-            <br>{{ this.mvea.locality }}{{ this.mvea.locality != '' && this.mvea.state != '' ? ', ' : ''}}{{ this.mvea.state }}
-          </span>
-          <span v-if="this.mvea.postal_code != '' || this.mvea.country != ''" class="addr-postalcode-country">
-            <br>{{ this.mvea.postal_code }} {{ this.mvea.country }}
-          </span>
-        </address>                                                
+          <a :href="mveaLink" class="row-link" @click.prevent>
+            {{ this.mvea.room }} {{ this.mvea.street }}
+            <span v-if="this.mvea.locality != '' || this.mvea.state != ''" class="addr-locality-state">
+              <br>{{ this.mvea.locality }}{{ this.mvea.locality != '' && this.mvea.state != '' ? ', ' : ''}}{{ this.mvea.state }}
+            </span>
+            <span v-if="this.mvea.postal_code != '' || this.mvea.country != ''" class="addr-postalcode-country">
+              <br>{{ this.mvea.postal_code }} {{ this.mvea.country }}
+            </span>
+          </a>
+        </address>         
+        <copy-value-button 
+          :txt="this.txt" 
+          :valueToCopy="this.mveaAddress">
+        </copy-value-button>                                   
       </div>
       <div class="field-data data-label">
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>
@@ -130,8 +172,12 @@ export default {
     </li>
     <!-- Telephone Numbers -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'telephone_numbers'" @click="followRowLink">
-      <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.country_code }} {{ this.mvea.area_code }} {{ this.mvea.number }}</a>                                              
+      <div class="field-data force-wrap with-copy-icon">
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.country_code }} {{ this.mvea.area_code }} {{ this.mvea.number }}</a> 
+        <copy-value-button 
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.country_code+this.mvea.area_code+this.mvea.number">
+        </copy-value-button>                                              
       </div>
       <div class="field-data data-label">
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>
@@ -139,9 +185,13 @@ export default {
     </li>
     <!-- Urls -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'urls'" @click="followRowLink">
-      <div class="field-data force-wrap">
+      <div class="field-data force-wrap with-copy-icon">
         <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.description != '' && this.mvea.description != null ? this.mvea.description : this.mvea.url }}</a>   
         <a :href="this.mvea.url" class="canvas-url-link" :title="this.txt['global.visit.link']"><span class="material-icons">north_east</span></a>
+        <copy-value-button 
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.url">
+        </copy-value-button>  
       </div>
       <div class="field-data data-label">
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>
@@ -149,8 +199,12 @@ export default {
     </li>
     <!-- Pronouns -->
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'pronouns'" @click="followRowLink">
-      <div class="field-data force-wrap">
-        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.type_id }}</a>                                              
+      <div class="field-data force-wrap with-copy-icon">
+        <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.pronouns }}</a>     
+        <copy-value-button 
+          :txt="this.txt" 
+          :valueToCopy="this.mvea.pronouns">
+        </copy-value-button>                                           
       </div>
       <div class="field-data data-label">
         <span class="mr-1 badge bg-light">{{ this.mvea.type.display_name }}</span>
