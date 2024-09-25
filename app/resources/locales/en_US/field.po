@@ -679,6 +679,12 @@ msgstr "Telephone Number"
 msgid "TelephoneNumbers.number.ext"
 msgstr "x"
 
+msgid "Types.case_insensitive"
+msgstr "Case Insensitive"
+
+msgid "Types.case_insensitive.desc"
+msgstr "If ticked, uniqueness checks for this Identifier Type will be case insensitive"
+
 msgid "Types.edupersonaffiliation.desc"
 # XXX update link to PE wiki?
 msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations">eduPersonAffiliation and Extended Affiliations</a>"

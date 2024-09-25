@@ -33,10 +33,14 @@
     var attr = document.getElementById('attribute').value;
 
     // Handle page interaction
-    if(attr == 'PersonRoles.affiliation_type') {
+    if(attr == 'Identifiers.type') {
+      hideFields(['edupersonaffiliation'], isPageLoad);
+      showFields(['case-insensitive'], isPageLoad);
+    } else if(attr == 'PersonRoles.affiliation_type') {
+      hideFields(['case-insensitive'], isPageLoad);
       showFields(['edupersonaffiliation'], isPageLoad);
     } else {
-      hideFields(['edupersonaffiliation'], isPageLoad);
+      hideFields(['case-insensitive', 'edupersonaffiliation'], isPageLoad);
     }
   }
 
@@ -60,6 +64,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   foreach (['display_name',
              'value',
              'status',
+             'case_insensitive',
              'edupersonaffiliation'
            ] as $field) {
     print $this->element('form/listItem', [

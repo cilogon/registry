@@ -405,6 +405,11 @@ class TypesTable extends Table {
     ]);
     $validator->allowEmptyString('edupersonaffiliation');
     
+    $validator->add('case_insensitive', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('case_insensitive');
+
     $validator->add('status', [
       'content' => ['rule' => ['inList', SuspendableStatusEnum::getConstValues()]]
     ]);

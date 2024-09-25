@@ -163,6 +163,9 @@ msgstr "No identifier of type \"{0}\" found"
 msgid "IdentifierAssignments.type.none"
 msgstr "No identifier type specified"
 
+msgid "Identifiers.exists"
+msgstr "Identifier already exists on {0} ID {1}"
+
 msgid "Identifiers.login"
 msgstr "Only Identifiers attached to a Person may be flagged for login"
 

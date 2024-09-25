@@ -31,6 +31,7 @@ namespace App\Model\Table;
 
 use Cake\Event\EventInterface;
 use Cake\ORM\Query;
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -40,6 +41,7 @@ class IdentifiersTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
@@ -173,6 +175,24 @@ class IdentifiersTable extends Table {
   }
 
   /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-Identifier-2 An Identifier must be unique for its Type and Entity (Person
+    // or Group) within the CO.
+    $rules->add([$this, 'ruleUniqueIdentifier'],
+                'uniqueIdentifier',
+                ['errorField' => 'identifier']);
+
+    return $rules;
+  }
+
+  /**
    * Callback after model save.
    *
    * @since  COmanage Registry v5.0.0
@@ -243,6 +263,63 @@ class IdentifiersTable extends Table {
     return $id->person_id;
   }
   
+  /**
+   * Application Rule to determine if an Identifier is already in use.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+
+  public function ruleUniqueIdentifier($entity, $options) {
+    // Uniqueness constraints only apply to People and Groups
+
+    // In v4 we created a txn to ensure consistency, but it looks like Cake actually
+    // starts a transaction, so it appears we don't actially need to do that here.
+
+    if(!empty($entity->person_id) || !empty($entity->group_id)) {
+      if($entity->isNew() 
+         || $entity->isDirty('identifier') 
+         || $entity->isDirty('type_id')) {
+        // We need the Type configuration to see if uniqueness is case insensitive
+        $type = $this->Types->get($entity->type_id);
+
+        // Note we specifically do NOT check status, since a Suspended Identifier
+        // will still prevent duplicate assignment. (AR-Identifier-3)
+        $whereClause = [
+          'type_id'     => $entity->type_id
+        ];
+
+        if(isset($type->case_insensitive) && $type->case_insensitive) {
+          $whereClause['LOWER(identifier)'] = strtolower($entity->identifier);
+        } else {
+          $whereClause['identifier'] = $entity->identifier;
+        }
+
+        $identifier = $this->find()
+                           ->where($whereClause)
+                           ->epilog('FOR UPDATE')
+                           ->first();
+        
+        if(!empty($identifier)) {
+          $inusect = !empty($identifier->person_id) ? __d('controller', 'People', 1) : __d('controller', 'Groups', 1);
+          $inuseid = !empty($identifier->person_id) ? $identifier->person_id : $identifier->group_id;
+
+          // If we fail in the middle of Identifier Assignment this returned message
+          // will get lost/superceded by a rollback error
+          $this->llog('rule', "AR-Identifier-2 Identifier " . $identifier->identifier . " is already in use on $inusect ID $inuseid");
+
+          return __d('error', 
+                     'Identifiers.exists',
+                     [$inusect, $inuseid]);
+        }
+      }
+    }
+
+    return true;
+  }
+
   /**
    * Perform a keyword search.
    *

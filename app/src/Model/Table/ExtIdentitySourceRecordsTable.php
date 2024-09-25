@@ -87,7 +87,7 @@ class ExtIdentitySourceRecordsTable extends Table {
     $this->setRequiresCO(true);
 
     // These are required for the link to work from the Artifacts page
-    $this->setAllowUnkeyedPrimaryCO(['index', 'view']);
+    $this->setAllowUnkeyedPrimaryCO(['index']);
     $this->setAllowEmptyPrimaryLink(['index']);
 
     $this->setIndexContains([

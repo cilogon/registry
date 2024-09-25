@@ -48,7 +48,8 @@ if($vv_action == 'add') {
     'arguments' => [
       'fieldName' => 'names.0.type_id',
       'fieldOptions' => [
-        'default' => $vv_default_name_type
+        'default' => $vv_default_name_type,
+        'required' => true
       ],
       'fieldType' => 'string'
     ]]);
