@@ -287,8 +287,10 @@
         $('table.index-table.bulk-edit-mode .form-check-input').prop('checked', false);
       }
     });
-       
 
+    // Add a .nospin class to all on-page cake error and warning links
+    $(".cake-error a").addClass('nospin');
+    
     // Add loading animation when a form is submitted, when any item with a "spin" class is clicked,
     // or on any anchor tag lacking the .nospin class. We do not automatically add this to buttons
     // because they are often on-page controls. Add a "spin" class to buttons that need it.
