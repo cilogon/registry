@@ -1315,6 +1315,74 @@ h2.card-title a {
   color: var(--cmg-color-txt-soft);
   font-size: 0.8em;
 }
+.field-data.with-actions {
+  display: flex;
+  justify-content: space-between;
+}
+/* JavaScript Component Action Dropdowns (e.g. on MVEAs) */
+.cm-component-actions ul.dropdown-menu {
+  margin: -0.5em 0 !important;
+  padding: 0;
+  font-size: 0.9em;
+  min-width: unset;
+}
+.cm-component-actions li.action-list-item {
+  margin: 0;
+  padding: 0;
+}
+.cm-component-actions .action-menu-toggle {
+  padding: 0.5em;
+}
+.cm-component-actions a.dropdown-item {
+  display: flex;
+  gap: 0.25em;
+  padding: 0.25rem 0.5rem;
+}
+#main .cm-component-actions a.dropdown-item:hover {
+  color: var(--cmg-color-btn-bg-002);
+  text-decoration: none;
+}
+.with-hover-button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+  align-items: center;
+}
+.with-row-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+  align-items: end;
+}
+.field-data.with-row-actions {
+  padding-right: 0.25em;
+}
+.cm-copy-value-button .material-icons-outlined {
+  font-size: 1em !important;
+}
+button.cm-row-button,
+a.cm-row-button {
+  display: flex;
+  align-items: center;
+  gap: 0.1em;
+  padding: 0 0.5em 0.2em;
+  text-transform: unset;
+  box-shadow: none;
+  background-color: var(--cmg-color-body-bg);
+  border: 1px solid var(--cmg-color-bg-006);
+  color: var(--cmg-color-link);
+  white-space: nowrap;
+}
+button.cm-row-button:hover,
+button.cm-row-button:active,
+button.cm-row-button:focus,
+a.cm-row-button:hover,
+a.cm-row-button:active,
+a.cm-row-button:focus {
+  background-color: var(--cmg-color-btn-bg-001);
+  border: 1px solid var(--cmg-color-btn-bg-001);
+  color: var(--cmg-color-txt-inverse) !important;
+}
 /* DATA LISTS */
 ul.data-list {
   padding-left: 0;
@@ -1339,6 +1407,10 @@ label {
 }
 ul.fields li {
   overflow-x: auto; /* required for data tables on mobile */
+}
+.card ul.fields li {
+  overflow: unset; /* but don't overflow in a card row */
+  list-style: none;
 }
 /*** ul.form-list is the main structure for representing forms
 as well as data where field name is in the left column and
@@ -1916,34 +1988,6 @@ code,
 }
 code.source-record {
   overflow-wrap: anywhere;
-}
-.with-copy-icon {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5em;
-  align-items: center;
-}
-button.cm-copy-value-button {
-  display: flex;
-  align-items: center;
-  gap: 0.1em;
-  padding: 0 0.5em 0.2em;
-  text-transform: unset;
-  box-shadow: none;
-  background-color: var(--cmg-color-body-bg);
-  border: 1px solid var(--cmg-color-bg-006);
-  color: var(--cmg-color-link);
-  white-space: nowrap;
-}
-button.cm-copy-value-button:hover,
-button.cm-copy-value-button:active,
-button.cm-copy-value-button:focus {
-  background-color: var(--cmg-color-btn-bg-001);
-  border: 1px solid var(--cmg-color-btn-bg-001);
-  color: var(--cmg-color-txt-inverse) !important;
-}
-.cm-copy-value-button .material-icons-outlined {
-  font-size: 1em !important;
 }
 /* INDEX VIEWS and TABLES */
 table {

@@ -169,14 +169,14 @@ export default {
       return this.ids.length == 0 || this.selected == undefined || this.selected == ''
     },
     failedMessage() {
-      return `${this.failed} ${this.txt['failed']}`
+      return `${this.failed} ${this.txt['result.failed']}`
     },
     succeededMessage() {
       if(this.selected == 'delete') {
         console.log(JSON.parse(JSON.stringify(this.txt)));
-        return `${this.succeeded} ${this.txt['removed']}`
+        return `${this.succeeded} ${this.txt['result.removed']}`
       }
-      return `${this.succeeded} ${this.txt['updated']}`
+      return `${this.succeeded} ${this.txt['result.updated']}`
     }
   },
   template: `

@@ -54,9 +54,6 @@ msgstr "Username \"{0}\" not found in api_users table"
 msgid "auto.viewvar.type.unknown"
 msgstr "Unknown Auto View Var Type {0}"
 
-msgid "copy.error"
-msgstr "Could not copy."
-
 msgid "coid"
 msgstr "CO ID not found"
 
@@ -198,6 +195,12 @@ msgstr "{0} must be provided"
 
 msgid "invalid"
 msgstr "Invalid value \"{0}\""
+
+msgid "javascript.copy"
+msgstr "Could not copy."
+
+msgid "javascript.requires.https"
+msgstr "This feature requires HTTPS."
 
 msgid "Jobs.failed.abnormal"
 msgstr "The Job terminated unexpectedly"

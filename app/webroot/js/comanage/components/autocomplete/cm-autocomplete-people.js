@@ -181,10 +181,10 @@ export default {
           "itemId": `${item?.id}`,
           "email": this.filterByEmailAddressType(item?.email_addresses),
           "emailPretty": this.shortenString(this.constructEmailCsv(this.filterByEmailAddressType(item?.email_addresses))),
-          "emailLabel": this.txt['email'] + ": ",
+          "emailLabel": this.txt['field.email'] + ": ",
           "identifier": this.filterByIdentifierType(item?.identifiers),
           "identifierPretty": this.shortenString(this.constructIdentifierCsv(this.filterByIdentifierType(item?.identifiers))),
-          "identifierLabel": this.txt['Identifiers'] + ": ",
+          "identifierLabel": this.txt['controller.Identifiers'] + ": ",
           "isMember": !!item?._matchingData?.GroupMembers?.id
         }
       })
@@ -199,9 +199,9 @@ export default {
       } else {
         // The picker is stand-alone, and should render the configured page in a modal on @item-select
         const urlForModal = this.options.actionUrl + '&person_id=' + this.person.value;
-        let titleForModal = this.txt['registry.meta.registry'];
+        let titleForModal = this.txt['default.registry.meta.registry'];
         if(this.api.viewConfigParameters.groupId != undefined) {
-          titleForModal = this.txt['GroupMembers'];
+          titleForModal = this.txt['controller.GroupMembers'];
         }
         launchCmModal(urlForModal, titleForModal);
       }
@@ -271,7 +271,7 @@ export default {
         return this.options.label;
       }
       // Otherwise return the default
-      return this.txt['autocomplete.people.label'];
+      return this.txt['operation.autocomplete.people.label'];
     }
   },
   template: `
@@ -282,7 +282,7 @@ export default {
       inputClass="cm-autocomplete"
       :inputId="this.options.htmlId"
       :inputProps="this.options.inputProps"
-      :placeholder="this.txt['autocomplete.people.placeholder']"
+      :placeholder="this.txt['operation.autocomplete.people.placeholder']"
       panelClass="cm-autocomplete-panel"
       optionLabel="label"
       optionDisabled="isMember"
@@ -302,7 +302,7 @@ export default {
             <div class="cm-ac-name">
               <span class="cm-ac-name-value" v-if="slotProps.option.isMember" v-html="slotProps.option.label"></span>
               <span class="cm-ac-name-value" v-else v-html="this.highlightedquery(slotProps.option.label, query)"></span>
-              <span class="mr-1 badge bg-success" v-if="slotProps.option.isMember">{{ this.txt['GroupMembers'] }}</span>
+              <span class="mr-1 badge bg-success" v-if="slotProps.option.isMember">{{ this.txt['controller.GroupMembers'] }}</span>
             </div>
             <div class="cm-ac-item-id">
               ID: {{ slotProps.option.itemId }}
@@ -340,7 +340,7 @@ export default {
       </template>
       <template #footer="slotProps" v-if="hasMorePages">
         <div class="cm-ac-pager">
-          <a href="#" @click="this.fetchMorePeople()">{{ this.txt['autocomplete.pager.show.more'] }}</a>
+          <a href="#" @click="this.fetchMorePeople()">{{ this.txt['operation.autocomplete.pager.show.more'] }}</a>
         </div>
       </template>
     </AutoComplete>

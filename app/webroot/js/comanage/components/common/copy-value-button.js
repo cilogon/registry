@@ -36,7 +36,7 @@ export default {
   data() {
     return {
       copyIcon: "content_copy",
-      ariaLabel: this.txt['copy.value']
+      ariaLabel: this.txt['operation.copy.value']
     }
   },
   methods: {
@@ -48,24 +48,28 @@ export default {
         await navigator.clipboard.writeText(valWithNormalizedSpaces);
         // provide feedback
         this.copyIcon = 'thumb_up';
-        this.ariaLabel = this.txt['value.copied'];
+        this.ariaLabel = this.txt['information.value.copied'];
         // reset feedback
         setTimeout(() => this.copyIcon = 'content_copy', 800);
-        setTimeout(() => this.ariaLabel = this.txt['copy.value'], 2200);
+        setTimeout(() => this.ariaLabel = this.txt['operation.copy.value'], 2200);
       } catch($e) {
         // this will be rendered if browser is not on HTTPS
-        alert(this.txt["copy.error"] + "\n" + $e);
+        let msg = this.txt['error.javascript.copy'];
+        if(window.location.protocol != 'https:') {
+          msg += " " + this.txt['error.javascript.requires.https'];
+        }
+        alert(msg + "\n\n" + $e);
       }
     }
   },
   template: `
     <button 
       type="button" 
-      class="cm-copy-value-button btn btn-sm btn-default" 
+      class="cm-copy-value-button cm-hover-button cm-row-button btn btn-sm btn-default" 
       :aria-label="this.ariaLabel" 
       @click.stop.prevent="copyValue(this.valueToCopy)">
       <span class="material-icons-outlined">{{ this.copyIcon }}</span>
-      <span class="cm-copy-value-text">{{ this.txt.copy }}</span>
+      <span class="cm-copy-value-text">{{ this.txt['operation.copy'] }}</span>
     </button>
   `
 }

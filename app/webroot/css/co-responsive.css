@@ -204,11 +204,11 @@
     padding: 0 0.75em;
     border-right: 1px dashed var(--cmg-color-bg-006);
   }
-  .with-copy-icon {
+  .with-hover-button {
     justify-content: flex-start;
     position: relative;
   }
-  .with-copy-icon .cm-copy-value-button {
+  .with-hover-button .cm-hover-button {
     display: none;
     /* The following two rules are a trade-off; remove them to make the copy button appear just to the right of the 
        value being copied; the trade-off is that long lines will wrap when the button appears causing the row to 
@@ -216,10 +216,10 @@
     position: absolute;
     right: 1em;
   }
-  .field-data-container:hover .with-copy-icon .cm-copy-value-button,
-  .field-data-container:active .with-copy-icon .cm-copy-value-button,
-  .field-data-container:focus .with-copy-icon .cm-copy-value-button,
-  .field-data-container:focus-within .with-copy-icon .cm-copy-value-button {
+  .field-data-container:hover .with-hover-button .cm-hover-button,
+  .field-data-container:active .with-hover-button .cm-hover-button,
+  .field-data-container:focus .with-hover-button .cm-hover-button,
+  .field-data-container:focus-within .with-hover-button .cm-hover-button {
     display: flex;
   }
   /* SEARCH RESULTS */

@@ -84,12 +84,12 @@ export default {
     DataTable
   },
   template: `
-  <h3 class="data-table-modal-header">{{ this.txt['report.for'] }} {{ action }}</h3>
+  <h3 class="data-table-modal-header">{{ this.txt['information.report.for'] }} {{ action }}</h3>
   <table id="error-datatable" class="display" style="width: 100%">
     <thead>
       <tr>
-        <th>{{ this.txt['record'] }}</th>
-        <th>{{ this.txt['status'] }}</th>
+        <th>{{ this.txt['information.record'] }}</th>
+        <th>{{ this.txt['field.status'] }}</th>
       </tr>
     </thead>
   </table>

@@ -252,3 +252,6 @@ msgstr "View"
 msgid "view.a"
 msgstr "View {0}"
 
+msgid "visit.link"
+msgstr "Visit link"
+

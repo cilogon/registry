@@ -47,19 +47,21 @@ class VueHelper extends Helper {
       'SuspendableStatusEnum.S'
     ],
     'error' => [
-      'copy.error'
+      'javascript.copy',
+      'javascript.requires.https'
     ],
     'field' => [
       'email',
       'login',
       'primary',
+      'datepicker.chooseTime',
       'datepicker.hour',
+      'datepicker.minute',
       'status',
       'unverified'
     ],
     'information' => [
       'global.value.none',
-      'datepicker.hour',
       'record',
       'report.for',
       'value.copied'
@@ -73,7 +75,9 @@ class VueHelper extends Helper {
       'autocomplete.people.placeholder',
       'close',
       'copy',
-      'copy.value'
+      'copy.value',
+      'primary',
+      'visit.link'
     ],
     'result' => [
       'failed',
@@ -101,9 +105,9 @@ class VueHelper extends Helper {
         if(getType($key) == 'array') {
           // for getting plural or singular instances of a language string; 
           // XXX we should do better than this so we can use both.
-          $locales[$key['0']] = __d($domain, $key[0], $key[1]);
+          $locales[$domain . '.' . $key['0']] = __d($domain, $key[0], $key[1]);
         } else {
-          $locales[$key] = __d($domain, $key);
+          $locales[$domain . '.' . $key] = __d($domain, $key);
         }
       }
     }

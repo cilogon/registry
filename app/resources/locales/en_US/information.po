@@ -96,9 +96,6 @@ msgstr "No title"
 msgid "global.value.none"
 msgstr "No value"
 
-msgid "global.visit.link"
-msgstr "Visit link"
-
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 

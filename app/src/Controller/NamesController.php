@@ -92,7 +92,8 @@ class NamesController extends MVEAController {
     catch(\Exception $e) {
       $this->Flash->error($e->getMessage());
     }
-
+    
+    $this->Names->setRedirectGoal('primaryLink');
     return $this->generateRedirect($obj ?? null);
   }
 }
