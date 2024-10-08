@@ -290,8 +290,7 @@ if(!empty($tabsSupertitle)) {
             print $this->Html->link(
               __d('controller', 'Properties', [99]),
               [ 'controller' => 'groups',
-                // TODO: the following test needs to be made based on read-only status of the group
-                'action' => $curAction == 'view' ? 'view' : 'edit',
+                'action' => $vv_primary_link_obj->isReadOnly() ? 'view' : 'edit',
                 $curId
               ],
               ['class' => $linkClass]
