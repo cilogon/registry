@@ -288,6 +288,7 @@ class IdentifiersTable extends Table {
         // Note we specifically do NOT check status, since a Suspended Identifier
         // will still prevent duplicate assignment. (AR-Identifier-3)
         $whereClause = [
+          // type_id will imply CO ID, so we don't need to check it explicitly
           'type_id'     => $entity->type_id
         ];
 
@@ -295,6 +296,13 @@ class IdentifiersTable extends Table {
           $whereClause['LOWER(identifier)'] = strtolower($entity->identifier);
         } else {
           $whereClause['identifier'] = $entity->identifier;
+        }
+
+        // We need to only check Identifiers attached to the same type of Entity
+        if(!empty($entity->person_id)) {
+          $whereClause[] = 'person_id IS NOT NULL';
+        } elseif(!empty($entity->group_id)) {
+          $whereClause[] = 'group_id IS NOT NULL';
         }
 
         $identifier = $this->find()
