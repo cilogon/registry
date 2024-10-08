@@ -143,12 +143,12 @@ class SyncJob {
           $lastStart,
           $curStart
         );
-
-        // Remove any duplicate keys
-        $changeList = array_unique($changeList);
       }
 
       if($changeList !== false) {
+        // Remove any duplicate keys
+        $changeList = array_unique($changeList);
+
         $this->llog('trace', "EIS " . $this->runContext->eis->description . " plugin returned "
                          . count($changeList) . " updated record(s)");
       } else {
