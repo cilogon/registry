@@ -362,7 +362,8 @@ class AppController extends Controller {
 
     // At the end we need to have a Primary Link
     if(empty($this->cur_pl->value)
-      && !$this->$modelsName->allowEmptyPrimaryLink($this->request->getParam('action'))) {
+      && !$this->$modelsName->allowEmptyPrimaryLink($this->request->getParam('action'))
+      && $this->request->getParam('action') != 'deleted') {
       throw new \RuntimeException(__d('error', 'primary_link'));
     }
   }
@@ -531,7 +532,7 @@ class AppController extends Controller {
    */
   
   protected function setCO() {
-    if($this->cur_co) {
+    if($this->cur_co || $this->request->getParam('action') == 'deleted') {
       // Nothing to do...
       return;
     }

@@ -87,6 +87,12 @@ msgstr "Attribute Modal"
 msgid "global.attributes"
 msgstr "Attributes"
 
+msgid "global.attributes.none"
+msgstr "There are no attributes of this type"
+
+msgid "global.processing"
+msgstr "processing..."
+
 msgid "global.records.none"
 msgstr "There are no records to display."
 

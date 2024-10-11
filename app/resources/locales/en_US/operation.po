@@ -36,6 +36,9 @@ msgstr "Add"
 msgid "add.a"
 msgstr "Add a New {0}"
 
+msgid "add.attribute"
+msgstr "Add Attribute"
+
 msgid "add.member"
 msgstr "Add member: "
 

@@ -1815,6 +1815,9 @@ li[data-pc-section="emptymessage"] {
 .v-leave-to {
   opacity: 0;
 }
+[v-cloak] { 
+  display: none; 
+}
 /* ENTITY ID under each Edit/View Form/List */
 #cm-entity-id {
   position: absolute;
@@ -1836,6 +1839,12 @@ li[data-pc-section="emptymessage"] {
   background-color: var(--cmg-color-txt-inverse);
   border: 1px solid var(--cmg-color-bg-007);
   margin: 0;
+}
+.btn.btn-primary.cm-deleted-close-button {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  margin: auto;
 }
 /* MVEA & STANDARD MODAL */
 .cm-modal .modal-header {

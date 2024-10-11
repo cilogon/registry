@@ -49,7 +49,7 @@ class TelephoneNumbersController extends MVEAController {
    */
   
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    if(!$this->request->is('restful')) {
+    if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
       
       $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();

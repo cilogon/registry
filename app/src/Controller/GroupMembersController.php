@@ -84,4 +84,20 @@ class GroupMembersController extends StandardController {
     
     return parent::add();
   }
+  
+  /**
+   * Handle the deleted action for a Group Member.
+   * This is used to set a flash message and override the target window.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function deleted() {
+    // Add a flash message
+    $this->Flash->information(__d('result','GroupMember.deleted'));
+    // Set the target window
+    $this->set('vv_target_window', 'top');
+    
+    return parent::deleted();
+  }
 }

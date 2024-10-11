@@ -110,6 +110,7 @@ class NamesTable extends Table {
     // Models that AcceptCoId should be explicitly added to StandardApiController::initialize()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setEditContains(['ExternalIdentities', 'SourceNames']);
 
     $this->setAutoViewVars([
@@ -137,7 +138,8 @@ class NamesTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

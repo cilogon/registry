@@ -36,7 +36,7 @@
     $action_args = array();
     $action_args['vv_attr_id'] = $objId;
     $action_args['vv_actions_type'] = 'mvea-add-menu';
-    $action_args['vv_actions_title'] = __d('operation', 'add');
+    $action_args['vv_actions_title'] = __d('operation', 'add.attribute');
     $action_args['vv_actions_icon'] = 'add_circle';
     $action_args['vv_actions_class'] = 'mvea-add-menu';
     $actionOrderDefault = $this->Menu->getMenuOrder('Default');

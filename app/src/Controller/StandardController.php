@@ -33,6 +33,7 @@ use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
 use InvalidArgumentException;
 use \Cake\Http\Exception\BadRequestException;
+use Cake\Utility\Inflector;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Util\{StringUtilities, FunctionUtilities};
@@ -169,8 +170,10 @@ class StandardController extends AppController {
     $table = $this->$modelsName;
     
     // Provide some hints to the views
-    $this->getFieldTypes();
-    $this->getRequiredFields();
+    if($this->request->getParam('action') != 'deleted') {
+      $this->getFieldTypes();
+      $this->getRequiredFields();
+    }
     
     // Set the display field as a view var to make it available to the views
     $this->set('vv_display_field', $table->getDisplayField());
@@ -305,6 +308,34 @@ class StandardController extends AppController {
     
     // The record is still valid, so redirect back to it
     return $this->redirect(['action' => 'edit', $id]);
+  }
+  
+  /**
+   * Handle a deleted action for a Standard object.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function deleted() {
+    // Set the title when not set at the individual controller
+    if(empty($this->viewBuilder()->getVar('vv_title'))) {
+      $modelsName = $this->name;
+      $fieldName = Inflector::singularize($modelsName);
+      if(__d('result', $fieldName . '.deleted') != $fieldName . '.deleted') {
+        // Use the standard (singular) deleted message for the field when it exists
+        $this->set('vv_title', __d('result', $fieldName . '.deleted'));
+      } else {
+        // Build the result from the generic 'deleted.a' language key
+        $this->set('vv_title', __d('result', 'deleted.a', [$fieldName])); 
+      }
+    }
+    // Set the target window when not set at the individual controller.
+    // This should be 'self' (default) or 'top'. 
+    if (empty($this->viewBuilder()->getVar('vv_target_window'))) {
+      $this->set('vv_target_window', 'self');
+    }
+    // Render the view
+    $this->render('/Standard/deleted');
   }
   
   /**
@@ -451,8 +482,11 @@ class StandardController extends AppController {
         $redirectGoal = 'index';
       }
     }
-
-    if($redirectGoal == 'self'
+    
+    if($redirectGoal == 'deleted') {
+      // Immediately redirect to the (mostly blank) deleted view
+      return $this->redirect(['action' => 'deleted']);
+    } elseif($redirectGoal == 'self'
        && $entity
        && in_array($this->request->getParam('action'), ['add', 'edit'])) {
       // We typically want to redirect to the edit view of the record,

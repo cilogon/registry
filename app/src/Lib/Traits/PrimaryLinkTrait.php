@@ -525,7 +525,7 @@ trait PrimaryLinkTrait {
    */
   
   public function setRedirectGoal(string $goal, string $action='*') {
-    if(!in_array($goal, ['index', 'pluggableLink', 'primaryLink', 'self', 'special'])) {
+    if(!in_array($goal, ['deleted', 'index', 'pluggableLink', 'primaryLink', 'self', 'special'])) {
       throw new \InvalidArgumentException(__d('error', 'invalid', [$goal]));
     }
     

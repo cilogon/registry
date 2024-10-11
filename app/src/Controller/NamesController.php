@@ -50,7 +50,7 @@ class NamesController extends MVEAController {
    */
   
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    if(!$this->request->is('restful')) {
+    if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // Get the set of permitted name fields to pass to the view.
       // (We don't need required name fields since FormHelper will handle that.)
       

@@ -109,6 +109,7 @@ class EmailAddressesTable extends Table {
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setAllowLookupPrimaryLink(['forceVerify', 'unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'SourceEmailAddresses']);
 
@@ -133,7 +134,8 @@ class EmailAddressesTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

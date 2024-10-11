@@ -33,17 +33,19 @@ $subnav = [
   'active' => 'person', // default for person. 'external identities' are special cased
   'subActive' => 'email_addresses'
 ];
-
-$topLinks = [
-  [
-    'icon' => 'verified_user',
-    'order' => 'Default',
-    'label' => __d('operation', 'EmailAddresses.verify.force'),
-    'if' => 'notVerified',
-    'link' => [
-      'action' => 'forceVerify',
-      $vv_obj->id
+  
+if($vv_action != 'add') {
+  $topLinks = [
+    [
+      'icon' => 'verified_user',
+      'order' => 'Default',
+      'label' => __d('operation', 'EmailAddresses.verify.force'),
+      'if' => 'notVerified',
+      'link' => [
+        'action' => 'forceVerify',
+        $vv_obj->id
+      ],
+      'class' => ''
     ],
-    'class' => ''
-  ],
-];
+  ];
+}

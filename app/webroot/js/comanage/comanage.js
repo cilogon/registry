@@ -180,7 +180,16 @@ function launchCmModal(
   $("#cm-modal").attr('data-reload-on-close', reloadOnClose);
   
   // Open the modal window
-  $("#cm-modal").modal('show');
+  window.cmModal = new bootstrap.Modal(document.getElementById('cm-modal'));
+  window.cmModal.show();
+}
+
+/**
+ * COmanage Registry Modal Hider: 
+ * function for hiding our modal windows from within a contained iframe.
+ */
+function hideCmModal() {
+  $("#cm-modal,#mvea-modal").modal('hide');
 }
 
 // Generic goto page form handling for multi-page listings.

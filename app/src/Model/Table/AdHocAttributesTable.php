@@ -87,6 +87,7 @@ class AdHocAttributesTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'ExternalIdentityRoles', 'SourceAdHocAttributes']);
 
@@ -103,7 +104,8 @@ class AdHocAttributesTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

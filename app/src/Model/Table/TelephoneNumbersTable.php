@@ -104,6 +104,7 @@ class TelephoneNumbersTable extends Table {
     // Models that AcceptCoId should be expicitly added to StandardApiController::initialize()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'ExternalIdentityRoles', 'SourceTelephoneNumbers']);
 
@@ -128,7 +129,8 @@ class TelephoneNumbersTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
   }

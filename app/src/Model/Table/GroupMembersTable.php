@@ -62,7 +62,7 @@ class GroupMembersTable extends Table {
    */
   public function getLayout(string $action = ''): string {
     return match($action) {
-      'add','edit','view' => 'iframe',  
+      'add','edit','view','deleted' => 'iframe',  
       default => 'default'
     };
   }
@@ -93,6 +93,7 @@ class GroupMembersTable extends Table {
     $this->setPrimaryLink(['group_id', 'person_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     
     $this->setEditContains(['Groups', 'People.PrimaryName']);
     $this->setViewContains(['Groups', 'People.PrimaryName']);
@@ -125,7 +126,8 @@ class GroupMembersTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
 

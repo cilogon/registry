@@ -135,11 +135,6 @@ $addMenuLinks = [
     'iconClass' => 'material-icons-outlined'
   ],
   [
-    'controller' => 'history_records',
-    'action' => 'add',
-    'icon' => 'history'
-  ],
-  [
     'controller' => 'pronouns',
     'action' => 'add',
     'icon' => 'transgender'

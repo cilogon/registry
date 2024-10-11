@@ -48,7 +48,7 @@ class MVEAController extends StandardController {
     // $this->name = Models
     $modelsName = $this->name;
 
-    if(!$this->request->is('restful')) {
+    if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // Provide additional hints to BreadcrumbsComponent. This needs to be here
       // and not in beforeRender because the component beforeRender will run first.
       
@@ -143,7 +143,7 @@ class MVEAController extends StandardController {
     // field = model (or model_name)
     $fieldName = Inflector::underscore(Inflector::singularize($modelsName));
     
-    if(!$this->request->is('restful')) {
+    if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // If there is a default type setting for this model, pass it to the view
       if($this->$modelsName->getSchema()->hasColumn('type_id')) {
         $defaultTypeField = "default_" . $fieldName . "_type_id";

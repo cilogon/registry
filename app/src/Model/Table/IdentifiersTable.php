@@ -119,6 +119,7 @@ class IdentifiersTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'SourceIdentifiers']);
 
@@ -146,7 +147,8 @@ class IdentifiersTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [

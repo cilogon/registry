@@ -61,6 +61,9 @@ export default {
         v-for='mvea in mveaModel'
         :mvea="mvea">
       </mvea-item>
+      <li v-show="this.mveaModel?.length < 1" class="field-data-container cm-mvea-no-attributes-msg">
+        <div class="field-data">{{ this.txt['information.global.attributes.none'] }}</div>
+      </li>
     </ul>
   `
 }

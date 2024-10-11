@@ -61,6 +61,7 @@ class VueHelper extends Helper {
       'unverified'
     ],
     'information' => [
+      'global.attributes.none',
       'global.value.none',
       'record',
       'report.for',
