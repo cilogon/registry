@@ -26,13 +26,43 @@
  */
 
 $indexColumns = [
- 'name' => [
-    'label' => __d('field', 'GroupNestings.target_group_id'),
-    'type' => 'relatedLink',
-    'model' => 'target_group',
-    'field' => 'name'
+ 'id' => [
+    'type' => 'link',
+    'class' => 'cm-modal-link nospin', // launch this in a modal 
+    'dataAttrs' => [
+      ['data-cm-modal-title', __d('controller', 'GroupNestings', 1)]
+    ]
+  ],
+ 'group' => [
+   'label' => __d('field', 'GroupNestings.target_group_id'),
+   'type' => 'relatedLink',
+   'model' => 'target_group',
+   'field' => 'name',
+   'class' => 'cm-modal-link nospin', // launch this in a modal 
+   'dataAttrs' => [
+     ['data-cm-modal-title', __d('controller', 'GroupNestings', 1)]
+   ]
+ ]
+];
+
+// $topLinks appear as an upper right menu
+$topLinks = [
+  [
+    'icon'  => $this->Menu->getMenuIcon('Add'),
+    'order' => $this->Menu->getMenuOrder('Add'),
+    'label' => __d('operation', 'add.a',[__d('controller', 'GroupNestings', 1)]),
+    'link'  => [
+      'action' => 'add'
+    ],
+    'class' => 'cm-modal-link nospin', // launch this in a modal 
+    'dataAttrs' => [
+      ['data-cm-modal-title', __d('controller', 'GroupNestings', 1)]
+    ]
   ]
 ];
+
+// Suppress the normal add link in lieu of the one above
+$suppressAddLink = true;
 
 /*
 // When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index. 

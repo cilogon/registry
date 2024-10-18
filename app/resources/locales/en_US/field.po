@@ -420,6 +420,9 @@ msgstr "Direct"
 msgid "GroupNestings.group_id"
 msgstr "Nested Group"
 
+msgid "GroupNestings.group_id.desc"
+msgstr "The current group. It will be nested into the Target Group."
+
 msgid "GroupNestings.negate"
 msgstr "Negate Nesting"
 
@@ -428,6 +431,9 @@ msgstr "If true, members of the Nested Group will not be eligible to be a member
 
 msgid "GroupNestings.target_group_id"
 msgstr "Target Group"
+
+msgid "GroupNestings.target_group_id.desc"
+msgstr "Where the current group will be nested"
 
 msgid "Groups.desc.admins"
 msgstr "{0} Administrators"

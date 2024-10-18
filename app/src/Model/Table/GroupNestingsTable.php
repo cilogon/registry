@@ -47,6 +47,19 @@ class GroupNestingsTable extends Table {
   use \App\Lib\Traits\ValidationTrait;
   
   /**
+   * Provide the default layout
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return string  Type of redirect
+   */
+  public function getLayout(string $action = ''): string {
+    return match($action) {
+      'add','edit','view','deleted' => 'iframe',
+      default => 'default'
+    };
+  }
+  
+  /**
    * Perform Cake Model initialization.
    *
    * @since  COmanage Registry v5.0.0
@@ -76,6 +89,8 @@ class GroupNestingsTable extends Table {
     
     $this->setPrimaryLink('group_id');
     $this->setRequiresCO(true);
+    $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
 
     $this->setEditContains(['Groups', 'GroupMembers', 'TargetGroups']);
     
@@ -92,7 +107,8 @@ class GroupNestingsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
 

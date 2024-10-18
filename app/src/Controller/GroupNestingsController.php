@@ -47,21 +47,38 @@ class GroupNestingsController extends StandardController {
    */
 
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    // Pull the Group name for breadcrumb rendering
-    
-    $link = $this->getPrimaryLink(true);
-    
-    if(!empty($link->value)) {
-      $this->set('vv_bc_parent_obj', $this->GroupNestings->Groups->get($link->value));
-      $this->set('vv_bc_parent_displayfield', $this->GroupNestings->Groups->getDisplayField());
+    if($this->request->getParam('action') != 'deleted') {
+      // Pull the Group name for breadcrumb rendering
+      $link = $this->getPrimaryLink(true);
+      
+      if(!empty($link->value)) {
+        $this->set('vv_bc_parent_obj', $this->GroupNestings->Groups->get($link->value));
+        $this->set('vv_bc_parent_displayfield', $this->GroupNestings->Groups->getDisplayField());
+      }
+      
+      // We need to calculate the available set of groups for nesting. We do this
+      // here rather than via autoViewVars because we need to know the current
+      // group (to exclude it).
+      
+      $this->set('targetGroups', $this->GroupNestings->availableGroups((int)$link->value));
+      
+      return parent::beforeRender($event);
     }
+  }
+  
+  /**
+   * Handle the deleted action for a Group Nesting.
+   * This is used to set a flash message and override the target window.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function deleted() {
+    // Add a flash message
+    $this->Flash->information(__d('result','GroupNesting.deleted'));
+    // Set the target window
+    $this->set('vv_target_window', 'top');
     
-    // We need to calculate the available set of groups for nesting. We do this
-    // here rather than via autoViewVars because we need to know the current
-    // group (to exclude it).
-    
-    $this->set('targetGroups', $this->GroupNestings->availableGroups((int)$link->value));
-    
-    return parent::beforeRender($event);
+    return parent::deleted();
   }
 }

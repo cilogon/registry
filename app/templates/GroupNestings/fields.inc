@@ -36,14 +36,16 @@ if($vv_action == 'add') {
     'url' => [
       'controller' => 'groups',
       'action'     => 'edit',
-      $vv_obj->target_group_id]
+      $vv_obj->target_group_id
+    ],
+    'target' => '_top'
   ];
   // The target group can't be changed after adding
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'target_group_id',
       'status' => $vv_obj->target_group->name,
-      'link' => $link,
+      'link' => $link
     ]
   ]);
 }
@@ -53,14 +55,16 @@ if($vv_action == 'add' || $vv_action == 'edit') {
     'url' => [
       'controller' => 'groups',
       'action'     => 'edit',
-      $vv_bc_parent_obj->id]
+      $vv_bc_parent_obj->id,
+    ],
+    'target' => '_top'
   ];
   // The target group can't be changed after adding
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'group_id',
       'status' => $vv_bc_parent_obj->name,
-      'link' => $link,
+      'link' => $link
     ]
   ]);
 

@@ -33,10 +33,18 @@ declare(strict_types = 1);
 
 <?php if(isset($vv_selected_person)): ?>
 <div class="field-info">
-  <span class="group-member-to-add-name">
-    <?= $vv_selected_person['name'] ?>
+  <span class="group-member-name">
+    <?= $this->Html->link(
+      $vv_selected_person['name'],
+      ['plugin'       => null,
+       'controller'   => 'people',
+       'action'       => 'edit',
+       $vv_selected_person['id']
+      ],
+      ['target' => '_top']
+    );?>
   </span>
-      <span class="group-member-to-add-id">
+  <span class="group-member-id">
     (<?= __d('information', 'entity.id', [$vv_selected_person['id']]) ?>)
   </span>
 </div>

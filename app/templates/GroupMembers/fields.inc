@@ -32,7 +32,7 @@ if($vv_action == 'add') {
       'person_id' => $vv_selected_person['id']
     ];
     
-    // Present the person information in the view
+    // Present the person name in the view
     print $this->element('form/listItem', [
       'arguments' => [
         'fieldName' => '',
@@ -64,6 +64,21 @@ if($vv_action == 'add') {
   $hidden = [
     'person_id' => $vv_obj->person_id
   ];
+  
+  // Set the selected person for edit and view also
+  // so we can display the name and link to the person canvas.
+  $selectedPerson = [
+    'id' => $vv_obj->person_id,
+    'name' => $vv_obj->person->primary_name->full_name
+  ];
+  $this->set('vv_selected_person', $selectedPerson);
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => '',
+      'fieldLabel' => __d('field','name'),
+      'groupmember' =>  $selectedPerson
+    ]
+  ]);
 }
 
 print $this->element('form/listItem', [

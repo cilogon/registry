@@ -102,6 +102,9 @@ msgstr "Added {0} as an owner of group {1}"
 msgid "GroupOwners.deleted"
 msgstr "Removed {0} as an owner of group {1}"
 
+msgid "GroupNesting.deleted"
+msgstr "Removed nesting from group"
+
 msgid "IdentifierAssignments.assigned.already"
 msgstr "Identifiers Already Assigned ({0})"
 
