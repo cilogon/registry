@@ -48,8 +48,8 @@ $indexColumns = [
 // $topLinks appear as an upper right menu
 $topLinks = [
   [
-    'icon'  => $this->Menu->getMenuIcon('Add'),
-    'order' => $this->Menu->getMenuOrder('Add'),
+    'icon'  => 'Add',
+    'order' => 'Add',
     'label' => __d('operation', 'add.a',[__d('controller', 'GroupNestings', 1)]),
     'link'  => [
       'action' => 'add'
