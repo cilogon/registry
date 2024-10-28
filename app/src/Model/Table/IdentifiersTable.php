@@ -278,7 +278,7 @@ class IdentifiersTable extends Table {
     // Uniqueness constraints only apply to People and Groups
 
     // In v4 we created a txn to ensure consistency, but it looks like Cake actually
-    // starts a transaction, so it appears we don't actially need to do that here.
+    // starts a transaction, so it appears we don't need to do that here.
 
     if(!empty($entity->person_id) || !empty($entity->group_id)) {
       if($entity->isNew() 
@@ -291,7 +291,9 @@ class IdentifiersTable extends Table {
         // will still prevent duplicate assignment. (AR-Identifier-3)
         $whereClause = [
           // type_id will imply CO ID, so we don't need to check it explicitly
-          'type_id'     => $entity->type_id
+          'type_id'     => $entity->type_id,
+          // We ignore any Identifier from an EIS when determining uniqueness
+          'source_identifier_id IS NULL'
         ];
 
         if(isset($type->case_insensitive) && $type->case_insensitive) {
