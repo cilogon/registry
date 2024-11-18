@@ -262,10 +262,12 @@ class IdentifierAssignmentsTable extends Table {
       $cxn->commit();
     }
 
-    // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-    if(method_exists($EntityTable, "requestProvisioning") && !empty($entity->id)) {
-      $this->llog('rule', "AR-GMR-5 Requesting provisioning for $entityType " . $entity->id);
-      $EntityTable->requestProvisioning(id: $entity->id, context: ProvisioningContextEnum::Automatic);
+    if($provision) {
+      // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+      if(method_exists($EntityTable, "requestProvisioning") && !empty($entity->id)) {
+        $this->llog('rule', "AR-GMR-5 Requesting provisioning for $entityType " . $entity->id);
+        $EntityTable->requestProvisioning(id: $entity->id, context: ProvisioningContextEnum::Automatic);
+      }
     }
 
     return $ret;
