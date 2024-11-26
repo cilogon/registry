@@ -154,9 +154,9 @@ if(!empty($subnav)) {
         'class' => 'deletebutton',
         'confirm' => [
           'method' => 'post',
-          'dg_title' => __d('operation', 'remove'),
+          'dg_title' => __d('operation', 'delete'),
           'dg_body_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
-          'dg_confirm_btn' => __d('operation', 'remove')
+          'dg_confirm_btn' => __d('operation', 'delete')
         ]
       ];
     }
