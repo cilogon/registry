@@ -56,16 +56,14 @@ class TimezoneBehavior extends Behavior
    */
   
   public function beforeMarshal(Event $event, ArrayObject $data, ArrayObject $options) {
-    if($this->tz && $this->tz != 'UTC') {
+    if($this->tz && $this->tz->getName() != 'UTC') {
       // There's some Cake support for doing timezone conversion, but it's not really
       // well documented, so we use PHP calls directly.
-      
-      $localTZ = new \DateTimeZone($this->tz);
       
       foreach($this->fields as $f) {
         if(!empty($data[$f])) {
           // This returns a DateTime object adjusting for localTZ
-          $offsetDT = new \DateTime($data[$f], $localTZ);
+          $offsetDT = new \DateTime($data[$f], $this->tz);
 
           // strftime converts a timestamp according to server localtime (which should be UTC)
           $data[$f] = strftime("%F %T", $offsetDT->getTimestamp());
@@ -78,10 +76,10 @@ class TimezoneBehavior extends Behavior
    * Set the current timezone.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string $tz Timezone, eg as determined by AppController::beforeFilter
+   * @param  DateTimeZone $tz Timezone, eg as determined by AppController::beforeFilter
    */
 
-  public function setTimeZone(string $tz) {
+  public function setTimeZone(\DateTimeZone $tz) {
     $this->tz = $tz;
   }
 }

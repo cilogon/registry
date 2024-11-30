@@ -657,13 +657,22 @@ class AppController extends Controller {
     // See if we've collected it from the browser in a previous page load. Otherwise,
     // use the system default. If the user set a preferred timezone, we'll catch that below.
     
-    $tz = date_default_timezone_get();
+    $tz = new \DateTimeZone(date_default_timezone_get());
 
     if(!empty($_COOKIE['cm_registry_tz_auto'])) {
       // We have an auto-detected timezone from a previous page render from the browser.
       // Note we don't call date_default_timezone_set() because we still want to record
       // times internally in UTC (at the expense of having to convert back and forth).
-      $tz = $_COOKIE['cm_registry_tz_auto'];
+      
+      try {
+        // If the cookie value is invalid, this will throw an Exception, and we'll eventually
+        // reset the browser cookie based on the detected timezone (for the next page load)
+        $tz = new \DateTimeZone($_COOKIE['cm_registry_tz_auto']);
+      }
+      catch(\Exception $e) {
+        // We'll fall back to the default timezone, and we'll reset the cookie when the
+        // default layout renders (so no need to do anything here)
+      }
     }
     
 // XXX need to implement person-specific timezone detection (after CoPerson model and

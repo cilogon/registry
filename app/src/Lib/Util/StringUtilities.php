@@ -79,7 +79,7 @@ class StringUtilities {
 
     if($tz) {
       // If there is a timezone aware label, use that
-      $label = __d('field', $c.'.tz', [$tz]);
+      $label = __d('field', $c.'.tz', [$tz->getName()]);
 
       if($label != $c.'.tz') {
         return $label;
