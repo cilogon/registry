@@ -49,14 +49,19 @@ class StringUtilities {
    * Construct the Column human-readable key
    *
    * @since  COmanage Registry v5.0.0
-   * @param  string  $modelsName           The name of the Model
-   * @param  string  $c                    The name of the column
-   * @param  string  $tz                   The timezone
-   * @param  boolean $useCustomClMdlLabel  Whether to use a custom `Model.column` field entry or rely on the default
-   * @return string  Column friendly name
+   * @param  string         $modelsName           The name of the Model
+   * @param  string         $c                    The name of the column
+   * @param  DateTimeZone   $tz                   The timezone
+   * @param  boolean        $useCustomClMdlLabel  Whether to use a custom `Model.column` field entry or rely on the default
+   * @return string                               Column friendly name
    */
 
-  public static function columnKey($modelsName, $c, $tz=null, $useCustomClMdlLabel=false): string {
+  public static function columnKey(
+    string $modelsName, 
+    string $c,
+    \DateTimeZone $tz=null,
+    bool $useCustomClMdlLabel=false
+  ): string {
     if(strpos($c, "_id", strlen($c)-3)) {
       $postfix = "";
       if($c == "parent_id") {

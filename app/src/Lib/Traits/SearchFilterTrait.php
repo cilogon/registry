@@ -231,10 +231,12 @@ trait SearchFilterTrait {
    * Obtain the set of permitted search attributes.
    *
    * @since  COmanage Registry v5.0.0
+   * @param  string       $controller Controller name
+   * @param  DateTimeZone $vv_tz      Current time zone, if known
    * @return array Array of permitted search attributes and configuration elements needed for display
    */
 
-  public function getSearchableAttributes(string $controller, string $vv_tz=null): array {
+  public function getSearchableAttributes(string $controller, \DateTimeZone $vv_tz=null): array {
     $modelname = Inflector::classify(Inflector::underscore($controller));
     $filterConfig = $this->getFilterConfig();
 
