@@ -39,6 +39,9 @@ $indexColumns = [
     'type' => 'enum',
     'class' => 'EnrollmentAuthzEnum',
     'sortable' => true
+  ],
+  'description' => [
+    'sortable' => true
   ]
 ];
 

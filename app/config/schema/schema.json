@@ -621,6 +621,7 @@
         "id": {},
         "co_id": {},
         "name": {},
+        "description": { "size": 256 },
         "status": {},
         "sor_label": {},
         "authz_type": { "type": "string", "size": 2 },

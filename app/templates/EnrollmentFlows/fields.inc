@@ -57,6 +57,7 @@ declare(strict_types = 1);
 if($vv_action == 'add' || $vv_action == 'edit') {
 
   foreach ( ['name',
+             'description',
              'status',
 //             'sor_label',
            ] as $field) {
