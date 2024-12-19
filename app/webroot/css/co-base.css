@@ -1607,6 +1607,16 @@ ul.form-list li.info-title {
 .form-control {
   font-size: 1em; /* bootstrap override */
 }
+.field .radio {
+  display: flex;
+  gap: 1em;
+}
+.field .radio input {
+  margin-right: 0.25em;
+}
+.field .radio.required {
+  color: var(--cmg-color-body-txt);
+}
 /* DATE and TIME PICKERS */
 .cm-datetime-picker {
   display: flex;
@@ -1918,6 +1928,35 @@ body.start .submit {
 #dispatch-list-container input[type='text'],
 #dispatch-list-container textarea {
   padding: 0.5rem;
+}
+#dispatch-list-container li.dispatch-welcome {
+  margin: 1em 1em 2em;
+  font-size: 1.1em;
+}
+#dispatch-list-container ul.fields li.fields-accepted .field {
+  background-color: var(--cmg-color-bg-001);
+  border: 1px solid var(--cmg-color-bg-006);
+  padding: 1em 1.5em 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#dispatch-list-container ul.fields li.fields-accepted .field-info label {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 1.5em 0.5em 1.25em;
+  background-color: var(--cmg-color-highlight-006);
+  border: 1px solid var(--cmg-color-highlight-008);
+  border-radius: 3px;
+  box-shadow: 0 1px 1px 0 rgba(0,0,0,.14),0 3px 1px -3px rgba(0,0,0,.2),0 1px 3px 0 rgba(0,0,0,.12);
+}
+#dispatch-list-container ul.fields li.fields-accepted .field-info label:last-child {
+  background-color: var(--cmg-color-bg-005);
+  border: 1px solid var(--cmg-color-bg-006);
+}
+#dispatch-list-container ul.fields li.fields-accepted .field .radio {
+  gap: 0.5em;
 }
 /* DIALOG BOX */
 #dialog .modal-header {

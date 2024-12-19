@@ -121,7 +121,7 @@ class PetitionAcceptancesTable extends Table {
       $expires = $acceptance->created->addSeconds($ia->invitation_validity);
 
       if($expires->isPast()) {
-        throw new \RuntimeException('error.PetitionAcceptances.expired');
+        throw new \RuntimeException(__d('core_enroller','error.PetitionAcceptances.expired'));
       }
     }
 

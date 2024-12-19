@@ -29,7 +29,9 @@ declare(strict_types = 1);
 
 // This view is intended to work with dispatch
 if($vv_action == 'dispatch') {
-  print $vv_config->welcome_message . "\n";
+  if(!empty($vv_config->welcome_message)) {
+    print '<li class="dispatch-welcome">' . $vv_config->welcome_message . "</li>\n";
+  }
 
   // Make the Form fields editable
   $this->Field->enableFormEditMode();
@@ -45,7 +47,8 @@ if($vv_action == 'dispatch') {
           ['value' => '0', 'text' => 'Decline'],
         ],
         'empty' => false,
-        'required' => true
+        'required' => true,
+        'class' => 'crazything'
       ]
   ]]);
 }

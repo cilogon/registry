@@ -120,6 +120,14 @@
   .duet-date__dialog {
     left: -20em;
   }
+  /* DISPATCH */
+  #dispatch-list-container ul.fields li.fields-accepted .field {
+    justify-content: space-between;
+    padding: 1em 1em 1em 1.25em;
+  }
+  #dispatch-list-container ul.fields li.fields-accepted .field-info {
+    padding: 0;
+  }
   /* DENSITY SETTINGS (from User Settings Menu; Medium is default) */
   /* Density "small" */
   html.density-small h1 {
