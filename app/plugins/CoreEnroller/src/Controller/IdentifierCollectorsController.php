@@ -38,6 +38,27 @@ class IdentifierCollectorsController extends StandardEnrollerController {
       'IdentifierCollectors.id' => 'asc'
     ]
   ];
+  
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+  
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+    
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->IdentifierCollectors->EnrollmentFlowSteps->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->IdentifierCollectors->EnrollmentFlowSteps->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->IdentifierCollectors->EnrollmentFlowSteps->getPrimaryKey());
+    }
+    
+    return parent::beforeRender($event);
+  }
 
   /**
    * Dispatch an Enrollment Flow Step.

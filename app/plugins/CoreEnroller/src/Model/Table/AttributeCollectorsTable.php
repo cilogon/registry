@@ -81,7 +81,7 @@ class AttributeCollectorsTable extends Table {
       [
         // Ordered list of Tabs
         'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.AttributeCollectors', 'CoreEnroller.EnrollmentAttributes'],
-        // What actions will inlcude the subnavigation header
+        // What actions will include the subnavigation header
         'action' => [
           // If a model renders in a subnavigation mode in edit/view mode, it cannot
           // render in index mode for the same use case/context

@@ -41,9 +41,11 @@ use App\Lib\Enum\StatusEnum;
 
 class InvitationAcceptersTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\ValidationTrait;
 
   /**
@@ -75,6 +77,22 @@ class InvitationAcceptersTable extends Table {
     $this->setPrimaryLink('enrollment_flow_step_id');
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['dispatch', 'display']);
+    
+    // All the tabs share the same configuration in the ModelTable file
+    $this->setTabsConfig(
+      [
+        // Ordered list of Tabs
+        'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.InvitationAccepters'],
+        // What actions will include the subnavigation header
+        'action' => [
+          // If a model renders in a subnavigation mode in edit/view mode, it cannot
+          // render in index mode for the same use case/context
+          // XXX edit should go first.
+          'EnrollmentFlowSteps' => ['edit', 'view'],
+          'CoreEnroller.InvitationAccepters' => ['edit']
+        ]
+      ]
+    );
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
