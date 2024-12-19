@@ -90,7 +90,7 @@ export default {
       <div class="alert-body d-flex align-items-center justify-content-between">
         <span class="alert-content d-flex align-items-center">
           <span class="alert-title d-flex align-items-center">
-            <span class="material-icons-outlined alert-icon">report_problem</span>
+            <span class="material-symbols-outlined alert-icon">report_problem</span>
             <span v-if="titleExists" class="alert-title-text"> {{ this.title }}</span>
           </span>
           <span class="alert-message">{{ this.getMessage }}</span>

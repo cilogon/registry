@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+// If you're debugging a null $vv_actions, there's probably a permissions problem
+// you need to trace  
 $actionsCount = count($vv_actions) + (int)!empty($vv_people_picker);
 $actionsCountClass = $actionsCount > 0 ? ' actions-count-' . $actionsCount : '';
 $actionsExpandedClass = ($actionsCount > 0 && $actionsCount < 4) ? ' actions-expanded' : '';
@@ -34,6 +36,7 @@ $actionsMenuUid = md5($vv_attr_id);
 $actionsType = !empty($vv_actions_type) ? $vv_actions_type : 'row-actions';
 $actionsTitle = !empty($vv_actions_title) ? $vv_actions_title : '';
 $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
+$actionsIconClass = !empty($vv_actions_icon_class) ? $vv_actions_icon_class : 'material-symbols';
 ?>
 
 <div id="action-menu_<?= $actionsMenuUid; ?>"
@@ -49,7 +52,7 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
     'title' => __d('field', 'action')
   );
   print $this->Html->link(
-    '<span class="material-icons" aria-hidden="true">' . $actionsIcon . '</span> ' . $actionsTitle,
+    '<span class="' . $actionsIconClass . '" aria-hidden="true">' . $actionsIcon . '</span> ' . $actionsTitle,
     'javascript:void(0);',
     $linkparams
   );
@@ -84,11 +87,9 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
         <?php if(empty($action['confirm'])): ?>
           <a class="<?= $actionCssClass; ?>" href="<?= $actionUrl ?>"<?= !(empty($actionDataAttrs)) ? $actionDataAttrs : '' ?>>
             <?php if(!empty($action['icon'])): ?>
-              <?php if(!empty($action['iconClass'])): ?>
-                <em class="<?= $action['iconClass']; ?>" aria-hidden="true"><?= $action['icon']; ?></em>
-              <?php else: ?>
-                <em class="material-icons" aria-hidden="true"><?= $action['icon']; ?></em>
-              <?php endif; ?>
+              <em class="<?= !empty($action['iconClass']) ? $action['iconClass'] : 'material-symbols'; ?>" aria-hidden="true">
+                <?= $action['icon']; ?>
+              </em>
             <?php endif; ?>
             <span class="action-link-text"><?= $action['label']; ?></span>
           </a>
@@ -129,11 +130,9 @@ $actionsIcon = !empty($vv_actions_icon) ? $vv_actions_icon : 'settings';
           <a class="<?= $actionCssClass; ?>" href="#" onclick="<?= $dg_onclick; ?>"  
              data-bs-toggle="modal" data-bs-target="#dialog">
             <?php if(!empty($action['icon'])): ?>
-              <?php if(!empty($action['icon_class'])): ?>
-                <em class="<?= $action['icon_class']; ?>"><?= $action['icon']; ?></em>
-              <?php else: ?>
-                <em class="material-icons" aria-hidden="true"><?= $action['icon']; ?></em>
-              <?php endif; ?>
+              <em class="<?= !empty($action['iconClass']) ? $action['iconClass'] : 'material-symbols'; ?>" aria-hidden="true">
+                <?= $action['icon']; ?>
+              </em>
             <?php endif; ?>
             <?= $action['label']; ?>
           </a>

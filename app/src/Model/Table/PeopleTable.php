@@ -50,9 +50,10 @@ class PeopleTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
+  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\SearchFilterTrait;
 
   /**
    * Perform Cake Model initialization.
@@ -128,6 +129,10 @@ class PeopleTable extends Table {
     $this->hasMany('PersonRoles')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('Petitions')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true)
+         ->setForeignKey('enrollee_person_id');
     $this->hasMany('Pronouns')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -221,7 +226,25 @@ class PeopleTable extends Table {
         'order' => 99
       ]      
     ]);
-    
+
+    $this->setTabsConfig(
+      [
+        // Ordered list of Tabs
+        'tabs' => ['People', 'PersonRoles', 'ExternalIdentities'],
+        // What actions will inlcude the subnavigation header
+        'action' => [
+          // If a model renders in a subnavigation mode in edit/view mode, it cannot
+          // render in index mode for the same use case/context
+          // XXX edit should go first.
+          'People' => ['edit', 'view'],
+          'PersonRoles' => ['index'],
+          'ExternalIdentities' => ['index'],
+        ],
+        // What model will have a counter-badge after the tab title
+        'counter' => ['PersonRoles', 'ExternalIdentities']
+      ]
+    );
+
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126

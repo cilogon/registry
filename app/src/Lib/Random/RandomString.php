@@ -37,8 +37,8 @@ class RandomString {
    * @return string App Key
    */
   
-  public static function generateAppKey() {
-    // The chars we'll use to generate out key. Note we use lower case letters
+  public static function generateAppKey(): string {
+    // The chars we'll use to generate our key. Note we use lower case letters
     // and skip l (L). For readability, we generate groups of letters and
     // numbers separately.
     
@@ -64,5 +64,51 @@ class RandomString {
     }
     
     return $key;
+  }
+
+  /** 
+   * Generate a string suitable for use as a confirmation code. Codes are intended to be
+   * typed in or copied by a human, for confirmation codes that are embedded in URLs use
+   * generateToken() instead.
+   * 
+   * @since  COmanage REgistry v5.1.0
+   * @return string Token
+   */
+
+  public static function generateCode(): string {
+    // We only use numbers for codes in order to avoid problems with case.
+
+    $numbers = '0123456789';
+
+    $key = "";
+
+    for($i = 0;$i < 8;$i++) {
+      $key .= $numbers[random_int(0, strlen($numbers)-1)];
+    }
+
+    return $key;
+  }
+
+  /**
+   * Generate a string suitable for use as a token. Unlike an application key,
+   * a token is not expected to be directly visible or handled by a human, but
+   * will (eg) be injected into a URL or a message.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @return string Token
+   */
+
+  public static function generateToken(): string {
+    // Unlike App Keys, tokens don't have restrictions on characters.
+
+    $chars = 'abcdefghijklmnopqrstuvwxyz01234567890';
+
+    $token = "";
+
+    for($i = 0;$i < 16;$i++) {
+      $token .= $chars[random_int(0, strlen($chars)-1)];
+    }
+
+    return $token;
   }
 }

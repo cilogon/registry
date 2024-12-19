@@ -168,6 +168,20 @@ $routes->scope('/', function (RouteBuilder $builder) {
      * ...and connect the rest of 'Pages' controller's URLs.
      */
     $builder->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
+
+    /**
+     * Registry allows URLs of the form /coid/name to render as a Mostly Static Page.
+     * 
+     * Note this will effectively route any URL of the form /registry/x, where x consists of
+     * digits, to the Pages controller. We need to filter on digits, or we'll end up taking
+     * over all controllers as well. (The implication is we can't have a controller whose
+     * name consists entirely of digits, but we probably shouldn't...)
+     */
+    $builder->connect(
+      '/{coid}/{name}',
+      ['controller' => 'Pages', 'action' => 'show' ],
+      ['coid' => '\d+', 'pass' => ['coid', 'name']]
+    );
     
     /*
      * Connect catchall routes for all controllers.

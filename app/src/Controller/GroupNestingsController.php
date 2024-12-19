@@ -54,6 +54,7 @@ class GroupNestingsController extends StandardController {
       if(!empty($link->value)) {
         $this->set('vv_bc_parent_obj', $this->GroupNestings->Groups->get($link->value));
         $this->set('vv_bc_parent_displayfield', $this->GroupNestings->Groups->getDisplayField());
+        $this->set('vv_bc_parent_primarykey', $this->GroupNestings->Groups->getPrimaryKey());
       }
       
       // We need to calculate the available set of groups for nesting. We do this

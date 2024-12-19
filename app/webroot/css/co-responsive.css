@@ -252,8 +252,8 @@
   #main-menu > li {
     border-bottom: none;
   }
-  #main-menu .material-icons,
-  #main-menu .material-icons-outlined {
+  #main-menu .material-symbols,
+  #main-menu .material-symbols-outlined {
     display: block;
     font-size: 2.5rem;
     margin: 0;
@@ -275,11 +275,15 @@
   #navigation-drawer.closed .co-menu-collapse-text {
     display: none;
   }
-  #navigation-drawer.closed #main-menu .material-icons {
+  #navigation-drawer.closed #main-menu .material-symbols,
+  #navigation-drawer.closed #main-menu .material-symbols-outlined {
     font-size: 1.8rem;
   }
   #navigation-drawer.closed .co-menu-collapse-icon {
     transform: rotate(-90deg);
+  }
+  #all-button-container {
+    padding-bottom: 0;
   }
   #navigation-drawer.closed #all-button {
     padding: 0.25rem 0.4rem;
@@ -464,8 +468,69 @@
   .field-actions.top-links .actions-expanded  a.dropdown-item:hover {
     background-color: transparent;
   }
+  /* Provide two-column dropdown for enrollment attributes. 
+     XXX We might generalize this for long lists. */
+  body.enrollmentattributes .top-links ul.dropdown-menu {
+    column-count: 2;
+  }
   #view-external-identity-source-record td:first-child {
     white-space: nowrap;
+  }
+  /* ENROLLMENT FLOWS: ATTRIBUTE COLLECTOR */
+  #dispatch-list-container .fieldset-info {
+    flex-direction: row;
+    padding: 0;
+    border: none;
+  }
+  #dispatch-list-container .fieldset-subgroup {
+    display: flex;
+    width: 100%;
+    gap: 1em;
+  }
+  #dispatch-list-container .fieldset-subgroup .fieldset-field {
+    flex-grow: 1;
+  }
+  /* Attribute Specific Styles */
+  /* addresses */
+  #dispatch-list-container .fields-address .fieldset-info {
+    /* Retain the mobile style for addresses */
+    flex-direction: column;
+    padding: 1em;
+    border: 1px solid var(--cmg-color-bg-006);
+  }
+  #dispatch-list-container .fields-address .fieldset-info .fieldset-subgroup:first-child .fieldset-field.fields-room {
+    flex-grow: 0;
+  }
+  #dispatch-list-container .fields-address .fieldset-info .fieldset-subgroup:first-child .fieldset-field.fields-room input {
+    width: 12.4rem;
+  }
+  /* names */
+  #dispatch-list-container .fields-name .fieldset-info .fieldset-field.fields-honorific, 
+  #dispatch-list-container .fields-name .fieldset-info .fieldset-field.fields-suffix {
+    flex-shrink: 1;
+    flex-grow: 0;
+  }
+  #dispatch-list-container .fields-name .fieldset-info .fieldset-field.fields-honorific input,
+  #dispatch-list-container .fields-name .fieldset-info .fieldset-field.fields-suffix input {
+    width: 5em;
+  }
+  /* telephone numbers */
+  #dispatch-list-container .fields-telephoneNumber .fieldset-info .fieldset-field {
+    flex-shrink: 1;
+    flex-grow: 0;
+  }
+  #dispatch-list-container .fields-telephoneNumber .fieldset-info .fieldset-field.fields-number {
+    flex-grow: 1;
+  }
+  #dispatch-list-container .fields-telephoneNumber .fieldset-info .fieldset-field.fields-country_code input,
+  #dispatch-list-container .fields-telephoneNumber .fieldset-info .fieldset-field.fields-area_code input,
+  #dispatch-list-container .fields-telephoneNumber .fieldset-info .fieldset-field.fields-extension input {
+    width: 7em;
+  }
+  /* PETITIONS */
+  ul.form-list li.petition-enrollee-items .field-info {
+    flex-direction: row;
+    gap: 3em;
   }
   /* FOOTER */
   #co-footer {
@@ -524,6 +589,23 @@
   /* CO CONFIGURATION DASHBOARD */
   .config-menu {
     column-count: 3;
+  }
+  /* ENROLLMENT FLOWS */
+  .page-title h2.flow-step-description {
+    font-size: 1.7em;
+    margin: 0.5em 0 0.25em;
+  }
+  body.dispatch #main-wrapper,
+  body.start #main-wrapper {
+    background-color: var(--cmg-color-bg-003);
+  }
+  body.dispatch #main,
+  body.start #main {
+    background-color: var(--cmg-color-body-bg);
+    margin: 4em auto;
+    padding: 0 2em;
+    border: 1px solid var(--cmg-color-bg-006);
+    border-radius: 1em;
   }
 }
 

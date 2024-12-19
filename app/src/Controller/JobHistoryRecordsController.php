@@ -55,6 +55,7 @@ class JobHistoryRecordsController extends StandardController {
     if(!empty($link->value)) {
       $this->set('vv_bc_parent_obj', $this->JobHistoryRecords->Jobs->get($link->value));
       $this->set('vv_bc_parent_displayfield', $this->JobHistoryRecords->Jobs->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->JobHistoryRecords->Jobs->getPrimaryKey());
     }
 
     return parent::beforeRender($event);

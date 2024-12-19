@@ -36,7 +36,7 @@ class MessageTemplateContextEnum extends StandardEnum {
 //  const EnrollmentFinalization = 'EF';
   const EnrollmentHandoff      = 'EH';
 //  const EnrollmentInvitation   = 'EI'; -- we probably don't want to use this, use Handoff instead
-//  const EnrollmentVerification = 'EV';
 //  const ExpirationNotification = 'XN';
   const Plugin                 = 'PL';
+  const Verification           = 'V';
 }

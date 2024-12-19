@@ -84,7 +84,13 @@ trait TableMetaTrait {
       'source_pronoun_id',
       'source_telephone_number_id',
       'source_url_id',
-      'owners_group_id'
+      'owners_group_id',
+      'enrollee_person_id',
+      'petitioner_person_id',
+      'authz_group_id',
+      'authz_cou_id',
+      'redirect_on_finalize',
+      'collect_enrollee_email'
     ];
 
     $newa = array();

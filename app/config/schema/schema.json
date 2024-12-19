@@ -9,12 +9,14 @@
     "comment": "Columns with names matching those defined here will by default inherit these properties",
     
     "columns": {
+      "action": { "type": "string", "size": 4 },
       "api_user_id": { "type": "integer", "foreignkey": { "table": "api_users", "column": "id" } },
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
       "comment": { "type": "string", "size": 256 },
       "context": { "type": "string", "size": 2 },
       "cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
       "description": { "type": "string", "size": 128 },
+      "enrollment_flow_step_id": { "type": "integer", "foreignkey": { "table": "enrollment_flow_steps", "column": "id" } },
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
       "external_identity_source_id": { "type": "integer", "foreignkey": { "table": "external_identity_sources", "column": "id" } },
@@ -23,15 +25,19 @@
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
       "identifier_assignment_id": { "type": "integer", "foreignkey": { "table": "identifier_assignments", "column": "id" }, "notnull": true },
       "language": { "type": "string", "size": 16 },
+      "mail": { "type": "string", "size": 256 },
+      "message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" } },
       "name": { "type": "string", "size": 128, "notnull": true },
       "ordr": { "type": "integer" },
       "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
       "person_role_id": { "type": "integer", "foreignkey": { "table": "person_roles", "column": "id" } },
+      "petition_id": { "type": "integer", "foreignkey": { "table": "petitions", "column": "id" } },
       "plugin": { "type": "string", "size": 80 },
       "provisioning_target_id": { "type": "integer", "foreignkey": { "table": "provisioning_targets", "column": "id" }, "notnull": true },
       "reference_identifier": { "type": "string", "size": 40 },
       "report_id": { "type": "integer", "foreignkey": { "table": "reports", "column": "id" }, "notnull": true },
       "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": true },
+      "sor_label": { "type": "string", "size": 40 },
       "status": { "type": "string", "size": 2 },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "valid_from": { "type": "datetime" },
@@ -397,11 +403,11 @@
       "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
       "sourced": true
     },
-    
+
     "email_addresses": {
       "columns": {
         "id": {},
-        "mail": { "type": "string", "size": 256 },
+        "mail": {},
         "description": {},
         "type_id": {},
         "verified": { "type": "boolean" }
@@ -510,15 +516,15 @@
       "indexes": {
         "urls_i1": { "columns": [ "type_id" ] }
       },
-      "mvea": [ "person", "external_identity" ],
+      "mvea": [ "person", "person_role", "external_identity", "external_identity_role" ],
       "sourced": true
     },
     
     "history_records": {
       "columns": {
         "id": {},
-        "action": { "type": "string", "size": 4 },
-        "comment": { "type": "string", "size": 256 },
+        "action": {},
+        "comment": {},
         "person_id": {},
         "person_role_id": {},
         "external_identity_id": {},
@@ -594,6 +600,126 @@
       }
     },
 
+    "mostly_static_pages": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "title": { "type": "string", "size": 256 },
+        "description": {},
+        "status": {},
+        "context": {},
+        "body": { "type": "text" }
+      },
+      "indexes": {
+        "mostly_static_pages_i1": { "columns": [ "co_id" ] }
+      }
+    },
+
+    "enrollment_flows": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "status": {},
+        "sor_label": {},
+        "authz_type": { "type": "string", "size": 2 },
+        "authz_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" }},
+        "authz_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
+        "collect_enrollee_email": { "type": "boolean" },
+        "redirect_on_finalize": { "type": "string", "size": 256 }
+      },
+      "indexes": {
+        "enrollment_flows_i1": { "columns": [ "co_id" ]},
+        "enrollment_flows_i2": { "needed": false, "columns": [ "authz_cou_id" ]},
+        "enrollment_flows_i3": { "needed": false, "columns": [ "authz_group_id" ]}
+      }
+    },
+
+    "enrollment_flow_steps": {
+      "columns": {
+        "id": {},
+        "enrollment_flow_id": { "type": "integer", "foreignkey": { "table": "enrollment_flows", "column": "id" }},
+        "description": {},
+        "status": {},
+        "plugin": {},
+        "ordr": {},
+        "actor_type": { "type": "string", "size": 2 },
+        "message_template_id": {},
+        "redirect_on_handoff": { "type": "string", "size": 256 }
+      },
+      "indexes": {
+        "enrollment_flow_steps_i1": { "columns": [ "enrollment_flow_id" ]},
+        "enrollment_flow_steps_i2": { "needed": false, "columns": [ "message_template_id" ]}
+      }
+    },
+
+    "petitions": {
+      "columns": {
+        "id": {},
+        "enrollment_flow_id": { "type": "integer", "foreignkey": { "table": "enrollment_flows", "column": "id" }},
+        "status": {},
+        "cou_id": {},
+        "enrollee_email": { "type": "string", "size": 256 },
+        "enrollee_identifier": { "type": "string", "size": 256 },
+        "enrollee_person_id":  { "type": "integer", "foreignkey": { "table": "people", "column": "id" }},
+        "petitioner_identifier": { "type": "string", "size": 256 },
+        "petitioner_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" }},
+        "token": { "type": "string", "size": 256 }
+      },
+      "indexes": {
+        "petitions_i1": { "columns": [ "enrollment_flow_id" ]},
+        "petitions_i2": { "columns": [ "cou_id" ]},
+        "petitions_i3": { "columns": [ "enrollee_person_id" ]},
+        "petitions_i4": { "columns": [ "petitioner_person_id" ]}
+      }
+    },
+
+    "petition_step_results": {
+      "columns": {
+        "id": {},
+        "petition_id": {},
+        "enrollment_flow_step_id": {},
+        "comment": {}
+      },
+      "indexes": {
+        "petition_step_results_i1": { "columns": [ "petition_id" ] },
+        "petition_step_results_i2": { "needed": false, "columns": [ "enrollment_flow_step_id" ] }
+      }
+    },
+
+    "petition_history_records": {
+      "columns": {
+        "id": {},
+        "petition_id": {},
+        "enrollment_flow_step_id": {},
+        "action": {},
+        "comment": {},
+        "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } }
+      },
+      "indexes": {
+        "petition_history_records_i1": { "columns": [ "petition_id" ] },
+        "petition_history_records_i2": { "columns": [ "actor_person_id" ] },
+        "petition_history_records_i3": { "needed": false, "columns": [ "enrollment_flow_step_id" ] }
+      }
+    },
+
+    "verifications": {
+      "columns": {
+        "id": {},
+        "code": { "type": "string", "size": 32 },
+        "verification_time": { "type": "datetime" },
+        "request_expiration_time": { "type": "datetime" },
+        "method": { "type": "string", "size": 2 },
+        "email_address_id": { "type": "integer", "foreignkey": { "table": "email_addresses", "column": "id" } },
+        "petition_id": {}
+      },
+      "indexes": {
+        "verifications_i1": { "columns": [ "email_address_id" ] },
+        "verifications_i2": { "columns": [ "petition_id" ] }
+      }
+    },
+    
     "jobs": {
       "columns": {
         "id": {},

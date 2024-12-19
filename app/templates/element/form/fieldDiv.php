@@ -34,6 +34,12 @@ declare(strict_types = 1);
   // Name Div
   print $this->element('form/nameDiv');
 
+  // This configuration isn't necessary anymore.
+  if(isset($vv_field_arguments['fieldDescription'])) {
+    unset($vv_field_arguments['fieldDescription']);
+    $this->set('vv_field_arguments', $vv_field_arguments);
+  }
+
   // Info Div
   if(isset($vv_field_arguments['fieldPrefix'])) {
     print $this->element('form/infoDiv/withPrefix');

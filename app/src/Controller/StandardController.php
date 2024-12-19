@@ -92,11 +92,17 @@ class StandardController extends AppController {
         $errors = $obj->getErrors();
         
         if(!empty($errors)) {
-          $this->Flash->error(__d('error', 'fields', [ implode(',', 
-                                                                 array_map(function($v) use ($errors) { 
-                                                                             return __d('error', 'flash', [$v, implode(',', array_values($errors[$v]))]);
-                                                                           },
-                                                                           array_keys($errors))) ]));
+          $errorlist = [];
+          foreach ($errors as $model => $fails) {
+            foreach ($fails as $issues) {
+              foreach ($issues as $column => $issue) {
+                $error_descriptions = array_values($issue);
+                $col_issues = implode(',', $error_descriptions);
+                $errorlist[] = __d('error', 'flash', [$column, $col_issues]);
+              }
+            }
+          }
+          $this->Flash->error(__d('error', 'fields', $errorlist));
         } else {
           $this->Flash->error(__d('error', 'save', [$modelsName]));
         }
@@ -451,9 +457,17 @@ class StandardController extends AppController {
     // Calculate and set title, supertitle and subtitle
     [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, $modelsName, 'edit');
 
-    $this->set('vv_title', $title);
-    $this->set('vv_supertitle', $supertitle);
-    $this->set('vv_subtitle', $subtitle);
+    // We might have calculated the following values earlier. For example, MVEAController runs before the StandarController
+    // and makes similar calculations. We will keep the ones calculated before we get here
+    if ($this->viewBuilder()->getVar('vv_title') === null) {
+      $this->set('vv_title', $title);
+    }
+    if ($this->viewBuilder()->getVar('vv_supertitle') === null) {
+      $this->set('vv_supertitle', $supertitle);
+    }
+    if ($this->viewBuilder()->getVar('vv_subtitle') === null) {
+      $this->set('vv_subtitle', $subtitle);
+    }
 
     // Let the view render
     $this->render('/Standard/add-edit-view');
@@ -642,150 +656,13 @@ class StandardController extends AppController {
     $modelsName = $this->name;
     // $table = the actual table object
     $table = $this->$modelsName;
-    
-    // Populate certain view vars (eg: selects) automatically.
-    
+
     // AutoViewVarsTrait
-    if(method_exists($table, "getAutoViewVars")
-       && $table->getAutoViewVars()) {
-      foreach($table->getAutoViewVars() as $vvar => $avv) {
-        switch($avv['type']) {
-          case 'array':
-            // Use the provided array of values. By default, we use the values
-            // for the keys as well, to generate HTML along the lines of
-            // <option value="Foo">"Foo"</option>. (See also 'hash'.)
-            $this->set($vvar, array_combine($avv['array'], $avv['array']));
-            break;
-          case 'enum':
-            // We just want the localized text strings for the defined constants.
-            $class = '\\App\\Lib\\Enum\\'.$avv['class'];
-            // We support plugin notation for plugin defined enumerations.
-            if(strstr($avv['class'], ".")) {
-              $bits = explode('.', $avv['class'], 2);
-              $class = '\\'.$bits[0].'\\Lib\\Enum\\'.$bits[1];
-            }
-            $this->set($vvar, $class::getLocalizedConsts());
-            break;
-          case 'hash':
-            // Like 'array' but we assume we are passed key/value pairs
-            $this->set($vvar, $avv['hash']);
-            break;
-          // "auxiliary" and "select" do basically the same thing, but the former
-          // returns the full object and the latter just returns a hash suitable
-          // for a select. "type" is a shorthand for "select" for type_id.
-          case 'type':
-            // Inject configuration. Since we're only ever looking at the types
-            // table, inject the current CO along with the requested attribute
-            $avv['model'] = 'Types';
-            if(is_array($avv['attribute'])) {
-              $avv['where'] = [
-                'attribute IN' => $avv['attribute'],
-                'status'    => SuspendableStatusEnum::Active
-              ];
-            } else {
-              $avv['where'] = [
-                'attribute' => $avv['attribute'],
-                'status'    => SuspendableStatusEnum::Active
-              ];
-            }
-            // fall through
-          case 'auxiliary':
-// XXX add list as in match?
-          case 'select':
-            $avvmodel = $avv['model'];
-            $this->$avvmodel = TableRegistry::getTableLocator()->get($avvmodel);
-            // XXX We should probably move to a more generic approach.
-            // Models can have various types of parent keys (and sometimes multiple concurrently),
-            // so it’s better to use PrimaryLinkTrait to handle this.
-            // if(method_exists($this->$avvmodel, "calculateCoForRecord")) {
-            //  $avv['where']['co_id'] = $this->$avvmodel->calculateCoForRecord($obj)
-            // }
-            if($this->$avvmodel->getSchema()->hasColumn('co_id')) {
-              $avv['where']['co_id'] = $this->getCOID();
-            }
-
-            $query = $this->$avvmodel->find($avv['type'] == 'auxiliary' ? 'all' : 'list');
-
-            if(!empty($avv['find'])) {
-              if($avv['find'] == 'filterPrimaryLink') {
-                // We're filtering the requested model, not our current model.
-                // See if the requested key is available, and if so run the find.
-                
-                $linkFilter = $table->getPrimaryLink();
-                
-                if($linkFilter) {
-                  // Try to find the $linkFilter value
-                  $v = null;
-                  
-                  // We might have been passed an object with the current value
-                  if($obj && !empty($obj->$linkFilter)) {
-                    $v = $obj->$linkFilter;
-                  } elseif(!empty($this->request->getQuery($linkFilter))) {
-                    $v = $this->request->getQuery($linkFilter);
-                  }
-// XXX also need to check getData()?
-// XXX shouldn't this use $this->getPrimaryLink() instead? Or maybe move $this->primaryLink
-//     to PrimaryLinkTrait and call it there?
-                  
-                  if($v) {
-                    $avv['where'][$table->getAlias().'.'.$linkFilter] = $v;
-                    //$query = $query->where([$table->getAlias().'.'.$linkFilter => $v]);
-                  }
-                }
-              } else {
-                // Use the specified finder, if configured
-                $query = $query->find($avv['find']);
-              }
-            } elseif($table->getSchema()->hasColumn('co_id')) {
-              // XXX is this the best logic? maybe some relation to filterPrimaryLink?
-              // By default, filter everything on CO ID
-              $avv['where']['co_id'] = $this->getCOID();
-              //$query = $query->where([$table->getAlias().'.co_id' => $this->getCOID()]);
-            }
-
-            // Where Rule. The rule will be transfered as is
-            if(!empty($avv['where'])) {
-              // Filter on the specified clause (of the form [column=>value])
-              $query = $query->where($avv['where']);
-            }
-
-            // Where rule that will be evaluated. We use the custom whereEvan key to
-            // distinguish from the plain where. Also it might contain more than one conditions
-            if(!empty($avv['whereEval'])) {
-              foreach ($avv['whereEval'] as $whereClauseColumn => $chainedMethodDescription) {
-                $calculatedValue = FunctionUtilities::dynamicChainedFunction(
-                  $this,
-                  $chainedMethodDescription
-                );
-                $query = $query->where([$whereClauseColumn => $calculatedValue]);
-              }
-            }
-            
-            // Sort the list by display field
-            if(!empty($avv['model']) && method_exists($this->$avvmodel, "getDisplayField")) {
-              $query->order([$this->$avvmodel->getDisplayField() => 'ASC']);
-            } elseif(method_exists($table, "getDisplayField")) {
-              $query->order([$table->getDisplayField() => 'ASC']);
-            }
-            
-            $this->set($vvar, $query->toArray());
-            break;
-          case 'parent':
-            $modelsName = $this->name;
-            // $table = the actual table object
-            $table = $this->$modelsName;
-            $this->set($vvar, $table->getParents($this->getCOID()));
-            break;
-          case 'plugin':
-            $PluginTable = $this->getTableLocator()->get('Plugins');
-            $this->set($vvar, $PluginTable->getActivePluginModels($avv['pluginType']));
-            break;
-          default:
-// XXX I18n? and in match?
-            throw new \LogicException(__d('error', 'auto.viewvar.type.unknown', [$avv['type']]));
-        }
+    if(method_exists($table, 'getAutoViewVars') && $table->getAutoViewVars()) {
+      foreach ($table->calculateAutoViewVars($this->getCOID(), $obj) as $vvar => $value) {
+        $this->set($vvar, $value);
       }
-    }    
+    }
   }
 
   /**

@@ -24,6 +24,9 @@
 
 # Operations (Commands)
 
+msgid "accept"
+msgstr "Accept"
+
 msgid "acknowledge"
 msgstr "Acknowledge"
 
@@ -35,6 +38,9 @@ msgstr "Add"
 
 msgid "add.a"
 msgstr "Add a New {0}"
+
+msgid "add.a-1"
+msgstr "Add a New {0} `{1}`"
 
 msgid "add.attribute"
 msgstr "Add Attribute"
@@ -105,8 +111,17 @@ msgstr "Configure {0}"
 msgid "configure.plugin"
 msgstr "Configure Plugin"
 
+msgid "continue"
+msgstr "Continue"
+
 msgid "copy"
 msgstr "Copy"
+
+msgid "copy.flowUrl"
+msgstr "Copy Enrollment Flow URL"
+
+msgid "copy.url"
+msgstr "Copy URL"
 
 msgid "copy.value"
 msgstr "Copy value"
@@ -116,6 +131,9 @@ msgstr "{0} Configuration"
 
 msgid "deactivate"
 msgstr "Deactivate"
+
+msgid "decline"
+msgstr "Decline"
 
 msgid "delete"
 msgstr "Delete"
@@ -131,6 +149,15 @@ msgstr "Edit"
 
 msgid "edit.a"
 msgstr "Edit {0}"
+
+msgid "edit.a-1"
+msgstr "Edit {0} `{1}`"
+
+msgid "edit.PersonRoles.a"
+msgstr "Edit Role {0}"
+
+msgid "edit.ExternalIdentityRoles.a"
+msgstr "Edit Role {0}"
 
 msgid "EmailAddresses.verify.force"
 msgstr "Force Verify"
@@ -192,6 +219,9 @@ msgstr "Display records"
 msgid "page.goto"
 msgstr "Go to page"
 
+msgid "Petitions.rerun"
+msgstr "Rerun"
+
 msgid "pick"
 msgstr "Pick"
 
@@ -228,6 +258,9 @@ msgstr "Remove"
 msgid "resend"
 msgstr "Resend"
 
+msgid "resume"
+msgstr "Resume"
+
 msgid "save"
 msgstr "Save"
 
@@ -243,11 +276,17 @@ msgstr "Please select..."
 msgid "skip_to_content"
 msgstr "Skip to main content"
 
+msgid "EnrollmentFlows.start"
+msgstr "Start"
+
 msgid "Cos.switch"
 msgstr "Switch To This CO"
 
 msgid "unfreeze"
 msgstr "Unfreeze"
+
+msgid "verify"
+msgstr "Verify"
 
 msgid "view"
 msgstr "View"
@@ -257,4 +296,13 @@ msgstr "View {0}"
 
 msgid "visit.link"
 msgstr "Visit link"
+
+msgid "view.PersonRoles.a"
+msgstr "View Role {0}"
+
+msgid "view.Petitions.a"
+msgstr "View Petition {0}"
+
+msgid "view.ExternalIdentityRoles.a"
+msgstr "View Role {0}"
 

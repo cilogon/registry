@@ -55,9 +55,9 @@ export default {
         let url = new URL(resp.url)
         let path = url.pathname
         let id = path.split('/').pop()
-        let info = `<span arial-label="status=true" class="material-icons success" aria-hidden="true">check_circle</span> ${this.action} ${resp.statusText} (Code: ${resp.status})`
+        let info = `<span arial-label="status=true" class="material-symbols success" aria-hidden="true">check_circle</span> ${this.action} ${resp.statusText} (Code: ${resp.status})`
         if(!resp.ok) {
-          info = `<p><span aria-label="status=false" class="material-icons danger" aria-hidden="true">report_problem</span> ${this.action} ${resp.statusText} (Code: ${resp.status})</p>`
+          info = `<p><span aria-label="status=false" class="material-symbols danger" aria-hidden="true">report_problem</span> ${this.action} ${resp.statusText} (Code: ${resp.status})</p>`
           info += `<p>${this.jsn[idx].message}</p>`
           info += `<p>${this.jsn[idx].url}</p>`
         }

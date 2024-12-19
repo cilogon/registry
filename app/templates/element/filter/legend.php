@@ -40,7 +40,7 @@ $hasActiveFilters = false;
 
 
 <legend id="top-filters-toggle">
-  <em class="material-icons top-filters-search-icon" aria-hidden="true">search</em>
+  <em class="material-symbols top-filters-search-icon" aria-hidden="true">search</em>
   <span class="top-filters-title">
         <?= __d('operation', 'filter'); ?>
       </span>
@@ -61,5 +61,5 @@ $hasActiveFilters = false;
       <?php endif; ?>
       </span>
   <?php endif; ?>
-  <button class="cm-toggle nospin" aria-expanded="false" aria-controls="top-filters-fields" type="button"><em class="material-icons drop-arrow">arrow_drop_down</em></button>
+  <button class="cm-toggle nospin" aria-expanded="false" aria-controls="top-filters-fields" type="button"><em class="material-symbols drop-arrow">arrow_drop_down</em></button>
 </legend>

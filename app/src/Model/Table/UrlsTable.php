@@ -37,6 +37,7 @@ class UrlsTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
@@ -54,19 +55,7 @@ class UrlsTable extends Table {
       'personal'
     ]
   ];
-  
-  /**
-   * Provide the default layout
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getLayout(string $action = ''): string {
-    return match($action) {
-      default => 'iframe'
-    };
-  }
-  
+
   /**
    * Perform Cake Model initialization.
    *
@@ -85,6 +74,7 @@ class UrlsTable extends Table {
     // Define associations
     $this->belongsTo('People');
     $this->belongsTo('ExternalIdentities');
+    $this->belongsTo('ExternalIdentityRoles');
     $this->belongsTo('Types');
     $this->belongsTo('SourceUrls')
          ->setClassName('Urls')
@@ -93,7 +83,7 @@ class UrlsTable extends Table {
     
     $this->setDisplayField('url');
     
-    $this->setPrimaryLink(['external_identity_id', 'person_id']);
+    $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');

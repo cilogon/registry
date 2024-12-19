@@ -55,6 +55,10 @@ function stopSpinner() {
   $("#co-loading").hide();
 }
 
+function stopMiniSpinner() {
+  $(".co-loading-mini").hide();
+}
+
 // Show fields in .form-list output.
 // fields          - array of field IDs
 // isPageLoad      - boolean, true for first page load

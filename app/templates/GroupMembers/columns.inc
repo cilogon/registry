@@ -91,11 +91,6 @@ $topLinks = [
 $bulkActions = [BulkActionEnum::Delete];
 
 
-$subnav = [
-  'name' => 'group',
-  'active' => 'members'
-];
-
 // Page options
 $peoplePicker = [
   'label' => __d('operation','add.member'),

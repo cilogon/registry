@@ -99,6 +99,39 @@ msgstr "Staff"
 msgid "EduPersonAffiliationEnum.student"
 msgstr "Student"
 
+msgid "EnrollmentActorEnum.A"
+msgstr "Approver"
+
+msgid "EnrollmentActorEnum.E"
+msgstr "Enrollee"
+
+msgid "EnrollmentActorEnum.P"
+msgstr "Petitioner"
+
+msgid "EnrollmentAuthzEnum.A"
+msgstr "CO or COU Admin"
+
+msgid "EnrollmentAuthzEnum.AU"
+msgstr "Any Authenticated User"
+
+msgid "EnrollmentAuthzEnum.CA"
+msgstr "CO Administrator"
+
+msgid "EnrollmentAuthzEnum.CP"
+msgstr "Person"
+
+msgid "EnrollmentAuthzEnum.GM"
+msgstr "Group Member"
+
+msgid "EnrollmentAuthzEnum.N"
+msgstr "None"
+
+msgid "EnrollmentAuthzEnum.UA"
+msgstr "COU Administrator"
+
+msgid "EnrollmentAuthzEnum.UP"
+msgstr "COU Person"
+
 msgid "ExternalIdentityStatusEnum.A"
 msgstr "Active"
 
@@ -143,6 +176,15 @@ msgstr "Owners"
 
 msgid "GroupTypeEnum.S"
 msgstr "Standard"
+
+msgid "GroupedAddressFieldsEnum.street,room"
+msgstr "Street, Room"
+
+msgid "GroupedAddressFieldsEnum.city,locality"
+msgstr "City, Locality"
+
+msgid "GroupedAddressFieldsEnum.state,postal_code,country"
+msgstr "State, Postal Code, Country"
 
 msgid "IdentifierAssignmentContextEnum.CD"
 msgstr "Department"
@@ -303,17 +345,17 @@ msgstr "HTML"
 msgid "MessageFormatEnum.text"
 msgstr "Plain Text"
 
-msgid "MessageTemplateContextEnum.AP"
-msgstr "Enrollment Approver"
+# msgid "MessageTemplateContextEnum.AP"
+# msgstr "Enrollment Approver"
 
-msgid "MessageTemplateContextEnum.AU"
-msgstr "Authenticator"
+# msgid "MessageTemplateContextEnum.AU"
+# msgstr "Authenticator"
 
-msgid "MessageTemplateContextEnum.EA"
-msgstr "Enrollment Approval"
+# msgid "MessageTemplateContextEnum.EA"
+# msgstr "Enrollment Approval"
 
-msgid "MessageTemplateContextEnum.EF"
-msgstr "Enrollment Finalization"
+# msgid "MessageTemplateContextEnum.EF"
+# msgstr "Enrollment Finalization"
 
 msgid "MessageTemplateContextEnum.EH"
 msgstr "Enrollment Handoff"
@@ -321,14 +363,14 @@ msgstr "Enrollment Handoff"
 # msgid "MessageTemplateContextEnum.EI"
 # msgstr "Enrollment Invitation"
 
-msgid "MessageTemplateContextEnum.EV"
-msgstr "Enrollment Verification"
-
 msgid "MessageTemplateContextEnum.PL"
 msgstr "Plugin"
 
-msgid "MessageTemplateContextEnum.XN"
-msgstr "Expiration Notification"
+msgid "MessageTemplateContextEnum.V"
+msgstr "Verification"
+
+# msgid "MessageTemplateContextEnum.XN"
+# msgstr "Expiration Notification"
 
 msgid "NotificationStatusEnum.A"
 msgstr "Acknowledged"
@@ -347,6 +389,15 @@ msgstr "Resolved"
 
 msgid "NotificationStatusEnum.X"
 msgstr "Canceled"
+
+msgid "PageContextEnum.EH"
+msgstr "Enrollment Handoff"
+
+msgid "PageContextEnum.ER"
+msgstr "Error Landing"
+
+msgid "PageContextEnum.G"
+msgstr "General"
 
 msgid "PermittedNameFieldsEnum.given,family"
 msgstr "Given, Family"
@@ -395,6 +446,70 @@ msgstr "Country Code, Area Code, Number"
 
 msgid "PermittedTelephoneNumberFieldsEnum.country_code,area_code,number,extension"
 msgstr "Country Code, Area Code, Number, Extension"
+
+msgid "PetitionActionEnum.AU"
+msgstr "Attributes Updated"
+
+msgid "PetitionActionEnum.EV"
+msgstr "Email Verified"
+
+msgid "PetitionActionEnum.F"
+msgstr "Finalized"
+
+msgid "PetitionActionEnum.IV"
+msgstr "Invitation Viewed"
+
+msgid "PetitionActionEnum.SU"
+msgstr "Status Updated"
+
+msgid "PetitionStatusEnum.A"
+msgstr "Active"
+
+msgid "PetitionStatusEnum.Y"
+msgstr "Approved"
+
+# This was "Confirmed" in v4
+msgid "PetitionStatusEnum.C"
+msgstr "Accepted"
+
+msgid "PetitionStatusEnum.CR"
+msgstr "Created"
+
+msgid "PetitionStatusEnum.D2"
+msgstr "Duplicate"
+
+msgid "PetitionStatusEnum.F"
+msgstr "Finalized"
+
+msgid "PetitionStatusEnum.FI"
+msgstr "Finalizing"
+
+msgid "PetitionStatusEnum.N"
+msgstr "Denied"
+
+msgid "PetitionStatusEnum.PA"
+msgstr "Pending Approval"
+
+msgid "PetitionStatusEnum.PC"
+msgstr "Pending Acceptance"
+
+msgid "PetitionStatusEnum.PE"
+msgstr "Pending Verification"
+
+msgid "PetitionStatusEnum.PV"
+msgstr "Pending Vetting"
+
+msgid "PetitionStatusEnum.VE"
+msgstr "Verified"
+
+msgid "PetitionStatusEnum.VT"
+msgstr "Vetted"
+
+msgid "PetitionStatusEnum.X"
+msgstr "Declined"
+
+msgid "PetitionStatusEnum.XX"
+msgstr "Failed"
 
 msgid "ProvisionerModeEnum.A"
 msgstr "Immediate"
@@ -533,6 +648,21 @@ msgstr "Suspended"
 
 msgid "TemplateableStatusEnum.T"
 msgstr "Template"
+
+msgid "VerificationMethodEnum.C"
+msgstr "Code"
+
+msgid "VerificationMethodEnum.M"
+msgstr "Manual"
+
+msgid "VerificationMethodEnum.PH"
+msgstr "Petition Handoff"
+
+msgid "VerificationMethodEnum.TS"
+msgstr "Trusted Source"
+
+msgid "VerificationMethodEnum.U"
+msgstr "URL"
 
 msgid "YesBooleanEnum.0"
 msgstr "No"

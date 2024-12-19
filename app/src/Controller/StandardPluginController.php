@@ -96,6 +96,7 @@ class StandardPluginController extends StandardController {
 
       $this->set('vv_bc_parent_obj', $parentObj);
       $this->set('vv_bc_parent_displayfield', $parentDisplayField);
+      $this->set('vv_bc_parent_primarykey', $parentTable->getPrimaryKey());
       
       // Override the title set in StandardController. Since that was set in edit()
       // which is called before the rendering hooks, this title will take precedence.

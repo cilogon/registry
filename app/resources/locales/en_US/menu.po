@@ -112,7 +112,7 @@ msgid "co.people.enrollments.pending"
 msgstr "Pending Enrollments"
 
 msgid "co.people.enrollments.pending.desc"
-msgstr "See and manage in-progress enrollments (CO Petitions)"
+msgstr "See and manage pending enrollments"
 
 msgid "co.people.external.source.records"
 msgstr "External Source Records"
@@ -192,8 +192,11 @@ msgstr "medium"
 msgid "menu.density.large"
 msgstr "large"
 
+msgid "menu.home"
+msgstr "Home"
+
 msgid "menu.introduction"
-msgstr "Please select an action from the menu."
+msgstr "Welcome to COmanage Registry."
 
 msgid "menu.main"
 msgstr "Main Menu"

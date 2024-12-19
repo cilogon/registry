@@ -177,7 +177,9 @@ export default {
       return data?.People?.map((item) => {
         return {
           "value": item.id,
-          "label": `${item?.primary_name?.given} ${item?.primary_name?.family}`,
+          // XXX The label is the value that autocomplete will use to update the input field value property.
+          "label": `${item?.primary_name?.given} ${item?.primary_name?.family} (ID: ${item?.id})`,
+          "fullName": `${item?.primary_name?.given} ${item?.primary_name?.family}`,
           "itemId": `${item?.id}`,
           "email": this.filterByEmailAddressType(item?.email_addresses),
           "emailPretty": this.shortenString(this.constructEmailCsv(this.filterByEmailAddressType(item?.email_addresses))),
@@ -190,12 +192,8 @@ export default {
       })
     },
     setPerson() {
-      if(this.options.type == 'default') {
+      if(['default', 'field'].includes(this.options.type)) {
         this.options.inputProps.dataPersonid = this.person.value
-      } else if(this.options.type == 'field') {
-        // The picker is part of a standard form field
-        const field = document.getElementById(this.options.fieldName);
-        field.value = this.person.value;
       } else {
         // The picker is stand-alone, and should render the configured page in a modal on @item-select
         const urlForModal = this.options.actionUrl + '&person_id=' + this.person.value;
@@ -249,7 +247,7 @@ export default {
   mounted() {
     if(this.options.inputValue != undefined
       && this.options.inputValue != ''
-      && this.options.htmlId == 'person_id') {
+      && this.options.htmlId.endsWith('person_id')) {
       this.options.inputProps.value = `${this.options.formParams?.fullName} (ID: ${this.options.inputValue})`
     }
   },
@@ -272,11 +270,22 @@ export default {
       }
       // Otherwise return the default
       return this.txt['operation.autocomplete.people.label'];
+    },
+    hasAutoCompleteLabel: function() {
+      // Check to see if a label has been passed in
+      return this.options.label !== undefined && this.options.label !== ''
+    },
+    getMiniLoaderClasses: function() {
+      if(this.options.label !== undefined && this.options.label !== '') {
+        return "co-loading-mini-container d-inline ms-1"
+      } else {
+        return "co-loading-mini-container d-inline ms-1 over-input"
+      }
     }
   },
   template: `
-    <label class="mr-2" :for="this.options.htmlId">{{ this.autoCompleteLabel }}</label>
-    <MiniLoader :isLoading="loading" classes="co-loading-mini-container d-inline ms-1"/>
+    <label v-if="hasAutoCompleteLabel" class="mr-2" :for="this.options.htmlId">{{ this.autoCompleteLabel }}</label>
+    <MiniLoader :isLoading="loading" :classes="getMiniLoaderClasses"/>
     <AutoComplete 
       v-model="person"
       inputClass="cm-autocomplete"
@@ -300,8 +309,9 @@ export default {
         <div class="cm-ac-item">
           <div class="cm-ac-item-primary">
             <div class="cm-ac-name">
-              <span class="cm-ac-name-value" v-if="slotProps.option.isMember" v-html="slotProps.option.label"></span>
-              <span class="cm-ac-name-value" v-else v-html="this.highlightedquery(slotProps.option.label, query)"></span>
+              <!-- XXX The input field will be updated with the option.label value. Here we only need the full name -->
+              <span class="cm-ac-name-value" v-if="slotProps.option.isMember" v-html="slotProps.option.fullName"></span>
+              <span class="cm-ac-name-value" v-else v-html="this.highlightedquery(slotProps.option.fullName, query)"></span>
               <span class="mr-1 badge bg-success" v-if="slotProps.option.isMember">{{ this.txt['controller.GroupMembers'] }}</span>
             </div>
             <div class="cm-ac-item-id">

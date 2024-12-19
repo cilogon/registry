@@ -202,7 +202,7 @@ export default {
     <li class="field-data-container linked-row" v-if="this.core.mveaType == 'urls'" @click="followRowLink">
       <div class="field-data force-wrap with-hover-button">
         <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.description != '' && this.mvea.description != null ? this.mvea.description : this.mvea.url }}</a>   
-        <a :href="this.mvea.url" class="canvas-url-link" :title="this.txt['operation.visit.link']"><span class="material-icons">north_east</span></a>
+        <a :href="this.mvea.url" class="canvas-url-link" :title="this.txt['information.global.visit.link']"><span class="material-symbols">north_east</span></a>
         <copy-value-button 
           :txt="this.txt" 
           :valueToCopy="this.mvea.url">

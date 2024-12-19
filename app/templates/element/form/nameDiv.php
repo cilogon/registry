@@ -57,6 +57,7 @@ if(str_contains($fieldName, '.')) {
 
 [$label, $desc] = $this->Field->calculateLabelAndDescription($fn);
 $label = $vv_field_arguments['fieldLabel'] ?? $label;
+$desc = $vv_field_arguments['fieldDescription'] ?? $desc;
 
 // We determine if a field is rquired by first getting the "expected" value
 // from FieldHelper, then overriding that value if an argument was passed in.

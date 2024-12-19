@@ -34,6 +34,27 @@ use ReflectionClass;
 
 class StandardEnum {
   /**
+   * Get the localized text strings for the specified const.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @return string Localized const string
+   */
+  
+  public static function getLocalization(string $key): string  {
+    // get_called_class() will return something like App\Lib\Enum\StatusEnum
+    // or CoreServer\Lib\Enum\RdbmsTypeEnum
+    $classBits = explode('\\', get_called_class(), 4);
+
+    if($classBits[0] == 'App') {
+      return __d('enumeration', $classBits[3].'.'.$key);
+    } else {
+      $pluginDomain = Inflector::underscore($classBits[0]);
+
+      return __d($pluginDomain, 'enumeration.'.$classBits[3].'.'.$key);
+    }
+  }
+
+  /**
    * Get the localized text strings for the constants in the Enumeration.
    *
    * @since  COmanage Registry v5.0.0
@@ -53,7 +74,7 @@ class StandardEnum {
     $classBits = explode('\\', get_called_class(), 4);
 
     if($classBits[0] == 'App') {
-      foreach(array_values($consts) as $key) {
+      foreach($consts as $key) {
         $ret[$key] = __d('enumeration', $classBits[3].'.'.$key);
       }
     } else {

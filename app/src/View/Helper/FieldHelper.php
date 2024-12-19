@@ -38,6 +38,13 @@ use App\Lib\Util\StringUtilities;
 class FieldHelper extends Helper {
   public $helpers = ['Form', 'Html'];
 
+  /**
+   * List of predefined editable form actions
+   */
+  public const EDITABLE_ACTIONS = [
+    'add', 'edit', // CRUD actions
+  ];
+
   // Is this read-only or read-write?
   protected bool $editable = true;
   
@@ -66,6 +73,7 @@ class FieldHelper extends Helper {
    * @param   array  $config The configuration settings provided to this helper.
    *
    * @return void
+   * @since  COmanage Registry v5.0.0
    */
   public function initialize(array $config): void
   {
@@ -74,7 +82,8 @@ class FieldHelper extends Helper {
     $this->reqFields = $this->getView()->get('vv_required_fields');
     $this->modelName = $this->getView()->getName();
     $this->action = $this->getView()->get('vv_action');
-    $this->editable = \in_array($this->action, ['add', 'edit']);
+    $vv_is_editable = filter_var($this->getView()->get('vv_is_editable'),  FILTER_VALIDATE_BOOLEAN);
+    $this->editable = \in_array($this->action, self::EDITABLE_ACTIONS, true) || $vv_is_editable;
     $this->pluginName = $this->getView()->getPlugin();
     $this->entity = $this->getView()->get('vv_obj');
     $this->fieldTypes = $this->getView()->get('vv_field_types');
@@ -86,6 +95,7 @@ class FieldHelper extends Helper {
    * @param   string  $fieldName
    *
    * @return array
+   * @since  COmanage Registry v5.0.0
    */
   public function calculateLabelAndDescription(string $fieldName): array
   {
@@ -172,14 +182,20 @@ class FieldHelper extends Helper {
    * Calculate the list of classes for the li element
    *
    * @return string
+   * @since  COmanage Registry v5.0.0
    */
   public function calculateLiClasses(): string
   {
     $fieldName = $this->getView()->get('fieldName');
     $vv_field_arguments = $this->getView()->get('vv_field_arguments');
 
+    // Get the fieldtype directly from the configuration or calculate it
+    // The latter will always work for simple model forms. The first one is used
+    // for more complex use cases
+    $fieldType = $vv_field_arguments['fieldType'] ?? $this->getFieldType($fieldName);
+
     // Class calculation by field Type
-    $classes = match ($this->getFieldType($fieldName)) {
+    $classes = match ($fieldType) {
       'date',
       'datetime',
       'timestamp'     => 'fields-datepicker ',
@@ -199,7 +215,47 @@ class FieldHelper extends Helper {
       $classes .= 'fields-people-autocomplete ';
     }
 
+    // Each field should have a class like `fields-<name of the field>`
+    $field = $vv_field_arguments['fieldNameAlias'] ?? $fieldName ?? 'unknown';
+    $classes .= " fields-$field";
+
     return $classes;
+  }
+
+  /**
+   * Construct the SPA field element
+   *
+   * @param   string  $element         HTML element created with the CAKEPHP HTML Helper
+   * @param   string  $vueElementName  The name of the JavaScript module
+   *
+   * @return string
+   * @since  COmanage Registry v5.0.0
+   */
+  public function constructSPAField(string $element, string $vueElementName): string {
+    // Parse the ID attribute
+    $regexId = '/id="(.*?)"/m';
+    preg_match_all($regexId, $element, $matchesId, PREG_SET_ORDER, 0);
+
+    // Parse the Name attribute
+    $regexName = '/name="(.*?)"/m';
+    preg_match_all($regexName, $element, $matchesName, PREG_SET_ORDER, 0);
+
+    // Parse the Class attribute
+    $regexClass = '/class="(.*?)"/m';
+    preg_match_all($regexClass, $element, $matchesClass, PREG_SET_ORDER, 0);
+    if(!empty($matchesId[0][1]) && !empty($matchesName[0][1])) {
+      return $this->getView()->element($vueElementName, [
+        'htmlId' => $matchesId[0][1],
+        'fieldName' => $matchesName[0][1],
+        'containerClasses' => $matchesClass[0][1],
+        'type' => 'field',
+        // we want the label to be an empty string to hide the default label introduced by the module.
+        'label' => ''
+      ]);
+    }
+
+    // Fallback to an error element
+    return $this->getView()->element('elementFallback');
   }
 
   /**
@@ -208,15 +264,15 @@ class FieldHelper extends Helper {
    *
    * @param   string       $fieldName  Form field
    * @param   string       $dateType   Standard, DateOnly, FromTime, ThroughTime
-   * @param   string|null  $label
+   * @param   array|null   $fieldArgs
    *
    * @return string HTML element
    * @since  COmanage Registry v5.0.0
    */
 
   public function dateField(string $fieldName,
-                            string $dateType=DateTypeEnum::Standard,
-                            string $label=null): string
+                            string $dateType = DateTypeEnum::Standard,
+                            array  $fieldArgs = null): string
   {
     // Initialize
     $dateFormat = $dateType === DateTypeEnum::DateOnly ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:mm:ss';
@@ -227,6 +283,10 @@ class FieldHelper extends Helper {
                    ? FrozenTime::parse($queryParams[$fieldName])
                    : $this->getEntity()?->$fieldName;
 
+    // Petition Attribute Collection use case
+    if($date_object === null && !empty($fieldArgs['default'])) {
+      $date_object = $fieldArgs['default'];
+    }
     // Create the options array for the (text input) form control
     $coptions = [];
 
@@ -234,8 +294,12 @@ class FieldHelper extends Helper {
     // that will interact with the field value. Allowing direct access to the input field is for
     // accessibility purposes.
 
-    // ACTION VIEW
-    if($this->action == 'view') {
+    // ACTION VIEW or Readonly Field
+    // The latter applies for the attribute collection view
+    if($this->action == 'view'
+      ||
+      (isset($fieldArgs['readonly']) && $fieldArgs['readonly'])
+    ) {
       // return the date as plaintext
       $element = $this->getView()->element('form/notSetDiv', [], [
         'cache' => '_html_elements',
@@ -251,7 +315,8 @@ class FieldHelper extends Helper {
 
     // Special-case the very common "valid_from" and "valid_through" fields, so we won't need
     // to specify their types in fields.inc.
-    $pickerType = match ($fieldName) {
+    $pickerTypeName = $fieldArgs['fieldNameAlias'] ?? $fieldName;
+    $pickerType = match ($pickerTypeName) {
       'valid_from' => DateTypeEnum::FromTime,
       'valid_through' => DateTypeEnum::ThroughTime,
       default => $dateType
@@ -260,9 +325,6 @@ class FieldHelper extends Helper {
     // Append the timezone to the label
     $coptions['class'] = 'form-control datepicker';
     $coptions['placeholder'] = $dateFormat;
-    if(!empty($label)) {
-      $coptions['label'] = $label;
-    }
     $coptions['pattern'] = $datePattern;
     $coptions['title'] = __d('field', $dateTitle);
 
@@ -292,18 +354,28 @@ class FieldHelper extends Helper {
       'pickerFloor' => $pickerFloor,
     ];
 
+    $fieldLabel = '';
+    if(!empty($fieldArgs['label'])) {
+      $fieldLabel = $this->Form->label($fieldName, $fieldArgs['label']);
+    }
     // Create a text field to hold our value and call the datePicker
-    return $this->Form->text($fieldName, $coptions) . $this->getView()->element('datePicker', $date_picker_args);
+    return $fieldLabel                                              // label
+      . $this->Form->text($fieldName, $coptions)                    // hidden input
+      . $this->getView()->element('datePicker', $date_picker_args); // datepicker field
   }
 
   /**
    * Create the actual Form element
    *
-   * @param   string       $fieldName     Form field
-   * @param   array|null   $fieldOptions  The second parameter of the Form->control helper. List of element options
-   * @param   string|null  $fieldLabel    Custom label thext
-   * @param   string       $fieldPrefix   If the field has a specil prefix provide the value
-   * @param   string|null  $fieldType     Field type to override the one calculated from the schema
+   * @param   string       $fieldName             Form field
+   * @param   array|null   $fieldOptions          The second parameter of the Form->control helper. List of element options
+   * @param   string|null  $fieldLabel            Custom label text. Applicable to checkboxes ONLY
+   * @param   string       $fieldPrefix           If the field has a specil prefix provide the value
+   * @param   string|null  $fieldType             Field type to override the one calculated from the schema
+   * @param   array|null   $fieldSelectOptions    Options array to override the one calculated options from the AutoPopulate property
+   *                                              fieldType has to be 'select'
+   * @param   string|null  $fieldNameAlias        Used for the Petition Attribute Collection form. The form uses generic field name.
+   *                                              The variable is used to map the generic field name to the actual enrollment attribute name
    *
    * @return string  HTML element
    * @since  COmanage Registry v5.0.0
@@ -312,7 +384,9 @@ class FieldHelper extends Helper {
                             array  $fieldOptions = null,
                             string $fieldLabel = null,
                             string $fieldPrefix = '',
-                            string $fieldType = null): string
+                            string $fieldType = null,
+                            array  $fieldSelectOptions = null,
+                            string $fieldNameAlias = null): string
   {
     $fieldArgs = $fieldOptions ?? [];
     $fieldArgs['label'] = $fieldOptions['label'] ?? false;
@@ -339,8 +413,8 @@ class FieldHelper extends Helper {
 
     // Check if the empty option comes with a value
     if($fieldArgs['empty']
-       && !empty($fieldOptions['empty'])
-       && \is_string($fieldOptions['empty'])) {
+       && isset($fieldOptions['empty'])
+       && \is_bool($fieldOptions['empty'])) {
       $fieldArgs['empty'] = $fieldOptions['empty'];
     }
 
@@ -354,7 +428,7 @@ class FieldHelper extends Helper {
       $this->getView()->set($optionName, $optionValues);
     }
 
-    // Is this a multiple select
+    // Is this multiple select?
     $fieldArgs['multiple'] = !empty($fieldOptions['multiple']);
 
     // Manipulate the vv_object for the hasPrefix use case
@@ -362,6 +436,11 @@ class FieldHelper extends Helper {
 
     // Get the field type from the map of fields (e.g. 'boolean', 'string', 'timestamp')
     $fieldType = $fieldType ?? $this->getFieldType($fieldName);
+    // $fieldType=select requires the $fieldSelectOptions. If the options are empty, we will
+    // force the usage of the default option
+    if(empty($fieldSelectOptions) && $fieldType === 'select') {
+      $fieldType = '';
+    }
     // Generate the form control or pass along the markup generated in a wrapper function
     return match($fieldType) {
       // A boolean field is a checkbox. Set the label and class to improve rendering
@@ -372,9 +451,11 @@ class FieldHelper extends Helper {
                                             'label' => $fieldLabel,
                                             'class' => 'form-check-input',
                                           ]),
-      'date'      => $this->dateField($fieldName, DateTypeEnum::DateOnly),
+      'select'    => $this->Form->select($fieldName, $fieldSelectOptions, $fieldArgs),
+      'text'      => $this->Form->textarea($fieldName, $fieldArgs),
+      'date'      => $this->dateField(fieldName: $fieldName, dateType: DateTypeEnum::DateOnly, fieldArgs: $fieldArgs),
       'datetime',
-      'timestamp' => $this->dateField($fieldName),
+      'timestamp' => $this->dateField(fieldName: $fieldName, fieldArgs: $fieldArgs),
       default     => $this->Form->control($fieldName, $fieldArgs)
     };
   }
@@ -454,6 +535,28 @@ class FieldHelper extends Helper {
   public function isEditable(): bool
   {
     return $this->editable;
+  }
+
+  /**
+   * Enable Form Edit mode. This will allow fields to be editable
+   * and the submit button will be rendered
+   *
+   * @return void
+   */
+  public function enableFormEditMode(): void
+  {
+    $this->editable = true;
+  }
+
+  /**
+   * Disable Form's edit mode. Fields will be become readonly/disabled
+   * and the submit button will be removed from the DOM
+   *
+   * @return void
+   */
+  public function disableFormEditMode(): void
+  {
+    $this->editable = false;
   }
 
   /**

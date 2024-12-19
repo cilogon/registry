@@ -72,7 +72,3 @@ $bulkActions = [
 ];
 */
 
-$subnav = [
-  'name' => 'group',
-  'active' => 'nestings'
-];

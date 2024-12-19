@@ -33,6 +33,7 @@
   $htmlId = $htmlId ?? 'cmPersonPickerId';
   $actionUrl = $actionUrl ?? []; // the url of the page to launch on select for a stand-alone picker
   $viewConfigParameters = $viewConfigParameters ?? [];
+  $containerClasses = $containerClasses ?? 'cm-autocomplete-container';
 
   // Get the CSRF Token in JavaScript  
   $token = $this->request->getAttribute('csrfToken');
@@ -132,7 +133,7 @@
   }
 
   // Mount the component and provide a global reference for this app instance.
-  window.<?= $htmlId ?> = app.mount("#<?= $htmlId ?>-container");
+  window.<?= str_replace('-', '', $htmlId) ?> = app.mount("#<?= $htmlId ?>-container");
 </script>
 
-<div id="<?= $htmlId ?>-container" class="cm-autocomplete-container"></div>
+<div id="<?= $htmlId ?>-container" class="<?= $containerClasses ?>"></div>

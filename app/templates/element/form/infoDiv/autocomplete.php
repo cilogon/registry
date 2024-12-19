@@ -54,6 +54,6 @@ $autocompleteArgs = [
   print $this->Form->hidden($fieldName, $vv_field_arguments['fieldOptions']) . $this->element('peopleAutocomplete', $autocompleteArgs);
 ?>
 <div class="field-desc">
-  <span class="material-icons">info</span>
+  <span class="material-symbols">info</span>
   <?= __d('operation','autocomplete.people.desc',['2']) ?>
 </div>

@@ -37,6 +37,11 @@ declare(strict_types = 1);
       </div>
       <div class="field-info">
         <?= $this->Form->submit($label) ?>
+        <?php if(!empty($vv_include_cancel)): ?>
+          <button type="button" onclick="history.back()" class="btn btn-cancel">
+            <?= __d('operation','cancel') ?>
+          </button>
+        <?php endif; ?>
       </div>
     </div>
   </li>

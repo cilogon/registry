@@ -73,7 +73,7 @@ $targetWindow = $vv_target_window ?? 'self';
   <button 
     class="btn btn-primary cm-deleted-close-button" 
     onclick="window.parent.hideCmModal()">
-    <em class="material-icons" aria-hidden="true">cancel</em>
+    <em class="material-symbols-outlined" aria-hidden="true">cancel</em>
     <?= __d('operation','close') ?>
   </button>
 

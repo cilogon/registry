@@ -74,7 +74,7 @@ $filter_title =
         data-identifier="<?= $data_identifier ?>"
         type="button" aria-controls="<?= $aria_controls ?>"
         title="<?= __d('operation', 'clear.filters',[2]) ?>">
-  <em class="material-icons" aria-hidden="true">cancel</em>
+  <em class="material-symbols-outlined" aria-hidden="true">cancel</em>
   <span class="top-filters-active-filter-title"><?= $filter_title ?></span>
   <?php if($vv_searchable_attributes[$key]['type'] != 'boolean'): ?>
   <span class="top-filters-active-filter-value">

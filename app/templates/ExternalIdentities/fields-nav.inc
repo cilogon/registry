@@ -81,13 +81,13 @@ $addMenuLinks = [
     'controller' => 'names',
     'action' => 'add',
     'icon' => 'account_box',
-    'iconClass' => 'material-icons-outlined'
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'email_addresses',
     'action' => 'add',
     'icon' => 'email',
-    'iconClass' => 'material-icons-outlined'
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'identifiers',
@@ -98,13 +98,13 @@ $addMenuLinks = [
     'controller' => 'ad_hoc_attributes',
     'action' => 'add',
     'icon' => 'check_box',
-    'iconClass' => 'material-icons-outlined'
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'addresses',
     'action' => 'add',
     'icon' => 'contact_mail',
-    'iconClass' => 'material-icons-outlined'
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'history_records',

@@ -68,7 +68,7 @@ export default {
       class="cm-copy-value-button cm-hover-button cm-row-button btn btn-sm btn-default" 
       :aria-label="this.ariaLabel" 
       @click.stop.prevent="copyValue(this.valueToCopy)">
-      <span class="material-icons-outlined">{{ this.copyIcon }}</span>
+      <span class="material-symbols-outlined">{{ this.copyIcon }}</span>
       <span class="cm-copy-value-text">{{ this.txt['operation.copy'] }}</span>
     </button>
   `

@@ -35,6 +35,7 @@ declare(strict_types = 1);
 // $vv_fields_inc
 // $vv_template_path
 // $vv_field_types
+// $vv_submit_button_label
 
 ?>
 <ul id="<?= $vv_action . '_' . $this->name ?>" class="fields form-list">
@@ -53,7 +54,8 @@ declare(strict_types = 1);
   if(!isset($suppress_submit) || !$suppress_submit) {
     // The Submit element will be printed only if we are adding or updating, and if not
     // suppressed by the field configuration
-    print $this->element('form/submit', ['label' => __d('operation', 'save')]);
+    $vv_submit_button_label = $vv_submit_button_label ?? __d('operation', 'save');
+    print $this->element('form/submit', ['label' => $vv_submit_button_label]);
   }
   ?>
 </ul>

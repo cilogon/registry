@@ -42,14 +42,15 @@ class IdentifiersTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\LabeledLogTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\SearchFilterTrait;
 
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
@@ -75,19 +76,7 @@ class IdentifiersTable extends Table {
       'uid'
     ]
   ];
-  
-  /**
-   * Provide the default layout
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getLayout(string $action = ''): string {
-    return match($action) {
-      default => 'iframe'
-    };
-  }
-  
+
   /**
    * Perform Cake Model initialization.
    *
@@ -330,6 +319,32 @@ class IdentifiersTable extends Table {
     }
 
     return true;
+  }
+
+  /*
+   * Lookup a Person ID from a login identifier. Only active Identifiers can
+   * be used for lookups.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $identifier Identifier
+   * @param  int    $coId       CO ID
+   * @return int                Person ID or null
+   */
+
+  public function lookupPersonForLogin(string $identifier, int $coId): ?int {
+    $id = $this->find()
+               ->where([
+                'Identifiers.identifier'  => $identifier,
+                'Identifiers.status'      => SuspendableStatusEnum::Active,
+                'Identifiers.login'       => true,
+                'Identifiers.person_id IS NOT NULL'
+               ])
+               ->matching('People', function ($q) use ($coId) {
+                return $q->where(['People.co_id' => $coId]);
+               })
+               ->firstOrFail();
+
+    return $id->person_id ?? null;
   }
 
   /**

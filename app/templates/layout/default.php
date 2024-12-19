@@ -90,6 +90,7 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
     $bodyClasses = $controller_stripped . ' ' .$action_stripped;
     $isCoSelectView = $controller_stripped == 'cos' && $action_stripped == 'select';
     $isDashboard = $controller_stripped == 'dashboards' && $action_stripped == 'dashboard';
+    $isActivePetition = $vv_action == 'start' || $vv_action == 'dispatch' || $vv_action == 'resume';
     $generateHomeLink = (!$isCoSelectView && !empty($vv_cur_co));
 
     // add further body classes as needed
@@ -166,17 +167,19 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
         <?php endif ?>
       </header>
       
-      <div id="top-bar">
-        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
-          <div id="top-controls">
-            <div id="co-hamburger"><em class="material-icons">menu</em></div>
-            <?= $this->element('searchGlobal') ?>
+      <?php if(!$isActivePetition): ?>
+        <div id="top-bar">
+          <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
+            <div id="top-controls">
+              <div id="co-hamburger"><em class="material-symbols">menu</em></div>
+              <?= $this->element('searchGlobal') ?>
+            </div>
+          <?php endif; // vv_user ?>
+          <div id="top-menu">
+            <?= $this->element('menuTop') ?>
           </div>
-        <?php endif; // vv_user ?>
-        <div id="top-menu">
-          <?= $this->element('menuTop') ?>
         </div>
-      </div>
+      <?php endif; ?>
       
       <?php if($isPlatformCO): ?>
         <?php
@@ -194,16 +197,18 @@ if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'M
       <?php endif; ?>
 
       <div id="main-wrapper">
-        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
+        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView && !$isActivePetition): ?>
           <?= $this->element('menuMain') ?>
         <?php endif ?>
 
         <main id="main">
           <div id="content">
             <div id="content-inner">
-              <div id="breadcrumbs">
-                <?= $this->element('breadcrumbs') ?>
-              </div>
+              <?php if(!$isActivePetition): ?>
+                <div id="breadcrumbs">
+                  <?= $this->element('breadcrumbs') ?>
+                </div>
+              <?php endif; ?>
 
               <!-- insert the anchor that is the target of accessible "skip to content" link -->
               <a id="content-start"></a>

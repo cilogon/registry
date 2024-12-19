@@ -86,6 +86,9 @@ class CosTable extends Table {
     $this->hasMany('Jobs')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('MostlyStaticPages')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('People')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -439,6 +442,9 @@ class CosTable extends Table {
 
     // AR-CO-6 Create the default groups
     $this->Groups->addDefaults($id);
+
+    // AR-MostlyStaticPages-3 Set up the default landing pages
+    $this->MostlyStaticPages->addDefaults($id);
 
     // Set up the default settings
     $this->CoSettings->addDefaults($id);

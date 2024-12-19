@@ -207,9 +207,10 @@ trait SearchFilterTrait {
       // Use the `lower` function to apply uniformity for the search
       'string'             => $exp->like($query->func()->lower([$attributeWithModelPrefix => 'identifier']),
                                          strtolower('%' . $search . '%')),
-      'integer',
+      'select',           // AutoviewVar type
+      'parent',           // AutoviewVar type
       'boolean',
-      'parent'             => $exp->add([$attributeWithModelPrefix => $search]),
+      'integer'            => $exp->add([$attributeWithModelPrefix => $search]),
       'date'               => $exp->add([$attributeWithModelPrefix => FrozenTime::parseDate($search, 'y-M-d')]),
       'timestamp'          => $this->constructDateComparisonClause($exp, $attributeWithModelPrefix, $search),
       default              => $exp->eq($query->func()->lower([$attributeWithModelPrefix => 'identifier']),
@@ -239,6 +240,12 @@ trait SearchFilterTrait {
   public function getSearchableAttributes(string $controller, \DateTimeZone $vv_tz=null): array {
     $modelname = Inflector::classify(Inflector::underscore($controller));
     $filterConfig = $this->getFilterConfig();
+
+    // We get the filter keys and we will force include the fields that we
+    // have excluded in the filterMetadataFields() method. This way we have a
+    // method to exclude a field globally but then force its usage when needed through
+    // configuration
+    $filterKeys = array_keys($filterConfig);
 
     // Gather up related models defined in the $filterConfig
     // XXX For now, we'll list these first - but we should probably provide a better way to order these.
@@ -276,9 +283,19 @@ trait SearchFilterTrait {
       ];
     }
 
-    foreach ($this->filterMetadataFields() as $column => $type) {
+    // Include meta fields that are defined in the configuration
+    // FORCE USAGE
+    $filterMetadatFielsList = $this->filterMetadataFields();
+    foreach ($filterKeys as $key) {
+      if (isset($filterMetadatFielsList['meta'][$key])) {
+        $filterMetadatFielsList[$key] = $filterMetadatFielsList['meta'][$key];
+      }
+
+    }
+
+    foreach ($filterMetadatFielsList as $column => $type) {
       // If the column is an array, then we are accessing the Metadata fields. Skip
-      if(is_array($type)) {
+      if(\is_array($type)) {
         continue;
       }
 

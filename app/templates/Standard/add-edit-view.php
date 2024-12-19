@@ -49,10 +49,6 @@ if($vv_action == 'edit' || $vv_action == 'view' || !empty($vv_bc_parent_obj) || 
   }  
 }
 
-if(file_exists($templatePath . DS . "fields-links.inc")) {
-  include($templatePath . DS . "fields-links.inc");
-}
-
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
 
@@ -69,26 +65,39 @@ if(!empty($banners)) {
   $flashArgs['vv_banners'] = $banners;
 }
 
-// If subnavigation is present a supertitle and the subnavigation will be placed above
-// the normal page title. The flash messages will be shown up there as well.
-if(!empty($subnav)) {
-  // Include the $flashArgs for the subnavigation element
-  $subnav['flashArgs'] = $flashArgs;
-  if(!empty($topLinks) && ($modelsName == 'People' &&  $vv_action == 'edit')) {
-    // We are in Person canvas mode: pass along the top links for building the Actions menu.
-    $subnav['topLinks'] = $topLinks;
+// Subnavigation
+$hasSubnav = false;
+if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
+  include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');
+  $hasSubnav = $this->get('hasSupertitle');
+}
+
+// When under a subnavigation we do not want a title with Edit or Add or View followed by a number
+// We might find ourselved in that situation since we calculate the title for the breadcrumbs and
+// this simple description is not wrong. It is just not appropriate for the subnavigation title
+$title = $vv_title;
+$re = '/^(Add|Edit|View)\s([a-zA-Z]+?)\s[0-9]+/m';
+$pregMatch = preg_match_all($re, $vv_title, $matches, PREG_SET_ORDER, 0);
+if (
+  $hasSubnav
+  && filter_var($pregMatch, FILTER_VALIDATE_BOOLEAN)
+) {
+  $vvObjTable = $this->Tab->getModelTableReference($fullModelsName);
+  $displayField = $vvObjTable->getDisplayField();
+  if($displayField !== 'id') {
+    $title = __d('operation', "$vv_action.$modelsName.a", [$vv_obj->$displayField]);
+  } else {
+    $title = __d('operation', $vv_action . '.a', [__d('controller', $modelsName, 1)]);
   }
-  // Generate the subnavigation title and tabs
-  print $this->element('subnavigation', $subnav);
 }
 ?>
 
 <div class="page-title-container">
   <div class="page-title">
-    <?php if(empty($subnav)): ?>
-      <h1><?= $vv_title; ?></h1>
+    <?php if(!$hasSubnav): ?>
+      <h1><?= $title ?></h1>
     <?php else: ?>
-      <h2><?= $vv_title; ?></h2>
+      <h2><?= $title ?></h2>
     <?php endif; ?>
   </div>
   <?php
@@ -149,6 +158,7 @@ if(!empty($subnav)) {
       $action_args['vv_actions'][] = [
         'order' => $this->Menu->getMenuOrder('Delete'),
         'icon' =>  $this->Menu->getMenuIcon('Delete'),
+        'iconClass' => 'material-symbols-outlined',
         'url' => ['action' => 'delete', $vv_obj->id],
         'label' => __d('operation', 'delete'),
         'class' => 'deletebutton',
@@ -168,10 +178,10 @@ if(!empty($subnav)) {
     }
   ?>
 </div>
-
-<?php if(empty($subnav)): ?>
+  
+<?php if(!$hasSubnav): ?>
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
-  <?= $this->element('flash', $flashArgs); ?>
+  <?= $this->element('flash', $flashArgs) ?>
 <?php endif; ?>
 
 <?php

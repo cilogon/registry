@@ -49,7 +49,7 @@ if(isset($dismissible) && $dismissible) {
 <div class="alert <?= $alertClass ?> co-alert" role="alert">
   <div class="alert-body d-flex align-items-center">
     <span class="alert-title d-flex align-items-center">
-      <span class="material-icons-outlined alert-icon"><?= $this->Alert->getAlertIcon($type) ?></span>
+      <span class="material-symbols-outlined alert-icon"><?= $this->Alert->getAlertIcon($type) ?></span>
       <?php if(isset($title)): ?>
       <span class="alert-title-text"><?= $title ?></span>
       <?php endif; ?>

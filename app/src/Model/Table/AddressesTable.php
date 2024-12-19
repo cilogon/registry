@@ -39,14 +39,15 @@ class AddressesTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\SearchFilterTrait;
   
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
@@ -58,18 +59,9 @@ class AddressesTable extends Table {
       'postal'
     ]
   ];
-  
-  /**
-   * Provide the default layout
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getLayout(string $action = ''): string {
-    return match($action) {
-      default => 'iframe'
-    };
-  }
+
+  // Default permitted Fields. Used for the Attribute Collection
+  private $permittedFields = ['locality', 'state', 'postal_code', 'country', 'street', 'room'];
     
   /**
    * Perform Cake Model initialization.
@@ -274,5 +266,15 @@ class AddressesTable extends Table {
     $validator->allowEmptyString('source_address_id');
     
     return $validator; 
+  }
+
+  /**
+   * Get the hardcoded list of the Default Permitted Fields
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return  array  List of permitted fields
+   */
+  public function getPermittedFields(): array {
+    return $this->permittedFields;
   }
 }

@@ -140,6 +140,7 @@ class RegistryAuthComponent extends Component
     if(method_exists($controller, 'willHandleAuth')) {
       // The Controller might handle its own authn/z
 
+      // We'll just let any exception bubble up
       $mode = $controller->willHandleAuth($event);
 
       switch($mode) {
@@ -158,7 +159,13 @@ class RegistryAuthComponent extends Component
           break;
         case 'yes':
           // The controller will handle both authn and authz, simply return
+          // (The expectation is that the controller already performed the appropriate
+          // checks before returning 'yes', on failure 'notauth' should be returned.)
           return true;
+          break;
+        case 'notauth':
+          // The controller has rejected this request as unauthenticated or unauthorized
+          throw new ForbiddenException(__d('error', 'perm'));
           break;
         default:
           throw new \InvalidArgumentException("Unknown willHandleAuth return value $mode");

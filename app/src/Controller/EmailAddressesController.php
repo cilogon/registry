@@ -49,7 +49,7 @@ class EmailAddressesController extends MVEAController {
   public function forceVerify(string $id) {
     try {
       $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success("Email Address updated");  // XXX I18n
+      $this->Flash->success(__d('result', 'EmailAddresses.verify.forced'));
     }
     catch(Exception $e) {
       $this->Flash->error($e->getMessage());

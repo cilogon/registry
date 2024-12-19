@@ -46,13 +46,13 @@ $addMenuLinks = [
     'controller' => 'ad_hoc_attributes',
     'action' => 'add',
     'icon' => 'check_box',
-    'iconClass' => 'material-icons-outlined'
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'addresses',
     'action' => 'add',
     'icon' => 'contact_mail',
-    'iconClass' => 'material-icons-outlined'
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'telephone_numbers',

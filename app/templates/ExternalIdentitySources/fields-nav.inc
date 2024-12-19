@@ -37,8 +37,3 @@ $topLinks = [
     'class' => ''
   ]
 ];
-
-$subnav = [
-  'name' => 'plugin',
-  'active' => 'properties'
-];

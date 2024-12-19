@@ -29,9 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+use Cake\Event\EventInterface;
+use Cake\Http\Response;
 
 // Use extend MVEAController for breadcrumb rendering. ExternalIdentities is
 // sort of an MVEA, so maybe it makes sense to treat it as such.
@@ -45,4 +44,27 @@ class ExternalIdentitiesController extends MVEAController {
       'Names.family'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    // Pull the Person name for breadcrumb rendering
+
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->ExternalIdentities->People->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->ExternalIdentities->People->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->ExternalIdentities->People->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

@@ -38,6 +38,7 @@
     $action_args['vv_actions_type'] = 'mvea-add-menu';
     $action_args['vv_actions_title'] = __d('operation', 'add.attribute');
     $action_args['vv_actions_icon'] = 'add_circle';
+    $action_args['vv_actions_icon_class'] = 'material-symbols-outlined';
     $action_args['vv_actions_class'] = 'mvea-add-menu';
     $actionOrderDefault = $this->Menu->getMenuOrder('Default');
     $addMenuActions = $vv_add_menu_links;

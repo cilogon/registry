@@ -63,6 +63,9 @@ msgstr "Cannot change co_id of an existing object"
 msgid "coid.mismatch"
 msgstr "Requested CO does not match CO of {0} {1}"
 
+msgid "Cos.active"
+msgstr "Requested CO {0} is not active"
+
 msgid "cou.parent"
 msgstr "COU Parent ID not valid"
 
@@ -89,6 +92,9 @@ msgstr "{0} already exists with this name"
 
 msgid "exists.GroupMember"
 msgstr "{0} is already a member of Group {1}"
+
+msgid "data.Load"
+msgstr "Failed to Load Data"
 
 msgid "fields"
 msgstr "Please recheck these fields: {0}"
@@ -120,6 +126,12 @@ msgstr "Email Address is already verified"
 
 msgid "EmailAddresses.mail.verify.force.person"
 msgstr "Email Addresses not associated with People cannot be force verified"
+
+msgid "EnrollmentFlowSteps.message_template"
+msgstr "Enrollment Flow Step {0} is transitioning Actor Types but does not have a Mesasge Template configured"
+
+msgid "EnrollmentFlowSteps.none"
+msgstr "This Enrollment Flow has no Active steps and so cannot be run"
 
 msgid "GroupNestings.active"
 msgstr "Group {0} is not active and so cannot be nested"
@@ -235,6 +247,15 @@ msgstr "Job {0} is not in {1} status and cannot be set to {2} (Job is {3})"
 msgid "Jobs.status.invalid.cancel"
 msgstr "Job {0} is not in a cancelable status (Job is {1})"
 
+msgid "MostlyStaticPages.default.delete"
+msgstr "This page cannot be deleted"
+
+msgid "MostlyStaticPages.default.modify"
+msgstr "This page cannot be renamed, suspended, or given a different context"
+
+msgid "MostlyStaticPages.slug.invalid"
+msgstr "Slug contains invalid characters"
+
 msgid "Names.minimum"
 msgstr "At least one name is required"
 
@@ -268,6 +289,9 @@ msgstr "Notification status {0} is not a valid resolution"
 msgid "notprov"
 msgstr "{0} not provided"
 
+msgid "ordr.unique"
+msgstr "Each {0} must have a unique order"
+
 msgid "pagenum.exceeded"
 msgstr "Page number may not be larger than {0}"
 
@@ -279,6 +303,18 @@ msgstr "Permission Denied"
 
 msgid "PersonRoles.valid_from.after"
 msgstr "Valid From date must be earlier than Valid Through date"
+
+msgid "Petitions.completed"
+msgstr "Petition {0} has been completed and cannot be changed"
+
+msgid "Petitions.enrollee.notfound"
+msgstr "Enrollee Person not found in Petition {0}"
+
+msgid "Petitions.enrollee_email"
+msgstr "An Email Address for the Enrollee is required by this Enrollment Flow"
+
+msgid "Petitions.status.finalizing"
+msgstr "Petition {0} is not in Finalizing status"
 
 msgid "Pipelines.plugin.notimpl"
 msgstr "Pipeline plugin does not implement {0}"
@@ -327,3 +363,18 @@ msgstr "Type {0} is in use as a default (via CO Settings)"
 
 msgid "unknown"
 msgstr "Unknown value \"{0}\""
+
+msgid "Verifications.already"
+msgstr "Email Address is already verified"
+
+msgid "Verifications.code"
+msgstr "Invalid code"
+
+msgid "Verifications.expired"
+msgstr "Verification request has expired"
+
+msgid "Verifications.petition"
+msgstr "Verification does not match requested Petition"
+
+msgid "Verifications.processed"
+msgstr "Verification has already been processed"

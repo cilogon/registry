@@ -25,14 +25,14 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-  // Include the plugin subnavigation
-  $subnav = [
-    'name' => 'plugin',
-    'active' => 'search'
-  ];
-  
-  // Generate the subnavigation title and tabs
-  print $this->element('subnavigation', $subnav);
+declare(strict_types = 1);
+
+// Required by the subnavigation partial
+$modelsName = $this->name;
+// Subnavigation calculations
+if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
+  include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');
+}
 ?>
 
 <div class="page-title-container">

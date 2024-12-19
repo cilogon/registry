@@ -150,8 +150,3 @@ if(!$vv_obj->isOwners()) {
     ]
   ];
 }
-
-$subnav = [
-  'name' => 'group',
-  'active' => 'properties'
-];

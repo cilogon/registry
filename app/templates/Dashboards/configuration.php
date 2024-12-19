@@ -43,7 +43,8 @@
       <?php foreach($vv_platform_menu_items as $label => $cfg): ?>
         <li>
           <?php 
-            $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+            $iconClass = !empty($cfg['iconClass']) ? $cfg['iconClass'] : 'material-symbols';
+            $linkContent =  '<em class="' . $iconClass . '" aria-hidden="true">' . $cfg['icon'] . '</em>'
               . '<span class="menu-title">' . $label . '</span>';
             print $this->Html->link(
               $linkContent,
@@ -63,7 +64,8 @@
     <?php foreach($vv_registries_menu_items as $label => $cfg): ?>
       <li>
         <?php
-          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+          $iconClass = !empty($cfg['iconClass']) ? $cfg['iconClass'] : 'material-symbols';
+          $linkContent =  '<em class="' . $iconClass . '" aria-hidden="true">' . $cfg['icon'] . '</em>'
             . '<span class="menu-title">' . $label . '</span>';
           print $this->Html->link(
             $linkContent,
@@ -83,7 +85,8 @@
     <?php foreach($vv_artifacts_menu_items as $label => $cfg): ?>
       <li>
         <?php
-          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+          $iconClass = !empty($cfg['iconClass']) ? $cfg['iconClass'] : 'material-symbols';
+          $linkContent =  '<em class="' . $iconClass . '" aria-hidden="true">' . $cfg['icon'] . '</em>'
             . '<span class="menu-title">' . $label . '</span>';
           print $this->Html->link(
             $linkContent,
@@ -105,8 +108,9 @@
   <ul id="configuration-menu" class="config-menu">
     <?php foreach($vv_configuration_menu_items as $label => $cfg): ?>
       <li>
-        <?php 
-          $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+        <?php
+          $iconClass = !empty($cfg['iconClass']) ? $cfg['iconClass'] : 'material-symbols';
+          $linkContent =  '<em class="' . $iconClass . '" aria-hidden="true">' . $cfg['icon'] . '</em>'
             . '<span class="menu-title">' . $label . '</span>';
           print $this->Html->link(
             $linkContent,

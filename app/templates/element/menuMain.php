@@ -26,7 +26,11 @@
  */
 
 // The following menu will only render if we have a user and CO (see default.ctp)
+// and if the user has any menu to render.   
+
+$userHasMenu = in_array( true, $vv_menu_permissions, true );
 ?>
+<?php if($userHasMenu): ?>
 <div id="navigation-drawer">
   <nav id="navigation" aria-label="<?= __d('menu','menu.main') ?>">
     <ul id="main-menu">
@@ -57,7 +61,8 @@
             ],
             [
               'permission' => 'configuration',
-              'icon'       => 'play_circle_outline',
+              'icon'       => 'play_circle',
+              'iconClass' => 'material-symbols-outlined',
               'label' => __d('menu', 'co.operations'),
               'panel'      => 'operations'
             ],
@@ -71,7 +76,8 @@
     
           foreach($menuItems as $m) {
             if(!isset($m['permission']) || $vv_menu_permissions[ $m['permission'] ]) {
-              $linkContent = '<em class="material-icons" aria-hidden="true">' . $m['icon'] . '</em>'
+              $iconClass = !empty($m['iconClass']) ? $m['iconClass'] : 'material-symbols';
+              $linkContent = '<em class="' . $iconClass . '" aria-hidden="true">' . $m['icon'] . '</em>'
                 . '<span class="menu-title">' . $m['label'] . '</span>';
     
               print '<li>';
@@ -102,7 +108,7 @@
     </ul>
   </nav>
   <nav id="navigation-bottom" aria-label="<?= __d('menu','menu.advanced') ?>">
-    <?php if(!empty($vv_cur_co)): ?>
+    <?php if(!empty($vv_cur_co) && $vv_menu_permissions['configuration']): ?>
       <div id="all-button-container">
         <?= $this->Html->link(
           __d('menu', 'co.all'),
@@ -118,10 +124,11 @@
       </div>
     <?php endif; ?>
     <button id="co-menu-collapse" aria-label="<?= __d('menu','menu.toggle') ?>">
-      <em class="material-icons-outlined co-menu-collapse-icon" aria-hidden="true">
+      <em class="material-symbols-outlined co-menu-collapse-icon" aria-hidden="true">
         expand_circle_down
       </em>
       <div class="co-menu-collapse-text">close</div>
     </button>
   </nav>
 </div>
+<?php endif; ?>

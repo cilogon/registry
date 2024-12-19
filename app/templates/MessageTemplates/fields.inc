@@ -68,8 +68,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
       'fieldName' => 'format',
       'fieldOptions' => [
         'onChange' => 'updateGadgets()'
-      ],
-      'fieldType' => 'select'
+      ]
     ]
   ]);
   

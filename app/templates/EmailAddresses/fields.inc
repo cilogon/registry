@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+use \App\Lib\Enum\VerificationMethodEnum;
+
 if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   print $this->element('form/listItem', [
     'arguments' => [
@@ -44,14 +46,27 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
       'fieldName' => 'description'
     ]]);
 
-// XXX CFM-129 need to implement verification
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'verified',
-      'fieldOptions' => [
-        'readonly' => true
-      ]
-    ]]);
+  if($vv_obj->verified && !empty($vv_obj->verification)) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'verified',
+        'fieldOptions' => [
+          'readonly' => true
+        ],
+        'status' => __d('result', 'Verifications.status', [ VerificationMethodEnum::getLocalization($vv_obj->verification->method),
+                                                            $this->Time->nice($vv_obj->verification->verification_time, $vv_tz)
+                                                          ])
+      ]]);
+  } else {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'verified',
+        'fieldOptions' => [
+          'readonly' => true
+        ],
+        'status' => __d('enumeration', 'YesBooleanEnum.0')
+      ]]);
+  }
 
   print $this->element('form/listItem', [
     'arguments' => [

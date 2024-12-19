@@ -43,20 +43,18 @@
           );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">person</div>
+            <div class="material-symbols-outlined" aria-hidden="true">person</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('menu','co.people.population') ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.people.population.desc') ?></div>
             </div>
           </a>
         </li>
-        <?php 
-          /* XXX Enable highlighted menu items as needed:
         <li>
           <?php
             $menuUrl = $this->Url->build(
               ['plugin'       => null,
-               'controller'   => 'people',
+               'controller'   => 'petitions',
                'action'       => 'index',
                '?'            => [
                  'co_id' => $vv_cur_co->id
@@ -64,14 +62,13 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">pending_actions</div>
+            <div class="material-symbols-outlined" aria-hidden="true">pending_actions</div>
             <div class="menu-panel-primary-link-text">
-              <h3><?= __d('menu','co.people.enrollments.pending') ?></h3>
+              <h3><?= __d('controller', 'Petitions', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.people.enrollments.pending.desc') ?></div>
             </div>
           </a>
         </li>
-        */ ?>
       </ul>
       
       <?php /* XXX These sidepanel links are disabled until needed, but we will leave them in the code to 
@@ -86,10 +83,26 @@
         <div class="menu-panel-sidepanel-content">
           <ul class="menu-panel-links menu-panel-links-inner">
             <?php /* Placeholders below. Replace with real links and text replacement:
-            <li><a href="#"><em class="material-icons" aria-hidden="true">lock</em> Authenticators</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">forward</em> Enrollment Flows</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">access_alarm</em> Expiration Policies</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">developer_board</em> Extended Attributes</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">lock</em> Authenticators</a></li> */ ?>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'enrollment_flows',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>" class="menu-panel-secondary-link">
+                <div class="material-symbols-outlined" aria-hidden="true">subscriptions</div>
+                <div class="menu-panel-secondary-link-title"><?= __d('controller', 'EnrollmentFlows', [99]) ?></div>
+              </a>
+            </li>
+            <?php /*
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">access_alarm</em> Expiration Policies</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">developer_board</em> Extended Attributes</a></li>
             */ ?>
             <li>
               <?php
@@ -102,11 +115,14 @@
                    ]]
                 );
               ?>
-              <a href="<?= $menuUrl ?>"><em class="material-icons" aria-hidden="true">badge</em> <?= __d('controller', 'IdentifierAssignments', [99]) ?></a>
+              <a href="<?= $menuUrl ?>" class="menu-panel-secondary-link">
+                <div class="material-symbols-outlined" aria-hidden="true">badge</div>
+                <div class="menu-panel-secondary-link-title"><?= __d('controller', 'IdentifierAssignments', [99]) ?></div>
+              </a>
             </li>
             <?php /*
-            <li><a href="#"><em class="material-icons" aria-hidden="true">check_circle</em> Identifier Validators</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">cloud_upload</em> Provisioning Targets</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">check_circle</em> Identifier Validators</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">cloud_upload</em> Provisioning Targets</a></li>
             <li><!-- more links here, including plugins --></li>
             */ ?>
           </ul>
@@ -131,7 +147,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">groups</div>
+            <div class="material-symbols-outlined" aria-hidden="true">groups</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Cous', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.structure.cous.desc') ?></div>
@@ -150,7 +166,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">people_outline</div>
+            <div class="material-symbols-outlined" aria-hidden="true">people_outline</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Groups', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.structure.groups.desc') ?></div>
@@ -161,7 +177,7 @@
           /* XXX Enable highlighted menu items as needed:
         <li>
           <a href="#" class="menu-panel-primary-link">
-            <div class="material-icons" aria-hidden="true">business</div>
+            <div class="material-symbols" aria-hidden="true">business</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Departments', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.structure.depts.desc') ?></div>
@@ -170,7 +186,7 @@
         </li>
         <li>
           <a href="#" class="menu-panel-primary-link">
-            <div class="material-icons" aria-hidden="true">account_balance</div>
+            <div class="material-symbols" aria-hidden="true">account_balance</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Organizations', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.structure.orgs.desc') ?></div>
@@ -199,7 +215,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">cable</div>
+            <div class="material-symbols" aria-hidden="true">cable</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller','Pipelines', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.connections.pipelines.desc') ?></div>
@@ -218,7 +234,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">cloud_download</div>
+            <div class="material-symbols-outlined" aria-hidden="true">cloud_download</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller','ExternalIdentitySources', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.connections.external_identity_sources.desc') ?></div>
@@ -236,7 +252,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">cloud_upload</div>
+            <div class="material-symbols-outlined" aria-hidden="true">cloud_upload</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller','ProvisioningTargets', [2]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.connections.provisioning_targets.desc') ?></div>
@@ -259,9 +275,9 @@
                    ]]
                 );
               ?>
-              <a href="<?= $menuUrl ?>" class="nospin">
-                <em class="material-icons" aria-hidden="true">assignment</em> 
-                <?= __d('controller','ExtIdentitySourceRecords', [99]) ?>
+              <a href="<?= $menuUrl ?>" class="menu-panel-secondary-link">
+                <div class="material-symbols-outlined" aria-hidden="true">assignment</div>
+                <div class="menu-panel-secondary-link-title"><?= __d('controller','ExtIdentitySourceRecords', [99]) ?></div>
               </a>
             </li>
             <li>
@@ -275,9 +291,9 @@
                    ]]
                 );
               ?>
-              <a href="<?= $menuUrl ?>" class="nospin">
-                <em class="material-icons" aria-hidden="true">computer</em>
-                <?= __d('controller','Servers', [2]) ?>
+              <a href="<?= $menuUrl ?>" class="menu-panel-secondary-link">
+                <div class="material-symbols-outlined" aria-hidden="true">computer</div>
+                <div class="menu-panel-secondary-link-title"><?= __d('controller','Servers', [2]) ?></div>
               </a>
             </li>
           </ul>
@@ -302,7 +318,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">assignment</div>
+            <div class="material-symbols-outlined" aria-hidden="true">assignment</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Jobs', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.operations.jobs.desc') ?></div>
@@ -323,7 +339,7 @@
             );
           ?>
           <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
-            <div class="material-icons-outlined" aria-hidden="true">summarize</div>
+            <div class="material-symbols-outlined" aria-hidden="true">summarize</div>
             <div class="menu-panel-primary-link-text">
               <h3><?= __d('controller', 'Reports', [99]) ?></h3>
               <div class="menu-panel-link-desc"><?= __d('menu','co.operations.reports.desc') ?></div>
@@ -360,7 +376,7 @@
               <?php foreach($platformMenuItems as $label => $cfg): ?>
                 <li>
                   <?php
-                    $linkContent =  '<em class="material-icons" aria-hidden="true">' . $cfg['icon'] . '</em>'
+                    $linkContent =  '<em class="material-symbols" aria-hidden="true">' . $cfg['icon'] . '</em>'
                       . '<span class="menu-title">' . $label . '</span>';
                     print $this->Html->link(
                       $linkContent,
@@ -393,7 +409,7 @@
                 );
               ?>
               <a href="<?= $menuUrl ?>">
-                <em class="material-icons-outlined" aria-hidden="true">settings</em> 
+                <em class="material-symbols" aria-hidden="true">settings</em> 
                 <span class="menu-panel-link-text"><?= __d('controller', 'CoSettings', [99]) ?></span>
               </a>
             </li>
@@ -409,17 +425,17 @@
                 );
               ?>
               <a href="<?= $menuUrl ?>">
-                <em class="material-icons" aria-hidden="true">vpn_key</em>
+                <em class="material-symbols" aria-hidden="true">vpn_key</em>
                 <span class="menu-panel-link-text"><?= __d('controller', 'ApiUsers', [99]) ?></span>
               </a>
             </li>
             <?php /* Placeholders below. Replace with real links and text replacement:
-            <li><a href="#"><em class="material-icons" aria-hidden="true">filter_list</em> Data Filters</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">sync</em> External Identity Sources</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">input</em> Pipelines</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">extension</em> Plugins</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">apps</em> Services</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">assignment_late</em> Terms and Conditions</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">filter_list</em> Data Filters</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">sync</em> External Identity Sources</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">input</em> Pipelines</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">extension</em> Plugins</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">apps</em> Services</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">assignment_late</em> Terms and Conditions</a></li>
             */ ?>
             <li>
               <?php
@@ -433,7 +449,7 @@
                 );
               ?>
               <a href="<?= $menuUrl ?>">
-                <em class="material-icons" aria-hidden="true">widgets</em>
+                <em class="material-symbols" aria-hidden="true">widgets</em>
                 <span class="menu-panel-link-text"><?= __d('controller', 'Types', [99]) ?></span>
               </a>
             </li>
@@ -451,11 +467,11 @@
           <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.personalization.desc') ?></p>
           <ul class="menu-panel-links-inner">
             <?php /* Placeholders below. Replace with real links and text replacement:
-            <li><a href="#"><em class="material-icons" aria-hidden="true">format_list_numbered</em> Attribute Enumerations</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">navigation</em> CO Navigation Links</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">dashboard</em> Dashboards</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">book</em> Dictionaries</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">translate</em> Localizations</a></li> */ ?>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">format_list_numbered</em> Attribute Enumerations</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">navigation</em> CO Navigation Links</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">dashboard</em> Dashboards</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">book</em> Dictionaries</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">translate</em> Localizations</a></li> */ ?>
             <li>
               <?php
                 $menuUrl = $this->Url->build(
@@ -468,13 +484,13 @@
                 );
               ?>
               <a href="<?= $menuUrl ?>">
-                <em class="material-icons" aria-hidden="true">email</em>
+                <em class="material-symbols-outlined" aria-hidden="true">email</em>
                 <span class="menu-panel-link-text"><?= __d('controller', 'MessageTemplates', [99]) ?></span>
               </a>
             </li>
             <?php /* More placeholders:
-            <li><a href="#"><em class="material-icons" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
-            <li><a href="#"><em class="material-icons" aria-hidden="true">wallpaper</em> Themes</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
+            <li><a href="#"><em class="material-symbols" aria-hidden="true">wallpaper</em> Themes</a></li>
             * / ? >
           </ul>
         </li>
@@ -512,6 +528,6 @@
       <?php print __('registry.version', chop(file_get_contents(CONFIG . "VERSION"))); ?>
     </div>
   <?php endif; ?>
-  <button type="button" class="menu-panel-close btn"><span class="material-icons-outlined">close</span></button>
+  <button type="button" class="menu-panel-close btn"><span class="material-symbols-outlined">close</span></button>
 </div>
 

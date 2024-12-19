@@ -167,6 +167,7 @@ class StringUtilities {
 
     $linkTable  = TableRegistry::getTableLocator()->get($modelPath);
     $msgId = "{$action}.a";
+    $msgIdOverride = "{$action}.{$modelsName}.a";
 
     if(Inflector::singularize(self::entityToClassName($entity)) !== Inflector::singularize($modelsName)) {
       $linkTable  = TableRegistry::getTableLocator()->get(self::entityToClassName($entity));
@@ -193,7 +194,10 @@ class StringUtilities {
        && method_exists($linkTable, 'generateDisplayField')) {
       // We don't use a trait for this since each table will implement different logic
 
-      $title = __d($domain, $msgId, $linkTable->generateDisplayField($entity));
+      $title = __d($domain, $msgIdOverride, $linkTable->generateDisplayField($entity));
+      if ($msgIdOverride === $title) {
+        $title = __d($domain, $msgId, $linkTable->generateDisplayField($entity));
+      }
       $supertitle = $linkTable->generateDisplayField($entity);
       // Pass the display field also into subtitle for dealing with External IDs
       $subtitle = $linkTable->generateDisplayField($entity);
@@ -202,7 +206,10 @@ class StringUtilities {
       $field = $linkTable->getDisplayField();
 
       if(!empty($entity->$field)) {
-        $title = __d($domain, $msgId, $entity->$field);
+        $title = __d($domain, $msgIdOverride, $entity->$field);
+        if($msgIdOverride === $title) {
+          $title = __d($domain, $msgId, $entity->$field);
+        }
       } else {
         $title = __d($domain, $msgId, __d('controller', $modelsName, [1]));
       }
@@ -225,12 +232,13 @@ class StringUtilities {
 
   /**
    * Localize a controller name, accounting for plugins.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  string $controllerName Name of controller to localize
-   * @param  string $pluginName     Plugin name, if appropriate
-   * @param  bool   $plural         Whether to use plural localization
+   *
+   * @param   string       $controllerName  Name of controller to localize
+   * @param   string|null  $pluginName      Plugin name, if appropriate
+   * @param   bool         $plural          Whether to use plural localization
+   *
    * @return string                 Localized text string
+   * @since  COmanage Registry v5.0.0
    */
   
   public static function localizeController(string $controllerName, ?string $pluginName, bool $plural=false): string {
@@ -270,6 +278,19 @@ class StringUtilities {
     $bits = explode('.', $s, 2);
 
     return $bits[0];
+  }
+
+  /**
+   * Convert a plugin name (in Plugin.Model format) to the field name it will be found
+   * in as a related model to the Pluggable Entity (ie: $entity->my_plugin).
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string $plugin   Plugin path, in Plugin.Model format
+   * @return string           Plugin field name, in underscore_format
+   */
+
+  public static function pluginToEntityField(string $plugin): string {
+    return Inflector::singularize(Inflector::underscore(self::pluginModel($plugin)));
   }
 
   /**

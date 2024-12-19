@@ -57,18 +57,24 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
     $navController = $tabsController;
   } elseif(!empty($vv_person_id)) {
     $curId = $vv_person_id;
-  } elseif($active == 'plugin' && !empty($vv_primary_link_obj) && !empty($vv_primary_link_model)) {
+  } elseif(
+    ($active == 'plugin' || (!empty($vv_primary_link) && $vv_primary_link == 'enrollment_flow_id'))  
+    && !empty($vv_primary_link_obj)
+    && !empty($vv_primary_link_model)
+  ) {
     $curId = $vv_primary_link_obj->id;
     $navController = $vv_primary_link_model;
   } elseif(!empty($vv_primary_link_id)) {
     $curId = $vv_primary_link_id;
-  } 
-  
+  }
+
   // For top-level nav while in edit pages.
   if ($name == 'person') {
     $linkFilter = ['person_id' => $curId];
   } elseif ($name == 'group') {
     $linkFilter = ['group_id' => $curId];
+  } elseif ($name == 'enrollment_flow') {
+    $linkFilter = ['enrollment_flow_id' => $curId];
   }
 } elseif(!empty($vv_bc_title_links)) {
   // All else fails? Use the breadcrumb which has figured this out.
@@ -100,6 +106,8 @@ if(!empty($tabsSupertitle)) {
   $supertitle = $vv_obj->$vv_display_field;
 } elseif(!empty($vv_bc_parent_obj)) {
   $supertitle = $vv_bc_parent_obj->$vv_bc_parent_displayfield;
+} elseif(!empty($vv_primary_link_obj)) {
+  $supertitle = $vv_primary_link_obj->name;
 } elseif(!empty($vv_bc_title_links)) {
   // All else fails? Use the breadcrumb which has figured this out.
   // XXX We might just be able to do this and skip all the above after breadcrumbs have been refactored
@@ -282,8 +290,8 @@ if(!empty($tabsSupertitle)) {
         */ ?>
       <?php endif; // person ?>
       
-      <?php if ($name == 'group'): ?>
-      <!-- Group Subnavigation -->
+      <?php if($name == 'group'): ?>
+        <!-- Group Subnavigation -->
         <li class="nav-item">
           <?php
             $linkClass = ($active == 'properties') ? 'nav-link active' : 'nav-link';
@@ -335,7 +343,39 @@ if(!empty($tabsSupertitle)) {
         </li>
       <?php endif; // group ?>
       
-      <?php if ($name == 'plugin'): ?>
+      <?php if($name == 'enrollment_flow'): ?>
+        <!-- Enrollment Flow (Configuration) Subnavigation -->
+        <li class="nav-item">
+          <?php
+            $linkClass = ($active == 'properties') ? 'nav-link active' : 'nav-link';
+            print $this->Html->link(
+              __d('controller', 'Properties', [99]),
+              [ 
+                'controller' => 'enrollment-flows',
+                'action' => $curAction == 'view' ? 'view' : 'edit',
+                $curId
+              ],
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+        <li class="nav-item">
+          <?php
+            $linkClass = ($active == 'steps') ? 'nav-link active' : 'nav-link';
+            print $this->Html->link(
+              __d('controller', 'EnrollmentFlowSteps', [99]),
+              [
+                'controller'          => 'enrollment_flow_steps',
+                'action'              => 'index',
+                '?' => $linkFilter
+              ],
+              ['class' => $linkClass]
+            );
+          ?>
+        </li>
+      <?php endif; // enrollment_flow ?>
+      
+      <?php if($name == 'plugin'): ?>
         <!-- General Plugin Configuration Subnavigation -->
         <!-- Used for all plugins that have a parent object with a child plugin config -->
         <li class="nav-item">

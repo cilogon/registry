@@ -38,6 +38,7 @@ class TelephoneNumbersTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
@@ -46,7 +47,7 @@ class TelephoneNumbersTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
-  
+
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
   protected $defaultTypes = [
@@ -58,19 +59,7 @@ class TelephoneNumbersTable extends Table {
       'office'
     ]
   ];
-  
-  /**
-   * Provide the default layout
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getLayout(string $action = ''): string {
-    return match($action) {
-      default => 'iframe'
-    };
-  }
-  
+
   /**
    * Perform Cake Model initialization.
    *

@@ -25,6 +25,11 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$indexBanners = [
+  // CFM-76 info message pending eventual "virtual" view consolidating all History Record types
+  __d('information', 'HistoryRecords.xref')
+];
+
 $indexColumns = [
   'id' => [
     'type' => 'link'

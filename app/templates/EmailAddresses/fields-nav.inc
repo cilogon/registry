@@ -26,26 +26,18 @@
  */
 
 // XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
-$topLinks = [];
-
-$subnav = [
-  'name' => 'person',
-  'active' => 'person', // default for person. 'external identities' are special cased
-  'subActive' => 'email_addresses'
-];
-  
-if($vv_action != 'add') {
-  $topLinks = [
-    [
-      'icon' => 'verified_user',
-      'order' => 'Default',
-      'label' => __d('operation', 'EmailAddresses.verify.force'),
-      'if' => 'notVerified',
-      'link' => [
-        'action' => 'forceVerify',
-        $vv_obj->id
+  if($vv_action != 'add') {
+    $topLinks = [
+      [
+        'icon' => 'verified_user',
+        'order' => 'Default',
+        'label' => __d('operation', 'EmailAddresses.verify.force'),
+        'if' => 'notVerified',
+        'link' => [
+          'action' => 'forceVerify',
+          $vv_obj->id
+        ],
+        'class' => ''
       ],
-      'class' => ''
-    ],
-  ];
-}
+    ];
+  }

@@ -58,10 +58,6 @@ $incFile = $templatePath . DS . 'columns.inc';
 if(!is_readable($incFile)) {
   throw new \InvalidArgumentException("$incFile is not readable");
 }
-include($incFile);
-if(isset($indexColumns)) {
-  $this->set('vv_indexColumns', $indexColumns);
-}
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
@@ -79,19 +75,24 @@ if(!empty($banners)) {
   $flashArgs['vv_banners'] = $banners;
 }
 
-// If subnavigation is present a supertitle and the subnavigation will be placed above
-// the normal page title. The flash messages will be shown up there as well.
-if(!empty($subnav)) {
-  // Include the $flashArgs for the subnavigation element
-  $subnav['flashArgs'] = $flashArgs;
-  // Generate the subnavigation title and tabs
-  print $this->element('subnavigation', $subnav);
+// First, complete all the initial calculations and then start including
+// this way we have more ViewVars available
+include($incFile);
+if(isset($indexColumns)) {
+  $this->set('vv_indexColumns', $indexColumns);
+}
+
+// Subnavigation
+$hasSubnav = false;  
+if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
+  include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');
+  $hasSubnav = $this->get('hasSupertitle');
 }
 ?>
 
 <div class="page-title-container">
   <div class="page-title">
-    <?php if(empty($subnav)): ?>
+    <?php if(!$hasSubnav): ?>
       <h1><?= $vv_title; ?></h1>
     <?php else: ?>
       <h2><?= $vv_title; ?></h2>
@@ -102,32 +103,48 @@ if(!empty($subnav)) {
   // Action list for top menu dropdown / button listing
   // Index view top link action item can be atomized using the user's identifier
   // since there will not always be an object id available. Like the case of add action
-  if($vv_permissions['add']) {
-    $action_args = array();
+  if(
+    // Action menu is only supported for index views and add actions
+    $vv_permissions['add']
+    // A plugin might provide its own set of action_args, in this scenario
+    // we will bypass the default behavior
+    && empty($action_args)
+  ) {
+    $action_args = [];
     $action_args['vv_attr_id'] =  $vv_user['username'];
-    $action_args['vv_actions'] = array();
+    $action_args['vv_actions'] = [];
 
     // Include the Add link to actions menu unless suppressed by the page
     if(empty($suppressAddLink)) {
-      $action_args['vv_actions'][] = [
+      $action_configuration = [
         'order' => $this->Menu->getMenuOrder('Add'),
         'icon' => $this->Menu->getMenuIcon('Add'),
+        'iconClass' => 'material-symbols-outlined',
         'url' => [
           'controller' => $modelsName,
           'action' => 'add',
           '?' => $linkFilter
         ],
         'label' => __d(
-                    'operation', 
-                    'add.a',
-                    \App\Lib\Util\StringUtilities::localizeController(
-                      controllerName: $modelsName, 
-                      pluginName: $this->getPlugin(), 
-                      plural: false))
+          'operation',
+          'add.a',
+          \App\Lib\Util\StringUtilities::localizeController(
+            controllerName: $modelsName,
+            pluginName: $this->getPlugin(),
+            plural: false))
       ];
+
+      // Check to see if the model names a specific layout
+      if(method_exists($modelsTable, 'getLayout')) {
+        $action_configuration['class'] = 'cm-modal-link nospin'; // launch this in a modal
+        $action_configuration['dataAttrs'] = [
+          ['data-cm-modal-title', __d('operation', 'EnrollmentAttributes', 1)]
+        ];
+      }
+
+      $action_args['vv_actions'][] = $action_configuration;
     }
-    
-    
+
     if(!empty($peoplePicker)) {
       // There is a page-level autocomplete people picker.
       $action_args['vv_people_picker'] = $peoplePicker;
@@ -170,8 +187,7 @@ if(!empty($subnav)) {
   <?php endif; ?>
 </div>
   
-<?php if(empty($subnav)): ?>
-  <!-- Subnavigation -->
+<?php if(!$hasSubnav): ?>
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
   <?= $this->element('flash', $flashArgs); ?>
 <?php endif; ?>
@@ -202,7 +218,7 @@ if(!empty($subnav)) {
       $indexTableClasses .= ' with-actions';  
     }
   ?>  
-  <table id="<?= $tableName . '-table'; ?>" class="<?= $indexTableClasses; ?>">
+  <table id="<?= $tableName . '-table' ?>" class="<?= $indexTableClasses ?>">
     <thead>
       <tr>
         <?php
@@ -263,17 +279,18 @@ if(!empty($subnav)) {
           // Action list for command menu dropdown / button listing
           $action_args = array();
           $action_args['vv_attr_id'] = $entity->id;
+          $action_args['vv_actions'] = [];
   
           // Insert actions as per the .inc file
           // TODO: create an element or move this to MenuHelper so it can be used by topLinks as well as actions
           $actionOrderDefault = $this->Menu->getMenuOrder('Default');
           foreach ($rowActions as $a) {
             $ok = false;
-            if (!empty($a['controller'])) {
-              $tableName = Inflector::camelize($a['controller']);
+            if (!empty($a['controller']) && $a['controller'] != $tableName) {
+              $relTableName = Inflector::camelize($a['controller']);
   
-              if (isset($vv_permission_set[$entity->id][$tableName][$a['action']])) {
-                $ok = $vv_permission_set[$entity->id][$tableName][$a['action']];
+              if (isset($vv_permission_set[$entity->id][$relTableName][$a['action']])) {
+                $ok = $vv_permission_set[$entity->id][$relTableName][$a['action']];
               }
             } else {
               $ok = $vv_permission_set[$entity->id][$a['action']];
@@ -294,7 +311,7 @@ if(!empty($subnav)) {
               $actionUrl = ['action' => $a['action'], $entity->id];
               $actionLabel = !empty($a['label']) ? $a['label'] : __d('operation', $a['action']);
   
-              if (!empty($a['controller'])) {
+              if (!empty($a['controller']) && $a['controller'] != $tableName) {
                 // We're linking into a related controller
                 $actionLabel = !empty($a['label']) ? $a['label'] : __d('controller', Inflector::camelize(Inflector::pluralize($a['controller'])), [99]);
                 $actionUrl = [
@@ -369,7 +386,12 @@ if(!empty($subnav)) {
         ?>
         <td<?= !empty($cellClass) ? ' class="' . $cellClass . '"' : ''; ?>>
           <?php
+            $prefix = "";
             $suffix = "";
+            
+            if(!empty($cfg['labelPrefix'])) {
+              $prefix = $cfg['labelPrefix'] . ' ';
+            }
             
             if(!empty($cfg['append'])) {
               // The value is a method on the entity that returns a string to
@@ -388,7 +410,7 @@ if(!empty($subnav)) {
             if($isFirstLink && !empty($rowActions)) {
               print '<div class="field-actions-container">';
               print '<div class="field-actions">';
-              print  $this->element('menuAction', $action_args);
+              print $this->element('menuAction', $action_args);
               print '</div>';
             }
             
@@ -473,8 +495,14 @@ if(!empty($subnav)) {
               case 'echo':
               default:
                 // By default our label is the column value, but it might be overridden
-                $label = $entity->$col . $suffix;
+                $label = $prefix . $entity->$col . $suffix;
                 
+                // If there is no calculated default value but a default is configured,
+                // use that instead
+                if(empty($label) && !empty($cfg['default'])) {
+                  $label = $cfg['default'];
+                }
+
                 if(!empty($cfg['model']) && !empty($cfg['field'])) {
                   $m = $cfg['model'];
                   $f = $cfg['field'];
@@ -523,7 +551,7 @@ if(!empty($subnav)) {
                           $linkClass .= ' row-link-edit';
                         } elseif ($a == 'view') {
                           $linkClass .= ' row-link-view';
-                          $readOnlyIcon = ' <em class="material-icons-outlined read-only-icon">edit_off</em>';
+                          $readOnlyIcon = ' <em class="material-symbols-outlined read-only-icon">edit_off</em>';
                         } else {
                           $linkClass .= ' row-link-' . $a;
                         }
@@ -573,7 +601,7 @@ if(!empty($subnav)) {
                             $linkClass .= ' row-link-edit';
                           } elseif ($a == 'view') {
                             $linkClass .= ' row-link-view';
-                            $readOnlyIcon = ' <em class="material-icons-outlined read-only-icon">edit_off</em>';
+                            $readOnlyIcon = ' <em class="material-symbols-outlined read-only-icon">edit_off</em>';
                           }
                           $args = ['class' => $linkClass];
                           $isFirstLink = false;

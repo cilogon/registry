@@ -39,7 +39,7 @@
         <span class="top-menu-link-text">
           <?= $vv_user['username']; ?>
         </span>
-        <em class="material-icons icon-adjust" aria-hidden="true">person</em>
+        <em class="material-symbols icon-adjust" aria-hidden="true">person</em>
       </button>
       <?php 
         // If you're debugging $vv_available_cos being null, you probably forgot
@@ -49,7 +49,7 @@
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
         <div id="logout-in-panel">
-          <?= $this->Html->link('<em class="material-icons" aria-hidden="true">logout</em> ' . __d('operation','logout'),
+          <?= $this->Html->link('<em class="material-symbols" aria-hidden="true">logout</em> ' . __d('operation','logout'),
             '/auth/logout/logout.php',
             ['escape'     => false,
              'id'         => 'logout-in-panel-link',
@@ -57,7 +57,7 @@
           ?>
         </div>
         <div id="user-panel-user-info">
-          <em class="material-icons" aria-hidden="true">person</em>
+          <em class="material-symbols" aria-hidden="true">person</em>
           <div id="user-panel-cn"><?= $vv_user['username']; ?></div>
           <div id="user-panel-id"><!-- XXX identifier goes here --></div>
         </div>
@@ -71,7 +71,7 @@
               <form>
                 <fieldset>
                   <legend>
-                    <span class="material-icons" aria-hidden="true">dark_mode</span>
+                    <span class="material-symbols" aria-hidden="true">dark_mode</span>
                     <?= __d('menu','menu.darkmode'); ?>
                   </legend>
                   <div class="menu-grouping-group">
@@ -102,7 +102,7 @@
               <form>
                 <fieldset>
                   <legend>
-                    <span class="material-icons" aria-hidden="true">density_small</span>
+                    <span class="material-symbols" aria-hidden="true">density_small</span>
                     <?= __d('menu','menu.density'); ?>
                   </legend>
                   <div class="menu-grouping-group">
@@ -131,7 +131,7 @@
         </div>
         <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>
           <div id="user-panel-switch-co">
-            <?= $this->Html->link('<em class="material-icons" aria-hidden="true">transfer_within_a_station</em> ' . __d('menu','co.switch'),
+            <?= $this->Html->link('<em class="material-symbols" aria-hidden="true">transfer_within_a_station</em> ' . __d('menu','co.switch'),
               '/cos/select',
               ['escape'     => false,
                'id'         => 'co-switch-link',
@@ -148,7 +148,7 @@
 <?php if(!isset($noLoginLogout) || !$noLoginLogout) : ?>
   <?php
     if(empty($vv_user)) {
-      print $this->Html->link('<em class="material-icons" aria-hidden="true">login</em> '. __d('operation', 'login'),
+      print $this->Html->link('<em class="material-symbols" aria-hidden="true">login</em> '. __d('operation', 'login'),
                               ['controller' => 'cos',
                                'action'     => 'select',
                                'plugin'     => false],

@@ -37,6 +37,7 @@ class AdHocAttributesTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
@@ -44,18 +45,6 @@ class AdHocAttributesTable extends Table {
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-
-  /**
-   * Provide the default layout
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getLayout(string $action = ''): string {
-    return match($action) {
-      default => 'iframe'
-    };
-  }
   
   /**
    * Perform Cake Model initialization.

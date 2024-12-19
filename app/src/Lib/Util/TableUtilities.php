@@ -31,6 +31,8 @@ namespace App\Lib\Util;
 
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Datasource\ConnectionManager;
+use Cake\Utility\Inflector;
 
 class TableUtilities {
   /**
@@ -56,6 +58,110 @@ class TableUtilities {
       return $Locator->get($alias);
     } else {
       return $Locator->get($alias, $options);
+    }
+  }
+
+  /**
+   * We calculate the model name from the primary link, the primary link value is the id
+   * of the record. We use these to traverse backwards to all the records associations
+   * Then we return a list where the keys are the model names and the values are the ids
+   *
+   * @param   string  $primaryLinkKey
+   * @param   int     $primaryLinkValue
+   * @param   array   $results
+   *
+   * @return void
+   * @since  COmanage Registry v5.0.0
+   */
+  public static function treeTraversalFromPrimaryLink(
+    string $primaryLinkKey,
+    int $primaryLinkValue,
+    array &$results,
+    string $primaryLinkClassName = null
+  ): void
+  {
+    $db = ConnectionManager::get('default');
+    // Create a schema collection.
+    $collection = $db->getSchemaCollection();
+    $listOfTables = $collection->listTables();
+
+    $primaryLinkModelName = StringUtilities::foreignKeyToClassName(($primaryLinkKey));
+    // Check if the table exists.
+    // We can not handle
+
+    // We need to save the id by its alias not the containing class
+    $results[$primaryLinkModelName] = $primaryLinkValue;
+
+    if ($primaryLinkClassName !== null) {
+      $primaryLinkModelName = $primaryLinkClassName;
+      $results[$primaryLinkModelName] = $primaryLinkValue;
+    }
+
+    // Get a table reference
+    $ModelTable = TableRegistry::getTableLocator()->get($primaryLinkModelName);
+    // Get the Record from the database
+    $resp = $ModelTable->find()
+      ->where(['id' => $primaryLinkValue])
+      ->first()
+      ->toArray();
+
+    // Find all the foreign keys and fetch the rest of the tree
+    foreach($resp as $col => $val) {
+      if (
+        $val !== null
+        && $col !== $primaryLinkKey
+        && str_ends_with($col, '_id')
+      ) {
+        $fkModel = StringUtilities::foreignKeyToClassName(($col));
+        $fk_table = Inflector::underscore($fkModel);
+        if (\in_array($fk_table, $listOfTables, true)) {
+          self::treeTraversalFromPrimaryLink($col, $val, $results);
+        }
+      }
+    }
+  }
+
+  /**
+   * With a model name and the id know we return a list where the
+   * keys are the model names and the values are the ids
+   *
+   * @param   string  $modelName
+   * @param   int     $id
+   * @param   array   $results
+   *
+   * @return void
+   * @since  COmanage Registry v5.0.0
+   */
+  public static function treeTraversalFromId(string $modelName, int $id, array &$results): void
+  {
+    $db = ConnectionManager::get('default');
+    // Create a schema collection.
+    $collection = $db->getSchemaCollection();
+    $listOfTables = $collection->listTables();
+
+    $results[$modelName] = $id;
+    // Get a table reference
+    $ModelTable = TableRegistry::getTableLocator()->get($modelName);
+    // Get the Record from the database
+    $resp = $ModelTable->find()
+      ->where(['id' => $id])
+      ->first()?->toArray();
+
+    if ($resp !== null) {
+      // Find all the foreign keys and fetch the rest of the tree
+      foreach($resp as $col => $val) {
+        if (
+          $val !== null
+          && $col !== $modelName
+          && str_ends_with($col, '_id')
+        ) {
+          $fkModel = StringUtilities::foreignKeyToClassName(($col));
+          $fk_table = Inflector::underscore($fkModel);
+          if (\in_array($fk_table, $listOfTables, true)) {
+            self::treeTraversalFromPrimaryLink($col, $val, $results);
+          }
+        }
+      }
     }
   }
 }

@@ -1,0 +1,162 @@
+{
+  "types": {
+    "enroller": [
+      "AttributeCollectors",
+      "BasicAttributeCollectors",
+      "EmailVerifiers",
+      "IdentifierCollectors",
+      "InvitationAccepters"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "attribute_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "description": { "temporary": true, "type": "string", "size": 80 }
+        },
+        "indexes": {
+          "attribute_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] }
+        }
+      },
+      "basic_attribute_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "cou_id": {  "type": "integer", "foreignkey": { "table": "cous", "column": "id" } }
+        },
+        "indexes": {
+          "basic_attribute_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "basic_attribute_collectors_i2": { "needed": false, "columns": [ "name_type_id" ] },
+          "basic_attribute_collectors_i3": { "needed": false, "columns": [ "email_address_type_id" ] },
+          "basic_attribute_collectors_i4": { "needed": false, "columns": [ "affiliation_type_id" ] },
+          "basic_attribute_collectors_i5": { "needed": false, "columns": [ "cou_id" ] }
+        }
+      },
+      "email_verifiers": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "mode": { "type": "string", "size": 2 },
+          "message_template_id": {},
+          "request_validity": { "type": "integer" }
+        },
+        "indexes": {
+          "email_verifiers_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "email_verifiers_i2": { "needed": false, "columns": [ "message_template_id" ] }
+        }
+      },
+      "enrollment_attributes": {
+        "columns": {
+          "id": {},
+          "attribute_collector_id": { "type": "integer", "foreignkey": { "table": "attribute_collectors", "column": "id" } },
+          "attribute": { "type": "string", "size": 80 },
+          "attribute_type": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "attribute_language": { "type": "string", "size": 16 },
+          "attribute_mvea_parent": { "type": "string", "size": 32 },
+          "attribute_tag": { "type": "string", "size": 128 },
+          "status": {},
+          "label": { "type": "string", "size": 80 },
+          "description": {},
+          "required": { "type": "boolean" },
+          "ordr": {},
+          "default_value": { "type": "string", "size": 160 },
+          "default_value_datetime": { "type": "datetime" },
+          "default_value_env_name": { "type": "string", "size": 80 },
+          "modifiable": { "type": "boolean" },
+          "hidden": { "type": "boolean" }
+        },
+        "indexes": {
+          "enrollment_attributes_i1": { "columns": [ "attribute_collector_id" ] }
+        }
+      },
+      "identifier_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "type_id": { "notnull": false, "comment": "Skeletal row needs to be created without type" }
+        },
+        "indexes": {
+          "identifier_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "identifier_collectors_i2": { "needed": false, "columns": [ "type_id" ] }
+        }
+      },
+      "invitation_accepters": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "invitation_validity": { "type": "integer" },
+          "welcome_message": { "type": "text" }
+        },
+        "indexes": {
+          "invitation_accepters_i1": { "columns": [ "enrollment_flow_step_id" ] }
+        }
+      },
+      "petition_acceptances": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "accepted": { "type": "boolean" }
+        },
+        "indexes": {
+          "petition_acceptances_i1": { "columns": [ "petition_id" ] }
+        }
+      },
+      "petition_attributes": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "enrollment_attribute_id": { "type": "integer", "foreignkey": { "table": "enrollment_attributes", "column": "id" } },
+          "value": { "type": "string", "size": 160 }
+        },
+        "indexes": {
+          "petition_attributes_i1": { "columns": [ "petition_id" ] },
+          "petition_attributes_i2": { "needed": false, "columns": [ "enrollment_attribute_id" ] }
+        }
+      },
+      "petition_basic_attribute_sets": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "basic_attribute_collector_id": { "type": "integer", "foreignkey": { "table": "basic_attribute_collectors", "column": "id" } },
+          "honorific": { "type": "string", "size": 32 },
+          "given": { "type": "string", "size": 128 },
+          "middle": { "type": "string", "size": 128 },
+          "family": { "type": "string", "size": 128 },
+          "suffix": { "type": "string", "size": 32 },
+          "mail": { "type": "string", "size": 256 }
+        },
+        "indexes": {
+          "petition_basic_attribute_sets_i1": { "columns": [ "petition_id" ] },
+          "petition_basic_attribute_sets_i2": { "columns": [ "basic_attribute_collector_id" ] }
+        }
+      },
+      "petition_identifiers": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "identifier": { "type": "string", "size": 512 }
+        },
+        "indexes": {
+          "petition_identifiers_i1": { "columns": [ "petition_id" ] }
+        }
+      },
+      "petition_verifications": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "mail": {},
+          "verification_id": { "type": "integer", "foreignkey": { "table": "verifications", "column": "id" } }
+        },
+        "indexes": {
+          "petition_verifications_i1": { "columns": [ "petition_id" ] },
+          "petition_verifications_i2": { "needed": false, "columns": [ "verification_id" ] }
+        }
+      }
+    }
+  }
+}

@@ -51,7 +51,8 @@ class DeliveryUtilities {
    * @param  string $cc         Addresses to cc
    * @param  string $bcc        Addresses to bcc
    * @param  string $replyTo    Reply-To address to use, instead of the default
-   * @return bool               Returns true if mail was sent, false otherwise (including if no SMTP server was sent)
+   * @return bool               Returns true if mail was sent, false if no SMTP server was set
+   * @throws Cake\Network\Exception\SocketException
    */
 
   public static function sendEmailToAddress(
@@ -127,9 +128,18 @@ class DeliveryUtilities {
       'tls' => $smtp->use_tls
     ]);
 
-    $result = $transport->send($message);
+    try {
+      $result = $transport->send($message);
+    }
+    catch(Cake\Network\Exception\SocketException $e) {
+      self::slog('error', $e->getMessage());
+
+      throw $e;
+    }
     
     self::slog('debug', "Mail for $to sent successfully");
+
+    return true;
   }
 
   /**
@@ -148,6 +158,7 @@ class DeliveryUtilities {
    * @param  string       $address            Recipient Email Address
    * @param  Person       $subjectPerson      Subject Person, including Primary Name
    * @param  Notification $notification       Notification
+   * @param  string       $code               Verification code
    * @return array                            'recipient': Recipient email address ("to" only, not "cc" or "bcc")
    */
 
@@ -156,15 +167,19 @@ class DeliveryUtilities {
     ?int                              $personId=null,
     ?string                           $address=null,
     ?\App\Model\Entity\Person         $subjectPerson=null,
-    ?\App\Model\Entity\Notification   $notification=null
+    ?\App\Model\Entity\Notification   $notification=null,
+    ?string                           $code=null
   ): array {
     $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
+
+    $messageTemplate = $MessageTemplates->get($messageTemplateId);
 
     // Generate the message from the template
     $message = $MessageTemplates->generateMessage(
       id:             $messageTemplateId,
       subjectPerson:  $subjectPerson,
-      notification:   $notification
+      notification:   $notification,
+      code:           $code
     );
 
     if($notification) {
@@ -179,12 +194,32 @@ class DeliveryUtilities {
       $Notifications->save($notification);
     }
 
-    return self::sendEmailToPerson(
-      personId:   $personId,
-      subject:    $message['subject'],
-      body_text:  $message['body_text'] ?? "",
-      body_html:  $message['body_html'] ?? ""
-    );
+    if($personId) {
+      return self::sendEmailToPerson(
+        personId:   $personId,
+        subject:    $message['subject'],
+        body_text:  $message['body_text'] ?? "",
+        body_html:  $message['body_html'] ?? "",
+        cc:         $messageTemplate->cc,
+        bcc:        $messageTemplate->bcc,
+        replyTo:    $messageTemplate->reply_to
+      );
+    } else {
+      self::sendEmailToAddress(
+        coId:       $messageTemplate->co_id,
+        recipient:  $address,
+        subject:    $message['subject'],
+        body_text:  $message['body_text'] ?? "",
+        body_html:  $message['body_html'] ?? "",
+        cc:         $messageTemplate->cc,
+        bcc:        $messageTemplate->bcc,
+        replyTo:    $messageTemplate->reply_to
+      );
+
+      return [
+        'recipient' => $address
+      ];
+    }
   }
 
   /**

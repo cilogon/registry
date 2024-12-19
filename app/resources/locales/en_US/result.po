@@ -151,6 +151,9 @@ msgstr "Notification {0} delivered to {1}"
 msgid "Notifications.resent"
 msgstr "Notification resent"
 
+msgid "People.added.petition"
+msgstr "Created new Person via Enrollment Flow {0} ({1}), Petition {2}"
+
 msgid "People.added.pipeline"
 msgstr "Created new Person via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
 
@@ -159,6 +162,12 @@ msgstr "Person status recalculated from {0} to {1}"
 
 msgid "PersonRoles.status.recalculated"
 msgstr "Person Role status recalculated from {0} to {1}"
+
+msgid "Petitions.finalized"
+msgstr "Petition Finalized"
+
+msgid "Petitions.viewed.inv"
+msgstr "Invitation Viewed"
 
 msgid "Pipelines.complete"
 msgstr "Pipeline {0} complete for EIS {1} source key {2}"
@@ -177,6 +186,9 @@ msgstr "Reprovisioning for {0} queued for {1} ({2})"
 
 msgid "removed"
 msgstr "removed"
+
+msgid "result"
+msgstr "Result"
 
 msgid "saved"
 msgstr "Saved"
@@ -220,3 +232,12 @@ msgstr "Test message sent"
 
 msgid "updated"
 msgstr "updated"
+
+msgid "Verifications.status"
+msgstr "{0} verification at {1}"
+
+msgid "verified"
+msgstr "Verified"
+
+msgid "verified.not"
+msgstr "Not Verified"

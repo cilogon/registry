@@ -92,19 +92,34 @@ class DashboardsController extends StandardController {
         'controller'    => 'cous',
         'action'        => 'index'
       ],
+      __d('controller', 'EnrollmentFlows', [99]) => [
+        'icon'          => 'subscriptions',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'enrollment_flows',
+        'action'        => 'index'
+      ],
       __d('controller', 'ExternalIdentitySources', [99]) => [
         'icon'          => 'cloud_download',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'external_identity_sources',
         'action'        => 'index'
       ],
       __d('controller', 'IdentifierAssignments', [99]) => [
         'icon'          => 'badge',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'identifier_assignments',
         'action'        => 'index'
       ],
       __d('controller', 'MessageTemplates', [99]) => [
         'icon'          => 'email',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'message_templates',
+        'action'        => 'index'
+      ],
+      __d('controller', 'MostlyStaticPages', [99]) => [
+        'icon'          => 'article',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'mostly_static_pages',
         'action'        => 'index'
       ],
       __d('controller', 'Pipelines', [99]) => [
@@ -114,6 +129,7 @@ class DashboardsController extends StandardController {
       ],
       __d('controller', 'ProvisioningTargets', [99]) => [
         'icon'          => 'cloud_upload',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'provisioning_targets',
         'action'        => 'index'
       ],
@@ -170,6 +186,7 @@ class DashboardsController extends StandardController {
     $registryMenuItems = [
       __d('controller', 'Groups', [99]) => [
         'icon'          => 'people',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'groups',
         'action'        => 'index'
       ],
@@ -180,6 +197,7 @@ class DashboardsController extends StandardController {
       ],
       __d('controller', 'Servers', [99]) => [
         'icon'          => 'computer',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'servers',
         'action'        => 'index'
       ]
@@ -191,13 +209,21 @@ class DashboardsController extends StandardController {
 
     $artifactMenuItems = [
       __d('controller', 'ExtIdentitySourceRecords', [99]) => [
-        'icon'          => 'assignment',
+        'icon'          => 'badge',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'ext_identity_source_records',
         'action'        => 'index'
       ],
       __d('controller', 'Jobs', [99]) => [
-        'icon'          => 'assignment',
+        'icon'          => 'work_history',
+        'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'jobs',
+        'action'        => 'index'
+      ],
+      __d('controller', 'Petitions', [99]) => [
+        'icon'          => 'pending_actions',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'petitions',
         'action'        => 'index'
       ]
     ];

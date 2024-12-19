@@ -76,6 +76,7 @@ class CousTable extends Table {
          ->setProperty('parent');
     
     // AR-COU-6 If a COU is deleted, the special groups associated with the COU will also be deleted.
+    $this->hasMany('EnrollmentFlows');
     $this->hasMany('Groups')
          ->setDependent(true)
          ->setCascadeCallbacks(true);

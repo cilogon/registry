@@ -521,6 +521,29 @@ class AppController extends Controller {
     
     $this->set('vv_available_cos', $availableCos);
   }
+
+  /**
+   * Find a parameter that may be submitted via a request URL (for GETs)
+   * or form data (for POSTs).
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string $name Parameter name
+   * @return string       Parameter value if found, or null
+   */
+
+  protected function requestParam(string $name): ?string {
+    if($this->request->is('get')) {
+      if(!empty($this->request->getQuery($name))) {
+        return $this->request->getQuery($name);
+      }
+    } elseif($this->request->is(['post', 'put'])) {
+      if(!empty($this->request->getData($name))) {
+        return $this->request->getData($name);
+      }
+    }
+
+    return null;
+  }
   
   /**
    * Determine the (requested) current CO and make it available to the
@@ -571,14 +594,22 @@ class AppController extends Controller {
       // trigger setting of the viewVar for breadcrumbs and anything else.
       $link = $this->getPrimaryLink(true);
 
-      // getPrimaryLink has already done our work
-      if($link->attr == 'co_id') {
-        $coid = $link->value;
-      } else {
-        if(!empty($link->co_id)) {
-          $coid = $link->co_id;
+      if(!empty($link->attr)) {
+        // getPrimaryLink has already done our work
+        if($link->attr == 'co_id') {
+          $coid = $link->value;
+        } else {
+          if(!empty($link->co_id)) {
+            $coid = $link->co_id;
+          }
         }
       }
+    }
+
+    if(!$coid 
+       && $this->$modelsName->allowUnkeyedCO($this->request->getParam('action'))
+       && !empty($this->request->getQuery('co_id'))) {
+      $coid = $this->request->getQuery('co_id');
     }
     
     if(!$coid 

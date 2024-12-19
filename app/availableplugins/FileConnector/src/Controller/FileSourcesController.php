@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace FileConnector\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
+use Cake\Http\Response;
 
 class FileSourcesController extends StandardPluginController {
   public $paginate = [
@@ -37,4 +39,25 @@ class FileSourcesController extends StandardPluginController {
       'FileSources.id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->FileSources->ExternalIdentitySources->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->FileSources->ExternalIdentitySources->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->FileSources->ExternalIdentitySources->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

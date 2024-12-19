@@ -179,7 +179,7 @@ export default {
       </duet-date-picker>
       <div v-if="this.type != 'dateonly'" class="cm-time-picker">
         <button @click.stop.prevent="showTimePicker" type="button" class="btn">
-          <em class="material-icons"  aria-hidden="true">schedule</em>
+          <em class="material-symbols-outlined"  aria-hidden="true">schedule</em>
           <span class="visually-hidden">{{ this.txt.choosetime }}</span>
         </button>
         <Transition>

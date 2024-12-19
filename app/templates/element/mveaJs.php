@@ -47,8 +47,10 @@ $vueHelper = $this->loadHelper('Vue');
 <script type="module">
   <?php if(Cake\Core\Configure::read('debug')): ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>?time=<?= time() ?>";
+    import FailedMveas from "<?= $this->Url->script('comanage/components/mvea/failed-mveas.js') ?>?time=<?= time() ?>";
   <?php else: ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>";
+    import FailedMveas from "<?= $this->Url->script('comanage/components/mvea/failed-mveas.js') ?>";
   <?php endif; ?>
   
   const app = Vue.createApp({
@@ -70,7 +72,8 @@ $vueHelper = $this->loadHelper('Vue');
       }
     },
     components: {
-      Mveas
+      Mveas,
+      FailedMveas
     },
     methods: {
       getMveas(mveaType,entityType) {
@@ -88,12 +91,13 @@ $vueHelper = $this->loadHelper('Vue');
       },
       setMveas(xhr) {
         this.mveas = xhr.responseJSON;
+        this.isLoading = false
       },
       setError(txt) {
         this.error = txt;
       },
       generalXhrFailCallback(xhr) {
-        stopSpinner();
+        stopMiniSpinner();
         this.successTxt = '';
         if(xhr.statusText != undefined && xhr.statusText != '') {
           this.setError(xhr.statusText)
@@ -102,6 +106,7 @@ $vueHelper = $this->loadHelper('Vue');
           console.error(xhr);
           this.setError(this.txt.error500);
         }
+        this.isLoading = false
       },
       launchModal(title,url,componentRef) {
         window.cmMveaModal.launch(title,url,componentRef);
@@ -127,10 +132,14 @@ $vueHelper = $this->loadHelper('Vue');
               <li><span class="visually-hidden">Loading...</span></li>
             </ul>
             <mveas
+              v-if="this.mveas !== ''"
               :mveas="this.mveas"
               :core="this.core"
               :txt="this.txt">
             </mveas>
+            <failed-mveas v-if="this.mveas === '' && !this.isLoading"
+                          :core="this.core"
+                          :txt="this.txt"/>
           </div>
         </div>
       </div>

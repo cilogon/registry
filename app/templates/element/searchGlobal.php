@@ -38,7 +38,7 @@ $options = [
 ?>
 
 <button id="global-search-toggle" class="dropdown-toggle top-menu-button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-  <em class="material-icons" aria-hidden="true">search</em>
+  <em class="material-symbols" aria-hidden="true">search</em>
   <span class="visually-hidden"><?= __d('operation','search') ?></span>
 </button>
 
@@ -64,7 +64,7 @@ $options = [
       ]
     );
     print $this->Form->button(
-      '<span class="material-icons" aria-hidden="true">close</span>',
+      '<span class="material-symbols" aria-hidden="true">close</span>',
       [
         'type' => 'button', 
         'escapeTitle' => false, 
@@ -74,7 +74,7 @@ $options = [
       ]
     );
     print $this->Form->button(
-      '<em class="material-icons" aria-hidden="true">search</em>',
+      '<em class="material-symbols" aria-hidden="true">search</em>',
       [
         'type' => 'submit', 
         'escapeTitle' => false, 

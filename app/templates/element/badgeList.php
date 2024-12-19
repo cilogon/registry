@@ -27,7 +27,7 @@
  *    'color' => BadgeColorModeEnum::Blue,
  *    'outline' => false,
  *    'pill' => true,
- *    'icon' => 'material-icons-key',
+ *    'icon' => 'material-symbols-key',
  *   ),
  * );
  *
@@ -54,7 +54,7 @@ foreach($vv_badge_list as $badge) {
     $badge_classes[] = "rounded-pill";
   }
   if(!empty($badge['icon'])) {
-    $icon = '<i class="mr-1 material-icons" aria-hidden="true">' . $badge["icon"] .'</i>';
+    $icon = '<i class="mr-1 material-symbols" aria-hidden="true">' . $badge["icon"] .'</i>';
   }
   if(isset($badge['outline']) && $badge['outline']) {
     $badge_classes[] = "bg-outline-" . $badge['color'];

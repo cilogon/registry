@@ -51,7 +51,8 @@
   --cmg-color-btn-bg-001: #115791;   /* primary button background color (blue), submit buttons, .btn-primary, pagination */
   --cmg-color-btn-bg-002: #000;      /* primary button hover color (black) */
   --cmg-color-btn-bg-003: #444;      /* common background color (gray) */
-  --cmg-color-btn-004: #c33;         /* button (red) */
+  --cmg-color-btn-bg-004: #c33;      /* button (red) */
+  --cmg-color-btn-bg-005: #17730d;   /* button (green) */
   
   /* General Background and Border Colors (Grayscale) */
   --cmg-color-bg-001: #fafafa; /* background color */
@@ -88,6 +89,10 @@
   
   --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
   --cmg-color-highlight-018: yellow;  /* autocomplete highlight for query text */
+  
+  /* Fonts */
+  --cmg-font-regular: 'open_sansregular','Trebuchet MS',Arial,Helvetica,sans-serif;
+  --cmg-font-semibold: 'open_sanssemibold','open_sansregular','Trebuchet MS',Arial,Helvetica,sans-serif;
   
   /* Duet Date Picker Colors & Settings */
   --duet-color-primary: var(--cmg-color-btn-bg-001);
@@ -128,7 +133,8 @@ html.dark-mode {
   --cmg-color-btn-bg-001: #0d4573;   /* primary button background color (blue), submit buttons, .btn-primary, pagination */
   --cmg-color-btn-bg-002: #333;      /* primary button hover color (black) */
   --cmg-color-btn-bg-003: #eee;      /* common background color (gray) */
-  --cmg-color-btn-004: #c33;         /* button (red) */
+  --cmg-color-btn-bg-004: #c33;      /* button (red) */
+  --cmg-color-btn-bg-005: #17730d;   /* button (green) */
 
   /* General Background and Border Colors (Grayscale) */
   --cmg-color-bg-001: #121212; /* background color */

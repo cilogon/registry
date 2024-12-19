@@ -58,6 +58,7 @@ class GroupMembersController extends StandardController {
     if(!empty($link->value)) {
       $this->set('vv_bc_parent_obj', $this->GroupMembers->Groups->get($link->value));
       $this->set('vv_bc_parent_displayfield', $this->GroupMembers->Groups->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->GroupMembers->Groups->getPrimaryKey());
     }
     
     return parent::beforeRender($event);

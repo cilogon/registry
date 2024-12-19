@@ -48,7 +48,8 @@ class VueHelper extends Helper {
     ],
     'error' => [
       'javascript.copy',
-      'javascript.requires.https'
+      'javascript.requires.https',
+      'data.Load',
     ],
     'field' => [
       'email',
@@ -58,14 +59,15 @@ class VueHelper extends Helper {
       'datepicker.hour',
       'datepicker.minute',
       'status',
-      'unverified'
+      'unverified',
     ],
     'information' => [
       'global.attributes.none',
       'global.value.none',
+      'global.visit.link',
       'record',
       'report.for',
-      'value.copied'
+      'value.copied',
     ],
     'operation' => [
       'add',
@@ -78,12 +80,12 @@ class VueHelper extends Helper {
       'copy',
       'copy.value',
       'primary',
-      'visit.link'
+      'visit.link',
     ],
     'result' => [
       'failed',
       'removed',
-      'updated'
+      'updated',
     ]
   ];
 

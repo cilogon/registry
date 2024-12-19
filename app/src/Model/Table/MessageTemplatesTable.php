@@ -43,7 +43,6 @@ class MessageTemplatesTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
-  use \App\Lib\Traits\PluggableModelTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -65,6 +64,7 @@ class MessageTemplatesTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
+    $this->hasMany('EnrollmentFlowSteps');
     $this->hasMany('Notifications');
     
     $this->setDisplayField('description');
@@ -108,8 +108,10 @@ class MessageTemplatesTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int          $id             Message Template ID
-   * @param  Person       $subjectPerson  Subject Person, including Primary Name
+   * @param  array        $entryUrl       Entry URL for responding to a handoff or notification
    * @param  Notification $notification   Notification
+   * @param  Person       $subjectPerson  Subject Person, including Primary Name
+   * @param  string       $code           Verification code
    * @return array                        'subject': Message subject
    *                                      'body_text': Plaintext message
    *                                      'body_html': HTML message
@@ -117,13 +119,16 @@ class MessageTemplatesTable extends Table {
 
   public function generateMessage(
     int                             $id,
+    array                           $entryUrl=[],
+    \App\Model\Entity\Notification  $notification=null,
     \App\Model\Entity\Person        $subjectPerson=null,
-    \App\Model\Entity\Notification  $notification=null
+    ?string                         $code=null
   ): array {
+    // We return "" instead of null by default for compatibility with DeliveryUtilities
     $ret = [
-      'subject'     => null,
-      'body_text'   => null,
-      'body_html'   => null
+      'subject'     => "",
+      'body_text'   => "",
+      'body_html'   => ""
     ];
 
     // First retrieve the requested template
@@ -133,18 +138,31 @@ class MessageTemplatesTable extends Table {
     // entities were provided.
 
     $substitutions = [];
-    
-    if($subjectPerson && !empty($subjectPerson->primary_name)) {
-      $substitutions['SUBJECT_NAME'] = $subjectPerson->primary_name->full_name;
+
+    // Lookup the CO Name
+    $co = $this->Cos->get($template->co_id);
+
+    $substitutions['CO_NAME'] = $co->name;
+
+    if(!empty($entryUrl)) {
+      $substitutions['ENTRY_URL'] = \Cake\Routing\Router::url(
+        array_merge($entryUrl, ['_full' => true])
+      );
     }
 
     if($notification) {
       $substitutions['NOTIFICATION_COMMENT'] = $notification->comment;
       $substitutions['NOTIFICATION_SOURCE'] = $notification->source;
     }
+    
+    if($subjectPerson && !empty($subjectPerson->primary_name)) {
+      $substitutions['SUBJECT_NAME'] = $subjectPerson->primary_name->full_name;
+    }
+
+    $substitutions['VERIFICATION_CODE'] = $code;
 
     // Finally run the substitutions through each of the supported parts
-
+    
     foreach(array_keys($ret) as $part) {
       if(!empty($template->$part)) {
         // Process the (@SUBSTITUTIONS) for this part

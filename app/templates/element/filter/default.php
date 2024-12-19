@@ -47,7 +47,7 @@ if(empty($options['active'])) {
 
 $label = Inflector::humanize(
   Inflector::underscore(
-    $options['label'] ?? $columns[$key]['label']
+    strtolower($options['label'] ?? $columns[$key]['label'])
   )
 );
 

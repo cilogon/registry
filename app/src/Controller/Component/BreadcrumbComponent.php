@@ -191,7 +191,7 @@ class BreadcrumbComponent extends Component
     // In the case we are dealing with non-standard actions we need to fallback to a standard one
     // in order to get access to the contain array. We will use the permissions to decide which
     // action to fall back to
-    if(!in_array($requestAction, [
+    if(!\in_array($requestAction, [
       'index', 'view', 'delete', 'add', 'edit'
     ])) {
       $permissionsArray = $this->getController()->RegistryAuth->calculatePermissionsForView($requestAction);
@@ -276,7 +276,7 @@ class BreadcrumbComponent extends Component
     $entity,
     string $action='edit',
     ?string $label=null
-  ) {
+  ): void {
     $displayField = $table->getDisplayField();
 
     $this->injectTitleLinks[] = [
@@ -298,7 +298,8 @@ class BreadcrumbComponent extends Component
    * @param  array  $skipPaths  Array of regular expressions describing paths to be skipped
    */
 
-  public function skipAll(array $skipPaths) {
+  public function skipAll(array $skipPaths): void
+  {
     $this->skipAllPaths = $skipPaths;
   }
 
@@ -311,7 +312,8 @@ class BreadcrumbComponent extends Component
    * @param  array  $skipPaths  Array of regular expressions describing paths
    */
 
-  public function skipConfig(array $skipPaths) {
+  public function skipConfig(array $skipPaths): void
+  {
     $this->skipConfigPaths = $skipPaths;
   }
 
@@ -323,7 +325,8 @@ class BreadcrumbComponent extends Component
    * @param  array  $skipPaths  Array of regular expressions describing paths
    */
 
-  public function skipParents(array $skipPaths) {
+  public function skipParents(array $skipPaths): void
+  {
     $this->skipParentPaths = $skipPaths;
   }
 }

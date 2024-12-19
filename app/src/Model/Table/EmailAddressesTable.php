@@ -44,6 +44,7 @@ class EmailAddressesTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\LabeledLogTrait;
+  use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
@@ -66,19 +67,7 @@ class EmailAddressesTable extends Table {
       'recovery'
     ]
   ];
-  
-  /**
-   * Provide the default layout
-   *
-   * @since  COmanage Registry v5.0.0
-   * @return string  Type of redirect
-   */
-  public function getLayout(string $action = ''): string {
-    return match($action) {
-      default => 'iframe'
-    };
-  }
-  
+
   /**
    * Perform Cake Model initialization.
    *
@@ -102,6 +91,10 @@ class EmailAddressesTable extends Table {
          ->setClassName('EmailAddresses')
          ->setForeignKey('source_email_address_id')
          ->setProperty('source_email_address');
+    
+    $this->hasOne('Verifications')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
 
     $this->setDisplayField('mail');
     
@@ -111,7 +104,7 @@ class EmailAddressesTable extends Table {
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setAllowLookupPrimaryLink(['forceVerify', 'unfreeze']);
-    $this->setEditContains(['ExternalIdentities', 'SourceEmailAddresses']);
+    $this->setEditContains(['ExternalIdentities', 'SourceEmailAddresses', 'Verifications']);
 
     $this->setAutoViewVars([
       'types' => [
@@ -164,6 +157,8 @@ class EmailAddressesTable extends Table {
 
       $entity->verified = false;
       $data['verified'] = false;
+
+      $this->Verifications->unverify($entity->id);
     }
   }
 
@@ -252,6 +247,9 @@ class EmailAddressesTable extends Table {
 
     $email->verified = true;
     $this->save($email);
+
+    // Create a Verification record
+    $this->Verifications->manual($id);
 
     $HistoryRecords = TableRegistry::getTableLocator()->get('HistoryRecords');
 

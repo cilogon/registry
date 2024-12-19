@@ -20,7 +20,9 @@ use Cake\Core\Configure;
 use Cake\Http\Exception\ForbiddenException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
+use Cake\ORM\TableRegistry;
 use Cake\View\Exception\MissingTemplateException;
+use \App\Lib\Enum\SuspendableStatusEnum;
 
 /**
  * Static content controller
@@ -89,6 +91,51 @@ class PagesController extends AppController
     }
 
     /**
+     * Render a Mostly Static Page.
+     * 
+     * @since  COmanage Registry v5.1.0
+     * @param  string   $coid   CO ID
+     * @param  string   $name   MSP Name (slug)
+     */
+
+    public function show(string $coid, string $name) {
+        // We use PagesController rather than MostlyStaticPagesController to avoid complexities
+        // with PrimaryLink lookups. We use show() rather than render() because the latter is
+        // used by Controller, and rather than display() so we don't confuse things by
+        // redefining it. We render here rather than redirecting into the MSPController to
+        // reduce URL bar thrashing.
+
+        $MSPTable = TableRegistry::getTableLocator()->get("MostlyStaticPages");
+
+        $msp = $MSPTable->find()
+                        ->where([
+                            'co_id'     => (int)$coid,
+                            'name'      => $name,
+                            'status'    => SuspendableStatusEnum::Active
+                        ])
+                        ->first();
+        
+        if(empty($msp)) {
+            if($name == 'error-landing') {
+                // error-landing should always exist, if not throw an error
+
+                throw new NotFoundException();
+            } else {
+                $this->Flash->error(__d('error', 'notfound', $name));
+
+                return $this->redirect("/$coid/error-landing");
+            }
+        }
+
+        $this->set('vv_bc_skip', true); // this doesn't do anything?
+
+        $this->set('vv_title', $msp->title);
+        $this->set('vv_body', $msp->body);
+
+        return $this->render('/MostlyStaticPages/display');
+    }
+
+    /**
      * Indicate whether this Controller will handle some or all authnz.
      * 
      * @since  COmanage Registry v5.0.0
@@ -97,6 +144,17 @@ class PagesController extends AppController
      */
 
     public function willHandleAuth(\Cake\Event\EventInterface $event): string {
-        return "open";
+        $request = $this->getRequest();
+        $action = $request->getParam('action');
+
+        // We only take over authz for display and show
+        // (These are the only two actions we currently support, but better to require
+        // an explicit action to add to this list)
+
+        if(in_array($action, ['display', 'show'])) {
+            return 'open';
+        }
+
+        return 'no';
     }
 }

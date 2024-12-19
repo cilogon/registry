@@ -51,6 +51,7 @@ class ActionEnum extends StandardEnum {
   const NotificationCanceled          = 'NOTX';
   const NotificationDelivered         = 'NOTD';
   const NotificationResolved          = 'NOTR';
+  const PersonAddedPetition           = 'ACPP';
   const PersonAddedPipeline           = 'ACPL';
   const PersonMatchedPipeline         = 'MCPL';
   const PersonPipelineComplete        = 'CCPL';

@@ -25,16 +25,10 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+declare(strict_types = 1);
+
 use \Cake\Utility\Inflector;
 
-  // Include the plugin subnavigation
-  $subnav = [
-    'name' => 'plugin',
-    'active' => 'search'
-  ];
-
-  // Generate the subnavigation title and tabs
-  print $this->element('subnavigation', $subnav);
 ?>
 
 <div class="page-title-container">
@@ -305,7 +299,7 @@ use \Cake\Utility\Inflector;
         <div class="alert alert-info co-alert" role="alert">
           <div class="alert-body d-flex align-items-center">
                 <span class="alert-title d-flex align-items-center">
-                  <span class="material-icons-outlined alert-icon">report_problem</span>
+                  <span class="material-symbols-outlined alert-icon">report_problem</span>
                 </span>
             <span class="alert-message">        
                   <?= __d('field', 'ExternalIdentitySources.source_record.empty') ?>
