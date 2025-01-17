@@ -676,7 +676,7 @@ class JobsTable extends Table {
       if(isset($pluginParameters[$p]['required'])
          && $pluginParameters[$p]['required']
          && empty($params[$p])) {
-        $ret[$p] = __d('error', 'Jobs.plugin.parameter.required');
+        $ret[$p] = __d('error', 'parameter.required', [$p]);
       }
     }
 

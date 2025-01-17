@@ -350,3 +350,77 @@ function callRegistryAPI(
       }
     });
 }
+
+// Set an application preference
+// value         - (string) serialized json or plain string
+// elem          - html element object that has the data attributes with the values i need
+// reload        - (boolean) if true we will reload the view
+function setApplicationState(value, elem, reload= false) {
+  let tag = elem.data('stateattr')
+  let username = elem.data('username')
+  let webroot = elem.data('webroot')
+  let coId = elem.data('coid')
+  let personId = elem.data('personid')
+  let id = elem.data('appstateid')
+  let method = 'POST'
+
+  let apUrl = `${webroot}api/ajax/v2/application_states`;
+
+  // POST body structure
+  let jsonData = {
+    ApplicationStates: [
+      {
+        tag: tag,
+        value: value,
+        username: username,
+        co_id: !!coId ? coId : null,
+        person_id: !!personId ? personId : null
+      }
+    ]
+  }
+
+  // PUT body structure
+  if (id) {
+    apUrl += `/${id}`
+    method = 'PUT'
+
+    jsonData = {
+      ApplicationStates: {
+        tag: tag,
+        value: value,
+        username: username,
+        co_id: !!coId ? coId : null,
+        person_id: !!personId ? personId : null
+      }
+    }
+  }
+  // jsonData.noty = displayNoty
+
+  let jqxhr = $.ajax({
+    cache: false,
+    url: apUrl,
+    // The csrfToken variable is global and set in the default.ctp
+    headers: {'X-CSRF-Token': csrfToken},
+    type: method,
+    data: jsonData
+  });
+
+
+  // On success, fire the next request
+  jqxhr.done((data, textStatus, jqXHR) => {
+    // For use cases like the pagination limit, we want to reload the view since other parameters
+    // of the view are affected and need to be recalculated
+    if(reload) {
+      let currentUrl = window.location.toString()
+      // Force the url back to page one because the new page size cannot include our current page number
+      currentUrl = currentUrl.replace(new RegExp('&page=[0-9]*', 'g'), '')+'&page=1';
+      window.location.replace(currentUrl)
+    }
+  });
+
+  jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
+    if(parseInt(jqXHR.status) > 300 && displayNoty) {
+      generateFlash("<?php print _txt('er.app.preferences'); ?>" + errorThrown + " (" +  jqXHR.status + ")", 'error')
+    }
+  });
+}

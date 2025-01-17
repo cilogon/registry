@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use Cake\Controller\Controller;
 use InvalidArgumentException;
 use Cake\Chronos\Chronos;
 use Cake\Http\Exception\BadRequestException;
@@ -47,7 +48,6 @@ class ApiV2Controller extends AppController {
    * Perform Cake Controller initialization.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  array  $config Configuration options passed to constructor
    */
     
   public function initialize(): void {
@@ -100,7 +100,7 @@ class ApiV2Controller extends AppController {
           $results[] = ['id' => $obj->id];
 
           // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-          if(method_exists($this->modelsName, "requestProvisioning")) {
+          if(method_exists($this->$modelsName, "requestProvisioning")) {
             $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
             $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
           }
@@ -121,7 +121,22 @@ class ApiV2Controller extends AppController {
     // Let the view render
     $this->render('/Standard/api/v2/json/add-edit');
   }
-  
+
+  /**
+   * beforeFilter callback.
+   *
+   * @param \Cake\Event\EventInterface $event Event.
+   * @return \Cake\Http\Response|null|void
+   */
+  public function beforeFilter(\Cake\Event\EventInterface $event)
+  {
+    parent::beforeFilter($event);
+
+    if ($this->request->is('ajax') && $this->request->is(['post', 'put'])) {
+      $this->FormProtection->setConfig('validate', false);
+    }
+  }
+
   /**
    * Callback run prior to the request rendering.
    *

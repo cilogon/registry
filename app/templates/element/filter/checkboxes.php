@@ -48,7 +48,7 @@ $query = $this->request->getQueryParams();
             <?php
             print $this->Form->label($options['label'] ?? $key);
             print $this->Form->checkbox($key, [
-              'id' => str_replace("_", "-", $key),
+              'id' => str_replace('_', '-', $key),
               'class' => 'form-check-input',
               'checked' => $query[$key] ?? 0,
               'hiddenField' => false,

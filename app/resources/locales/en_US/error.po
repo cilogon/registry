@@ -229,9 +229,6 @@ msgstr "Provided value is not an integer"
 msgid "Jobs.plugin.parameter.invalid"
 msgstr "Invalid parameter"
 
-msgid "Jobs.plugin.parameter.required"
-msgstr "Required parameter not provided"
-
 msgid "Jobs.plugin.parameter.select"
 msgstr "Provided value is not a valid choice"
 
@@ -289,6 +286,9 @@ msgstr "Notification status {0} is not a valid resolution"
 msgid "notprov"
 msgstr "{0} not provided"
 
+msgid "notsupported"
+msgstr "Not supported"
+
 msgid "ordr.unique"
 msgstr "Each {0} must have a unique order"
 
@@ -297,6 +297,9 @@ msgstr "Page number may not be larger than {0}"
 
 msgid "pagenum.nan"
 msgstr "Page number must be an integer"
+
+msgid "Parameter.required"
+msgstr "Required parameter '{0}' not provided"
 
 msgid "perm"
 msgstr "Permission Denied"

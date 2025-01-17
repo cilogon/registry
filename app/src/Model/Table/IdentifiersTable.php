@@ -205,8 +205,6 @@ class IdentifiersTable extends Table {
    *
    * @param   int       $typeId      Identifier Type ID
    * @param   string    $identifier  Identifier
-   * @param   int|null  $coId        CO Id
-   * @param   bool      $login       The identifier is login enabled
    *
    * @return int                Person ID
    * @since  COmanage Registry v5.0.0

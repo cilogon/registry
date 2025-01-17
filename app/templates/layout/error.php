@@ -27,6 +27,8 @@
 
 declare(strict_types = 1);
 
+use App\Lib\Enum\ApplicationStateEnum;
+
 // As a general rule, all Registry pages are post-login and so shouldn't be cached
 header("Expires: Thursday, 10-Jan-69 00:00:00 GMT");
 header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate");
@@ -37,9 +39,14 @@ header("Content-Security-Policy: frame-ancestors 'self'");
 if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false)) {
   header('X-UA-Compatible: IE=edge,chrome=1');
 }
+
+// Theme Dark mode state
+$darkModeState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileDarkMode, 'auto');
+// Density State
+$densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileDensity, 'medium');
 ?>
 <!DOCTYPE html>
-<html lang="<?= __('registry.meta.lang'); ?>">
+<html lang="<?= __('registry.meta.lang'); ?>" class="<?= $darkModeState ?>-mode density-<?= $densityState ?>">
   <head>
     <?= $this->Html->meta('viewport', 'width=device-width, initial-scale=1.0') . PHP_EOL ?>
     <?= $this->Html->meta('color-scheme', 'light dark') . PHP_EOL ?>

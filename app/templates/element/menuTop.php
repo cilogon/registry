@@ -25,6 +25,17 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+declare(strict_types = 1);
+
+use App\Lib\Enum\ApplicationStateEnum;
+use App\Lib\Enum\DarkModesEnum;
+use App\Lib\Enum\DensityStatesEnum;
+
+$densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileDensity, 'medium');
+$densityStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileDensity);
+$darkModeState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileDarkMode, 'auto');
+$darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileDarkMode);
 ?>
 <?php if(!empty($vv_user)): ?>
   <ul>
@@ -68,62 +79,67 @@
           </a>
           <ul class="dropdown-menu">
             <li class="menu-grouping">
-              <form>
+              <form id="form-profile-menu-dark"
+                    data-coid="<?= $vv_cur_co->id ?? '' ?>"
+                    data-appstateid="<?= $darkModeStateId ?>"
+                    data-stateattr="<?= ApplicationStateEnum::ProfileDarkMode?>"
+                    data-webroot="<?= $this->request->getAttribute('webroot') ?>"
+                    data-username="<?= $vv_user['username'] ?? '' ?>"
+                    data-personid="<?= $vv_person_id ?? '' ?>"
                 <fieldset>
                   <legend>
                     <span class="material-symbols" aria-hidden="true">dark_mode</span>
                     <?= __d('menu','menu.darkmode'); ?>
                   </legend>
                   <div class="menu-grouping-group">
+                    <?php foreach(DarkModesEnum::getConstHumanized() as $mode): ?>
+                    <?php $modeToLower = strtolower($mode); ?>
                     <div class="form-check">
-                      <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-dark">
-                      <label class="form-check-label" for="setting-darkmode-dark">
-                        <?= __d('menu','menu.darkmode.dark'); ?>
+                      <input type="radio"
+                             id="setting-darkmode-<?= $modeToLower ?>"
+                             name="setting-dark-mode"
+                             data-mode="<?= __d('menu', "menu.darkmode.{$modeToLower}") ?>"
+                             class="form-check-input"
+                        <?= $darkModeState === $modeToLower ? 'checked' : '' ?>>
+                      <label class="form-check-label" for="setting-darkmode-<?= $modeToLower ?>">
+                        <?= __d('menu', "menu.darkmode.{$modeToLower}") ?>
                       </label>
                     </div>
-                    <div class="form-check">
-                      <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-light">
-                      <label class="form-check-label" for="setting-darkmode-light">
-                        <?= __d('menu','menu.darkmode.light'); ?>
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input type="radio" name="setting-density" class="form-check-input" id="setting-darkmode-auto" checked>
-                      <label class="form-check-label" for="setting-darkmode-auto">
-                        <?= __d('menu','menu.darkmode.auto'); ?>
-                      </label>
-                    </div>
+                    <?php endforeach; ?>
                   </div>
                 </fieldset>
               </form>
             </li>
             <li><hr class="dropdown-divider"></li>
             <li class="menu-grouping">
-              <form>
+              <form id="form-profile-menu-density"
+                    data-coid="<?= $vv_cur_co->id ?? '' ?>"
+                    data-appstateid="<?= $densityStateId ?>"
+                    data-stateattr="<?= ApplicationStateEnum::ProfileDensity?>"
+                    data-webroot="<?= $this->request->getAttribute('webroot') ?>"
+                    data-username="<?= $vv_user['username'] ?? '' ?>"
+                    data-personid="<?= $vv_person_id ?? '' ?>"
+              >
                 <fieldset>
                   <legend>
                     <span class="material-symbols" aria-hidden="true">density_small</span>
-                    <?= __d('menu','menu.density'); ?>
+                    <?= __d('menu','menu.density') ?>
                   </legend>
                   <div class="menu-grouping-group">
+                  <?php foreach(DensityStatesEnum::getConstHumanized() as $densityStateMode): ?>
+                  <?php $densityStateModeToLower = strtolower($densityStateMode); ?>
                   <div class="form-check">
-                    <input type="radio" name="setting-density" class="form-check-input" id="setting-density-small">
-                    <label class="form-check-label" for="setting-density-small">
-                      <?= __d('menu','menu.density.small'); ?>
+                    <input type="radio"
+                           id="setting-density-<?= $densityStateModeToLower ?>"
+                           name="setting-density"
+                           data-mode="<?= __d('menu', "menu.density.{$densityStateModeToLower}") ?>"
+                           class="form-check-input"
+                           <?= $densityState === $densityStateModeToLower ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="setting-density-<?= $densityStateModeToLower ?>">
+                      <?= __d('menu', "menu.density.{$densityStateModeToLower}") ?>
                     </label>
                   </div>
-                  <div class="form-check">
-                    <input type="radio" name="setting-density" class="form-check-input" id="setting-density-medium" checked>
-                    <label class="form-check-label" for="setting-density-medium">
-                      <?= __d('menu','menu.density.medium'); ?>
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input type="radio" name="setting-density" class="form-check-input" id="setting-density-large">
-                    <label class="form-check-label" for="setting-density-large">
-                      <?= __d('menu','menu.density.large'); ?>
-                    </label>
-                  </div>
+                  <?php endforeach; ?>
                 </div>
               </form>
             </li>

@@ -99,7 +99,7 @@ class AppController extends Controller {
        *
        * In general, we don't need these protections for transactional API calls.
        */
-      $this->loadComponent('Security');
+      $this->loadComponent('FormProtection');
       
       // CSRF Protection is enabled via in Middleware via Application.php.
     }
@@ -141,8 +141,15 @@ class AppController extends Controller {
       // We need to populate this in beforeFilter (rather than beforeRender)
       // so it's available to CosController::select
       $this->populateAvailableCos();
+
+      // Get Person ID
+      if($this->RegistryAuth->getAuthenticatedUser() !== null && $this->getCOID() !== null) {
+        $this->set('vv_person_id', $this->RegistryAuth->getPersonId($this->getCOID()));
+      }
     }
-    
+
+    $this->getAppPrefs();
+
     return parent::beforeFilter($event);
   }
   
@@ -154,7 +161,6 @@ class AppController extends Controller {
    */
     
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    // $this->name = Models
     $modelsName = $this->name;
     
     // Views can also inspect the request object to determine the current
@@ -169,7 +175,7 @@ class AppController extends Controller {
       // Provide the user's application roles to the views.
       $this->set('vv_user_roles', $this->RegistryAuth->getApplicationUserRoles($this->getCOID()));
     }
-    
+
     return parent::beforeRender($event);
   }
   
@@ -366,6 +372,32 @@ class AppController extends Controller {
       && $this->request->getParam('action') != 'deleted') {
       throw new \RuntimeException(__d('error', 'primary_link'));
     }
+  }
+
+  /**
+   * Get a user's Application State
+   * - postcondition: Application Preferences variable set
+   * @since  COmanage Registry v5.1.0
+   */
+  protected function getAppPrefs() {
+    $request = $this->getRequest();
+    $session = $request->getSession();
+
+    $username = $session->read('Auth.external.user');
+    $appPrefs = null;
+
+    // Get preferences if we have an Auth.User.co_person_id
+    if(!empty($username)) {
+      $ApplicationStates = $this->fetchTable('ApplicationStates');
+      $appPrefs = $ApplicationStates->retrieveAll(
+        username: $username,
+        // If we have not selected a CO yet, there will be no co_id
+        coid: $this->getCOID(),
+        personid: $this->viewBuilder()->getVar('vv_person_id')
+      );
+    }
+
+    $this->set('vv_app_prefs', $appPrefs);
   }
 
   /**

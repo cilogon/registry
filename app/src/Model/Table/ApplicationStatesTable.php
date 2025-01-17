@@ -29,10 +29,15 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Database\Expression\QueryExpression;
+use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 class ApplicationStatesTable extends Table {
+  use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\PermissionsTrait;
+  use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -46,14 +51,34 @@ class ApplicationStatesTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Log');
+    $this->addBehavior('Changelog');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Metadata);
     
     // Define associations
+    $this->belongsTo('Cos');
     $this->belongsTo('People');
     
     $this->setDisplayField('tag');
+    $this->setPrimaryLink(['co_id', 'person_id']);
+
+
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   true,
+        'edit' =>     true,
+        'unfreeze' => true,
+        'view' =>     true
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      true,
+        'index' =>    true,
+        'deleted' =>  true
+      ],
+    ]);
   }
   
   /**
@@ -74,7 +99,46 @@ class ApplicationStatesTable extends Table {
     $this->registerStringValidation($validator, $schema, 'tag', true);
     
     $this->registerStringValidation($validator, $schema, 'value', false);
-    
+//    $validator->add('co_id', [
+//      'content' => ['rule' => 'isInteger']
+//    ]);
+    $this->registerStringValidation($validator, $schema, 'username', false);
+    $validator->add('username', [
+      // Username must have at least one non-space character to avoid
+      'content' => ['rule'    => ['notBlank'],
+                    'message' => __d('error', 'input.blank')]
+    ]);
+
     return $validator; 
+  }
+
+  /**
+   * Retrieve all Application State.
+   *
+   * @param   string    $username
+   * @param   int|null  $coid
+   * @param   int|null  $personid
+   *
+   * @return array      List of application states or an empty array
+   * @since  COmanage Registry v5.1.0
+   */
+
+  public function retrieveAll(string $username, ?int $coid, ?int $personid): array {
+    $subquery = $this->find();
+    $subquery = $subquery->where(['username' => $username]);
+    if ($coid !== null) {
+      $subquery = $subquery->where(['co_id' => $coid]);
+    } else {
+      $subquery = $subquery->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('co_id'));
+    }
+    if ($personid !== null) {
+      $subquery = $subquery->where(['person_id' => $personid]);
+    } else {
+      $subquery = $subquery->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('person_id'));
+    }
+    $subquery = $subquery->select($this);
+    $tags = $subquery->toArray();
+
+    return $tags ?? [];
   }
 }

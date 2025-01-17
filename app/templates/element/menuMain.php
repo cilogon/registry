@@ -28,10 +28,22 @@
 // The following menu will only render if we have a user and CO (see default.ctp)
 // and if the user has any menu to render.   
 
-$userHasMenu = in_array( true, $vv_menu_permissions, true );
+use App\Lib\Enum\ApplicationStateEnum;
+
+$userHasMenu = in_array(true, $vv_menu_permissions, true );
+$drawerState = $this->ApplicationState->getValue(ApplicationStateEnum::UiDrawerState, 'open');
+$appStateId = $this->ApplicationState->getId(ApplicationStateEnum::UiDrawerState);
+
 ?>
 <?php if($userHasMenu): ?>
-<div id="navigation-drawer">
+<div id="navigation-drawer"
+     data-coid="<?= $vv_cur_co->id ?? '' ?>"
+     data-appstateid="<?= $appStateId ?>"
+     data-stateattr="<?= ApplicationStateEnum::UiDrawerState?>"
+     data-webroot="<?= $this->request->getAttribute('webroot') ?>"
+     data-username="<?= $vv_user['username'] ?? '' ?>"
+     data-personid="<?= $vv_person_id ?? '' ?>"
+     class="<?= $drawerState ?>">
   <nav id="navigation" aria-label="<?= __d('menu','menu.main') ?>">
     <ul id="main-menu">
       <?php

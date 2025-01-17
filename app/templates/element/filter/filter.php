@@ -77,6 +77,8 @@ foreach($this->Filter->getHiddenFields() as $param => $value) {
   <fieldset>
     <!--  Filter Legend  -->
     <?= $this->element('filter/legend', compact('search_params')) ?>
+    <!-- XXX A view var is not accessible from inside the file we create/set it -->
+    <?php $this->set('vv_active_search_filters_count', 0) ?>
 
     <!--  Search TextBoxes/DropDowns/e.t.c.  -->
     <div id="top-filters-fields">

@@ -39,6 +39,20 @@
     
     // DESKTOP MENU DRAWER BEHAVIOR
     $('#co-menu-collapse').click(function(){
+      // Desktop mode
+      if ($("#navigation-drawer").hasClass("closed")) {
+        setApplicationState(
+          "open",
+          $("#navigation-drawer"),
+          false
+        );
+      } else {
+        setApplicationState(
+          "closed",
+          $("#navigation-drawer"),
+          false
+        );
+      }
       $('#navigation-drawer').toggleClass('closed');
     });
 
@@ -153,16 +167,31 @@
     // Hide and show filter fields using the Available Filters menu
     $('#top-filters-form .filter-selector').click(function(e) {
       e.stopPropagation();
-      
+
       // Get the checkbox and the target filter id held in the checkbox value
       let cb = $(this).find('input');
       let target = $(cb).val();
-      
+      let targetFromPicker = $(cb).val().replaceAll('-', '_');
+
       // Toggle the active and inactive state of the target filter
       if(cb.prop('checked')) {
+        // XXX we need o check both for person_id and person-id because the picker has the first while form helper
+        // creates the latter
         $('#' + target).closest('.filter-inactive').removeClass('filter-inactive').addClass('filter-active');
+        $('#' + targetFromPicker).closest('.filter-inactive').removeClass('filter-inactive').addClass('filter-active');
+        setApplicationState(
+          "on",
+          cb,
+          false
+        );
       } else {
-        $('#' + target).closest('.filter-active').removeClass('filter-active').addClass('filter-inactive');
+        $('#' + target).closest('.filter-active').removeClass('filter-active').addClass('filter-inactive')
+        $('#' + targetFromPicker).closest('.filter-active').removeClass('filter-active').addClass('filter-inactive')
+        setApplicationState(
+          "off",
+          cb,
+          false
+        );
       }
       
       // Toggle the submit container rebalance class so long as there are no datetime pickers
@@ -307,17 +336,41 @@
       }
 
     });
-    
+
     // SETTINGS (from User Menu)
     // Dark Mode toggles (auto is default)
     $("#setting-darkmode-dark").click(function(e) {
-      $('html').removeClass('light-mode').addClass('dark-mode');
+      $('html')
+        .removeClass('light-mode')
+        .removeClass('auto-mode')
+        .addClass('dark-mode');
+      setApplicationState(
+        "dark",
+        $("#form-profile-menu-dark"),
+        false
+      );
     });
     $("#setting-darkmode-light").click(function(e) {
-      $('html').removeClass('dark-mode').addClass('light-mode');
+      $('html')
+        .removeClass('dark-mode')
+        .removeClass('auto-mode')
+        .addClass('light-mode');
+      setApplicationState(
+        "light",
+        $("#form-profile-menu-dark"),
+        false
+      );
     });
     $("#setting-darkmode-auto").click(function(e) {
-      $('html').removeClass('dark-mode').removeClass('light-mode');
+      $('html')
+        .removeClass('dark-mode')
+        .removeClass('light-mode')
+        .addClass('auto-mode');
+      setApplicationState(
+        "auto",
+        $("#form-profile-menu-dark"),
+        false
+      );
     });
     
     // Test for dark mode OS preference, and add the 'dark-mode' body class by default if it is present.
@@ -332,20 +385,43 @@
 
     // Density toggles (medium is default)
     $("#setting-density-small").click(function(e) {
-      $('html').removeClass('density-large').addClass('density-small');
+      $('html')
+        .removeClass('density-large')
+        .removeClass('density-medium')
+        .addClass('density-small');
+      setApplicationState(
+        "small",
+        $("#form-profile-menu-density"),
+        false
+      );
     });
     $("#setting-density-medium").click(function(e) {
-      $('html').removeClass('density-small').removeClass('density-large');
+      $('html')
+        .removeClass('density-small')
+        .removeClass('density-large')
+        .addClass('density-medium');
+      setApplicationState(
+        "medium",
+        $("#form-profile-menu-density"),
+        false
+      );
     });
     $("#setting-density-large").click(function(e) {
-      $('html').removeClass('density-small').addClass('density-large');
+      $('html')
+        .removeClass('density-small')
+        .removeClass('density-medium')
+        .addClass('density-large');
+      setApplicationState(
+        "large",
+        $("#form-profile-menu-density"),
+        false
+      );
     });
-    
   });
 
   // Define default text for confirm dialog
-  var defaultConfirmOk = "<?php print __d('operation', 'ok'); ?>";
-  var defaultConfirmCancel = "<?php print __d('operation', 'cancel'); ?>";
-  var defaultConfirmTitle = "<?php print __d('operation', 'confirm'); ?>";
+  var defaultConfirmOk = "<?= __d('operation', 'ok') ?>";
+  var defaultConfirmCancel = "<?= __d('operation', 'cancel') ?>";
+  var defaultConfirmTitle = "<?= __d('operation', 'confirm') ?>";
 
 </script>

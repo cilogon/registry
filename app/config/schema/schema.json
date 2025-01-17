@@ -874,14 +874,16 @@
     "application_states": {
       "columns": {
         "id": {},
+        "co_id": {},
         "person_id": {},
-         "tag": { "type": "string", "size": 128 },
+        "username": { "type": "string", "size": 512 },
+        "tag": { "type": "string", "size": 128 },
         "value": { "type": "string", "size": 256 }
       },
       "indexes": {
-        "application_states_i1": { "columns": [ "person_id" ] }
-      },
-      "changelog": false
+        "application_states_i1": { "columns": [ "co_id" ] },
+        "application_states_i2": { "columns": [ "person_id" ] }
+      }
     }
   },
   

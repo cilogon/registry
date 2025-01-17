@@ -29,17 +29,21 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use App\Lib\Enum\ApplicationStateEnum;
+use App\Lib\Traits\ApplicationStatesTrait;
+use App\Lib\Traits\IndexQueryTrait;
 use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
-use InvalidArgumentException;
-use \Cake\Http\Exception\BadRequestException;
 use Cake\Utility\Inflector;
+use InvalidArgumentException;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Util\{StringUtilities, FunctionUtilities};
+use \Cake\Http\Exception\BadRequestException;
 
 class StandardController extends AppController {
-  use \App\Lib\Traits\IndexQueryTrait;
+  use IndexQueryTrait;
+  use ApplicationStatesTrait;
 
   // Pagination defaults should be set in each controller
   public $pagination = [];
@@ -628,7 +632,10 @@ class StandardController extends AppController {
     }
 
     // Fetch the data and paginate
-    $resultSet = $this->paginate($query);
+    $paginationLimit = $this->getValue(ApplicationStateEnum::PaginationLimit, DEF_SEARCH_LIMIT);
+    $resultSet = $this->paginate($query, [
+      'limit' => (int)$paginationLimit
+    ]);
 
     // Pass vars to the View
     $this->set($tableName, $resultSet);

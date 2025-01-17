@@ -33,12 +33,8 @@
 
 declare(strict_types = 1);
 
-use Cake\Collection\Collection;
-
 $classes = '';
-$inactiveFiltersCount = (new Collection($vv_searchable_attributes))->filter(fn($col) => boolval($col['active']) === false)
-                                                                   ->count();
-if ((count($vv_searchable_attributes) - $inactiveFiltersCount) % 2 === 1
+if ($vv_active_search_filters_count % 2 === 1
     &&
     empty($field_booleans_columns)
 ) {

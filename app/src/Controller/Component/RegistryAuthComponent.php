@@ -597,11 +597,11 @@ class RegistryAuthComponent extends Component
   }
   
   /**
-   * Obtain permissions suitable for menu rendering, specifically by
+   * Get permissions suitable for menu rendering, specifically by
    * templates/element/menuMain.php.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  int   $coId  Current CO ID, if known
+   * @param  int|null   $coId  Current CO ID, if known
    * @return array        Array of permissions
    */
   
@@ -633,6 +633,7 @@ class RegistryAuthComponent extends Component
    * @since  COmanage Registry v5.0.0
    * @param  int    $coId   CO ID
    * @throws RuntimeException
+   * @throws RecordNotFoundException
    */
 
   public function getPersonID(int $coId): ?int {
@@ -649,10 +650,11 @@ class RegistryAuthComponent extends Component
     $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
 
     try {
-      return $Identifiers->lookupPersonByLogin($coId, $this->authenticatedUser);
-    }
-    catch(Cake\Datasource\Exception\RecordNotFoundException $e) {
-      return null;
+      $personId = (int)$Identifiers->lookupPersonByLogin($coId, $this->authenticatedUser);
+    } catch(RecordNotFoundException) {
+      $personId = null;
+    } finally {
+      return $personId;
     }
   }
   

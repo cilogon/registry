@@ -35,8 +35,6 @@
   $viewConfigParameters = $viewConfigParameters ?? [];
   $containerClasses = $containerClasses ?? 'cm-autocomplete-container';
 
-  // Get the CSRF Token in JavaScript  
-  $token = $this->request->getAttribute('csrfToken');
   // Load my helper functions
   $vueHelper = $this->loadHelper('Vue');
   $inputValue = $inputValue ?? $formParams['value'] ?? '';

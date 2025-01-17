@@ -36,23 +36,38 @@
 
 declare(strict_types = 1);
 
-use Cake\Utility\Inflector;
+use App\Lib\Enum\ApplicationStateEnum;
 use App\Lib\Enum\DateTypeEnum;
+use Cake\Utility\Inflector;
 
 // $columns = the passed parameter $indexColumns as found in columns.inc;
 // provides overrides for labels and sorting.
 $columns = $vv_indexColumns;
-
-$wrapperCssClass = 'filter-active';
-if(empty($options['active'])) {
-  $wrapperCssClass = 'filter-inactive';
-}
+$modelsName = $this->name;
 
 $label = Inflector::humanize(
   Inflector::underscore(
     $options['label'] ?? $columns[$key]['label']
   )
 );
+
+$propertyName = $this->ApplicationState->constructComplexStateTag(
+  [ApplicationStateEnum::SearchBlockOptions, $modelsName, $label]
+);
+$searchBlockOptionsState = $this->ApplicationState->getValue($propertyName, '');
+
+// take into consideration the Application State
+$wrapperCssClass = 'filter-inactive';
+if (
+  ($searchBlockOptionsState === ''
+    && isset($options['active'])
+    && filter_var($options['active'], FILTER_VALIDATE_BOOLEAN))
+  ||
+  ($searchBlockOptionsState !== '' && filter_var($searchBlockOptionsState, FILTER_VALIDATE_BOOLEAN))
+) {
+  $wrapperCssClass = 'filter-active';
+  $this->set('vv_active_search_filters_count', (int)$vv_active_search_filters_count+1);
+}
 
 ?>
 

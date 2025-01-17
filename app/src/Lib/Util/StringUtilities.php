@@ -48,12 +48,13 @@ class StringUtilities {
   /**
    * Construct the Column human-readable key
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string         $modelsName           The name of the Model
-   * @param  string         $c                    The name of the column
-   * @param  DateTimeZone   $tz                   The timezone
-   * @param  boolean        $useCustomClMdlLabel  Whether to use a custom `Model.column` field entry or rely on the default
+   * @param   string              $modelsName           The name of the Model
+   * @param   string              $c                    The name of the column
+   * @param   \DateTimeZone|null  $tz                   The timezone
+   * @param   boolean             $useCustomClMdlLabel  Whether to use a custom `Model.column` field entry or rely on the default
+   *
    * @return string                               Column friendly name
+   * @since  COmanage Registry v5.0.0
    */
 
   public static function columnKey(
@@ -62,11 +63,17 @@ class StringUtilities {
     \DateTimeZone $tz=null,
     bool $useCustomClMdlLabel=false
   ): string {
-    if(strpos($c, "_id", strlen($c)-3)) {
-      $postfix = "";
-      if($c == "parent_id") {
+    if(strpos($c, '_id', strlen($c)-3)) {
+      $postfix = '';
+      if($c === 'parent_id') {
         // This means we are working with a model that implements a Tree behavior
-        $postfix = " ({$modelsName})";
+        // XXX If i add the parentheses before the name the the Inflecto::Humanize will not
+        //     work as expected. Which means that
+        //     this: parent_(cou)
+        //     will become Parent (cou) and not Parent (Cou)
+        //     because humanize looks for the first character after parentheses
+        // $postfix = " ({$modelsName})";
+        $postfix = " {$modelsName}";
       }
 
       // Key is of the form field_id, use .ct label instead
