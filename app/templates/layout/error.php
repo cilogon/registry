@@ -29,16 +29,7 @@ declare(strict_types = 1);
 
 use App\Lib\Enum\ApplicationStateEnum;
 
-// As a general rule, all Registry pages are post-login and so shouldn't be cached
-header("Expires: Thursday, 10-Jan-69 00:00:00 GMT");
-header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate");
-header("Pragma: no-cache");
-header("Content-Security-Policy: frame-ancestors 'self'");
-
-// Add X-UA-Compatible header for IE
-if(isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false)) {
-  header('X-UA-Compatible: IE=edge,chrome=1');
-}
+print $this->element('httpHeaders');
 
 // Theme Dark mode state
 $darkModeState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileDarkMode, 'auto');
