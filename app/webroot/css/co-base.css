@@ -2461,6 +2461,7 @@ html.dark-mode .btn-default:active {
 }
 /*Bootstrap badge*/
 .badge {
+  font-size: 0.8em; /* as small as we can go and maintain WCAG */
   font-weight: normal;
   height: min-content;
   margin-top: auto;

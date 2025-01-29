@@ -112,6 +112,15 @@
     Array.prototype.slice.call(dateWidgetInputs).forEach( (el) => {
       el.parentNode.removeChild(el);
     });
+    // Also convert the mobile duet datepicker labels to spans (to avoid orphaned labels)
+    let duetMobileLabels = document.getElementsByClassName('duet-date__mobile-heading');
+    Array.prototype.slice.call(duetMobileLabels).forEach( (el) => {
+      let duetMobileLabelReplacement = document.createElement('span');
+      duetMobileLabelReplacement.classList.add('duet-date__mobile-heading');
+      duetMobileLabelReplacement.innerHTML = el.innerHTML;
+      el.replaceWith(duetMobileLabelReplacement);
+    });
+    
     
     // TOP FILTER FORM
     // Send only non-empty fields in the form

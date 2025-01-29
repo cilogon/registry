@@ -68,6 +68,7 @@ if($vv_action != 'add') {
           'fieldName' => 'owners_group_id',
           'status' => $vv_obj->owners_for_group->name,
           'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]],
+          'labelIsTextOnly' => true
         ]
       ]);
     }
@@ -77,7 +78,8 @@ if($vv_action != 'add') {
       'arguments' => [
         'fieldName' => 'owners_group_id',
         'status' => $vv_obj->owners_group->name ?? '',
-        'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]]
+        'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]],
+        'labelIsTextOnly' => true
       ]
     ]);
   }

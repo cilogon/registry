@@ -41,7 +41,6 @@ if($vv_action == 'add' || $vv_action == 'edit') {
 
   // We link to the "Generate" button on edit only
   $generateLink = [];
-  $labelIsTextOnly = false;
 
   if(!empty($vv_obj->id)) {
     $generateLink = [
@@ -54,8 +53,6 @@ if($vv_action == 'add' || $vv_action == 'edit') {
      'class' => 'provisionbutton nospin btn btn-primary btn-sm',
      'confirm' => __d('operation', 'api.key.generate.confirm')
     ];
-
-    $labelIsTextOnly = true;
   }
 
   print $this->element('form/listItem', [
@@ -63,7 +60,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
       'fieldName' => 'api_key',
       'status' => !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
       'link' => $generateLink,
-      'labelIsTextOnly' => $labelIsTextOnly
+      'labelIsTextOnly' => true
     ]
   ]);
 

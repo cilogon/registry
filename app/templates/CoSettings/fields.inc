@@ -100,6 +100,7 @@ if($vv_action == 'edit') {
     print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'person_picker_display_fields',
+      'labelIsTextOnly' => true,
       'groupedControls' =>  [
         // each key is the fieldName of the control we are going to create
         'person_picker_email_address_type_id' => [

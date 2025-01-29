@@ -29,13 +29,19 @@
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
   foreach (['description',
-             'status',
-             'plugin'
+             'status'
            ] as $field) {
     print $this->element('form/listItem', [
       'arguments' => [
         'fieldName' => $field
       ]]);
   }
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'plugin',
+      'labelIsTextOnly' => true
+    ]
+  ]);
 
 }

@@ -52,7 +52,9 @@ export default {
                     @click="reload"
                     className="btn-close nospin"
                     data-bs-dismiss="modal"
-                    :aria-label="txt.close"></button>
+                    :aria-label="this.txt['operation.close']">
+              <span class="visually-hidden">{{ this.txt['operation.close'] }}</span>
+            </button>
           </div>
           <div id="modal-text" className="modal-body">
             <slot name="body"/>

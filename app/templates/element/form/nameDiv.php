@@ -76,9 +76,8 @@ if(isset($groupedControls)) {
 
 <div class="field-name <?= $classes ?>">
   <div class="field-title">
-    <!-- Will this work for accessibility? -->
     <?php if(
-             (isset($vv_field_arguments['labelIsTextOnly']) && !$vv_field_arguments['labelIsTextOnly'])
+             !isset($vv_field_arguments['labelIsTextOnly'])
              && $this->Field->getFieldType($fieldName) !== 'boolean'
            ):
       ?>
@@ -99,7 +98,7 @@ if(isset($groupedControls)) {
       ]);
     }
     ?>
-    </div>
+  </div>
   <?php if(isset($desc)): ?>
   <div class="field-desc">
     <?= $desc ?>

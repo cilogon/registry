@@ -41,8 +41,8 @@ $indexColumns = [
     'sortable' => true
   ],
   'description' => [
-    'sortable' => true,
-    'type' => 'echo'
+    'type' => 'echo',
+    'sortable' => true
   ]
 ];
 

@@ -65,26 +65,78 @@ if($vv_action == 'add') {
       'check' => true
     ]
   ]);
-
-  foreach([
-            'register_time',
-            'register_summary',
-            'assigned_host',
-            'assigned_pid',
-            'start_after_time',
-            'start_time',
-            'start_summary',
-            'finish_time',
-            'finish_summary',
-            'requeue_interval',
-            'retry_interval',
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'register_time'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'register_summary'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'register_time'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'assigned_host'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'assigned_pid'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'start_after_time'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'start_time'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'start_summary'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'finish_time'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'finish_summary'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'requeue_interval'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'retry_interval'
+    ]
+  ]);
 
   if(!empty($vv_obj->requeued_from_job->id)) {
     $link = [

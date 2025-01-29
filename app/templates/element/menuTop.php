@@ -85,7 +85,7 @@ $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileD
                     data-stateattr="<?= ApplicationStateEnum::ProfileDarkMode?>"
                     data-webroot="<?= $this->request->getAttribute('webroot') ?>"
                     data-username="<?= $vv_user['username'] ?? '' ?>"
-                    data-personid="<?= $vv_person_id ?? '' ?>"
+                    data-personid="<?= $vv_person_id ?? '' ?>">
                 <fieldset>
                   <legend>
                     <span class="material-symbols" aria-hidden="true">dark_mode</span>
@@ -93,18 +93,18 @@ $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileD
                   </legend>
                   <div class="menu-grouping-group">
                     <?php foreach(DarkModesEnum::getConstHumanized() as $mode): ?>
-                    <?php $modeToLower = strtolower($mode); ?>
-                    <div class="form-check">
-                      <input type="radio"
-                             id="setting-darkmode-<?= $modeToLower ?>"
-                             name="setting-dark-mode"
-                             data-mode="<?= __d('menu', "menu.darkmode.{$modeToLower}") ?>"
-                             class="form-check-input"
-                        <?= $darkModeState === $modeToLower ? 'checked' : '' ?>>
-                      <label class="form-check-label" for="setting-darkmode-<?= $modeToLower ?>">
-                        <?= __d('menu', "menu.darkmode.{$modeToLower}") ?>
-                      </label>
-                    </div>
+                      <?php $modeToLower = strtolower($mode); ?>
+                      <div class="form-check">
+                        <input type="radio"
+                               id="setting-darkmode-<?= $modeToLower ?>"
+                               name="setting-dark-mode"
+                               data-mode="<?= __d('menu', "menu.darkmode.{$modeToLower}") ?>"
+                               class="form-check-input"
+                          <?= $darkModeState === $modeToLower ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="setting-darkmode-<?= $modeToLower ?>">
+                          <?= __d('menu', "menu.darkmode.{$modeToLower}") ?>
+                        </label>
+                      </div>
                     <?php endforeach; ?>
                   </div>
                 </fieldset>

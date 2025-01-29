@@ -31,6 +31,7 @@ print $this->element('form/listItem', [
   'arguments' => [
     'fieldName' => 'username',
     'status' => $vv_obj->username,
+    'labelIsTextOnly' => true
   ]
 ]);
 
@@ -38,5 +39,6 @@ print $this->element('form/listItem', [
   'arguments' => [
     'fieldName' => 'api_key',
     'status' => $vv_api_key,
+    'labelIsTextOnly' => true
   ]
 ]);
