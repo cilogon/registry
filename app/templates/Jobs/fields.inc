@@ -58,17 +58,44 @@ if($vv_action == 'add') {
       ]
     ]);
   }
+  
+  // Establish the supplemental field wrappers for the parameters field
+  $beforeField = 
+    '<div class="field-suppliment">
+       <div class="form-check">
+         <input class="form-check-input" type="checkbox" value="" id="format-toggle">
+         <label class="form-check-label" for="format-toggle">' . __d('field','format') . '</label>
+       </div>
+     </div>';
+  
+  $afterField = 
+    '<script>
+       parametersValue = $("#parameters").val();
+       parametersJSON = JSON.parse(parametersValue);
+        $("#format-toggle").click(function() {
+          if($(this).is(":checked")) {
+            $("#parameters").val(JSON.stringify(parametersJSON, null, 4));
+            paramsHeight = Object.keys(parametersJSON).length + 6 + "em";
+            $("#parameters").css("height",paramsHeight);
+          } else {
+            $("#parameters").val(parametersValue);
+            $("#parameters").css("height","4em");
+          }
+       });
+     </script>';
 
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'parameters',
-      'check' => true
-    ]
+    ],
+    'beforeField' => $beforeField,
+    'afterField' => $afterField
   ]);
   
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'register_time'
+      'fieldName' => 'register_time',
+      'labelIsTextOnly' => true
     ]
   ]);
   
@@ -80,7 +107,8 @@ if($vv_action == 'add') {
   
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'register_time'
+      'fieldName' => 'register_time',
+      'labelIsTextOnly' => true
     ]
   ]);
   
@@ -98,13 +126,15 @@ if($vv_action == 'add') {
   
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'start_after_time'
+      'fieldName' => 'start_after_time',
+      'labelIsTextOnly' => true
     ]
   ]);
   
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'start_time'
+      'fieldName' => 'start_time',
+      'labelIsTextOnly' => true
     ]
   ]);
   
@@ -116,7 +146,8 @@ if($vv_action == 'add') {
   
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'finish_time'
+      'fieldName' => 'finish_time',
+      'labelIsTextOnly' => true
     ]
   ]);
   

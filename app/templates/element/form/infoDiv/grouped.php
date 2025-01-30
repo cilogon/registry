@@ -33,19 +33,17 @@ $classes = '';
 
 ?>
 
-<div class="field-info">
-  <?php foreach ($vv_field_arguments['groupedControls'] as $fieldName => $fieldArguments): ?>
-    <?php
-    if(isset($fieldArguments['singleRowItem']) && $fieldArguments['singleRowItem']) {
-      $classes .= 'd-block ';
-      // This configuration is not needed for the control construction
-      unset($fieldArguments['singleRowItem']);
-    }
-    ?>
-    <div class="subfield subfield-cols <?= $classes ?>">
-      <div class="field-col">
-      <?= $this->Field->formField($fieldName, ...$fieldArguments) ?>
-      </div>
+<?php foreach ($vv_field_arguments['groupedControls'] as $fieldName => $fieldArguments): ?>
+  <?php
+  if(isset($fieldArguments['singleRowItem']) && $fieldArguments['singleRowItem']) {
+    $classes .= 'd-block ';
+    // This configuration is not needed for the control construction
+    unset($fieldArguments['singleRowItem']);
+  }
+  ?>
+  <div class="subfield subfield-cols <?= $classes ?>">
+    <div class="field-col">
+    <?= $this->Field->formField($fieldName, ...$fieldArguments) ?>
     </div>
-  <?php endforeach; ?>
-</div>
+  </div>
+<?php endforeach; ?>

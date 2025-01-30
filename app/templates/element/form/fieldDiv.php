@@ -41,22 +41,35 @@ declare(strict_types = 1);
   }
 
   // Info Div
-  if(isset($vv_field_arguments['fieldPrefix'])) {
-    print $this->element('form/infoDiv/withPrefix');
-  } elseif(isset($vv_field_arguments['status'])) {
-    print $this->element('form/infoDiv/status');
-  } elseif(isset($vv_field_arguments['groupedControls'])) {
-    print $this->element('form/infoDiv/grouped');
-  } elseif(isset($vv_field_arguments['entity'])) {
-    print $this->element('form/infoDiv/source');
-  } elseif(isset($vv_field_arguments['check']) && $vv_field_arguments['check']) {
-    print $this->element('form/infoDiv/check');
-  } elseif(isset($vv_field_arguments['groupmember'])) {
-    print $this->element('form/infoDiv/groupMember');
-  } elseif(isset($vv_field_arguments['autocomplete'])) {
-    print $this->element('form/infoDiv/autocomplete');
-  } else {
-    print $this->element('form/infoDiv/default');
-  }
   ?>
+  <div class="field-info">
+    <?php
+      // Insert the beforeField supplement:
+      if(!empty($vv_before_field)) {
+        print $vv_before_field;
+      }
+      
+      // Include the correct sub-element based on the field configuration
+      if(isset($vv_field_arguments['fieldPrefix'])) {
+        print $this->element('form/infoDiv/withPrefix');
+      } elseif(isset($vv_field_arguments['autocomplete'])) {
+        print $this->element('form/infoDiv/autocomplete');
+      } elseif(isset($vv_field_arguments['status'])) {
+        print $this->element('form/infoDiv/status');
+      } elseif(isset($vv_field_arguments['groupedControls'])) {
+        print $this->element('form/infoDiv/grouped');
+      } elseif(isset($vv_field_arguments['entity'])) {
+        print $this->element('form/infoDiv/source');
+      } elseif(isset($vv_field_arguments['groupmember'])) {
+        print $this->element('form/infoDiv/groupMember');
+      } else {
+        print $this->element('form/infoDiv/default');
+      }
+
+      // Insert the afterField supplement:
+      if(!empty($vv_after_field)) {
+        print $vv_after_field;
+      }
+    ?>
+  </div>
 </div>

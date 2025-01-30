@@ -162,6 +162,16 @@ class PersonRolesTable extends Table {
       'cous' => [
         'type' => 'select',
         'model' => 'Cous'
+      ],
+      // Required for peoplePicker
+      'cosettings' => [
+        'type' => 'auxiliary',
+        'model' => 'CoSettings'
+      ],
+      // Required for peoplePicker
+      'types' => [
+        'type' => 'auxiliary',
+        'model' => 'Types'
       ]
     ]);
 

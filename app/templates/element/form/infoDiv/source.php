@@ -30,6 +30,6 @@ declare(strict_types = 1);
 $entity = $vv_field_arguments['entity'];
 
 ?>
-<div>
-  <?= $this->Field->sourceLink($entity) ?>
-</div>
+
+<?= $this->Field->sourceLink($entity) ?>
+
