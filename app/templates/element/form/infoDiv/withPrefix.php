@@ -28,11 +28,10 @@
 
 declare(strict_types = 1);
 ?>
-<div class="field-info">
-  <div class="input-group mb-3">
-    <div class="input-group-prepend">
-      <span class="input-group-text" id="basic-addon3"><?= $vv_field_arguments['fieldPrefix'] ?></span>
-    </div>
-    <?= $this->Field->formField(...$vv_field_arguments)?>
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon3"><?= $vv_field_arguments['fieldPrefix'] ?></span>
   </div>
+  <?= $this->Field->formField(...$vv_field_arguments)?>
 </div>

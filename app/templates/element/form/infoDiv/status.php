@@ -62,6 +62,5 @@ if($link) {
 }
 
 ?>
-<div class="field-info">
-  <?= $linkHtml ?>
-</div>
+
+<?= $linkHtml ?>

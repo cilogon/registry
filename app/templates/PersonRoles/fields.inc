@@ -66,17 +66,31 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
     
     if(!empty($vv_obj->$fp->names[0])) {
       $fname = $vv_obj->$fp->names[0]->full_name;
+      $fid = $vv_obj->$fp->id;
       $flink = ['url' => ['controller' => 'people', 'action' => 'edit', $vv_obj->$fp->id]];
-    }
-
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $f.'_person_id',
-        'status' => $fname,
+      $formParams = [
+        'value' => $fid,
+        'fullName' => $fname,
         'link' => $flink,
-        'fieldLabel' => __d('field', $f)
+      ];
+      $this->set('formParams', $formParams);
+    }
+    
+    $vv_autocomplete_arguments = [
+      'fieldName' => $f.'_person_id',
+      'status' => $fname,
+      'link' => $flink,
+      'fieldLabel' => __d('field', $f),
+      'fieldOptions' => [],
+      'autocomplete' => [
+        'configuration' => [
+          'action' => 'GET',
+          'for' => 'co'
+        ]
       ]
-    ]);
+    ];
+    
+    print $this->element('form/listItem', ['arguments' => $vv_autocomplete_arguments]);
   }
 
   print $this->element('form/listItem', [

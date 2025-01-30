@@ -1489,6 +1489,11 @@ ul.form-list .field-desc {
   padding-bottom: 1em;
   color: var(--cmg-color-txt-soft);
 }
+ul.form-list .field-desc.field-autocomplete-desc {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
 ul.form-list .fields-header {
   background-color: var(--cmg-color-body-bg);
 }

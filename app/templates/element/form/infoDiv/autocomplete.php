@@ -25,8 +25,6 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-
-
 declare(strict_types = 1);
 
 // Create a field name for the autocomplete input
@@ -53,7 +51,7 @@ $autocompleteArgs = [
   // Create a hidden field to hold our value and emit the autocomplete widget
   print $this->Form->hidden($fieldName, $vv_field_arguments['fieldOptions']) . $this->element('peopleAutocomplete', $autocompleteArgs);
 ?>
-<div class="field-desc">
-  <span class="material-symbols">info</span>
-  <?= __d('operation','autocomplete.people.desc',['2']) ?>
+<div class="field-desc field-autocomplete-desc">
+  <span class="material-symbols-outlined">info</span>
+  <span><?= __d('operation','autocomplete.people.desc',['2']) ?></span>
 </div>

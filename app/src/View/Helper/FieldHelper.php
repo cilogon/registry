@@ -370,12 +370,13 @@ class FieldHelper extends Helper {
    * @param   string       $fieldName             Form field
    * @param   array|null   $fieldOptions          The second parameter of the Form->control helper. List of element options
    * @param   string|null  $fieldLabel            Custom label text. Applicable to checkboxes ONLY
-   * @param   string       $fieldPrefix           If the field has a specil prefix provide the value
+   * @param   string       $fieldPrefix           If the field has a special prefix provide the value
    * @param   string|null  $fieldType             Field type to override the one calculated from the schema
    * @param   array|null   $fieldSelectOptions    Options array to override the one calculated options from the AutoPopulate property
    *                                              fieldType has to be 'select'
    * @param   string|null  $fieldNameAlias        Used for the Petition Attribute Collection form. The form uses generic field name.
    *                                              The variable is used to map the generic field name to the actual enrollment attribute name
+   * @oaran   bool|null    $labelIsTextOnly       A parameter to force rending a field name/label as plain text with no <label> tag.
    *
    * @return string  HTML element
    * @since  COmanage Registry v5.0.0
@@ -386,7 +387,8 @@ class FieldHelper extends Helper {
                             string $fieldPrefix = '',
                             string $fieldType = null,
                             array  $fieldSelectOptions = null,
-                            string $fieldNameAlias = null): string
+                            string $fieldNameAlias = null,
+                              bool $labelIsTextOnly = null): string
   {
     $fieldArgs = $fieldOptions ?? [];
     $fieldArgs['label'] = $fieldOptions['label'] ?? false;
@@ -452,7 +454,10 @@ class FieldHelper extends Helper {
                                             'class' => 'form-check-input',
                                           ]),
       'select'    => $this->Form->select($fieldName, $fieldSelectOptions, $fieldArgs),
-      'text'      => $this->Form->textarea($fieldName, $fieldArgs),
+      'text'      => $this->Form->textarea($fieldName,  [
+                                            ...$fieldArgs,
+                                            'id' => Inflector::dasherize($fieldName) // Cake 4 does not automatically assign this ID...
+                                          ]),
       'date'      => $this->dateField(fieldName: $fieldName, dateType: DateTypeEnum::DateOnly, fieldArgs: $fieldArgs),
       'datetime',
       'timestamp' => $this->dateField(fieldName: $fieldName, fieldArgs: $fieldArgs),

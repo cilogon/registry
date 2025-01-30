@@ -28,6 +28,5 @@
 
 declare(strict_types = 1);
 ?>
-<div class="field-info">
-  <?= $this->Field->formField(...$vv_field_arguments) ?>
-</div>
+
+<?= $this->Field->formField(...$vv_field_arguments) ?>
