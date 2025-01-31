@@ -95,6 +95,18 @@
   .cm-modal .modal-dialog {
     max-width: 90vw;
   }
+  /* PETITIONS */
+  ul#view_Petitions.form-list .field {
+    align-items: start;
+  }
+  .petition-attrs h3 {
+    padding: 0.75em 1em 0;
+  }
+  .petition-attrs > ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1em solid var(--cmg-color-bg-002);
+  }
   /* PERSON CANVAS / CARDS */
   .co-cards .field-data-container {
     display: grid;
@@ -539,6 +551,26 @@
   ul.form-list li.petition-enrollee-items .field-info {
     flex-direction: row;
     gap: 3em;
+  }
+  ul.petition-attrs-subset {
+    display: flex;
+    flex-wrap: wrap;
+    border: none; 
+    border-right: 1px solid var(--cmg-color-bg-005);
+  }
+  ul.petition-attrs-subset li {
+    grid-template-columns: unset;
+    grid-template-rows: 1fr 1fr;
+    border-left: 1px solid var(--cmg-color-bg-005);
+    gap: 0;
+    padding: 0.1em 0.5em;
+    border-top: 1px solid var(--cmg-color-bg-005);
+    border-bottom: 1px solid var(--cmg-color-bg-005);
+    border-right: none;
+    flex-grow: 1;
+  }
+  .petition-attrs-subset-label {
+    font-size: 0.8em;
   }
   /* FOOTER */
   #co-footer {
