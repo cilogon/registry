@@ -51,8 +51,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
-            'TestPlugin\\Test\\' => 16,
-            'TestPlugin\\' => 11,
         ),
         'S' => 
         array (
@@ -67,6 +65,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Symfony\\Component\\VarDumper\\' => 28,
             'Symfony\\Component\\String\\' => 25,
             'Symfony\\Component\\Process\\' => 26,
+            'Symfony\\Component\\HtmlSanitizer\\' => 32,
             'Symfony\\Component\\Finder\\' => 25,
             'Symfony\\Component\\Filesystem\\' => 29,
             'Symfony\\Component\\Console\\' => 26,
@@ -102,10 +101,12 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'M' => 
         array (
             'Migrations\\' => 11,
+            'Masterminds\\' => 12,
             'M1\\Env\\' => 7,
         ),
         'L' => 
         array (
+            'League\\Uri\\' => 11,
             'League\\Container\\' => 17,
             'Laminas\\HttpHandlerRunner\\' => 26,
             'Laminas\\Diactoros\\' => 18,
@@ -136,8 +137,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'CoreServer\\Test\\' => 16,
             'CoreServer\\' => 11,
-            'CoreReport\\Test\\' => 16,
-            'CoreReport\\' => 11,
             'CoreJob\\Test\\' => 13,
             'CoreJob\\' => 8,
             'CoreEnroller\\Test\\' => 18,
@@ -182,14 +181,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
         ),
-        'TestPlugin\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/tests',
-        ),
-        'TestPlugin\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/src',
-        ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php81',
@@ -233,6 +224,10 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Symfony\\Component\\Process\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
+        ),
+        'Symfony\\Component\\HtmlSanitizer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/html-sanitizer',
         ),
         'Symfony\\Component\\Finder\\' => 
         array (
@@ -340,9 +335,18 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/cakephp/migrations/src',
         ),
+        'Masterminds\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/masterminds/html5/src',
+        ),
         'M1\\Env\\' => 
         array (
             0 => __DIR__ . '/..' . '/m1/env/src',
+        ),
+        'League\\Uri\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/uri',
+            1 => __DIR__ . '/..' . '/league/uri-interfaces',
         ),
         'League\\Container\\' => 
         array (
@@ -415,14 +419,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreServer\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreServer/src',
-        ),
-        'CoreReport\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/CoreReport/tests',
-        ),
-        'CoreReport\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/CoreReport/src',
         ),
         'CoreJob\\Test\\' => 
         array (

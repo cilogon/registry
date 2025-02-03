@@ -12,7 +12,8 @@
         "doctrine/dbal": "^3.3",
         "league/container": "^4.2.0",
         "mobiledetect/mobiledetectlib": "^2.8",
-        "psr/log": "^2.0"
+        "psr/log": "^2.0",
+        "symfony/html-sanitizer": "^7.2"
     },
     "require-dev": {
         "cakephp/bake": "^2.6",

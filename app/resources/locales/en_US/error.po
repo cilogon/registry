@@ -190,8 +190,14 @@ msgstr "When this value is selected, {0} cannot be empty"
 msgid "input.invalid"
 msgstr "Invalid character found"
 
+msgid "input.invalid.brackets"
+msgstr "Invalid character found. Angle brackets ('<>') are disallowed."
+
 msgid "input.invalid.email"
 msgstr "The provided value is not a valid email address"
+
+msgid "input.invalid.html"
+msgstr "HTML should be well-formed, and non-standard attributes, <script>, and <style> tags are not allowed."
 
 msgid "input.invalid.prefix"
 msgstr "The provided value is not valid. \"{0}\" prefix is required"

@@ -33,6 +33,8 @@ use Cake\Core\Configure;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 trait ValidationTrait {
   /**
@@ -74,7 +76,7 @@ trait ValidationTrait {
    * @param  string               $field          Field name
    * @param  bool                 $required       Whether this field is required
    * @param  string               $prefix         Require the value to start with $prefix
-   * @param  bool                 $validateInput  Whether to appli the validateInput rule
+   * @param  bool                 $validateInput  Whether to apply the validateInput rule
    * @return Validator            Cake Validator
    */
   
@@ -222,37 +224,62 @@ trait ValidationTrait {
    *
    * @since  COmanage Registry v5.0.0
    * @param  string $value   Value to validate
-   * @param  array  $context Validation context
+   * @param  array  $context Optional validation context; accepts 'type' of 'html' (may be extended to include 'email', 'url' etc.
    * @return mixed  True if $value validates, or an error string otherwise
    */
   
   public function validateInput($value, array $context) {
     // By default, we'll accept anything except < and >. Arguably, we should accept
     // anything at all for input (and filter only on output), but this was agreed to
-    // as an extra "line of defense" against unsanitized HTML output, since there are
-    // currently no known cases where user-entered input should permit angle brackets.
+    // as an extra "line of defense" against unsanitized HTML output. Where user supplied
+    // HTML input is needed, we will pass the input through the Symfony HTML Sanitizer instead.
     
 // XXX we previously supported 'flags' and 'invalidchars' as arguments, do we still need to?
 // CFM-152 review the logic here
 
-    if(!empty($context['filter'])) {
-      // We use filter_var for consistency with the views, and simply check
-      // that we end up with the same string we started with.
-
-      $filtered = filter_var($value, $context['filter']);
-      
-      if($value != $filtered) {
-        // Mismatch, implying bad input
-        return __d('error', 'input.invalid');
+    if(!empty($context['type'])) {
+      switch($context['type']) {
+        case 'html':
+          // We are accepting HTML input. Pass it through the Symfony HTML Sanitizer to
+          // disallow dom elements like <script> and <style>.
+          $htmlSanitizer = new HtmlSanitizer(
+            // Allow all elements from the W3C Sanitizer API. This is more permissive than "allowSafeElements()".
+            // See: https://github.com/symfony/symfony/blob/7.2/src/Symfony/Component/HtmlSanitizer/Reference/W3CReference.php
+            (new HtmlSanitizerConfig())->allowStaticElements()
+          );
+          $sanitizedValue = $htmlSanitizer->sanitize($value);
+          
+          // Compare $value and $sanitizedValue to see if anything changed. Because white space and closing slashes
+          // can be significantly altered during sanitization, normalize the strings prior to comparison.
+          // (Unfortunately, the HtmlSanitizer does not generate a report on what it changed, which would be better.)
+          $valueNormalized = preg_replace(['/\s+/','/\//'], '', $value);
+          $sanitizedValueNormalized = preg_replace(['/\s+/','/\//'], '', $sanitizedValue);
+          // XXX Note: stripping forward slashes allows us to ignore the differences between <br> and <br/>
+          // (for example), but it also allows malformed tags such as <br////> or <div/></div> to get through.
+          
+          if($valueNormalized !== $sanitizedValueNormalized) {
+            // Disallowed HTML is in the input, so throw an error.
+            return __d('error', 'input.invalid.html');
+          }
+          
+          return true;
+        default:
+          // We use h() (htmlspecialchars) for consistency with the views.
+          // If we get here, simply check that we end up with the same string we started with
+          // once we pass the string through htmlspecialchars.
+          if($value != h($value)) {
+            // Mismatch, implying bad input
+            return __d('error', 'input.invalid');
+          }
       }
     } else {
-      // Perform a basic string search.
+      // Perform a basic string search
       
       $invalid = "<>";
       
       if(strlen($value) != strcspn($value, $invalid)) {
         // Mismatch, implying bad input
-        return __d('error', 'input.invalid.2');
+        return __d('error', 'input.invalid.brackets');
       }
       
       // We require at least one non-whitespace character (CO-1551)

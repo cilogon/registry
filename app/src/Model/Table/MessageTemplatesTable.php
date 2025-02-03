@@ -225,7 +225,7 @@ class MessageTemplatesTable extends Table {
     $validator->allowEmptyString('body_text');
 
     $validator->add('body_html', [
-      'filter'  => ['rule'     => ['validateInput'],
+      'filter'  => ['rule'     => ['validateInput',['type' => 'html']],
                     'provider' => 'table']
     ]);
     $validator->allowEmptyString('body_html');
