@@ -34,6 +34,7 @@ use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Traits\IndexQueryTrait;
 use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 use InvalidArgumentException;
 use \App\Lib\Enum\ProvisioningContextEnum;
@@ -61,6 +62,8 @@ class StandardController extends AppController {
     $table = $this->$modelsName;
     // $tableName = models
     $tableName = $table->getTable();
+    // Schema
+    $schema = $table->getSchema();
     // Create an empty entity for FormHelper
     $obj = $table->newEmptyEntity();
     
@@ -97,14 +100,12 @@ class StandardController extends AppController {
         
         if(!empty($errors)) {
           $errorlist = [];
-          foreach ($errors as $model => $fails) {
-            foreach ($fails as $issues) {
-              foreach ($issues as $column => $issue) {
-                $error_descriptions = array_values($issue);
-                $col_issues = implode(',', $error_descriptions);
-                $errorlist[] = __d('error', 'flash', [$column, $col_issues]);
-              }
-            }
+          $errorsParsed = Hash::flatten($errors);
+          foreach ($errorsParsed as $struct => $issue) {
+            $partials = explode('.', $struct);
+            // Try to find the column
+            $column = collection($partials)->filter(fn($partial) => $schema->getColumn($partial) !== null)->first();
+            $errorlist[] = __d('error', 'flash', [$column, $issue]);
           }
           $this->Flash->error(__d('error', 'fields', $errorlist));
         } else {
