@@ -496,10 +496,10 @@ msgid "Groups.group_type"
 msgstr "Group Type"
 
 msgid "Groups.nesting_mode_all"
-msgstr "Require All for Nested Memberships"
+msgstr "Nesting Mode: All"
 
 msgid "Groups.nesting_mode_all.desc"
-msgstr "When enabled, a Person must be found in ALL nested groups to be included as a member. When disabled, a Person found in ANY nested group will be included. (Note that People in negated nested groups are always excluded.)"
+msgstr "When checked, a Person must be found in ALL nested groups to be included as a member of this group. Otherwise, a Person found in ANY nested group will be included."
 
 msgid "Groups.open"
 msgstr "Open"

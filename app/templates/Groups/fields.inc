@@ -35,7 +35,8 @@ if($vv_obj->isOwners()) {
 foreach(['name',
           'description',
           'status',
-          'open',] as $field) {
+          'open',
+          'nesting_mode_all'] as $field) {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => $field,
@@ -43,12 +44,6 @@ foreach(['name',
     ]
   ]);
 }
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'nesting_mode_all',
-  ]
-]);
 
 if($vv_action != 'add') {
   print $this->element('form/listItem', [

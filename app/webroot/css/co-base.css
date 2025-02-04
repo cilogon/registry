@@ -1595,8 +1595,12 @@ ul.form-list .field-suppliment {
 ul.form-list li.info-title {
   border: none;
 }
-.checkbox label input {
+.checkbox label input[type="checkbox"] {
+  position: relative;
+  top: -0.12em;
   margin-right: 0.5em;
+  width: 1.24em;
+  height: 1.24em;
 }
 .checkbox .subfield {
   margin-left: 1.5em;

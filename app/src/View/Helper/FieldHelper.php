@@ -443,6 +443,13 @@ class FieldHelper extends Helper {
     if(empty($fieldSelectOptions) && $fieldType === 'select') {
       $fieldType = '';
     }
+    
+    // Checkbox labels need special handling
+    if($fieldType == 'boolean') {
+      [$cbLabel] = $this->calculateLabelAndDescription($fieldName);
+      $fieldLabel = $fieldLabel ?? $cbLabel;
+    }
+    
     // Generate the form control or pass along the markup generated in a wrapper function
     return match($fieldType) {
       // A boolean field is a checkbox. Set the label and class to improve rendering
