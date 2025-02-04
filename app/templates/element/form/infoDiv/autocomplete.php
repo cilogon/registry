@@ -27,31 +27,13 @@
 
 declare(strict_types = 1);
 
-// Create a field name for the autocomplete input
-$autoCompleteFieldName = 'cm_autocomplete_' . $fieldName;
+unset($vv_field_arguments['autocomplete']);
 
-// Because we use JavaScript to set the value of the hidden field,
-// disable form-tamper checking for the autocomplete fields.
-// XXX We ought not have to do this for the hidden field ($fieldName) at least
-$this->Form->unlockField($fieldName);
-$this->Form->unlockField($autoCompleteFieldName);
-
-$autocompleteArgs = [
-  'type' => 'field',
-  'fieldName' => $fieldName,
-  'personType' => 'person',
-  'htmlId' => $autoCompleteFieldName,
-  'viewConfigParameters' => $vv_field_arguments['autocomplete']['configuration']
-];
-
+print $this->Field->constructSPAField(
+  // The Default field will be used to harvest the attributes
+  element:        $this->Field->formField(...$vv_field_arguments),
+  // Vue/JS element
+  vueElementName: 'peopleAutocomplete',
+);
 ?>
 
-
-<?php
-  // Create a hidden field to hold our value and emit the autocomplete widget
-  print $this->Form->hidden($fieldName, $vv_field_arguments['fieldOptions']) . $this->element('peopleAutocomplete', $autocompleteArgs);
-?>
-<div class="field-desc field-autocomplete-desc">
-  <span class="material-symbols-outlined">info</span>
-  <span><?= __d('operation','autocomplete.people.desc',['2']) ?></span>
-</div>

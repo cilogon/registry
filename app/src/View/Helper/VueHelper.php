@@ -69,17 +69,25 @@ class VueHelper extends Helper {
       'report.for',
       'value.copied',
     ],
+    'menu' => [
+      'person.canvas'
+    ],
     'operation' => [
       'add',
       'add.member',
       'add.owner',
       'autocomplete.pager.show.more',
+      'autocomplete.people.desc',
+      'autocomplete.people.field.desc',
       'autocomplete.people.label',
       'autocomplete.people.placeholder',
       'close',
       'copy',
       'copy.value',
+      'edit',
       'primary',
+      'remove',
+      'view',
       'visit.link',
     ],
     'result' => [

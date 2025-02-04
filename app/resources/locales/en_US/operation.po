@@ -57,6 +57,9 @@ msgstr "show more"
 msgid "autocomplete.people.desc"
 msgstr "Begin typing to find a person (use at least {0} characters from a name, email address, or identifier)"
 
+msgid "autocomplete.people.field.desc"
+msgstr "Begin typing to find a person (use characters from a name, email address, or identifier)"
+
 msgid "autocomplete.people.label"
 msgstr "Search for a person"
 

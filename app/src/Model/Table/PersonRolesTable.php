@@ -292,6 +292,17 @@ class PersonRolesTable extends Table {
         }
       }
     }
+
+    $re = '/^.*\(ID: (\d+)\)$/m';
+    if(!empty($data['sponsor_person_id'])) {
+      preg_match_all($re, $data['sponsor_person_id'], $matchesSponsor, PREG_SET_ORDER, 0);
+      $data['sponsor_person_id'] = $matchesSponsor[0][1];
+    }
+
+    if(!empty($data['manager_person_id'])) {
+      preg_match_all($re, $data['manager_person_id'], $matchesManager, PREG_SET_ORDER, 0);
+      $data['manager_person_id'] = $matchesManager[0][1];
+    }
   }
 
   /**

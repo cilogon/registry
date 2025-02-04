@@ -67,11 +67,9 @@ if (
 }
 
 // Get the Field configuration
-$formParams = $this->Filter->calculateFieldParams($key, $label);
-if(!empty($formParams['value']) && $key == 'person_id') {
-  $formParams['fullName'] = $this->Filter->getFullName((int)$formParams['value']);
-}
-$vv_autocomplete_arguments['formParams'] = $formParams;
+$vv_autocomplete_arguments['fieldOptions'] = $this->Filter->calculateFieldParams($key, $label);
+// Update the view var
+$this->set('vv_autocomplete_arguments', $vv_autocomplete_arguments);
 
 ?>
 

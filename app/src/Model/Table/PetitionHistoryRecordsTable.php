@@ -132,29 +132,30 @@ class PetitionHistoryRecordsTable extends Table {
 
     return __d('controller', 'PetitionHistoryRecords', [1]);
   }
-  
+
   /**
    * Record a Petition History Record.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $petitionId             Petition ID
-   * @param  string $enrollmentFlowStepId   Enrollment Flow Step ID, or null for start or finalize
-   * @param  string $action                 PetitionActionEnum
-   * @param  string $comment                Comment
-   * @param  int    $actorPersonId          Actor Person ID
+   * @param   int       $petitionId            Petition ID
+   * @param   int|null  $enrollmentFlowStepId  Enrollment Flow Step ID, or null for start or finalize
+   * @param   string    $action                PetitionActionEnum
+   * @param   string    $comment               Comment
+   * @param   int|null  $actorPersonId         Actor Person ID
+   *
    * @return int                            Petition History Record ID
+   * @since  COmanage Registry v5.0.0
    */
   
   public function record(
     int    $petitionId, 
-    ?int   $enrollmentFlowStepId=null,
+    ?int   $enrollmentFlowStepId,
     string $action,
     string $comment,
-    ?int $actorPersonId=null
+    ?int $actorPersonId = null
   ): int {
     $obj = $this->newEntity([
       'petition_id'             => $petitionId,
-      'enrollment_flow_step_id' => $enrollmentFlowStepId,
+      'enrollment_flow_step_id' => $enrollmentFlowStepId ?? null,
       'action'                  => $action,
       'comment'                 => $comment,
       'actor_person_id'         => $actorPersonId

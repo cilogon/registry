@@ -265,7 +265,7 @@ trait SearchFilterTrait {
       // Picker configuration
       if(isset($f['picker'])) {
         $autocompleteArgs = [
-          'type' => 'default',
+          'type' => 'search',
           'fieldName' => $field,
           'personType' => $f['picker']['type'],
           'htmlId' => $field, // This is the input ID

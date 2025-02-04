@@ -1825,6 +1825,16 @@ ul.form-list .cm-time-picker-vals li {
   text-decoration: underline;
   background-color: var(--cmg-color-bg-002);
 }
+.cm-ac-input-group > div {
+  flex-grow: 1;
+}
+.cm-ac-link-to-person {
+  gap: 0.25em;
+  color: var(--cmg-color-link);
+}
+#main .cm-ac-link-to-person:hover {
+  text-decoration: none;
+}
 .item-with-type {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -238,6 +238,21 @@ class StringUtilities {
   }
 
   /**
+   * Determine the controller name from a foreign key (eg: report_id -> reports).
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  string $s Foreign Key name
+   * @return string    Class name
+   */
+
+  public static function foreignKeyToController(string $s): string {
+    if($s === 'affiliation_type_id') {
+      $s = 'type_id';
+    }
+    return Inflector::underscore(Inflector::pluralize(substr($s, 0, strlen($s)-3)));
+  }
+
+  /**
    * Localize a controller name, accounting for plugins.
    *
    * @param   string       $controllerName  Name of controller to localize

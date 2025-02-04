@@ -30,11 +30,9 @@ declare(strict_types = 1);
 namespace App\View\Helper;
 
 use App\Lib\Util\StringUtilities;
-use App\Lib\Util\TableUtilities;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
-use Cake\Validation\Validator;
 use Cake\View\Helper;
 use CoreEnroller\Model\Table\EnrollmentAttributesTable;
 
@@ -94,5 +92,56 @@ class PetitionHelper extends Helper
   public function getTable(string $tableName): Table
   {
     return TableRegistry::getTableLocator()->get($tableName);
+  }
+
+  /**
+   * Fetch a record by its ID and optionally include related data.
+   *
+   * This method retrieves a specific record from the database using its ID
+   * and foreign key. If optional related data (associations) need to be loaded,
+   * they can be specified with the `$contains` parameter.
+   *
+   * @param   string      $foreignKey
+   * @param   int|string  $id
+   * @param   array       $contains
+   *
+   * @return array
+   * @since  COmanage Registry v5.1.0
+   */
+  public function getRecordForId(string $foreignKey, int|string $id, array $contains = []): array
+  {
+    $tableName = StringUtilities::foreignKeyToClassName($foreignKey);
+    if($tableName === 'AffiliationTypes') {
+      $tableName = 'Types';
+    }
+    $table = $this->getTable($tableName);
+    $query = $table->find()
+      ->where([$tableName . '.id' => $id]);
+    if(!empty($contains)) {
+      return $query
+        ->contain($contains)
+        ->first()
+        ->toArray();
+    }
+    return $query->first()->toArray();
+  }
+
+  /**
+   * Transform an enrollment attribute name into a class postfix
+   *
+   * This method modifies the given attribute name by converting it
+   * to a format suitable for use as a CSS class postfix.
+   *
+   * @param string $attributeName Attribute name to transform
+   * @return string Transformed class postfix
+   * @since  COmanage Registry v5.1.0
+   */
+  public function getClassPostfixFromAttributeName(string $attributeName): string
+  {
+    if(str_ends_with($attributeName, '_id')) {
+      $attributeName = substr($attributeName, 0, -3);
+    }
+    $attributeName = Inflector::underscore($attributeName);
+    return str_replace('_', '-', $attributeName);
   }
 }

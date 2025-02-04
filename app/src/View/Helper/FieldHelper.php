@@ -29,11 +29,12 @@ declare(strict_types = 1);
 
 namespace App\View\Helper;
 
+use App\Lib\Enum\DateTypeEnum;
+use App\Lib\Util\StringUtilities;
 use Cake\I18n\FrozenTime;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
-use App\Lib\Enum\DateTypeEnum;
-use App\Lib\Util\StringUtilities;
+use DOMDocument;
 
 class FieldHelper extends Helper {
   public $helpers = ['Form', 'Html'];
@@ -243,15 +244,31 @@ class FieldHelper extends Helper {
     // Parse the Class attribute
     $regexClass = '/class="(.*?)"/m';
     preg_match_all($regexClass, $element, $matchesClass, PREG_SET_ORDER, 0);
+
+    // Parse the Value attribute
+    // XXX This will not work properly if the input element is a select element
+    if (!empty($matchesClass[0][1])
+      && !str_contains($matchesClass[0][1], 'select')
+    ) {
+      $regexClass = '/value="(.*?)"/m';
+      preg_match_all($regexClass, $element, $matchesValue, PREG_SET_ORDER, 0);
+    }
+
     if(!empty($matchesId[0][1]) && !empty($matchesName[0][1])) {
-      return $this->getView()->element($vueElementName, [
+      $vueElementProperties = [
         'htmlId' => $matchesId[0][1],
         'fieldName' => $matchesName[0][1],
         'containerClasses' => $matchesClass[0][1],
         'type' => 'field',
         // we want the label to be an empty string to hide the default label introduced by the module.
         'label' => ''
-      ]);
+      ];
+
+      if (isset($matchesValue[0][1])) {
+        $vueElementProperties['inputValue'] = $matchesValue[0][1];
+      }
+
+      return $this->getView()->element($vueElementName, $vueElementProperties);
     }
 
     // Fallback to an error element
@@ -279,14 +296,18 @@ class FieldHelper extends Helper {
     $dateTitle = $dateType === DateTypeEnum::DateOnly ? 'datepicker.enterDate' : 'datepicker.enterDateTime';
     $datePattern = $dateType === DateTypeEnum::DateOnly ? '\d{4}-\d{2}-\d{2}' : '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
     $queryParams = $this->getView()->getRequest()->getQueryParams();
-    $date_object = !empty($queryParams[$fieldName])
-                   ? FrozenTime::parse($queryParams[$fieldName])
-                   : $this->getEntity()?->$fieldName;
 
-    // Petition Attribute Collection use case
-    if($date_object === null && !empty($fieldArgs['default'])) {
-      $date_object = $fieldArgs['default'];
-    }
+    $date_object = match(true) {
+      // filtering block
+      !empty($queryParams[$fieldName])                                   => FrozenTime::parse($queryParams[$fieldName]),
+      // Petition View/ Value saved as string
+      isset($fieldArgs['default']) && is_string($fieldArgs['default'])   => FrozenTime::parse($fieldArgs['default']),
+      // Petition View/ Value saved a FronzenTime
+      isset($fieldArgs['default'])
+      && is_a($fieldArgs['default'], 'Cake\I18n\FrozenTime')       => $fieldArgs['default'],
+      // Table record/ Retrieve it from the Entity object
+      default                                                            => $this->getEntity()?->$fieldName,
+    };
     // Create the options array for the (text input) form control
     $coptions = [];
 
@@ -397,6 +418,8 @@ class FieldHelper extends Helper {
                              || ($fieldName == 'plugin' && $this->action == 'edit');
 
     // Selects, Checkboxes, and Radio Buttons use "disabled"
+    // XXX For this use case we need to add a hidden input field. If we do not we will not be able
+    //     to post the value
     $fieldArgs['disabled'] = $fieldArgs['readonly'];
 
     // required can be overridden by the fields.inc, but start with the default expectation
@@ -625,4 +648,47 @@ class FieldHelper extends Helper {
     return $link;
   }
 
+  /**
+   * Iterate over form arguments, parse the generated HTML element using XMLReader,
+   * and inject a hidden input field if the element (e.g., select, checkbox, radio) is disabled.
+   * Finally, outputs the original HTML element.
+   *
+   * @param string $element
+   * @param array $formArguments An array containing options/attributes for the HTML form element.
+   * @return void
+   * @since  COmanage Registry v5.1.0
+   */
+  public function getElementsForDisabledInput(string $element, array $formArguments): void
+  {
+    $orginalElement = $this->getView()->element($element, ['arguments' => $formArguments]);
+    if ($orginalElement) {
+      $htmlObj = new DOMDocument();
+      $htmlObj->loadHTML($orginalElement, LIBXML_NOERROR);
+      if($htmlObj->getElementsByTagName('select')->length > 0) {
+        // Check if it is disabled. If it is then print a hidden element
+        foreach($htmlObj->getElementsByTagName('select')->item(0)->attributes as $attr) {
+          if($attr->name == 'disabled' && $attr->value == 'disabled') {
+            print $this->getView()->Form->hidden($formArguments['fieldName'], ['value' => $formArguments["fieldOptions"]["default"]]);
+          }
+        }
+      } elseif ($htmlObj->getElementsByTagName('radio')->length) {
+        // Check if it is disabled. If it is then print a hidden element
+        foreach($htmlObj->getElementsByTagName('radio')->item(0)->attributes as $attr) {
+          if($attr->name == 'disabled' && $attr->value == 'disabled') {
+            print $this->getView()->Form->hidden($formArguments['fieldName'], ['value' => $formArguments["fieldOptions"]["default"]]);
+          }
+        }
+      } elseif ($htmlObj->getElementsByTagName('checkbox')->length) {
+        // Check if it is disabled. If it is then print a hidden element
+        foreach($htmlObj->getElementsByTagName('checkbox')->item(0)->attributes as $attr) {
+          if($attr->name == 'disabled' && $attr->value == 'disabled') {
+            print $this->getView()->Form->hidden($formArguments['fieldName'], ['value' => $formArguments["fieldOptions"]["default"]]);
+          }
+        }
+      }
+    }
+
+    // Print the original element
+    print $orginalElement;
+  }
 }

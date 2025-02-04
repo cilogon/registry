@@ -213,6 +213,9 @@ msgstr "Toggle menu collapse button"
 msgid "options"
 msgstr "Options"
 
+msgid "person.canvas"
+msgstr "Person Canvas"
+
 msgid "registries"
 msgstr "Available {0} Registries"
 

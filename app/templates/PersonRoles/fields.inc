@@ -59,29 +59,11 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
   // For now, we render sponsor and manager as read only.
   // XXX Need People Picker (CFM-150)
   foreach(['sponsor', 'manager'] as $f) {
-    $fp = $f."_person";
-    
-    $fname = "";
-    $flink = [];
-    
-    if(!empty($vv_obj->$fp->names[0])) {
-      $fname = $vv_obj->$fp->names[0]->full_name;
-      $fid = $vv_obj->$fp->id;
-      $flink = ['url' => ['controller' => 'people', 'action' => 'edit', $vv_obj->$fp->id]];
-      $formParams = [
-        'value' => $fid,
-        'fullName' => $fname,
-        'link' => $flink,
-      ];
-      $this->set('formParams', $formParams);
-    }
-    
+    $fp = $f . '_person';
+
     $vv_autocomplete_arguments = [
       'fieldName' => $f.'_person_id',
-      'status' => $fname,
-      'link' => $flink,
       'fieldLabel' => __d('field', $f),
-      'fieldOptions' => [],
       'autocomplete' => [
         'configuration' => [
           'action' => 'GET',
@@ -90,6 +72,12 @@ if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
       ]
     ];
     
+    if(!empty($vv_obj->$fp->names[0])) {
+      $vv_autocomplete_arguments['fieldOptions'] = [
+        'default' => $vv_obj->$fp->id
+      ];
+    }
+
     print $this->element('form/listItem', ['arguments' => $vv_autocomplete_arguments]);
   }
 

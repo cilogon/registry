@@ -44,6 +44,7 @@ export default {
       people: [],
       rawData: [],
       person: '',
+      personUrl: '',
       identifierType: {},
       emailType: {},
       loading: false,
@@ -192,8 +193,8 @@ export default {
       })
     },
     setPerson() {
-      if(['default', 'field'].includes(this.options.type)) {
-        this.options.inputProps.dataPersonid = this.person.value
+      if(['search', 'field'].includes(this.options.type)) {
+        this.options.inputProps.dataPersonid = this.person.value;
       } else {
         // The picker is stand-alone, and should render the configured page in a modal on @item-select
         const urlForModal = this.options.actionUrl + '&person_id=' + this.person.value;
@@ -247,8 +248,9 @@ export default {
   mounted() {
     if(this.options.inputValue != undefined
       && this.options.inputValue != ''
-      && this.options.htmlId.endsWith('person_id')) {
-      this.options.inputProps.value = `${this.options.formParams?.fullName} (ID: ${this.options.inputValue})`
+      && this.options.inputProps.name.endsWith('person_id')) {
+      this.person = `${this.options.personRecord.primary_name.given} ${this.options.personRecord.primary_name.family} (ID: ${this.options.personRecord.id})`;
+      this.personUrl = `${this.options.canvasUrl}`;
     }
   },
   computed: {
@@ -281,78 +283,92 @@ export default {
       } else {
         return "co-loading-mini-container d-inline ms-1 over-input"
       }
+    },
+    canRenderElementPostfix: function() {
+      return (this.person && this.options.personRecord && this.options.personRecord?.id && this.options.type === 'field')
     }
   },
   template: `
-    <label v-if="hasAutoCompleteLabel" class="mr-2" :for="this.options.htmlId">{{ this.autoCompleteLabel }}</label>
-    <MiniLoader :isLoading="loading" :classes="getMiniLoaderClasses"/>
-    <AutoComplete 
-      v-model="person"
-      inputClass="cm-autocomplete"
-      :inputId="this.options.htmlId"
-      :inputProps="this.options.inputProps"
-      :placeholder="this.txt['operation.autocomplete.people.placeholder']"
-      panelClass="cm-autocomplete-panel"
-      optionLabel="label"
-      optionDisabled="isMember"
-      :minLength="this.options.minLength"
-      :delay="500"
-      loadingIcon=null
-      :suggestions="this.people" 
-      forceSelection
-      @complete="searchPeople"
-      @show="calculateDisabled"
-      @keyup.arrow-down="onListNavigate"
-      @keyup.arrow-up="onListNavigate"
-      @item-select="setPerson">
-      <template #option="slotProps">
-        <div class="cm-ac-item">
-          <div class="cm-ac-item-primary">
-            <div class="cm-ac-name">
-              <!-- XXX The input field will be updated with the option.label value. Here we only need the full name -->
-              <span class="cm-ac-name-value" v-if="slotProps.option.isMember" v-html="slotProps.option.fullName"></span>
-              <span class="cm-ac-name-value" v-else v-html="this.highlightedquery(slotProps.option.fullName, query)"></span>
-              <span class="mr-1 badge bg-success" v-if="slotProps.option.isMember">{{ this.txt['controller.GroupMembers'] }}</span>
+      <label v-if="hasAutoCompleteLabel" class="mr-2" :for="this.options.htmlId">{{ this.autoCompleteLabel }}</label>
+      <MiniLoader :isLoading="loading" :classes="getMiniLoaderClasses"/>
+      <div class="cm-ac-input-group input-group">
+        <AutoComplete 
+          v-model="person"
+          inputClass="cm-autocomplete"
+          :inputId="this.options.htmlId"
+          :inputProps="this.options.inputProps"
+          :placeholder="this.txt['operation.autocomplete.people.placeholder']"
+          panelClass="cm-autocomplete-panel"
+          optionLabel="label"
+          optionDisabled="isMember"
+          :minLength="this.options.minLength"
+          :delay="500"
+          loadingIcon=null
+          :suggestions="this.people" 
+          forceSelection
+          @complete="searchPeople"
+          @show="calculateDisabled"
+          @keyup.arrow-down="onListNavigate"
+          @keyup.arrow-up="onListNavigate"
+          @item-select="setPerson">
+          <template #option="slotProps">
+            <div class="cm-ac-item">
+              <div class="cm-ac-item-primary">
+                <div class="cm-ac-name">
+                  <!-- XXX The input field will be updated with the option.label value. Here we only need the full name -->
+                  <span class="cm-ac-name-value" v-if="slotProps.option.isMember" v-html="slotProps.option.fullName"></span>
+                  <span class="cm-ac-name-value" v-else v-html="this.highlightedquery(slotProps.option.fullName, query)"></span>
+                  <span class="mr-1 badge bg-success" v-if="slotProps.option.isMember">{{ this.txt['controller.GroupMembers'] }}</span>
+                </div>
+                <div class="cm-ac-item-id">
+                  ID: {{ slotProps.option.itemId }}
+                </div>
+              </div>
+              <div class="cm-ac-subitems">
+                <div class="cm-ac-subitem cm-ac-email" v-if="slotProps.option.email">
+                  <span class="cm-ac-label" v-if="slotProps.option.emailLabel">{{ slotProps.option.emailLabel }}</span>
+                  <span class="cm-ac-value">
+                    <ItemWithType
+                      v-for="item in slotProps.option.email" 
+                      :item="item"
+                      kind="email"  
+                      :query="query"
+                      :highlightedquery="highlightedquery"
+                      :isMember="slotProps.option.isMember"
+                    />
+                  </span>
+                </div>
+                <div class="cm-ac-subitem cm-ac-id" v-if="slotProps.option.identifier">
+                  <span class="cm-ac-label" v-if="slotProps.option.identifierLabel">{{ slotProps.option.identifierLabel }}</span>
+                  <span class="cm-ac-value">
+                    <ItemWithType 
+                      v-for="item in slotProps.option.identifier"
+                      :query="query"
+                      :item="item"
+                      kind="identifier"
+                      :highlightedquery="highlightedquery"
+                      :isMember="slotProps.option.isMember"
+                    />
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="cm-ac-item-id">
-              ID: {{ slotProps.option.itemId }}
+          </template>
+          <template #footer="slotProps" v-if="hasMorePages">
+            <div class="cm-ac-pager">
+              <a href="#" @click="this.fetchMorePeople()">{{ this.txt['operation.autocomplete.pager.show.more'] }}</a>
             </div>
-          </div>
-          <div class="cm-ac-subitems">
-            <div class="cm-ac-subitem cm-ac-email" v-if="slotProps.option.email">
-              <span class="cm-ac-label" v-if="slotProps.option.emailLabel">{{ slotProps.option.emailLabel }}</span>
-              <span class="cm-ac-value">
-                <ItemWithType
-                  v-for="item in slotProps.option.email" 
-                  :item="item"
-                  kind="email"  
-                  :query="query"
-                  :highlightedquery="highlightedquery"
-                  :isMember="slotProps.option.isMember"
-                />
-              </span>
-            </div>
-            <div class="cm-ac-subitem cm-ac-id" v-if="slotProps.option.identifier">
-              <span class="cm-ac-label" v-if="slotProps.option.identifierLabel">{{ slotProps.option.identifierLabel }}</span>
-              <span class="cm-ac-value">
-                <ItemWithType 
-                  v-for="item in slotProps.option.identifier"
-                  :query="query"
-                  :item="item"
-                  kind="identifier"
-                  :highlightedquery="highlightedquery"
-                  :isMember="slotProps.option.isMember"
-                />
-              </span>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer="slotProps" v-if="hasMorePages">
-        <div class="cm-ac-pager">
-          <a href="#" @click="this.fetchMorePeople()">{{ this.txt['operation.autocomplete.pager.show.more'] }}</a>
-        </div>
-      </template>
-    </AutoComplete>
+          </template>
+        </AutoComplete>
+        <a v-if="canRenderElementPostfix" :href="this.personUrl" class="input-group-text cm-ac-link-to-person">
+          <span class="material-symbols-outlined">person_edit</span>
+          <span class="cm-ac-link-to-person-text">{{ this.txt['menu.person.canvas'] }}</span>
+        </a>
+      </div>
+      <div v-if="this.options.type == 'field'" class="field-desc field-autocomplete-desc">
+        <span class="material-symbols-outlined">info</span>
+        <span>{{ this.txt['operation.autocomplete.people.field.desc'] }}</span>
+      </div>
+    </div>
   `
 }

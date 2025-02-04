@@ -25,27 +25,44 @@
    * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
    */
 
-  // Get parameters
-  $type = $type ?? 'stand-alone'; // autocomplete person picker type: 'stand-alone' or 'field', defaults to 'stand-alone'.
-  $label = $label ?? $formParams['label'] ?? __d('operation','autocomplete.people.label');
+  // autocomplete person picker type, defaults to 'stand-alone':
+  // - 'stand-alone', used when we want to open a modal that will use the person
+  // - 'search', used when we find a person and display the fullname along with the ID
+  // - 'field', used for model records. It has a postfix with a link to the person canvas
+  $type = $type ?? 'stand-alone';
+  // In the context of a type=field we will pass vv_field_arguments
+  // In the context of a stand-alone field we will have vv_autocomplete_arguments
+  $vv_field_arguments = $vv_field_arguments ?? $vv_autocomplete_arguments ?? [];
+  $label = $label ?? $vv_field_arguments["fieldLabel"] ?? __d('operation','autocomplete.people.label');
   $fieldName = $fieldName ?? 'person_id';
-  $personType = $personType ?? 'coperson';
+  // Used by the SearchFilter Configuration
+  $personType = $personType ?? 'person';
   $htmlId = $htmlId ?? 'cmPersonPickerId';
+  // Does it have a value already. Default or stored
+  // CAKEPHP automatically generates a select element if the value is an integer. This is not helpful here.
+  $inputValue = $inputValue ?? $vv_field_arguments["fieldOptions"]["default"] ?? $vv_field_arguments["fieldOptions"]["value"] ?? '';
+
+  // Mainly required for the Group Members people picker since this is placed as an action url
   $actionUrl = $actionUrl ?? []; // the url of the page to launch on select for a stand-alone picker
   $viewConfigParameters = $viewConfigParameters ?? [];
   $containerClasses = $containerClasses ?? 'cm-autocomplete-container';
 
   // Load my helper functions
   $vueHelper = $this->loadHelper('Vue');
-  $inputValue = $inputValue ?? $formParams['value'] ?? '';
   
   // If we have the $actionUrl array, construct the URL
   $constructedActionUrl = '';
   if(!empty($actionUrl)) {
     $constructedActionUrl = $this->Url->build($actionUrl);
   }
-    
-  // Create a people autocomplete text input.
+
+  // This is the peopleAutocomplete element. If we have the id we need to self construct the
+  // - the person canvas link
+  // - Get the person record for view or edit
+  if (!empty($inputValue)) {
+    $personRecord = $this->Petition->getRecordForId('person_id', $inputValue, ['PrimaryName', 'EmailAddresses']);
+    $canvasUrl = $this->Url->build(['controller' => 'people', 'action' => 'edit', $inputValue]);
+  }
 ?>
 
 <script type="module">
@@ -84,13 +101,17 @@
           actionUrl: '<?= $constructedActionUrl ?>',
           inputValue: '<?= $inputValue ?>',
           inputProps: {
-            name: '<?= $htmlId ?>',
+            name: '<?= $fieldName ?>',
             // This is not translated to data-personid but to datapersonid.
             dataPersonid: '<?= $inputValue ?>'
           },
-          formParams: <?= json_encode($formParams ?? []) ?>,
+          personRecord: <?= json_encode($personRecord ?? [])?>,
+          canvasUrl: '<?= $canvasUrl ?? '' ?>',
         },
-        error: ''
+        error: '',
+        core: {
+          webroot: '<?= $this->request->getAttribute('webroot') ?>'
+        }
       }
     },
     components: {
