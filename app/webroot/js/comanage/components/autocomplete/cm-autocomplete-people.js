@@ -243,6 +243,16 @@ export default {
         }
       }
       this.listLastPos = itemPosition
+    },
+    onEnter(ev) {
+      if(this.options.type != 'stand-alone'
+        && this.person != '') {
+        // Allow the Enter key to submit the form only if we're in 
+        // stand-alone mode or the field is empty. 
+        ev.preventDefault();
+        ev.stopPropagation();
+        return false;
+      }
     }
   },
   mounted() {
@@ -310,7 +320,8 @@ export default {
           @show="calculateDisabled"
           @keyup.arrow-down="onListNavigate"
           @keyup.arrow-up="onListNavigate"
-          @item-select="setPerson">
+          @item-select="setPerson"
+          @keydown.enter="onEnter">
           <template #option="slotProps">
             <div class="cm-ac-item">
               <div class="cm-ac-item-primary">
