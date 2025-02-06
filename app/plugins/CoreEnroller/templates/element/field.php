@@ -119,5 +119,5 @@ print match(true) {
     'formArguments' => $formArguments
   ]),
 // Default use case
-  default                  => $this->element('form/listItem', ['arguments' => $formArguments])
+  default                  => $this->Field->getElementsForDisabledInput('form/listItem', $formArguments)
 };

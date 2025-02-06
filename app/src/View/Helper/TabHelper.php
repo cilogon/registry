@@ -63,6 +63,8 @@ class TabHelper extends Helper
   public function constructLinkUrl(string $tab, string|int $curId, bool $isNested = false): array
   {
     $curController = $this->getView()->getRequest()->getParam('controller');
+    $vv_associated_ids = $this->getView()->get('vv_associated_ids');
+
     $modelName = $tab;
     $controller = $modelName;
     $plugin = null;
@@ -100,12 +102,63 @@ class TabHelper extends Helper
     ];
 
     if ($action === 'index') {
+      $deepId = $this->getDeepNestedId($linkFilter);
+      If($deepId !== null) {
+        $linkFilterForeignKey = array_key_first($linkFilter);
+        $linkFilter[$linkFilterForeignKey] = $deepId;
+      }
       $url['?'] = $linkFilter;
+    } else if ($action === 'edit') {
+      // I will get the id from the associated ids table
+      $url[] = $vv_associated_ids[$controller];
     } else {
       $url[] = $curId;
     }
 
     return $url;
+  }
+
+
+  /**
+   * Retrieve the ID for a deeply nested association.
+   *
+   * @param array $linkFilter The link filter containing foreign key details.
+   *
+   * @return int|null The ID of the deeply nested associated model or null if not found.
+   * @since COmanage Registry v5.1.0
+   */
+  public function getDeepNestedId(array $linkFilter): ?int
+  {
+    $vv_associated_ids = $this->getView()->get('vv_associated_ids');
+
+    // Get the foreign from the linkFilter
+    $linkFilterForeignKey = array_key_first($linkFilter);
+    // Generate the ModelName and instantiate the linked Table
+    $modelName = StringUtilities::foreignKeyToClassName($linkFilterForeignKey);
+    $table = TableRegistry::getTableLocator()->get($modelName);
+    $linkFilterId = $vv_associated_ids[Inflector::pluralize($modelName)] ?? null;
+    if($linkFilterId !== null) {
+      return (int)$linkFilterId;
+    }
+    $foreignKeyId = -1;
+    $foreignKey = null;
+    // This means that we are working on deep nested associations and we need
+    // to fetch more data
+    $linkFilterSchema = $table->getSchema();
+    foreach($linkFilterSchema->columns() as $column) {
+      // Check the foreign keys
+      if(str_ends_with($column, '_id')) {
+        $foreignKeytToTableName = Inflector::pluralize(StringUtilities::foreignKeyToClassName($column));
+        if(isset($vv_associated_ids[$foreignKeytToTableName])) {
+          $foreignKeyId = $vv_associated_ids[$foreignKeytToTableName];
+          $foreignKey = $column;
+          break;
+        }
+      }
+    }
+    $id = $table->find()->where([$foreignKey => $foreignKeyId])->first()->id;
+
+    return(int)$id;
   }
 
   /**
@@ -205,6 +258,7 @@ class TabHelper extends Helper
       TableUtilities::treeTraversalFromId($curController, (int)$tid, $results);
     }
 
+    $this->getView()->set('vv_associated_ids', $results);
     $tabAction = $this->getTabAction($tabName, $isNested);
 
     if(

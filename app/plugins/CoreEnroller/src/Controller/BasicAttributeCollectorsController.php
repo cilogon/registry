@@ -87,21 +87,4 @@ class BasicAttributeCollectorsController extends StandardEnrollerController {
 
     $this->render('/Standard/dispatch');
   }
-
-  /**
-   * Display information about this Step.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  string  $id    Attribute Collector ID
-   */
-
-  public function display(string $id) {
-    $petition = $this->getPetition();
-
-    $this->set('vv_petition_basic_attribute_set', $this->BasicAttributeCollectors
-                                                       ->PetitionBasicAttributeSets
-                                                       ->find()
-                                                       ->where(['PetitionBasicAttributeSets.petition_id' => $petition->id])
-                                                       ->firstOrFail());
-  }
 }

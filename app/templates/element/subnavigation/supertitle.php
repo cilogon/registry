@@ -38,7 +38,7 @@ extract($vv_sub_nav_attributes, EXTR_PREFIX_ALL, 'vv_subnavigation');
  * Person with deep nested dependency
  */
 
-$person_id = (int)($vv_person_id ?? $vv_obj?->person_id ?? $this->getRequest()->getQuery('person_id'));
+$person_id = (int)($vv_mvea_person_id ?? $vv_obj?->person_id ?? $this->getRequest()->getQuery('person_id'));
 if ($person_id) {
   $personFullName = $this->Tab->getPersonPrimaryName($person_id);
 }
@@ -65,16 +65,22 @@ if (
   && $vv_subnavigation_tabs[0] !== StringUtilities::entityToClassName($vv_bc_parent_obj)
 ) {
   $object = $vv_obj ?? $$objectName?->first();
-  // If we get here, it means that neither the request object nor its parent can give us a supertitle.
-  // We need to fetch all the ids and get the supertitle from the root tab/node
-  $results = [];
-  TableUtilities::treeTraversalFromId(StringUtilities::entityToClassName($object), (int)$object->id, $results);
-  $superTitleModelReference = $this->Tab->getModelTableReference($vv_subnavigation_tabs[0]);
-  $superTitleModelDisplayField = $superTitleModelReference->getDisplayField();
-  $superTitleModelId = $results[$vv_subnavigation_tabs[0]];
+  if ($object === null) {
+    // This is a deep nested association that has not been initialized yet. The controller name
+    // will become the supertitle
+    $vv_subnavigation_tabsSupertitle = Inflector::humanize($vv_controller);
+  } else {
+    // If we get here, it means that neither the request object nor its parent can give us a supertitle.
+    // We need to fetch all the ids and get the supertitle from the root tab/node
+    $results = [];
+    TableUtilities::treeTraversalFromId(StringUtilities::entityToClassName($object), (int)$object->id, $results);
+    $superTitleModelReference = $this->Tab->getModelTableReference($vv_subnavigation_tabs[0]);
+    $superTitleModelDisplayField = $superTitleModelReference->getDisplayField();
+    $superTitleModelId = $results[$vv_subnavigation_tabs[0]];
 
-  $root_obj = $superTitleModelReference->get($superTitleModelId);
-  $vv_subnavigation_tabsSupertitle = $root_obj->$superTitleModelDisplayField;
+    $root_obj = $superTitleModelReference->get($superTitleModelId);
+    $vv_subnavigation_tabsSupertitle = $root_obj->$superTitleModelDisplayField;
+  }
 }
 
 $supertitle = match (true) {

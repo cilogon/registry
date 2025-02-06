@@ -304,7 +304,7 @@ class FieldHelper extends Helper {
       isset($fieldArgs['default']) && is_string($fieldArgs['default'])   => FrozenTime::parse($fieldArgs['default']),
       // Petition View/ Value saved a FronzenTime
       isset($fieldArgs['default'])
-      && is_a($fieldArgs['default'], 'Cake\I18n\FrozenTime')       => $fieldArgs['default'],
+      && is_a($fieldArgs['default'], 'Cake\I18n\FrozenTime')             => $fieldArgs['default'],
       // Table record/ Retrieve it from the Entity object
       default                                                            => $this->getEntity()?->$fieldName,
     };

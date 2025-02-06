@@ -424,3 +424,30 @@ function setApplicationState(value, elem, reload= false) {
     }
   });
 }
+
+function stepCollapseToggle(event, item) {
+  /**
+   * Toggles the expanded or collapsed state of the step element.
+   *
+   * This function prevents the default action and stops the propagation of the event,
+   * then toggles the "collapsed" class for the given element. It also updates
+   * the `aria-expanded` attribute and changes the icon displayed within the element.
+   *
+   * - If the element is collapsed, it sets `aria-expanded` to "false" and updates
+   *   the icon to "arrow_drop_down."
+   * - If the element is expanded, it sets `aria-expanded` to "true" and updates
+   *   the icon to "arrow_drop_up."
+   *
+   * @param {Event} event - The event triggered, usually by a click action.
+   * @param {HTMLElement} item - The DOM element being toggled that represents the step.
+   */
+  event.preventDefault();
+  event.stopPropagation();
+  if ($(item).hasClass("collapsed")) {
+    $(item).attr("aria-expanded","false")
+    $(item).find('em').text("arrow_drop_down");
+  } else {
+    $(item).attr("aria-expanded","true")
+    $(item).find('em').text("arrow_drop_up");
+  }
+}

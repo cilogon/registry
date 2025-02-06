@@ -49,6 +49,10 @@ $indexColumns = [
   'required' => [
     'type' => 'boolean',
     'class' => 'YesBooleanEnum'
+  ],
+  'hidden' => [
+    'type' => 'boolean',
+    'class' => 'YesBooleanEnum'
   ]
 ];
 

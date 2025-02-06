@@ -230,34 +230,39 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
 </li>
 
 
-<!-- XXX This needs work -->
 <?php foreach($vv_obj->enrollment_flow->enrollment_flow_steps as $step): ?>
-  <?php
-    $result = Hash::extract($vv_obj->petition_step_results, "{n}[enrollment_flow_step_id=$step->id]");
-
-    if(!empty($result)) {
-      $resultLink = [
-        'controller' => 'petitions',
-        'action' => 'result',
-        $vv_obj->id,
-        '?' => [
-          'enrollment_flow_step_id' => $step->id
-        ]
-      ];
-    }
-  ?>
-
+  <?php $result = Hash::extract($vv_obj->petition_step_results, "{n}[enrollment_flow_step_id=$step->id]"); ?>
   <li>
     <div class="field">
       <div class="field-name ">
         <div class="field-title">
-          <?= $step->description ?>            
+          <?= $step->description ?>
         </div>
       </div>
       <div class="field-info">
-        <?= !empty($result) ? $this->Html->link($result[0]->comment, $resultLink) : "" ?>
+        <?= !empty($result) ? $result[0]->comment : '' ?>
+        <a class="cm-toggle nospin petition-step-collapse-link"
+           data-bs-toggle="collapse"
+           href="#collapse-box-<?= $step->id ?>"
+           onclick="stepCollapseToggle(event, this)"
+           role="button"
+           aria-expanded="false"
+           aria-controls="collapse-box-<?= $step->id ?>">
+          <em class="material-symbols-outlined petition-step-collapse-icon" aria-hidden="true">
+            arrow_drop_down
+          </em>
+        </a>
       </div>
     </div>
+  </li>
+  <li id="collapse-box-<?= $step->id ?>" class="petition-attrs collapse">
+    <h3><?= $step->plugin ?></h3>
+    <?php
+    [$pluginName, $pluginClass] = explode('.', $step->plugin);
+    $elementName = lcfirst($pluginClass) . 'Step';
+
+    print $this->element("$pluginName.petition/$elementName", ['vv_step' => $step]);
+    ?>
   </li>
 <?php endforeach; ?>
 

@@ -38,10 +38,39 @@ $label = Inflector::humanize($field);
 $isRequiredFromValidationRule = false;
 $supportedAttributes = $this->Petition->getSupportedEnrollmentAttribute($attr->attribute);
 
+// Field Options array
+$options = [];
+
 if(isset($supportedAttributes['mveaModel'])) {
   $supportedAttributes = $this->Petition->getSupportedEnrollmentAttribute($attr->attribute);
   $modelTable = $this->Petition->getTable($supportedAttributes['mveaModel']);
   $isRequiredFromValidationRule = !$modelTable->getValidator()->field($field)->isEmptyAllowed();
+}
+
+// Do we have a default value configured?
+// Either a value or an Environmental Variable,
+// Each default value is mutually exclusive to the rest. We do not have to worry about a conflict.
+$options['default'] = match(true) {
+  isset($attr->default_value)                          => $attr->default_value,
+  // XXX The $attr->default_value_env_name for the name attribute is tricky. Since the name has many values.
+  //     Check the EnvSource plugin
+  isset($attr->default_value_env_name)
+  && getenv($attr->default_value_env_name) !== false   => getenv($attr->default_value_env_name),
+  isset($attr->default_value_datetime)                 => $attr->default_value_datetime,
+  default                                              => ''
+};
+
+// If we are re-rendering the Petition, override the default value with whatever
+// was previously saved
+if(!empty($vv_petition_attributes)) {
+  $curEntity = $vv_petition_attributes->firstMatch([
+    'enrollment_attribute_id' => $attr->id,
+    'column_name' => $field
+  ]);
+
+  if(!empty($curEntity->value)) {
+    $options['default'] = $curEntity->value;
+  }
 }
 
 // Construct the field arguments
@@ -53,6 +82,9 @@ $formArguments = [
   'fieldType'        => $modelTable->getSchema()->getColumn($field)['type'],
   'fieldNameAlias'   => $attr->attribute  // the field name to its enrollment attribute field name
 ];
+
+// Set the final fieldOptions
+$formArguments['fieldOptions'] = $options;
 ?>
 
 <div class="fieldset-field <?= "fields-$field"?>">

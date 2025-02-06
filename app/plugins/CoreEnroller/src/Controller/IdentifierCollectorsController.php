@@ -97,21 +97,6 @@ class IdentifierCollectorsController extends StandardEnrollerController {
   }
 
   /**
-   * Display information about this Step.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  string  $id    Invitation Accepters ID
-   */
-
-  public function display(string $id) {
-    $petition = $this->getPetition();
-
-    $PetitionIdentifiers = TableRegistry::getTableLocator()->get('CoreEnroller.PetitionIdentifiers');
-
-    $this->set('vv_pi', $PetitionIdentifiers->find()->where(['petition_id' => $petition->id])->first());
-  }
-
-  /**
    * Indicate whether this Controller will handle some or all authnz.
    * 
    * @since  COmanage Registry v5.1.0

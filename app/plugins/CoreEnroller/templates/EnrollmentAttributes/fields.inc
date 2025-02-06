@@ -32,8 +32,7 @@ use \Cake\Utility\Inflector;
 $attribute_type = null;
 if($vv_action == 'add') {
   $attribute_type = $this->request->getQuery('attribute_type');
-} else if($vv_action == 'edit' && !empty($vv_obj)
-) {
+} else if($vv_action == 'edit' && !empty($vv_obj)) {
   $attribute_type = $vv_obj->attribute;
 }
 

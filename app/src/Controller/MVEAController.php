@@ -100,7 +100,7 @@ class MVEAController extends StandardController {
             $personName = $Names->primaryName($externalIdentity->person_id);
             $this->set('vv_person_name', $personName);
             $this->set('vv_supertitle', $personName->full_name);
-            $this->set('vv_person_id', $externalIdentity->person_id);
+            $this->set('vv_mvea_person_id', $externalIdentity->person_id);
             break;
           case 'person_role_id':
             $PersonRoles = $this->getTableLocator()->get('PersonRoles');
@@ -113,13 +113,13 @@ class MVEAController extends StandardController {
             $personName = $Names->primaryName($roleEntity->person_id);
             $this->set('vv_person_name', $personName);
             $this->set('vv_supertitle', $personName->full_name);
-            $this->set('vv_person_id', $roleEntity->person_id);
+            $this->set('vv_mvea_person_id', $roleEntity->person_id);
             break;
           case 'person_id':
             $personName = $Names->primaryName((int)$primaryLink->value);
             $this->set('vv_person_name', $personName);
             $this->set('vv_supertitle', $personName->full_name);
-            $this->set('vv_person_id', $primaryLink->value);
+            $this->set('vv_mvea_person_id', $primaryLink->value);
             break;
           default;
             break;

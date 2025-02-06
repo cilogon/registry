@@ -35,6 +35,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use CoreEnroller\Model\Table\EnrollmentAttributesTable;
+use DOMDocument;
 
 class PetitionHelper extends Helper
 {
@@ -82,7 +83,7 @@ class PetitionHelper extends Helper
   }
 
   /**
-   * Get the table validation rules
+   * Get reference to the Table Object
    *
    * @param   string  $tableName
    *

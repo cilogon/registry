@@ -147,7 +147,7 @@ class BasicAttributeCollectorsTable extends Table {
     // At this point there is a Person record allocated and stored in the Petition,
     // but it doesn't have any attributes on it, including a Primary Name.
     // We assume we're the only attribute collector, so we'll force a Primary Name
-    // based on the Basic Attribtues, and create a skeletal role.
+    // based on the Basic Attributes, and create a skeletal role.
 
     if(empty($petition->enrollee_person_id)) {
       throw new \InvalidArgumentException(__d('error', 'Petitions.enrollee.notfound', [$petition->id]));

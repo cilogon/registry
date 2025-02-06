@@ -90,6 +90,9 @@ class PetitionsTable extends Table {
     $this->hasMany('PetitionStepResults')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('CoreEnroller.PetitionAttributes')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
 
     $this->hasOne('Verifications')
          ->setDependent(true)
@@ -116,7 +119,8 @@ class PetitionsTable extends Table {
       'EnrolleePeople' => ['PrimaryName' => ['foreignKey' => 'person_id']],
       'PetitionerPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']],
       'PetitionHistoryRecords',
-      'PetitionStepResults'
+      'PetitionStepResults',
+      'PetitionAttributes',
     ]);
 
     $this->setAutoViewVars([

@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
+use App\Model\Entity\Petition;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
@@ -117,21 +118,32 @@ class AttributeCollectorsTable extends Table {
 
   /**
    * Perform steps necessary to finalize the Petition.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $id           Attribute Collector ID
-   * @param  int    $petitionId   Petition ID
+   *
+   * @param int $id Attribute Collector ID
+   * @param Petition $petition
    * @return bool                 true on success
+   * @since  COmanage Registry v5.1.0
    */
 
-  public function finalize(int $id, int $petitionId) {
-// XXX convert Petition Attributes to operational Attributes
-//     keep in mind this can be called multiple times if the plugin is
-//     instantiated more than once in the Enrollment Flow ($id will be different)
-//     any errors should be logged or otherwise managed, returning false
-//     or throwing an error will NOT prevent the petition from finalizing
+  public function finalize(int $id, \App\Model\Entity\Petition $petition) {
+    $cfg = $this->get($id);
 
-debug("in AttributeCollector finalize");
+    if(empty($petition->enrollee_person_id)) {
+      throw new \InvalidArgumentException(__d('error', 'Petitions.enrollee.notfound', [$petition->id]));
+    }
+
+    $People = TableRegistry::getTableLocator()->get('People');
+
+    $person = $People->get($petition->enrollee_person_id);
+
+    $attributes = $this->EnrollmentAttributes
+      ->PetitionAttributes
+      ->find()
+      ->where(['petition_id' => $petition->id])
+      ->firstOrFail();
+
+    // XXX Should i save the primary name?
+    // XXX Should i save the email?
 
     return true;
   }
@@ -166,15 +178,33 @@ debug("in AttributeCollector finalize");
 
     foreach($attributes as $enrollmentAttributeLabel => $value) {
       // Remove field- prefix from the form field name
-      $enrollmentAttributeId = (int)substr($enrollmentAttributeLabel, 6);
+      $fieldToParts = explode('-', $enrollmentAttributeLabel);
+      // MVAs have multiple columns. For example a name has:
+      // given, surname, prefix, ...
+      $columnName = null;
+      if (count($fieldToParts) > 2) {
+        // There is a type ID in the middle
+        $columnName = $fieldToParts[1];
+      }
+      // The enrollment Attribute ID is the last part
+      $enrollmentAttributeId = (int)array_pop($fieldToParts);
+
+      // The people picker will send a complex string and not just the id. We need to extract it ourselves.
+      $re = '/^.*\(ID: (\d+)\)$/m';
+      preg_match_all($re, $value, $matches, PREG_SET_ORDER, 0);
+      if(!empty($matches)) {
+        $value = $matches[0][1];
+      }
 
       $newAttribute = [
         'petition_id'             => $petitionId,
         'enrollment_attribute_id' => $enrollmentAttributeId,
-        'value'                   => $value
+        'value'                   => $value,
+        // This is the column name for the attributes that consist of multiple fields, like the name or the address
+        'column_name'             => $columnName,
       ];
 
-      if(array_key_exists($enrollmentAttributeId, $currentAttributes)) {
+      if(\array_key_exists($enrollmentAttributeId, $currentAttributes)) {
         // This is an update of an existing attribute
 
         $newAttribute['id'] = $currentAttributes[$enrollmentAttributeId];

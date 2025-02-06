@@ -111,7 +111,8 @@
           "id": {},
           "petition_id": {},
           "enrollment_attribute_id": { "type": "integer", "foreignkey": { "table": "enrollment_attributes", "column": "id" } },
-          "value": { "type": "string", "size": 160 }
+          "value": { "type": "string", "size": 160 },
+          "column_name": { "notnull": false, "type": "string", "size": 64 }
         },
         "indexes": {
           "petition_attributes_i1": { "columns": [ "petition_id" ] },

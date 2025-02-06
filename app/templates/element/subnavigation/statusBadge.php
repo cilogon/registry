@@ -35,7 +35,7 @@ if(!in_array('People', $vv_subnavigation_tabs, true)) {
   return;
 }
 
-$personId = $vv_person_id
+$personId = $vv_mvea_person_id
   ?? $this->request->getQuery('person_id')
   ?? $vv_obj?->person_id
   ?? $vv_obj?->id;

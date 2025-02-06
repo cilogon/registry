@@ -42,9 +42,9 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   $curId = $this->request->getQuery($vv_primary_link);
   $linkFilter = [$vv_primary_link => $curId];
   // For top-level nav
-  if(!empty($vv_person_id)) {
-    $curId = $vv_person_id;
-    $linkFilter = ['person_id' => $vv_person_id];
+  if(!empty($vv_mvea_person_id)) {
+    $curId = $vv_mvea_person_id;
+    $linkFilter = ['person_id' => $vv_mvea_person_id];
   }
 } elseif (!empty($vv_obj)) {
   // This will work for most top-level edit views
@@ -55,8 +55,8 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
     // these have been explicitly set in the $subnav array in fields-nav.inc, so just use them.
     $curId = $tabsId;
     $navController = $tabsController;
-  } elseif(!empty($vv_person_id)) {
-    $curId = $vv_person_id;
+  } elseif(!empty($vv_mvea_person_id)) {
+    $curId = $vv_mvea_person_id;
   } elseif(
     ($active == 'plugin' || (!empty($vv_primary_link) && $vv_primary_link == 'enrollment_flow_id'))  
     && !empty($vv_primary_link_obj)

@@ -133,19 +133,4 @@ class InvitationAcceptersController extends StandardEnrollerController {
 
     $this->render('/Standard/dispatch');
   }
-
-  /**
-   * Display information about this Step.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  string  $id    Invitation Accepters ID
-   */
-
-  public function display(string $id) {
-    $petition = $this->getPetition();
-
-    $PetitionAcceptances = TableRegistry::getTableLocator()->get('CoreEnroller.PetitionAcceptances');
-
-    $this->set('vv_pa', $PetitionAcceptances->find()->where(['petition_id' => $petition->id])->first());
-  }
 }

@@ -30,9 +30,9 @@ declare(strict_types=1);
 namespace CoreEnroller\Controller;
 
 use App\Controller\StandardEnrollerController;
-use App\Lib\Enum\PetitionStatusEnum;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use Cake\ORM\TableRegistry;
 
 class AttributeCollectorsController extends StandardEnrollerController {
   public $paginate = [
@@ -120,17 +120,5 @@ class AttributeCollectorsController extends StandardEnrollerController {
                     ->all());
 
     $this->render('/Standard/dispatch');
-  }
-
-  /**
-   * Display information about this Step.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  string  $id    Attribute Collector ID
-   */
-
-  public function display(string $id) {
-    debug("display something for this petition");
-    debug($this->getPetition());
   }
 }

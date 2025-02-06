@@ -1001,6 +1001,21 @@ ul.form-list li.alert-banner .co-alert {
   white-space: nowrap;
   margin-right: 0.5em;
 }
+/* PETITION PREVIEW */
+a.cm-toggle {
+  float: right;
+  border: none;
+  background-color: transparent;
+}
+a.cm-toggle .material-symbols,
+a.cm-toggle .material-symbols-outlined{
+  color: var(--cmg-color-headings);
+}
+a.cm-toggle .material-symbols,
+a.cm-toggle .material-symbols-outlined {
+  font-size: 34px;
+  line-height: 17px;
+}
 /* PLATFORM NOTICE (for COmanage CO) */
 #platform-notice {
   padding: 0.5em;

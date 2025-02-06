@@ -216,25 +216,4 @@ class EmailVerifiersController extends StandardEnrollerController {
 
     $this->render('/Standard/dispatch');
   }
-
-  /**
-   * Display information about this Step.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  string  $id    Email Verifiers ID
-   */
-
-  public function display(string $id) {
-    $petition = $this->getPetition();
-
-    $PetitionVerifications = TableRegistry::getTableLocator()->get('CoreEnroller.PetitionVerifications');
-
-    // Because Petition Verifications are not tracked on a per-step basis, we just pull all
-    // associated with the Petition
-
-    $this->set('vv_pv', $PetitionVerifications->find()
-                                              ->where(['PetitionVerifications.petition_id' => $petition->id])
-                                              ->contain(['Verifications'])
-                                              ->all());
-  }
 }

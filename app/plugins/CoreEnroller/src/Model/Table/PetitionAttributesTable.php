@@ -103,6 +103,7 @@ class PetitionAttributesTable extends Table {
     $validator->notEmptyString('enrollment_attribute_id');
 
     $this->registerStringValidation($validator, $schema, 'value', false);
+    $this->registerStringValidation($validator, $schema, 'column', false);
 
     return $validator;
   }
