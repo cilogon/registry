@@ -1001,21 +1001,6 @@ ul.form-list li.alert-banner .co-alert {
   white-space: nowrap;
   margin-right: 0.5em;
 }
-/* PETITION PREVIEW */
-a.cm-toggle {
-  float: right;
-  border: none;
-  background-color: transparent;
-}
-a.cm-toggle .material-symbols,
-a.cm-toggle .material-symbols-outlined{
-  color: var(--cmg-color-headings);
-}
-a.cm-toggle .material-symbols,
-a.cm-toggle .material-symbols-outlined {
-  font-size: 34px;
-  line-height: 17px;
-}
 /* PLATFORM NOTICE (for COmanage CO) */
 #platform-notice {
   padding: 0.5em;
@@ -1464,17 +1449,30 @@ ul.form-list li {
   list-style: none;
 }
 ul.fields li.form-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   overflow-x: unset;
   margin-top: 2rem;
-}
-ul.fields li.form-list-header h2 {
   color: var(--cmg-color-txt-inverse);
   background-color: var(--cmg-color-btn-bg-001);
-  font-size: 1.4em;
   padding: 1rem;
+}
+ul.fields li.form-list-header h2 {
+  font-size: 1.4em;
+  padding: 0;
+  color: var(--cmg-color-txt-inverse);
+}
+ul.fields li.form-list-header .btn {
+  color: var(--cmg-color-txt-inverse);
+  padding: 0;
 }
 ul.form-list li:focus-within {
   background-color: var(--cmg-color-bg-001);
+}
+ul.form-list li.form-list-header:focus-within {
+  background-color: var(--cmg-color-btn-bg-001);
 }
 ul.form-list li.fields-submit:focus-within {
   background-color: var(--cmg-color-body-bg);
@@ -1490,6 +1488,9 @@ ul.form-list li .field:hover,
 ul.form-list li fieldset:hover {
   background-color: var(--cmg-color-bg-001);
 }
+ul.form-list li .field.field-with-toggle:hover {
+  background-color: unset;
+}
 ul.form-list li.fields-submit {
   background-color: unset;
   border: none;
@@ -1502,6 +1503,24 @@ ul.form-list .field-name {
 }
 ul.form-list .field-info {
   position: relative;
+}
+ul.form-list .field-with-toggle {
+  cursor: pointer;
+}
+ul.form-list .field-with-toggle .field-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+ul.form-list button.cm-toggle {
+  border: none;
+  background-color: transparent;
+}
+#content ul.form-list button.cm-toggle .material-symbols,
+#content ul.form-list button.cm-toggle .material-symbols-outlined {
+  color: var(--cmg-color-headings);
+  font-size: 34px;
+  line-height: 17px;
 }
 ul.form-list .field-desc {
   font-size: 0.9em;
@@ -2083,16 +2102,22 @@ ul.form-list li.petition-status-title {
   margin-bottom: -1rem;
   border: none;
 }
-ul.form-list li.petition-status-title h2 {
+ul.form-list li.petition-status-title {
   /* default colors for most status titles */
   background-color: var(--cmg-color-highlight-009);
   color: var(--cmg-color-highlight-010);
   border: 1px solid var(--cmg-color-highlight-011);
 }
-ul.form-list li.petition-status-title-finalized h2 {
+ul.form-list li.petition-status-title h2 {
+  color: var(--cmg-color-highlight-010);
+}
+ul.form-list li.petition-status-title-finalized {
   background-color: var(--cmg-color-highlight-006);
   color: var(--cmg-color-highlight-007);
   border: 1px solid var(--cmg-color-highlight-008);
+}
+ul.form-list li.petition-status-title-finalized h2 {
+  color: var(--cmg-color-highlight-007);
 }
 ul.form-list li.petition-enrollee-items,
 ul.form-list li.petition-enrollee-items .field:hover {

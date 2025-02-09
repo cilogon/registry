@@ -285,6 +285,9 @@ msgstr "Start"
 msgid "Cos.switch"
 msgstr "Switch To This CO"
 
+msgid "toggle.all"
+msgstr "Toggle All"
+
 msgid "unfreeze"
 msgstr "Unfreeze"
 

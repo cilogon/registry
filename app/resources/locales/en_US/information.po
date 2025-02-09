@@ -123,6 +123,12 @@ msgstr "Petition Information"
 msgid "Petitions.pending"
 msgstr "This Petition has now been assigned to someone else. There is no further action for you at this time."
 
+msgid "petition.step.toggle.details"
+msgstr "toggle petition step details"
+
+msgid "petition.step.toggle.details.all"
+msgstr "toggle all petition step details"
+
 msgid "plugin.active"
 msgstr "Active"
 

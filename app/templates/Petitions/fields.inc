@@ -223,46 +223,66 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
   </div>
 </li>
 
-<li class="form-list-header">
+<li class="form-list-header" id="enrollment-steps-header">
   <h2>
     <?= __d('information', 'enrollment.steps') ?>
   </h2>
+  <div class="enrollment-steps-toggle-all">
+    <?php
+      $stepIds = ''; 
+      foreach($vv_obj->enrollment_flow->enrollment_flow_steps as $step) {
+        $stepIds .= 'collapse-box-' . $step->id . ' ';
+      }
+    ?>
+    <button class="btn btn-sm enrollment-steps-toggle-all-button" 
+            type="button"
+            data-bs-toggle="collapse"
+            aria-expanded="false"
+            aria-label="<?= __d('information','petition.step.toggle.details.all') ?>"
+            aria-controls="<?= $stepIds ?>"
+            data-bs-target=".petition-attrs.collapse">
+      <em class="material-symbols-outlined petition-step-collapse-icon" aria-hidden="true">
+        expand_all
+      </em>
+      <span class="button-text"><?= __d('operation','toggle.all') ?></span>
+    </button>
+  </div>
 </li>
 
 
 <?php foreach($vv_obj->enrollment_flow->enrollment_flow_steps as $step): ?>
   <?php $result = Hash::extract($vv_obj->petition_step_results, "{n}[enrollment_flow_step_id=$step->id]"); ?>
   <li>
-    <div class="field">
-      <div class="field-name ">
+    <div class="field field-with-toggle" data-bs-toggle="collapse" data-bs-target="#collapse-box-<?= $step->id ?>">
+      <div class="field-name">
         <div class="field-title">
           <?= $step->description ?>
         </div>
       </div>
       <div class="field-info">
-        <?= !empty($result) ? $result[0]->comment : '' ?>
-        <a class="cm-toggle nospin petition-step-collapse-link"
-           data-bs-toggle="collapse"
-           href="#collapse-box-<?= $step->id ?>"
-           onclick="stepCollapseToggle(event, this)"
-           role="button"
-           aria-expanded="false"
-           aria-controls="collapse-box-<?= $step->id ?>">
+        <div class="petition-step-info"><?= !empty($result) ? $result[0]->comment : '' ?></div>
+        <button class="cm-toggle nospin petition-step-toggle collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                aria-label="<?= __d('information','petition.step.toggle.details') ?>"      
+                aria-expanded="false"
+                aria-controls="collapse-box-<?= $step->id ?>"
+                data-bs-target="#collapse-box-<?= $step->id ?>">
           <em class="material-symbols-outlined petition-step-collapse-icon" aria-hidden="true">
             arrow_drop_down
           </em>
-        </a>
+        </button>
       </div>
     </div>
-  </li>
-  <li id="collapse-box-<?= $step->id ?>" class="petition-attrs collapse">
-    <h3><?= $step->plugin ?></h3>
-    <?php
-    [$pluginName, $pluginClass] = explode('.', $step->plugin);
-    $elementName = lcfirst($pluginClass) . 'Step';
+    <div id="collapse-box-<?= $step->id ?>" class="petition-attrs collapse">
+      <h3><?= $step->plugin ?></h3>
+      <?php
+        [$pluginName, $pluginClass] = explode('.', $step->plugin);
+        $elementName = lcfirst($pluginClass) . 'Step';
 
-    print $this->element("$pluginName.petition/$elementName", ['vv_step' => $step]);
-    ?>
+        print $this->element("$pluginName.petition/$elementName", ['vv_step' => $step]);
+      ?>
+    </div>
   </li>
 <?php endforeach; ?>
 
