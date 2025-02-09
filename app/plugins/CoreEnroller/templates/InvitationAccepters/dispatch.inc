@@ -39,16 +39,28 @@ if($vv_action == 'dispatch') {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'accepted',
-      'fieldLabel' => "Accept this invitation?",
+      'fieldLabel' => __d('operation','accept.invitation'),
       'fieldOptions' => [
         'type' => 'radio',
         'options' => [
-          ['value' => '1', 'text' => 'Accept'],
-          ['value' => '0', 'text' => 'Decline'],
+          ['value' => '1', 'text' => __d('operation','accept')],
+          ['value' => '0', 'text' => __d('operation','decline')],
         ],
         'empty' => false,
         'required' => true,
-        'class' => 'crazything'
+        'class' => 'form-check-input'
       ]
   ]]);
+?>
+  <script>
+    $('#accepted-1').click(function() {
+      $(this).closest('label').addClass('is-selected');
+      $("label[for='accepted-0']").removeClass('is-selected');
+    });
+    $('#accepted-0').click(function() {
+      $(this).closest('label').addClass('is-selected');
+      $("label[for='accepted-1']").removeClass('is-selected');
+    });
+  </script>
+<?php  
 }

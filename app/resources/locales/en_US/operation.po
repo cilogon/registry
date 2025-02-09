@@ -27,6 +27,9 @@
 msgid "accept"
 msgstr "Accept"
 
+msgid "accept.invitation"
+msgstr "Accept this invitation?"
+
 msgid "acknowledge"
 msgstr "Acknowledge"
 

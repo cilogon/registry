@@ -2003,15 +2003,20 @@ body.start .submit {
 #dispatch-list-container ul.fields li.fields-accepted .field-info label {
   display: flex;
   align-items: center;
+  gap: 0.25em;
   padding: 0.5em 1.5em 0.5em 1.25em;
-  background-color: var(--cmg-color-highlight-006);
-  border: 1px solid var(--cmg-color-highlight-008);
+  background-color: var(--cmg-color-bg-005);
+  border: 1px solid var(--cmg-color-bg-006);
   border-radius: 3px;
   box-shadow: 0 1px 1px 0 rgba(0,0,0,.14),0 3px 1px -3px rgba(0,0,0,.2),0 1px 3px 0 rgba(0,0,0,.12);
 }
-#dispatch-list-container ul.fields li.fields-accepted .field-info label:last-child {
-  background-color: var(--cmg-color-bg-005);
-  border: 1px solid var(--cmg-color-bg-006);
+#dispatch-list-container ul.fields li.fields-accepted .field-info label[for='accepted-1'].is-selected {
+  background-color: var(--cmg-color-highlight-006);
+  border: 1px solid var(--cmg-color-highlight-008);
+  color: var(--cmg-color-highlight-007);
+}
+#dispatch-list-container ul.fields li.fields-accepted .field-info label .form-check-input {
+  margin-top: 0;
 }
 #dispatch-list-container ul.fields li.fields-accepted .field .radio {
   gap: 0.5em;
