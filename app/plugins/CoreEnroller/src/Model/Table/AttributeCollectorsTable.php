@@ -29,14 +29,15 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
+use App\Lib\Enum\PetitionActionEnum;
+use App\Lib\Enum\StatusEnum;
 use App\Model\Entity\Petition;
-use Cake\Datasource\ConnectionManager;
+use Cake\Database\Expression\QueryExpression;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
-use App\Lib\Enum\PetitionActionEnum;
 
 class AttributeCollectorsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -143,6 +144,28 @@ class AttributeCollectorsTable extends Table {
       ->firstOrFail();
 
     // XXX Should i save the primary name?
+    // Since we're not modifying $person, it's a bit clearer if we save each entity
+    // individually than try to save related
+
+    $Names = TableRegistry::getTableLocator()->get('Names');
+
+    // Get the Primary Name
+    $primaryName = $Names->primaryName($person->id);
+
+    // XXX enforce CoSettings required/permitted fields here?
+    $name = [
+      'person_id'     => $person->id,
+      'primary_name'  => true,
+      'type_id'       => $cfg->name_type_id
+    ];
+
+    foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $n) {
+      if(!empty($attributes->$n)) {
+        $name[$n] = $attributes->$n;
+      }
+    }
+
+    $Names->saveOrFail($Names->newEntity($name));
     // XXX Should i save the email?
 
     return true;
@@ -266,5 +289,49 @@ class AttributeCollectorsTable extends Table {
     $this->registerStringValidation($validator, $schema, 'description', true);
     
     return $validator;
+  }
+
+  /**
+   * Obtain the set of Email Addresses known to this plugin that are eligible for
+   * verification.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  EntityInterface  $config       Configuration entity for this plugin
+   * @param  int              $petitionId   Petition ID
+   * @return array                          Array of Email Addrsses that are eligible for verification
+   */
+
+  public function verifiableEmailAddresses(
+    EntityInterface $config,
+    int $petitionId
+  ): array {
+    // First get the Enrollment Attributes for this petition
+    $vv_enrollment_attributes = $this->EnrollmentAttributes->find('list',
+    [
+      'keyField' => 'id',
+      'valueField' => 'attribute_type'
+    ])->where([
+        'attribute_collector_id' => $config->id,
+        'attribute' => 'emailAddress',
+        'status' => StatusEnum::Active,
+      ])
+      ->order(['ordr' => 'ASC'])
+      ->toArray();
+
+    if (empty($vv_enrollment_attributes)) {
+      return [];
+    }
+
+    $set = $this->EnrollmentAttributes
+      ->PetitionAttributes
+      ->find('list',
+      [
+        'keyField' => 'id',
+        'valueField' => 'value'
+      ])->where(['petition_id' => $petitionId])
+      ->where(fn(QueryExpression $exp, Query $q) => $exp->in('enrollment_attribute_id', array_keys($vv_enrollment_attributes)))
+      ->toArray();
+
+    return !empty($set) ? $set : [];
   }
 }

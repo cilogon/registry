@@ -29,17 +29,18 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
-use Cake\Datasource\ConnectionManager;
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
-use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
-use Cake\Validation\Validator;
 use App\Lib\Enum\EnrollmentActorEnum;
 use App\Lib\Enum\PetitionStatusEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\StringUtilities;
 use App\Model\Entity\Petition;
+use Cake\Datasource\ConnectionManager;
+use Cake\Datasource\EntityInterface;
+use Cake\ORM\Query;
+use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
+use Cake\Validation\Validator;
 use CoreEnroller\Lib\Enum\VerificationModeEnum;
 use CoreEnroller\Model\Entity\EmailVerifier;
 

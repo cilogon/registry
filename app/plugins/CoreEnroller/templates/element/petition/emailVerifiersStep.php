@@ -24,7 +24,7 @@ $vv_pv =  $PetitionVerifications->find()
         $this->Time->nice($pv->verification->verification_time, $vv_tz)
       ]) ?>
     <?php else: ?>
-      <span class="mr-1 badge bg-warning unverified"><?= __d('field','unverified') ?></span>?>
+      <span class="mr-1 badge bg-warning unverified"><?= __d('field','unverified') ?></span>
     <?php endif; ?>
     </li>
   <?php endforeach; ?>
