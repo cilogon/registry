@@ -143,7 +143,11 @@ class AppController extends Controller {
       $this->populateAvailableCos();
 
       // Get Person ID
-      if($this->RegistryAuth->getAuthenticatedUser() !== null && $this->getCOID() !== null) {
+      if(
+        $this->RegistryAuth->isAuthenticatedUser()
+        && !$this->RegistryAuth->isApiUser()
+        && $this->getCOID() !== null
+      ) {
         $this->set('vv_person_id', $this->RegistryAuth->getPersonId($this->getCOID()));
       }
     }
