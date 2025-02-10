@@ -69,6 +69,25 @@
             </div>
           </a>
         </li>
+        <li>
+          <?php
+            $menuUrl = $this->Url->build(
+              ['plugin'       => null,
+               'controller'   => 'enrollment_flows',
+               'action'       => 'index',
+               '?'            => [
+                 'co_id' => $vv_cur_co->id
+               ]]
+            );
+          ?>
+          <a href="<?= $menuUrl ?>" class="menu-panel-primary-link">
+            <div class="material-symbols-outlined" aria-hidden="true">subscriptions</div>
+            <div class="menu-panel-primary-link-text">
+              <h3><?= __d('controller', 'EnrollmentFlows', [99]) ?></h3>
+              <div class="menu-panel-link-desc"><?= __d('menu','co.people.enrollment.flows.desc') ?></div>
+            </div>
+          </a>
+        </li>
       </ul>
       
       <?php /* XXX These sidepanel links are disabled until needed, but we will leave them in the code to 
@@ -84,22 +103,6 @@
           <ul class="menu-panel-links menu-panel-links-inner">
             <?php /* Placeholders below. Replace with real links and text replacement:
             <li><a href="#"><em class="material-symbols" aria-hidden="true">lock</em> Authenticators</a></li> */ ?>
-            <li>
-              <?php
-                $menuUrl = $this->Url->build(
-                  ['plugin'       => null,
-                   'controller'   => 'enrollment_flows',
-                   'action'       => 'index',
-                   '?'            => [
-                     'co_id' => $vv_cur_co->id
-                   ]]
-                );
-              ?>
-              <a href="<?= $menuUrl ?>" class="menu-panel-secondary-link">
-                <div class="material-symbols-outlined" aria-hidden="true">subscriptions</div>
-                <div class="menu-panel-secondary-link-title"><?= __d('controller', 'EnrollmentFlows', [99]) ?></div>
-              </a>
-            </li>
             <?php /*
             <li><a href="#"><em class="material-symbols" aria-hidden="true">access_alarm</em> Expiration Policies</a></li>
             <li><a href="#"><em class="material-symbols" aria-hidden="true">developer_board</em> Extended Attributes</a></li>

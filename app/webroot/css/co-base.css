@@ -2137,6 +2137,9 @@ ul.form-list li.petition-enrollee-items .petition-inline-value,
 ul.form-list li.petition-enrollee-items .petition-inline-value a {
   font-family: var(--cmg-font-semibold);
 }
+.petition-step-modified {
+  margin-right: 1em;
+}
 .petition-attrs {
   padding: 0;
 }

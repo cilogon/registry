@@ -114,6 +114,9 @@ msgstr "Pending Enrollments"
 msgid "co.people.enrollments.pending.desc"
 msgstr "See and manage pending enrollments"
 
+msgid "co.people.enrollment.flows.desc"
+msgstr "Bring new People into your population interactively"
+
 msgid "co.people.external.source.records"
 msgstr "External Source Records"
 

@@ -260,18 +260,25 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
         </div>
       </div>
       <div class="field-info">
-        <div class="petition-step-info"><?= !empty($result) ? $result[0]->comment : '' ?></div>
-        <button class="cm-toggle nospin petition-step-toggle collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                aria-label="<?= __d('information','petition.step.toggle.details') ?>"      
-                aria-expanded="false"
-                aria-controls="collapse-box-<?= $step->id ?>"
-                data-bs-target="#collapse-box-<?= $step->id ?>">
-          <em class="material-symbols-outlined petition-step-collapse-icon" aria-hidden="true">
-            arrow_drop_down
-          </em>
-        </button>
+        <div class="petition-step-info">
+          <?= !empty($result) ? $result[0]->comment : '' ?>
+        </div>
+        <div class="petition-step-meta">
+          <span class="petition-step-modified">
+            <?= $step->modified ?>
+          </span>
+          <button class="cm-toggle nospin petition-step-toggle collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  aria-label="<?= __d('information','petition.step.toggle.details') ?>"      
+                  aria-expanded="false"
+                  aria-controls="collapse-box-<?= $step->id ?>"
+                  data-bs-target="#collapse-box-<?= $step->id ?>">
+            <em class="material-symbols-outlined petition-step-collapse-icon" aria-hidden="true">
+              arrow_drop_down
+            </em>
+          </button>
+        </div>
       </div>
     </div>
     <div id="collapse-box-<?= $step->id ?>" class="petition-attrs collapse">
