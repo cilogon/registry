@@ -253,7 +253,7 @@ class VerificationsTable extends Table {
       throw new \InvalidArgumentException(__d('error', 'Verifications.processed'));
     }
 
-    if($verification->request_expiration_time->lt(FrozenTime::now())) {
+    if($verification->request_expiration_time->lessThan(FrozenTime::now())) {
       $this->llog('debug', "Verification $id has expired");
       throw new \InvalidArgumentException(__d('error', 'Verifications.expired'));
     }
