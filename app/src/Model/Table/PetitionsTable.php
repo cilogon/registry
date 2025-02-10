@@ -114,14 +114,20 @@ class PetitionsTable extends Table {
       'EnrollmentFlows',
       'PetitionerPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']]
     ]);
-    $this->setViewContains([
+
+    $viewContainsRelations = [
       'EnrollmentFlows' => ['EnrollmentFlowSteps' => ['sort' => ['ordr' => 'ASC']]],
       'EnrolleePeople' => ['PrimaryName' => ['foreignKey' => 'person_id']],
       'PetitionerPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']],
       'PetitionHistoryRecords',
       'PetitionStepResults',
-      'PetitionAttributes',
-    ]);
+    ];
+
+    // Fetch extra data if the CoreEnroller plugin is enabled.
+    if(\Cake\Core\Plugin::isLoaded('CoreEnroller')) {
+      $viewContainsRelations[] = 'PetitionAttributes';
+    }
+    $this->setViewContains($viewContainsRelations);
 
     $this->setAutoViewVars([
       'statuses' => [
