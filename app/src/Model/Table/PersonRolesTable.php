@@ -31,6 +31,7 @@ namespace App\Model\Table;
 
 use Cake\Event\EventInterface;
 use \Cake\I18n\FrozenTime;
+use Cake\ORM\Entity;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -708,5 +709,31 @@ class PersonRolesTable extends Table {
     $validator->allowEmptyString('frozen');
 
     return $validator; 
+  }
+
+
+  /**
+   * Save attributes for a person.
+   * @param int $personId ID of the person for whom attributes are being saved
+   * @param array $fields Array of fields/attributes to be saved
+   *
+   * @return \App\Model\Entity\PersonRole The newly saved Role
+   * @throws \Cake\Datasource\Exception\RecordNotFoundException If an issue occurs during saving
+   * @since  COmanage Registry v5.1.0
+   */
+  public function saveAttributes(int $personId, array $fields): \App\Model\Entity\PersonRole
+  {
+    $role = [
+      'person_id'     => $personId,
+    ];
+
+    // We need to get this from CoSettings??
+    foreach($fields as $fld) {
+      $role[$fld->enrollment_attribute->attribute] = $fld->value;
+    }
+
+    // XXX Check if we already have one
+
+    return $this->saveOrFail($this->newEntity($role));
   }
 }

@@ -31,12 +31,17 @@ namespace CoreEnroller\Model\Table;
 
 use App\Lib\Enum\PetitionActionEnum;
 use App\Lib\Enum\StatusEnum;
+use App\Model\Entity\Person;
+use App\Model\Entity\PersonRole;
 use App\Model\Entity\Petition;
+use Cake\Collection\Collection;
+use Cake\Database\Connection;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 
 class AttributeCollectorsTable extends Table {
@@ -126,49 +131,153 @@ class AttributeCollectorsTable extends Table {
    * @since  COmanage Registry v5.1.0
    */
 
-  public function finalize(int $id, \App\Model\Entity\Petition $petition) {
+  public function finalize(int $id, \App\Model\Entity\Petition $petition): bool
+  {
     $cfg = $this->get($id);
 
     if(empty($petition->enrollee_person_id)) {
       throw new \InvalidArgumentException(__d('error', 'Petitions.enrollee.notfound', [$petition->id]));
     }
 
+    // I will get the model from the supported attributes.
+    $supportedAttributes = $this->EnrollmentAttributes->supportedAttributes();
+
     $People = TableRegistry::getTableLocator()->get('People');
 
     $person = $People->get($petition->enrollee_person_id);
+    $role = null;
 
     $attributes = $this->EnrollmentAttributes
       ->PetitionAttributes
       ->find()
       ->where(['petition_id' => $petition->id])
-      ->firstOrFail();
+      ->contain(
+        ['EnrollmentAttributes' => ['AttributeTypes']]
+      )->toArray();
 
-    // XXX Should i save the primary name?
-    // Since we're not modifying $person, it's a bit clearer if we save each entity
-    // individually than try to save related
+    // Get the collection object
+    $attributesCollection = new Collection($attributes);
 
-    $Names = TableRegistry::getTableLocator()->get('Names');
 
-    // Get the Primary Name
-    $primaryName = $Names->primaryName($person->id);
+    /*********** PERSON ROLE  ***************/
+    // Filter the Person Role Attributes and keep the field name
+    $personRoleAttributes = (new Collection($supportedAttributes))->filter(function($attr, $key) {
+      return isset($attr['model']) && $attr['model'] == 'PersonRole';
+    })->toArray();
+    $personRoleAttributes = array_keys($personRoleAttributes);
 
-    // XXX enforce CoSettings required/permitted fields here?
-    $name = [
-      'person_id'     => $person->id,
-      'primary_name'  => true,
-      'type_id'       => $cfg->name_type_id
-    ];
+    // Get all the fields/values required to build the PrersonRole
+    $fieldsForPersonRole = $attributesCollection->filter(function($attr, $key) use ($personRoleAttributes) {
+      return in_array($attr['enrollment_attribute']['attribute'], $personRoleAttributes);
+    })->toArray();
 
-    foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $n) {
-      if(!empty($attributes->$n)) {
-        $name[$n] = $attributes->$n;
-      }
+    // Start a Transaction
+    $cxn = $this->getConnection();
+    $cxn->begin();
+
+    // Save the Person Role
+    try {
+      $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
+      $role = $personRoleObj->saveAttributes((int)$person->id, $fieldsForPersonRole);
+    } catch (\Exception $e) {
+      $cxn->rollback();
+      $this->llog('error', __d('error', 'save', [$e->getMessage()]));
+      throw new \RuntimeException(__d('error', 'save', ['PersonRole']));
     }
 
-    $Names->saveOrFail($Names->newEntity($name));
-    // XXX Should i save the email?
+    /*********  MVEAS **************/
+    // Filter the MVEAS Attributes and keep the field name
+    $mveaAttributes = (new Collection($supportedAttributes))->filter(function($attr, $key) {
+      return isset($attr['mveaModel']);
+    })->toArray();
+    $mveaAttributes = array_keys($mveaAttributes);
+
+    // MVEAs for Person
+    $this->handleMveaAttributes(
+      $person,
+      $role,
+      'Person',
+      $mveaAttributes,
+      $attributes,
+      $cxn
+    );
+
+    // MVEAs for Role
+    $this->handleMveaAttributes(
+      $person,
+      $role,
+      'PersonRole',
+      $mveaAttributes,
+      $attributes,
+      $cxn
+    );
+
+    // Save the Date Of Birth. This is the only one that is single valued
+    // and goes under the Person
+
+    $cxn->commit();
 
     return true;
+  }
+
+  /**
+   * Handle MVEA (Multi-Valued Enrollment Attributes) for a model.
+   *
+   * This method processes and saves Multi-Valued Enrollment Attributes associated
+   * with a specific model (e.g., Person, PersonRole) for the given person and role.
+   *
+   * @param Person|null $person The person entity involved.
+   * @param PersonRole|null $role The person role entity involved.
+   * @param string $mveaParent
+   * @param array $mveaAttributes
+   * @param array $attributes Collection of petition attributes to filter and process.
+   * @param Connection $cxn Database connection used for transactions.
+   * @return void
+   * @since  COmanage Registry v5.1.0
+   */
+  protected function handleMveaAttributes(
+    Person|null $person,
+    PersonRole|null $role,
+    string $mveaParent,
+    array $mveaAttributes,
+    array $attributes,
+    Connection $cxn
+  ): void {
+    $attributesCollection = new Collection($attributes);
+    // MVEAs for the requested model
+    $fieldsForMveaModel = $attributesCollection->filter(function($attr, $key) use ($mveaAttributes, $mveaParent) {
+      return in_array($attr['enrollment_attribute']['attribute'], $mveaAttributes)
+        && $attr['enrollment_attribute']['attribute_mvea_parent'] == $mveaParent;
+    })->toArray();
+
+    if(empty($fieldsForMveaModel)) {
+      return;
+    }
+
+    $enrollmentAttributes = Hash::combine(
+      $fieldsForMveaModel,
+      '{n}.enrollment_attribute_id', '{n}.enrollment_attribute.attribute',
+    );
+
+
+    foreach ($enrollmentAttributes as $attribute_id => $attribute) {
+      // Get all the fields for this enrollment_attribute_id
+      $fieldsForAttribute = $attributesCollection->filter(function($attr, $key) use ($attribute_id) {
+        return $attr['enrollment_attribute_id'] == $attribute_id;
+      })->toArray();
+
+      $supportedAttributes = $this->EnrollmentAttributes->supportedAttributes();
+      $mveaModel = $supportedAttributes[$attribute]['mveaModel'];
+
+      try {
+        $modelObj = TableRegistry::getTableLocator()->get($mveaModel);
+        $modelObj->saveAttributes((int)$person->id, $role?->id, $mveaParent, $fieldsForAttribute);
+      } catch (\Exception $e) {
+        $cxn->rollback();
+        $this->llog('error', __d('error', 'save', [$e->getMessage()]));
+        throw new \RuntimeException(__d('error', 'save', [$mveaModel]));
+      }
+    }
   }
 
   /**

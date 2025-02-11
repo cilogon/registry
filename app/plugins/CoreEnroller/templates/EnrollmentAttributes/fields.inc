@@ -163,6 +163,9 @@ if (\in_array($attribute_type, ['adHocAttribute'], true)) {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'attribute_tag',
+      'fieldOptions' => [
+        'required' => true
+      ]
     ]]);
 }
 

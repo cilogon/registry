@@ -191,4 +191,19 @@ class UrlsTable extends Table {
     
     return $validator; 
   }
+
+  /**
+   * Save attributes for a given person and optionally their role.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param int $personId Identifier for the person
+   * @param int|null $roleId Identifier for the role (nullable)
+   * @param string $parentModel Name of the parent model
+   * @param array $fields Array of attributes to save
+   * @return bool                True on success, false otherwise
+   */
+  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    return true;
+  }
 }

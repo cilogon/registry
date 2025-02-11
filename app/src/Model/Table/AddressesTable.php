@@ -29,10 +29,12 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Collection\Collection;
+use Cake\Utility\Hash;
+use \App\Lib\Enum\LanguageEnum;
 use \Cake\ORM\Table;
 use \Cake\ORM\TableRegistry;
 use \Cake\Validation\Validator;
-use \App\Lib\Enum\LanguageEnum;
 
 class AddressesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -276,5 +278,51 @@ class AddressesTable extends Table {
    */
   public function getPermittedFields(): array {
     return $this->permittedFields;
+  }
+
+
+  /**
+   * Save attributes based on the provided data.
+   *
+   * This method saves the attributes associated with a person or a person role.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param int $personId ID of the person
+   * @param int|null $roleId ID of the person role (nullable)
+   * @param string $parentModel Model to associate the attributes with ('Person' or 'PersonRole')
+   * @param array $fields Array of attribute fields to save
+   * @return bool                  True on successful save
+   * @throws \InvalidArgumentException If required parameters are missing
+   * @throws \Cake\ORM\Exception\PersistenceFailedException If the entity could not be saved
+   */
+  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
+    $fieldTypeId = (new Collection($fieldType))->first();
+
+    $address = [
+      'type_id'       => $fieldTypeId
+    ];
+
+    if($parentModel === 'Person') {
+      if(empty($personId)) {
+        throw new \InvalidArgumentException(__d('error', 'personId'));
+      }
+      $address['person_id'] = $personId;
+    } elseif ($parentModel === 'PersonRole') {
+      if(empty($roleId)) {
+        throw new \InvalidArgumentException(__d('error', 'person_role_id'));
+      }
+      $address['person_role_id'] = $roleId;
+    }
+
+    // We need to get this from CoSettings??
+    foreach($fields as $fld) {
+      $address[$fld->column_name] = $fld->value;
+    }
+
+    $this->saveOrFail($this->newEntity($address));
+
+    return true;
   }
 }

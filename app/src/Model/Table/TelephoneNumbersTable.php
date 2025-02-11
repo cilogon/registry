@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Collection\Collection;
+use Cake\Utility\Hash;
 use \Cake\ORM\Table;
 use \Cake\ORM\TableRegistry;
 use \Cake\Validation\Validator;
@@ -215,5 +217,50 @@ class TelephoneNumbersTable extends Table {
     $validator->allowEmptyString('source_telephone_number_id');
     
     return $validator; 
+  }
+
+  /**
+   * Save telephone number attributes.
+   *
+   * This method saves telephone number attributes for a person or a person's role.
+   *
+   * @param int $personId The person ID. Required if $parentModel is "Person".
+   * @param int|null $roleId The role ID. Required if $parentModel is "PersonRole".
+   * @param string $parentModel The parent model, either "Person" or "PersonRole".
+   * @param array $fields The attributes to be saved, provided as an array of data.
+   * @return bool                 True on success.
+   * @throws \InvalidArgumentException If required parameters are missing or invalid.
+   * @throws \Cake\ORM\Exception\PersistenceFailedException If saving the entity fails.
+   * @since  COmanage Registry v5.1.0
+   */
+  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
+    $fieldTypeId = (new Collection($fieldType))->first();
+
+    $telephone = [
+      'type_id'       => $fieldTypeId
+    ];
+
+    if($parentModel === 'Person') {
+      if(empty($personId)) {
+        throw new \InvalidArgumentException(__d('error', 'personId'));
+      }
+      $telephone['person_id'] = $personId;
+    } elseif ($parentModel === 'PersonRole') {
+      if(empty($roleId)) {
+        throw new \InvalidArgumentException(__d('error', 'person_role_id'));
+      }
+      $telephone['person_role_id'] = $roleId;
+    }
+
+    // We need to get this from CoSettings??
+    foreach($fields as $fld) {
+      $telephone[$fld->column_name] = $fld->value;
+    }
+
+    $this->saveOrFail($this->newEntity($telephone));
+
+    return true;
   }
 }

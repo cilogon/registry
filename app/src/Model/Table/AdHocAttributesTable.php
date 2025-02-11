@@ -146,4 +146,43 @@ class AdHocAttributesTable extends Table {
     
     return $validator; 
   }
+
+
+  /**
+   * Save ad hoc attributes for a person or person role.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param int $personId ID of the person the attributes belong to
+   * @param int|null $roleId ID of the person role the attributes belong to (or null if not applicable)
+   * @param string $parentModel Name of the parent model ('Person' or 'PersonRole')
+   * @param array $fields Array of fields containing the attributes to be saved
+   * @return bool                  True on success
+   * @throws \InvalidArgumentException Thrown if required parameters are missing or invalid
+   * @throws \Cake\ORM\Exception\PersistenceFailedException If saving the entity fails
+   */
+  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    foreach ($fields as $idx => $field) {
+      // Check if this has already been saved
+      $adhoc = [
+        'tag'          => $field->enrollment_attribute->attribute_tag,
+        'value'       => $field->value
+      ];
+
+      if($parentModel === 'Person') {
+        if(empty($personId)) {
+          throw new \InvalidArgumentException(__d('error', 'personId'));
+        }
+        $adhoc['person_id'] = $personId;
+      } elseif ($parentModel === 'PersonRole') {
+        if(empty($roleId)) {
+          throw new \InvalidArgumentException(__d('error', 'person_role_id'));
+        }
+        $adhoc['person_role_id'] = $roleId;
+      }
+
+      $this->saveOrFail($this->newEntity($adhoc));
+    }
+    return true;
+  }
 }

@@ -29,10 +29,12 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Collection\Collection;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
@@ -370,6 +372,38 @@ class EmailAddressesTable extends Table {
     ]);
     $validator->allowEmptyString('source_email_address_id');
     
-    return $validator; 
+    return $validator;
+  }
+
+
+  /**
+   * Save attributes for a person, possibly tied to a role and parent model.
+   * Each field is processed to create a new EmailAddress entity and saved.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param int $personId Person ID
+   * @param int|null $roleId Role ID (if applicable)
+   * @param string $parentModel Parent model name
+   * @param array $fields Array of fields containing enrollment attributes
+   * @return bool                     True on success
+   * @throws \Cake\Datasource\Exception\RecordNotFoundException
+   * @throws \Cake\ORM\Exception\PersistenceFailedException
+   */
+  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
+    $fieldTypeId = (new Collection($fieldType))->first();
+
+    foreach ($fields as $idx => $field) {
+      // Check if this has already been saved
+      $email = [
+        'person_id'     => $personId,
+        'mail'          => $field->value,
+        'type_id'       => $fieldTypeId
+      ];
+
+      $this->saveOrFail($this->newEntity($email));
+    }
+    return true;
   }
 }

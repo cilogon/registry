@@ -29,14 +29,16 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Collection\Collection;
+use Cake\Utility\Hash;
+use \App\Lib\Enum\ActionEnum;
+use \App\Lib\Enum\LanguageEnum;
 use \Cake\Event\EventInterface;
 use \Cake\ORM\Query;
 use \Cake\ORM\RulesChecker;
 use \Cake\ORM\Table;
 use \Cake\ORM\TableRegistry;
 use \Cake\Validation\Validator;
-use \App\Lib\Enum\ActionEnum;
-use \App\Lib\Enum\LanguageEnum;
 
 class NamesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -252,6 +254,33 @@ class NamesTable extends Table {
   }
 
   /**
+   * Check if the Person has a primary name
+   *
+   * @param int $id Record ID
+   * @param string $recordType Type of record to find primary name for, 'person' or 'external_identity'
+   * @return bool Name Entity
+   * @since  COmanage Registry v5.1.0
+   */
+
+  public function hasPrimaryName(int $id, string $recordType='person'): bool
+  {
+    if($recordType == 'person') {
+      // Return the Primary Name
+
+      return $this->find()
+        ->where(['person_id' => $id,
+          'primary_name' => true])
+        ->count() > 0;
+    } else {
+      // Return the first name, whatever it is
+
+      return $this->find()
+        ->where(['external_identity_id' => $id])
+        ->count() > 0;
+    }
+  }
+
+  /**
    * Application Rule to determine if there is at least one Name associated
    * with the Person.
    *
@@ -432,5 +461,42 @@ class NamesTable extends Table {
     $validator->allowEmptyString('source_name_id');
     
     return $validator; 
+  }
+
+
+  /**
+   * Save attributes for a Person entity.
+   *
+   * @param int $personId ID of the person for whom attributes are being saved.
+   * @param int|null $roleId ID of the associated role (if any).
+   * @param string  $parentModel Parent model Name.
+   * @param array $fields Array of fields and their values to be saved.
+   * @return bool                Returns true on successful save, throws exception otherwise.
+   * @throws \Cake\ORM\Exception\PersistenceFailedException If the entity could not be saved.
+   */
+  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
+    $fieldTypeId = (new Collection($fieldType))->first();
+
+    $name = [
+      'person_id'     => $personId,
+      'type_id'       => $fieldTypeId
+    ];
+
+    // Save the primary name
+    if(!$this->hasPrimaryName($personId)) {
+      $name['primary_name'] = true;
+    }
+
+    // We need to get this from CoSettings??
+    foreach($fields as $fld) {
+      $name[$fld->column_name] = $fld->value;
+    }
+
+    // XXX Check if we already have an this value saved
+
+    $this->saveOrFail($this->newEntity($name));
+    return true;
   }
 }

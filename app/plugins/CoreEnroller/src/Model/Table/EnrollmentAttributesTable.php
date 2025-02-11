@@ -67,6 +67,11 @@ class EnrollmentAttributesTable extends Table {
 
     // Define associations
     $this->belongsTo('CoreEnroller.AttributeCollectors');
+    $this->belongsTo('AttributeTypes')
+      ->setClassName('Types')
+      ->setForeignKey('attribute_type')
+      ->setProperty('attribute_type');
+
 
     $this->hasMany('CoreEnroller.PetitionAttributes')
 // XXX do we really want to allow deletion once the definition is in use?
