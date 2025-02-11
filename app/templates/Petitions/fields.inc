@@ -283,12 +283,7 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
     </div>
     <div id="collapse-box-<?= $step->id ?>" class="petition-attrs collapse">
       <h3><?= $step->plugin ?></h3>
-      <?php
-        [$pluginName, $pluginClass] = explode('.', $step->plugin);
-        $elementName = lcfirst($pluginClass) . 'Step';
-
-        print $this->element("$pluginName.petition/$elementName", ['vv_step' => $step]);
-      ?>
+      <?= $this->cell($step->plugin, [$vv_obj->id], ['vv_obj' => $vv_obj, 'vv_step' => $step, 'viewVars' => $this->viewVars]) ?>
     </div>
   </li>
 <?php endforeach; ?>

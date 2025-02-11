@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Basic Attribute Collector Set
+ * COmanage Registry Basic Attribute Collectors Cell Display
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,16 +25,12 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-  declare(strict_types = 1);
+declare(strict_types = 1);
 
-  if($vv_obj->id === null) {
-    return __d('error', 'notfound', 'Petition Attributes');
-  }
+if($vv_obj->id === null) {
+  return __d('error', 'notfound', 'Petition Attributes');
+}
 
-  $tableObj = $this->Petition->getTable('PetitionBasicAttributeSets');
-  $vv_petition_basic_attribute_set = $tableObj->find()
-    ->where(['PetitionBasicAttributeSets.petition_id' => $vv_obj->id])
-    ->firstOrFail();
 ?>
 <ul>
   <li class="petition-attr-name">

@@ -1,6 +1,6 @@
 <?php
 /*
- * COmanage Registry Attibutte Collectors Step
+ * COmanage Registry Attribute Collectors display
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -30,20 +30,6 @@
  */
 
 declare(strict_types = 1);
-
-use Cake\Database\Expression\QueryExpression;
-use Cake\ORM\Query;
-use Cake\Utility\Hash;
-
-// Extract unique enrollment attribute IDs
-$vv_enrollment_atttributes_ids = Hash::extract($vv_obj->petition_attributes, '{n}.enrollment_attribute_id');
-$vv_enrollment_atttributes_ids = array_unique($vv_enrollment_atttributes_ids);
-
-$enrollmentAttributesTable = $this->Petition->getTable('EnrollmentAttributes');
-$vv_enrollment_attributes = $enrollmentAttributesTable->find()
-  ->where(fn(QueryExpression $exp, Query $q) => $exp->in('id', $vv_enrollment_atttributes_ids))
-  ->order(['ordr' => 'ASC'])
-  ->toArray();
 
 ?>
 
