@@ -111,6 +111,9 @@ msgstr "Visit link"
 msgid "HistoryRecords.xref"
 msgstr "Additional History Records may be available via Petitions and Provisioning Status"
 
+msgid "html.sanitization"
+msgstr "HTML input will be sanitized on output, and &lt;script&gt; tags are disallowed."
+
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 

@@ -197,7 +197,7 @@ msgid "input.invalid.email"
 msgstr "The provided value is not a valid email address"
 
 msgid "input.invalid.html"
-msgstr "HTML should be well-formed, and non-standard attributes, <script>, and <style> tags are not allowed."
+msgstr "<script> tags are not allowed."
 
 msgid "input.invalid.prefix"
 msgstr "The provided value is not valid. \"{0}\" prefix is required"

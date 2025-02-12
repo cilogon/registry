@@ -240,28 +240,15 @@ trait ValidationTrait {
     if(!empty($context['type'])) {
       switch($context['type']) {
         case 'html':
-          // We are accepting HTML input. Pass it through the Symfony HTML Sanitizer to
-          // disallow dom elements like <script> and <style>.
-          $htmlSanitizer = new HtmlSanitizer(
-            // Allow all elements from the W3C Sanitizer API. This is more permissive than "allowSafeElements()".
-            // See: https://github.com/symfony/symfony/blob/7.2/src/Symfony/Component/HtmlSanitizer/Reference/W3CReference.php
-            (new HtmlSanitizerConfig())->allowStaticElements()
-          );
-          $sanitizedValue = $htmlSanitizer->sanitize($value);
-          
-          // Compare $value and $sanitizedValue to see if anything changed. Because white space and closing slashes
-          // can be significantly altered during sanitization, normalize the strings prior to comparison.
-          // (Unfortunately, the HtmlSanitizer does not generate a report on what it changed, which would be better.)
-          $valueNormalized = preg_replace(['/\s+/','/\//'], '', $value);
-          $sanitizedValueNormalized = preg_replace(['/\s+/','/\//'], '', $sanitizedValue);
-          // XXX Note: stripping forward slashes allows us to ignore the differences between <br> and <br/>
-          // (for example), but it also allows malformed tags such as <br////> or <div/></div> to get through.
-          
-          if($valueNormalized !== $sanitizedValueNormalized) {
-            // Disallowed HTML is in the input, so throw an error.
+          // We are accepting HTML input. We will mostly pass it all through and ensure
+          // properly sanitized output. However, to help warn users about entering tags that 
+          // will be stripped, we can do some very rudimentary checking for script and 
+          // style tags. (An informational note should be placed below these fields as well.)
+          $lowercaseVal = strtolower($value);
+          if(str_contains($lowercaseVal, '<script') || str_contains($lowercaseVal, '<style')) {
+            // Disallowed HTML is in the input, so warn the user.
             return __d('error', 'input.invalid.html');
           }
-          
           return true;
         default:
           // We use h() (htmlspecialchars) for consistency with the views.
