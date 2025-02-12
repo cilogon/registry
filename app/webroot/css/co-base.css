@@ -2177,6 +2177,14 @@ ul.petition-attrs-subset li {
 .petition-attrs-subset-label {
   color: var(--cmg-color-txt-soft);
 }
+/* MOSTLY STATIC PAGES */
+body.pages.logged-out #top-bar,
+body.pages.logged-out #breadcrumbs {
+  display: none;
+}
+body.pages.logged-out .page-title-container {
+  margin: 0;
+}
 /* GENERAL */
 .hidden,
 .invisible,

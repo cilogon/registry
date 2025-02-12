@@ -108,7 +108,12 @@ if (
     foreach(($topLinks ?? []) as $t) {
       $perm = false;
 
-      if(!empty($t['link']['controller'])) {
+      if(!empty($t['url'])) {
+        // We are passing in a plain URL. Pass it along directly.
+        // For the moment (v5.1+), this is only used to create a toplink to a Mostly Static Page.
+        $perm = true;
+        $t['link'] = $t['url'];
+      } elseif(!empty($t['link']['controller'])) {
         // We're linking into a related model, which may or may not be in a plugin
 
         $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
