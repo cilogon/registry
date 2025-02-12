@@ -316,7 +316,6 @@ class AddressesTable extends Table {
       $address['person_role_id'] = $roleId;
     }
 
-    // We need to get this from CoSettings??
     foreach($fields as $fld) {
       $address[$fld->column_name] = $fld->value;
     }

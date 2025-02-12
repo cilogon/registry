@@ -64,9 +64,7 @@ class TimezoneBehavior extends Behavior
         if(!empty($data[$f])) {
           // This returns a DateTime object adjusting for localTZ
           $offsetDT = new \DateTime($data[$f], $this->tz);
-
-          // strftime converts a timestamp according to server localtime (which should be UTC)
-          $data[$f] = strftime("%F %T", $offsetDT->getTimestamp());
+          $data[$f] = date("Y-m-d H:i:s", $offsetDT->getTimestamp());
         }
       }
     }

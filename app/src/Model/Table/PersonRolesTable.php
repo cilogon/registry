@@ -29,10 +29,10 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Model\Entity\PersonRole;
 use Cake\Event\EventInterface;
 use \Cake\I18n\FrozenTime;
 use Cake\ORM\Entity;
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -335,7 +335,7 @@ class PersonRolesTable extends Table {
    * @return string         Display field
    */
   
-  public function generateDisplayField(\App\Model\Entity\PersonRole $entity): string {
+  public function generateDisplayField(PersonRole $entity): string {
     // Try to find something renderable
     
     if(!empty($entity->title)) {
@@ -717,22 +717,30 @@ class PersonRolesTable extends Table {
    * @param int $personId ID of the person for whom attributes are being saved
    * @param array $fields Array of fields/attributes to be saved
    *
-   * @return \App\Model\Entity\PersonRole The newly saved Role
+   * @return PersonRole The newly saved Role
    * @throws \Cake\Datasource\Exception\RecordNotFoundException If an issue occurs during saving
    * @since  COmanage Registry v5.1.0
    */
-  public function saveAttributes(int $personId, array $fields): \App\Model\Entity\PersonRole
+  public function saveAttributes(int $personId, array $fields): PersonRole
   {
+    $dateFormat = 'yyyy-MM-dd HH:mm:ss';
+
     $role = [
       'person_id'     => $personId,
     ];
 
-    // We need to get this from CoSettings??
     foreach($fields as $fld) {
-      $role[$fld->enrollment_attribute->attribute] = $fld->value;
+      $attribute = $fld->enrollment_attribute->attribute;
+      $value = $fld->value;
+      if(
+        ($attribute === 'valid_from' || $attribute === 'valid_through')
+        && is_string($value)
+      ) {
+        $dob =  FrozenTime::parse($value);
+        $value = $dob->i18nFormat($dateFormat);
+      }
+      $role[$attribute] = $value;
     }
-
-    // XXX Check if we already have one
 
     return $this->saveOrFail($this->newEntity($role));
   }

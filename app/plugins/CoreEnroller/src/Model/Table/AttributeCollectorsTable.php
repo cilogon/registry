@@ -123,10 +123,10 @@ class AttributeCollectorsTable extends Table {
   }
 
   /**
-   * Perform steps necessary to finalize the Petition.
+   * Perform steps necessary to hydrate the Person record as part of Petition finalization.
    *
    * @param int $id Attribute Collector ID
-   * @param Petition $petition
+   * @param \App\Model\Entity\Petition $petition
    * @return bool                 true on success
    * @since  COmanage Registry v5.1.0
    */
@@ -166,7 +166,7 @@ class AttributeCollectorsTable extends Table {
     })->toArray();
     $personRoleAttributes = array_keys($personRoleAttributes);
 
-    // Get all the fields/values required to build the PrersonRole
+    // Get all the fields/values required to build the PersonRole
     $fieldsForPersonRole = $attributesCollection->filter(function($attr, $key) use ($personRoleAttributes) {
       return in_array($attr['enrollment_attribute']['attribute'], $personRoleAttributes);
     })->toArray();
@@ -213,7 +213,7 @@ class AttributeCollectorsTable extends Table {
     );
 
     /****** PERSON ******/
-    // Filter the MVEAS Attributes and keep the field name
+    // Keep the person attributes
     $personAttributes = (new Collection($supportedAttributes))->filter(function($attr, $key) {
       return isset($attr['model']) && $attr['model'] == 'Person';
     })->toArray();
@@ -224,9 +224,36 @@ class AttributeCollectorsTable extends Table {
       return in_array($attr['enrollment_attribute']['attribute'], $personAttributes);
     })->toArray();
 
-    if($People->saveAttributes($person->id, $fieldsForPerson) === false) {
+
+    try {
+      $People->saveAttributes($person->id, $fieldsForPerson);
+    } catch (\Exception $e) {
+      $this->llog('error', __d('error', 'save', [$e->getMessage()]));
       $cxn->rollback();
       throw new \RuntimeException(__d('error', 'save', ['Person']));
+    }
+
+
+    /****** GROUP ******/
+    // Filter the MVEAS Attributes and keep the field name
+    $groupAttributes = (new Collection($supportedAttributes))->filter(function($attr, $key) {
+      return isset($attr['model']) && $attr['model'] == 'Group';
+    })->toArray();
+    $groupAttributes = array_keys($groupAttributes);
+
+    // Get all the fields/values required to build the PrersonRole
+    $fieldsForGroup = $attributesCollection->filter(function($attr, $key) use ($groupAttributes) {
+      return in_array($attr['enrollment_attribute']['attribute'], $groupAttributes);
+    })->toArray();
+
+
+    try {
+      $groupMemberObj = TableRegistry::getTableLocator()->get('GroupMembers');
+      $groupMemberObj->saveAttributes($person->id, $fieldsForGroup);
+    } catch (\Exception $e) {
+      $this->llog('error', __d('error', 'save', [$e->getMessage()]));
+      $cxn->rollback();
+      throw new \RuntimeException(__d('error', 'save', ['GroupMembers']));
     }
 
     // Save the Date Of Birth. This is the only one that is single valued

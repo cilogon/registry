@@ -549,4 +549,32 @@ class GroupMembersTable extends Table {
     
     return $validator; 
   }
+
+
+  /**
+   * Save attributes for a person.
+   *
+   * This method is responsible for saving attributes for a given person.
+   * It constructs an entity with the provided fields and ensures the entity
+   * is saved successfully.
+   *
+   * @param int $personId The ID of the person to save attributes for.
+   * @param array $fields An array of fields to update, where each field
+   *                        includes an enrollment attribute and its value.
+   *
+   * @return GroupMember The saved entity representing the person's role.
+   *
+   */
+  public function saveAttributes(int $personId, array $fields): GroupMember
+  {
+    $member = [
+      'person_id'     => $personId,
+    ];
+
+    foreach($fields as $fld) {
+      $member[$fld->enrollment_attribute->attribute] = $fld->value;
+    }
+
+    return $this->saveOrFail($this->newEntity($member));
+  }
 }

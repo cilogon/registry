@@ -315,25 +315,6 @@ class FieldHelper extends Helper {
     // that will interact with the field value. Allowing direct access to the input field is for
     // accessibility purposes.
 
-    // ACTION VIEW or Readonly Field
-    // The latter applies for the attribute collection view
-    if($this->action == 'view'
-      ||
-      (isset($fieldArgs['readonly']) && $fieldArgs['readonly'])
-    ) {
-      // return the date as plaintext
-      $element = $this->getView()->element('form/notSetDiv', [], [
-        'cache' => '_html_elements',
-      ]);
-      if ($date_object !== null) {
-        // Adjust the time back to the user's timezone
-        $element = '<time>' . $date_object->i18nFormat($dateFormat) . '</time>';
-      }
-
-      // Return this to the generic control() function
-      return $element;
-    }
-
     // Special-case the very common "valid_from" and "valid_through" fields, so we won't need
     // to specify their types in fields.inc.
     $pickerTypeName = $fieldArgs['fieldNameAlias'] ?? $fieldName;
@@ -361,6 +342,28 @@ class FieldHelper extends Helper {
       // Adjust the time back to the user's timezone
       $coptions['value'] = $date_object->i18nFormat($dateFormat);
       $pickerDate = $date_object->i18nFormat($dateFormat);
+    }
+
+    // ACTION VIEW or Readonly Field
+    // The latter applies for the attribute collection view
+    // For the Attribute Collection View we also need a hidden field
+    if($this->action == 'view'
+      ||
+      (isset($fieldArgs['readonly']) && $fieldArgs['readonly'])
+    ) {
+      // return the date as plaintext
+      // Add a hidden field
+      $element = $this->getView()->element('form/notSetDiv', [], [
+        'cache' => '_html_elements',
+      ]);
+      if ($date_object !== null) {
+        // Adjust the time back to the user's timezone
+        $element = $this->Form->hidden($fieldName, $coptions)
+        . '<time>' . $date_object->i18nFormat($dateFormat) . '</time>';
+      }
+
+      // Return this to the generic control() function
+      return $element;
     }
 
     // Set the date picker floor year value (-100 years)()

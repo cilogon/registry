@@ -119,12 +119,12 @@ class IdentifierCollectorsTable extends Table {
   }
 
   /**
-   * Perform steps necessary to finalize the Petition.
-   * 
-   * @since  COmanage Registry v5.1.0
+   * Perform steps necessary to hydrate the Person record as part of Petition finalization.
+   *
    * @param  int      $id           Invitation Accepter ID
-   * @param  Petition $petition     Petition
+   * @param  \App\Model\Entity\Petition $petition     Petition
    * @return bool                   true on success
+   * @since  COmanage Registry v5.1.0
    */
 
   public function finalize(int $id, \App\Model\Entity\Petition $petition) {

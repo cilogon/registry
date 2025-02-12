@@ -122,24 +122,6 @@ class EnvSourceCollectorsController extends StandardEnrollerController {
   }
 
   /**
-   * Display information about this Step.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  string  $id    Attribute Collector ID
-   */
-
-  public function display(string $id) {
-    $petition = $this->getPetition();
-
-    $this->set('vv_petition_env_identities', $this->EnvSourceCollectors
-                                                  ->PetitionEnvIdentities
-                                                  ->find()
-                                                  ->where(['PetitionEnvIdentities.petition_id' => $petition->id])
-                                                  ->contain(['EnvSourceIdentities'])
-                                                  ->firstOrFail());
-  }
-
-  /**
    * Indicate whether this Controller will handle some or all authnz.
    *
    * @since  COmanage Registry v5.1.0

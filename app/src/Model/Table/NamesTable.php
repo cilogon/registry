@@ -489,12 +489,9 @@ class NamesTable extends Table {
       $name['primary_name'] = true;
     }
 
-    // We need to get this from CoSettings??
     foreach($fields as $fld) {
       $name[$fld->column_name] = $fld->value;
     }
-
-    // XXX Check if we already have an this value saved
 
     $this->saveOrFail($this->newEntity($name));
     return true;

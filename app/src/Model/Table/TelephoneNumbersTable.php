@@ -254,7 +254,6 @@ class TelephoneNumbersTable extends Table {
       $telephone['person_role_id'] = $roleId;
     }
 
-    // We need to get this from CoSettings??
     foreach($fields as $fld) {
       $telephone[$fld->column_name] = $fld->value;
     }

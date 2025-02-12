@@ -29,15 +29,16 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Model\Entity\Person;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
-use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Util\PaginatedSqlIterator;
 
 class PeopleTable extends Table {
@@ -368,7 +369,7 @@ class PeopleTable extends Table {
    * @return string         Display field
    */
   
-  public function generateDisplayField(\App\Model\Entity\Person $entity): string {
+  public function generateDisplayField(Person $entity): string {
     if(empty($entity->primary_name)) {
       throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
     }
@@ -745,14 +746,11 @@ class PeopleTable extends Table {
    * @param int $personId The ID of the person entity to update.
    * @param array $fields An array of fields to update, where each field is expected to have an
    *                        `enrollment_attribute` with an `attribute` property, and a `value` property containing the value to update.
-   * @return \App\Model\Entity\Person The updated person entity after saving.
-   * @throws \Cake\Datasource\Exception\RecordNotFoundException If the person with the given ID does not exist.
-   * @throws \RuntimeException If the person entity could not be saved.
+   * @return Person The updated person entity after saving.
    * @since  COmanage Registry v5.1.0
    */
-  public function saveAttributes(int $personId, array $fields): \App\Model\Entity\Person
+  public function saveAttributes(int $personId, array $fields): Person
   {
-
     $person = $this->get($personId);
     foreach ($fields as $field) {
       $attribute = $field->enrollment_attribute->attribute;
@@ -769,6 +767,6 @@ class PeopleTable extends Table {
       $person->$attribute = $value;
     }
 
-    return $this->save($person);
+    return $this->saveOrFail($person);
   }
 }
