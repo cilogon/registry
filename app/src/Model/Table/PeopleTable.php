@@ -737,4 +737,38 @@ class PeopleTable extends Table {
     
     return $validator; 
   }
+
+
+  /**
+   * Save attributes for a person entity.
+   *
+   * @param int $personId The ID of the person entity to update.
+   * @param array $fields An array of fields to update, where each field is expected to have an
+   *                        `enrollment_attribute` with an `attribute` property, and a `value` property containing the value to update.
+   * @return \App\Model\Entity\Person The updated person entity after saving.
+   * @throws \Cake\Datasource\Exception\RecordNotFoundException If the person with the given ID does not exist.
+   * @throws \RuntimeException If the person entity could not be saved.
+   * @since  COmanage Registry v5.1.0
+   */
+  public function saveAttributes(int $personId, array $fields): \App\Model\Entity\Person
+  {
+
+    $person = $this->get($personId);
+    foreach ($fields as $field) {
+      $attribute = $field->enrollment_attribute->attribute;
+      $value = $field->value;
+      if($attribute === 'date_of_birth' && is_string($value)) {
+        // While we're here, make sure it's in YYYY-MM-DD format. This should fail
+        // if the inbound attribute is invalid.
+        $dob = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
+
+        if($dob) {
+          $value = $dob->format('Y-m-d');
+        }
+      }
+      $person->$attribute = $value;
+    }
+
+    return $this->save($person);
+  }
 }

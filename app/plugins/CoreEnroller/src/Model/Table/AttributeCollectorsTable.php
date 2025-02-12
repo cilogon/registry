@@ -212,6 +212,23 @@ class AttributeCollectorsTable extends Table {
       $cxn
     );
 
+    /****** PERSON ******/
+    // Filter the MVEAS Attributes and keep the field name
+    $personAttributes = (new Collection($supportedAttributes))->filter(function($attr, $key) {
+      return isset($attr['model']) && $attr['model'] == 'Person';
+    })->toArray();
+    $personAttributes = array_keys($personAttributes);
+
+    // Get all the fields/values required to build the PrersonRole
+    $fieldsForPerson = $attributesCollection->filter(function($attr, $key) use ($personAttributes) {
+      return in_array($attr['enrollment_attribute']['attribute'], $personAttributes);
+    })->toArray();
+
+    if($People->saveAttributes($person->id, $fieldsForPerson) === false) {
+      $cxn->rollback();
+      throw new \RuntimeException(__d('error', 'save', ['Person']));
+    }
+
     // Save the Date Of Birth. This is the only one that is single valued
     // and goes under the Person
 
