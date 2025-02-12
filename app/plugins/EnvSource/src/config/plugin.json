@@ -1,0 +1,104 @@
+{
+  "types": {
+    "enroller": [
+      "EnvSourceCollectors"
+    ],
+    "source": [
+      "EnvSources"
+    ],
+    "traffic": [
+      "EnvSourceDetours"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "env_source_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "external_identity_source_id": {}
+        },
+        "indexes": {
+          "env_source_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "env_source_collectors_i2": { "needed": false, "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "env_sources": {
+        "columns": {
+          "id": {},
+          "external_identity_source_id": {},
+          "redirect_on_duplicate": { "type": "url" },
+          "sp_mode": { "type": "enum" },
+          "sync_on_login": { "type": "boolean"},
+          "default_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "env_address_street": { "type": "string", "size": "80" },
+          "env_address_locality": { "type": "string", "size": "80" },
+          "env_address_state": { "type": "string", "size": "80" },
+          "env_address_postalcode": { "type": "string", "size": "80" },
+          "env_address_country": { "type": "string", "size": "80" },
+          "env_affiliation": { "type": "string", "size": "80" },
+          "env_department": { "type": "string", "size": "80" },
+          "env_identifier_eppn": { "type": "string", "size": "80" },
+          "env_identifier_eptid": { "type": "string", "size": "80" },
+          "env_identifier_epuid": { "type": "string", "size": "80" },
+          "env_identifier_network": { "type": "string", "size": "80" },
+          "env_identifier_oidcsub": { "type": "string", "size": "80" },
+          "env_identifier_samlpairwiseid": { "type": "string", "size": "80" },
+          "env_identifier_samlsubjectid": { "type": "string", "size": "80" },
+          "env_identifier_sourcekey": { "type": "string", "size": "80" },
+          "env_mail": { "type": "string", "size": "80" },
+          "env_name_honorific": { "type": "string", "size": "80" },
+          "env_name_given": { "type": "string", "size": "80" },
+          "env_name_middle": { "type": "string", "size": "80" },
+          "env_name_family": { "type": "string", "size": "80" },
+          "env_name_suffix": { "type": "string", "size": "80" },
+          "env_organization": { "type": "string", "size": "80" },
+          "env_telephone_number": { "type": "string", "size": "80" },
+          "env_title": { "type": "string", "size": "80" },
+          "lookaside_file": { "type": "path" }
+        },
+        "indexes": {
+          "env_sources_i1": { "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "env_source_identities": {
+        "columns": {
+          "id": {},
+          "env_source_id": { "type": "integer", "foreignkey": { "table": "env_sources", "column": "id" }},
+          "source_key": { "type": "string", "size": 1024 },
+          "env_attributes": { "type": "text" }
+        },
+        "indexes": {
+          "env_source_identities_i1": { "columns": [ "source_key" ] },
+          "env_source_identities_i2": { "needed": false, "columns": [ "env_source_id" ] }
+        }
+      },
+      "env_source_detours": {
+        "columns": {
+          "id": {},
+          "traffic_detour_id": {}
+        },
+        "indexes": {
+          "env_source_detours_i1": { "needed": false, "columns": [ "traffic_detour_id" ] }
+        }
+      },
+      "petition_env_identities": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "env_source_collector_id": { "type": "integer", "foreignkey": { "table": "env_source_collectors", "column": "id" }},
+          "env_source_identity_id": { "type": "integer", "foreignkey": { "table": "env_source_identities", "column": "id" }}
+        },
+        "indexes": {
+          "petition_env_identities_i1": { "columns": [ "petition_id" ] },
+          "petition_env_identities_i2": { "needed": false, "columns": [ "env_source_collector_id" ] },
+          "petition_env_identities_i3": { "needed": false, "columns": [ "env_source_identity_id" ] }
+        }
+      }
+    }
+  }
+}

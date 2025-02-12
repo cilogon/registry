@@ -1,0 +1,173 @@
+# COmanage Registry Localizations (env_source domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.1.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+msgid "controller.EnvSourceCollectors"
+msgstr "{0,plural,=1{Env Source Collector} other{Env Source Collectors}}"
+
+msgid "controller.EnvSources"
+msgstr "{0,plural,=1{Env Source} other{Env Sources}}"
+
+msgid "controller.PetitionEnvIdentities"
+msgstr "{0,plural,=1{Petition Env Identity} other{Petition Env Identities}}"
+
+msgid "enumeration.EnvSourceSpModeEnum.O"
+msgstr "Other"
+
+msgid "enumeration.EnvSourceSpModeEnum.SH"
+msgstr "Shibboleth"
+
+msgid "enumeration.EnvSourceSpModeEnum.SS"
+msgstr "SimpleSamlPhp"
+
+msgid "error.lookaside_file"
+msgstr "Lookaside File {0} could not be parsed"
+
+msgid "error.source_key"
+msgstr "Source Key (env_identifier_sourcekey) not found in attributes"
+
+msgid "error.source_key.duplicate"
+msgstr "Source Key {0} is already attached to External Identity {1}"
+
+msgid "field.EnvSources.address_type_id"
+msgstr "Address Type"
+
+msgid "field.EnvSources.default_affiliation_type_id"
+msgstr "Default Affiliation Type"
+
+msgid "field.EnvSources.email_address_type_id"
+msgstr "Email Address Type"
+
+msgid "field.EnvSources.env_address_street"
+msgstr "Address - Street"
+
+msgid "field.EnvSources.env_address_locality"
+msgstr "Address - Locality"
+
+msgid "field.EnvSources.env_address_state"
+msgstr "Address - State"
+
+msgid "field.EnvSources.env_address_postalcode"
+msgstr "Address - Postal Code"
+
+msgid "field.EnvSources.env_address_country"
+msgstr "Address - Country"
+
+msgid "field.EnvSources.env_affiliation"
+msgstr "Affiliation"
+
+msgid "field.EnvSources.env_department"
+msgstr "Department"
+
+msgid "field.EnvSources.env_identifier_eppn"
+msgstr "Identifier (ePPN)"
+
+msgid "field.EnvSources.env_identifier_eptid"
+msgstr "Identifier (ePTID)"
+
+msgid "field.EnvSources.env_identifier_epuid"
+msgstr "Identifier (ePUID)"
+
+msgid "field.EnvSources.env_identifier_network"
+msgstr "Identifier (Network)"
+
+msgid "field.EnvSources.env_identifier_oidcsub"
+msgstr "Identifier (OIDC sub)"
+
+msgid "field.EnvSources.env_identifier_samlpairwiseid"
+msgstr "Identifier (SAML pairwise-id)"
+
+msgid "field.EnvSources.env_identifier_samlsubjectid"
+msgstr "Identifier (SAML subject-id)"
+
+msgid "field.EnvSources.env_identifier_sourcekey"
+msgstr "Identifier (Source Key)"
+
+msgid "field.EnvSources.env_identifier_sourcekey.desc"
+msgstr "This must be set to an environment variable holding a unique identifier for each authenticated user"
+
+msgid "field.EnvSources.env_mail"
+msgstr "Email"
+
+msgid "field.EnvSources.env_name_honorific"
+msgstr "Name - Honorific"
+
+msgid "field.EnvSources.env_name_given"
+msgstr "Name - Given"
+
+msgid "field.EnvSources.env_name_middle"
+msgstr "Name - Middle"
+
+msgid "field.EnvSources.env_name_family"
+msgstr "Name - Family"
+
+msgid "field.EnvSources.env_name_suffix"
+msgstr "Name - Suffix"
+
+msgid "field.EnvSources.env_organization"
+msgstr "Organization"
+
+msgid "field.EnvSources.env_telephone_number"
+msgstr "Telephone Number"
+
+msgid "field.EnvSources.env_title"
+msgstr "Title"
+
+msgid "field.EnvSources.lookaside_file"
+msgstr "Lookaside File"
+
+msgid "field.EnvSources.lookaside_file.desc"
+msgstr "Path to lookaside file, intended for testing only"
+
+msgid "field.EnvSources.redirect_on_duplicate"
+msgstr "Redirect on Duplicate"
+
+msgid "field.EnvSources.sp_mode"
+msgstr "Web Server Service Provider"
+
+msgid "field.EnvSources.sync_on_login"
+msgstr "Sync on Login"
+
+msgid "field.EnvSources.sync_on_login.desc"
+msgstr "Refresh Env Source attributes when the Identifier associated with the External Identity is used to authenticate to the platform"
+
+msgid "field.EnvSources.name_type_id"
+msgstr "Name Type"
+
+msgid "field.EnvSources.telephone_number_type_id"
+msgstr "Telephone Number Type"
+
+msgid "information.header.map"
+msgstr "Environment Variable Map"
+
+msgid "information.review"
+msgstr "This is the information received from your IdP. Please review, and if you identify any discrepencies please contact your Petitioner before proceeding."
+
+msgid "result.env.saved"
+msgstr "Env Attributes recorded"
+
+msgid "result.env.saved.login"
+msgstr "Env Attributes updated at login"
+
+msgid "result.pipeline.status"
+msgstr "Pipeline completed with status {0}"
