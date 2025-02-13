@@ -29,7 +29,10 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Collection\Collection;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Table;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 
 class UrlsTable extends Table {
@@ -195,7 +198,7 @@ class UrlsTable extends Table {
   /**
    * Save attributes for a given person and optionally their role.
    *
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
    * @param int $personId Identifier for the person
    * @param int|null $roleId Identifier for the role (nullable)
    * @param string $parentModel Name of the parent model
@@ -204,6 +207,16 @@ class UrlsTable extends Table {
    */
   public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
+    foreach ($fields as $idx => $field) {
+      // Check if this has already been saved
+      $url = [
+        'person_id'    => $personId,
+        'url'          => $field->value,
+        'type_id'      => $field->enrollment_attribute->attribute_type,
+      ];
+
+      $this->saveOrFail($this->newEntity($url));
+    }
     return true;
   }
 }

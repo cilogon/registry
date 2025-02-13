@@ -29,8 +29,6 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use Cake\Collection\Collection;
-use Cake\Utility\Hash;
 use \App\Lib\Enum\LanguageEnum;
 use \Cake\ORM\Table;
 use \Cake\ORM\TableRegistry;
@@ -297,12 +295,7 @@ class AddressesTable extends Table {
    */
   public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
-    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
-    $fieldTypeId = (new Collection($fieldType))->first();
-
-    $address = [
-      'type_id'       => $fieldTypeId
-    ];
+    $address = [];
 
     if($parentModel === 'Person') {
       if(empty($personId)) {
@@ -318,6 +311,7 @@ class AddressesTable extends Table {
 
     foreach($fields as $fld) {
       $address[$fld->column_name] = $fld->value;
+      $address['type_id'] = $fld->enrollment_attribute->attribute_type;
     }
 
     $this->saveOrFail($this->newEntity($address));

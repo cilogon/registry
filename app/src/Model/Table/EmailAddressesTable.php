@@ -29,16 +29,13 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use Cake\Collection\Collection;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
-use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
-use \App\Model\Entity\EmailAddress;
 
 class EmailAddressesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -391,15 +388,12 @@ class EmailAddressesTable extends Table {
    */
   public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
-    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
-    $fieldTypeId = (new Collection($fieldType))->first();
-
     foreach ($fields as $idx => $field) {
       // Check if this has already been saved
       $email = [
         'person_id'     => $personId,
         'mail'          => $field->value,
-        'type_id'       => $fieldTypeId
+        'type_id'       => $field->enrollment_attribute->attribute_type,
       ];
 
       $this->saveOrFail($this->newEntity($email));

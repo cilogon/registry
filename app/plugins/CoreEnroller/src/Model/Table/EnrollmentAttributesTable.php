@@ -29,11 +29,8 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
+use Cake\Event\EventInterface;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
-use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -70,7 +67,7 @@ class EnrollmentAttributesTable extends Table {
     $this->belongsTo('AttributeTypes')
       ->setClassName('Types')
       ->setForeignKey('attribute_type')
-      ->setProperty('attribute_type');
+      ->setProperty('type');
 
 
     $this->hasMany('CoreEnroller.PetitionAttributes')

@@ -476,12 +476,8 @@ class NamesTable extends Table {
    */
   public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
-    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
-    $fieldTypeId = (new Collection($fieldType))->first();
-
     $name = [
       'person_id'     => $personId,
-      'type_id'       => $fieldTypeId
     ];
 
     // Save the primary name
@@ -491,6 +487,8 @@ class NamesTable extends Table {
 
     foreach($fields as $fld) {
       $name[$fld->column_name] = $fld->value;
+      $name['type_id'] = $fld->enrollment_attribute->attribute_type;
+      $name['language'] = $fld->enrollment_attribute->attribute_language;
     }
 
     $this->saveOrFail($this->newEntity($name));

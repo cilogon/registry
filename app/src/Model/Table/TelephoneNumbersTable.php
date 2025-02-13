@@ -235,12 +235,7 @@ class TelephoneNumbersTable extends Table {
    */
   public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
-    $fieldType = Hash::extract($fields, '{n}.enrollment_attribute.attribute_type.id');
-    $fieldTypeId = (new Collection($fieldType))->first();
-
-    $telephone = [
-      'type_id'       => $fieldTypeId
-    ];
+    $telephone = [];
 
     if($parentModel === 'Person') {
       if(empty($personId)) {
@@ -256,6 +251,7 @@ class TelephoneNumbersTable extends Table {
 
     foreach($fields as $fld) {
       $telephone[$fld->column_name] = $fld->value;
+      $telephone['type_id'] = $fld->enrollment_attribute->attribute_type;
     }
 
     $this->saveOrFail($this->newEntity($telephone));

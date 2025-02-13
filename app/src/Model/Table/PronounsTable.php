@@ -29,9 +29,10 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Lib\Enum\LanguageEnum;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use App\Lib\Enum\LanguageEnum;
 
 class PronounsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -188,6 +189,17 @@ class PronounsTable extends Table {
    */
   public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
+    foreach ($fields as $idx => $field) {
+      // Check if this has already been saved
+      $pronoun = [
+        'person_id'     => $personId,
+        'pronouns'      => $field->value,
+        'language'      => $field->enrollment_attribute->attribute_language,
+        'type_id'       => $field->enrollment_attribute->attribute_type,
+      ];
+
+      $this->saveOrFail($this->newEntity($pronoun));
+    }
     return true;
   }
 }

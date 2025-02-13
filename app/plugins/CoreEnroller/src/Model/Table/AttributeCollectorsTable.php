@@ -219,7 +219,7 @@ class AttributeCollectorsTable extends Table {
     })->toArray();
     $personAttributes = array_keys($personAttributes);
 
-    // Get all the fields/values required to build the PrersonRole
+    // Get all the fields/values required to build the PersonRole
     $fieldsForPerson = $attributesCollection->filter(function($attr, $key) use ($personAttributes) {
       return in_array($attr['enrollment_attribute']['attribute'], $personAttributes);
     })->toArray();
