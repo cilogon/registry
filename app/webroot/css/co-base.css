@@ -1618,6 +1618,9 @@ ul.form-list textarea {
   border: 1px solid var(--cmg-color-bg-007);
   padding: 0.5em;
 }
+ul.form-list textarea.big-textarea {
+  height: 24em;
+}
 ul.form-list li.field-stack textarea {
   margin: 0;
   width: 100%;
@@ -2184,6 +2187,9 @@ body.pages.logged-out #breadcrumbs {
 }
 body.pages.logged-out .page-title-container {
   margin: 0;
+}
+.page-body {
+  margin-top: 1em;
 }
 /* GENERAL */
 .hidden,

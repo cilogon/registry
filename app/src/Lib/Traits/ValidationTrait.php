@@ -33,8 +33,6 @@ use Cake\Core\Configure;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 trait ValidationTrait {
   /**
@@ -241,11 +239,10 @@ trait ValidationTrait {
       switch($context['type']) {
         case 'html':
           // We are accepting HTML input. We will mostly pass it all through and ensure
-          // properly sanitized output. However, to help warn users about entering tags that 
-          // will be stripped, we can do some very rudimentary checking for script and 
-          // style tags. (An informational note should be placed below these fields as well.)
+          // properly sanitized output. However, we can do some very rudimentary checking for script tags.
+          // (An informational note should be placed below these fields as well.)
           $lowercaseVal = strtolower($value);
-          if(str_contains($lowercaseVal, '<script') || str_contains($lowercaseVal, '<style')) {
+          if(str_contains($lowercaseVal, '<script')) {
             // Disallowed HTML is in the input, so warn the user.
             return __d('error', 'input.invalid.html');
           }

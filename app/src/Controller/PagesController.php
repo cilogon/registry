@@ -23,6 +23,8 @@ use Cake\Http\Response;
 use Cake\ORM\TableRegistry;
 use Cake\View\Exception\MissingTemplateException;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 /**
  * Static content controller
@@ -130,7 +132,17 @@ class PagesController extends AppController
         $this->set('vv_bc_skip', true); // this doesn't do anything?
 
         $this->set('vv_title', $msp->title);
-        $this->set('vv_body', $msp->body);
+      
+        // Mostly Static Pages allow HTML input. Pass this through the Symfony HTML Sanitizer to
+        // disallow dom elements like <script> and <style>.
+        // XXX We may need to write a plugin (as in v4) if we want to allow <style> tags
+        $htmlSanitizer = new HtmlSanitizer(
+        // Allow all elements from the W3C Sanitizer API. This is more permissive than "allowSafeElements()".
+        // See: https://github.com/symfony/symfony/blob/7.2/src/Symfony/Component/HtmlSanitizer/Reference/W3CReference.php
+          (new HtmlSanitizerConfig())->allowStaticElements()
+        );
+        $sanitizedBody = $htmlSanitizer->sanitize($msp->body);
+        $this->set('vv_body', $sanitizedBody);
 
         return $this->render('/MostlyStaticPages/display');
     }

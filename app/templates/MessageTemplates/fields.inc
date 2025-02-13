@@ -72,15 +72,20 @@ if($vv_action == 'add' || $vv_action == 'edit') {
     ]
   ]);
   
-  foreach ([
-             'subject',
-             'body_text'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'subject'
+    ]
+  ]);
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'body_text',
+      'fieldOptions' => [
+        'class' => 'big-textarea'
+      ]
+    ]
+  ]);
 
   $afterField = 
     '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
@@ -90,7 +95,10 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'body_html'
+      'fieldName' => 'body_html',
+      'fieldOptions' => [
+        'class' => 'big-textarea'
+      ]
     ],
     'afterField' => $afterField
   ]);

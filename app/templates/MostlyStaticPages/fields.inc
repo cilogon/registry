@@ -72,12 +72,27 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   foreach ([
              'description',
              'status',
-             'context',
-             'body'
+             'context'
            ] as $field) {
     print $this->element('form/listItem', [
       'arguments' => [
         'fieldName' => $field
       ]]);
   }
+
+  $afterField =
+    '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
+    '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .
+    '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
+    '</div>';
+  
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'body',
+      'fieldOptions' => [
+        'class' => 'big-textarea'
+      ]
+    ],
+    'afterField' => $afterField
+  ]);
 }

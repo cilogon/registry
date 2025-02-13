@@ -51,4 +51,7 @@ declare(strict_types = 1);
   <?php endif; // $banners ?>
 </div>
   
-<?= $vv_body ?>
+<div class="page-body">  
+  <?= $vv_body ?>
+</div>
+  
