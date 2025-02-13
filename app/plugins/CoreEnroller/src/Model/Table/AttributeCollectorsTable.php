@@ -33,7 +33,6 @@ use App\Lib\Enum\PetitionActionEnum;
 use App\Lib\Enum\StatusEnum;
 use App\Model\Entity\Person;
 use App\Model\Entity\PersonRole;
-use App\Model\Entity\Petition;
 use Cake\Collection\Collection;
 use Cake\Database\Connection;
 use Cake\Database\Expression\QueryExpression;
@@ -47,6 +46,7 @@ use Cake\Validation\Validator;
 class AttributeCollectorsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;

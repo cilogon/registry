@@ -298,9 +298,10 @@ class PetitionsTable extends Table {
 
   /**
    * Perform Plugin finalization for a Petition.
-   * 
+   *
+   * @param int $id Petition ID
+   * @throws \Exception
    * @since  COmanage Registry v5.1.0
-   * @param  int  $id   Petition ID
    */
 
   public function finalizePlugins(int $id) {
@@ -376,7 +377,9 @@ class PetitionsTable extends Table {
           }
         }
         catch(\Exception $e) {
-          $this->llog('error', "Plugin " . $step->plugin . " error during finalization of petition " . $petition->id . ": " . $e->getMessage());
+          $msg = "Plugin " . $step->plugin . " error during finalization of petition " . $petition->id ;
+          $this->llog('error', $msg . ": " . $e->getMessage());
+          throw new \RuntimeException($msg);
         }
       }
     }

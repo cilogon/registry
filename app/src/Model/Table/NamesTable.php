@@ -254,33 +254,6 @@ class NamesTable extends Table {
   }
 
   /**
-   * Check if the Person has a primary name
-   *
-   * @param int $id Record ID
-   * @param string $recordType Type of record to find primary name for, 'person' or 'external_identity'
-   * @return bool Name Entity
-   * @since  COmanage Registry v5.1.0
-   */
-
-  public function hasPrimaryName(int $id, string $recordType='person'): bool
-  {
-    if($recordType == 'person') {
-      // Return the Primary Name
-
-      return $this->find()
-        ->where(['person_id' => $id,
-          'primary_name' => true])
-        ->count() > 0;
-    } else {
-      // Return the first name, whatever it is
-
-      return $this->find()
-        ->where(['external_identity_id' => $id])
-        ->count() > 0;
-    }
-  }
-
-  /**
    * Application Rule to determine if there is at least one Name associated
    * with the Person.
    *
@@ -478,12 +451,9 @@ class NamesTable extends Table {
   {
     $name = [
       'person_id'     => $personId,
+      // Set this to true and delegate the confirmation to the localAfterSave callback
+      'primary_name'  => true
     ];
-
-    // Save the primary name
-    if(!$this->hasPrimaryName($personId)) {
-      $name['primary_name'] = true;
-    }
 
     foreach($fields as $fld) {
       $name[$fld->column_name] = $fld->value;

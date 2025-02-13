@@ -149,10 +149,23 @@ class PetitionsController extends StandardController {
       $op = 'finalize';
     }
 
+    $resumeUrl = [
+      'plugin' => null,
+      'controller' => 'petitions',
+      'action' => 'resume',
+      (int)$id
+    ];
+
     try {
       if($op == 'finalize') {
         // Step 1
-        $this->Petitions->finalizePlugins((int)$id);
+        try {
+          $this->Petitions->finalizePlugins((int)$id);
+        } catch (\Exception $e) {
+          $this->Flash->error($e->getMessage());
+          // Get me back to the resume page
+          return $this->redirect($resumeUrl);
+        }
 
         // Next operation is assign
         $baseUrl['?']['op'] = 'assign';
