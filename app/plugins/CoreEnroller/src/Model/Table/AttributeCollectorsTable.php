@@ -131,7 +131,7 @@ class AttributeCollectorsTable extends Table {
    * @since  COmanage Registry v5.1.0
    */
 
-  public function finalize(int $id, \App\Model\Entity\Petition $petition): bool
+  public function hydrate(int $id, \App\Model\Entity\Petition $petition): bool
   {
     $cfg = $this->get($id);
 
@@ -176,14 +176,8 @@ class AttributeCollectorsTable extends Table {
     $cxn->begin();
 
     // Save the Person Role
-    try {
-      $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
-      $role = $personRoleObj->saveAttributes((int)$person->id, $fieldsForPersonRole);
-    } catch (\Exception $e) {
-      $cxn->rollback();
-      $this->llog('error', __d('error', 'save', [$e->getMessage()]));
-      throw new \RuntimeException(__d('error', 'save', ['PersonRole']));
-    }
+    $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
+    $role = $personRoleObj->saveAttributes((int)$person->id, $fieldsForPersonRole);
 
     /*********  MVEAS **************/
     // Filter the MVEAS Attributes and keep the field name
@@ -224,15 +218,7 @@ class AttributeCollectorsTable extends Table {
       return in_array($attr['enrollment_attribute']['attribute'], $personAttributes);
     })->toArray();
 
-
-    try {
-      $People->saveAttributes($person->id, $fieldsForPerson);
-    } catch (\Exception $e) {
-      $this->llog('error', __d('error', 'save', [$e->getMessage()]));
-      $cxn->rollback();
-      throw new \RuntimeException(__d('error', 'save', ['Person']));
-    }
-
+    $People->saveAttributes($person->id, $fieldsForPerson);
 
     /****** GROUP ******/
     // Filter the MVEAS Attributes and keep the field name
@@ -246,15 +232,8 @@ class AttributeCollectorsTable extends Table {
       return in_array($attr['enrollment_attribute']['attribute'], $groupAttributes);
     })->toArray();
 
-
-    try {
-      $groupMemberObj = TableRegistry::getTableLocator()->get('GroupMembers');
-      $groupMemberObj->saveAttributes($person->id, $fieldsForGroup);
-    } catch (\Exception $e) {
-      $this->llog('error', __d('error', 'save', [$e->getMessage()]));
-      $cxn->rollback();
-      throw new \RuntimeException(__d('error', 'save', ['GroupMembers']));
-    }
+    $groupMemberObj = TableRegistry::getTableLocator()->get('GroupMembers');
+    $groupMemberObj->saveAttributes($person->id, $fieldsForGroup);
 
     // Save the Date Of Birth. This is the only one that is single valued
     // and goes under the Person
@@ -313,14 +292,8 @@ class AttributeCollectorsTable extends Table {
       $supportedAttributes = $this->EnrollmentAttributes->supportedAttributes();
       $mveaModel = $supportedAttributes[$attribute]['mveaModel'];
 
-      try {
-        $modelObj = TableRegistry::getTableLocator()->get($mveaModel);
-        $modelObj->saveAttributes((int)$person->id, $role?->id, $mveaParent, $fieldsForAttribute);
-      } catch (\Exception $e) {
-        $cxn->rollback();
-        $this->llog('error', __d('error', 'save', [$e->getMessage()]));
-        throw new \RuntimeException(__d('error', 'save', [$mveaModel]));
-      }
+      $modelObj = TableRegistry::getTableLocator()->get($mveaModel);
+      $modelObj->saveAttributes((int)$person->id, $role?->id, $mveaParent, $fieldsForAttribute);
     }
   }
 
@@ -477,14 +450,17 @@ class AttributeCollectorsTable extends Table {
 
     $set = $this->EnrollmentAttributes
       ->PetitionAttributes
-      ->find('list',
-      [
-        'keyField' => 'id',
-        'valueField' => 'value'
-      ])->where(['petition_id' => $petitionId])
+      ->find()
+      ->where(['petition_id' => $petitionId])
       ->where(fn(QueryExpression $exp, Query $q) => $exp->in('enrollment_attribute_id', array_keys($vv_enrollment_attributes)))
       ->toArray();
 
-    return !empty($set) ? $set : [];
+    $verifiableEmailAddressesArray = [];
+    if (!empty($set)) {
+      $emalAddresses = Hash::extract($set, '{n}.value');
+      $verifiableEmailAddressesArray = array_fill_keys($emalAddresses, false);
+    }
+
+    return $verifiableEmailAddressesArray;
   }
 }
