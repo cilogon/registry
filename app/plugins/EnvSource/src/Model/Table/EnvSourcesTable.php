@@ -31,7 +31,6 @@ namespace EnvSource\Model\Table;
 
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use \EnvSource\Lib\Enum\EnvSourceDuplicateModeEnum;
 use \EnvSource\Lib\Enum\EnvSourceSpModeEnum;
 
 class EnvSourcesTable extends Table {
@@ -105,10 +104,6 @@ class EnvSourcesTable extends Table {
       'defaultAffiliationTypes' => [
         'type'      => 'type',
         'attribute' => 'PersonRoles.affiliation_type'
-      ],
-      'duplicateModes' => [
-        'type' => 'enum',
-        'class' => 'EnvSource.EnvSourceDuplicateModeEnum'
       ],
       'emailAddressTypes' => [
         'type' => 'type',
