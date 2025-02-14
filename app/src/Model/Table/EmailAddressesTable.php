@@ -29,13 +29,16 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Collection\Collection;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
+use \App\Model\Entity\EmailAddress;
 
 class EmailAddressesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -215,13 +218,14 @@ class EmailAddressesTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  int $id            EmailAddress ID
    * @param  int $actorPersonId Actor Person ID
+   * @return string             The verified Email Address
    * @throws InvalidArgumentException
    */
 
   public function forceVerify(
     int $id,
     int $actorPersonId,
-  ) {
+  ): string {
     $email = $this->get($id);
 
     // We only permit Email Addresses associated with a Person (not External Identity)
@@ -250,17 +254,10 @@ class EmailAddressesTable extends Table {
     // Create a Verification record
     $this->Verifications->manual($id);
 
-    $HistoryRecords = TableRegistry::getTableLocator()->get('HistoryRecords');
-
-    $HistoryRecords->recordForPerson(
-      personId:       $email->person_id,
-      action:         ActionEnum::EmailForceVerified,
-      comment:        __d('result', 'EmailAddresses.verify.forced'),
-      actorPersonId:  $actorPersonId
-    );
-
     // Request Provisioning
     $this->requestProvisioning(id: $id, context: ProvisioningContextEnum::Automatic);
+
+    return $email->mail;
   }
   
   /**

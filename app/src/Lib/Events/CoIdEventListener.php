@@ -42,10 +42,10 @@ class CoIdEventListener Implements EventListenerInterface {
    * Constructor.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  XXX
+   * @param  int $coId  CO ID
    */
   
-  public function __construct(int $coId) {
+  public function __construct(?int $coId=null) {
     $this->coId = $coId;
   }
   
@@ -81,4 +81,16 @@ class CoIdEventListener Implements EventListenerInterface {
 			]
 		];
 	}
+
+  /**
+   * Update the CO ID. This call is intended for contests where records from multiple COs
+   * are being processed within a single task.
+   * 
+   * @since  COmange Registry v5.1.0
+   * @param  int $coId  CO ID
+   */
+
+  public function updateCoId(int $coId) {
+    $this->coId = $coId;
+  }
 }

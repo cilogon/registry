@@ -29,8 +29,10 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\EventInterface;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
 class HistoryRecordsTable extends Table {
@@ -78,6 +80,8 @@ class HistoryRecordsTable extends Table {
     
 // XXX note primary link is external_identity_id when set...
 // or the other fields as we add them
+    // When adding a new Primary Link here, add a check for it in beforeMarshal
+    // in order to find the current CO for recording History Records
     $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
     $this->setRequiresCO(true);
     
@@ -96,7 +100,7 @@ class HistoryRecordsTable extends Table {
       'ActorPeople' => ['Names' => ['queryBuilder' => function ($q) {
         return $q->where(['primary_name' => true]);
       }]],
-      'ExternalIdentities',
+      'ExternalIdentities' => ['Names'],
       'Groups'
     ]);
     
@@ -124,8 +128,33 @@ class HistoryRecordsTable extends Table {
    * @param  ArrayObject    $options  Entity save options
    */
 
-  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
-  {
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options) {
+    // $options['actor'] is set by ActorEventListener
+// XXX support api_user_id?
+    if(empty($data['actor_person_id']) && !empty($options['actor'])) {
+      // Try to map the actor username to a Person ID. For that we need the current CO.
+      $coId = null;
+
+      if(!empty($data['person_id'])) {
+        $coId = $this->People->findCoForRecord($data['person_id']);
+      } elseif(!empty($data['group_id'])) {
+        $coId = $this->Groups->findCoForRecord($data['group_id']);
+      }
+
+      if($coId) {
+        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+        try {
+          $data['actor_person_id'] = $Identifiers->lookupPersonByLogin($coId, $options['actor']);
+        }
+        catch(RecordNotFoundException $e) {
+          // This would typically indicate an unenrolled user or someone going through an
+          // enrollment flow, but we shouldn't be recording History Records in either of
+          // those scenarios...
+        }
+      }
+    }
+
     if(!empty($data['comment'])) {
       // Truncate the comment to fit the column width
       $column = $this->getSchema()->getColumn('comment');
@@ -191,6 +220,7 @@ class HistoryRecordsTable extends Table {
    * @param  int    $personRoleId           Person Role ID
    * @param  int    $externalIdentityId     External Identity ID
    * @param  int    $externalIdentityRoleId External Identity Role ID
+   * @param  int    $actorPersonId          Actor Person ID if known (will be autocalculated otherwise)
    * @return int                            History Record ID
    */
   

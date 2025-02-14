@@ -45,6 +45,9 @@ $indexColumns = [
     'field' => 'full_name',
     'default' => __d('field', 'Petitions.enrollee.new')
   ],
+  'enrollee_email' => [
+    'type' => 'echo'
+  ],
   'enrollment_flow_id' => [
     'type' => 'relatedLink',
     'model' => 'enrollment_flow',

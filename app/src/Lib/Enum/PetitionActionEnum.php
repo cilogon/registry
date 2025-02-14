@@ -33,6 +33,7 @@ class PetitionActionEnum extends StandardEnum {
   const AttributesUpdated       = 'AU';
   const EmailVerified           = 'EV';
   const Finalized               = 'F';
+  const FlaggedDuplicate        = 'FD';
   const InvitationViewed        = 'IV';
   const StatusUpdated           = 'SU';
 }

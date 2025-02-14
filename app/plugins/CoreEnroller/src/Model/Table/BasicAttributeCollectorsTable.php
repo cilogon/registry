@@ -134,14 +134,14 @@ class BasicAttributeCollectorsTable extends Table {
 
   /**
    * Perform steps necessary to hydrate the Person record as part of Petition finalization.
-   *
-   * @param  int      $id           Basic Attribute Collector ID
-   * @param  \App\Model\Entity\Petition $petition     Petition
-   * @return bool                   true on success
+   * 
    * @since  COmanage Registry v5.1.0
+   * @param  int      $id           Basic Attribute Collector ID
+   * @param  Petition $petition     Petition
+   * @return bool                   true on success
    */
 
-  public function finalize(int $id, \App\Model\Entity\Petition $petition) {
+  public function hydrate(int $id, \App\Model\Entity\Petition $petition) {
     $cfg = $this->get($id);
 
     // At this point there is a Person record allocated and stored in the Petition,
@@ -323,12 +323,12 @@ class BasicAttributeCollectorsTable extends Table {
 
   /**
    * Obtain the set of Email Addresses known to this plugin that are eligible for
-   * verification.
+   * verification or that have already been verified.
    * 
    * @since  COmanage Registry v5.1.0
    * @param  EntityInterface  $config       Configuration entity for this plugin
    * @param  int              $petitionId   Petition ID
-   * @return array                          Array of Email Addrsses that are eligible for verification
+   * @return array                          Array of Email Addresses and verification status
    */
 
   public function verifiableEmailAddresses(
@@ -342,6 +342,6 @@ class BasicAttributeCollectorsTable extends Table {
                                             ])
                                             ->first();
     
-    return !empty($set->mail) ? [$set->mail] : [];
+    return !empty($set->mail) ? [$set->mail => false] : [];
   }
 }

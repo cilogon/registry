@@ -10,6 +10,7 @@ return [
         'CoreJob' => $baseDir . '/plugins/CoreJob/',
         'CoreServer' => $baseDir . '/plugins/CoreServer/',
         'DebugKit' => $baseDir . '/vendor/cakephp/debug_kit/',
+        'EnvSource' => $baseDir . '/plugins/EnvSource/',
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',
     ],
 ];

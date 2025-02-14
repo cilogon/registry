@@ -269,6 +269,55 @@ class PetitionsTable extends Table {
   }
 
   /**
+   * Perform Petition derivations.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  int  $id   Petition ID
+   */
+
+  public function derive(int $id) {
+    $petition = $this->get($id, ['contain' => [
+                                  'EnrollmentFlows' => [
+                                    'EnrollmentFlowSteps' => array_merge(
+                                      $this->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations(),
+                                      ['sort' => ['EnrollmentFlowSteps.ordr' => 'ASC']]
+                                    )
+                                ]]]);
+
+    if($petition->isComplete()) {
+      throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
+    }
+    
+    // Tell each plugin to perform derivations
+
+    if(!empty($petition->enrollment_flow->enrollment_flow_steps)) {
+      foreach($petition->enrollment_flow->enrollment_flow_steps as $step) {
+        if($step->status == SuspendableStatusEnum::Suspended) {
+          // Skip suspended steps
+          continue;
+        }
+
+        $Plugin = TableRegistry::getTableLocator()->get($step->plugin);
+
+        // Plugins cannot interrupt finalization by returning false or throwing errors during
+        // derivations since the Person record has been constructed, but if we catch an
+        // Exception we'll at least log it
+        try {
+          if(method_exists($Plugin, "derive")) {
+            // We have "CoreEnroller.AttributeCollectors" but we want "attribute_collector"
+            $pmodel = Inflector::underscore(Inflector::singularize(StringUtilities::pluginModel($step->plugin)));
+
+            $Plugin->derive($step->$pmodel->id, $petition);
+          }
+        }
+        catch(\Exception $e) {
+          $this->llog('error', "Plugin " . $step->plugin . " error during finalization of petition " . $petition->id . ": " . $e->getMessage());
+        }
+      }
+    }
+  }
+
+  /**
    * Finalize a Petition.
    * 
    * @since  COmanage Registry v5.1.0
@@ -297,14 +346,55 @@ class PetitionsTable extends Table {
   }
 
   /**
-   * Perform Plugin finalization for a Petition.
-   *
-   * @param int $id Petition ID
-   * @throws \Exception
+   * Mark a Petition as a Duplicate
+   * 
    * @since  COmanage Registry v5.1.0
+   * @param  int    $id       Petition ID
+   * @param  int    $stepId   Enrollment Flow Step ID
+   * @param  string $comment  Comment
+   * @return bool             true on success
    */
 
-  public function finalizePlugins(int $id) {
+  public function flagDuplicate(int $id, ?int $stepId=null, ?string $comment=null): bool {
+    $petition = $this->get($id);
+
+    if($petition->isComplete()) {
+      throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
+    }
+
+    $petition->status = PetitionStatusEnum::Duplicate;
+
+    $this->saveOrFail($petition);
+
+    $this->PetitionHistoryRecords->record(
+      petitionId:           $petition->id,
+      enrollmentFlowStepId: null,
+      action:               PetitionActionEnum::FlaggedDuplicate,
+      comment:              $comment ?? __d('result', 'Petitions.flaggedduplicate')
+    );
+
+    if($stepId) {
+      // Also create a Petition Step Result (normally handled by finishStep)
+      $this->PetitionStepResults->record(
+        petitionId:           $id,
+        enrollmentFlowStepId: $stepId,
+        comment:              $comment ?? __d('result', 'Petitions.flaggedduplicate')
+      );
+    }
+
+    return true;
+  }
+
+  /**
+   * Perform Petition hydration.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  int  $id   Petition ID
+   * @throws InvalidArgumentException
+   * @throws RuntimeException
+   */
+
+  public function hydrate(int $id) {
     // This is intended to be the first part of finalization, so we set the Petition status
     // to Finalizing.
 
@@ -320,69 +410,107 @@ class PetitionsTable extends Table {
       throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
     }
 
-    $petition->status = PetitionStatusEnum::Finalizing;
+    // We explicitly start a transaction here. If a Plugin throws an Exception, we'll rollback
+    // everything (including the Petition status), and then create a separate History Record.
+    $cxn = $this->getConnection();
+    $cxn->begin();
 
-    $this->saveOrFail($petition);
+    try {
+      $petition->status = PetitionStatusEnum::Finalizing;
 
-    // If there is no Person attached to this Petition, allocate a new Person now
-    // (with no attributes).
-
-    if(empty($petition->enrollee_person_id)) {
-      $People = TableRegistry::getTableLocator()->get('People');
-
-      $person = $People->newEntity([
-        'co_id' =>  $petition->enrollment_flow->co_id,
-        'status' => StatusEnum::Active
-      ]);
-
-      $People->saveOrFail($person);
-
-      $petition->enrollee_person_id = $person->id;
-      
-      // Save here in case any plugin tries to reload petition info
       $this->saveOrFail($petition);
-      
-      $People->recordHistory(
-        entity: $person, 
-        action: ActionEnum::PersonAddedPetition, 
-        comment: __d('result',
-                     'People.added.petition', [
-                       $petition->enrollment_flow->description,
-                       $petition->enrollment_flow->id,
-                       $petition->id])
-      );
 
-      $this->llog('trace', 'Created new Person ' . $person->id . ' for Petition ' . $petition->id);
-    }
+      // If there is no Person attached to this Petition, allocate a new Person now
+      // (with no attributes).
 
-    // Tell each plugin to finalize
+      if(empty($petition->enrollee_person_id)) {
+        $People = TableRegistry::getTableLocator()->get('People');
 
-    if(!empty($petition->enrollment_flow->enrollment_flow_steps)) {
-      foreach($petition->enrollment_flow->enrollment_flow_steps as $step) {
-        if($step->status == SuspendableStatusEnum::Suspended) {
-          // Skip suspended steps
-          continue;
-        }
+        $person = $People->newEntity([
+          'co_id' =>  $petition->enrollment_flow->co_id,
+          'status' => StatusEnum::Active
+        ]);
 
-        $Plugin = TableRegistry::getTableLocator()->get($step->plugin);
+        $People->saveOrFail($person);
 
-        // Plugins cannot interrupt finalization by returning false or
-        // throwing errors, but if we catch an Exception we'll at least log it
-        try {
-          if(method_exists($Plugin, "finalize")) {
-            // We have "CoreEnroller.AttributeCollectors" but we want "attribute_collector"
-            $pmodel = Inflector::underscore(Inflector::singularize(StringUtilities::pluginModel($step->plugin)));
+        $petition->enrollee_person_id = $person->id;
+        
+        // Save here in case any plugin tries to reload petition info
+        $this->saveOrFail($petition);
+        
+        $People->recordHistory(
+          entity: $person, 
+          action: ActionEnum::PersonAddedPetition, 
+          comment: __d('result',
+                      'People.added.petition', [
+                        $petition->enrollment_flow->description,
+                        $petition->enrollment_flow->id,
+                        $petition->id])
+        );
 
-            $Plugin->finalize($step->$pmodel->id, $petition);
+        $this->llog('trace', 'Created new Person ' . $person->id . ' for Petition ' . $petition->id);
+      }
+
+      // Tell each plugin to perform hydration
+
+      if(!empty($petition->enrollment_flow->enrollment_flow_steps)) {
+        foreach($petition->enrollment_flow->enrollment_flow_steps as $step) {
+          if($step->status == SuspendableStatusEnum::Suspended) {
+            // Skip suspended steps
+            continue;
           }
-        }
-        catch(\Exception $e) {
-          $msg = "Plugin " . $step->plugin . " error during finalization of petition " . $petition->id ;
-          $this->llog('error', $msg . ": " . $e->getMessage());
-          throw new \RuntimeException($msg);
+
+          $Plugin = TableRegistry::getTableLocator()->get($step->plugin);
+
+          // Although not encouraged, Plugins _can_ interrupt finalization during hydration
+          // by throwing an error. This is intended for extreme scenarios only that would
+          // prevent a coherent construction of the Person record, such as the registration
+          // of a duplicate identity that was not detected during an earlier step. This will
+          // cause the entire finalization process to fail and rollback.
+          try {
+            if(method_exists($Plugin, "hydrate")) {
+              // We have "CoreEnroller.AttributeCollectors" but we want "attribute_collector"
+              $pmodel = Inflector::underscore(Inflector::singularize(StringUtilities::pluginModel($step->plugin)));
+
+              $Plugin->hydrate($step->$pmodel->id, $petition);
+            }
+          }
+          catch(\OverflowException $e) {
+            // Rollback the transaction and then flag the Petition as a duplicate
+            $cxn->rollback();
+            
+            $this->flagDuplicate($id, $step->id, $e->getMessage());
+
+            // Rethrow the exception to cause a redirect to the duplicate URL
+            throw $e;
+          }
+          catch(\Exception $e) {
+            $this->llog('error', "Plugin " . $step->plugin . " error during hydration of petition " . $petition->id . ": " . $e->getMessage());
+
+            // Pass the Step ID as the exception code so we can retrieve it below
+            throw new \RuntimeException($e->getMessage(), $step->id);
+          }
         }
       }
     }
+    catch(\OverflowException $e) {
+      // Catch and rethrow the Exception so it doesn't get handled by the \Exception block
+      throw $e;
+    }
+    catch(\Exception $e) {
+      // Rollback the transaction and then try to record Petition History
+      $cxn->rollback();
+
+      $this->PetitionHistoryRecords->record(
+        petitionId:           $petition->id, 
+        enrollmentFlowStepId: $e->getCode(),
+        action:               PetitionActionEnum::Finalized,
+        comment:              $e->getMessage()
+      );
+    }
+
+    // We're done, commit the transaction
+    $cxn->commit();
   }
 
   /**

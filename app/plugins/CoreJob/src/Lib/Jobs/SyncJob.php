@@ -186,15 +186,20 @@ class SyncJob {
     if($this->runContext->eis->status == SyncModeEnum::Full) {
       $allKeys = $this->runContext->EISTable->inventory($this->runContext->eis->id);
 
-      $this->runContext->count = count($allKeys);
+      if($allKeys === false) {
+        $this->llog('error', "EIS " . $this->runContext->eis->description 
+                              . " configured for Full Sync but Plugin does not support inventory()");
+      } else {
+        $this->runContext->count = count($allKeys);
 
-      $newKeys = array_diff($allKeys, $knownKeys);
+        $newKeys = array_diff($allKeys, $knownKeys);
 
-      foreach($newKeys as $sourceKey) {
-        $this->llog('trace', "EIS " . $this->runContext->eis->description 
-                             . " processing new entry $sourceKey");
-        
-        $this->syncRecord((string)$sourceKey);
+        foreach($newKeys as $sourceKey) {
+          $this->llog('trace', "EIS " . $this->runContext->eis->description 
+                              . " processing new entry $sourceKey");
+          
+          $this->syncRecord((string)$sourceKey);
+        }
       }
     }
 

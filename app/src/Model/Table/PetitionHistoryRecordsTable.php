@@ -29,7 +29,9 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Event\EventInterface;
 use Cake\Validation\Validator;
 use App\Lib\Enum\JobStatusEnum;
@@ -108,8 +110,28 @@ class PetitionHistoryRecordsTable extends Table {
    * @param  ArrayObject    $options  Entity save options
    */
 
-  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
-  {
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options) {
+    // $options['actor'] is set by ActorEventListener
+    if(empty($data['actor_person_id']) && !empty($options['actor'])) {
+      // Try to map the actor username to a Person ID. For that we need the current CO.
+      $coId = null;
+
+      if(!empty($data['petition_id'])) {
+        $coId = $this->Petitions->findCoForRecord($data['petition_id']);
+      }
+
+      if($coId) {
+        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+        try {
+          $data['actor_person_id'] = $Identifiers->lookupPersonByLogin($coId, $options['actor']);
+        }
+        catch(RecordNotFoundException $e) {
+          // Most likely this is an unregistered user, or one in the middle of enrollment
+        }
+      }
+    }
+
     if(!empty($data['comment'])) {
       // Truncate the comment to fit the column width
       $column = $this->getSchema()->getColumn('comment');

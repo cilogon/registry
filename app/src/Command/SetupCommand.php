@@ -205,6 +205,10 @@ class SetupCommand extends Command
       }
     }
 
+    // Set the current version in the meta table
+    $metaTable = $this->getTableLocator()->get('Meta');
+    $metaTable->setUpgradeVersion();
+
     $io->out(__d('command', 'se.done'));
   }
 }

@@ -245,8 +245,12 @@ class EmailVerifiersTable extends Table {
         $paddrs = $PluginTable->verifiableEmailAddresses($step->$pmodel, $petition->id);
 
         if(!empty($paddrs)) {
-          foreach($paddrs as $paddr) {
-            if(!array_key_exists($paddr, $ret)) {
+          foreach($paddrs as $paddr => $vstatus) {
+            if($vstatus) {
+              // The plugin asserts the address is verified, and is responsible for registering
+              // any Verifications
+              $ret[ $paddr ] = true;
+            } elseif(!array_key_exists($paddr, $ret)) {
               // Do we have a verification for this address?
               // This is basically copy/paste from above
               $verified = false;
@@ -281,14 +285,14 @@ class EmailVerifiersTable extends Table {
 
   /**
    * Perform steps necessary to hydrate the Person record as part of Petition finalization.
-   *
-   * @param  int      $id           Invitation Accepter ID
-   * @param  \App\Model\Entity\Petition $petition     Petition
-   * @return bool                   true on success
+   * 
    * @since  COmanage Registry v5.1.0
+   * @param  int      $id           Invitation Accepter ID
+   * @param  Petition $petition     Petition
+   * @return bool                   true on success
    */
 
-  public function finalize(int $id, \App\Model\Entity\Petition $petition) {
+  public function hydrate(int $id, \App\Model\Entity\Petition $petition) {
     $cfg = $this->get($id);
 
     // At this point, the Steps that told us there are email addresses to verify

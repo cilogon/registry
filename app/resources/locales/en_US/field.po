@@ -59,6 +59,9 @@ msgstr "Comment"
 msgid "context"
 msgstr "Context"
 
+msgid "copy-a"
+msgstr "Copy of {0}"
+
 msgid "country"
 msgstr "Country"
 
@@ -441,6 +444,9 @@ msgstr "Petitioner Authorization"
 msgid "EnrollmentFlows.collect_enrollee_email"
 msgstr "Collect Enrollee Email"
 
+msgid "EnrollmentFlows.redirect_on_duplicate"
+msgstr "Redirect on Duplicate"
+
 msgid "EnrollmentFlows.redirect_on_finalize"
 msgstr "Redirect on Finalize"
 
@@ -638,6 +644,15 @@ msgstr "The full (public) URL to access the rendered page (this is a read only f
 
 # These are strings for the default Pages that are created for each CO.
 # It's not clear they belong here, but we don't have a better place for them right now.
+msgid "MostlyStaticPages.default.de.title"
+msgstr "Duplicate Enrollment"
+
+msgid "MostlyStaticPages.default.de.description"
+msgstr "Default Duplicate Enrollment Landing Page"
+
+msgid "MostlyStaticPages.default.de.body"
+msgstr "This Petition appears to be a duplicate, and this Enrollment Flow has been stopped. Please contact your administrator for further assistance."
+
 msgid "MostlyStaticPages.default.dh.title"
 msgstr "Enrollment Flow Handoff"
 
@@ -695,6 +710,12 @@ msgstr "Resolution Time"
 msgid "Notifications.subject_person_id"
 msgstr "Subject"
 
+msgid "Petitions.enrollee_email"
+msgstr "Enrollee Email Address"
+
+msgid "Petitions.enrollee_email.desc"
+msgstr "The Email Address provided at the creation of the Petition"
+
 msgid "Petitions.enrollee.new"
 msgstr "New Enrollee"
 
@@ -745,6 +766,12 @@ msgstr "Role Status On Delete"
 
 msgid "Pipelines.sync_status_on_delete.desc"
 msgstr "When the source record is no longer valid, the corresponding Person Role will be set to this status"
+
+msgid "Pipelines.sync_verify_email_addresses"
+msgstr "Flag All Email Addresses Verified"
+
+msgid "Pipelines.sync_verify_email_addresses.desc"
+msgstr "If true, all email addresses processed by this Pipeline will be considered verified"
 
 msgid "Plugins.plugin"
 msgstr "Plugin"

@@ -135,6 +135,21 @@ msgstr "Message Template ID"
 msgid "opt.notify.type"
 msgstr "Type (label) for provided Identifier"
 
+msgid "opt.upgrade.forcecurrent"
+msgstr "Force the specified current version -- ADVANCED USERS ONLY"
+
+msgid "opt.upgrade.task"
+msgstr "Upgrade task to perform -- ADVANCED USERS ONLY"
+
+msgid "opt.upgrade.skipdatabase"
+msgstr "Skip database schema update -- ADVANCED USERS ONLY"
+
+msgid "opt.upgrade.skipvalidation"
+msgstr "Skip version validation -- ADVANCED USERS ONLY"
+
+msgid "opt.upgrade.version"
+msgstr "Version to upgrade to (default: current release)"
+
 # msgid "se.admin"
 # msgstr "Creating initial administrator permission"
 

@@ -280,7 +280,7 @@ class RegistryAuthComponent extends Component
       // We want to come back to where we started
       $session->write('Auth.target', $request->getRequestTarget());
       
-      return $controller->redirect("/auth/login/login.php");
+      return $controller->redirect("/traffic/prepare-login");
     }
   }
   

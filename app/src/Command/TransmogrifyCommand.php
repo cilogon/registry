@@ -554,10 +554,9 @@ class TransmogrifyCommand extends Command {
     $atables = $args->getArguments();
     
     // Register the current version for future upgrade purposes
-    $targetVersion = rtrim(file_get_contents(CONFIG . DS . "VERSION"));
     
     $metaTable = $this->getTableLocator()->get('Meta');
-    $metaTable->setUpgradeVersion($targetVersion, true);
+    $metaTable->setUpgradeVersion();
     
     foreach(array_keys($this->tables) as $t) {
       // If the command line args include a list of tables skip this table

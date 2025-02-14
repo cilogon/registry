@@ -83,7 +83,7 @@ if($vv_action == 'add' || $vv_action == 'view') {
       ]);
     }
     
-    if(!empty($vv_obj->external_identity->primary_name)) {
+    if(!empty($vv_obj->external_identity)) {
       $viewLink = [
         'url' => [
           'controller' => 'external_identities',
@@ -95,7 +95,7 @@ if($vv_action == 'add' || $vv_action == 'view') {
       print $this->element('form/listItem', [
         'arguments' => [
           'fieldName' => 'external_identity_id',
-          'status' => $vv_obj->external_identity->primary_name->full_name,
+          'status' => !empty($vv_obj->external_identity->names[0]) ? $vv_obj->external_identity->names[0]->full_name : $vv_obj->external_identity->id,
           'link' => $viewLink
         ]
       ]);

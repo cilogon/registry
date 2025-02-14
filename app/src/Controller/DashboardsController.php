@@ -163,7 +163,9 @@ class DashboardsController extends StandardController {
 
     $platformMenuItems = [];
 
-    if($this->getCOID() == 1) {
+    $co = $this->getCO();
+
+    if($co->isCOmanageCO()) {
       // Also pass the platform menu items
 
       $platformMenuItems = [
@@ -175,6 +177,11 @@ class DashboardsController extends StandardController {
         __d('controller', 'Plugins', [99]) => [
           'icon'          => 'electrical_services',
           'controller'    => 'plugins',
+          'action'        => 'index'
+        ],
+        __d('controller', "TrafficDetours", [99]) => [
+          'icon'          => 'fork_right',
+          'controller'    => 'traffic_detours',
           'action'        => 'index'
         ]
       ];

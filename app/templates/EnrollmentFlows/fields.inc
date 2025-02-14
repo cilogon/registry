@@ -79,6 +79,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   foreach (['authz_cou_id',
             'authz_group_id',
             'collect_enrollee_email',
+            'redirect_on_duplicate',
             'redirect_on_finalize',
            ] as $field) {
     print $this->element('form/listItem', [

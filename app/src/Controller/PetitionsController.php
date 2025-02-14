@@ -127,8 +127,9 @@ class PetitionsController extends StandardController {
     // as expected. We use an 'op' flag rather than separate actions in order to simplify
     // the authorization logic (which is already custom for finalize).
 
-    // finalize: Tell all plugins to finalize
+    // hydrate: Tell all plugins to hydrate (construct) the Person record
     // assign: Assign Identifiers (if any)
+    // derive: Tell all plugins to perform any derivations from the Person record
     // provision: Run provisioning, then set petition status to Finalized
 
     $op = $this->requestParam('op');
@@ -146,26 +147,13 @@ class PetitionsController extends StandardController {
     }
 
     if(!$op) {
-      $op = 'finalize';
+      $op = 'hydrate';
     }
 
-    $resumeUrl = [
-      'plugin' => null,
-      'controller' => 'petitions',
-      'action' => 'resume',
-      (int)$id
-    ];
-
     try {
-      if($op == 'finalize') {
+      if($op == 'hydrate') {
         // Step 1
-        try {
-          $this->Petitions->finalizePlugins((int)$id);
-        } catch (\Exception $e) {
-          $this->Flash->error($e->getMessage());
-          // Get me back to the resume page
-          return $this->redirect($resumeUrl);
-        }
+        $this->Petitions->hydrate((int)$id);
 
         // Next operation is assign
         $baseUrl['?']['op'] = 'assign';
@@ -175,12 +163,20 @@ class PetitionsController extends StandardController {
         // Step 2
         $this->Petitions->assignIdentifiers((int)$id);
 
+        // Next operation is derive
+        $baseUrl['?']['op'] = 'derive';
+
+        return $this->redirect($baseUrl);
+      } elseif($op == 'derive') {
+        // Step 3
+        $this->Petitions->derive((int)$id);
+
         // Next operation is provision
         $baseUrl['?']['op'] = 'provision';
 
         return $this->redirect($baseUrl);
       } elseif($op == 'provision') {
-        // Step 3
+        // Step 4
         $this->Petitions->provision((int)$id);
 
         // We're really done now, update the Petition status and redirect appropriately
@@ -201,6 +197,24 @@ class PetitionsController extends StandardController {
         // Unknown op, throw error
 
         throw new \InvalidArgumentException(__d('error', 'unknown', $op));
+      }
+    }
+    catch(\OverflowException $e) {
+      // Note we use the general Flow redirect on duplicate here, not any plugin specific
+      // configuration (eg: EnvSource's duplicate redirect URL) since in theory any plugin
+      // can trigger this.
+
+      $petition = $this->Petitions->get((int)$id, ['contain' => ['EnrollmentFlows']]);
+
+      // Redirect to configured URL or default location
+      if(!empty($petition->enrollment_flow->redirect_on_duplicate)) {
+        // Use the Enrollment Flow specific redirect URL
+        return $this->redirect($petition->enrollment_flow->redirect_on_duplicate);
+      } else {
+        // Redirect to the default Duplicate Landing URL for this CO
+        $coId = $this->getCOID();
+
+        return $this->redirect("/$coId/duplicate-landing");
       }
     }
     catch(\Exception $e) {

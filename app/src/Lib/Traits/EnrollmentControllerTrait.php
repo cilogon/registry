@@ -62,6 +62,18 @@ trait EnrollmentControllerTrait {
       'petition' => null
     ];
 
+    if(empty($ret['identifier'])) {
+      // Under certain circumstances (eg: EnvSource::dispatch) we may run before
+      // RegistryAuth::beforeFilter, in which case getAuthenticatedUser() won't have
+      // an authenticated user yet. As a workaround, we manually read the session to see
+      // if an authenticated identifier has been set.
+
+      $request = $this->getRequest();
+      $session = $request->getSession();
+      
+      $ret['identifier'] = $session->read('Auth.external.user');
+    }
+
     if(!empty($ret['identifier'])) {
       // Can we map this identifier to a Person ID?
 
@@ -106,12 +118,13 @@ trait EnrollmentControllerTrait {
           $ret['roles'][] = EnrollmentActorEnum::Enrollee;
         }
 
-        if(empty($petition->petitioner_identifier)
-           && empty($petition->enrollee_identifier)) {
+        if(//empty($petition->petitioner_identifier) &&
+           //in_array(EnrollmentActorEnum::Enrollee, $ret['roles'])
+           empty($petition->enrollee_identifier)) {
           // We have an identifier at run time but none in the petition.
           // If we can validate a token we can store the identifier and 
           // use it instead. (eg: An Enrollee receives an initial handoff
-          // email/invitation.)
+          // email/invitation, or an Enrollee is asked to authenticate.)
 
           // Note in general we should only accept an Enrollee identifier
           // this way. Petitioner identifiers should be collected at Petition

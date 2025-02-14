@@ -51,27 +51,32 @@ class OrderableBehavior extends Behavior
 
       $Table = $event->getSubject();
 
-      // We constrain our search by primary key, so ordr will be consecutive within the
-      // same configuration (eg provisioning_targets within a CO). Note tables can have
-      // multiple primary links (though this is more for MVEAs than configuration objects)
-      // though only one should be populated.
+      $query = $Table->find();
 
-      $primaryLink = null;
+      if($Table->requiresCO()) {
+        // We constrain our search by primary key, so ordr will be consecutive within the
+        // same configuration (eg provisioning_targets within a CO). Note tables can have
+        // multiple primary links (though this is more for MVEAs than configuration objects)
+        // though only one should be populated.
 
-      $primaryLinks = $Table->getPrimaryLinks();
+        $primaryLink = null;
 
-      foreach($primaryLinks as $p) {
-        if(!empty($data[$p])) {
-          $primaryLink = $p;
-          break;
+        $primaryLinks = $Table->getPrimaryLinks();
+
+        foreach($primaryLinks as $p) {
+          if(!empty($data[$p])) {
+            $primaryLink = $p;
+            break;
+          }
         }
+
+        if(!$primaryLink) {
+          throw new \RuntimeException("No primary link found in OrderableBehavior::beforeMarshal for " . $Table->getTable());
+        }
+
+        $query = $query->where([$primaryLink => $data[$p]]);
       }
 
-      if(!$primaryLink) {
-        throw new \RuntimeException("No primary link found in OrderableBehavior::beforeMarshal for " . $Table->getTable());
-      }
-
-      $query = $Table->find()->where([$primaryLink => $data[$p]]);
       $query->select(['maxorder' => $query->func()->max('ordr', ['ordr'])]);
       
       $row = $query->first();

@@ -193,7 +193,7 @@ class StandardEnrollerController extends StandardPluginController {
    * 
    * @since  COmanage Registry v5.1.0
    * @param  EventInterface   $event  Cake event, ie: from beforeFilter
-   * @return string                   "no", "open", "authz", or "yes"
+   * @return string                   "no", "open", "authz", "yes", or "notauth"
    */
 
   public function willHandleAuth(\Cake\Event\EventInterface $event): string {
@@ -217,7 +217,7 @@ class StandardEnrollerController extends StandardPluginController {
 
       if(empty($modelId)) {
         $this->llog('error', "No step ID specified for dispatch");
-        return 'noauth';
+        return 'notauth';
       }
 
       $stepConfig = $this->$modelsName->get($modelId, ['contain' => 'EnrollmentFlowSteps']);

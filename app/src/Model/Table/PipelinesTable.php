@@ -460,6 +460,8 @@ class PipelinesTable extends Table {
    * @param  int    $eisId            Exxternal Identity Source ID
    * @param  array  $eisBackendRecord Record returned by EIS Backend
    * @param  bool   $force            Force the Pipeline to run all steps, even if no changes were detected
+   * @param  int    $personId         If set, for create operations only use this as the target Person ID
+   * @param  bool   $syncOnly         If true, do not run Finalize steps
    * @return string                   Record status (new, unchanged, unknown, updated)
    */
 
@@ -467,8 +469,16 @@ class PipelinesTable extends Table {
     int   $id,
     int   $eisId, 
     array $eisBackendRecord,
-    bool  $force=false
+    bool  $force=false,
+    ?int  $personId=null,
+    bool  $syncOnly=false
   ): string {
+    // We broadly split the Pipeline into two parts, "Sync" and "Finalize".
+    // This is to support being called from within an Enrollment Flow to connect
+    // an External Identity to a Person created via an Enrollment Flow (or already
+    // existing). In these scenarios, we only want to perform the Sync steps here,
+    // since the Enrollment Flow will perform the Finalize steps.
+
     // Start with our configuration(s)
     $pipeline = $this->get($id);
     $eis = $this->ExternalIdentitySources->get($eisId);
@@ -511,7 +521,8 @@ class PipelinesTable extends Table {
         $pipeline,
         $eis,
         $eisRecord['record'],
-        $eisBackendRecord['entity_data']
+        $eisBackendRecord['entity_data'],
+        $personId
       );
 
       $person = $personInfo['person'];
@@ -535,7 +546,7 @@ class PipelinesTable extends Table {
         $eisBackendRecord['entity_data']
       );
 
-      // If the Person record was matched (meaning it isn't new) create a
+      // If the Person record was matched or requested (meaning it isn't new) create a
       // History Record here, now that we have an External Identity
 
       if($personInfo['status'] == 'matched') {
@@ -546,44 +557,58 @@ class PipelinesTable extends Table {
                        'Pipelines.matched',
                        [$pipeline->description, $id, $eis->description, $eisId, $eisBackendRecord['source_key'], $personInfo['strategy']])
         );
+      } elseif($personInfo['status'] == 'requested') {
+        $this->Cos->People->ExternalIdentities->recordHistory(
+          entity: $person,
+          action: ActionEnum::PersonMatchedPipeline,
+          comment: __d('result', 
+                       'Pipelines.matched',
+                       [$pipeline->description, $id, $person->id, $eis->description, $eisId, $eisBackendRecord['source_key']])
+        );
       }
 
       // (4) Sync the External Identity attributes with the Person record
       $person = $this->syncPerson(
         $pipeline,
+        $eis,
         isset($externalIdentity->id) ? $externalIdentity->id : null,
         $person
       );
 
-      // (5) Assign Identifiers
+      // Run the Finalize steps unless $syncOnly was requested
+      if($syncOnly) {
+        $this->llog('trace', "Pipeline $id skipping Finalize steps for EIS $eisId source key " . $eisBackendRecord['source_key']);
+      } else {
+        // (5) Assign Identifiers
 
-      // We can basically ignore the results from assign() since we don't
-      // directly report them anywhere.
+        // We can basically ignore the results from assign() since we don't
+        // directly report them anywhere.
 
-      $this->Cos->IdentifierAssignments->assign(
-        entityType:     'People',
-        entityId:       $person->id,
-        provision:      false,
+        $this->Cos->IdentifierAssignments->assign(
+          entityType:     'People',
+          entityId:       $person->id,
+          provision:      false,
 // XXX should we pass this in when we have it? CFM-343
-        actorPersonId:  null
-      );
+          actorPersonId:  null
+        );
 
-      // (6) Update Person Status
-      // - We no longer need to do anything here since status recalculation
-      //   happens automatically
-/*
-      $person = $this->updatePersonStatus(
-        $pipeline,
-        $externalIdentity,
-        $person
-      );*/
+        // (6) Update Person Status
+        // - We no longer need to do anything here since status recalculation
+        //   happens automatically
+  /*
+        $person = $this->updatePersonStatus(
+          $pipeline,
+          $externalIdentity,
+          $person
+        );*/
 
-      // (7) Provision
+        // (7) Provision
 
-      $this->Cos->People->requestProvisioning(
-        id:       $person->id,
-        context:  ProvisioningContextEnum::Automatic
-      );
+        $this->Cos->People->requestProvisioning(
+          id:       $person->id,
+          context:  ProvisioningContextEnum::Automatic
+        );
+      }
 
       $this->Cos->People->ExternalIdentities->recordHistory(
         entity: $person,
@@ -604,7 +629,7 @@ class PipelinesTable extends Table {
 
       $this->llog('error', "Pipeline $id for EIS $eisId source key " . $eisBackendRecord['source_key'] . " failed: " . $e->getMessage());
 
-      throw new \RuntimeException($e->getMessage());
+      throw $e;
     }
   }
 
@@ -903,8 +928,9 @@ class PipelinesTable extends Table {
    * @param  ExternalIdentitySource   $eis            External Identity Source
    * @param  ExtIdentitySourceRecord  $eisRecord      External Identity Source Record
    * @param  array                    $eisAttributes  Attributes provided by EIS Backend
+   * @param  int                      $personId       For create operations, use this as the target Person ID, if set
    * @return array                                    'person': Person object
-   *                                                  'status': 'linked', 'created', 'matched'
+   *                                                  'status': 'linked', 'created', 'matched', 'requested'
    *                                                  'strategy': If status = 'matched', the MatchStrategy
    */
 
@@ -912,7 +938,8 @@ class PipelinesTable extends Table {
     Pipeline                $pipeline,
     ExternalIdentitySource  $eis,
     ExtIdentitySourceRecord $eisRecord,
-    ?array                  $eisAttributes
+    ?array                  $eisAttributes,
+    ?int                    $personId=null
   ): array {
     // Shorthand...
     $sourceKey = $eisRecord->source_key;
@@ -932,6 +959,19 @@ class PipelinesTable extends Table {
       // We shouldn't get here since attributes should only be null on a delete,
       // which should only happen for previously processed records.
       throw new \RuntimeException('$eisAttributes unexpectedly empty in Pipeline::obtainPerson');
+    }
+
+    // If there was a Person ID provided in the function call, use that
+
+    if($personId) {
+      $People = TableRegistry::getTableLocator()->get('People');
+
+      $this->llog('trace', "Linking requsted Person $personId for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
+
+      return [
+        'person' => $People->get($personId),
+        'status' => 'requested'
+      ];
     }
 
     // There isn't a Person associated with the request, run the configured
@@ -1446,16 +1486,18 @@ class PipelinesTable extends Table {
    * Sync an External Identity to a Person.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  Pipeline    $pipeline            Pipeline
-   * @param  int         $externalIdentityId  External Identity ID
-   * @param  Person      $person              Person
-   * @return Person                           Person
+   * @param  Pipeline               $pipeline            Pipeline
+   * @param  ExternalIdentitySource $eis                 External Identity Source
+   * @param  int                    $externalIdentityId  External Identity ID
+   * @param  Person                 $person              Person
+   * @return Person                                      Person
    */
 
   protected function syncPerson(
-    Pipeline          $pipeline,
-    ?int              $externalIdentityId,
-    Person            $person
+    Pipeline                $pipeline,
+    ExternalIdentitySource  $eis,
+    ?int                    $externalIdentityId,
+    Person                  $person
   ): Person {
     // We re-pull the External Identity to account for any changes that might have
     // been processed by syncExternalIdentity. Note if the ID is null, the External
@@ -1539,6 +1581,7 @@ class PipelinesTable extends Table {
 
           // Convert the ExternalIdentity attribute to an array and filter it
           $newdata = $this->duplicateFilterEntityData($eientity);
+          $newentity = null;
           
           // Add the foreign keys
           $newdata[$sourcefk] = $eientity->id;
@@ -1547,21 +1590,37 @@ class PipelinesTable extends Table {
           // Do we have a corresponding record on the Person?
           $found = $curentities->firstMatch([$sourcefk => $eientity->id]);
 
+          // Do we need to create a Verification record for this entity
+          // (if it is an email address)?
+          $createVerification = false;
+
           if($found) {
             // There is an existing record, update it (if it changed) _unless_
             // the attribute record is frozen.
 
-            if($model == 'EmailAddresses' && $found->verified) {
-              // If the Person Email Address is verified and the EI Email Address
-              // is _not_, we preserve the verification flag _unless_ the mail address
-              // has changed.
-              
-              // This is effectively a combination of AR-EmailAddress-2 Editing an
-              // Email Address (but not its Type) associated with a Person will revert
-              // it to unverified and AR-EmailAddress-4 A frozen Email Address may be
-              // verified if it is otherwise eligible for verification.
-              if($newdata['mail'] == $found->mail) {
-                $newdata['verified'] = $found->verified;
+            if($model == 'EmailAddresses') {
+              if($found->verified) {
+                // If the Person Email Address is verified and the EI Email Address
+                // is _not_, we preserve the verification flag _unless_ the mail address
+                // has changed.
+                
+                // This is effectively a combination of AR-EmailAddress-2 Editing an
+                // Email Address (but not its Type) associated with a Person will revert
+                // it to unverified and AR-EmailAddress-4 A frozen Email Address may be
+                // verified if it is otherwise eligible for verification.
+                if($newdata['mail'] == $found->mail) {
+                  $newdata['verified'] = $found->verified;
+                }
+              }
+
+              if($pipeline->sync_verify_email_addresses) {
+                // All addresses from this source are treated as verified
+                // whether or not the source asserted it
+                $newdata['verified'] = true;
+              }
+
+              if(isset($newdata['verified']) && $newdata['verified']) {
+                $createVerification = true;
               }
             }
 
@@ -1592,10 +1651,35 @@ class PipelinesTable extends Table {
             // Default the new attribute to not frozen
             $newdata['frozen'] = false;
 
+            if($model == 'EmailAddresses') {
+              if($pipeline->sync_verify_email_addresses) {
+                // All addresses from this source are treated as verified
+                // whether or not the source asserted it
+                $newdata['verified'] = true;
+              }
+
+              if(isset($newdata['verified']) && $newdata['verified']) {
+                $createVerification = true;
+              }
+            }
+
             $newentity = $this->Cos->People->$model->newEntity($newdata);
             $this->Cos->People->$model->saveOrFail($newentity);
 
             $this->llog('trace', "Added $model " . $newentity->id . " to Person from External Identity " . $externalIdentity->id);
+          }
+
+          if($createVerification) {
+            // This will perform an upsert, so it's ok if we did this already
+
+            $Verifications = TableRegistry::getTableLocator()->get('Verifications');
+
+            // The entity must be an Email Address for us to get here
+            if(!empty($found->id)) {
+              $Verifications->trustedSource($found->id, $eis->description);
+            } elseif(!empty($newentity->id)) {
+              $Verifications->trustedSource($newentity->id, $eis->description);
+            }
           }
         }
 
@@ -1999,6 +2083,11 @@ class PipelinesTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('sync_identifier_type_id');
+
+    $validator->add('sync_verify_email_addresses', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('sync_verify_email_addresses');
     
     return $validator; 
   }

@@ -30,7 +30,7 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 use App\Lib\Enum\TemplateableStatusEnum;
-use App\Lib\Events\ChangelogEventListener;
+use App\Lib\Events\ActorEventListener;
 use App\Lib\Events\CoIdEventListener;
 use App\Lib\Events\RuleBuilderEventListener;
 use App\Lib\Util\StringUtilities;
@@ -83,8 +83,8 @@ class AppController extends Controller {
     // Breadcrumb Manager
     $this->loadComponent('Breadcrumb');
     
-    $ChangelogEventListener = new ChangelogEventListener($this->RegistryAuth);
-    EventManager::instance()->on($ChangelogEventListener);
+    $ActorEventListener = new ActorEventListener($this->RegistryAuth);
+    EventManager::instance()->on($ActorEventListener);
     
     $RuleBuilderEventListener = new RuleBuilderEventListener();
     EventManager::instance()->on($RuleBuilderEventListener);
@@ -165,6 +165,7 @@ class AppController extends Controller {
    */
     
   public function beforeRender(\Cake\Event\EventInterface $event) {
+    // $this->name = Models
     $modelsName = $this->name;
     
     // Views can also inspect the request object to determine the current
@@ -678,10 +679,8 @@ class AppController extends Controller {
         // $modelsName may not be set, so (eg) StandardApiController does
         // something similar.
 
-        // This only works for the current model, not related models. If/when we
-        // need to support relatedmodels, we could have setCurCoId() cascade the
-        // CO to any of its related models that require it, or use the event
-        // listener approach commented out below.
+        // This only works for the current model, not related models. For 
+        // relatedmodels, we use the event listener approach below.
         if(method_exists($this->$modelsName, "acceptsCoId") 
           && $this->$modelsName->acceptsCoId()) {
           $this->$modelsName->setCurCoId((int)$coid);

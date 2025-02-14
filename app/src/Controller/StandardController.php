@@ -192,17 +192,16 @@ class StandardController extends AppController {
     // Populate permissions info, which uses the requested object ID if one
     // was provided. As a first approximation, those actions that permit lookup
     // primary link are also those that pass an $id that can be used to establish
-    // permissions, and also Cos (which has no primary link).
+    // permissions. We also allow any action for models without primary links
+    // (eg Cos, Plugins, and TrafficDetours).
     
     $id = null;
     
     $params = $this->request->getParam('pass');
     
     if(!empty($params[0])) {
-      if((method_exists($table, "allowLookupPrimaryLink")
-          && $table->allowLookupPrimaryLink($this->request->getParam('action')))
-         ||
-         $modelsName == 'Cos') {
+      if(!method_exists($table, "allowLookupPrimaryLink")
+         || $table->allowLookupPrimaryLink($this->request->getParam('action'))) {
         $id = (int)$params[0];
       }
     }
@@ -507,7 +506,7 @@ class StandardController extends AppController {
       return $this->redirect(['action' => 'deleted']);
     } elseif($redirectGoal == 'self'
        && $entity
-       && in_array($this->request->getParam('action'), ['add', 'edit'])) {
+       && in_array($this->request->getParam('action'), ['add', 'copy', 'edit'])) {
       // We typically want to redirect to the edit view of the record,
       // but in some cases (eg: if the record was just frozen) we want to
       // redirect to "view" instead.

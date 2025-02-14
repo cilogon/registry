@@ -39,6 +39,7 @@
       "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": true },
       "sor_label": { "type": "string", "size": 40 },
       "status": { "type": "string", "size": 2 },
+      "traffic_detour_id": { "type": "integer", "foreignkey": { "table": "traffic_detours", "column": "id" }, "notnull": true },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "valid_from": { "type": "datetime" },
       "valid_through": { "type": "datetime" }
@@ -90,6 +91,7 @@
         "display_name": { "type": "string", "size": 64, "notnull": true },
         "value": { "type": "string", "size": 32, "notnull": true },
         "edupersonaffiliation": { "type": "string", "size": 32 },
+        "case_insensitive": { "type": "boolean", "XXX": "CFM-15" },
         "status": {}
       },
       "indexes": {
@@ -509,7 +511,7 @@
     "urls": {
       "columns": {
         "id": {},
-        "url": { "type": "string", "size": 256 },
+        "url": { "type": "url" },
         "description": {},
         "type_id": {}
       },
@@ -628,6 +630,7 @@
         "authz_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" }},
         "authz_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
         "collect_enrollee_email": { "type": "boolean" },
+        "redirect_on_duplicate": { "type": "string", "size": 256 },
         "redirect_on_finalize": { "type": "string", "size": 256 }
       },
       "indexes": {
@@ -712,6 +715,7 @@
         "verification_time": { "type": "datetime" },
         "request_expiration_time": { "type": "datetime" },
         "method": { "type": "string", "size": 2 },
+        "trusted_source": { "type": "string", "size": 128 },
         "email_address_id": { "type": "integer", "foreignkey": { "table": "email_addresses", "column": "id" } },
         "petition_id": {}
       },
@@ -806,7 +810,8 @@
         "sync_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "sync_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
         "sync_replace_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
-        "sync_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } }
+        "sync_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "sync_verify_email_addresses": { "type": "boolean" }
       },
       "indexes": {
         "pipelines_i1": { "columns": [ "co_id" ] },
@@ -835,6 +840,9 @@
     },
 
     "external_identity_sources": {
+      "comments": [
+        "As a general rule, configurations that modify source data belong in the Pipeline"
+      ],
       "columns": {
         "id": {},
         "co_id": {},
@@ -883,6 +891,18 @@
       "indexes": {
         "application_states_i1": { "columns": [ "co_id" ] },
         "application_states_i2": { "columns": [ "person_id" ] }
+      }
+    },
+
+    "traffic_detours": {
+      "columns": {
+        "id": {},
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "ordr": {}
+      },
+      "indexes": {
       }
     }
   },

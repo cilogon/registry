@@ -138,7 +138,10 @@ trait PrimaryLinkTrait {
 
           $linkValue = ($original ? $entity->getOriginal($lf) : $entity->get($lf));
 
-          return $LinkTable->findCoForRecord($linkValue);
+          if(method_exists($LinkTable, 'findCoForRecord')) {
+            return $LinkTable->findCoForRecord($linkValue);
+          }
+          // else Platform plugins (eg: Traffic Detours) don't belong to a CO
         }
       }
     }

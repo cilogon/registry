@@ -94,7 +94,8 @@ class EmailVerifiersController extends StandardEnrollerController {
     $verifiedAddresses = [];
 
     foreach($candidateAddresses as $a => $v) {
-      if(!empty($v->verification->verification_time)) {
+      // true indicates verified by the plugin that collected the address
+      if($v === true || !empty($v->verification->verification_time)) {
         $verifiedAddresses[$a] = true;
       }
     }

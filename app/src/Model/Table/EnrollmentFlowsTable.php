@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -45,6 +45,7 @@ class EnrollmentFlowsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\CopyTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\SearchFilterTrait;
@@ -55,7 +56,7 @@ class EnrollmentFlowsTable extends Table {
   /**
    * Perform Cake Model initialization.
    *
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
    * @param  array  $config Configuration options passed to constructor
    */
   
@@ -89,7 +90,7 @@ class EnrollmentFlowsTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['start']);
+    $this->setAllowLookupPrimaryLink(['copy', 'start']);
     $this->setRedirectGoal('self');
 
     $this->setAutoViewVars([
@@ -106,6 +107,7 @@ class EnrollmentFlowsTable extends Table {
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
+        'copy' =>     ['platformAdmin', 'coAdmin'],
         'delete' =>     ['platformAdmin', 'coAdmin'],
         'edit' =>       ['platformAdmin', 'coAdmin'],
         // We handle start authorization in the Controller
@@ -146,7 +148,7 @@ class EnrollmentFlowsTable extends Table {
   /**
    * Calculate the next Step for an Enrollment Flow.
    * 
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
    * @param  int    $petitionId   Petition ID
    * @return array                url: URL to redirect to
    *                              step: EnrollmentFlowStep
@@ -241,11 +243,11 @@ class EnrollmentFlowsTable extends Table {
       'petition' => $petition
     ];
   }
-  
+
   /**
    * Set validation rules.
    * 
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
    * @param  Validator $validator Validator
    * @return Validator            Validator
    */
@@ -288,6 +290,11 @@ class EnrollmentFlowsTable extends Table {
       'content' => ['rule' => 'boolean']
     ]);
     $validator->allowEmptyString('collect_enrollee_email');
+
+    $validator->add('redirect_on_duplicate', [
+      'content' => ['rule' => 'url']
+    ]);
+    $validator->allowEmptyString('redirect_on_duplicate');
 
     $validator->add('redirect_on_finalize', [
       'content' => ['rule' => 'url']

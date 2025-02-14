@@ -170,7 +170,43 @@ class SchemaManager {
           throw new \RuntimeException(__d('error', 'schema.column', [$tName, $cName]));
         }
         
-        // For type definitions see https://www.doctrine-project.org/projects/doctrine-dbal/en/2.12/reference/types.html#types
+        // For type definitions see https://www.doctrine-project.org/projects/doctrine-dbal/en/4.2/reference/types.html#types
+        // However, we'll also support a special "shortcut" notation for certain common pseudo-types.
+
+        if($colCfg->type == 'enum') {
+          // It's unlikely that we'll ever need to universally change the width of every
+          // enum field, but by declaring an enum type the configuration becomes a bit clearer
+
+          $colCfg->type = 'string';
+
+          if(empty($colCfg->size)) {
+            // Only set the length if not already set, to allow per-field overrides
+            $colCfg->size = 2;
+          }
+        } elseif($colCfg->type == "path") {
+          // The maximum path length (and maximum component length) vary by operating system,
+          // but in general will at least be 256 chars.
+
+          $colCfg->type = 'string';
+          if(empty($colCfg->size)) {
+            // Only set the length if not already set, to allow per-field overrides
+            $colCfg->size = 256;
+          }
+        } elseif($colCfg->type == "url") {
+          // There's not a formal limit on the length of a URL, though updated RFC guidance
+          // is about 8k, historic browser limitations were about 2k, and search engines also
+          // apparently don't like > 2k. In general, URLs entered into the configuration
+          // will be much shorter (usually < 80 chars, and almost always < 160), so we'll set
+          // this to 512. By doing this here rather than on each field in the schema files
+          // it'll be easy to make it universally longer, if desired.
+
+          $colCfg->type = 'string';
+          if(empty($colCfg->size)) {
+            // Only set the length if not already set, to allow per-field overrides
+            $colCfg->size = 512;
+          }
+        }
+
         $options = [];
         
         if(isset($colCfg->autoincrement)) {

@@ -52,5 +52,10 @@ $rowActions = [
     'action'  => 'start',
     'label'   => __d('operation', 'EnrollmentFlows.start'),
     'icon'    => 'start'
+  ],
+  [
+    'action'  => 'copy',
+    'label'   => __d('operation', 'copy'),
+    'icon'    => 'content_copy'
   ]
 ];

@@ -132,8 +132,6 @@ class PetitionVerificationsTable extends Table {
       enrollmentFlowStepId: $enrollmentFlowStepId,
       action:               PetitionActionEnum::EmailVerified,
       comment:              __d('core_enroller', 'result.EmailVerifiers.verified.history', [$mail, __d('enumeration', 'VerificationMethodEnum.C')])
-// We don't have $actorPersonId yet...
-//    ?int $actorPersonId=null
     );
 
     return true;
@@ -170,8 +168,6 @@ class PetitionVerificationsTable extends Table {
       enrollmentFlowStepId: $enrollmentFlowStepId,
       action:               PetitionActionEnum::EmailVerified,
       comment:              __d('core_enroller', 'result.EmailVerifiers.verified.history', [$mail, __d('enumeration', 'VerificationMethodEnum.PH')])
-// We don't have $actorPersonId yet...
-//    ?int $actorPersonId=null
     );
 
     // We return in the format as if we used find() and contain()

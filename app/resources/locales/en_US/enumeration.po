@@ -456,6 +456,9 @@ msgstr "Email Verified"
 msgid "PetitionActionEnum.F"
 msgstr "Finalized"
 
+msgid "PetitionActionEnum.FD"
+msgstr "Flagged Duplicate"
+
 msgid "PetitionActionEnum.IV"
 msgstr "Invitation Viewed"
 

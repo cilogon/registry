@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use App\Lib\Enum\TableTypeEnum;
 use App\Lib\Util\StringUtilities;
@@ -36,6 +37,130 @@ use App\Lib\Util\StringUtilities;
 trait TableMetaTrait {
   // What type of Table is this?
   private $tableType = null;
+
+  /**
+   * Filter the metadata attributes from an entity in a manner suitable for copy (duplicate).
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  Table            $table    Table for $entity
+   * @param  EntityInterface  $entity   Entity to copy (filter)
+   * @param  array            $related  Related models to process
+   * @return array                      Array of filtered attributes
+   */
+
+  protected function filterMetadataForCopy(
+    \Cake\ORM\Table $table,
+    \Cake\Datasource\EntityInterface $entity,
+    array $related=[]
+  ): array {
+// XXX There is overlap with Petitions::duplicateFilterEntityData and
+// TableMetaTrait::filterMetadataFields (used mostly for UI stuff),
+// should maybe refactor these. filterMetadata() is more based on the Petitions one
+// See also CFM-442
+
+    $ret = [];
+
+    $metaFields = [
+      // Metadata fields start with the basic Cake metadata
+      'id',
+      'created',
+      'modified',
+      // Add changelog metadata
+      'actor_identifier',
+      'deleted',
+      'revision',
+      $entity->changelogAttributeName()
+    ];
+
+    // Handling parent keys is a bit complex for duplicating models, and we're probably
+    // going to need to know some context. For example, when we duplicate an Enrollment
+    // Flow we want to create a new Enrollment Flow and Enrollment Flow Step, but we
+    // want to Enrollment Flow Step to point to an existing Message Template. However
+    // when we duplicate an entire CO we also need to duplicate the Message Template.
+    // XXX For now we only support the first scenario, which we implement by removing
+    // primary keys, not all foreign keys.
+
+    // Find the primary link for this entity. We want to keep co_id (presumably the
+    // top level primary link) but otherwise remove the link to allow Cake to rekey.
+
+    $link = $table->findPrimaryLinkEntity($entity);
+    $linkKey = StringUtilities::entityToForeignKey($link);
+
+    if($linkKey != 'co_id') {
+      $metaFields[] = $linkKey;
+    }
+
+    // Now that we've figured out the metadata, walk the list of visible attributes
+    // and populate the ones that are defined and not metadata fields
+
+    foreach($entity->getVisible() as $visible) {
+      if(!in_array($visible, $metaFields) 
+         && isset($entity->$visible)
+         // Skip arrays, which are related models
+         && !is_array($entity->$visible)) {
+        $ret[$visible] = $entity->$visible;
+      }
+    }
+
+    // Next handle related models (recursively). If the current entity is a Pluggable model
+    // we need to handle the related plugin data specially.
+
+    foreach($related as $k => $v) {
+      if(is_int($k)) {
+        // $v is the model name (EnrollmentFlowSteps)
+        // $m is the lowercased model name (enrollment_flow_steps)
+        $m = Inflector::tableize($v);
+        // $m1 is the singular version (enrollment_flow_step)
+        $m1 = Inflector::singularize($m);
+        // $t is the Table for $v
+        if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $v) {
+          // For pluggable models, get the plugin table from the entity configuration
+          $t = TableRegistry::getTableLocator()->get($entity->plugin);
+        } else {
+          $t = TableRegistry::getTableLocator()->get($v);
+        }
+
+        if(is_array($entity->$m)) {
+          // HasMany
+
+          foreach($entity->$m as $s) {
+            $ret[$m][] = $this->filterMetadataForDuplicate($t, $s);
+          }
+        } elseif(!empty($entity->$m1)) {
+          // HasOne
+
+          $ret[$m1] = $this->filterMetadataForDuplicate($t, $entity->$m1);
+        }
+      } elseif(is_array($v)) {
+        // $k is the model name (EnrollmentFlowSteps) and $v is an array of related models
+        // $m is the lowercased model name (enrollment_flow_steps)
+        $m = Inflector::tableize($k);
+        // $m1 is the singular version (enrollment_flow_step)
+        $m1 = Inflector::singularize($m);
+        // $t is the Table for $k
+        if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $v) {
+          // For pluggable models, get the plugin table from the entity configuration
+          $t = TableRegistry::getTableLocator()->get($entity->plugin);
+        } else {
+          $t = TableRegistry::getTableLocator()->get($k);
+        }
+
+        if(is_array($entity->$m)) {
+          // HasMany
+
+          foreach($entity->$m as $s) {
+            $ret[$m][] = $this->filterMetadataForDuplicate($t, $s, $v);
+          }
+        } elseif(!empty($entity->$m1)) {
+          // HasOne
+
+          $ret[$m1] = $this->filterMetadataForDuplicate($t, $entity->$m1, $v);
+        }
+      }
+    }
+
+    return $ret;
+  }
 
   /**
    * Filter metadata fields.

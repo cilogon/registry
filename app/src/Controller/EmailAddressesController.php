@@ -48,8 +48,8 @@ class EmailAddressesController extends MVEAController {
 
   public function forceVerify(string $id) {
     try {
-      $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
-      $this->Flash->success(__d('result', 'EmailAddresses.verify.forced'));
+      $addr = $this->EmailAddresses->forceVerify((int)$id, $this->RegistryAuth->getPersonID($this->getCOID()));
+      $this->Flash->success(__d('result', 'EmailAddresses.verify.manual', [$addr]));
     }
     catch(Exception $e) {
       $this->Flash->error($e->getMessage());

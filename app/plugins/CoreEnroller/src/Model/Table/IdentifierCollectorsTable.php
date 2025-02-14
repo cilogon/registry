@@ -120,14 +120,14 @@ class IdentifierCollectorsTable extends Table {
 
   /**
    * Perform steps necessary to hydrate the Person record as part of Petition finalization.
-   *
-   * @param  int      $id           Invitation Accepter ID
-   * @param  \App\Model\Entity\Petition $petition     Petition
-   * @return bool                   true on success
+   * 
    * @since  COmanage Registry v5.1.0
+   * @param  int      $id           Invitation Accepter ID
+   * @param  Petition $petition     Petition
+   * @return bool                   true on success
    */
 
-  public function finalize(int $id, \App\Model\Entity\Petition $petition) {
+  public function hydrate(int $id, \App\Model\Entity\Petition $petition) {
     $cfg = $this->get($id);
 
     // Pull the Identifier that was recorded

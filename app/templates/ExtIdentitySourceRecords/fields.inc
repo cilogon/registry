@@ -49,7 +49,34 @@ print $this->element('notify/alert', [
 
 // This view does not support add or edit
 if($vv_action == 'view') {
-// Link to External Identity, if known
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'external_identity_source_id',
+      'status'    => $vv_obj->external_identity_source->description,
+      'link'      => [
+        'url' => [
+          'controller' => 'external_identity_sources',
+          'action'     => 'edit',
+          $vv_obj->external_identity_source->id
+        ]
+      ]
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'external_identity_id',
+      'status'    => $vv_obj->external_identity->names[0]->full_name,
+      'link'      => [
+        'url' => [
+          'controller' => 'external_identities',
+          'action'     => 'edit',
+          $vv_obj->external_identity->id
+        ]
+      ]
+    ]
+  ]);
+
   foreach([
             'source_key',
             'last_update',

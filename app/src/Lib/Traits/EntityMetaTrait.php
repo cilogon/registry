@@ -33,6 +33,21 @@ use Cake\Utility\Inflector;
 
 trait EntityMetaTrait {
   /**
+   * Determine the changelog attribute foreign key (eg: name_id for Name) for this entity.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @return string   Changelog attribute column name
+   */
+
+  public function changelogAttributeName() {
+    // The class name is something like `\App\Model\Entity\TelephoneNumber', but we
+    // want telephone_number (lowercased).
+    $entityName = Inflector::underscore(substr(strrchr(get_class($this), '\\'),1));
+
+    return $entityName . "_id";
+  }
+
+  /**
    * Determine if the record described in $data is probably the same as the
    * current value of the Entity. This is intended to support Pipelines in
    * trying to determine if an External Identity Source associated model is

@@ -44,6 +44,7 @@ class MostlyStaticPagesTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
   
   /**
@@ -106,7 +107,17 @@ class MostlyStaticPagesTable extends Table {
 
   public function addDefaults(int $coId) {
     // Any pages added here should also be added to MostlyStaticPage.php::isDefaultPage
+    // if they should not be deleted
     $records = [
+      [
+        'co_id'       => $coId,
+        'name'        => 'duplicate-landing',
+        'title'       => __d('field', 'MostlyStaticPages.default.de.title'),
+        'description' => __d('field', 'MostlyStaticPages.default.de.description'),
+        'status'      => SuspendableStatusEnum::Active,
+        'context'     => PageContextEnum::EnrollmentHandoff,
+        'body'        => __d('field', 'MostlyStaticPages.default.de.body')
+      ],
       [
         'co_id'       => $coId,
         'name'        => 'default-handoff',
@@ -136,11 +147,9 @@ class MostlyStaticPagesTable extends Table {
       ]
     ];
 
-    // Convert the arrays to entities
-    $entities = $this->newEntities($records);
-
-    // throws PersistenceFailedException on failure
-    $this->saveManyOrFail($entities);
+    foreach($records as $record) {
+      $this->upsert($record, ['co_id' => $coId, 'name' => $record['name']]);
+    }
 
     return true;
   }
@@ -327,7 +336,7 @@ class MostlyStaticPagesTable extends Table {
     $validator->notEmptyString('context');
 
     $validator->add('body', [
-      'filter'  => ['rule'     => ['validateInput',['type' => 'html']],
+      'filter'  => ['rule'     => ['validateInput'],
                     'provider' => 'table']
     ]);
     $validator->allowEmptyString('body');

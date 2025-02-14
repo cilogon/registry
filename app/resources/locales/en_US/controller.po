@@ -144,6 +144,9 @@ msgstr "{0,plural,=1{Server} other{Servers}}"
 msgid "TelephoneNumbers"
 msgstr "{0,plural,=1{Telephone Number} other{Telephone Numbers}}"
 
+msgid "TrafficDetours"
+msgstr "{0,plural,=1{Traffic Detour} other{Traffic Detours}}"
+
 msgid "Types"
 msgstr "{0,plural,=1{Type} other{Types}}"
 

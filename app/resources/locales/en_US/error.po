@@ -235,6 +235,9 @@ msgstr "Provided value is not an integer"
 msgid "Jobs.plugin.parameter.invalid"
 msgstr "Invalid parameter"
 
+msgid "Jobs.plugin.parameter.required"
+msgstr "Required parameter not provided"
+
 msgid "Jobs.plugin.parameter.select"
 msgstr "Provided value is not a valid choice"
 
@@ -372,6 +375,21 @@ msgstr "Type {0} is in use as a default (via CO Settings)"
 
 msgid "unknown"
 msgstr "Unknown value \"{0}\""
+
+msgid "ug.task.unknown"
+msgstr "Task {0} is not defined"
+
+msgid "ug.version.blocked"
+msgstr "Cannot automatically upgrade past version {0}, please upgrade to that version first"
+
+msgid "ug.version.order"
+msgstr "Target version is before current version (cannot downgrade)"
+
+msgid "ug.version.same"
+msgstr "Current and target versions are the same"
+
+msgid "ug.version.unknown"
+msgstr "Unknown version \"{0}\""
 
 msgid "Verifications.already"
 msgstr "Email Address is already verified"

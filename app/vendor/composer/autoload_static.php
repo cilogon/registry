@@ -121,6 +121,11 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'FileConnector\\Test\\' => 19,
             'FileConnector\\' => 14,
         ),
+        'E' => 
+        array (
+            'EnvSource\\Test\\' => 15,
+            'EnvSource\\' => 10,
+        ),
         'D' => 
         array (
             'Doctrine\\SqlFormatter\\' => 22,
@@ -375,6 +380,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'FileConnector\\' => 
         array (
             0 => __DIR__ . '/../..' . '/availableplugins/FileConnector/src',
+        ),
+        'EnvSource\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/EnvSource/tests',
+        ),
+        'EnvSource\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/EnvSource/src',
         ),
         'Doctrine\\SqlFormatter\\' => 
         array (

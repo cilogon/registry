@@ -51,6 +51,11 @@ class MostlyStaticPage extends Entity {
   public function isDefaultPage(): bool {
     // We use the original value because if we're in the middle of a save we'll have
     // the proposed new value even though we haven't persisted it yet
-    return in_array($this->getOriginal('name'), ['default-handoff', 'error-landing', 'petition-complete']);
+    return in_array($this->getOriginal('name'), [
+      'default-handoff',
+      'duplicate-landing',
+      'error-landing',
+      'petition-complete'
+    ]);
   }
 }

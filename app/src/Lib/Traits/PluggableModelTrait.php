@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\ORM\ResultSet;
+use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
 use App\Lib\Util\StringUtilities;
@@ -37,6 +38,47 @@ use App\Lib\Util\StringUtilities;
 trait PluggableModelTrait {
   // The set of plugin entry point models used in configurations for this model
   protected $_pluginModels = [];
+
+  /**
+   * Callback after data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  EventInterface   $event   afterMarshal event
+   * @param  Entity Interface $entity  Marshalled entity
+   * @param  ArrayObject      $data    Entity data
+   * @param  ArrayObject      $options Callback options
+   */
+
+  public function afterMarshal(
+    \Cake\Event\EventInterface $event, 
+    $entity, //\Cake\Event\EntityInterface $entity, 
+    \ArrayObject $data,
+    \ArrayObject $options
+  ) {
+    // For some reason Cake doesn't seem to marshal our related plugin model,
+    // possibly because it can't find the table to create the new entity.
+    // If we see we have a plugin defined and an array of data, convert it to
+    // an entity instead. (CopyTrait relies on this behavior.)
+
+    if(!empty($entity->plugin)) {
+      // The plugin is the full model path, eg CoreEnroller.InvitationAccepters.
+      // Since plugins all have a hasOne relation, we need to convert that to
+      // the singular form (eg invitation_accepter).
+
+      // Get the plugin component of the path and lowercase it
+      $m = Inflector::singularize(Inflector::underscore(StringUtilities::pluginModel($entity->plugin)));
+
+      if(!empty($entity->$m) && is_array($entity->$m)) {
+        // Convert this array to an entity. We'll need to obtain the table, too
+
+        $PluginTable = TableRegistry::getTableLocator()->get($entity->plugin);
+
+        $entity->$m = $PluginTable->newEntity($entity->$m);
+
+// XXX CFM-127, CFM-31 when plugins want to do more complex operations on duplicate, add it here
+      }
+    }
+  }
 
   /**
    * Determine the plugin type used by this Pluggable Model. This is the lowercased
@@ -168,9 +210,11 @@ trait PluggableModelTrait {
 
     // isArtifactTable() might not be the exact right test here...
     // for now, we only want to exclude Jobs (since there's nothing
-    // to configure) but this may change.
+    // to configure) but this may change. Also, Traffic Detours don't
+    // have a primary link.
 
-    if(!$this->isArtifactTable()) {
+    if(!$this->isArtifactTable() 
+       && method_exists($this, 'setAllowLookupPrimaryLink')) {
       $this->setAllowLookupPrimaryLink(['configure']);
     }
   }

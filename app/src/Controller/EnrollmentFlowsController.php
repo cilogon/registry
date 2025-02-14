@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -45,7 +45,7 @@ class EnrollmentFlowsController extends StandardController {
   /**
    * Calculate authorization for the current request.
    * 
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
    * @return bool     True if the current request is permitted, false otherwise
    */
 
@@ -101,9 +101,35 @@ class EnrollmentFlowsController extends StandardController {
   }
 
   /**
-   * Start an Enrollment flow.
+   * Copy an Enrollment Flow.
    * 
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
+   * @param  string   $id   Enrollment Flow ID
+   */
+
+  public function copy(string $id) {
+    try {
+      $related = [
+        'EnrollmentFlowSteps' => $this->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations()
+      ];
+
+      $obj = $this->EnrollmentFlows->copy((int)$id, $related);
+      $this->Flash->success(__d('result', 'copied'));
+
+      // Redirect to the newly created flow
+      return $this->generateRedirect($obj);
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
+
+    return $this->generateRedirect(null);
+  }
+
+  /**
+   * Start an Enrollment Flow.
+   * 
+   * @since  COmanage Registry v5.1.0
    * @param  string   $id   Enrollment Flow ID
    */
 
@@ -168,7 +194,7 @@ class EnrollmentFlowsController extends StandardController {
   /**
    * Indicate whether this Controller will handle some or all authnz.
    * 
-   * @since  COmanage Registry v5.0.0
+   * @since  COmanage Registry v5.1.0
    * @param  EventInterface   $event  Cake event, ie: from beforeFilter
    * @return string                   "no", "open", "authz", or "yes"
    */

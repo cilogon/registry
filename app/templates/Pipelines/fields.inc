@@ -82,6 +82,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
             'sync_replace_cou_id',
             'sync_affiliation_type_id',
             'sync_identifier_type_id',
+            'sync_verify_email_addresses'
           ] as $field) {
     print $this->element('form/listItem', [
       'arguments' => [

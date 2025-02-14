@@ -30,8 +30,11 @@ declare(strict_types = 1);
 namespace App\Model\Table;
 
 use Cake\I18n\FrozenTime;
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
+use App\Lib\Enum\ActionEnum;
 use App\Lib\Enum\VerificationMethodEnum;
 use App\Lib\Random\RandomString;
 use App\Lib\Util\DeliveryUtilities;
@@ -43,6 +46,7 @@ class VerificationsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
   
   /**
@@ -69,7 +73,7 @@ class VerificationsTable extends Table {
     $this->setDisplayField('id');
     
     $this->setPrimaryLink(['email_address_id', 'petition_id']);
-    $this->setRequiresCO(false);
+    $this->setRequiresCO(true);
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
@@ -84,6 +88,24 @@ class VerificationsTable extends Table {
         'index' =>    false
       ]
     ]);
+  }
+  
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // This is not an Application Rule per se, but we don't allow changes to
+    // completed Verifications under most circumstances
+    $rules->add([$this, 'ruleIsVerified'],
+                'isVerified',
+                ['errorField' => 'email_address_id']);
+    
+    return $rules;
   }
 
   /**
@@ -111,6 +133,9 @@ class VerificationsTable extends Table {
 
     $this->saveOrFail($verification);
 
+    // We'll try to record history, but most likely it'll fail due to lack of a Person
+    $this->recordHistory($verification);
+
     return $verification;
   }
 
@@ -118,39 +143,100 @@ class VerificationsTable extends Table {
    * Record a manual Verification.
    * 
    * @since  COmanage Registry v5.1.0
-   * @param  int    $emailAddressId       Email Address ID
+   * @param  int          $emailAddressId       Email Address ID
+   * @return Verification                       Verification entity
    */
 
-  public function manual(int $emailAddressId) {
-    // First, see if we have a Verification for this Email Address
+  public function manual(int $emailAddressId): Verification {
+    $data = [
+      'email_address_id'    => $emailAddressId,
+      'method'              => VerificationMethodEnum::Manual,
+      'code'                => null,
+      'verification_time'   => date('Y-m-d H:i:s', time())
+    ];
 
-    $verification = $this->find()->where(['email_address_id' => $emailAddressId])->first();
+    $where = ['email_address_id' => $emailAddressId];
 
-    if($verification) {
-      if(!empty($verification->verification_time)) {
-        // If there is a campleted Verification, we don't allow a manual Verification
+    $verification = $this->upsert($data, $where);
 
-        throw new \InvalidArgumentException(__d('error', 'Verifications.already'));
-      } else {
-        // If there is a pending Verification, we'll override and update it
+    $this->recordHistory($verification);
 
-        $verification->code = null;
-        $verification->method = VerificationMethodEnum::Manual;
-        $verification->verification_time = date('Y-m-d H:i:s', time());
+    return $verification;
+  }
+
+  /**
+   * Record history associated with a Verification.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  Verification $verification   Verification
+   * @return bool                         true if history was recorded, false otherwise
+   */
+
+  protected function recordHistory(
+    Verification  $verification
+  ): bool {
+    // Note HistoryTrait has a generic recordHistory(), but we need somewhat different logic.
+
+    // We need a Person ID in order to record history. We may or may not have one for $petitionId
+    // (in most cases we won't because they Person hasn't been hydrated yet), but we'll check
+    // just in case.
+
+    $personId = null;
+    $addr = "";
+
+    if(!empty($verification->email_address_id)) {
+      $addr = $this->EmailAddresses->get($verification->email_address_id);
+
+      if(!empty($addr->person_id)) {
+        $personId = $addr->person_id;
       }
-    } else {
-      // Create a new Verification
+    } elseif($verification->petition_id) {
+      $pt = $this->Petitions->get($verification->petition_id);
 
-      $verification = $this->newEntity([
-        'email_address_id'    => $emailAddressId,
-        'method'              => VerificationMethodEnum::Manual,
-        'verification_time'   => date('Y-m-d H:i:s', time())
-      ]);
+      if(!empty($pt->enrollee_person_id)) {
+        $personId = $pt->enrollee_person_id;
+      }
     }
 
-    $this->save($verification);
+    if($personId) {
+      $action = ActionEnum::EmailVerified;
+      $comment = "";
 
-    // We don't record history here because we may not have a Person context yet (ie: Petitions)
+      switch($verification->method) {
+        case VerificationMethodEnum::Code:
+          $comment = __d('result', 'EmailAddresses.verify.code', [$addr->mail]);
+          break;
+        case VerificationMethodEnum::Manual:
+          $action = ActionEnum::EmailForceVerified;
+          $comment = __d('result', 'EmailAddresses.verify.manual', [$addr->mail]);
+          break;
+        case VerificationMethodEnum::PetitionHandoff:
+          $comment = __d('result', 'EmailAddresses.verify.handoff', [$addr->mail]);
+          break;
+        case VerificationMethodEnum::TrustedSource:
+          $comment = __d('result', 'EmailAddresses.verify.trust', [$addr->mail, $verification->source]);
+          break;
+        case null:
+          if(!empty($verification->code)) {
+            // We sent a code but it has not yet been verified
+            $action = ActionEnum::EmailVerifyCodeSent;
+            $comment = __d('result', 'EmailAddresses.verify.code.sent', [$addr->mail]);
+          }
+          break;
+      }
+
+      $HistoryRecords = TableRegistry::getTableLocator()->get('HistoryRecords');
+
+      $HistoryRecords->recordForPerson(
+        $personId,
+        $action,
+        $comment
+      );
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -209,7 +295,57 @@ class VerificationsTable extends Table {
       code:               $code
     );
 
+    // We'll try to record history, but most likely it'll fail due to lack of a Person
+    $this->recordHistory($verification);
+
     return $verification->id;
+  }
+  
+  /**
+   * Application Rule to determine if the Verification is already verified.
+   *
+   * @since  COmanage Registyr v5.0.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleIsVerified($entity, $options) {
+    // We reject updates to a Verification once there is a verification time,
+    // except to unverify (reset), which is indicated by a blank method.
+    if(!empty($entity->method)
+       && !empty($verification->verification_time)) {
+      return __d('error', 'Verifications.already');
+    }
+    
+    return true;
+  }
+
+  /**
+   * Record a trusted source Verification.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  int    $emailAddressId       Email Address ID
+   * @param  string $source               Description of Trusted Source
+   * @return Verification                 Verification entity
+   */
+
+  public function trustedSource(int $emailAddressId, string $source): Verification {
+    $data = [
+      'email_address_id'    => $emailAddressId,
+      'method'              => VerificationMethodEnum::TrustedSource,
+      'trusted_source'      => $source,
+      'code'                => null,
+      'verification_time'   => date('Y-m-d H:i:s', time())
+    ];
+
+    $where = ['email_address_id' => $emailAddressId];
+
+    $verification = $this->upsert($data, $where);
+
+    $this->recordHistory($verification);
+
+    return $verification;
   }
 
   /**
@@ -270,6 +406,8 @@ class VerificationsTable extends Table {
     
     $this->saveOrFail($verification);
 
+    $this->recordHistory($verification);
+
     return true;
   }
 
@@ -326,6 +464,8 @@ class VerificationsTable extends Table {
       'content' => ['rule' => ['inList', VerificationMethodEnum::getConstValues()]]
     ]);
     $validator->allowEmptyString('method');
+
+    $this->registerStringValidation($validator, $schema, 'trusted_source', false);
 
     $validator->add('email_address_id', [
       'content' => ['rule' => 'isInteger']

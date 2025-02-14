@@ -52,38 +52,47 @@ class MetaTable extends Table {
    * Determine the current "upgrade" version.
    *
    * @since  COmanage Registry v5.0.0
-   * @return Current version
+   * @return string   Current version
    */
 
-  public function getUpgradeVersion() {
+  public function getUpgradeVersion(): ?string {
     $sql = "SELECT upgrade_version FROM meta";
     
     $connection = ConnectionManager::get('default');
     $results = $connection->execute($sql)->fetchAll('assoc');
-    
-    return $results['upgrade_version'];
+
+    return !empty($results[0]['upgrade_version']) ? $results[0]['upgrade_version'] : null;
   }
 
   /**
    * Update the current "upgrade" version.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  String $version New current version
-   * @param  Boolean $insert Whether to assume an insert rather than an update
-   * @return Boolean True on success
+   * @param  string   $version  New current version (default is to use value in config/VERSION)
+   * @return bool               true on success
    */
-
-  public function setUpgradeVersion($version, $insert=false) {
+  
+  public function setUpgradeVersion(string $version=null): bool {
     $sql = null;
 
-    if($insert) {
+    $currentVersion = $this->getUpgradeVersion();
+
+    $targetVersion = $version;
+
+    if(!$version) {
+      // Read the current release from the VERSION file
+
+      $targetVersion = rtrim(file_get_contents(CONFIG . DS . "VERSION"));
+    }
+
+    if(!$currentVersion) {
       $sql = "INSERT INTO meta (upgrade_version) VALUES (:v)";
     } else {
       $sql = "UPDATE meta SET upgrade_version = :v";
     }
     
     $connection = ConnectionManager::get('default');
-    $results = $connection->execute($sql, ['v' => $version])->fetchAll('assoc');
+    $results = $connection->execute($sql, ['v' => $targetVersion])->fetchAll('assoc');
 
     return true;
   }

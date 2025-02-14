@@ -156,5 +156,20 @@ msgstr "Report for "
 msgid "table.list"
 msgstr "{0} List"
 
+msgid "ug.tasks.post"
+msgstr "Executing post-database tasks for version {0}"
+
+msgid "ug.tasks.pre"
+msgstr "Executing pre-database tasks for version {0}"
+
+msgid "ug.version.current"
+msgstr "Current version: {0}"
+
+msgid "ug.version.target"
+msgstr "Target version: {0}"
+
+msgid "ug.installMostlyStaticPages"
+msgstr "Installing default Mostly Static Pages for CO {0}"
+
 msgid "value.copied"
 msgstr "Value copied to clipboard."

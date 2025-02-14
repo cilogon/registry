@@ -28,8 +28,32 @@ msgstr "{0,plural,=1{Attribute Collector} other{Attribute Collectors}}"
 msgid "controller.BasicAttributeCollectors"
 msgstr "{0,plural,=1{Basic Attribute Collector} other{Basic Attribute Collectors}}"
 
+msgid "controller.EmailVerifiers"
+msgstr "{0,plural,=1{Email Verifier} other{Email Verifiers}}"
+
 msgid "controller.EnrollmentAttributes"
 msgstr "{0,plural,=1{Enrollment Attribute} other{Enrollment Attributes}}"
+
+msgid "controller.IdentifierCollectors"
+msgstr "{0,plural,=1{Identifier Collector} other{Identifier Collectors}}"
+
+msgid "controller.InvitationAccepters"
+msgstr "{0,plural,=1{Invitation Accepter} other{Invitation Accepters}}"
+
+msgid "controller.PetitionAcceptances"
+msgstr "{0,plural,=1{Petition Acceptance} other{Petition Acceptances}}"
+
+msgid "controller.PetitionAttributes"
+msgstr "{0,plural,=1{Petition Attribute} other{Petition Attributes}}"
+
+msgid "controller.PetitionBasicAttributeSets"
+msgstr "{0,plural,=1{Petition Basic Attribute Set} other{Petition Basic Attribute Sets}}"
+
+msgid "controller.PetitionIdentifiers"
+msgstr "{0,plural,=1{Petition Identifier} other{Petition Identifiers}}"
+
+msgid "controller.PetitionVerifications"
+msgstr "{0,plural,=1{Petition Verification} other{Petition Verifications}}"
 
 msgid "enumeration.VerificationModeEnum.0"
 msgstr "None"

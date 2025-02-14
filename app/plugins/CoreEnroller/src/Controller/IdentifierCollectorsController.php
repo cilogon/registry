@@ -111,6 +111,7 @@ class IdentifierCollectorsController extends StandardEnrollerController {
     if($action == 'dispatch') {
       // We need to perform special logic (vs StandardEnrollerController)
       // to ensure that web server authentication is triggered.
+      // (This logic is also used in EnvSourceCollectorsController.)
 
       // To start, we trigger the parent logic. This will return
       //  notauth: Some error occurred, we don't want to override this

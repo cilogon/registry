@@ -36,6 +36,9 @@ msgstr "Ad hoc attribute deleted"
 msgid "applied.schema"
 msgstr "Successfully applied database schema"
 
+msgid "copied"
+msgstr "Copied"
+
 msgid "deactivated"
 msgstr "{0} Deactivated"
 
@@ -54,8 +57,20 @@ msgstr "{0} {1} Edited: {2}"
 msgid "EmailAddress.deleted"
 msgstr "Email address deleted"
 
-msgid "EmailAddresses.verify.forced"
-msgstr "Email Address force verified"
+msgid "EmailAddresses.verify.code"
+msgstr "Email Address {0} verified by code"
+
+msgid "EmailAddresses.verify.code.sent"
+msgstr "Verification code sent to Email Address {0}"
+
+msgid "EmailAddresses.verify.handoff"
+msgstr "Email Address {0} verified by handoff"
+
+msgid "EmailAddresses.verify.manual"
+msgstr "Email Address {0} force verified"
+
+msgid "EmailAddresses.verify.trust"
+msgstr "Email Address {0} verified by trusted source {1}"
 
 msgid "ExternalIdentities.status.recalculated"
 msgstr "External Identity status recalculated from {0} to {1}"
@@ -166,17 +181,23 @@ msgstr "Person Role status recalculated from {0} to {1}"
 msgid "Petitions.finalized"
 msgstr "Petition Finalized"
 
+msgid "Petitions.flaggedduplicate"
+msgstr "Petition flagged as Duplicate"
+
 msgid "Petitions.viewed.inv"
 msgstr "Invitation Viewed"
 
 msgid "Pipelines.complete"
 msgstr "Pipeline {0} complete for EIS {1} source key {2}"
 
+msgid "Pipelines.ei.added"
+msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
+
 msgid "Pipelines.matched"
 msgstr "Pipeline {0} ({1}) matched EIS {2} ({3}) source key {4} to Person using Match Strategy {5}"
 
-msgid "Pipelines.ei.added"
-msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}"
+msgid "Pipelines.requested"
+msgstr "Pipeline {0} ({1}) linked to requested Person {2} for EIS {3} ({4}) source key {5}"
 
 msgid "Pipelines.started"
 msgstr "Pipeline {0} ({1}) started for EIS {2} ({3}) source key {4}"
@@ -229,6 +250,9 @@ msgstr "Database connection established"
 
 msgid "test.mail.ok"
 msgstr "Test message sent"
+
+msgid "ug.task.done"
+msgstr "Finished processing task {0}"
 
 msgid "updated"
 msgstr "updated"

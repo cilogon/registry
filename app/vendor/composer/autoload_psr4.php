@@ -56,6 +56,8 @@ return array(
     'Jasny\\Twig\\' => array($vendorDir . '/jasny/twig-extensions/src'),
     'FileConnector\\Test\\' => array($baseDir . '/availableplugins/FileConnector/tests'),
     'FileConnector\\' => array($baseDir . '/availableplugins/FileConnector/src'),
+    'EnvSource\\Test\\' => array($baseDir . '/plugins/EnvSource/tests'),
+    'EnvSource\\' => array($baseDir . '/plugins/EnvSource/src'),
     'Doctrine\\SqlFormatter\\' => array($vendorDir . '/doctrine/sql-formatter/src'),
     'Doctrine\\Instantiator\\' => array($vendorDir . '/doctrine/instantiator/src/Doctrine/Instantiator'),
     'Doctrine\\Deprecations\\' => array($vendorDir . '/doctrine/deprecations/lib/Doctrine/Deprecations'),
