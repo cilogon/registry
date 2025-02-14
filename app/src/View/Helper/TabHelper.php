@@ -311,6 +311,27 @@ class TabHelper extends Helper
     }
   }
 
+
+  /**
+   * Check if a specified model supports the 'view' functionality.
+   *
+   * This method determines whether a given model is capable of handling
+   * auto view variable population by checking for the existence of the
+   * `getAutoViewVars` method and its return value.
+   *
+   * @param string $modelName The name of the model to check.
+   *
+   * @return bool Returns true if the model supports 'view', otherwise false.
+   * @since  COmanage Registry v5.1.0
+   * @note  Usually a table will expose AutoViewVars. This is not guaranteed though.
+   *        Revisit if we come across a use case that required more fine-grained check.
+   */
+  public function modelSupportsView(string $modelName): bool
+  {
+    $table = TableRegistry::getTableLocator()->get($modelName);
+    return method_exists($table, 'getAutoViewVars') && $table->getAutoViewVars();
+  }
+
   /**
    * Construct the link filter
    *

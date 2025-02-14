@@ -29,9 +29,11 @@ declare(strict_types=1);
 
 namespace EnvSource\Controller;
 
-use Cake\ORM\TableRegistry;
 use App\Controller\StandardEnrollerController;
 use App\Lib\Enum\PetitionActionEnum;
+use Cake\Event\EventInterface;
+use Cake\Http\Response;
+use Cake\ORM\TableRegistry;
 
 class EnvSourceCollectorsController extends StandardEnrollerController {
   public $paginate = [
@@ -39,6 +41,27 @@ class EnvSourceCollectorsController extends StandardEnrollerController {
       'EnvSourceCollectors.id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.1.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->EnvSourceCollectors->EnrollmentFlowSteps->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->EnvSourceCollectors->EnrollmentFlowSteps->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->EnvSourceCollectors->EnrollmentFlowSteps->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 
   /**
    * Dispatch an Enrollment Flow Step.

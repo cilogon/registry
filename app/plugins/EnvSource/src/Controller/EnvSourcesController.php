@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace EnvSource\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
+use Cake\Http\Response;
 
 class EnvSourcesController extends StandardPluginController {
   public $paginate = [
@@ -37,4 +39,25 @@ class EnvSourcesController extends StandardPluginController {
       'EnvSources.id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.1.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->EnvSources->ExternalIdentitySources->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->EnvSources->ExternalIdentitySources->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->EnvSources->ExternalIdentitySources->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

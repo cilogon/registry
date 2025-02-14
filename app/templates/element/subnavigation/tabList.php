@@ -46,6 +46,11 @@ extract($vv_sub_nav_attributes, EXTR_PREFIX_ALL, 'vv_subnavigation');
     if($this->Tab->getHasManyAssociationModels($modelName)->current() === null) {
       continue;
     }
+    // Check if a view is supported
+    $className = $this->Tab->getHasManyAssociationModels($modelName)->current();
+    if (!$this->Tab->modelSupportsView($className)) {
+      continue;
+    }
   }
 ?>
 <!-- if a tab has no fields do not render skip -->
