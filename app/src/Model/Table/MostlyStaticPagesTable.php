@@ -336,7 +336,7 @@ class MostlyStaticPagesTable extends Table {
     $validator->notEmptyString('context');
 
     $validator->add('body', [
-      'filter'  => ['rule'     => ['validateInput'],
+      'filter'  => ['rule'     => ['validateInput',['type' => 'html']],
                     'provider' => 'table']
     ]);
     $validator->allowEmptyString('body');
