@@ -70,14 +70,13 @@ class EnvSourceCollectorsCell extends Cell
    */
   public function display(int $petitionId): void
   {
-    $EnvSourceCollectors = $this->fetchTable('EnvSourceCollectors');
+    $PetitionEnvIdentities = $this->fetchTable('EnvSource.PetitionEnvIdentities');
 
-    $this->set('vv_petition_env_identities', $EnvSourceCollectors
-      ->PetitionEnvIdentities
+    $this->set('vv_petition_env_identities', $PetitionEnvIdentities
       ->find()
       ->where(['PetitionEnvIdentities.petition_id' => $petitionId])
       ->contain(['EnvSourceIdentities'])
-      ->firstOrFail());
+      ->first());
     
     $this->set('vv_step', $this->vv_step);
     $this->set('vv_obj', $this->vv_obj);

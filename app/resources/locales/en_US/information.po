@@ -150,6 +150,9 @@ msgstr "{0} successfully {1} to {2}"
 msgid "record"
 msgstr "Record"
 
+msgid "no.records"
+msgstr "No Records"
+
 msgid "report.for"
 msgstr "Report for "
 

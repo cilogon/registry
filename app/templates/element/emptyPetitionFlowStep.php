@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry EnvSource Collectors Cell Display
+ * COmanage Registry Empty Petition Flow Step Element
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,27 +21,14 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+
 declare(strict_types = 1);
-
-if (empty($vv_petition_env_identities)) {
-  print $this->element('emptyPetitionFlowStep', [], [
-    'cache' => '_html_elements',
-  ]);
-  return;
-}
-
-$env_attributes = json_decode($vv_petition_env_identities->env_source_identity->env_attributes);
-
 ?>
 
 <ul>
-  <li>Env Source Identity ID: <?= $vv_petition_env_identities->env_source_identity->id ?></li>
-  <li>Source Key: <?= $vv_petition_env_identities->env_source_identity->source_key ?></li>
-  <?php foreach($env_attributes as $k => $v): ?>
-    <li><?= __d('env_source', 'field.EnvSources.'.$k) . ": " . $v ?></li>
-  <?php endforeach ?>
+  <li><?= __d('information', 'no.records') ?></li>
 </ul>
