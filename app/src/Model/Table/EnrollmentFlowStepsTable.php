@@ -77,6 +77,7 @@ class EnrollmentFlowStepsTable extends Table {
     $this->setPrimaryLink('enrollment_flow_id');
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
+    $this->setRedirectGoal(action: 'delete', goal: 'deleted');
 
     $this->setAutoViewVars([
       'actorTypes' => [
@@ -110,7 +111,8 @@ class EnrollmentFlowStepsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin'],
+        'deleted' =>  ['platformAdmin', 'coAdmin']
       ],
       'related' => [
         'table' => [
