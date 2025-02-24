@@ -204,7 +204,7 @@ class EnvSourcesTable extends Table {
     \EnvSource\Model\Entity\EnvSource $EnvSource,
     array $result
   ): array {
-    // We don't need most of the $EnvSource configuation since EnvSourceCollector::parse
+    // We don't need most of the $EnvSource configuration since EnvSourceCollector::parse
     // already mapped the variable names for us. We do need to know the sp_mode for parsing
     // multiple values, and also we need the types.
 
@@ -218,7 +218,7 @@ class EnvSourcesTable extends Table {
     $role = [
       // We only support one role per record
       'role_key' => '1',
-      'affiliation' => $this->DefaultAffiliationTypes->getTypeLabel($EnvSource->name_type_id)
+      'affiliation' => $this->DefaultAffiliationTypes->getTypeLabel($EnvSource->default_affiliation_type_id)
     ];
 
     foreach([

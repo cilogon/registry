@@ -253,15 +253,7 @@ class EnvSourceCollectorsTable extends Table {
       // The look aside file is for debugging purposes. If the file is specified but not found,
       // we throw an error to prevent unintended configurations.
 
-      $src = parse_ini_file($envSource->lookaside_file);
-
-      if(!$src) {
-        throw new \InvalidArgumentException(__d('env_source', 'error.lookaside_file', [$envSource->lookaside_file]));
-      }
-      // Put the values in the environment
-      foreach($src as $k => $v) {
-        putenv("$k=$v");
-      }
+      return $this->loadFromLookasideFile($envSource->lookaside_file, $envSource);
     }
 
     // We walk through our configuration and only copy the variables that were configured
@@ -276,6 +268,40 @@ class EnvSourceCollectorsTable extends Table {
         // and not the configured variable name (which might be something like SHIB_FIRST_NAME)
         $ret[$field] = getenv($envSource->$field);
       } 
+    }
+
+    return $ret;
+  }
+
+  /**
+   * Load environment variables from a lookaside file based on the given configuration.
+   *
+   * @param string $filename Path to the lookaside file
+   * @param \EnvSource\Model\Entity\EnvSource $envSource EnvSource configuration entity
+   * @return array                  Array of environment variables and their parsed values
+   * @throws InvalidArgumentException
+   *@since  COmanage Registry v5.1.0
+   */
+  public function loadFromLookasideFile(string $filename, \EnvSource\Model\Entity\EnvSource $envSource): array {
+    $src = parse_ini_file($filename);
+    $ret = [];
+
+    if(!$src) {
+      throw new \InvalidArgumentException(__d('env_source', 'error.lookaside_file', [$filename]));
+    }
+
+    // We walk through our configuration and only copy the variables that were configured
+    foreach($envSource->getVisible() as $field) {
+      // We only want the fields starting env_ (except env_source_id, which is changelog metadata)
+
+      if(strncmp($field, "env_", 4)==0 && $field != "env_source_id"
+        && !empty($envSource->$field)          // This field is configured with an env var name
+        && isset($src[$envSource->$field])     // This env var is populated
+      ) {
+        // Note we're using the EnvSource field name (eg: env_name_given) as the key
+        // and not the configured variable name (which might be something like SHIB_FIRST_NAME)
+        $ret[$field] = $src[$envSource->$field];
+      }
     }
 
     return $ret;
