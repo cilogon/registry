@@ -31,6 +31,13 @@
 
 declare(strict_types = 1);
 
+if (empty($vv_enrollment_attributes)) {
+  print $this->element('emptyPetitionFlowStep', [], [
+    'cache' => '_html_elements',
+  ]);
+  return;
+}
+
 ?>
 
 <ul>

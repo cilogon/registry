@@ -75,12 +75,15 @@ class AttributeCollectorsCell extends Cell
   {
     $vv_enrollment_atttributes_ids = Hash::extract($this->vv_obj->petition_attributes, '{n}.enrollment_attribute_id');
     $vv_enrollment_atttributes_ids = array_unique($vv_enrollment_atttributes_ids);
+    $vv_enrollment_attributes = [];
 
-    $vv_enrollment_attributes = $this->fetchTable('EnrollmentAttributes')
-      ->find()
-      ->where(fn(QueryExpression $exp, Query $q) => $exp->in('id', $vv_enrollment_atttributes_ids))
-      ->order(['ordr' => 'ASC'])
-      ->toArray();
+    if (!empty($vv_enrollment_atttributes_ids)) {
+      $vv_enrollment_attributes = $this->fetchTable('EnrollmentAttributes')
+        ->find()
+        ->where(fn(QueryExpression $exp, Query $q) => $exp->in('id', $vv_enrollment_atttributes_ids))
+        ->order(['ordr' => 'ASC'])
+        ->toArray();
+    }
 
     $this->set('vv_enrollment_attributes', $vv_enrollment_attributes);
     $this->set('vv_step', $this->vv_step);

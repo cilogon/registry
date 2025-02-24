@@ -33,21 +33,27 @@ declare(strict_types=1);
 
 use App\Lib\Enum\VerificationMethodEnum;
 
+if (empty($vv_pv)) {
+  print $this->element('emptyPetitionFlowStep', [], [
+    'cache' => '_html_elements',
+  ]);
+  return;
+}
+
 ?>
 
-<?php if(!empty($vv_pv)): ?>
-  <ul>
-    <?php foreach($vv_pv as $pv): ?>
-      <li><?= $pv->mail ?>:
-        <?php if(!empty($pv->verification) && $pv->verification->isVerified()): ?>
-          <?= __d('result', 'Verifications.status', [
-            VerificationMethodEnum::getLocalization($pv->verification->method),
-            $this->Time->nice($pv->verification->verification_time, $viewVars["vv_tz"])
-          ]) ?>
-        <?php else: ?>
-          <span class="mr-1 badge bg-warning unverified"><?= __d('field','unverified') ?></span>
-        <?php endif; ?>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-<?php endif; ?>
+
+<ul>
+  <?php foreach($vv_pv as $pv): ?>
+    <li><?= $pv->mail ?>:
+      <?php if(!empty($pv->verification) && $pv->verification->isVerified()): ?>
+        <?= __d('result', 'Verifications.status', [
+          VerificationMethodEnum::getLocalization($pv->verification->method),
+          $this->Time->nice($pv->verification->verification_time, $viewVars["vv_tz"])
+        ]) ?>
+      <?php else: ?>
+        <span class="mr-1 badge bg-warning unverified"><?= __d('field','unverified') ?></span>
+      <?php endif; ?>
+    </li>
+  <?php endforeach; ?>
+</ul>
