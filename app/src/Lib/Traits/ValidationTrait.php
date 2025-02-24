@@ -274,21 +274,27 @@ trait ValidationTrait {
     
     return true;
   }
-  
+
   /**
    * Validate the maximum length of a field.
    *
+   * @param   string  $value    Value to validate
+   * @param array     $context  Validation context, which must include the schema definition
+   *
+   * @return bool|string True if $value validates, or an error string otherwise
    * @since  COmanage Registry v5.0.0
-   * @param  string $value   Value to validate
-   * @param  array  $context Validation context, which must include the schema definition
-   * @return mixed           True if $value validates, or an error string otherwise
    */
   
-  public function validateMaxLength($value, array $context) {
+  public function validateMaxLength(string $value, array $context): bool|string {
     // We use our own so we can introspect the field's max length from the
     // provided table schema object, and use our own error message (without
     // having to copy it to every table definition).
     
+    // Text has no limit.
+    if ($context['column']['type'] === 'text') {
+      return true;
+    }
+
     $maxLength = $context['column']['length'];
     
     if(!empty($value) && strlen($value) > $maxLength) {

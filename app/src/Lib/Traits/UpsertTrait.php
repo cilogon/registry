@@ -30,6 +30,8 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 trait UpsertTrait {
+  use \App\Lib\Traits\LabeledLogTrait;
+
   /**
    * Perform an upsert.
    * 
@@ -57,6 +59,11 @@ trait UpsertTrait {
       // This is an insert
 
       $entity = $this->newEntity($data);
+    }
+
+    if (!empty($entity->getErrors())) {
+      $this->llog('error', "Save failed for {$this->getAlias()}: " . print_r($entity->getErrors(), true));
+      throw new \RuntimeException(__d('error', 'save', [$this->getAlias()]));
     }
 
     return $this->save($entity);
