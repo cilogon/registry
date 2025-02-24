@@ -247,11 +247,10 @@ class EnvSourceCollectorsTable extends Table {
     // The filtered set of variables to return
     $ret = [];
 
-    // All available variables
-    $src = [];
-
+    // XXX getenv() does not return all the environmental variables. We need to check
+    //     one by one.
     if(!empty($envSource->lookaside_file)) {
-      // The lookaside file is for debugging purposes. If the file is specified but not found,
+      // The look aside file is for debugging purposes. If the file is specified but not found,
       // we throw an error to prevent unintended configurations.
 
       $src = parse_ini_file($envSource->lookaside_file);
@@ -259,9 +258,10 @@ class EnvSourceCollectorsTable extends Table {
       if(!$src) {
         throw new \InvalidArgumentException(__d('env_source', 'error.lookaside_file', [$envSource->lookaside_file]));
       }
-    } else {
-      // The set of available vars is available via getenv()
-      $src = getenv();
+      // Put the values in the environment
+      foreach($src as $k => $v) {
+        putenv("$k=$v");
+      }
     }
 
     // We walk through our configuration and only copy the variables that were configured
@@ -270,11 +270,11 @@ class EnvSourceCollectorsTable extends Table {
 
       if(strncmp($field, "env_", 4)==0 && $field != "env_source_id"
          && !empty($envSource->$field)          // This field is configured with an env var name
-         && !empty($src[$envSource->$field])    // This env var is populated
+         && getenv($envSource->$field)          // This env var is populated
       ) {
         // Note we're using the EnvSource field name (eg: env_name_given) as the key 
         // and not the configured variable name (which might be something like SHIB_FIRST_NAME)
-        $ret[$field] = $src[$envSource->$field];
+        $ret[$field] = getenv($envSource->$field);
       } 
     }
 
