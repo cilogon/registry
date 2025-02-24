@@ -337,6 +337,9 @@ class RegistryAuthComponent extends Component
     // Is this user a CO Member?
     $coMember = $this->isCoMember($controller->getCOID());
 
+    // Is this me?
+    $selfMember = $this->isSelf($controller->getCOID());
+
     // Get the action
     $reqAction = $controller->getRequest()->getParam('action');
     
@@ -545,26 +548,26 @@ class RegistryAuthComponent extends Component
     
     return $ret;
   }
-  
+
   /**
    * Calculate permissions for use in a view.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $action Action requested
-   * @param  int    $id     Subject id, if applicable
+   * @param string $action Action requested
+   * @param int|null $id Subject id, if applicable
    * @return array          Array of permissions, suitable for the view
+   * @since  COmanage Registry v5.0.0
    */
   
   public function calculatePermissionsForView(string $action, ?int $id=null): array {
     return $this->calculatePermissions($id);
   }
-  
+
   /**
    * Obtain the application role of the user for general use in the views
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  int   $coId  Current CO ID, if known
+   * @param int|null $coId Current CO ID, if known
    * @return array $appRoles Array of roles
+   * @since  COmanage Registry v5.0.0
    */
   
   public function getApplicationUserRoles(?int $coId): array {
@@ -581,7 +584,18 @@ class RegistryAuthComponent extends Component
     
     // True if user is authenticated
     $appUserRoles['authuser'] = $this->isAuthenticatedUser();
-    
+    // Login Identifier
+    $appUserRoles['person_identifier'] = $this->getAuthenticatedUser();
+    if ($coId) {
+      // Person ID
+      $appUserRoles['person_id'] = $this->getPersonID($coId) ?? null;
+      // Person Full Name
+      if (!empty($appUserRoles['person_id'])) {
+        $Names = TableRegistry::getTableLocator()->get('Names');
+        $appUserRoles['person_fullname'] = $Names->primaryName((int)$appUserRoles['person_id'])->full_name;
+      }
+    }
+
     return $appUserRoles;
   }
   
@@ -787,13 +801,13 @@ class RegistryAuthComponent extends Component
     
     return $this->cache['isCoAdmin'][$coId];
   }
-  
+
   /**
    * Determine if the current user is a member of the specified CO.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  int  $coId CO ID
+   * @param int|null $coId CO ID
    * @return bool       True if the current user is a CO Administrator
+   * @since  COmanage Registry v5.0.0
    */
   
   public function isCoMember(?int $coId): bool {
@@ -911,5 +925,49 @@ class RegistryAuthComponent extends Component
     }
     
     return $this->cache['isPlatformAdmin'];
+  }
+
+
+  /**
+   * Determine if the current user is acting as themselves within the specified CO.
+   *
+   * @param int|null $coId CO ID
+   * @return bool          True if the current user is acting as themselves
+   * @since  COmanage Registry v5.1.0
+   */
+  public function isSelf(?int $coId): bool {
+    // We might get called in some contexts without a coId, in which case there
+    // are no members.
+
+    if(!$coId
+      || empty($this->cache['isCoMember'][$coId])
+    ) {
+      return false;
+    }
+
+    if(isset($this->cache['isSelf'][$coId])) {
+      return $this->cache['isSelf'][$coId];
+    }
+
+    $this->cache['isSelf'][$coId] = false;
+
+    $controller = $this->getController();
+    $request = $controller->getRequest();
+    $controllerName = $controller->getName();
+    $passId = $request->getParam('pass.0');
+    $queryPersonIdParam = $request->getQuery('person_id');
+    $personId = $this->getPersonID($coId);
+
+
+    $this->cache['isSelf'][$coId] = match(true) {
+      // Canvas page
+      $controllerName == 'People' && $passId == $personId => true,
+      // Any page that we query with the person_id
+      isset($queryPersonIdParam) && $queryPersonIdParam == $personId => true,
+      // XXX Any additional self rules go here
+      default => false,
+    };
+
+    return $this->cache['isSelf'][$coId];
   }
 }

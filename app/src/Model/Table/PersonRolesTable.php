@@ -202,7 +202,7 @@ class PersonRolesTable extends Table {
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'unfreeze' => ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'view' => ['platformAdmin', 'coAdmin', 'selfMember'],
       ],
       // Actions that are permitted on readonly entities (besides view)
       'readOnly' =>   ['unfreeze'],

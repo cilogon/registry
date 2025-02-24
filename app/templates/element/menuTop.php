@@ -37,7 +37,7 @@ $densityStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileDe
 $darkModeState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileDarkMode, 'auto');
 $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileDarkMode);
 ?>
-<?php if(!empty($vv_user)): ?>
+<?php if(!empty($vv_user) && !empty($vv_user_roles)): ?>
   <ul>
     <li id="top-menu-user">
       <button type="button" 
@@ -69,8 +69,20 @@ $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileD
         </div>
         <div id="user-panel-user-info">
           <em class="material-symbols" aria-hidden="true">person</em>
-          <div id="user-panel-cn"><?= $vv_user['username']; ?></div>
-          <div id="user-panel-id"><!-- XXX identifier goes here --></div>
+          <div id="user-panel-cn"><?= $vv_user_roles['person_fullname'] ?? '' ?></div>
+          <div id="user-panel-canvas"><?php
+            if (!empty($vv_user_roles['person_id'])) {
+              print $this->Html->link(
+                __d('menu', 'my.canvas'),
+                ['plugin' => null,
+                  'controller' => 'people',
+                  'action' => $vv_user_roles['co'] || $vv_user_roles['platform'] ? 'edit' : 'view',
+                  $vv_user_roles['person_id']
+                ],
+              );
+            }
+            ?></div>
+          <div id="user-panel-id"><?= $vv_user_roles['person_identifier'] ?></div>
         </div>
         <!-- Density and dark mode controls-->
         <div id="user-panel-user-settings" class="dropdown">

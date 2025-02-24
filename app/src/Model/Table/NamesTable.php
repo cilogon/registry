@@ -121,7 +121,7 @@ class NamesTable extends Table {
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'primary' =>  ['platformAdmin', 'coAdmin'],
         'unfreeze' => ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'view' => ['platformAdmin', 'coAdmin', 'selfMember'],
       ],
       // Actions that are permitted on readonly entities (besides view)
       'readOnly' =>   ['unfreeze'],

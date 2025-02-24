@@ -122,7 +122,7 @@ class EmailAddressesTable extends Table {
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'forceVerify' => ['platformAdmin', 'coAdmin'],
         'unfreeze' => ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'view' => ['platformAdmin', 'coAdmin', 'selfMember'],
       ],
       // Actions that are permitted on readonly entities (besides view)
       'readOnly' =>   ['unfreeze'],

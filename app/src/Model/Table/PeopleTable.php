@@ -253,7 +253,7 @@ class PeopleTable extends Table {
         'delete'    => ['platformAdmin', 'coAdmin'],
         'edit'      => ['platformAdmin', 'coAdmin'],
         'provision' => ['platformAdmin', 'coAdmin'],
-        'view'      => ['platformAdmin', 'coAdmin']
+        'view'      => ['platformAdmin', 'coAdmin', 'selfMember']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
