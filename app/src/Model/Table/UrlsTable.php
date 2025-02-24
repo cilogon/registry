@@ -205,7 +205,7 @@ class UrlsTable extends Table {
    * @param array $fields Array of attributes to save
    * @return bool                True on success, false otherwise
    */
-  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
       // Check if this has already been saved

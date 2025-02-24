@@ -721,7 +721,7 @@ class PersonRolesTable extends Table {
    * @throws \Cake\Datasource\Exception\RecordNotFoundException If an issue occurs during saving
    * @since  COmanage Registry v5.1.0
    */
-  public function saveAttributes(int $personId, array $fields): PersonRole
+  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): PersonRole
   {
     $dateFormat = 'yyyy-MM-dd HH:mm:ss';
 

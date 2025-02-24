@@ -177,7 +177,7 @@ class AttributeCollectorsTable extends Table {
 
     // Save the Person Role
     $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
-    $role = $personRoleObj->saveAttributes((int)$person->id, $fieldsForPersonRole);
+    $role = $personRoleObj->saveAttributeCollectorPetitionAttributes((int)$person->id, $fieldsForPersonRole);
 
     /*********  MVEAS **************/
     // Filter the MVEAS Attributes and keep the field name
@@ -218,7 +218,7 @@ class AttributeCollectorsTable extends Table {
       return in_array($attr['enrollment_attribute']['attribute'], $personAttributes);
     })->toArray();
 
-    $People->saveAttributes($person->id, $fieldsForPerson);
+    $People->saveAttributeCollectorPetitionAttributes($person->id, $fieldsForPerson);
 
     /****** GROUP ******/
     // Filter the MVEAS Attributes and keep the field name
@@ -233,7 +233,7 @@ class AttributeCollectorsTable extends Table {
     })->toArray();
 
     $groupMemberObj = TableRegistry::getTableLocator()->get('GroupMembers');
-    $groupMemberObj->saveAttributes($person->id, $fieldsForGroup);
+    $groupMemberObj->saveAttributeCollectorPetitionAttributes($person->id, $fieldsForGroup);
 
     // Save the Date Of Birth. This is the only one that is single valued
     // and goes under the Person
@@ -293,7 +293,7 @@ class AttributeCollectorsTable extends Table {
       $mveaModel = $supportedAttributes[$attribute]['mveaModel'];
 
       $modelObj = TableRegistry::getTableLocator()->get($mveaModel);
-      $modelObj->saveAttributes((int)$person->id, $role?->id, $mveaParent, $fieldsForAttribute);
+      $modelObj->saveAttributeCollectorPetitionAttributes((int)$person->id, $role?->id, $mveaParent, $fieldsForAttribute);
     }
   }
 

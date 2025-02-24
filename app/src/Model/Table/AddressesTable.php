@@ -293,7 +293,7 @@ class AddressesTable extends Table {
    * @throws \InvalidArgumentException If required parameters are missing
    * @throws \Cake\ORM\Exception\PersistenceFailedException If the entity could not be saved
    */
-  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     $address = [];
 

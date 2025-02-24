@@ -565,7 +565,7 @@ class GroupMembersTable extends Table {
    * @return GroupMember The saved entity representing the person's role.
    *
    */
-  public function saveAttributes(int $personId, array $fields): GroupMember
+  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): GroupMember
   {
     $member = [
       'person_id'     => $personId,

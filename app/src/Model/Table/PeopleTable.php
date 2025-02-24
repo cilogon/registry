@@ -749,7 +749,7 @@ class PeopleTable extends Table {
    * @return Person The updated person entity after saving.
    * @since  COmanage Registry v5.1.0
    */
-  public function saveAttributes(int $personId, array $fields): Person
+  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): Person
   {
     $person = $this->get($personId);
     foreach ($fields as $field) {

@@ -160,7 +160,7 @@ class AdHocAttributesTable extends Table {
    * @throws \InvalidArgumentException Thrown if required parameters are missing or invalid
    * @throws \Cake\ORM\Exception\PersistenceFailedException If saving the entity fails
    */
-  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
       // Check if this has already been saved

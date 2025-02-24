@@ -233,7 +233,7 @@ class TelephoneNumbersTable extends Table {
    * @throws \Cake\ORM\Exception\PersistenceFailedException If saving the entity fails.
    * @since  COmanage Registry v5.1.0
    */
-  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     $telephone = [];
 

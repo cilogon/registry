@@ -383,7 +383,7 @@ class EmailAddressesTable extends Table {
    * @throws \Cake\Datasource\Exception\RecordNotFoundException
    * @throws \Cake\ORM\Exception\PersistenceFailedException
    */
-  public function saveAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
       // Check if this has already been saved
