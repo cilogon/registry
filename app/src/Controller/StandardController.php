@@ -260,17 +260,39 @@ class StandardController extends AppController {
       $useHardDelete = ($modelsName == "Cos");
 
       $table->deleteOrFail($obj, ['useHardDelete' => $useHardDelete]);
-      
+      $msgid = 'deleted';
+
       // Use the display field to generate the flash message
-      
+      // TODO: This needs to be moved to its own function. Keeping for now while we confirm
+      //       everything is working correctly
       $field = $table->getDisplayField();
-      
-      if(!empty($obj->$field)) {
-        $this->Flash->success(__d('result', 'deleted.a', [$obj->$field]));
-      } else {
-        $this->Flash->success(__d('result', 'deleted'));
+      $primaryLinks = $table->getPrimaryLinks();
+
+      if ($modelsName === 'People') {
+        $Names = TableRegistry::getTableLocator()->get('Names');
+        $personName = $Names->primaryName(
+          id:(int)$obj->id,
+          options: ['archived' => true],
+        )->full_name;
+        $message = "$personName ($obj->id)";
+      } elseif (in_array('person_id', $primaryLinks)) {
+        $Names = TableRegistry::getTableLocator()->get('Names');
+        $personName = $Names->primaryName((int)$obj->person_id)->full_name;
+        $displayValue = !empty($obj->$field) ? $obj->$field : $modelsName;
+        $message = "$personName/$displayValue ($obj->id)";
+      } elseif(!empty($obj->$field)) {
+        $displayValue = !empty($obj->$field) ? $obj->$field : $modelsName;
+        $message = $displayValue;
       }
-      
+
+      // By default, we pass the empty msgid. Then one with no placeholder.
+      // If we have a message use the text rich one.
+      if (!empty($message)) {
+        $msgid = "$msgid.a";
+      }
+
+      $this->Flash->success(__d('result', $msgid, [$message]));
+
       // Trigger provisioning, letting errors bubble up (AR-GMR-5)
       // In general, tables should check that they were passed a deleted
       // record and martial data/set eligibility appropriately

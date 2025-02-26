@@ -233,23 +233,23 @@ class NamesTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  int    $id         Record ID
    * @param  string $recordType Type of record to find primary name for, 'person' or 'external_identity'
+   * @param  array  $options
    * @return Name               Name Entity
    */
   
-  public function primaryName(int $id, string $recordType='person') {
+  public function primaryName(int $id, string $recordType='person', array $options = []) {
+    $query = empty($options) ? $this->find() : $this->find('all', $options);
     if($recordType == 'person') {
       // Return the Primary Name
 
-      return $this->find()
-                  ->where(['person_id' => $id,
+      return $query->where(['person_id' => $id,
                           'primary_name' => true])
-                  ->firstOrFail();
+                   ->firstOrFail();
     } else {
       // Return the first name, whatever it is
 
-      return $this->find()
-                  ->where(['external_identity_id' => $id])
-                  ->firstOrFail();
+      return $query->where(['external_identity_id' => $id])
+                   ->firstOrFail();
     }
   }
 
