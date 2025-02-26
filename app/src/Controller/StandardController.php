@@ -471,6 +471,7 @@ class StandardController extends AppController {
     }
     
     $this->set('vv_obj', $obj);
+    $this->set('vv_permission_view', $this->RegistryAuth->calculatePermissionsForView('edit', $obj->id));
     // XXX should we also set '$model'? cake seems to autopopulate edit fields just fine without it
     //     note index() uses $tableName, not 'vv_objs' or event 'vv_table_name'
     
@@ -805,7 +806,8 @@ class StandardController extends AppController {
     }
     
     $this->set('vv_obj', $obj);
-    
+    $this->set('vv_permission_view', $this->RegistryAuth->calculatePermissionsForView('view', $obj->id));
+
     // PrimaryLinkTrait
     $this->getPrimaryLink();
     

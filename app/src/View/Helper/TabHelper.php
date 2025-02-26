@@ -109,6 +109,15 @@ class TabHelper extends Helper
       }
       $url['?'] = $linkFilter;
     } else if ($action === 'edit') {
+      $vv_permission_set = $this->getView()->get('vv_permission_set');
+      $vv_permission_view = $this->getView()->get('vv_permission_view');
+      if ($vv_permission_set && is_array($vv_permission_set)) {
+        $permission_set = array_pop($vv_permission_set);
+        $url['action'] = $permission_set['edit'] ? 'edit' : 'view';
+      } elseif (!empty($vv_permission_view)) {
+        $url['action'] = $vv_permission_view['edit'] ? 'edit' : 'view';
+      }
+
       // I will get the id from the associated ids table
       $url[] = $vv_associated_ids[$controller];
     } else {

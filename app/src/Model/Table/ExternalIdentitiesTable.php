@@ -189,12 +189,12 @@ class ExternalIdentitiesTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'view' =>     ['platformAdmin', 'coAdmin', 'selfMember']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin', 'selfMember']
       ],
       // Related models whose permissions we'll need, typically for table views
       'related' => [

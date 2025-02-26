@@ -969,6 +969,15 @@ class RegistryAuthComponent extends Component
       return $this->cache['isSelf'][$coId];
     }
 
+    // Associated Model for External Identity Linke to Person
+    $externalIdentityIdParam = $request->getQuery('external_identity_id');
+    if (!empty($externalIdentityIdParam)) {
+      $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
+      $extIdentEntity = $extIdentTable->get($externalIdentityIdParam);
+      $extIdentityPersonId = $extIdentEntity->person_id;
+      $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId && $request->getParam('action') == 'index';
+      return $this->cache['isSelf'][$coId];
+    }
 
     $this->cache['isSelf'][$coId] = match(true) {
       // Canvas page
