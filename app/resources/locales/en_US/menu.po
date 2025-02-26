@@ -217,7 +217,10 @@ msgid "options"
 msgstr "Options"
 
 msgid "person.canvas"
-msgstr "Person Canvas"
+msgstr "Person Canvas
+
+msgid "my.canvas"
+msgstr "My Canvas"
 
 msgid "registries"
 msgstr "Available {0} Registries"
