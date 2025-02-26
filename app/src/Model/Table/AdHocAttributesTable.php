@@ -86,14 +86,14 @@ class AdHocAttributesTable extends Table {
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'unfreeze' => ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'view' =>     ['platformAdmin', 'coAdmin', 'selfMember']
       ],
       // Actions that are permitted on readonly entities (besides view)
       'readOnly' =>   ['unfreeze'],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin', 'selfMember'],
         'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);

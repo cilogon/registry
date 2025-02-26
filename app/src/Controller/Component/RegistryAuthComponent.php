@@ -338,7 +338,7 @@ class RegistryAuthComponent extends Component
     $coMember = $this->isCoMember($controller->getCOID());
 
     // Is this me?
-    $selfMember = $this->isSelf($controller->getCOID());
+    $selfMember = $this->isSelf($controller->getCOID(), $id);
 
     // Get the action
     $reqAction = $controller->getRequest()->getParam('action');
@@ -932,10 +932,11 @@ class RegistryAuthComponent extends Component
    * Determine if the current user is acting as themselves within the specified CO.
    *
    * @param int|null $coId CO ID
+   * @param int|null $id   ID
    * @return bool          True if the current user is acting as themselves
    * @since  COmanage Registry v5.1.0
    */
-  public function isSelf(?int $coId): bool {
+  public function isSelf(?int $coId, ?int $id): bool {
     // We might get called in some contexts without a coId, in which case there
     // are no members.
 
@@ -954,9 +955,19 @@ class RegistryAuthComponent extends Component
     $controller = $this->getController();
     $request = $controller->getRequest();
     $controllerName = $controller->getName();
+    // View self or filter by the person_id
     $passId = $request->getParam('pass.0');
     $queryPersonIdParam = $request->getQuery('person_id');
     $personId = $this->getPersonID($coId);
+
+    // Associated Models, e.g. MVEAs
+    $modelTable = TableRegistry::getTableLocator()->get($controllerName);
+    $primaryLinks = $modelTable->getPrimaryLinks();
+    if (in_array('person_id', $primaryLinks) && $id !== null) {
+      $modelEntity = $modelTable->get($id);
+      $this->cache['isSelf'][$coId] = $personId == $modelEntity->person_id;
+      return $this->cache['isSelf'][$coId];
+    }
 
 
     $this->cache['isSelf'][$coId] = match(true) {

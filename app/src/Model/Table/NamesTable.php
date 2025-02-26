@@ -128,7 +128,7 @@ class NamesTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
+        'index' =>    ['platformAdmin', 'coAdmin', 'selfMember'],
         'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);

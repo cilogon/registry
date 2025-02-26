@@ -107,7 +107,8 @@ export default {
           <span v-if="this.mvea.language" class="mr-1 badge bg-light">{{ calcLangHR(this.mvea.language) }}</span>
         </div>
         <!-- row actions -->
-        <actions 
+        <!--   TODO: Should this action be open to the unpriviledged CoMember?     -->
+        <actions
           v-if="!this.mvea.primary_name"
           :actions="[
             {

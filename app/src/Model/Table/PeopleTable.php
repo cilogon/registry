@@ -170,7 +170,18 @@ class PeopleTable extends Table {
       'Urls'
     ]);
     $this->setIndexContains(['PrimaryName']);
-    $this->setViewContains(['PrimaryName']);
+    $this->setViewContains([
+      'PrimaryName',
+      'Addresses',
+      'AdHocAttributes',
+      'EmailAddresses',
+      'Identifiers',
+      'Names',
+      //'PersonRoles',
+      'Pronouns',
+      'TelephoneNumbers',
+      'Urls'
+    ]);
     $this->setPickerContains([
       'EmailAddresses',
       'Identifiers',
