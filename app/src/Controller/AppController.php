@@ -173,7 +173,7 @@ class AppController extends Controller {
     $this->set('vv_controller', $this->request->getParam('controller'));
     $this->set('vv_action', $this->request->getParam('action'));
     
-    if(isset($this->RegistryAuth)) {
+    if(isset($this->RegistryAuth) && !$this->request->is('restful')) {
       // Components might not be loaded on error, so check
       $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions($this->getCOID()));
   
