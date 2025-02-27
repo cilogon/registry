@@ -955,38 +955,51 @@ class RegistryAuthComponent extends Component
     $controller = $this->getController();
     $request = $controller->getRequest();
     $controllerName = $controller->getName();
-    // View self or filter by the person_id
-    $passId = $request->getParam('pass.0');
-    $queryPersonIdParam = $request->getQuery('person_id');
     $personId = $this->getPersonID($coId);
 
-    // Associated Models, e.g. MVEAs
-    $modelTable = TableRegistry::getTableLocator()->get($controllerName);
-    $primaryLinks = $modelTable->getPrimaryLinks();
-    if (in_array('person_id', $primaryLinks) && $id !== null) {
+    /* EDIT/VIEW */
+
+    if ($request->getParam('action') == 'view' && $id !== null) {
+      $modelTable = TableRegistry::getTableLocator()->get($controllerName);
       $modelEntity = $modelTable->get($id);
-      $this->cache['isSelf'][$coId] = $personId == $modelEntity->person_id;
-      return $this->cache['isSelf'][$coId];
+      // Associated Models, e.g. MVEAs
+      $primaryLinks = $modelTable->getPrimaryLinks();
+
+      if (in_array('person_id', $primaryLinks) && $modelEntity->person_id !== null) {
+        $this->cache['isSelf'][$coId] = $personId == $modelEntity->person_id;
+        return $this->cache['isSelf'][$coId];
+      } elseif (in_array('external_identity_id', $primaryLinks) && $modelEntity->external_identity_id !== null) {
+        $externalIdentityId = $modelEntity->external_identity_id;
+        $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
+        $extIdentEntity = $extIdentTable->get($externalIdentityId);
+        $extIdentityPersonId = $extIdentEntity->person_id;
+        $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
+        return $this->cache['isSelf'][$coId];
+      }
     }
 
-    // Associated Model for External Identity Linke to Person
+    /*    INDEX VIEWS     */
+    // View self or filter by the person_id
+    $queryPersonIdParam = $request->getQuery('person_id');
+    // Associated Model for External Identity Link to Person
     $externalIdentityIdParam = $request->getQuery('external_identity_id');
+
     if (!empty($externalIdentityIdParam)) {
       $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
       $extIdentEntity = $extIdentTable->get($externalIdentityIdParam);
       $extIdentityPersonId = $extIdentEntity->person_id;
-      $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId && $request->getParam('action') == 'index';
+      $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
       return $this->cache['isSelf'][$coId];
     }
 
-    $this->cache['isSelf'][$coId] = match(true) {
+    if (
       // Canvas page
-      $controllerName == 'People' && $passId == $personId => true,
+      ($controllerName == 'People' && $id == $personId)
       // Any page that we query with the person_id
-      isset($queryPersonIdParam) && $queryPersonIdParam == $personId => true,
-      // XXX Any additional self rules go here
-      default => false,
-    };
+      || (isset($queryPersonIdParam) && $queryPersonIdParam == $personId)
+      ) {
+      $this->cache['isSelf'][$coId] = true;
+    }
 
     return $this->cache['isSelf'][$coId];
   }

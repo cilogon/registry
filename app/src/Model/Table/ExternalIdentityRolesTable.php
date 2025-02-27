@@ -159,12 +159,12 @@ class ExternalIdentityRolesTable extends Table {
       'entity' => [
         'delete' =>   false,
         'edit' =>     false,
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'view' =>     ['platformAdmin', 'coAdmin', 'selfMember']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    ['platformAdmin', 'coAdmin', 'selfMember']
       ]
     ]);
   }
