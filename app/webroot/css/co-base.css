@@ -263,7 +263,7 @@ body.cos.select #top-bar {
 }
 .material-symbols.danger,
 .material-symbols-outlined.danger {
-  color: var(--cmg-color-btn-004);
+  color: var(--cmg-color-btn-bg-004);
 }
 .material-symbols.success,
 .material-symbols-outlined.success {
@@ -310,6 +310,10 @@ body.cos.select #top-bar {
 #user-panel a:hover {
   text-decoration: underline;
 }
+#user-panel-user {
+  display: flex;
+  justify-content: space-between;
+}
 #user-panel-cn {
   margin-top: -8px;
   padding: 1em 0 0 0;
@@ -317,17 +321,28 @@ body.cos.select #top-bar {
   line-height: 1em;
 }
 #user-panel-id {
-  padding: 0.4em;
-  max-width: 80vw;
+  margin: 0.25em 0;
+  max-width: 60vw;
   word-wrap:break-word;
 }
-#user-panel-user-info { /* mobile only styling */
-  border-top: 1px solid var(--cmg-color-bg-006);
+#user-panel-user-info {
   padding: 1em;
 }
-#user-panel-user-info .material-symbols {
-  float: left;
-  font-size: 5em;
+#user-panel-user-icon {
+  display: none;
+}
+#user-panel-user-labels {
+  color: var(--cmg-color-body-txt);
+}
+#user-panel-user-info a:hover {
+  text-decoration: none;
+}
+#user-panel-user-info a:hover #user-panel-canvas-link {
+  text-decoration: underline;
+}
+#user-panel-user-icon .material-symbols {
+  font-size: 4.2em;
+  color: var(--cmg-color-body-txt);
 }
 #user-panel .co-info-topbox {
   background-color: var(--cmg-color-bg-004);
@@ -400,13 +415,11 @@ body.cos.select #top-bar {
   text-align: center;
   margin: 1em auto;
 }
-#logout-in-panel {
-  text-align: right;
-}
 #logout-in-panel-link {
   padding: 1em;
   margin: 0;
   width: 100%;
+  white-space: nowrap;
 }
 #login .material-symbols,
 #logout-in-panel .material-symbols {
@@ -554,8 +567,8 @@ ul.form-list li.alert-banner .co-alert {
   border-bottom: 1px solid var(--cmg-color-bg-006);
   text-align: left;
   background-color: var(--cmg-color-body-bg);
-  -webkit-box-shadow: 5px 5px 8px 0px var(--cmg-color-bg-003);
-  box-shadow: 5px 5px 8px 0px var(--cmg-color-bg-003);
+  -webkit-box-shadow: 5px 5px 8px 0 var(--cmg-color-bg-003);
+  box-shadow: 5px 5px 8px 0 var(--cmg-color-bg-003);
 }
 .menu-panel h3 {
   margin: 0;
@@ -596,7 +609,7 @@ ul.form-list li.alert-banner .co-alert {
   background-color: transparent;
   border: 1px solid var(--cmg-color-bg-006);
 }
-#main-menu .menu-panel-links a.menu-panel-primary-link:hover h3 {  
+#main-menu .menu-panel-links a.menu-panel-primary-link:hover h3 {
   text-decoration: underline;
 }
 #main-menu .menu-panel-primary-link-text {
@@ -610,7 +623,7 @@ ul.form-list li.alert-banner .co-alert {
   align-items: center;
   line-height: 1.4em;
 }
-#main-menu .menu-panel-links .material-symbols, 
+#main-menu .menu-panel-links .material-symbols,
 #main-menu .menu-panel-links .material-symbols-outlined {
   font-size: 2.5rem;
   margin-right: 0.75rem;
@@ -631,7 +644,7 @@ ul.form-list li.alert-banner .co-alert {
   margin-top: 0.5em;
   font-size: 0.9em;
 }
-.menu-panel-link-desc { 
+.menu-panel-link-desc {
   color: var(--cmg-color-body-txt);
 }
 .menu-panel-sidepanel {
@@ -1014,15 +1027,13 @@ ul.form-list li.alert-banner .co-alert {
 /* CO CONFIGURATION DASHBOARD */
 .config-menu {
   list-style: none;
-  padding: 0;
+  padding: 0 0 1em;
   border-bottom: 1px solid var(--cmg-color-bg-006);
-  padding-bottom: 1em;
 }
 .config-menu a {
   display: inline-block;
-  padding: 0.5em;
+  padding: 0.5em 0.5em 0.5em 2em;
   text-indent: -0.9em;
-  padding-left: 2em;
 }
 .config-menu a .material-symbols,
 .config-menu a .material-symbols-outlined {
@@ -1083,7 +1094,7 @@ table.list-mode .field-actions-container {
   color: var(--cmg-color-btn-bg-002);
   text-decoration: none;
 }
-.dropdown-item.active, 
+.dropdown-item.active,
 .dropdown-item:active {
   background-color: var(--cmg-color-bg-004);
 }
@@ -1914,8 +1925,8 @@ li[data-pc-section="emptymessage"] {
 .v-leave-to {
   opacity: 0;
 }
-[v-cloak] { 
-  display: none; 
+[v-cloak] {
+  display: none;
 }
 /* ENTITY ID under each Edit/View Form/List */
 #cm-entity-id {
@@ -2062,7 +2073,7 @@ body.start .submit {
 #comanage-iframe-wrapper #subnavigation .supertitle-container,
 #comanage-iframe-wrapper #subnavigation #cm-person-subnav-tabs,
 #comanage-iframe-wrapper #subnavigation #cm-person-subnav-links {
-  display: none;  
+  display: none;
 }
 #comanage-iframe-wrapper #content {
   padding: 1rem 2em 0;
@@ -2284,7 +2295,7 @@ a.desc::after {
 .co-grid .co-row {
   border-top: 1px solid var(--cmg-color-bg-005);
 }
-code, 
+code,
 .fixed-width * {
   font-family: "Courier New","Courier",monospace !important;
   color: var(--cmg-color-body-txt);
@@ -2391,7 +2402,7 @@ table.list-mode .read-only-link-container {
   color: var(--cmg-color-txt-soft);
   padding: 0 0.5em;
 }
-table.table-striped tbody tr:nth-child(2n) td { 
+table.table-striped tbody tr:nth-child(2n) td {
   /* bootstrap override */
   background-color: var(--cmg-color-bg-001);
 }
@@ -2569,9 +2580,9 @@ html.dark-mode .btn-default:active {
   text-decoration: none !important;
 }
 .btn-secondary {
-  background-color: var(--cmg-color-btn-004);
+  background-color: var(--cmg-color-btn-bg-004);
   color: var(--cmg-color-txt-inverse);
-  border-color: var(--cmg-color-btn-004);
+  border-color: var(--cmg-color-btn-bg-004);
 }
 .btn-link {
   font-size: 1em;
@@ -2673,7 +2684,7 @@ html.dark-mode .btn-default:active {
 }
 /* DENSITY SETTINGS (from User Settings Menu; Medium is default) */
 /* Density "small" */
-html.density-small th, 
+html.density-small th,
 html.density-small td {
   padding: 0.5em 0.5em 0.5em 1em;
 }

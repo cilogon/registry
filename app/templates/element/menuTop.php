@@ -48,7 +48,7 @@ $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileD
               aria-expanded="false"
               aria-label="<?= __d('menu','menu.user') ?>">
         <span class="top-menu-link-text">
-          <?= $vv_user['username']; ?>
+          <?= $vv_user_roles['person_fullname'] ?? $vv_user_roles['person_identifier'] ?>
         </span>
         <em class="material-symbols icon-adjust" aria-hidden="true">person</em>
       </button>
@@ -59,30 +59,47 @@ $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileD
       ?>
       <!-- Account Dropdown -->
       <div id="user-panel"  class="dropdown-menu <?= (count($vv_available_cos) > 1) ? ' with-co-switcher' : ''; ?>" aria-labelledby="user-panel-toggle">
-        <div id="logout-in-panel">
-          <?= $this->Html->link('<em class="material-symbols" aria-hidden="true">logout</em> ' . __d('operation','logout'),
-            '/auth/logout/logout.php',
-            ['escape'     => false,
-             'id'         => 'logout-in-panel-link',
-             'class'      => 'btn']);
-          ?>
-        </div>
-        <div id="user-panel-user-info">
-          <em class="material-symbols" aria-hidden="true">person</em>
-          <div id="user-panel-cn"><?= $vv_user_roles['person_fullname'] ?? '' ?></div>
-          <div id="user-panel-canvas"><?php
-            if (!empty($vv_user_roles['person_id'])) {
-              print $this->Html->link(
-                __d('menu', 'my.canvas'),
-                ['plugin' => null,
-                  'controller' => 'people',
-                  'action' => $vv_user_roles['co'] || $vv_user_roles['platform'] ? 'edit' : 'view',
-                  $vv_user_roles['person_id']
-                ],
-              );
-            }
-            ?></div>
-          <div id="user-panel-id"><?= $vv_user_roles['person_identifier'] ?></div>
+        <div id="user-panel-user">
+          <div id="user-panel-user-info">
+            <?php if (!empty($vv_user_roles['person_id'])): ?>
+              <?php
+                // Generate the link to the Person canvas
+                $canvasUrl = $this->Url->build(
+                  ['plugin' => null,
+                   'controller' => 'people',
+                   'action' => $vv_user_roles['co'] || $vv_user_roles['platform'] ? 'edit' : 'view',
+                   $vv_user_roles['person_id']
+                  ]
+                );
+              ?>
+              <a href="<?= $canvasUrl ?>" aria-label="<?= __d('menu', 'my.canvas') ?>">
+            <?php endif; ?>
+            <div id="user-panel-user-container">
+              <div id="user-panel-user-icon">
+                <em class="material-symbols" aria-hidden="true">person</em>
+              </div>
+              <div id="user-panel-user-labels">
+                <?php if (!empty($vv_user_roles['person_fullname'])): ?>
+                  <div id="user-panel-cn"><?= $vv_user_roles['person_fullname'] ?></div>
+                <?php endif; ?>
+                <div id="user-panel-id"><?= $vv_user_roles['person_identifier'] ?></div>
+              </div>
+            </div>
+            <?php if (!empty($vv_user_roles['person_id'])): ?>
+              <div id="user-panel-canvas-link">
+                <?= __d('menu', 'my.canvas') ?>
+              </div>
+              </a>
+            <?php endif; ?>
+          </div>
+          <div id="logout-in-panel">
+            <?= $this->Html->link('<em class="material-symbols" aria-hidden="true">logout</em> ' . __d('operation','logout'),
+              '/auth/logout/logout.php',
+              ['escape'     => false,
+               'id'         => 'logout-in-panel-link',
+               'class'      => 'btn']);
+            ?>
+          </div>
         </div>
         <!-- Density and dark mode controls-->
         <div id="user-panel-user-settings" class="dropdown">

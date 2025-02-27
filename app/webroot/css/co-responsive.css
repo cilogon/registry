@@ -61,13 +61,14 @@
     min-width: 400px;
     max-width: unset;
   }
-  #user-panel-user-info {
-    border-top: none;
+  #user-panel-user-icon {
+    display: block;
   }
-  #logout-in-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
+  #user-panel-user-container {
+    display: flex;
+  }
+  #user-panel-canvas-link {
+    margin-left: 0.5rem;
   }
   /* FORMS */
   ul.form-list li .field {

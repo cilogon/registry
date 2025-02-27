@@ -220,7 +220,7 @@ msgid "person.canvas"
 msgstr "Person Canvas
 
 msgid "my.canvas"
-msgstr "My Canvas"
+msgstr "my canvas"
 
 msgid "registries"
 msgstr "Available {0} Registries"
