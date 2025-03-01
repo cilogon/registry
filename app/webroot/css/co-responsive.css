@@ -100,13 +100,12 @@
   ul#view_Petitions.form-list .field {
     align-items: start;
   }
-  .petition-attrs h3 {
-    padding: 0.75em 1em 0;
-  }
   .petition-attrs > ul {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border: 1em solid var(--cmg-color-bg-002);
+    columns: 2;
+    column-rule: 1px solid var(--cmg-color-bg-005);
+  }
+  .petition-attrs > ul > li {
+    break-inside: avoid;
   }
   /* PERSON CANVAS / CARDS */
   .co-cards .field-data-container {
@@ -647,6 +646,11 @@
     padding: 0 2em;
     border: 1px solid var(--cmg-color-bg-006);
     border-radius: 1em;
+  }
+  /* PETITIONS */
+  .petition-key-value {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
 

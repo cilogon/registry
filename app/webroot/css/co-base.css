@@ -1704,7 +1704,7 @@ table.duet-date__table tr th:first-child,
 table.duet-date__table tr td:first-child,
 table.duet-date__table th,
 table.duet-date__table td {
-  padding: unset;
+  padding: unset !important;
 }
 table.duet-date__table th.duet-date__table-header {
   padding: 8px;
@@ -1964,8 +1964,17 @@ body.start .submit {
 #dispatch-list-container > ul {
   border-top: none;
 }
+#dispatch-list-container ul {
+  padding-left: 0;
+}
 #dispatch-list-container li {
   border: none;
+}
+#dispatch-list-container li.petition-key-value {
+  padding: 0.5rem 0;
+}
+#dispatch-list-container li.env-source-key-value-newgroup {
+  border-top: 1px solid var(--cmg-color-bg-005);
 }
 #dispatch-list-container .field,
 #dispatch-list-container fieldset {
@@ -2116,6 +2125,15 @@ body.start .submit {
 ul#view_Petitions.form-list {
   border-top: none;
 }
+ul#view_Petitions.form-list li {
+  overflow-x: unset;
+}
+ul#view_Petitions.form-list li.history-table {
+  overflow-x: auto;
+}
+ul#view_Petitions ul li:focus-within {
+  background: unset;
+}
 ul.form-list li.petition-status-title {
   margin-top: 0.5rem;
   margin-bottom: -1rem;
@@ -2151,29 +2169,41 @@ ul.form-list li.petition-enrollee-items .petition-inline-value,
 ul.form-list li.petition-enrollee-items .petition-inline-value a {
   font-family: var(--cmg-font-semibold);
 }
+.env-source-key {
+  font-size: 0.9em;
+}
+ul#view_Petitions.form-list li.env-source-key-value-newgroup {
+  border-top: 1px solid var(--cmg-color-bg-005);
+}
 .petition-step-modified {
   margin-right: 1em;
 }
 .petition-attrs {
   padding: 0;
+  box-shadow: inset 0 0 0.5rem 0 rgba(0,0,0,0.1);
 }
 .petition-attrs h3 {
-  padding: 0.75em;
+  padding: 1rem 1rem 0;
   margin: 0;
   font-size: 1.2em;
-  background-color: var(--cmg-color-bg-002);
+  font-weight: 600;
+  border-top: 1px solid var(--cmg-color-bg-006);
 }
 .petition-attrs h4 {
+  font-size: 0.9em;
   margin: 0 0 0.25em;
 }
 .petition-attrs > ul {
-  padding: 0;
-  border: 0.75em solid var(--cmg-color-bg-002);
+  padding: 0 0 1rem;
   border-top: none;
 }
 .petition-attrs > ul > li {
-  padding: 0.75em;
+  padding: 0.5rem 1rem;
   border: none;
+  background-color: unset;
+}
+.petition-attrs > ul.env-source-attrs {
+  margin-top: 1rem;
 }
 ul.petition-attrs-subset {
   padding: 0;

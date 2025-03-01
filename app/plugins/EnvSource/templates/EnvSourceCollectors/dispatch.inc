@@ -31,16 +31,29 @@ declare(strict_types = 1);
 if($vv_action == 'dispatch') {
   // Make the Form fields editable
   $this->Field->enableFormEditMode();
-
+  ksort($vv_env_source_vars);
+  $previousKey = '';
   // Render the parsed variables
-
-  print "<p>" . __d('env_source', 'information.review') . "</p>";
-
-  print "<ul>";
-
-  foreach($vv_env_source_vars as $k => $v) {
-    print "<li>" . __d('env_source', 'field.EnvSources.'.$k) . ": " . $v . "</li>\n";
-  }
-
-  print "</ul>";
+?>  
+  <p><?= __d('env_source', 'information.review') ?> </p>
+  <ul>
+    <?php foreach($vv_env_source_vars as $k => $v): ?>
+      <?php
+        $liClass = 'petition-key-value';
+        if(substr($previousKey,0,7) != substr($k, 0, 7)) {
+          $liClass .= ' env-source-key-value-newgroup';
+        }
+      ?>
+      <li class="<?= $liClass ?>">
+        <div class="env-source-key">
+          <?= __d('env_source', 'field.EnvSources.'.$k) ?>
+        </div>
+        <div class="env-source-value">
+          <?= $v ?>
+        </div>
+      </li>
+      <?php $previousKey = $k ?>
+    <?php endforeach; ?>
+  </ul>
+<?php
 }

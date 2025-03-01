@@ -34,14 +34,46 @@ if (empty($vv_petition_env_identities)) {
   return;
 }
 
-$env_attributes = json_decode($vv_petition_env_identities->env_source_identity->env_attributes);
-
+$env_attributes = json_decode($vv_petition_env_identities->env_source_identity->env_attributes, true);
+ksort($env_attributes);
+$previousKey = '';
 ?>
 
-<ul>
-  <li>Env Source Identity ID: <?= $vv_petition_env_identities->env_source_identity->id ?></li>
-  <li>Source Key: <?= $vv_petition_env_identities->env_source_identity->source_key ?></li>
-  <?php foreach($env_attributes as $k => $v): ?>
-    <li><?= __d('env_source', 'field.EnvSources.'.$k) . ": " . $v ?></li>
+<ul class="env-source-attrs">
+  <li class="petition-key-value env-source-key-value-newgroup">
+    <div class="env-source-key">
+      Env Source Identity ID:
+    </div>
+    <div class="env-source-value">
+      <?= $vv_petition_env_identities->env_source_identity->id ?>
+    </div>
+  </li>
+  <li class="petition-key-value">
+    <div class="env-source-key">
+      Source Key: 
+    </div>
+    <div class="env-source-value">
+      <?= $vv_petition_env_identities->env_source_identity->source_key ?>
+    </div>
+  </li>
+  
+  <?php
+    foreach($env_attributes as $k => $v): 
+  ?>
+    <?php
+      $liClass = 'petition-key-value';
+      if(substr($previousKey,0,7) != substr($k, 0, 7)) {
+        $liClass .= ' env-source-key-value-newgroup';
+      }
+    ?>  
+    <li class="<?= $liClass ?>">
+      <div class="env-source-key">
+        <?= __d('env_source', 'field.EnvSources.'.$k) ?>
+      </div>
+      <div class="env-source-value">
+        <?= $v ?>
+      </div>
+    </li>
+    <?php $previousKey = $k ?>
   <?php endforeach ?>
 </ul>

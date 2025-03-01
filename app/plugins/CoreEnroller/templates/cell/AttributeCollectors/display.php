@@ -63,10 +63,9 @@ if (empty($vv_enrollment_attributes)) {
           ['controller' => \App\Lib\Util\StringUtilities::foreignKeyToController($attribute->attribute), 'action' => 'edit', $attr->value]);
       }
       ?>
-      <li class="petition-attr-<?= $this->Petition->getClassPostfixFromAttributeName($attribute->attribute) ?>">
+      <li class="petition-key-value petition-attr-<?= $this->Petition->getClassPostfixFromAttributeName($attribute->attribute) ?>">
         <h4 class="petition-attr-label"><?= $attribute->label ?></h4>
-        <div class="petition-attr-value"><?= $value ?>
-        </div>
+        <div class="petition-attr-value"><?= $value ?></div>
       </li>
     <?php else: ?>
       <li class="petition-attr-<?= $this->Petition->getClassPostfixFromAttributeName($attribute->attribute) ?>">

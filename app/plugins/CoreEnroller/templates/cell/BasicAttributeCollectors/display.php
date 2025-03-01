@@ -58,7 +58,7 @@ if($vv_obj->id === null) {
       </li>
     </ul>
   </li>
-  <li class="petition-attr-email">
+  <li class="petition-key-value petition-attr-email">
     <h4 class="petition-attr-label">Email Address</h4>
     <div class="petition-attr-value"><?= $vv_petition_basic_attribute_set['mail'] ?? "" ?></div>
   </li>
