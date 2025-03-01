@@ -2172,6 +2172,9 @@ ul.form-list li.petition-enrollee-items .petition-inline-value a {
 .env-source-key {
   font-size: 0.9em;
 }
+.env-source-value {
+  word-break: break-all;
+}
 ul#view_Petitions.form-list li.env-source-key-value-newgroup {
   border-top: 1px solid var(--cmg-color-bg-005);
 }
