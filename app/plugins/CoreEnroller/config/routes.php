@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Email Verifiers Petition Fields
+ * ApiSource plugin specific routes.
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,28 +20,34 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+use Cake\Routing\Route\DashedRoute;
 
-print $this->element('flash', []);
+// In general, we're probably trying to set up API routes if we're doing
+// something within a plugin, but not necessarily. API routes are a subset
+// of Cake routes, so either can be specified here.
 
-// This view is intended to work with dispatch
-if ($vv_action !== 'dispatch') {
-  return;
-}
+// Core Enroller
 
-if ($vv_op == 'index') {
-  $this->set('vv_include_cancel', false);
-  $this->set('vv_submit_button_label', __d('operation', 'finish'));
-  print $this->element('CoreEnroller.emailVerifiers/list');
-} elseif ($vv_op == 'verify') {
-  $this->set('vv_submit_button_label', __d('core_enroller', 'op.EmailVerifiers.verify'));
-  $this->set('vv_include_cancel', true);
-  print $this->element('CoreEnroller.emailVerifiers/verify');
-} else {
-  print __d('error', 'something.went.wrong');
-}
+
+$routes->plugin(
+  'CoreEnroller',
+  ['path' => '/core-enroller/'],
+  function ($routes) {
+    $routes->setRouteClass(DashedRoute::class);
+
+    $routes->get(
+      'email-verifiers/resend',
+      [
+        'plugin' => 'CoreEnroller',
+        'controller' => 'EmailVerifiers',
+        'action' => 'resend',
+      ])
+      ->setPass(['id'])
+      ->setPatterns(['id' => '[0-9]+']);
+  }
+);

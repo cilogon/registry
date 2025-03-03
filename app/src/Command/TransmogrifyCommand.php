@@ -620,7 +620,7 @@ class TransmogrifyCommand extends Command {
       $err = 0;
       
       // Loop over each row from the inbound table.
-      while($row = $stmt->fetch()) {
+      while($row = $stmt->fetchAssociative()) {
         if(!empty($row[ $this->tables[$t]['displayField'] ])) {
           $io->verbose("$t " . $row[ $this->tables[$t]['displayField'] ]);
         }

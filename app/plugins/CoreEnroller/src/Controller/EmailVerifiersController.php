@@ -29,11 +29,13 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Controller;
 
-use Cake\ORM\TableRegistry;
 use App\Controller\StandardEnrollerController;
 use App\Lib\Enum\PetitionStatusEnum;
 use App\Lib\Util\StringUtilities;
+use Cake\Http\Exception\BadRequestException;
+use Cake\ORM\TableRegistry;
 use CoreEnroller\Lib\Enum\VerificationModeEnum;
+use \App\Lib\Enum\HttpStatusCodesEnum;
 
 class EmailVerifiersController extends StandardEnrollerController {
   public $paginate = [
@@ -60,7 +62,56 @@ class EmailVerifiersController extends StandardEnrollerController {
       $this->set('vv_bc_parent_primarykey', $this->EmailVerifiers->EnrollmentFlowSteps->getPrimaryKey());
     }
     
+    if ($this->getRequest()->getQuery("op") == "verify" || $this->getRequest()->getQuery("op") == "index") {
+      // This will suppress the default behavior. By default, we print the submit button in the
+      // unorderedList.php element. But for the verify view we want to override and customize
+      $this->set('suppress_submit', true);
+    }
+
     return parent::beforeRender($event);
+  }
+
+  /**
+   * Resend the email verification request.
+   *
+   * @param string $id Email Verifier ID
+   * @throws BadRequestException If the request is not AJAX
+   * @throws \InvalidArgumentException If required query parameters are missing
+   * @return void
+   * @since COmanage Registry v5.1.0
+   */
+  public function resend($id)
+  {
+
+    $this->viewBuilder()->setClassName('Json');
+
+    if (!$this->getRequest()->is('ajax')) {
+      throw new BadRequestException(__('Bad Request'));
+    }
+
+    if (!$this->getRequest()->getQuery('petition_id') || !$this->getRequest()->getQuery('m')) {
+      throw new \InvalidArgumentException(__('error', 'invalid.request'));
+    }
+
+    // Generate a Verification request and send it
+    $Petitions = TableRegistry::getTableLocator()->get('Petitions');
+    $petition = $Petitions->get($this->getRequest()->getQuery('petition_id'));
+    $cfg = $this->EmailVerifiers->get($id);
+    $mail = StringUtilities::urlbase64decode($this->requestParam('m'));
+    $status = $this->EmailVerifiers->sendVerificationRequest($cfg, $petition, $mail, true);
+
+    if ($status) {
+      return $this->response
+        ->withType('application/json')
+        ->withStatus(HttpStatusCodesEnum::HTTP_OK)
+        ->withStringBody(json_encode(['status' => 'ok']));
+    }
+
+
+    return $this->response
+      ->withType('application/json')
+      ->withStatus(HttpStatusCodesEnum::HTTP_INTERNAL_SERVER_ERROR)
+      ->withStringBody(json_encode(['status' => 'failed']));
   }
 
   /**

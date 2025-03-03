@@ -98,7 +98,22 @@ msgid "information.EmailVerifiers.A"
 msgstr "The following email addresses have been found in this Petition. You must verify all of them in order to proceed to the next Enrollment Step."
 
 msgid "information.EmailVerifiers.code_sent"
-msgstr "A code has been sent to {0}. Please enter it below. You may also request a new code if you haven't received it after a few minutes, or cancel verification and return to the list of available Email Addresses."
+msgstr "A code has been sent to <strong>{0}</strong>. Please enter it below. You may also request a new code if you haven't received it after a few minutes, or cancel verification and return to the list of available Email Addresses."
+
+msgid "information.EmailVerifiers.resend-pre-text"
+msgstr "Didn't receive the code?"
+
+msgid "information.EmailVerifiers.resend"
+msgstr "Resend"
+
+msgid "information.EmailVerifiers.sending"
+msgstr "Sending"
+
+msgid "information.EmailVerifiers.success"
+msgstr "New Code Submitted!"
+
+msgid "information.EmailVerifiers.abort"
+msgstr "Abort"
 
 msgid "field.AttributeCollectors.valid_through.default.after.desc"
 msgstr "Days After Finalization"
@@ -258,3 +273,6 @@ msgstr "Invitation Declined at {0}"
 
 msgid "result.InvitationAccepters.none"
 msgstr "No response to invitation yet"
+
+msgid "op.EmailVerifiers.verify"
+msgstr "Verify Email"

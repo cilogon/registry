@@ -31,6 +31,10 @@ declare(strict_types = 1);
 $modelsName = $this->name;
 // $tablename = models
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
+// Populate the AutoViewVars. These are the same we do for the EnrollmentAttributes configuration view
+$this->Petition->populateAutoViewVars();
+// We just populated the AutoViewVars. Add them to the current context
+extract($this->viewVars);
 
 // $vv_template_path will be set for plugins
 $templatePath = $vv_template_path ?? ROOT . DS . 'templates' . DS . $modelsName;
@@ -76,7 +80,9 @@ $action_args['vv_actions'][] = [
 // Set the Include file name
 // Will be used by the unorderedList element below
 $this->set('vv_fields_inc', 'dispatch.inc');
-$this->set('vv_submit_button_label', __d('operation', 'continue'));
+if (empty($vv_submit_button_label)) {
+  $this->set('vv_submit_button_label', __d('operation', 'continue'));
+}
 
 // By default, the form will POST to the current controller
 // Note we need to open the form for view so Cake will autopopulate values

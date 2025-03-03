@@ -85,7 +85,7 @@ class EmailVerifiersTable extends Table {
 
     $this->setPrimaryLink('enrollment_flow_step_id');
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['dispatch', 'display']);
+    $this->setAllowLookupPrimaryLink(['dispatch', 'display', 'resend']);
     
     // All the tabs share the same configuration in the ModelTable file
     $this->setTabsConfig(
@@ -112,6 +112,14 @@ class EmailVerifiersTable extends Table {
         'type' => 'select',
         'model' => 'MessageTemplates',
         'where' => ['context' => \App\Lib\Enum\MessageTemplateContextEnum::Verification]
+      ],
+      'cosettings' => [
+        'type' => 'auxiliary',
+        'model' => 'CoSettings'
+      ],
+      'types' => [
+        'type' => 'auxiliary',
+        'model' => 'Types'
       ]
     ]);
 
@@ -122,6 +130,7 @@ class EmailVerifiersTable extends Table {
         'dispatch' => true,
         'display' =>  true,
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'resend' =>  true,
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
@@ -412,8 +421,10 @@ class EmailVerifiersTable extends Table {
   public function sendVerificationRequest(
     EmailVerifier $emailVerifier, 
     Petition      $petition,
-    string        $mail
-  ) {
+    string        $mail,
+    bool          $resend = false,
+  ): bool
+  {
     // First check if there is already an existing Petition Verification.
     // If so, use that to get the existing Verification.
 
@@ -427,21 +438,7 @@ class EmailVerifiersTable extends Table {
                                            ])
                                            ->first();
 
-    if(!empty($pVerification)) {
-      // Request a new code
-
-      $this->llog('debug', "Sending replacement verification code to $mail for Petition " . $petition->id);
-
-      $verificationId = $Verifications->requestCodeForPetition(
-        $petition->id,
-        $mail,
-        $emailVerifier->message_template_id,
-        $emailVerifier->request_validity,
-        $pVerification->verification_id
-      );
-
-      // There's nothing to update in the Petition Verification
-    } else {
+    if (empty($pVerification)) {
       // Request Verification and create an associated Petition Verification
 
       $this->llog('debug', "Sending verification code to $mail for Petition " . $petition->id);
@@ -458,8 +455,28 @@ class EmailVerifiersTable extends Table {
           'petition_id'     => $petition->id,
           'mail'            => $mail,
           'verification_id' => $verificationId
-      ]));
+        ]));
+      return true;
     }
+
+    if ($resend) {
+      // Request a new code
+
+      $this->llog('debug', "Sending replacement verification code to $mail for Petition " . $petition->id);
+
+      $verificationId = $Verifications->requestCodeForPetition(
+        $petition->id,
+        $mail,
+        $emailVerifier->message_template_id,
+        $emailVerifier->request_validity,
+        $pVerification->verification_id
+      );
+      // There's nothing to update in the Petition Verification
+
+      return true;
+    }
+
+    return false;
   }
 
   /**

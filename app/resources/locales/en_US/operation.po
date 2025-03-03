@@ -180,6 +180,9 @@ msgstr "Sync Record to CO"
 msgid "filter"
 msgstr "Filter"
 
+msgid "finish"
+msgstr "Finish"
+
 msgid "first"
 msgstr "First"
 
