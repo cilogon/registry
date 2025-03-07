@@ -104,7 +104,10 @@ class EnvSourceIdentitiesTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'source_key', true);
 
-    $this->registerStringValidation($validator, $schema, 'env_attributes', false);
+    // We don't have any meaningful validation rules for env_attributes because it is
+    // a text field (not a varchar with a max length) and because the value comes from
+    // an external system.
+    $validator->allowEmptyString('env_attributes');
 
     return $validator;
   }

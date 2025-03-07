@@ -1,6 +1,6 @@
 <?php
   /**
-   * COmanage Registry Person Role Mappers Plugin Edit Navigation
+   * COmanage Registry Identifier Mappers Plugin Edit Navigation
    *
    * Portions licensed to the University Corporation for Advanced Internet
    * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,10 +21,10 @@
    *
    * @link          https://www.internet2.edu/comanage COmanage Project
    * @package       registry
-   * @since         COmanage Registry v5.0.0
+   * @since         COmanage Registry v5.1.0
    * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
    */
-
+  
 $subnav = [
   'name' => 'plugin',
   'active' => 'plugin'
@@ -33,12 +33,12 @@ $subnav = [
 $topLinks[] = [
   'icon'  => 'transform',
   'order' => 'Default',
-  'label' => __d('pipeline_toolkit', 'controller.PersonRoleMappings', [99]),
+  'label' => __d('pipeline_toolkit', 'controller.LoginIdentifierTypes', [99]),
   'link'  => [
     'plugin'                => 'PipelineToolkit',
-    'controller'            => 'PersonRoleMappings',
+    'controller'            => 'LoginIdentifierTypes',
     'action'                => 'index',
-    'person_role_mapper_id' => $vv_obj->id
+    'identifier_mapper_id'  => $vv_obj->id
   ],
   'class' => ''
 ];

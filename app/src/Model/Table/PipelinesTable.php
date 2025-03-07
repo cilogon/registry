@@ -389,6 +389,76 @@ class PipelinesTable extends Table {
   }
 
   /**
+   * Dispatch Petition Plugins (Flanges).
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  Pipeline   $pipeline     Pipeline configuration
+   * @param  string     $flangeMode   Flange Mode Enum
+   * @param  string     $modelName    Model Name (eg: TelephoneNumbers)
+   * @param  array      $newdata      Array of data to pass to the plugin
+   * @param  Entity     $entity       Original Entity data (unmodified from the External Identity)
+   * @return array                    Updated array as modified by any relevant Flanges
+   */
+
+  protected function dispatchFlanges(
+    \App\Model\Entity\Pipeline    $pipeline,
+    string                        $flangeMode,
+    string                        $modelName,
+    array                         $newdata,
+    ?\Cake\ORM\Entity             $entity=null
+  ): array {
+    $ret = $newdata;
+
+    if(!empty($pipeline->flanges)) {
+      // These should already be ordered by ordr. Note that ordr operates a bit
+      // unexpectedly here... the later flanges to get called can override the
+      // values returned by earlier flanges, since we always call all active
+      // flanges, so the later flanges take precedence over the earlier ones.
+
+      // We support slightly different interfaces per context for clarify
+      $fn = "unknown";
+
+      switch($flangeMode) {
+        case FlangeModeEnum::BuildPersonRole:
+          $fn = 'buildPersonRole';
+          break;
+        case FlangeModeEnum::BuildRelatedAttributes:
+          $fn = 'buildRelatedAttributes';
+          break;
+        case FlangeModeEnum::RetrieveExternalIdentity:
+        default:
+          throw new \RuntimeException('NOT IMPLEMENTED');
+      }
+
+      foreach($pipeline->flanges as $flange) {
+        if($flange->status == $flangeMode) {
+          $this->llog('trace', 'Running Flange ' . $flange->description . ' for Flange Mode ' . $flangeMode);
+
+          $PluginTable = TableRegistry::getTableLocator()->get($flange->plugin);
+
+          if(!method_exists($PluginTable, $fn)) {
+            throw new \RuntimeException(__d('Pipelines.plugin.notimpl', [$fn]));
+          }
+
+          // The plugin should modify $newdata (via our local copy $ret) as needed, then return it
+          switch($fn) {
+            case 'buildPersonRole':
+              $ret = $PluginTable->buildPersonRole($flange, $ret, $entity);
+              break;
+            case 'buildRelatedAttributes':
+              $ret = $PluginTable->buildRelatedAttributes($flange, $ret, $modelName, $entity);
+              break;
+            default:
+              throw new \RuntimeException('NOT IMPLEMENTED');
+          } 
+        }
+      }
+    }
+
+    return $ret;
+  }
+
+  /**
    * Copy the data from an entity and filter metadata, returning an array
    * suitable for creating a new entity. Related models are also removed.
    * 
@@ -1593,7 +1663,15 @@ class PipelinesTable extends Table {
           // Do we need to create a Verification record for this entity
           // (if it is an email address)?
           $createVerification = false;
-
+          
+          $newdata = $this->dispatchFlanges(
+            $pipeline, 
+            FlangeModeEnum::BuildRelatedAttributes,
+            $model, 
+            $newdata, 
+            $eientity
+          );
+          
           if($found) {
             // There is an existing record, update it (if it changed) _unless_
             // the attribute record is frozen.
@@ -1662,6 +1740,13 @@ class PipelinesTable extends Table {
                 $createVerification = true;
               }
             }
+
+            $newdata = $this->dispatchFlanges(
+              $pipeline, 
+              FlangeModeEnum::BuildRelatedAttributes,
+              $model, 
+              $newdata
+            );
 
             $newentity = $this->Cos->People->$model->newEntity($newdata);
             $this->Cos->People->$model->saveOrFail($newentity);
@@ -1814,26 +1899,13 @@ class PipelinesTable extends Table {
           $newdata['status'] = StatusEnum::Active;
         }
 
-        if(!empty($pipeline->flanges)) {
-          // These should already be order by ordr. Note that ordr operates a bit
-          // unexpectedly here... the later flanges to get called can override the
-          // values returned by earlier flanges, since we always call all active
-          // flanges, so the later flanges take precedence over the earlier ones.
-          foreach($pipeline->flanges as $flange) {
-            if($flange->status == FlangeModeEnum::BuildPersonRole) {
-              $this->llog('trace', 'Running Flange ' . $flange->description . ' for BuildPersonRole');
-
-              $PluginTable = TableRegistry::getTableLocator()->get($flange->plugin);
-
-              if(!method_exists($PluginTable, 'buildPersonRole')) {
-                throw new \RuntimeException(__d('Pipelines.plugin.notimpl', ['buildPersonRole']));
-              }
-
-              // The plugin should modify $newdata as needed, then return it
-              $newdata = $PluginTable->buildPersonRole($flange, $newdata, $eirentity);
-            }
-          }
-        }
+        $newdata = $this->dispatchFlanges(
+          $pipeline,
+          FlangeModeEnum::BuildPersonRole,
+          'PersonRole',
+          $newdata,
+          $eirentity
+        );
 
         // Do we have a corresponding record on the Person?
         $found = $curentities->firstMatch([$sourcefk => $eirentity->id]);
@@ -1880,6 +1952,14 @@ class PipelinesTable extends Table {
               $rsourcefk = $this->Cos->People->PersonRoles->$t->sourceForeignKey();
               $newdata[$rsourcefk] = $relatedEntity->id;
               $newdata['person_role_id'] = $found->id ?? $newentity->id;
+
+              $newdata = $this->dispatchFlanges(
+                $pipeline, 
+                FlangeModeEnum::BuildRelatedAttributes,
+                $model, 
+                $newdata, 
+                $eientity
+              );
 
               // See if we have a correponding Person Role entity, but only if
               // we're working with an existing Person Role

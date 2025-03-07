@@ -156,6 +156,9 @@ msgstr "Deleted"
 msgid "FlangeModeEnum.EI"
 msgstr "Retrieve External Identity"
 
+msgid "FlangeModeEnum.MV"
+msgstr "Build Related Attributes"
+
 msgid "FlangeModeEnum.PR"
 msgstr "Build Person Role"
 

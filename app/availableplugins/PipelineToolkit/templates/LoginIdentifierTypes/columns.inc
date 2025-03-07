@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Flange Mode Enum
+ * COmanage Registry Login Identifier Types Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,17 +21,28 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+$indexColumns = [
+  // We need a field that is clickable, but we all we have left to use is "id"
+  'id' => [
+    'type' => 'link'
+  ],
+  'type_id' => [
+    'type' => 'fk'
+  ],
+  'login' => [
+    'type' => 'boolean',
+    'class' => 'YesBooleanEnum'
+  ]
+];
 
-namespace App\Lib\Enum;
-
-class FlangeModeEnum extends StandardEnum {
-  const Disabled                  = 'X';
-  const BuildPersonRole           = 'PR';
-  const BuildRelatedAttributes    = 'MV';
-  const RetrieveExternalIdentity  = 'EI';
-}
+/*
+// When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index. 
+$bulkActions = [
+  // TODO: develop bulk actions. For now, use a placeholder.
+  'delete' => true
+];
+*/

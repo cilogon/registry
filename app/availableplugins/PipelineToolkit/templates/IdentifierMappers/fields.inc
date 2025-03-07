@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Flange Mode Enum
+ * COmanage Registry Identifier Mappers Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,17 +21,10 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
-
-namespace App\Lib\Enum;
-
-class FlangeModeEnum extends StandardEnum {
-  const Disabled                  = 'X';
-  const BuildPersonRole           = 'PR';
-  const BuildRelatedAttributes    = 'MV';
-  const RetrieveExternalIdentity  = 'EI';
-}
+// There are currently no directly configurable fields for this model.)
+$suppress_submit = true;
+?>

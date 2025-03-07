@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Flange Mode Enum
+ * COmanage Registry Identifier Mapper Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,18 +20,30 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Lib\Enum;
+namespace PipelineToolkit\Model\Entity;
 
-class FlangeModeEnum extends StandardEnum {
-  const Disabled                  = 'X';
-  const BuildPersonRole           = 'PR';
-  const BuildRelatedAttributes    = 'MV';
-  const RetrieveExternalIdentity  = 'EI';
+use Cake\ORM\Entity;
+
+class IdentifierMapper extends Entity {
+  /**
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * Note that when '*' is set to true, this allows all unspecified fields to
+   * be mass assigned. For security purposes, it is advised to set '*' to false
+   * (or remove it), and explicitly make individual fields accessible as needed.
+   *
+   * @var array<string, bool>
+   */
+  protected $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
+  ];
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Flange Mode Enum
+ * COmanage Registry Identifier Mappers Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,18 +20,21 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Lib\Enum;
+namespace PipelineToolkit\Controller;
 
-class FlangeModeEnum extends StandardEnum {
-  const Disabled                  = 'X';
-  const BuildPersonRole           = 'PR';
-  const BuildRelatedAttributes    = 'MV';
-  const RetrieveExternalIdentity  = 'EI';
+use App\Controller\StandardPluginController;
+
+class IdentifierMappersController extends StandardPluginController {
+  public $paginate = [
+    'order' => [
+      'IdentifierMappers.id' => 'asc'
+    ]
+  ];
 }

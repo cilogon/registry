@@ -30,20 +30,22 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 trait UpsertTrait {
-  use \App\Lib\Traits\LabeledLogTrait;
-
   /**
    * Perform an upsert.
    * 
    * @since  COmanage Registry v5.1.0
    * @param  array                            $data         Data to persist
    * @param  array                            $whereClause  Conditions to search for current entity
+   * @param  bool                             $orFail       If true, use saveOrFail() instead of save()
    * @return Cake\Datasource\EntityInterface|false          Persisted entity, or false on failure
+   * @throws Cake\ORM\Exception\PersistenceFailedException
    * @throws Cake\ORM\Exception\RolledbackTransactionException
    */
+
   public function upsert(
     array $data,
-    array $whereClause
+    array $whereClause,
+    bool  $orFail=false
   ): \Cake\Datasource\EntityInterface|false {
     // First check if we have an entity matching $whereClause
     $entity = $this->find()
@@ -61,12 +63,7 @@ trait UpsertTrait {
       $entity = $this->newEntity($data);
     }
 
-    if (!empty($entity->getErrors())) {
-      $this->llog('error', "Save failed for {$this->getAlias()}: " . print_r($entity->getErrors(), true));
-      throw new \RuntimeException(__d('error', 'save', [$this->getAlias()]));
-    }
-
-    return $this->save($entity);
+    return $orFail ? $this->saveOrFail($entity) : $this->save($entity);
   }
 
   /**
@@ -83,12 +80,6 @@ trait UpsertTrait {
     array $data,
     array $whereClause
   ): \Cake\Datasource\EntityInterface {
-    $entity = $this->upsert($data, $whereClause);
-
-    if($entity === false) {
-      throw new Cake\ORM\Exception\PersistenceFailedException($entity, ['upsert']);
-    }
-
-    return $entity;
+    return $this->upsert($data, $whereClause, true);
   }
 }

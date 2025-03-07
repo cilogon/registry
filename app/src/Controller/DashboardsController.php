@@ -123,7 +123,7 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ],
       __d('controller', 'Pipelines', [99]) => [
-        'icon'          => 'cable',
+        'icon'          => 'valve',
         'controller'    => 'pipelines',
         'action'        => 'index'
       ],

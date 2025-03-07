@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Flange Mode Enum
+ * COmanage Registry Login Identifier Types Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,17 +21,18 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
-
-namespace App\Lib\Enum;
-
-class FlangeModeEnum extends StandardEnum {
-  const Disabled                  = 'X';
-  const BuildPersonRole           = 'PR';
-  const BuildRelatedAttributes    = 'MV';
-  const RetrieveExternalIdentity  = 'EI';
+// This view does not support read-only
+if($vv_action == 'add' || $vv_action == 'edit') {
+  foreach (['type_id',
+            'login'
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
 }

@@ -359,7 +359,7 @@ class EnvSourceCollectorsTable extends Table {
 
     $EnvSourceIdentities = TableRegistry::getTableLocator()->get('EnvSource.EnvSourceIdentities');
 
-    $esi = $EnvSourceIdentities->upsert(
+    $esi = $EnvSourceIdentities->upsertOrFail(
       data: [
         'env_source_id'   => $envSource->id,
         'source_key'      => $sourceKey,
@@ -390,7 +390,7 @@ class EnvSourceCollectorsTable extends Table {
 //     v4 Query mode becomes, and so should maybe be more general (like
 //     AR-ExternalIdentitySourceRecord-1).
 
-    $pei = $this->PetitionEnvIdentities->upsert(
+    $pei = $this->PetitionEnvIdentities->upsertOrFail(
       data: [
         'petition_id' => $petitionId,
         'env_source_collector_id' => $id,

@@ -1,11 +1,35 @@
 {
   "types": {
     "pipeline": [
+      "IdentifierMappers",
       "PersonRoleMappers"
     ]
   },
   "schema": {
     "tables": {
+      "identifier_mappers": {
+        "columns": {
+          "id": {},
+          "flange_id": { "type": "integer", "foreignkey": { "table": "flanges", "column": "id" } }
+        },
+        "indexes": {
+          "identifier_mappers_i1": { "columns": [ "flange_id" ] }
+        }
+      },
+
+      "login_identifier_types": {
+        "columns": {
+          "id": {},
+          "identifier_mapper_id": { "type": "integer", "foreignkey": { "table": "identifier_mappers", "column": "id" } },
+          "type_id": {},
+          "login": { "type": "boolean" }
+        },
+        "indexes": {
+          "login_identifier_types_i1": { "columns": [ "identifier_mapper_id"] },
+          "login_identifier_types_i2": { "needed": false, "columns": [ "type_id"] }
+        }
+      },
+
       "person_role_mappers": {
         "columns": {
           "id": {},
