@@ -232,9 +232,10 @@ class AttributeCollectorsTable extends Table {
       return in_array($attr['enrollment_attribute']['attribute'], $groupAttributes);
     })->toArray();
 
-    $groupMemberObj = TableRegistry::getTableLocator()->get('GroupMembers');
-    $groupMemberObj->saveAttributeCollectorPetitionAttributes($person->id, $fieldsForGroup);
-
+    if (!empty($fieldsForGroup)) {
+      $groupMemberObj = TableRegistry::getTableLocator()->get('GroupMembers');
+      $groupMemberObj->saveAttributeCollectorPetitionAttributes($person->id, $fieldsForGroup);
+    }
     // Save the Date Of Birth. This is the only one that is single valued
     // and goes under the Person
 
