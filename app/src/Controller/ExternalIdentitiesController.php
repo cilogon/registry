@@ -31,6 +31,7 @@ namespace App\Controller;
 
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use Cake\ORM\TableRegistry;
 
 // Use extend MVEAController for breadcrumb rendering. ExternalIdentities is
 // sort of an MVEA, so maybe it makes sense to treat it as such.
@@ -44,6 +45,34 @@ class ExternalIdentitiesController extends MVEAController {
       'Names.family'
     ]
   ];
+
+  /**
+   * Adopt an External Identity.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string   $id     External Identity ID
+   */
+
+  public function adopt(string $id) {
+    try {
+      $personId = $this->ExternalIdentities->adopt((int)$id);
+
+      $this->Flash->success(__d('result', 'ExternalIdentities.adopted', [$id]));
+      
+      // Redirect to the Person that adopted this External Identity
+
+      return $this->redirect([
+        'controller'  => 'people',
+        'action'      => 'edit',
+        $personId
+      ]);
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+
+      return $this->generateRedirect($this->ExternalIdentities->get((int)$id));
+    }
+  }
 
   /**
    * Callback run prior to the request render.
@@ -67,4 +96,44 @@ class ExternalIdentitiesController extends MVEAController {
 
     return parent::beforeRender($event);
   }
-}
+
+  /**
+   * Relink an External Identity.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string   $id     External Identity ID
+   */
+
+  public function relink(string $id) {
+    if($this->request->is('post')) {
+      $reqData = $this->getRequest()->getData();
+
+      if(!empty($reqData['target_person_id'])) {
+        try {
+          $Pipelines = TableRegistry::getTableLocator()->get('Pipelines');
+
+          $Pipelines->relink((int)$id, (int)$reqData['target_person_id']);
+
+          $this->Flash->success(__d('result', 'ExternalIdentities.relinked', [$id, $reqData['target_person_id']]));
+        
+          // Redirect to the External Identity
+          return $this->redirect([
+            'controller'  => 'external-identities',
+            'action'      => 'view',
+            $id
+          ]);
+        }
+        catch(\Exception $e) {
+          $this->Flash->error($e->getMessage());
+        }
+      } else {
+        $this->Flash->error(__d('error', 'notprov', ['target_person_id']));
+      }
+    }
+
+    // Fall through to the view to render a People Picker
+
+    $this->set('vv_title', __d('operation', 'relink.a', [__d('controller', 'ExternalIdentities', [1])]));
+
+    $this->set('vv_external_identity', $this->ExternalIdentities->get((int)$id, ['contain' => 'Names']));
+  }}

@@ -70,7 +70,10 @@ class ExtIdentitySourceRecordsTable extends Table {
     // Define associations
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentitySources');
-    
+    $this->belongsTo('AdoptedPerson')
+         ->setClassName('People')
+         ->setForeignKey('adopted_person_id')
+         ->setProperty('adopted_person');    
     $this->setDisplayField('source_key');
     
     $this->setPrimaryLink(['external_identity_source_id', 'external_identity_id']);
@@ -85,8 +88,9 @@ class ExtIdentitySourceRecordsTable extends Table {
     ]);
     
     $this->setViewContains([
+      'AdoptedPerson' => ['PrimaryName'],
       'ExternalIdentitySources',
-      'ExternalIdentities'  => ['Names', 'People' => ['PrimaryName']],
+      'ExternalIdentities'  => ['Names', 'People' => ['PrimaryName']]
     ]);
 /*
 // XXX This doesn't seem to correlate to what actually renders?
@@ -166,10 +170,13 @@ class ExtIdentitySourceRecordsTable extends Table {
     ]);
     $validator->notEmptyString('external_identity_source_id');
     
+    // Note that adopting an EIS Record briefly creates a second EIS Record for the same
+    // source key, so we shouldn't try to enforce uniqueness of the source key here.
+    // (See ExternalIdentitiesTable::adopt.)
     $this->registerStringValidation($validator, $schema, 'source_key', true);
     
 // Since source_record comes from upstream, it's not clear that we should
-// enforce any validation on it
+// enforce any validation on it.
 //    $this->registerStringValidation($validator, $schema, 'source_record', false);
     
     $validator->add('last_updane', [
@@ -184,6 +191,11 @@ class ExtIdentitySourceRecordsTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'reference_identifier', false);
     
+    $validator->add('adopted_person_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('adopted_person_id');
+
     return $validator; 
   }
 }

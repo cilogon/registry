@@ -210,6 +210,19 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
   </div>
 </li>
 <li>
+  <?php // Email Address provided at Petition creation, might be empty but the field should render anyway ?>
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('field','Petitions.enrollee_email') ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?= $vv_obj->enrollee_email ?>
+    </div>
+  </div>
+</li>
+<li>
   <?php // Petition dates. XXX The DOM structure is being overloaded here, which is probably ok. But revisit if needed ?> 
   <div class="field">
     <div class="field-name ">

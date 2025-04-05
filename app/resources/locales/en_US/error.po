@@ -133,6 +133,12 @@ msgstr "Enrollment Flow Step {0} is transitioning Actor Types but does not have 
 msgid "EnrollmentFlowSteps.none"
 msgstr "This Enrollment Flow has no Active steps and so cannot be run"
 
+msgid "ExternalIdentities.relink.frozen"
+msgstr "External Identity cannot be relinked due to Frozen Attribute {0} {1} on original Person"
+
+msgid "ExternalIdentitySources.annul.person_id"
+msgstr "There is no adopted Person ID associated with this Source Key, and so it cannot be annuled"
+
 msgid "GroupNestings.active"
 msgstr "Group {0} is not active and so cannot be nested"
 
@@ -330,6 +336,9 @@ msgstr "An Email Address for the Enrollee is required by this Enrollment Flow"
 
 msgid "Petitions.status.finalizing"
 msgstr "Petition {0} is not in Finalizing status"
+
+msgid "Pipelines.eis.record.adopted"
+msgstr "Source Key {0} has been adopted by Person ID {1} and is no longer eligible for syncing"
 
 msgid "Pipelines.plugin.notimpl"
 msgstr "Pipeline plugin does not implement {0}"

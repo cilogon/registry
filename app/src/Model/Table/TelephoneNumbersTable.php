@@ -87,6 +87,10 @@ class TelephoneNumbersTable extends Table {
          ->setClassName('TelephoneNumbers')
          ->setForeignKey('source_telephone_number_id')
          ->setProperty('source_telephone_number');
+    $this->hasMany('PipelinedTelephoneNumbers')
+         ->setClassName('TelephoneNumbers')
+         ->setForeignKey('source_telephone_number_id')
+         ->setProperty('pipelined_telephone_number');
 
     $this->setDisplayField('number');
     

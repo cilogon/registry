@@ -37,6 +37,9 @@ msgstr "The file \"{0}\" is not writable"
 msgid "error.header"
 msgstr "Did not find CSV file header"
 
+msgid "error.header.sorid"
+msgstr "Did not find SORID as first defined column, check file header definition"
+
 msgid "field.FileProvisioners.filename"
 msgstr "File Name"
 

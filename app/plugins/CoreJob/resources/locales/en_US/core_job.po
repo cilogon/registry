@@ -25,6 +25,12 @@
 msgid "error.co_id"
 msgstr "Requested {0} entity {1} is not in CO {2}"
 
+msgid "opt.adopter.external_identity_source_id"
+msgstr "External Identity Source ID"
+
+msgid "opt.adopter.source_keys"
+msgstr "Source Keys to process, comma separated (requires external_identity_source_id)"
+
 msgid "opt.assigner.context"
 msgstr "Identifier Assignment context"
 
@@ -48,6 +54,27 @@ msgstr "If true, force records to process even if no changes have been detected"
 
 msgid "opt.sync.source_keys"
 msgstr "Source Keys to process, comma separated (requires external_identity_source_id)"
+
+msgid "Adopter.error.adopted"
+msgstr "Record has already been adopted as Person {0}"
+
+msgid "Adopter.error.status"
+msgstr "EIS must be disabled before adoption process is run"
+
+msgid "Adopter.error.synced"
+msgstr "Record has not been synced (no corresponding External Identity) and so cannot be adopted"
+
+msgid "Adopter.finish_summary.count"
+msgstr "Adopter Finished ({0} records adopted, {1} errors)"
+
+msgid "Adopter.result.adopted"
+msgstr "Adopted External Identity {0} as Person {1}"
+
+msgid "Adopter.start_summary.eis"
+msgstr "Adopting all records from EIS {0}"
+
+msgid "Adopter.start_summary.keys"
+msgstr "Adopting {0} record(s) from EIS {1}"
 
 msgid "Assigner.cancel_summary"
 msgstr "Job canceled after reviewing {0} entities and assigning {1} Identifier(s)"

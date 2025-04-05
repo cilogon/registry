@@ -465,6 +465,9 @@ msgstr "Suppress No-op Logs"
 msgid "ExternalIdentitySources.suppress_noop_logs.desc"
 msgstr "Do not record Job History Records for records that were unchanged or not processed"
 
+msgid "ExtIdentitySourceRecords.adopted_person_id"
+msgstr "Adopted Person"
+
 msgid "GroupMembers.source"
 msgstr "Membership Source"
 

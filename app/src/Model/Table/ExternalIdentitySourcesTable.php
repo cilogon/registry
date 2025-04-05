@@ -84,7 +84,7 @@ class ExternalIdentitySourcesTable extends Table {
     $this->setRequiresCO(true);
     // We need to calculate the redirect URL for sync ourselves (in the controller)
     $this->setRedirectGoal('special', 'sync');
-    $this->setAllowLookupPrimaryLink(['retrieve', 'search', 'sync']);
+    $this->setAllowLookupPrimaryLink(['annul', 'retrieve', 'search', 'sync']);
 
     $this->setAutoViewVars([
       'plugins' => [
@@ -121,6 +121,7 @@ class ExternalIdentitySourcesTable extends Table {
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
+        'annul' =>      ['platformAdmin', 'coAdmin'],
         'configure' =>  ['platformAdmin', 'coAdmin'],
         'delete' =>     ['platformAdmin', 'coAdmin'],
         'edit' =>       ['platformAdmin', 'coAdmin'],
@@ -141,6 +142,51 @@ class ExternalIdentitySourcesTable extends Table {
         ]
       ]
     ]);
+  }
+
+  /**
+   * Annul the adoption of an External Identity.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  int    $id         External Identity Source ID
+   * @param  string $sourceKey  Source Key
+   * @return string             Record status, as per sync()
+   */
+
+  public function annul(int $id, string $sourceKey) {
+    // Annulment is not exactly a reversal of an adoption, since we can't 100% be sure
+    // of which attributes on the Person record we should "relink" to the External Identity,
+    // so we effectively create a duplicate set of attributes and rely on the administrator
+    // to clean up the record. (In theory we could reconstruct which attributes were originally
+    // created from the EIS by examining changelog metadata, but if the attributes were
+    // subsequently modified it gets messy...)
+
+    // We basically just need to delete the existing EIS Record and let the Pipeline
+    // create a new one, but first we copy the Peron ID to pass to the Pipeline.
+
+    $eisrecord = $this->ExtIdentitySourceRecords
+                      ->find()
+                      ->where([
+                        'external_identity_source_id' => $id,
+                        'source_key' => $sourceKey
+                      ])
+                      ->firstOrFail();
+
+    if(empty($eisrecord->adopted_person_id)) {
+      throw new \InvalidArgumentException(__d('error', 'ExternalIdentitySources.annul.person_id'));
+    }
+
+    $targetPersonId = $eisrecord->adopted_person_id;
+
+    $this->llog('trace', "Deleting ExtIdentitySourceRecord " . $eisrecord->id . " for source key " . $eisrecord->source_key . " in preparation for annulment and resync to Person " . $targetPersonId);
+
+    $this->ExtIdentitySourceRecords->delete($eisrecord);
+
+    return $this->sync(
+      id:         $id,
+      sourceKey:  $sourceKey,
+      personId:   $targetPersonId
+    );
   }
 
   /**

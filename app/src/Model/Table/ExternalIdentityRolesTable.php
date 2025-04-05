@@ -80,16 +80,16 @@ class ExternalIdentityRolesTable extends Table {
     $this->hasMany('AdHocAttributes')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    $this->hasMany('PersonRoles')
-         ->setForeignKey('source_external_identity_role_id')
-         ->setProperty('source_external_identity_role');
-         // We don't want these to cascade deletes, see beforeDelete()
     $this->hasMany('TelephoneNumbers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('HistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasOne('PersonRoles')
+         ->setForeignKey('source_external_identity_role_id')
+         ->setProperty('pipelined_person_role');
+         // We don't want these to cascade deletes, see beforeDelete()
     
     $this->setDisplayField('title');
     

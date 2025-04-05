@@ -88,7 +88,11 @@ class AddressesTable extends Table {
          ->setClassName('Addresses')
          ->setForeignKey('source_address_id')
          ->setProperty('source_address');
-    
+    $this->hasMany('PipelinedAddresses')
+         ->setClassName('Addresses')
+         ->setForeignKey('source_address_id')
+         ->setProperty('pipelined_address');
+        
     $this->setDisplayField('street');
     
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);

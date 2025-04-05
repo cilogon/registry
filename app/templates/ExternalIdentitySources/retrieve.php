@@ -28,7 +28,6 @@
 declare(strict_types = 1);
 
 use \Cake\Utility\Inflector;
-
 ?>
 
 <div class="page-title-container">
@@ -39,29 +38,65 @@ use \Cake\Utility\Inflector;
     // Action list for top menu dropdown / button listing
     $action_args = array();
     $action_args['vv_attr_id'] =  $vv_eis->id;
-    $action_args['vv_actions'][] = [
-      'order' => 1,
-      'icon' => 'sync',
-      'url' => [
-        'controller'  => 'external-identity-sources',
-        'action'      => 'sync',
-        $vv_eis->id,
-        '?'           => ['source_key' => $vv_eis_record['source_key']]
-      ],
-      'label' => __d('operation', 'ExternalIdentitySources.sync')
-    ];
+
+    // Records that have been adopted are no longer eligible for Sync
+    if(empty($vv_external_identity_record->adopted_person_id)) {
+      $action_args['vv_actions'][] = [
+        'order' => 1,
+        'icon' => 'sync',
+        'url' => [
+          'controller'  => 'external-identity-sources',
+          'action'      => 'sync',
+          $vv_eis->id,
+          '?'           => ['source_key' => $vv_eis_record['source_key']]
+        ],
+        'label' => __d('operation', 'ExternalIdentitySources.sync')
+      ];
+    }
     
     if(!empty($vv_external_identity_record)) {
-      $action_args['vv_actions'][] = [
-        'order' => 2,
-        'icon' => 'visibility',
-        'url' => [
-          'controller'  => 'external-identities',
-          'action'      => 'view',
-          $vv_external_identity_record->external_identity_id
-        ],
-        'label' => __d('operation', 'view.a', [__d('controller', 'ExternalIdentities', [1])])
-      ];
+      if(!empty($vv_external_identity_record->adopted_person_id)) {
+        $action_args['vv_actions'][] = [
+          'order' => 1,
+          'icon' => 'person_cancel',
+          'url' => [
+            'controller'  => 'external-identity-sources',
+            'action'      => 'annul',
+            $vv_eis->id,
+            '?'           => ['source_key' => $vv_eis_record['source_key']]
+          ],
+          'label' => __d('operation', 'ExternalIdentitySources.annul'),
+          'confirm' => [
+            'dg_body_txt' => __d('operation', 'ExternalIdentitySources.annul.confirm', [ $vv_eis_record['source_key'] ]),
+            'dg_confirm_btn' => __d('operation', 'annul')
+          ]
+        ];
+
+        $action_args['vv_actions'][] = [
+          'order' => 2,
+          'icon' => 'visibility',
+          'url' => [
+            'controller'  => 'people',
+            'action'      => 'edit',
+            $vv_external_identity_record->adopted_person_id
+          ],
+          'label' => __d('operation', 'view.a', [__d('field', 'ExtIdentitySourceRecords.adopted_person_id')])
+        ];
+      }
+
+      if(!empty($vv_external_identity_record->external_identity_id)) {
+        $action_args['vv_actions'][] = [
+          'order' => 2,
+          'icon' => 'visibility',
+          'url' => [
+            'controller'  => 'external-identities',
+            'action'      => 'view',
+            $vv_external_identity_record->external_identity_id
+          ],
+          'label' => __d('operation', 'view.a', [__d('controller', 'ExternalIdentities', [1])])
+        ];
+      }
+
       $action_args['vv_actions'][] = [
         'order' => 3,
         'icon' => 'visibility',
@@ -86,8 +121,13 @@ use \Cake\Utility\Inflector;
 
 <!-- insert explainer box -->
 <?php
+  // Default notice is "not synced"
   $noticeText = __d('information', 'ExternalIdentitySources.retrieve.notSynced');
-  if(!empty($vv_external_identity_record->id)) {
+
+  if(!empty($vv_external_identity_record->external_identity_id)) {
+    // There is an ExtIdentitySourceRecord for this source key, which corresponds
+    // to an External Identity.
+
     // Construct the link
     $link = $this->Html->link(
       __d('information', 'ExternalIdentitySources.cached'),
@@ -109,6 +149,10 @@ use \Cake\Utility\Inflector;
       'ExternalIdentitySources.retrieve',
       $link
     );
+  } elseif(!empty($vv_external_identity_record->adopted_person_id)) {
+    // This record was adopted and is no longer eligible for synching
+
+    $noticeText = __d('information', 'ExternalIdentitySources.adopted', [$vv_external_identity_record->adopted_person_id]);
   }
 ?>
 <?= $this->element('notify/alert', ['message' => $noticeText,'type' => 'information']) ?>

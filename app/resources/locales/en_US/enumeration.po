@@ -135,6 +135,9 @@ msgstr "COU Person"
 msgid "ExternalIdentityStatusEnum.A"
 msgstr "Active"
 
+msgid "ExternalIdentityStatusEnum.AD"
+msgstr "Adopted"
+
 msgid "ExternalIdentityStatusEnum.D"
 msgstr "Archived"
 

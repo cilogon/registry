@@ -72,6 +72,36 @@ if($vv_obj?->ext_identity_source_record?->id !== null) {
       $vv_obj->ext_identity_source_record->id
     ]
   ];
+  
+  $topLinks[] = [
+    'icon' => 'stroller',
+    'order' => 'Default',
+    'label' => __d('operation', 'adopt'),
+    'link' => [
+      'action' => 'adopt',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d(
+        'operation',
+        'ExternalIdentities.adopt.confirm', 
+        [ 
+          $vv_obj->ext_identity_source_record->source_key,
+          $vv_obj->ext_identity_source_record->external_identity_source->description,
+        ]),
+      'dg_confirm_btn' => __d('operation', 'adopt')
+    ]
+  ];
+
+  $topLinks[] = [
+    'icon' => 'move',
+    'order' => 'Default',
+    'label' => __d('operation', 'relink'),
+    'link' => [
+      'action' => 'relink',
+      $vv_obj->id
+    ]
+  ];
 }
 
 // $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 

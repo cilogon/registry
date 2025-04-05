@@ -870,12 +870,14 @@
         "source_record": { "type": "text" },
         "last_update": { "type": "datetime" },
         "external_identity_id": {},
-        "reference_identifier": {}
+        "reference_identifier": {},
+        "adopted_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } }
       },
       "indexes": {
         "ext_identity_sources_records_i1": { "columns": [ "external_identity_source_id" ] },
         "ext_identity_sources_records_i2": { "columns": [ "external_identity_id" ] },
-        "ext_identity_sources_records_i3": { "columns": [ "external_identity_source_id", "source_key" ] }
+        "ext_identity_sources_records_i3": { "columns": [ "external_identity_source_id", "source_key" ] },
+        "ext_identity_sources_records_i4": { "needed": false, "columns": [ "adopted_person_id" ] }
       }
     },
 

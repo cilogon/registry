@@ -63,19 +63,37 @@ if($vv_action == 'view') {
     ]
   ]);
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'external_identity_id',
-      'status'    => $vv_obj->external_identity->names[0]->full_name,
-      'link'      => [
-        'url' => [
-          'controller' => 'external_identities',
-          'action'     => 'edit',
-          $vv_obj->external_identity->id
+  if(!empty($vv_obj->adopted_person_id)) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'adopted_person_id',
+        'status'    => $vv_obj->adopted_person->primary_name->full_name,
+        'link'      => [
+          'url' => [
+            'controller' => 'people',
+            'action'     => 'edit',
+            $vv_obj->adopted_person->id
+          ]
         ]
       ]
-    ]
-  ]);
+    ]);
+  }
+
+  if(!empty($vv_obj->external_identity_id)) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'external_identity_id',
+        'status'    => $vv_obj->external_identity->names[0]->full_name,
+        'link'      => [
+          'url' => [
+            'controller' => 'external_identities',
+            'action'     => 'edit',
+            $vv_obj->external_identity->id
+          ]
+        ]
+      ]
+    ]);
+  }
 
   foreach([
             'source_key',

@@ -110,7 +110,7 @@ msgid "information.EmailVerifiers.sending"
 msgstr "Sending"
 
 msgid "information.EmailVerifiers.success"
-msgstr "New Code Submitted!"
+msgstr "New code sent"
 
 msgid "information.EmailVerifiers.abort"
 msgstr "Abort"

@@ -51,6 +51,9 @@ msgstr "Add Attribute"
 msgid "add.member"
 msgstr "Add member: "
 
+msgid "adopt"
+msgstr "Adopt"
+
 msgid "apply"
 msgstr "Apply"
 
@@ -111,6 +114,12 @@ msgstr "Confirm"
 msgid "confirm.generic"
 msgstr "Are you sure you want to confirm this action?"
 
+msgid "confirm.no"
+msgstr "No"
+
+msgid "confirm.yes"
+msgstr "Yes"
+
 msgid "configure.a"
 msgstr "Configure {0}"
 
@@ -168,8 +177,17 @@ msgstr "Edit Role {0}"
 msgid "EmailAddresses.verify.force"
 msgstr "Force Verify"
 
+msgid "ExternalIdentities.adopt.confirm"
+msgstr "Are you sure you want to adopt record {0} and disconnect it from {1}?"
+
 msgid "ExternalIdentitySourceRecords.retrieve"
 msgstr "Retrieve from External Identity Source"
+
+msgid "ExternalIdentitySources.annul"
+msgstr "Annul Adoption"
+
+msgid "ExternalIdentitySources.annul.confirm"
+msgstr "Are you sure you want to annul the adoption of record {0}?"
 
 msgid "ExternalIdentitySources.search"
 msgstr "Search Source"
@@ -197,6 +215,9 @@ msgstr "Assign Identifiers"
 
 msgid "identifiers.assign.confirm"
 msgstr "Are you sure you want to assign identifiers to this record ({0})?"
+
+msgid "Jobs.cancel.confirm"
+msgstr "Are you sure you want to cancel Job {0}?"
 
 msgid "last"
 msgstr "Last"
@@ -260,6 +281,12 @@ msgstr "Reconcile"
 
 msgid "reconcile.confirm"
 msgstr "Are you sure you want to reconcile this group ({0})?"
+
+msgid "relink"
+msgstr "Relink"
+
+msgid "relink.a"
+msgstr "Relink {0}"
 
 msgid "remove"
 msgstr "Remove"

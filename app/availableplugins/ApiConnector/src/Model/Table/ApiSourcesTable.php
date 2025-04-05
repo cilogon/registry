@@ -182,34 +182,56 @@ class ApiSourcesTable extends Table {
    * Remove a record from the External Identity Source.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  ExternalIdentitySource $source     EIS Entity with instantiated plugin configuration
-   * @param  string                 $sorId      API System of Record ID
-   * @return bool                               True on success
+   * @param  int        $id         Api Source ID
+   * @param  string     $sorLabel   System of Record Label
+   * @param  string     $sorId      API System of Record ID
+   * @return bool                   True on success
    * @throws RecordNotFoundException
    */
 
-  public function remove(
-    \App\Model\Entity\ExternalIdentitySource $source,
-    string $sorId
-  ): array {
+  public function remove(int $id, string $sorLabel, string $sorId): bool {
     // We call this remove() so as not to interfere with the default table::delete().
+    $apiSource = $this->get($id, ['contain' => ['ExternalIdentitySources']]);
+
+    // Pull our configuration
+    $apiSource = $this->get($id, ['contain' => ['ExternalIdentitySources']]);
+
+    // Like upsert(), we don't really need $sorLabel, but we check it for
+    // consistency with upsert() (which also doesn't really need it).
+
+    if(empty($apiSource->external_identity_source->sor_label)
+       || $apiSource->external_identity_source->sor_label != $sorLabel) {
+      throw new \InvalidArgumentException("Requested SOR Label $sorLabel does not match configuration");
+    }
 
     // Remove the ApiSourceRecord for this $source_key from the cache
 
-    $apiSourceRecord = $this->ApiSourceRecords->find()
-                                              ->where([
-                                                'api_source_id' => $source->api_source->id,
-                                                'source_key'    => $sorId
-                                              ])
-                                              ->firstOrFail();
+    try {
+      // Start a Transaction
+      $cxn = $this->getConnection();
+      $cxn->begin();
+
+      $apiSourceRecord = $this->ApiSourceRecords->find()
+                                                ->where([
+                                                  'api_source_id' => $id,
+                                                  'source_key'    => $sorId
+                                                ])
+                                                ->firstOrFail();
     
-    $this->ApiSourceRecords->delete($apiSourceRecord);
+      $this->ApiSourceRecords->delete($apiSourceRecord);
 
-    // Run sync
-// XXX do we need some sort of return value to pass back in the API response?
-    $this->ExternalIdentitySources->sync($source->id, $sorId);
+      // Run sync
+      $this->ExternalIdentitySources->sync($apiSource->external_identity_source_id, $sorId);
 
-    return true;
+      $cxn->commit();
+
+      return true;
+    }
+    catch(\Exception $e) {
+      $cxn->rollback();
+
+      throw $e;
+    }
   }
 
 
@@ -397,8 +419,8 @@ class ApiSourcesTable extends Table {
     // Pull our configuration
     $apiSource = $this->get($id, ['contain' => ['ExternalIdentitySources']]);
 
-    // Strictly speaking we don't need $sorid since we know which configuration
-    // to use from the ApiSource ID, and $sorlabel might not be unique across COs
+    // Strictly speaking we don't need $sorLabel since we know which configuration
+    // to use from the ApiSource ID, and $sorLabel might not be unique across COs
     // in a multi-tenant environment. Eventually we could support multiple
     // Systems of Record within the same ApiSource configuration, but for now
     // we just make sure $sorLabel matches the configuration and throw an error

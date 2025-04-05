@@ -80,7 +80,11 @@ class PronounsTable extends Table {
          ->setClassName('Pronouns')
          ->setForeignKey('source_pronoun_id')
          ->setProperty('source_pronoun');
-    
+    $this->hasMany('PipelinedPronouns')
+         ->setClassName('Pronouns')
+         ->setForeignKey('source_pronoun_id')
+         ->setProperty('pipelined_pronoun');
+        
     $this->setDisplayField('pronouns');
     
     $this->setPrimaryLink(['external_identity_id', 'person_id']);

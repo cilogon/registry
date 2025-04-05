@@ -91,6 +91,10 @@ class NamesTable extends Table {
          ->setClassName('Names')
          ->setForeignKey('source_name_id')
          ->setProperty('source_name');
+    $this->hasMany('PipelinedNames')
+         ->setClassName('Names')
+         ->setForeignKey('source_name_id')
+         ->setProperty('pipelined_name');
 
     $this->setDisplayField('full_name');
     

@@ -102,6 +102,10 @@ class IdentifiersTable extends Table {
          ->setClassName('Identifiers')
          ->setForeignKey('source_identifier_id')
          ->setProperty('source_identifier');
+    $this->hasMany('PipelinedIdentifiers')
+         ->setClassName('Identifiers')
+         ->setForeignKey('source_identifier_id')
+         ->setProperty('pipelined_identifier');
 
     $this->setDisplayField('identifier');
     
@@ -262,12 +266,15 @@ class IdentifiersTable extends Table {
    */
 
   public function ruleUniqueIdentifier($entity, $options) {
-    // Uniqueness constraints only apply to People and Groups
+    // Uniqueness constraints only apply to People and Groups, and only those that
+    // are not synced from an External Identity. (ie: we permit duplicates from
+    // External Identity Sources.)
 
     // In v4 we created a txn to ensure consistency, but it looks like Cake actually
     // starts a transaction, so it appears we don't need to do that here.
 
-    if(!empty($entity->person_id) || !empty($entity->group_id)) {
+    if((!empty($entity->person_id) || !empty($entity->group_id))
+       && empty($entity->source_identifier_id)) {
       if($entity->isNew() 
          || $entity->isDirty('identifier') 
          || $entity->isDirty('type_id')) {

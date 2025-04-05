@@ -36,7 +36,9 @@ class ActionEnum extends StandardEnum {
   const EmailForceVerified            = 'EMFV';
   const EmailVerified                 = 'EMLV';
   const EmailVerifyCodeSent           = 'EMLS';
+  const ExternalIdentityAdopted       = 'EOIA';
   const ExternalIdentityLoginUpdate   = 'EOIE';
+  const ExternalIdentityRelinked      = 'LEOI';
   const GroupAdded                    = 'ACGR';
   const GroupDeleted                  = 'DCGR';
   const GroupEdited                   = 'ECGR';
@@ -59,5 +61,6 @@ class ActionEnum extends StandardEnum {
   const PersonMatchedPipeline         = 'MCPL';
   const PersonPipelineComplete        = 'CCPL';
   const PersonPipelineStarted         = 'SCPL';
+  const PersonRoleRelinked            = 'LCPR';
   const PersonStatusRecalculated      = 'RCPS';
 }

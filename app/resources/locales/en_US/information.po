@@ -60,6 +60,9 @@ msgstr "Enrollment Steps"
 msgid "ExternalIdentities.source"
 msgstr "This External Identity was created from {0}."
 
+msgid "ExternalIdentitySources.adopted"
+msgstr "This record has been adopted by Person ID {0} and is no longer eligible for syncing."
+
 msgid "ExternalIdentitySources.records"
 msgstr "Source Records"
 

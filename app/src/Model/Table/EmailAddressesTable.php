@@ -93,7 +93,10 @@ class EmailAddressesTable extends Table {
          ->setClassName('EmailAddresses')
          ->setForeignKey('source_email_address_id')
          ->setProperty('source_email_address');
-    
+    $this->hasMany('PipelinedEmailAddresses')
+         ->setClassName('EmailAddresses')
+         ->setForeignKey('source_email_address_id')
+         ->setProperty('pipelined_email_address');    
     $this->hasOne('Verifications')
          ->setDependent(true)
          ->setCascadeCallbacks(true);

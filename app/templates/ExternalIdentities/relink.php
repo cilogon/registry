@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Jobs Links
+ * COmanage Registry External Identity Link View
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,36 +21,29 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$topLinks[] = [
-  'icon'  => 'history',
-  'order' => 'Default',
-  'label' => __d('controller', 'JobHistoryRecords', [99]),
-  'link'  => [
-    'controller'  => 'job_history_records',
-    'action'      => 'index',
-    'job_id'      => $vv_obj->id
-  ],
-  'class' => ''
-];
+declare(strict_types = 1);
+?>
 
-if(!empty($vv_obj) && $vv_obj->canCancel()) {
-  $topLinks[] = [
-    'icon'  => 'cancel',
-    'order' => 'Default',
-    'label' => __d('operation', 'cancel'),
-    'link'  => [
-      'action' => 'cancel',
-      $vv_obj->id
-    ],
-    'confirm' => [
-      'dg_body_txt' => __d('operation', 'Jobs.cancel.confirm', [$vv_obj->id]),
-      'dg_confirm_btn' => __d('operation', 'confirm.yes'),
-      'dg_cancel_btn' => __d('operation', 'confirm.no')
-    ],
-    'class' => ''
-  ];
-}
+<div class="page-title-container">
+  <div class="page-title">
+    <h2><?= $vv_title ?></h2>
+  </div>
+</div>
+
+<?php
+  print $this->Form->create(null, [
+    'id'   => 'ei-relink-form',
+    'type' => 'post'
+  ]);
+
+  print $this->Form->hidden('external_identity_id', ['default' => $vv_external_identity->id]);
+// This label isn't localized, but it should go away when the UX is fixed
+  print $this->Form->control('target_person_id', ['type' => 'integer', 'label' => 'Target Person ID']);
+
+  print $this->Form->submit();
+
+  print $this->Form->end();

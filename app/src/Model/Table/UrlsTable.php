@@ -83,6 +83,10 @@ class UrlsTable extends Table {
          ->setClassName('Urls')
          ->setForeignKey('source_url_id')
          ->setProperty('source_url');
+    $this->hasMany('PipelinedUrls')
+         ->setClassName('Urls')
+         ->setForeignKey('source_url_id')
+         ->setProperty('pipelined_url');
     
     $this->setDisplayField('url');
     

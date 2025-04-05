@@ -31,6 +31,7 @@ namespace App\Lib\Enum;
 
 class ExternalIdentityStatusEnum extends StandardEnum {
   const Active              = 'A';
+  const Adopted             = 'AD';
   const Archived            = 'D';
   const Deleted             = 'X';
   const Duplicate           = 'D2';
@@ -60,6 +61,8 @@ class ExternalIdentityStatusEnum extends StandardEnum {
 
       // Finally, we generally don't want Deleted or Duplicate unless all roles are deleted or duplicates
       self::Archived              => 2,
+      // Adopted and Archived are functionally the same thing
+      self::Adopted               => 2,
       // "Deleted" is managed by Registry, not the EIS backend, but we'll basically treat
       // it the same as Archived
       self::Deleted               => 2,

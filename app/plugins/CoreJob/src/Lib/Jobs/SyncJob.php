@@ -106,11 +106,11 @@ class SyncJob {
       return;
     }
 
-    // Now perform the actual sync. Start by pulling the list of known source keys.
-    // We maintain this in memory as a simple hash since this _should_ fit within the
-    // memory requirements of our larger expected deployments, and it's significantly
-    // simpler to perform diff calculations this way. This might need to be refactored
-    // at some point...
+    // Now perform the actual sync. Start by pulling the list of known source keys,
+    // ie those that have already been synced at least once. We maintain this in memory
+    // as a simple hash since this _should_ fit within the memory requirements of our
+    // larger expected deployments, and it's significantly simpler to perform diff
+    // calculations this way. This might need to be refactored at some point...
 
     $knownKeys = $this->runContext->EISTable->getKnownSourceKeys($this->runContext->eis->id);
     
@@ -184,7 +184,14 @@ class SyncJob {
     // and processing any records the plugin reported that we didn't know about.
 
     if($this->runContext->eis->status == SyncModeEnum::Full) {
-      $allKeys = $this->runContext->EISTable->inventory($this->runContext->eis->id);
+      try {
+        $allKeys = $this->runContext->EISTable->inventory($this->runContext->eis->id);
+      }
+      catch(\Exception $e) {
+        $this->llog('error', $e->getMessage());
+
+        throw $e;
+      }
 
       if($allKeys === false) {
         $this->llog('error', "EIS " . $this->runContext->eis->description 
@@ -193,6 +200,10 @@ class SyncJob {
         $this->runContext->count = count($allKeys);
 
         $newKeys = array_diff($allKeys, $knownKeys);
+
+        $this->llog('trace', "EIS " . $this->runContext->eis->description . " reported "
+                             . count($allKeys) . " available source key(s), " 
+                             . count($newKeys) . " new");
 
         foreach($newKeys as $sourceKey) {
           $this->llog('trace', "EIS " . $this->runContext->eis->description 

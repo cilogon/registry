@@ -1,6 +1,7 @@
 {
   "types": {
     "job": [
+      "AdopterJob",
       "AssignerJob",
       "ProvisionerJob",
       "SyncJob"

@@ -132,6 +132,42 @@ class FileSourcesTable extends Table {
   }
 
   /**
+   * Obtain the full set of records from the source database.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  ExternalIdentitySource $source     External Identity Source
+   * @return array                              An array of source keys
+   */
+
+  public function inventory(
+    \App\Model\Entity\ExternalIdentitySource $source
+  ): array {
+    $ret = [];
+
+    $handle = fopen($source->file_source->filename, "r");
+
+    if(!$handle) {
+      throw new \RuntimeException(__d('file_connector', 'error.filename.readable', [$source->file_source->filename]));
+    }
+
+    // The first line of a CSV v3 file is our configuration
+    fgetcsv($handle);
+
+    while(($data = fgetcsv($handle)) !== false) {
+      // The source key is always the first field in each line
+
+      $ret[] = $data[0];
+    }
+
+    fclose($handle);
+
+    // It's not clear we really need to sort the array, but why not...
+    sort($ret);
+    
+    return $ret;
+  }
+
+  /**
    * Obtain the file field configuration.
    *
    * @since  COmanage Registry v4.0.0
@@ -175,6 +211,10 @@ class FileSourcesTable extends Table {
       switch(count($bits)) {
         case 1:
           // SORID (special case)
+          // While we're here check to make sure the field is as expected
+          if($bits[0] != 'SORID') {
+            throw new \RuntimeException(__d('file_connector', 'error.header.sorid'));
+          }
           $this->fieldCfg[ $bits[0] ] = $i;
           break;
         case 2:

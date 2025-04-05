@@ -43,6 +43,28 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
   ];
 
   /**
+   * Annul an External Identity adoption.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string $id External Identity Source ID
+   */
+
+  public function annul(string $id) {
+    try {
+      $source_key = $this->request->getQuery('source_key');
+
+      $this->ExternalIdentitySources->annul((int)$id, $source_key);
+
+      $this->Flash->success(__d('result', 'ExternalIdentitySources.synced'));
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
+    
+    return $this->generateRedirect(null);
+  }
+
+  /**
    * Callback run prior to the request action.
    *
    * @since  COmanage Registry v5.0.0

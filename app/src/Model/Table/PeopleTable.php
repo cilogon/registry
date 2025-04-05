@@ -100,6 +100,11 @@ class PeopleTable extends Table {
     $this->hasMany('ExternalIdentities')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    // For "adopted" External Identities
+    $this->hasMany('ExtIdentitySourceRecords')
+         ->setForeignKey('adopted_person_id')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('GroupMembers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);

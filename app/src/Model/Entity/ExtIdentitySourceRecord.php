@@ -34,6 +34,7 @@ use Cake\ORM\Entity;
 // This should be ExternalIdentitySourceRecord but then alias.field assembly
 // exceeds Cake's 61 character limit
 class ExtIdentitySourceRecord extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
   use \App\Lib\Traits\ReadOnlyEntityTrait;
 
   protected $_accessible = [

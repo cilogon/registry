@@ -641,7 +641,7 @@ class PipelinesTable extends Table {
       $person = $this->syncPerson(
         $pipeline,
         $eis,
-        isset($externalIdentity->id) ? $externalIdentity->id : null,
+        $externalIdentity->id ?? null,
         $person
       );
 
@@ -744,6 +744,16 @@ class PipelinesTable extends Table {
                       ->first();
 
     if($eisRecord) {
+      // AR-ExternalIdentity-1 An External Identity that has been adopted cannot be
+      // resynced from the External Identity Source, unless the adoption is annulled.
+
+      if(!empty($eisRecord->adopted_person_id)) {
+        // If there is an adopted_person_id set abort, as no further syncing is permitted
+
+        $this->llog('rule', "AR-ExternalIdentity-1 Rejecting request to update adopted record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
+        throw new \InvalidArgumentException(__d('error', 'Pipelines.eis.record.adopted', [$sourceKey, $eisRecord->adopted_person_id]));
+      }
+
       // Update the record as needed, but only if the source record changed.
       // We consider any aspect of the source record changing to mark the
       // EIS record as changed, even if it's not material to the attributes
@@ -1089,6 +1099,145 @@ class PipelinesTable extends Table {
       'status'    => 'matched',
       'strategy'  => $pipeline->match_strategy
     ];
+  }
+
+  /**
+   * Relink an External Identity to a new Person.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  int  $externalIdentityId   External Identity ID
+   * @param  int  $targetPersonId       Person ID to move External Identity to
+   * @throws Exception
+   */
+
+  public function relink(
+    int $externalIdentityId,
+    int $targetPersonId
+  ) {
+    $cxn = $this->getConnection();
+    $cxn->begin();
+
+    // We need the Source Key, EIS ID, and Pipeline ID. The easiest way to get everything
+    // is via the EIS Record.
+
+    try {
+      // We use FOR UPDATE to create read locks on the data we're processing to prevent
+      // a concurrent sync job (or other manual process) from causing problems.
+      // Unfortunately, the way epilog() works is incompatible with the OUTER JOIN
+      // syntax that Cake uses to construct the contain() clauses, so we need to retrieve
+      // the associated models separately.
+
+      // Note that we are intentionally just reading the cached record. If an admin wants
+      // to perform a sync as well, they can do that separately.
+
+      $eisRecord = $this->ExternalIdentitySources
+                        ->ExtIdentitySourceRecords
+                        ->find()
+                        ->where(['ExtIdentitySourceRecords.external_identity_id' => $externalIdentityId])
+                        /*->contain(['ExternalIdentitySources'])*/
+                        ->epilog('FOR UPDATE')
+                        ->firstOrFail();
+
+      $eis = $this->ExternalIdentitySources->get(
+        $eisRecord->external_identity_source_id,
+        ['contain' => 'Pipelines']
+      );
+
+      $ei = $this->Cos->People->ExternalIdentities->get(
+        $eisRecord->external_identity_id,
+        ['contain' => [
+          'ExternalIdentityRoles' => 'PersonRoles',
+          'People'
+        ]]
+      );
+
+      // To start the relinking, tell syncPerson to update the source Person with a
+      // null External Identity ID, which normally means the External Identity was deleted.
+      
+      $origPerson = $this->syncPerson(
+        $eis->pipeline,
+        $eis,
+        null,
+        $ei->person,
+        $ei->id
+      );
+
+      // Next reassign the External Identity to the new target Person.
+
+      // GMR-1 will prevent $targetPersonId from being in a different CO than the one that
+      // $externalIdentityId is currently linked to, so we don't need to explicitly check
+      // that here.
+
+      $origPersonId = $ei->person_id;
+      $ei->person_id = $targetPersonId;
+
+      // Make sure not to save the Person we retrieved in the original query
+      $this->Cos->People->ExternalIdentities->saveOrFail($ei, ['associated' => false]);
+
+      $this->Cos->People->ExternalIdentities->recordHistory(
+        entity: $ei,
+        action: ActionEnum::ExternalIdentityRelinked,
+        comment: __d('result', 'ExternalIdentities.relinked.from', [$origPersonId])
+      );
+
+      // Also add history to the original Person
+
+      $this->Cos->People->recordHistory(
+        entity: $ei->person,
+        action: ActionEnum::ExternalIdentityRelinked,
+        comment: __d('result', 'ExternalIdentities.relinked', [$ei->id, $targetPersonId])
+      );
+
+      // Next we have to manually reassign the Person Roles. Normally deleting an
+      // External Identity would cascade to the EI Roles, which would update the 
+      // associated Person Role status via beforeDelete. However, we're not actually
+      // deleting the EI, we're changing the foreign key. The EI Roles will move
+      // automatically since their parent key is the EI, not the Person, but the
+      // associated Person Roles need to be dealt with.
+
+      // Note we are specifically _moving_ the Person Roles, we are not creating new ones
+      // on the target Person. The idea here is that a relinking operation is a correction
+      // of a bad action, and so it doesn't make sense to leave "expired" (or whatever)
+      // Person Roles behind on the original Person record.
+
+      // AR-ExternalIdentity-3 When an External Identity is relinked, any associated
+      // Person Roles will be moved from the original Person to the target Person.
+
+      foreach($ei->external_identity_roles as $eir) {
+        if(!empty($eir->pipelined_person_role)) {
+          $this->llog('rule', "AR-ExternalIdentity-3 Moving Person Role " 
+                              . $eir->pipelined_person_role->id
+                              . " to Person " . $targetPersonId);
+
+          $eir->pipelined_person_role->person_id = $targetPersonId;
+
+          $this->Cos->People->PersonRoles->saveOrFail($eir->pipelined_person_role, ['associated' => false]);
+
+          $this->Cos->People->PersonRoles->recordHistory(
+            entity: $eir->pipelined_person_role,
+            action: ActionEnum::PersonRoleRelinked,
+            comment: __d('result', 'PersonRoles.relinked.from', [$origPersonId])
+          );
+        }
+      }
+
+      // Run the Pipeline again, this time we the new target Person
+
+      $targetPerson = $this->Cos->People->get($targetPersonId);
+
+      $targetPerson = $this->syncPerson(
+        $eis->pipeline,
+        $eis,
+        $externalIdentityId,
+        $targetPerson
+      );
+
+      $cxn->commit();
+    }
+    catch(\Exception $e) {
+      $cxn->rollback();
+      throw $e;
+    }
   }
 
   /**
@@ -1556,22 +1705,26 @@ class PipelinesTable extends Table {
    * Sync an External Identity to a Person.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  Pipeline               $pipeline            Pipeline
-   * @param  ExternalIdentitySource $eis                 External Identity Source
-   * @param  int                    $externalIdentityId  External Identity ID
-   * @param  Person                 $person              Person
-   * @return Person                                      Person
+   * @param  Pipeline               $pipeline                   Pipeline
+   * @param  ExternalIdentitySource $eis                        External Identity Source
+   * @param  int                    $externalIdentityId         External Identity ID
+   * @param  Person                 $person                     Person
+   * @param  int                    $unlinkedExternalIdentityId If running after unlinking an EI, the former EI ID
+   * @return Person                                             Person
    */
 
   protected function syncPerson(
     Pipeline                $pipeline,
     ExternalIdentitySource  $eis,
     ?int                    $externalIdentityId,
-    Person                  $person
+    Person                  $person,
+    ?int                    $unlinkedExternalIdentityId=null
   ): Person {
     // We re-pull the External Identity to account for any changes that might have
     // been processed by syncExternalIdentity. Note if the ID is null, the External
     // Identity was deleted.
+
+    // Note any models added here also need to be added to ExternalIdentitiesTable::adopt().
 
     if($externalIdentityId) {
       $externalIdentity = $this->Cos->People->ExternalIdentities->get(
@@ -1792,6 +1945,13 @@ class PipelinesTable extends Table {
                 // to another EI associated with the Person); we search through the
                 // source attributes for one with a corresponding source key ID.
                 $found = Hash::extract($externalIdentity[$amodel], '{n}[id='.$aentity->$sourcefk.']');
+              } elseif($unlinkedExternalIdentityId
+                       && ($aentity->$sourceEntity->external_identity_id == $unlinkedExternalIdentityId)) {
+                // This attribute was sourced from an External Identity that we are unlinking
+                // (presumably in the process of moving it to another Person). Treat this
+                // attribute as _not_ found.
+
+                $found = false;
               } else {
                 // This doesn't belong to our current External Identity, so flag it as
                 // "found" so we don't delete it
@@ -1804,6 +1964,18 @@ class PipelinesTable extends Table {
 
             if(!$found) {
               if(isset($aentity->frozen) && $aentity->frozen) {
+                if($unlinkedExternalIdentityId
+                   && ($aentity->$sourceEntity->external_identity_id == $unlinkedExternalIdentityId)) {
+                  // AR-ExternalIdentity-4 An External Identity cannot be relinked if any of the
+                  // attributes Pipelined to the Person record are frozen.
+                  $this->llog('rule', "AR-ExternalIdentity-4 An External Identity cannot be relinked if any of the attributes Pipelined to the Person record are frozen (External Identity " . $unlinkedExternalIdentityId . ", $model " . $aentity->$sourceEntity->id);
+                  throw new \RuntimeException(__d(
+                    'error', 
+                    'ExternalIdentities.relink.frozen', 
+                    [$model, $aentity->$sourceEntity->id])
+                  );
+                }
+
                 $this->llog('trace', "Refusing to delete frozen $model " . $aentity->id . " on Person from External Identity " . $externalIdentity->id);
               } else {
                 $this->llog('trace', "Deleted $model " . $aentity->id . " for Person " . $person->id);
@@ -2044,6 +2216,9 @@ class PipelinesTable extends Table {
       //   key to no longer point to the source EIR, so we wouldn't see the PR
       //   at all.
       // - A manually deleted EIR would behave similarly.
+
+      // Note that updating of the Person Role status when the External Identity Role
+      // is deleted is handled by ExternalIdentityRolesTable::beforeDelete().
 /*
       if(!empty($curentities->person_roles)) {
         foreach($curentities->person_roles as $currole) {

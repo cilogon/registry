@@ -70,7 +70,11 @@ class AdHocAttributesTable extends Table {
          ->setClassName('AdHocAttributes')
          ->setForeignKey('source_ad_hoc_attribute_id')
          ->setProperty('source_ad_hoc_attribute');
-
+    $this->hasMany('PipelinedAdHocAttributes')
+         ->setClassName('AdHocAttributes')
+         ->setForeignKey('source_ad_hoc_attribute_id')
+         ->setProperty('pipelined_ad_hoc_attribute');
+    
     $this->setDisplayField('tag');
     
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);

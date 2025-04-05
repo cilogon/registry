@@ -31,14 +31,14 @@ $indexColumns = [
     'type' => 'link',
     'sortable' => true
   ],
+  'source_key' => [
+    'type' => 'echo',
+    'sortable' => true
+  ],
   'external_identity_source_id' => [
     'type' => 'relatedLink',
     'model' => 'external_identity_source',
     'field' => 'description',
-    'sortable' => true
-  ],
-  'source_key' => [
-    'type' => 'echo',
     'sortable' => true
   ],
   'last_update' => [

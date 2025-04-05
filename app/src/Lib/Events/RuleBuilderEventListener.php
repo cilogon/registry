@@ -177,7 +177,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     
     if($want != $have && ($want === NULL || $have === NULL)) {
       // GMR-3
-      $this->llog('error', "GMR-3 The Primary Link key cannot be changed once set, changing " . $table->getAlias() . " record " . $entity->id . " " . $options['errorField'] . " from " . $have . " to " . $want . " is not allowed");
+      $this->llog('error', "GMR-3 The Primary Link key cannot be changed once set, changing " . $table->getAlias() . " record " . $entity->id . " " . $options['errorField'] . " from " . ($have ?? "null") . " to " . ($want ?? "null") . " is not allowed");
       return __d('error', 'primary_link.frozen');
     }
     
@@ -212,7 +212,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
   public function ruleValidateCO(EntityInterface $entity, array $options) {
     // GMR-2 Foreign keys from one entity to another cannot cross COs.
     // The logic here requires an "anchor" that cannot change, which is the
-    // primary link, which is enforce by ruleFreezePrimaryLink (which verifies
+    // primary link, which is enforced by ruleFreezePrimaryLink (which verifies
     // that the primary object cannot be altered).
     
     // The field to check is (confusingly) $options['errorField'].

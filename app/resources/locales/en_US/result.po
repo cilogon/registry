@@ -72,6 +72,15 @@ msgstr "Email Address {0} force verified"
 msgid "EmailAddresses.verify.trust"
 msgstr "Email Address {0} verified by trusted source {1}"
 
+msgid "ExternalIdentities.adopted"
+msgstr "External Identity {0} Adopted"
+
+msgid "ExternalIdentities.relinked"
+msgstr "External Identity {0} Relinked to Person {1}"
+
+msgid "ExternalIdentities.relinked.from"
+msgstr "External Identity Relinked from Person {0}"
+
 msgid "ExternalIdentities.status.recalculated"
 msgstr "External Identity status recalculated from {0} to {1}"
 
@@ -174,6 +183,9 @@ msgstr "Created new Person via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}
 
 msgid "People.status.recalculated"
 msgstr "Person status recalculated from {0} to {1}"
+
+msgid "PersonRoles.relinked.from"
+msgstr "Person Role moved from Person {0}"
 
 msgid "PersonRoles.status.recalculated"
 msgstr "Person Role status recalculated from {0} to {1}"
