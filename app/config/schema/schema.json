@@ -29,6 +29,7 @@
       "message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" } },
       "name": { "type": "string", "size": 128, "notnull": true },
       "ordr": { "type": "integer" },
+      "password": { "type": "string", "size": 400 },
       "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
       "person_role_id": { "type": "integer", "foreignkey": { "table": "person_roles", "column": "id" } },
       "petition_id": { "type": "integer", "foreignkey": { "table": "petitions", "column": "id" } },
@@ -36,11 +37,13 @@
       "provisioning_target_id": { "type": "integer", "foreignkey": { "table": "provisioning_targets", "column": "id" }, "notnull": true },
       "reference_identifier": { "type": "string", "size": 40 },
       "report_id": { "type": "integer", "foreignkey": { "table": "reports", "column": "id" }, "notnull": true },
+      "required": { "type": "string", "size": 2 },
       "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": true },
       "sor_label": { "type": "string", "size": 40 },
       "status": { "type": "string", "size": 2 },
       "traffic_detour_id": { "type": "integer", "foreignkey": { "table": "traffic_detours", "column": "id" }, "notnull": true },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
+      "username": { "type": "string", "size": 128 },
       "valid_from": { "type": "datetime" },
       "valid_through": { "type": "datetime" }
     }

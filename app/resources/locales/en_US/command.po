@@ -135,6 +135,21 @@ msgstr "Message Template ID"
 msgid "opt.notify.type"
 msgstr "Type (label) for provided Identifier"
 
+msgid "opt.test.database.source"
+msgstr "For database test, the datasource to use"
+
+msgid "opt.test.http.http_server_id"
+msgstr "For http test, the HTTP Server configuration id to use"
+
+msgid "opt.test.http.url"
+msgstr "For http test, the relative URL to retrieve"
+
+msgid "opt.test.mail.recipient"
+msgstr "For email test, the Person ID (NOT email address) to try sending to"
+
+msgid "opt.test.test"
+msgstr "Test to perform"
+
 msgid "opt.upgrade.forcecurrent"
 msgstr "Force the specified current version -- ADVANCED USERS ONLY"
 
@@ -176,15 +191,6 @@ msgstr "COmanage Platform Administrator"
 
 msgid "se.salt"
 msgstr "Generating salt file {0}"
-
-msgid "opt.test.database.source"
-msgstr "For database test, the datasource to use"
-
-msgid "opt.test.mail.recipient"
-msgstr "For email test, the Person ID (NOT email address) to try sending to"
-
-msgid "opt.test.test"
-msgstr "Test to perform"
 
 msgid "tm.epilog"
 msgstr "An optional, space separated list of tables to transmogrify may be specified"

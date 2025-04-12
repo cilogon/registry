@@ -53,12 +53,16 @@ class TestCommand extends Command
     $parser->addOption('test', [
       'help'    => __d('command', 'opt.test.test'),
       'short'   => 't',
-      'choices' => ['database', 'mail', 'setup']
+      'choices' => ['database', 'http', 'mail', 'setup']
     ])->addOption('datasource', [
       'help'    => __d('command', 'opt.test.database.source'),
       'default' => 'default'
+    ])->addOption('http_server_id', [
+      'help'    => __d('command', 'opt.test.http.http_server_id')
     ])->addOption('recipient', [
       'help'    => __d('command', 'opt.test.mail.recipient')
+    ])->addOption('url', [
+      'help'    => __d('command', 'opt.test.http.url')
     ]);
 
     return $parser;
@@ -85,6 +89,9 @@ class TestCommand extends Command
       case 'database':
         $this->testDatabase($args->getOption('datasource'));
         break;
+      case 'http':
+        $this->testHttp((int)$args->getOption('http_server_id'), $args->getOption('url'));
+        break;
       case 'mail':
         $this->testMail((int)$args->getOption('recipient'));
         break;
@@ -109,6 +116,35 @@ class TestCommand extends Command
     try {
       $cxn = ConnectionManager::get($source);
       $this->io->out(__d('result', 'test.database.ok'));
+    }
+    catch(\Exception $e) {
+      $this->io->error($e->getMessage());
+      $this->abort(static::CODE_ERROR);
+    }
+
+    return static::CODE_SUCCESS;
+  }
+
+  /**
+   * Test HTTP connectivity via a configured HttpServer and request URL.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int    $httpServerId   HttpServer ID
+   * @param  string $url            URL to request (relative to HttpServer configured URL)
+   * @return int                    Return Code (CODE_SUCCESS or CODE_ERROR)
+   */
+
+  protected function testHttp(int $httpServerId, string $url): int {
+    try {
+      $HttpServers = $this->getTableLocator()->get('CoreServer.HttpServers');
+
+      $Client = $HttpServers->createHttpClient($httpServerId);
+
+      $response = $Client->get($url);
+
+      if(!$response->isOk() || $response->isRedirect()) {
+        throw new \RuntimeException($response->getReasonPhrase());
+      }
     }
     catch(\Exception $e) {
       $this->io->error($e->getMessage());

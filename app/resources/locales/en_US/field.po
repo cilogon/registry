@@ -164,6 +164,9 @@ msgstr "format"
 msgid "full_name"
 msgstr "Full Name"
 
+msgid "hostname"
+msgstr "Hostname"
+
 msgid "language"
 msgstr "Language"
 
@@ -210,8 +213,14 @@ msgstr "Parameters"
 msgid "parent_id"
 msgstr "Parent"
 
+msgid "password"
+msgstr "Password"
+
 msgid "plugin"
 msgstr "Plugin"
+
+msgid "port"
+msgstr "Port"
 
 msgid "postal_code"
 msgstr "Postal Code"

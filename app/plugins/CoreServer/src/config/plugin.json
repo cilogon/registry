@@ -1,27 +1,57 @@
 {
   "types": {
     "server": [
+      "HttpServers",
+      "MatchServers",
       "SmtpServers",
       "SqlServers"
     ]
   },
   "schema": {
     "tables": {
+      "http_servers": {
+        "columns": {
+          "id": {},
+          "server_id": {},
+          "url": { "type": "url" },
+          "username": {},
+          "password": {},
+          "auth_type": { "type": "string", "size": 2 },
+          "skip_ssl_verification": { "type": "boolean" }
+        },
+        "indexes": {
+          "http_servers_i1": { "columns": [ "server_id" ]}
+        }
+      },
+      "match_servers": {
+        "columns": {
+          "id": {},
+          "server_id": {},
+          "url": { "type": "url" },
+          "username": {},
+          "password": {},
+          "auth_type": { "type": "string", "size": 2 },
+          "skip_ssl_verification": { "type": "boolean" }
+        },
+        "indexes": {
+          "match_servers_i1": { "columns": [ "server_id" ] }
+        }
+      },
       "smtp_servers": {
         "columns": {
           "id": {},
           "server_id": {},
           "hostname": { "type": "string", "size": 128 },
           "port": { "type": "integer" },
-          "username": { "type": "string", "size": 128 },
-          "password": { "type": "string", "size": 80 },
+          "username": {},
+          "password": {},
           "use_tls": { "type": "boolean" },
           "default_from": { "type": "string", "size": 256 },
           "default_reply_to": { "type": "string", "size": 256 },
           "override_to": { "type": "string", "size": 256 }
         },
         "indexes": {
-          "smtp_servers_i1": { "columns": [ "server_id"] }
+          "smtp_servers_i1": { "columns": [ "server_id" ] }
         }
       },
       "sql_servers": {
@@ -32,8 +62,8 @@
           "hostname": { "type": "string", "size": 128 },
           "port": { "type": "integer" },
           "databas": { "type": "string", "size": 128 },
-          "username": { "type": "string", "size": 128 },
-          "password": { "type": "string", "size": 80 }
+          "username": {},
+          "password": {}
         },
         "indexes": {
           "sql_servers_i1": { "columns": [ "server_id" ]}
