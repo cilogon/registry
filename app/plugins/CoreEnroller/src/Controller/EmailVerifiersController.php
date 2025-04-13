@@ -62,7 +62,10 @@ class EmailVerifiersController extends StandardEnrollerController {
       $this->set('vv_bc_parent_primarykey', $this->EmailVerifiers->EnrollmentFlowSteps->getPrimaryKey());
     }
     
-    if ($this->getRequest()->getQuery("op") == "verify" || $this->getRequest()->getQuery("op") == "index") {
+    // We use the viewvar to determine the op since 'index' isn't always present
+    $op = $this->viewBuilder()->getVar('vv_op');
+
+    if($op == "verify" || $op == "index") {
       // This will suppress the default behavior. By default, we print the submit button in the
       // unorderedList.php element. But for the verify view we want to override and customize
       $this->set('suppress_submit', true);
@@ -80,9 +83,8 @@ class EmailVerifiersController extends StandardEnrollerController {
    * @return void
    * @since COmanage Registry v5.1.0
    */
-  public function resend($id)
-  {
-
+  
+  public function resend($id) {
     $this->viewBuilder()->setClassName('Json');
 
     if (!$this->getRequest()->is('ajax')) {

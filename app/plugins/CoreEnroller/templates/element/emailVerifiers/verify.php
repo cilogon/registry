@@ -49,7 +49,7 @@ print $this->Form->hidden('m', ['default' => $m]);
 print $this->element('form/listItem', [
   'arguments' => [
     'fieldName' => 'code',
-    'fieldLabel' => "Code", //__d('field', 'mail')
+    'fieldLabel' => __d('field', 'code'),
     'fieldOptions' => [
       'required' => true
     ]

@@ -53,6 +53,9 @@ msgstr "Area Code"
 msgid "attribute"
 msgstr "Attribute"
 
+msgid "code"
+msgstr "Code"
+
 msgid "comment"
 msgstr "Comment"
 

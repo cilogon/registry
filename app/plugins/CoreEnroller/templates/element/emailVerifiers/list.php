@@ -57,8 +57,8 @@ if($vv_all_done) {
     <th><?= __d('field', 'status') ?></th>
   </tr>
   </thead>
-  </tbody>
 
+  <tbody>
   <?php foreach(array_keys($vv_email_addresses) as $addr): ?>
   <?php
   $verified = isset($vv_verified_addresses[$addr]) && $vv_verified_addresses[$addr];
@@ -111,11 +111,11 @@ if($vv_all_done) {
     <?php endif; ?>
     </td>
   </tr>
+  <?php endforeach; ?>
   </tbody>
 </table>
 
 <?php
-
 if($vv_minimum_met || count($vv_email_addresses) === 0) {
   $this->Field->enableFormEditMode();
 
@@ -124,4 +124,3 @@ if($vv_minimum_met || count($vv_email_addresses) === 0) {
   print $this->element('form/submit', ['label' => $vv_submit_button_label]);
 }
 ?>
-<?php endforeach; ?>
