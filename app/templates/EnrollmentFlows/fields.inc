@@ -36,16 +36,19 @@ declare(strict_types = 1);
     var authz = document.getElementById('authz-type').value;
 
     // Handle page interaction
-    if(authz == '<?= \App\Lib\Enum\EnrollmentAuthzEnum::CouAdmin ?>'
-       || authz == '<?= \App\Lib\Enum\EnrollmentAuthzEnum::CouPerson ?>') {
+/* CFM-31 not yet implemented
+    if(authz == '<?php // \App\Lib\Enum\EnrollmentAuthzEnum::CouAdmin ?>'
+       || authz == '<?php // \App\Lib\Enum\EnrollmentAuthzEnum::CouPerson ?>') {
       hideFields(['authz-group-id'], isPageLoad);
       showFields(['authz-cou-id'], isPageLoad);
-    } else if(authz == '<?= \App\Lib\Enum\EnrollmentAuthzEnum::GroupMember ?>') {
+    } else if(authz == '<?php // \App\Lib\Enum\EnrollmentAuthzEnum::GroupMember ?>') {
       hideFields(['authz-cou-id'], isPageLoad);
       showFields(['authz-group-id'], isPageLoad);
     } else {
       hideFields(['authz-cou-id', 'authz-group-id'], isPageLoad);
-    }
+    }*/
+
+    hideFields(['authz-cou-id', 'authz-group-id'], isPageLoad);
   }
 
   function jsLocalOnLoad() {

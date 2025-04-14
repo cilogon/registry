@@ -34,10 +34,11 @@ namespace App\Lib\Enum;
 class EnrollmentAuthzEnum extends StandardEnum {
   const AuthUser      = 'AU';
   const CoAdmin       = 'CA';
+/* CFM-31 not yet implemented
   const CoOrCouAdmin  = 'A';
   const CouAdmin      = 'UA';
   const CouPerson     = 'UP';
   const GroupMember   = 'GM';
   const Person        = 'CP';
-  const None          = 'N';
+  const None          = 'N';*/
 }

@@ -75,6 +75,9 @@ class EnrollmentFlowsController extends StandardController {
         case EnrollmentAuthzEnum::CoAdmin:
           $authorized = $this->RegistryAuth->isCoAdmin($flow->co_id);
           break;
+// CFM-31 implement these (and enable in EnrollmentAuthzEnum, and possibly start() below
+//        and fields.inc)
+/*
         case EnrollmentAuthzEnum::CoOrCouAdmin:
 // XXX
           break;
@@ -93,7 +96,7 @@ class EnrollmentFlowsController extends StandardController {
         case EnrollmentAuthzEnum::None:
 // XXX willHandleAuth needs to check for this mode and then return 'open' if set
           $authorized = true;
-          break;
+          break;*/
       }
     }
 
@@ -142,10 +145,11 @@ class EnrollmentFlowsController extends StandardController {
 
     $isEnrollee = in_array($flow->authz_type, [
       EnrollmentAuthzEnum::AuthUser,
-      EnrollmentAuthzEnum::CouPerson,
-      EnrollmentAuthzEnum::GroupMember,
-      EnrollmentAuthzEnum::Person,
-      EnrollmentAuthzEnum::None
+// XXX not yet implemented
+      // EnrollmentAuthzEnum::CouPerson,
+      // EnrollmentAuthzEnum::GroupMember,
+      // EnrollmentAuthzEnum::Person,
+      // EnrollmentAuthzEnum::None
     ]);
 
     $actor = $this->getCurrentActor();
