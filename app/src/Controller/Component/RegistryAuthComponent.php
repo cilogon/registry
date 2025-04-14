@@ -588,11 +588,19 @@ class RegistryAuthComponent extends Component
     $appUserRoles['person_identifier'] = $this->getAuthenticatedUser();
     if ($coId) {
       // Person ID
-      $appUserRoles['person_id'] = $this->getPersonID($coId) ?? null;
-      // Person Full Name
-      if (!empty($appUserRoles['person_id'])) {
-        $Names = TableRegistry::getTableLocator()->get('Names');
-        $appUserRoles['person_fullname'] = $Names->primaryName((int)$appUserRoles['person_id'])->full_name;
+      $appUserRoles['person_id'] = null;
+      
+      try {
+        $appUserRoles['person_id'] = $this->getPersonID($coId);
+
+        // Person Full Name
+        if (!empty($appUserRoles['person_id'])) {
+          $Names = TableRegistry::getTableLocator()->get('Names');
+          $appUserRoles['person_fullname'] = $Names->primaryName((int)$appUserRoles['person_id'])->full_name;
+        }
+      }
+      catch(\Exception $e) {
+        // If there is no authenticated user getPersonID will throw an exception
       }
     }
 
