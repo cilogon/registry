@@ -568,6 +568,15 @@ msgstr "Street, City, State, Postal Code"
 msgid "RequiredAddressFieldsEnum.street,locality,state,postal_code,country"
 msgstr "Street, City, State, Postal Code, Country"
 
+msgid "RequiredEnum.NP"
+msgstr "Not Permitted"
+
+msgid "RequiredEnum.O"
+msgstr "Optional"
+
+msgid "RequiredEnum.R"
+msgstr "Required"
+
 msgid "RequiredNameFieldsEnum.given"
 msgstr "Given"
 

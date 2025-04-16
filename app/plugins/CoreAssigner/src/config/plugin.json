@@ -16,7 +16,8 @@
           "minimum": { "type": "integer" },
           "maximum": { "type": "integer" },
           "collision_mode": { "type": "string", "size": 2 },
-          "permitted_characters": { "type": "string", "size": 2 }
+          "permitted_characters": { "type": "string", "size": 2 },
+          "enable_transliteration": { "type": "boolean" }
         },
         "indexes": {
           "format_assigners_i1": { "columns": [ "identifier_assignment_id" ]}

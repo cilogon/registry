@@ -47,6 +47,9 @@ class Name extends Entity {
     'full_name'
   ];
 
+  // Enable Transliteration? This could be refactored into a trait if other entities support it
+  protected $transliterate = false;
+
   /**
    * Generate a full (common) name.
    *
@@ -104,7 +107,40 @@ class Name extends Entity {
 
     return $cn;
   }
+
+  /**
+   * Accessor method to obtain possibly transliterated family name.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string  $given  Family name
+   */
+
+  protected function _getFamily($family) {
+    return $this->maybeTransliterate($family);
+  }
   
+  /**
+   * Accessor method to obtain possibly transliterated given name.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string  $given  Given name
+   */
+
+  protected function _getGiven($given) {
+    return $this->maybeTransliterate($given);
+  }
+
+  /**
+   * Accessor method to obtain possibly transliterated middle name.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string  $given  Middle name
+   */
+
+  protected function _getMiddle($middle) {
+    return $this->maybeTransliterate($middle);
+  }
+
   /**
    * Determine if this entity record can be deleted.
    *
@@ -114,6 +150,66 @@ class Name extends Entity {
   
   public function canDelete(): bool {
     return $this->notPrimary();
+  }
+
+  /**
+   * Set (or disable) transliteration when returning fields from this Entity.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  bool   $enable   If true, enable transliteration (default is false)
+   */
+
+  public function enableTransliteration(bool $enable) {
+    $this->transliterate = $enable;
+  }
+
+  /**
+   * Maybe transliterate the requested string (if enabled).
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  string   $s    String to transliterate
+   * @return string         Possibly transliterated string
+   */
+
+  protected function maybeTransliterate(?string $s): ?string {
+    if(!$s) {
+      return null;
+    }
+
+    if($this->transliterate) {
+      // The PHP transliteration library is basically a wrapper around unicode libraries.
+      // The documentation is extremely technical and has a fairly steep learning curve.
+      // A background in linguistics helps, but only somewhat.
+      //
+      //   https://unicode-org.github.io/icu/userguide/transforms/general/
+      //   http://www.unicode.org/reports/tr15/#Norm_Forms
+      //
+      // Any-Latin will convert any script to a Latin representation, which might still
+      // have composed characters, such as é. We shouldn't actually use "Any", though, since
+      // by default Japanese Kanji (which are Chinese derived characters) will be
+      // transliterated using Chinese guidance. Unfortunately there isn't a better
+      // option available, and the transliterator library basically gives up and doesn't
+      // try to address Japanese.
+      //
+      // NFKD will decompose and separate, so (eg) the "ﬁ" ligature becomes "f" and "i",
+      // and å becomes just a. For identifier assignment, this is preferable... in the
+      // unlikely event someone pastes in "ﬁ" we really want "fi".
+      //
+      // We could perform other transformations here, such as converting to lowercase,
+      // but for the sake of functional compartmentalization we don't.
+      //
+      // Note this approach isn't without problems. For exmaple, Kanji in Japanese can
+      // translate to multiple words each with different pronunciations, and therefore
+      // different transliterations. Or, different European speakers might prefer
+      // different transliterations, eg å to a or aa. As such, this feature is
+      // experimental pending real world feedback.
+
+      $txid = "Any-Latin; NFKD; [:Nonspacing Mark:] Remove; NFKC";
+
+      return \Transliterator::create($txid)->transliterate($s);
+    } else {
+      return $s;
+    }
   }
   
   /**

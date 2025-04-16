@@ -58,6 +58,9 @@ msgstr "Collision Mode"
 msgid "field.FormatAssigners.collision_mode.desc"
 msgstr "How to assign collision numbers when required"
 
+msgid "field.FormatAssigners.enable_transliteration"
+msgstr "Enable Transliteration"
+
 msgid "field.FormatAssigners.format"
 msgstr "Format"
 

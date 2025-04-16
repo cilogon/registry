@@ -67,6 +67,7 @@ if($vv_action == 'edit') {
             'minimum_length',
             'minimum',
             'maximum',
+            'enable_transliteration'
           ] as $field) {
     print $this->element('form/listItem', [
       'arguments' => [

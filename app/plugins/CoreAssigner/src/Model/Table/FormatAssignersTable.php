@@ -122,7 +122,8 @@ class FormatAssignersTable extends Table {
       $entity,
       // If no format is specified, default to "(#)".
       $ia->format_assigner->format ?? "(#)",
-      $ia->format_assigner->permitted_characters
+      $ia->format_assigner->permitted_characters,
+      (bool)$ia->format_assigner->enable_transliteration
     );
 
     // Now that we've got our base, loop until we get a unique identifier.
@@ -345,19 +346,27 @@ class FormatAssignersTable extends Table {
    * string used in identifier assignment.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  EntityInterface          $entity     Entity to assign Identifier for
-   * @param  string                   $format     Identifier assignment format
-   * @param  PermittedCharactersEnum  $permitted  Acceptable characters for substituted parameters
-   * @return string                               Identifier with paramaters substituted
+   * @param  EntityInterface          $entity         Entity to assign Identifier for
+   * @param  string                   $format         Identifier assignment format
+   * @param  PermittedCharactersEnum  $permitted      Acceptable characters for substituted parameters
+   * @param  boolean                  $transliterate  Whether to apply transliteration in constructing the identifier base
+   * @return string                                   Identifier with paramaters substituted
    * @throws RuntimeException
    */
   
   protected function substituteParameters(
     $entity,
     string $format,
-    string $permitted
+    string $permitted,
+    bool $transliterate=false
   ): string {
     $base = "";
+
+    if($transliterate) {
+      // Transliteration is performed by the entity when enabled
+
+      $entity->primary_name->enableTransliteration(true);
+    }
     
     // For random letter generation ('h', 'r', 'R')
     $randomCharSet = array(
@@ -560,6 +569,11 @@ class FormatAssignersTable extends Table {
       'content' => ['rule' => ['inList', PermittedCharactersEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('permitted_characters');
+
+    $validator->add('enable_transliteration', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('enable_transliteration');
 
     return $validator;
   }
