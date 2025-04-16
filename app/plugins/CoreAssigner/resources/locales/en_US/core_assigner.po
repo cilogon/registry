@@ -76,6 +76,9 @@ msgstr "Minimum Collision Value"
 msgid "field.FormatAssigners.minimum.desc"
 msgstr "The minimum value for randomly generated collision numbers, or the starting value for sequences"
 
+msgid "field.FormatAssigners.minimum_length"
+msgstr "Minimum Length"
+
 msgid "field.FormatAssigners.permitted_characters"
 msgstr "Permitted Characters"
 

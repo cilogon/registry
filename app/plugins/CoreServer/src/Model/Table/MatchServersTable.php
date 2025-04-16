@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry-plugins
- * @since         COmanage Registry v5.2.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -40,7 +40,7 @@ class MatchServersTable extends HttpServersTable {
   /**
    * Perform Cake Model initialization.
    *
-   * @since  COmanage Registry v5.2.0
+   * @since  COmanage Registry v5.1.0
    * @param  array  $config Configuration options passed to constructor
    */
 
@@ -80,7 +80,7 @@ class MatchServersTable extends HttpServersTable {
   /**
    * Set validation rules.
    *
-   * @since  COmanage Registry v5.2.0
+   * @since  COmanage Registry v5.1.0
    * @param  Validator $validator Validator
    * @return Validator            Validator
    */

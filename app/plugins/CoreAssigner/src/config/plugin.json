@@ -12,6 +12,7 @@
           "id": {},
           "identifier_assignment_id": {},
           "format": { "type": "string", "size": 256 },
+          "minimum_length": { "type": "integer" },
           "minimum": { "type": "integer" },
           "maximum": { "type": "integer" },
           "collision_mode": { "type": "string", "size": 2 },

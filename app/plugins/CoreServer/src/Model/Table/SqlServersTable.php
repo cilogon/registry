@@ -35,8 +35,6 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-
-// Even though CoreServer is a plugin, it should always be enabled
 use CoreServer\Lib\Enum\RdbmsTypeEnum;
 
 class SqlServersTable extends Table {

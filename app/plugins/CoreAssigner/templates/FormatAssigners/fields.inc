@@ -64,6 +64,7 @@ if($vv_action == 'edit') {
 
   foreach([
             'permitted_characters',
+            'minimum_length',
             'minimum',
             'maximum',
           ] as $field) {

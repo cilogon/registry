@@ -152,7 +152,11 @@ class FormatAssignersTable extends Table {
       
       if(!in_array($candidate, $tested)
           // Also check that we didn't get an empty string
-          && trim($candidate) != false) {
+          && trim($candidate) != false
+          // Or that the candidate is too short
+          && (empty($ia->format_assigner->minimum_length)
+              || ($ia->format_assigner->minimum_length > 0
+                  && strlen($candidate) >= $ia->format_assigner->minimum_length))) {
         // We have a new candidate (ie: one that wasn't generated on a previous loop),
         // so let's see if it is already in use.
         
@@ -398,13 +402,17 @@ class FormatAssignersTable extends Table {
             
             switch($format[$i]) {
               case 'f':
-                $base .= sprintf("%.".$width."s",
-                                 preg_replace($charregex, '', strtolower($entity->primary_name->family)));
-                break;
+                if(!empty($entity->primary_name->family)) {
+                  $base .= sprintf("%.".$width."s",
+                                  preg_replace($charregex, '', strtolower($entity->primary_name->family)));
+                  break;
+                }
               case 'F':
-                $base .= sprintf("%.".$width."s",
-                                 preg_replace($charregex, '', $entity->primary_name->family));
-                break;
+                if(!empty($entity->primary_name->family)) {
+                  $base .= sprintf("%.".$width."s",
+                                  preg_replace($charregex, '', $entity->primary_name->family));
+                  break;
+                }
               case 'g':
                 $base .= sprintf("%.".$width."s",
                                  preg_replace($charregex, '', strtolower($entity->primary_name->given)));
@@ -465,12 +473,16 @@ class FormatAssignersTable extends Table {
                 }
                 break;
               case 'm':
-                $base .= sprintf("%.".$width."s",
-                                 preg_replace($charregex, '', strtolower( $entity->primary_name->middle)));
+                if(!empty($entity->primary_name->middle)) {
+                  $base .= sprintf("%.".$width."s",
+                                   preg_replace($charregex, '', strtolower($entity->primary_name->middle)));
+                }
                 break;
               case 'M':
-                $base .= sprintf("%.".$width."s",
-                                 preg_replace($charregex, '',  $entity->primary_name->middle));
+                if(!empty($entity->primary_name->middle)) {
+                  $base .= sprintf("%.".$width."s",
+                                  preg_replace($charregex, '',  $entity->primary_name->middle));
+                }
                 break;
               case 'n':
                 $base .= sprintf("%.".$width."s",
@@ -523,6 +535,11 @@ class FormatAssignersTable extends Table {
     $validator->notEmptyString('identifier_assignment_id');
 
     $this->registerStringValidation($validator, $schema, 'format', true);
+
+    $validator->add('minimum_length', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('minimum_length');
 
     $validator->add('minimum', [
       'content' => ['rule' => 'isInteger']
