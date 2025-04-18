@@ -204,11 +204,19 @@ class RouteCollection
     public function parseRequest(ServerRequestInterface $request): array
     {
         $uri = $request->getUri();
-        $urlPath = urldecode($uri->getPath());
+        $urlPath = $uri->getPath();
+        if (strpos($urlPath, '%') !== false) {
+            // decode urlencoded segments, but don't decode %2f aka /
+            $parts = explode('/', $urlPath);
+            $parts = array_map(
+                fn (string $part) => str_replace('/', '%2f', urldecode($part)),
+                $parts
+            );
+            $urlPath = implode('/', $parts);
+        }
         if ($urlPath !== '/') {
             $urlPath = rtrim($urlPath, '/');
         }
-
         if (isset($this->staticPaths[$urlPath])) {
             foreach ($this->staticPaths[$urlPath] as $route) {
                 $r = $route->parseRequest($request);
@@ -217,7 +225,7 @@ class RouteCollection
                 }
                 if ($uri->getQuery()) {
                     parse_str($uri->getQuery(), $queryParameters);
-                    $r['?'] = $queryParameters;
+                    $r['?'] = array_merge($r['?'] ?? [], $queryParameters);
                 }
 
                 return $r;

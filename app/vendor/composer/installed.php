@@ -3,7 +3,7 @@
         'name' => 'cakephp/app',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => 'd3454ff41d7456735e8553ca6919a2645f65754a',
+        'reference' => 'c74c4238cec5e773ee785ea12ff87f2e2d371be0',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'cakephp/app' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => 'd3454ff41d7456735e8553ca6919a2645f65754a',
+            'reference' => 'c74c4238cec5e773ee785ea12ff87f2e2d371be0',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -40,13 +40,13 @@
         'cakephp/cache' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/cakephp' => array(
-            'pretty_version' => '4.5.4',
-            'version' => '4.5.4.0',
-            'reference' => 'a28d65864a67d52482dba82207a4a22c15a59ef4',
+            'pretty_version' => '4.6.0',
+            'version' => '4.6.0.0',
+            'reference' => 'b8585672346c0654311c77500ce613cdf37687cc',
             'type' => 'library',
             'install_path' => __DIR__ . '/../cakephp/cakephp',
             'aliases' => array(),
@@ -62,9 +62,9 @@
             'dev_requirement' => true,
         ),
         'cakephp/chronos' => array(
-            'pretty_version' => '2.4.4',
-            'version' => '2.4.4.0',
-            'reference' => '03208c18eb3267490662e68671bb9c22aa804492',
+            'pretty_version' => '2.4.5',
+            'version' => '2.4.5.0',
+            'reference' => 'b0321ab7658af9e7abcb3dd876f226e6f3dbb81f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../cakephp/chronos',
             'aliases' => array(),
@@ -73,31 +73,31 @@
         'cakephp/collection' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/console' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/core' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/database' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/datasource' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/debug_kit' => array(
@@ -112,37 +112,37 @@
         'cakephp/event' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/filesystem' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/form' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/http' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/i18n' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/log' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/migrations' => array(
@@ -157,7 +157,7 @@
         'cakephp/orm' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/plugin-installer' => array(
@@ -181,19 +181,19 @@
         'cakephp/utility' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'cakephp/validation' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.5.4',
+                0 => '4.6.0',
             ),
         ),
         'composer/ca-bundle' => array(
-            'pretty_version' => '1.4.1',
-            'version' => '1.4.1.0',
-            'reference' => '3ce240142f6d59b808dd65c1f52f7a1c252e6cfd',
+            'pretty_version' => '1.5.6',
+            'version' => '1.5.6.0',
+            'reference' => 'f65c239c970e7f072f067ab78646e9f0b2935175',
             'type' => 'library',
             'install_path' => __DIR__ . '/./ca-bundle',
             'aliases' => array(),
@@ -209,9 +209,9 @@
             'dev_requirement' => true,
         ),
         'composer/composer' => array(
-            'pretty_version' => '2.7.1',
-            'version' => '2.7.1.0',
-            'reference' => 'aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc',
+            'pretty_version' => '2.7.6',
+            'version' => '2.7.6.0',
+            'reference' => 'fabd995783b633829fd4280e272284b39b6ae702',
             'type' => 'library',
             'install_path' => __DIR__ . '/./composer',
             'aliases' => array(),
@@ -362,9 +362,9 @@
             'dev_requirement' => false,
         ),
         'laminas/laminas-httphandlerrunner' => array(
-            'pretty_version' => '2.10.0',
-            'version' => '2.10.0.0',
-            'reference' => '35a0ba92e940a2f9533754f5a56187fa321f7693',
+            'pretty_version' => '2.11.0',
+            'version' => '2.11.0.0',
+            'reference' => 'c428d9f67f280d155637cbe2b7245b5188c8cdae',
             'type' => 'library',
             'install_path' => __DIR__ . '/../laminas/laminas-httphandlerrunner',
             'aliases' => array(),
@@ -570,9 +570,9 @@
             ),
         ),
         'psr/http-factory' => array(
-            'pretty_version' => '1.0.2',
-            'version' => '1.0.2.0',
-            'reference' => 'e616d01114759c4c489f93b099585439f795fe35',
+            'pretty_version' => '1.1.0',
+            'version' => '1.1.0.0',
+            'reference' => '2b4765fddfe3b508ac62f829e852b1501d3f6e8a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../psr/http-factory',
             'aliases' => array(),
@@ -994,9 +994,9 @@
             'dev_requirement' => true,
         ),
         'symfony/process' => array(
-            'pretty_version' => 'v7.0.4',
-            'version' => '7.0.4.0',
-            'reference' => '0e7727191c3b71ebec6d529fa0e50a01ca5679e9',
+            'pretty_version' => 'v7.2.5',
+            'version' => '7.2.5.0',
+            'reference' => '87b7c93e57df9d8e39a093d32587702380ff045d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/process',
             'aliases' => array(),
@@ -1048,9 +1048,9 @@
             'dev_requirement' => true,
         ),
         'twig/twig' => array(
-            'pretty_version' => 'v3.8.0',
-            'version' => '3.8.0.0',
-            'reference' => '9d15f0ac07f44dc4217883ec6ae02fd555c6f71d',
+            'pretty_version' => 'v3.20.0',
+            'version' => '3.20.0.0',
+            'reference' => '3468920399451a384bef53cf7996965f7cd40183',
             'type' => 'library',
             'install_path' => __DIR__ . '/../twig/twig',
             'aliases' => array(),

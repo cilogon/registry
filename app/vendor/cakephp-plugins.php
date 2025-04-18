@@ -12,5 +12,6 @@ return [
         'DebugKit' => $baseDir . '/vendor/cakephp/debug_kit/',
         'EnvSource' => $baseDir . '/plugins/EnvSource/',
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',
+        'TestWidget' => $baseDir . '/plugins/TestWidget/',
     ],
 ];

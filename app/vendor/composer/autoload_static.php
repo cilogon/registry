@@ -9,8 +9,11 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '89efb1254ef2d1c5d80096acd12c4098' => __DIR__ . '/..' . '/twig/twig/src/Resources/core.php',
+        'ffecb95d45175fd40f75be8a23b34f90' => __DIR__ . '/..' . '/twig/twig/src/Resources/debug.php',
+        'c7baa00073ee9c61edf148c51917cfb4' => __DIR__ . '/..' . '/twig/twig/src/Resources/escaper.php',
+        'f844ccf1d25df8663951193c3fc307c8' => __DIR__ . '/..' . '/twig/twig/src/Resources/string_loader.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         '34122c0574b76bf21c9a8db62b5b9cf3' => __DIR__ . '/..' . '/cakephp/chronos/src/carbon_compat.php',
@@ -39,6 +42,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'b1fc73705e1bec51cd2b20a32cf1c60a' => __DIR__ . '/..' . '/cakephp/cakephp/src/Utility/bootstrap.php',
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
@@ -51,6 +55,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
+            'TestPlugin\\Test\\' => 16,
+            'TestPlugin\\' => 11,
         ),
         'S' => 
         array (
@@ -142,6 +148,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'CoreServer\\Test\\' => 16,
             'CoreServer\\' => 11,
+            'CoreReport\\Test\\' => 16,
+            'CoreReport\\' => 11,
             'CoreJob\\Test\\' => 13,
             'CoreJob\\' => 8,
             'CoreEnroller\\Test\\' => 18,
@@ -185,6 +193,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
+        ),
+        'TestPlugin\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/tests',
+        ),
+        'TestPlugin\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/src',
         ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (
@@ -432,6 +448,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreServer\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreServer/src',
+        ),
+        'CoreReport\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreReport/tests',
+        ),
+        'CoreReport\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreReport/src',
         ),
         'CoreJob\\Test\\' => 
         array (

@@ -8,6 +8,8 @@ $baseDir = dirname($vendorDir);
 return array(
     'Twig\\Extra\\Markdown\\' => array($vendorDir . '/twig/markdown-extra'),
     'Twig\\' => array($vendorDir . '/twig/twig/src'),
+    'TestPlugin\\Test\\' => array($baseDir . '/availableplugins/TestPlugin/tests'),
+    'TestPlugin\\' => array($baseDir . '/availableplugins/TestPlugin/src'),
     'Symfony\\Polyfill\\Php81\\' => array($vendorDir . '/symfony/polyfill-php81'),
     'Symfony\\Polyfill\\Php80\\' => array($vendorDir . '/symfony/polyfill-php80'),
     'Symfony\\Polyfill\\Php73\\' => array($vendorDir . '/symfony/polyfill-php73'),
@@ -69,6 +71,8 @@ return array(
     'DebugKit\\' => array($vendorDir . '/cakephp/debug_kit/src'),
     'CoreServer\\Test\\' => array($baseDir . '/plugins/CoreServer/tests'),
     'CoreServer\\' => array($baseDir . '/plugins/CoreServer/src'),
+    'CoreReport\\Test\\' => array($baseDir . '/plugins/CoreReport/tests'),
+    'CoreReport\\' => array($baseDir . '/plugins/CoreReport/src'),
     'CoreJob\\Test\\' => array($baseDir . '/plugins/CoreJob/tests'),
     'CoreJob\\' => array($baseDir . '/plugins/CoreJob/src'),
     'CoreEnroller\\Test\\' => array($baseDir . '/plugins/CoreEnroller/tests'),
