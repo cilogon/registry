@@ -287,7 +287,7 @@ class UpgradeCommand extends Command
   /**
    * Validate the requested from and to versions.
    *
-   * @since  COmanage Registry v0.9.4
+   * @since  COmanage Registry v5.1.0
    * @param  string $from   "From" version (current database)
    * @param  string $to     "To" version (current codebase)
    * @return bool           true if the requested range is valid
