@@ -136,9 +136,9 @@ class HistoryRecordsTable extends Table {
       $coId = null;
 
       if(!empty($data['person_id'])) {
-        $coId = $this->People->findCoForRecord($data['person_id']);
+        $coId = $this->People->findCoForRecord((int)$data['person_id']);
       } elseif(!empty($data['group_id'])) {
-        $coId = $this->Groups->findCoForRecord($data['group_id']);
+        $coId = $this->Groups->findCoForRecord((int)$data['group_id']);
       }
 
       if($coId) {
@@ -159,7 +159,7 @@ class HistoryRecordsTable extends Table {
       // Truncate the comment to fit the column width
       $column = $this->getSchema()->getColumn('comment');
 
-      $data['comment'] = substr($data['comment'], 0, $column['length']);
+      $data['comment'] = mb_substr($data['comment'], 0, $column['length']);
     }
   }
 

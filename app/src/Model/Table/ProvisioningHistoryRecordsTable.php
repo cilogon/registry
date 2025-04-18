@@ -116,7 +116,7 @@ class ProvisioningHistoryRecordsTable extends Table {
       // Truncate the comment to fit the column width
       $column = $this->getSchema()->getColumn('comment');
 
-      $data['comment'] = substr($data['comment'], 0, $column['length']);
+      $data['comment'] = mb_substr($data['comment'], 0, $column['length']);
     }
   }
   
