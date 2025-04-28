@@ -267,8 +267,9 @@ trait ValidationTrait {
       }
       
       // We require at least one non-whitespace character (CO-1551)
-      if(!preg_match('/\S/', $value)) {
-        return __d('error', 'input.blank');
+      $notBlankValidation = $this->validateNotBlank($value, $context); 
+      if ($notBlankValidation !== true) {
+        return $notBlankValidation;
       }
     }
     
@@ -303,7 +304,25 @@ trait ValidationTrait {
     
     return true;
   }
-  
+
+
+  /**
+   * Validate that the given value is not blank.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param mixed $value Value to validate
+   * @param array $context Validation context
+   * @return mixed          True if $value validates, or an error string otherwise
+   */
+  public function validateNotBlank(mixed $value, array $context): mixed
+  {
+    $regex = '/\S+/m';
+    if (is_scalar($value) && preg_match($regex, $value)) {
+      return true;
+    }
+    return __d('error', 'input.blank');
+  }
+
   /**
    * Determine if a string submitted from a form is valid SQL identifier.
    *

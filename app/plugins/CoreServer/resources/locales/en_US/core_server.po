@@ -34,6 +34,9 @@ msgstr "{0,plural,=1{SMTP Server} other{SMTP Servers}}"
 msgid "controller.SqlServers"
 msgstr "{0,plural,=1{SQL Server} other{SQL Servers}}"
 
+msgid "controller.Oauth2Servers"
+msgstr "{0,plural,=1{Oauth2 Server} other{Oauth2 Servers}}"
+
 msgid "enumeration.HttpAuthTypeEnum.BA"
 msgstr "Basic"
 
@@ -42,6 +45,12 @@ msgstr "Bearer"
 
 msgid "enumeration.HttpAuthTypeEnum.X"
 msgstr "None"
+
+msgid "enumeration.Oauth2GrandTypesEnum.AC"
+msgstr "Authorization Code"
+
+msgid "enumeration.Oauth2GrandTypesEnum.CC"
+msgstr "Client Credentials"
 
 msgid "enumeration.RdbmsTypeEnum.LT"
 msgstr "SQLite"
@@ -61,6 +70,21 @@ msgstr "Oracle"
 msgid "enumeration.RdbmsTypeEnum.PG"
 msgstr "Postgres"
 
+msgid "error.Oauth2Servers.callback"
+msgstr "Incorrect parameters in callback"
+
+msgid "error.Oauth2Servers.state"
+msgstr "Invalid state received in callback"
+
+msgid "error.Oauth2Servers.token"
+msgstr "Error obtaining access token: {0}"
+
+msgid "info.Oauth2Servers.token.ok"
+msgstr "Access Token Obtained"
+
+msgid "info.Oauth2Servers.token.obtain"
+msgstr "Obtain New Token"
+
 msgid "field.auth_type"
 msgstr "Authentication Type"
 
@@ -69,6 +93,33 @@ msgstr "Skip SSL Verification"
 
 msgid "field.MatchServers.api_endpoint"
 msgstr "API Endpoint"
+
+msgid "field.Oauth2Servers.access_token"
+msgstr "Access Token"
+
+msgid "field.Oauth2Servers.access_token.desc"
+msgstr "Save any changes to the configuration before obtaining a new token"
+
+msgid "field.Oauth2Servers.clientid"
+msgstr "Client ID"
+
+msgid "field.Oauth2Servers.client_secret"
+msgstr "Client Secret"
+
+msgid "field.Oauth2Servers.access_grant_type"
+msgstr "Access Token Grant Type"
+
+msgid "field.Oauth2Servers.url"
+msgstr "Server  URL"
+
+msgid "field.Oauth2Servers.redirect_uri"
+msgstr "Redirect  URI"
+
+msgid "field.Oauth2Servers.scope"
+msgstr "Scopes"
+
+msgid "info.Oauth2Servers.access_token.ok"
+msgstr "Access Token Obtained"
 
 msgid "field.SmtpServers.default_from"
 msgstr "Default From Address"
