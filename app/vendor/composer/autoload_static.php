@@ -55,8 +55,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
-            'TestPlugin\\Test\\' => 16,
-            'TestPlugin\\' => 11,
         ),
         'S' => 
         array (
@@ -104,7 +102,12 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'PHPStan\\PhpDocParser\\' => 21,
             'PHPCSStandards\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 57,
         ),
-        'M' => 
+        'O' =>
+        array (
+            'OrcidSource\\Test\\' => 17,
+            'OrcidSource\\' => 12,
+        ),
+        'M' =>
         array (
             'Migrations\\' => 11,
             'Masterminds\\' => 12,
@@ -148,8 +151,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'CoreServer\\Test\\' => 16,
             'CoreServer\\' => 11,
-            'CoreReport\\Test\\' => 16,
-            'CoreReport\\' => 11,
             'CoreJob\\Test\\' => 13,
             'CoreJob\\' => 8,
             'CoreEnroller\\Test\\' => 18,
@@ -193,14 +194,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
-        ),
-        'TestPlugin\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/tests',
-        ),
-        'TestPlugin\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/src',
         ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (
@@ -352,7 +345,15 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/dealerdirect/phpcodesniffer-composer-installer/src',
         ),
-        'Migrations\\' => 
+        'OrcidSource\\Test\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/OrcidSource/tests',
+        ),
+        'OrcidSource\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/OrcidSource/src',
+        ),
+        'Migrations\\' =>
         array (
             0 => __DIR__ . '/..' . '/cakephp/migrations/src',
         ),
@@ -448,14 +449,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreServer\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreServer/src',
-        ),
-        'CoreReport\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreReport/tests',
-        ),
-        'CoreReport\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreReport/src',
         ),
         'CoreJob\\Test\\' => 
         array (
