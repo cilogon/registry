@@ -48,7 +48,9 @@ if($vv_action == 'edit') {
     ]);
   }
 
-  print "<h3>" . __d('env_source', 'information.header.map') . "</h3>\n";
+  // Print a title
+  $title = __d('env_source', 'information.header.map');
+  print $this->element('form/h3Inject', compact('title'));
 
   $defaultNames = [
     'env_identifier_sourcekey' => 'ENV_SOURCE_KEY',

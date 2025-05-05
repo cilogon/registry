@@ -252,7 +252,7 @@ class Oauth2ServersTable extends HttpServersTable {
         'provider' => 'table'
       ]
     ]);
-    $validator->allowEmptyString('scope');
+    $validator->notEmptyString('scope');
 
     $validator->add('refresh_token', [
       'content' => [

@@ -391,6 +391,9 @@ msgstr "Type {0} is in use as a default (via CO Settings)"
 msgid "unknown"
 msgstr "Unknown value \"{0}\""
 
+msgid "unknown.identifier"
+msgstr "Unknown Identifier \"{0}\""
+
 msgid "ug.task.unknown"
 msgstr "Task {0} is not defined"
 

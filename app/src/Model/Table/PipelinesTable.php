@@ -522,18 +522,19 @@ class PipelinesTable extends Table {
     return array_filter($newdata, 'is_scalar');
   }
 
-  /**
-   * Execute the specified Pipeline on the provided EIS data.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $id               Pipeline ID
-   * @param  int    $eisId            Exxternal Identity Source ID
-   * @param  array  $eisBackendRecord Record returned by EIS Backend
-   * @param  bool   $force            Force the Pipeline to run all steps, even if no changes were detected
-   * @param  int    $personId         If set, for create operations only use this as the target Person ID
-   * @param  bool   $syncOnly         If true, do not run Finalize steps
-   * @return string                   Record status (new, unchanged, unknown, updated)
-   */
+    /**
+     * Execute the specified Pipeline on the provided EIS data.
+     *
+     * @param int $id Pipeline ID
+     * @param int $eisId Exxternal Identity Source ID
+     * @param array $eisBackendRecord Record returned by EIS Backend
+     * @param bool $force Force the Pipeline to run all steps, even if no changes were detected
+     * @param int|null $personId If set, for create operations only use this as the target Person ID
+     * @param bool $syncOnly If true, do not run Finalize steps
+     * @return string                   Record status (new, unchanged, unknown, updated)
+     * @throws \Exception
+     * @since  COmanage Registry v5.0.0
+     */
 
   public function execute(
     int   $id,
@@ -575,7 +576,8 @@ class PipelinesTable extends Table {
         $pipeline, 
         $eis, 
         $eisBackendRecord['source_key'],
-        $eisBackendRecord['source_record']
+        $eisBackendRecord['source_record'],
+        $personId
       );
 
       if(!$force && $eisRecord['status'] == 'unchanged') {
@@ -703,23 +705,24 @@ class PipelinesTable extends Table {
     }
   }
 
-  /**
-   * Pipeline step to create or update the External Identity Source Record.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  Pipeline               $pipeline         Pipeline
-   * @param  ExternalIdentitySource $eis              External Identity Source
-   * @param  string                 $sourceKey        Source Key
-   * @param  string                 $sourceRecord     Source Record
-   * @param  array                  $eisBackendRecord Record returned by EIS Backend
-   * @return array                                    ExtIdentitySourceRecord and change status
-   */
+    /**
+     * Pipeline step to create or update the External Identity Source Record.
+     *
+     * @param Pipeline $pipeline Pipeline
+     * @param ExternalIdentitySource $eis External Identity Source
+     * @param string $sourceKey Source Key
+     * @param  ?string $sourceRecord Source Record
+     * @param  ?int $personId Person ID
+     * @return array                                    ExtIdentitySourceRecord and change status
+     * @since  COmanage Registry v5.0.0
+     */
 
   protected function manageEISRecord(
     Pipeline                $pipeline, 
     ExternalIdentitySource  $eis,
     string                  $sourceKey,
-    ?string                 $sourceRecord,
+    ?string                 $sourceRecord=null,
+    ?int                    $personId=null,
   ): array {
     $status = 'unknown';
 
@@ -752,6 +755,12 @@ class PipelinesTable extends Table {
 
         $this->llog('rule', "AR-ExternalIdentity-1 Rejecting request to update adopted record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
         throw new \InvalidArgumentException(__d('error', 'Pipelines.eis.record.adopted', [$sourceKey, $eisRecord->adopted_person_id]));
+      }
+
+      // The Person that initiated the Link does not match the one of the eisRecord found
+      if($eisRecord->external_identity?->person_id !== $personId) {
+          $this->llog('rule', "AR-ExternalIdentity-2 Rejecting request to update duplicate/used record for EIS" . $eis->description . " (" . $eis->id . ") source key $sourceKey");
+          throw new \InvalidArgumentException(__d('error', 'Pipelines.eis.record.used', [$sourceKey, $eisRecord->external_identity->person_id]));
       }
 
       // Update the record as needed, but only if the source record changed.
@@ -1007,8 +1016,8 @@ class PipelinesTable extends Table {
    * @param  Pipeline                 $pipeline       Pipeline
    * @param  ExternalIdentitySource   $eis            External Identity Source
    * @param  ExtIdentitySourceRecord  $eisRecord      External Identity Source Record
-   * @param  array                    $eisAttributes  Attributes provided by EIS Backend
-   * @param  int                      $personId       For create operations, use this as the target Person ID, if set
+   * @param  array|null               $eisAttributes  Attributes provided by EIS Backend
+   * @param  int|null                 $personId       For create operations, use this as the target Person ID, if set
    * @return array                                    'person': Person object
    *                                                  'status': 'linked', 'created', 'matched', 'requested'
    *                                                  'strategy': If status = 'matched', the MatchStrategy
@@ -1018,8 +1027,8 @@ class PipelinesTable extends Table {
     Pipeline                $pipeline,
     ExternalIdentitySource  $eis,
     ExtIdentitySourceRecord $eisRecord,
-    ?array                  $eisAttributes,
-    ?int                    $personId=null
+    ?array                  $eisAttributes = null,
+    ?int                    $personId = null
   ): array {
     // Shorthand...
     $sourceKey = $eisRecord->source_key;

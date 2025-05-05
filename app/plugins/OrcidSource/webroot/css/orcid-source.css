@@ -1,0 +1,18 @@
+.text-center img {
+    width: 72px;
+}
+
+.text-center h2 {
+    color: #68b245;
+}
+
+#orcid-auth-btn {
+    color: white;
+    font-weight: bolder;
+}
+
+.material-symbols-outlined {
+    font-size: 22px;
+    vertical-align: middle;
+}
+

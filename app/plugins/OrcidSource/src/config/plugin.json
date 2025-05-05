@@ -1,0 +1,73 @@
+{
+  "types": {
+    "enroller": [
+      "OrcidSourceCollectors"
+    ],
+    "source": [
+      "OrcidSources"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "orcid_source_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "external_identity_source_id": {}
+        },
+        "indexes": {
+          "orcid_source_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "orcid_source_collectors_i2": { "needed": false, "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "orcid_sources": {
+        "columns": {
+          "id": {},
+          "external_identity_source_id": {},
+          "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": false },
+          "scope_inherit": { "type":  "boolean" },
+          "api_tier": { "type":  "string", "size": "3" },
+          "api_type": { "type":  "string", "size": "3" },
+          "default_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+          "telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } }
+        },
+        "indexes": {
+          "orcid_sources_i1": { "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "orcid_tokens": {
+        "columns": {
+          "id": {},
+          "orcid_source_id": { "type": "integer", "foreignkey": { "table": "orcid_sources", "column": "id" }, "notnull": true },
+          "orcid_identifier": { "type":  "string", "size": "128" },
+          "access_token": { "type":  "text" },
+          "id_token": { "type":  "text" },
+          "refresh_token": { "type":  "text" }
+        },
+        "indexes": {
+          "orcid_source_collectors_i1": {
+            "columns": [ "orcid_source_id",  "orcid_identifier"],
+            "unique": true
+          },
+          "orcid_source_collectors_i2": { "columns": [ "orcid_identifier" ] }
+        }
+      },
+      "petition_orcids": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "orcid_source_collector_id": { "type": "integer", "foreignkey": { "table": "orcid_source_collectors", "column": "id" }, "notnull": true },
+          "orcid_identifier": { "type":  "string", "size": "128" },
+          "orcid_token": { "type": "text" }
+        },
+        "indexes": {
+          "petition_orcids_i1": { "columns": [ "petition_id" ] },
+          "petition_orcids_i2": { "columns": [ "orcid_source_collector_id" ] }
+        }
+      }
+    }
+  }
+}

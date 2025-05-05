@@ -1,0 +1,110 @@
+# COmanage Registry Localizations (orcid_source domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.2.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+msgid "controller.OrcidSourceCollectors"
+msgstr "{0,plural,=1{Orcid Source Collector} other{Orcid Source Collectors}}"
+
+msgid "controller.OrcidSources"
+msgstr "{0,plural,=1{Orcid Source} other{Orcid Sources}}"
+
+msgid "controller.PetitionOrcidIdentities"
+msgstr "{0,plural,=1{Petition Orcid Identity} other{Petition Orcid Identities}}"
+
+msgid "enumeration.OrcidSourceTierEnum.PRO"
+msgstr "Production"
+
+msgid "enumeration.OrcidSourceTierEnum.SBX"
+msgstr "Sandbox"
+
+msgid "enumeration.OrcidSourceApiEnum.AUT"
+msgstr "Authorize"
+
+msgid "enumeration.OrcidSourceApiEnum.MEM"
+msgstr "Members"
+
+msgid "enumeration.OrcidSourceApiEnum.PUB"
+msgstr "Public"
+
+msgid "error.search"
+msgstr "Search request returned {0}"
+
+msgid "error.token.none"
+msgstr "Access token not configured (try resaving configuration)"
+
+msgid "error.param.notfound"
+msgstr "{0} was not found"
+
+msgid "error.orcid_source.no_orcid"
+msgstr "ORCID identifier missing from response."
+
+msgid "field.OrcidSources.api_type"
+msgstr "API Type"
+
+msgid "field.OrcidSources.redirect_uri"
+msgstr "Additional ORCID Redirect URI"
+
+msgid "field.OrcidSources.scope_inherit"
+msgstr "Inherit Scope"
+
+msgid "field.OrcidSources.api_tier"
+msgstr "API Tier"
+
+msgid "field.OrcidSources.name_type_id"
+msgstr "Name Type"
+
+msgid "field.OrcidSources.telephone_number_type_id"
+msgstr "Telephone Number Type"
+
+msgid "field.OrcidSources.address_type_id"
+msgstr "Address Type"
+
+msgid "field.OrcidSources.default_affiliation_type_id"
+msgstr "Default Affiliation Type"
+
+msgid "field.OrcidSources.email_address_type_id"
+msgstr "Email Address Type"
+
+msgid "information.OrcidSources.linked"
+msgstr "Obtained ORCID {0} via authenticated OAuth flow"
+
+msgid "information.orcid_source.identifier"
+msgstr "ORCID Identifier"
+
+msgid "information.OrcidSourceCollectors.authenticate"
+msgstr "Authenticate with ORCID"
+
+msgid "information.OrcidSourceCollectors.sign_in"
+msgstr "Sign in with your ORCID account to securely verify your ORCID iD."
+
+msgid "information.OrcidSources.default.types"
+msgstr "Select Default Types for ORCID Fields"
+
+msgid "result.OrcidSourceCollector.collected"
+msgstr "Obtained ORCID Identifier {0}"
+
+msgid "result.orcid.saved"
+msgstr "ORCID Token recorded"
+
+msgid "result.pipeline.status"
+msgstr "Pipeline completed with status {0}"

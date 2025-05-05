@@ -1,0 +1,24 @@
+{
+    "name": "your-name-here/orcid-source",
+    "description": "OrcidSource plugin for CakePHP",
+    "type": "cakephp-plugin",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.2",
+        "cakephp/cakephp": "4.6.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.5 || ^9.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "OrcidSource\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OrcidSource\\Test\\": "tests/",
+            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
+        }
+    }
+}

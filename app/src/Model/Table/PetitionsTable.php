@@ -468,6 +468,7 @@ class PetitionsTable extends Table {
           // of a duplicate identity that was not detected during an earlier step. This will
           // cause the entire finalization process to fail and rollback.
           try {
+            // TODO: We need to take into account if the plugin has been disabled
             if(method_exists($Plugin, "hydrate")) {
               // We have "CoreEnroller.AttributeCollectors" but we want "attribute_collector"
               $pmodel = Inflector::underscore(Inflector::singularize(StringUtilities::pluginModel($step->plugin)));
