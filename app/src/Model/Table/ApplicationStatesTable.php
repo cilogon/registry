@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use App\Lib\Enum\ApplicationStateEnum;
 use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
@@ -140,5 +141,38 @@ class ApplicationStatesTable extends Table {
     $tags = $subquery->toArray();
 
     return $tags ?? [];
+  }
+
+
+  /**
+   * Create or update an application state.
+   *
+   * This method either updates an existing application state record or creates
+   * a new one based on the provided data and value.
+   *
+   * @param array $data Associative array containing fields and their values.
+   * @param string $value Value to set for the application state.
+   * @return void
+   * @throws \Cake\ORM\Exception\PersistenceFailedException When a save operation fails.
+   * @since COmanage Registry v5.2.0
+   */
+  public function createOrUpdate(array $data, string $value): void
+  {
+    $appId = $this->find()
+      ->cache(false)
+      ->where($data)->first();
+
+    // Enter the new value
+    $data['value'] = $value;
+
+    If ($appId->id !== null) {
+      // Update existing record
+      $appId->set($data);
+      $this->saveOrFail($appId);
+    } else {
+      $newRecord = $this->newEntity($data);
+      // Create new entry
+      $this->saveOrFail($newRecord);
+    }
   }
 }

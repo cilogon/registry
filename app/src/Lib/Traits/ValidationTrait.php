@@ -216,6 +216,23 @@ trait ValidationTrait {
     
     return true;
   }
+
+
+  /**
+   * Validate that a numerical value is a multiple of a given step.
+   *
+   * This validation rule ensures that the $value is evenly divisible by the specified $step.
+   * It can be used, for example, to validate values in increments like 5, 10, etc.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param string $value The numerical value to validate.
+   * @param int    $step The step value the $value should be divisible by.
+   * @param array  $context Validation context.
+   * @return bool           True if $value validates as a multiple of $step, false otherwise.
+   */
+  public function validateIncreaseStep(string $value, int $step, array $context) {
+    return (int)$value%$step == 0;
+  }
   
   /**
    * Determine if a string submitted from a form is valid input.

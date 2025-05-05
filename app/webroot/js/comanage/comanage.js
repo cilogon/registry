@@ -394,7 +394,6 @@ function setApplicationState(value, elem, reload= false) {
       }
     }
   }
-  // jsonData.noty = displayNoty
 
   let jqxhr = $.ajax({
     cache: false,
@@ -419,8 +418,9 @@ function setApplicationState(value, elem, reload= false) {
   });
 
   jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
-    if(parseInt(jqXHR.status) > 300 && displayNoty) {
-      generateFlash("<?php print _txt('er.app.preferences'); ?>" + errorThrown + " (" +  jqXHR.status + ")", 'error')
+    if(parseInt(jqXHR.status) > 300) {
+      console.log('status:', jqXHR.status)
+      console.log('error:', errorThrown)
     }
   });
 }

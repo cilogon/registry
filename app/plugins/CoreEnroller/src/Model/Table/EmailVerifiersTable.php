@@ -32,16 +32,14 @@ namespace CoreEnroller\Model\Table;
 use App\Lib\Enum\EnrollmentActorEnum;
 use App\Lib\Enum\PetitionStatusEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
+use App\Lib\Enum\TableTypeEnum;
 use App\Lib\Util\StringUtilities;
 use App\Model\Entity\Petition;
-use Cake\Datasource\ConnectionManager;
-use Cake\Datasource\EntityInterface;
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use CoreEnroller\Lib\Enum\VerificationModeEnum;
+use CoreEnroller\Lib\Enum\VerificationDefaultsEnum;
 use CoreEnroller\Model\Entity\EmailVerifier;
 
 class EmailVerifiersTable extends Table {
@@ -69,7 +67,7 @@ class EmailVerifiersTable extends Table {
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
 
-    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
+    $this->setTableType(TableTypeEnum::Configuration);
 
     // Define associations
     $this->belongsTo('EnrollmentFlowSteps');
@@ -107,6 +105,10 @@ class EmailVerifiersTable extends Table {
       'modes' => [
         'type' => 'enum',
         'class' => 'CoreEnroller.VerificationModeEnum'
+      ],
+      'defaults' => [
+        'type' => 'enum',
+        'class' => 'CoreEnroller.VerificationDefaultsEnum'
       ],
       'messageTemplates' => [
         'type' => 'select',
@@ -444,10 +446,12 @@ class EmailVerifiersTable extends Table {
       $this->llog('debug', "Sending verification code to $mail for Petition " . $petition->id);
 
       $verificationId = $Verifications->requestCodeForPetition(
-        $petition->id,
-        $mail,
-        $emailVerifier->message_template_id,
-        $emailVerifier->request_validity
+        petitionId: $petition->id,
+        mail: $mail,
+        messageTemplateId: $emailVerifier->message_template_id,
+        validity:  $emailVerifier->request_validity,
+        codeLength: !empty($emailVerifier->verification_code_length) ? $emailVerifier->verification_code_length : VerificationDefaultsEnum::DefaultCodeLength,
+        codeCharset: !empty($emailVerifier->verification_code_charset) ? $emailVerifier->verification_code_charset : VerificationDefaultsEnum::DefaultCharset,
       );
 
       $pVerification = $PetitionVerifications->saveOrFail(
@@ -465,11 +469,13 @@ class EmailVerifiersTable extends Table {
       $this->llog('debug', "Sending replacement verification code to $mail for Petition " . $petition->id);
 
       $verificationId = $Verifications->requestCodeForPetition(
-        $petition->id,
-        $mail,
-        $emailVerifier->message_template_id,
-        $emailVerifier->request_validity,
-        $pVerification->verification_id
+        petitionId: $petition->id,
+        mail: $mail,
+        messageTemplateId: $emailVerifier->message_template_id,
+        validity: $emailVerifier->request_validity,
+        codeLength: !empty($emailVerifier->verification_code_length) ? $emailVerifier->verification_code_length : VerificationDefaultsEnum::DefaultCodeLength,
+        codeCharset: !empty($emailVerifier->verification_code_charset) ? $emailVerifier->verification_code_charset : VerificationDefaultsEnum::DefaultCharset,
+        verificationId: $pVerification->verification_id,
       );
       // There's nothing to update in the Petition Verification
 
@@ -510,6 +516,50 @@ class EmailVerifiersTable extends Table {
     ]);
     $validator->notEmptyString('request_validity');
 
+    $validator
+      ->add('verification_code_charset', [
+        'content' => [
+          'rule' => 'alphaNumeric',
+          'last' => true,
+          'message' => __d('core_enroller', 'error.EmailVerifiers.verification_code_charset.content'),
+        ],
+        'is_upper_case' => [
+          'rule' => fn($value, $context) => $value === strtoupper($value),
+          'message' => __d('core_enroller', 'error.EmailVerifiers.verification_code_charset.is_upper_case'),
+          'last' => true,
+        ],
+      ]);
+    $validator->allowEmptyString('verification_code_charset');
+
+    $validator
+      ->add('verification_code_length', 'content', [
+        'rule' => 'isInteger',
+        'last' => true,
+        'message' => __d('core_enroller', 'error.EmailVerifiers.code_length.content'),
+      ])
+      ->add('verification_code_length', 'comparison_max', [
+        'rule' => ['comparison', '>=', 1],
+        'last' => true,
+        'message' => __d('core_enroller', 'error.EmailVerifiers.code_length.comparison_max'),
+      ])
+      ->add('verification_code_length', 'comparison_less', [
+        'rule' => ['comparison', '<=', 20],
+        'last' => true,
+        'message' => __d('core_enroller', 'error.EmailVerifiers.code_length.comparison_less'),
+      ])
+      ->add('verification_code_length', 'step_four', [
+        'rule' => ['validateIncreaseStep', 4],
+        'provider' => 'table',
+        'last' => true,
+        'message' => __d('core_enroller', 'error.EmailVerifiers.code_length.step_four'),
+      ]);
+    $validator->allowEmptyString('verification_code_length');
+
+    $validator->add('enable_blockonfailure', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('enable_blockonfailure');
+    
     return $validator;
   }
 }

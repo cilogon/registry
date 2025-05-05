@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Lib\Random;
 
+use Random\RandomException;
+
 class RandomString {
   /**
    * Generate a string suitable for use as an application key.
@@ -66,13 +68,14 @@ class RandomString {
     return $key;
   }
 
-  /** 
+  /**
    * Generate a string suitable for use as a confirmation code. Codes are intended to be
    * typed in or copied by a human, for confirmation codes that are embedded in URLs use
    * generateToken() instead.
-   * 
-   * @since  COmanage REgistry v5.1.0
+   *
    * @return string Token
+   * @throws RandomException
+   * @since  COmanage REgistry v5.1.0
    */
 
   public static function generateCode(): string {
@@ -93,20 +96,23 @@ class RandomString {
    * Generate a string suitable for use as a token. Unlike an application key,
    * a token is not expected to be directly visible or handled by a human, but
    * will (eg) be injected into a URL or a message.
-   * 
-   * @since  COmanage Registry v5.0.0
+   *
    * @return string Token
+   * @throws RandomException
+   * @since  COmanage Registry v5.0.0
    */
 
-  public static function generateToken(): string {
+  public static function generateToken(int $length = 16, string $allowedCharset = null): string
+  {
     // Unlike App Keys, tokens don't have restrictions on characters.
 
-    $chars = 'abcdefghijklmnopqrstuvwxyz01234567890';
+    $chars = $allowedCharset ?? 'abcdefghijklmnopqrstuvwxyz01234567890';
 
     $token = "";
 
-    for($i = 0;$i < 16;$i++) {
-      $token .= $chars[random_int(0, strlen($chars)-1)];
+    $allowedCharsetLength = strlen($chars) - 1;
+    for($i = 0;$i < $length;$i++) {
+      $token .= $chars[random_int(0, $allowedCharsetLength)];
     }
 
     return $token;

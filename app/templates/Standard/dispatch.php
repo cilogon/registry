@@ -28,9 +28,11 @@
 declare(strict_types = 1);
 
 // $this->name = Models
+use Cake\Utility\Inflector;
+
 $modelsName = $this->name;
 // $tablename = models
-$tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
+$tableName = Inflector::tableize(Inflector::singularize($this->name));
 // Populate the AutoViewVars. These are the same we do for the EnrollmentAttributes configuration view
 $this->Petition->populateAutoViewVars();
 // We just populated the AutoViewVars. Add them to the current context
@@ -86,7 +88,11 @@ if (empty($vv_submit_button_label)) {
 
 // By default, the form will POST to the current controller
 // Note we need to open the form for view so Cake will autopopulate values
-print $this->Form->create();
+$idPrefix = Inflector::dasherize($modelsName);
+print $this->Form->create(null, [
+  'id' => "$idPrefix-dispatch-form",
+  'type' => 'post',
+]);
 
 // Form body
 print '<div id="dispatch-list-container">';

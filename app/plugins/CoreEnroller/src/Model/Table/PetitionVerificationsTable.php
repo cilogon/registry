@@ -115,13 +115,11 @@ class PetitionVerificationsTable extends Table {
     // Find the PetitionVerification for the requested petition and address,
     // then use the verification ID to process the code.
 
-    $pVerification = $this->find()
-                          ->where([
-                            'petition_id' => $petitionId,
-                            'mail'        => $mail
-                          ])
-                          ->firstOrFail();
-    
+    $pVerification = $this->getPetitionVerification($petitionId, $mail);
+    // Increase the attempt counter and save regardless of the code validation
+    $pVerification->attempts_count = ($pVerification->attempts_count ?? 0) + 1;
+    $this->save($pVerification);
+
     // This will throw an error on failure
     $this->Verifications->verifyCode($pVerification->verification_id, $code);
 
@@ -201,5 +199,26 @@ class PetitionVerificationsTable extends Table {
     $validator->allowEmptyString('verification_id');
 
     return $validator;
+  }
+
+
+  /**
+   * Retrieve a PetitionVerification entity based on a petition ID and email address.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param integer $petitionId Petition ID
+   * @param string $mail Email Address associated with the PetitionVerification
+   * @param bool $strict Whether to throw an error if no result is found (default: true)
+   * @return \CoreEnroller\Model\Entity\PetitionVerification|null PetitionVerification entity if found, or null
+   * @throws \Cake\Datasource\Exception\RecordNotFoundException If $strict is true and no result is found
+   */
+  public function getPetitionVerification(int $petitionId, string $mail, bool $strict = true): ?PetitionVerification
+  {
+    $query = $this->find()
+      ->where([
+        'petition_id' => $petitionId,
+        'mail'        => $mail
+      ]);
+    return $strict ? $query->firstOrFail() : $query->first();
   }
 }

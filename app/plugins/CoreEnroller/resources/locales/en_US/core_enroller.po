@@ -55,6 +55,15 @@ msgstr "{0,plural,=1{Petition Identifier} other{Petition Identifiers}}"
 msgid "controller.PetitionVerifications"
 msgstr "{0,plural,=1{Petition Verification} other{Petition Verifications}}"
 
+msgid "enumeration.VerificationDefaultsEnum.234679CDFGHJKLMNPQRTVWXZ"
+msgstr "DefaultCharset"
+
+msgid "enumeration.VerificationDefaultsEnum.8"
+msgstr "DefaultCodeLength"
+
+msgid "enumeration.VerificationDefaultsEnum.60"
+msgstr "DefaultVerificationValidity"
+
 msgid "enumeration.VerificationModeEnum.0"
 msgstr "None"
 
@@ -69,6 +78,24 @@ msgstr "Requested address is not a valid candidate"
 
 msgid "error.EmailVerifiers.minimum"
 msgstr "The required number of verified Email Addresses has not been met"
+
+msgid "error.EmailVerifiers.code_length.content"
+msgstr "The code length must be a numeric value."
+
+msgid "error.EmailVerifiers.code_length.comparison_max"
+msgstr "Code length must not be less than 4 characters."
+
+msgid "error.EmailVerifiers.code_length.step_four"
+msgstr "Code length must be increased by 4 characters, e.g. 8, 12, 16, 20."
+
+msgid "error.EmailVerifiers.code_length.comparison_less"
+msgstr "Code length must not exceed 20 characters."
+
+msgid "error.EmailVerifiers.verification_code_charset.content"
+msgstr "Letters and numbers only."
+
+msgid "error.EmailVerifiers.verification_code_charset.is_upper_case"
+msgstr "Charset must consist of UPPER case characters only."
 
 msgid "error.EmailVerifiers.verified"
 msgstr "Requested address is already verified"
@@ -156,6 +183,25 @@ msgstr "Request Validity"
 
 msgid "field.EmailVerifiers.request_validity.desc"
 msgstr "Duration, in minutes, of the verification request before it expires"
+
+msgid "field.EmailVerifiers.verification_code_charset"
+msgstr "Verification Code Character Set"
+
+msgid "field.EmailVerifiers.verification_code_charset.desc"
+msgstr "Set of characters for generating the verification code. Numbers and uppercase letters only."
+
+msgid "field.EmailVerifiers.verification_code_length"
+msgstr "Verification Code Length"
+
+msgid "field.EmailVerifiers.verification_code_length.desc"
+msgstr "Set the verification code length. Default length is 8."
+
+msgid "field.EmailVerifiers.enable_blockonfailure"
+msgstr "Enable Attempt Blocker"
+
+msgid "field.EmailVerifiers.enable_blockonfailure.desc"
+msgstr "Enables blocking after consecutive failed attempts. Blocking duration increases exponentially based on the number of failed attempts."
+
 
 msgid "field.EnrollmentAttributes.address_required_fields"
 msgstr "Required Address Fields"

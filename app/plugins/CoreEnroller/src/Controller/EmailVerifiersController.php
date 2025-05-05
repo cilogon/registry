@@ -30,7 +30,9 @@ declare(strict_types=1);
 namespace CoreEnroller\Controller;
 
 use App\Controller\StandardEnrollerController;
+use App\Lib\Enum\ApplicationStateEnum;
 use App\Lib\Enum\PetitionStatusEnum;
+use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Util\StringUtilities;
 use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\TableRegistry;
@@ -38,6 +40,8 @@ use CoreEnroller\Lib\Enum\VerificationModeEnum;
 use \App\Lib\Enum\HttpStatusCodesEnum;
 
 class EmailVerifiersController extends StandardEnrollerController {
+  use ApplicationStatesTrait;
+
   public $paginate = [
     'order' => [
       'EmailVerifiers.id' => 'asc'
@@ -124,6 +128,10 @@ class EmailVerifiersController extends StandardEnrollerController {
    */
 
   public function dispatch(string $id) {
+    $request = $this->getRequest();
+    $session = $request->getSession();
+    $username = $session->read('Auth.external.user');
+
     $op = $this->requestParam('op');
     
     if(!$op) {
@@ -139,6 +147,7 @@ class EmailVerifiersController extends StandardEnrollerController {
     $candidateAddresses = $this->EmailVerifiers->assembleVerifiableAddresses($cfg, $petition);
 
     $this->set('vv_config', $cfg);
+    $this->set('controller', $this);
     $this->set('vv_email_addresses', $candidateAddresses);
 
     // To make things easier for the view, we'll create a separate view var with the
@@ -183,18 +192,31 @@ class EmailVerifiersController extends StandardEnrollerController {
 
         $this->Flash->error(__d('core_enroller', 'error.EmailVerifiers.verified'));
       } else {
+        $PetitionVerifications = TableRegistry::getTableLocator()->get('CoreEnroller.PetitionVerifications');
+        $pVerification = $PetitionVerifications->getPetitionVerification($petition->id, $mail, false);
+        // Reset the counter if nothing happened for the last 30 minutes
+        if (!empty($pVerification->modified) && !$pVerification->modified->wasWithinLast('30 minute')) {
+          $pVerification->attempts_count = 0;
+          $PetitionVerifications->save($pVerification);
+        }
+
+        // Tell dispatch.inc to render a verification form
+        $this->set('vv_verify_address', $mail);
+        $this->set('vv_attempts_count', $pVerification->attempts_count ?? 0);
+
         if($this->request->is('post')) {
-          $PetitionVerifications = TableRegistry::getTableLocator()->get('CoreEnroller.PetitionVerifications');
 
           // We're back with the code. Note many parameters (but not code) will be in
           // both the URL and the post body because of how dispatch.php sets up
           // FormHelper.
 
           $code = $this->requestParam('code');
+          // Strip any dashes from the code
+          $code = str_replace('-', '', $code);
           
           try {
             $PetitionVerifications->verifyCode(
-              $petition->id, 
+              $petition->id,
               $cfg->enrollment_flow_step_id,
               $mail,
               $code
@@ -227,16 +249,30 @@ class EmailVerifiersController extends StandardEnrollerController {
           catch(\Exception $e) {
             $this->llog('error', $e->getMessage());
             $this->Flash->error($e->getMessage());
-          } 
+
+            if ($e->getMessage() === __d('error', 'Verifications.code')) {
+              // Add a flag to the session to instruct the UI to handle blocking.
+              $this->request->getSession()->write('verification_error', 1);
+              // Get preferences if we have an Auth.User.co_person_id
+              if(!empty($username)) {
+                $ApplicationStates = $this->fetchTable('ApplicationStates');
+                $columnStatement = $this->viewBuilder()->getVar('vv_person_id') === null ? 'person_id IS'  : 'person_id';
+                $data = [
+                  'tag' => ApplicationStateEnum::VerifyEmailBlocked,
+                  'username' => $username,
+                  'co_id' => $this->getCOID(),
+                  $columnStatement => $this->viewBuilder()->getVar('vv_person_id') ?? null
+                ];
+                $ApplicationStates->createOrUpdate($data, 'lock');
+              }
+            }
+          }
         } else {
           // Generate a Verification request, then render a form to collect it.
           // If there is already a pending request, overwrite it (generate a new code).
 
           $this->EmailVerifiers->sendVerificationRequest($cfg, $petition, $mail);
         }
-
-        // Tell dispatch.inc to render a verification form
-        $this->set('vv_verify_address', $mail);
       }
     } elseif($op == 'finish') {
       if($minimumMet) {

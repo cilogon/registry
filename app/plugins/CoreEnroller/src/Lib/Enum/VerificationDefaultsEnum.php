@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Applications State Enum
+ * COmanage Registry Verification Defaults Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,20 +20,19 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
 declare(strict_types = 1);
 
-namespace App\Lib\Enum;
+namespace CoreEnroller\Lib\Enum;
 
-class ApplicationStateEnum extends StandardEnum {
-  const UiDrawerState      = 'UD';
-  const SearchBlockOptions = 'SO';
-  const PaginationLimit    = 'PL';
-  const ProfileDarkMode    = 'PM';
-  const ProfileDensity     = 'PD';
-  const VerifyEmailBlocked = 'VE';
+use App\Lib\Enum\StandardEnum;
+
+class VerificationDefaultsEnum extends StandardEnum {
+  const DefaultCharset = '234679CDFGHJKLMNPQRTVWXZ';
+  const DefaultCodeLength = 8;
+  const DefaultVerificationValidity = 60;
 }

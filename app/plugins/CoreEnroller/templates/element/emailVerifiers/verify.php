@@ -27,7 +27,35 @@
 
 declare(strict_types = 1);
 
+use App\Lib\Enum\ApplicationStateEnum;
 use App\Lib\Util\StringUtilities;
+use Cake\Routing\Router;
+
+
+$session = $this->getRequest()->getSession();
+$hasVerificationError = $session->read('verification_error') ?? 0; // Replace 'keyName' with the actual session key you want to access
+if (
+  filter_var($vv_config->enable_blockonfailure, FILTER_VALIDATE_BOOLEAN)
+  && filter_var($hasVerificationError, FILTER_VALIDATE_BOOLEAN)
+) {
+  $session->delete('verification_error');
+  $stateAttr = ApplicationStateEnum::VerifyEmailBlocked;
+  $appStateValue = $this->ApplicationState->getValue($stateAttr, 'lock', true);
+  $appStateId = $this->ApplicationState->getId($stateAttr, true);
+
+  if ($vv_attempts_count > 0 && $appStateValue !== 'unlock') {
+    $currentUrl = Router::url(null, true);
+    print $this->element('notify/blockUser', compact(
+      'vv_attempts_count',
+      'currentUrl',
+      'stateAttr',
+      'appStateId',
+    ));
+    return;
+  }
+}
+
+$this->Field->enableFormEditMode();
 
 if(empty($vv_verify_address)) {
   print __d('core_enroller', 'information.EmailVerifiers.done');
@@ -36,15 +64,13 @@ if(empty($vv_verify_address)) {
 
 // Render a form prompting for the code that was sent to the Enrollee
 
-print __d('core_enroller', 'information.EmailVerifiers.code_sent', [$vv_verify_address]);
-
-$this->Field->enableFormEditMode();
-
 $m = StringUtilities::urlbase64encode($vv_verify_address);
 
 print $this->Form->hidden('op', ['default' => 'verify']);
 print $this->Form->hidden('co_id', ['default' => $vv_cur_co->id]);
 print $this->Form->hidden('m', ['default' => $m]);
+
+print __d('core_enroller', 'information.EmailVerifiers.code_sent', [$vv_verify_address]);
 
 print $this->element('form/listItem', [
   'arguments' => [
@@ -62,6 +88,7 @@ $resendLink = $this->Html->link(
 );
 
 ?>
+
 <?php if($this->Field->isEditable()): ?>
   <li class="fields-submit">
     <div class="field">
@@ -89,3 +116,34 @@ $resendLink = $this->Html->link(
   'vv_config' => $vv_config,
 ]) ?>
 
+<script type="text/javascript">
+  $(document).ready(function() {
+    // See https://stackoverflow.com/a/25665232 , 'Update' version
+    history.pushState(null, null, document.URL);
+    window.addEventListener('popstate', function () {
+      history.pushState(null, null, document.URL);
+    });
+
+    $('#code').bind('keypress', function (event) {
+      if (event.charCode === 13) {
+        $("#verification-code-form").submit();
+      } else {
+        // Allow for regular characters and include these special few:
+        // comma, period, explanation point, new line
+        var regex = new RegExp("^[a-zA-Z0-9\-]+$");
+        var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+        if (!regex.test(key)) {
+          event.preventDefault();
+          return false;
+        }
+      }
+    });
+
+    $('#code').on('keyup', function() {
+      $(this).val (function () {
+        return this.value.toUpperCase();
+      }).trigger('change');
+    })
+  });
+
+</script>

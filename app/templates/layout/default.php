@@ -72,7 +72,9 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
       print $this->Html->scriptBlock(
         sprintf(
           'var csrfToken = %s;',
-          json_encode($this->request->getAttribute('csrfToken'), JSON_THROW_ON_ERROR)
+          json_encode(
+            $this->request->getAttribute('csrfToken') ?? $this->request->getCookie('csrfToken'),
+            JSON_THROW_ON_ERROR)
         )
       );
     } catch (JsonException $e) {

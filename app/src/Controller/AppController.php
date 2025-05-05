@@ -384,7 +384,7 @@ class AppController extends Controller {
    * - postcondition: Application Preferences variable set
    * @since  COmanage Registry v5.1.0
    */
-  protected function getAppPrefs() {
+  public function getAppPrefs() {
     $request = $this->getRequest();
     $session = $request->getSession();
 

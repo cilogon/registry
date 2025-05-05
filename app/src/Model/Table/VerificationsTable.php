@@ -39,6 +39,7 @@ use App\Lib\Enum\VerificationMethodEnum;
 use App\Lib\Random\RandomString;
 use App\Lib\Util\DeliveryUtilities;
 use App\Model\Entity\Verification;
+use Random\RandomException;
 
 class VerificationsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
@@ -241,14 +242,17 @@ class VerificationsTable extends Table {
 
   /**
    * Request a Verification for the specified petition and email address.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  int    $petitionId         Petition ID
-   * @param  string $mail               Email Address to verify
-   * @param  int    $messageTemplateId  Message Template ID
-   * @param  int    $validity           Request validity, in minutes
-   * @param  int    $verificationId     If set, resend Verification for this request
+   *
+   * @param int $petitionId Petition ID
+   * @param string $mail Email Address to verify
+   * @param int $messageTemplateId Message Template ID
+   * @param int $validity Request validity, in minutes
+   * @param int $codeLength
+   * @param string $codeCharset
+   * @param int|null $verificationId If set, resend Verification for this request
    * @return int                        Verification ID
+   * @throws RandomException
+   * @since  COmanage Registry v5.1.0
    */
 
   public function requestCodeForPetition(
@@ -256,10 +260,12 @@ class VerificationsTable extends Table {
     string  $mail,
     int     $messageTemplateId,
     int     $validity,
-    int     $verificationId=null
+    int     $codeLength,
+    string  $codeCharset,
+    int     $verificationId = null
   ): int {
     // First generate a new code
-    $code = RandomString::generateCode();
+    $code = RandomString::generateToken($codeLength, $codeCharset);
     $expiry = date('Y-m-d H:i:s', time() + ($validity * 60));
 
     $verification = null;
@@ -292,7 +298,7 @@ class VerificationsTable extends Table {
     DeliveryUtilities::sendEmailFromTemplate(
       address:            $mail,
       messageTemplateId:  $messageTemplateId,
-      code:               $code
+      code:               $this->tokenToD($code)
     );
 
     // We'll try to record history, but most likely it'll fail due to lack of a Person
@@ -389,19 +395,20 @@ class VerificationsTable extends Table {
       throw new \InvalidArgumentException(__d('error', 'Verifications.processed'));
     }
 
-    if($verification->request_expiration_time->lessThan(FrozenTime::now())) {
-      $this->llog('debug', "Verification $id has expired");
-      throw new \InvalidArgumentException(__d('error', 'Verifications.expired'));
-    }
-
     if($verification->code !== $code) {
       $this->llog('debug', "Invalid code provided for Verification $id");
       throw new \InvalidArgumentException(__d('error', 'Verifications.code'));
     }
 
+    if($verification->request_expiration_time->lessThan(FrozenTime::now())) {
+      $this->llog('debug', "Verification $id has expired");
+      throw new \InvalidArgumentException(__d('error', 'Verifications.expired'));
+    }
+
     $this->llog('debug', "Successfully processed Verification $id");
 
     $verification->method = VerificationMethodEnum::Code;
+    // This field signifies that the email is verified
     $verification->verification_time = time();
     
     $this->saveOrFail($verification);
@@ -431,6 +438,32 @@ class VerificationsTable extends Table {
     $newVerification->email_address_id = $emailAddressId;
 
     $this->saveOrFail($newVerification);
+  }
+
+
+  /**
+   * Converts a token by adding dashes for improved readability.
+   *
+   * @param string $token The token to be formatted
+   * @param int    $jump  Characters to skip before adding a dash
+   * @return string        The formatted token with dashes
+   * @since  COmanage Registry v5.2.0
+   */
+  public function tokenToD(string $token, int $jump = 4): string
+  {
+    // Insert some dashes to improve readability
+    $dtoken = '';
+
+    for($i = 0, $iMax = strlen($token); $i < $iMax; $i++) {
+      $dtoken .= $token[$i];
+
+      if((($i + 1) % $jump == 0)
+        && ($i + 1 < strlen($token))) {
+        $dtoken .= '-';
+      }
+    }
+
+    return $dtoken;
   }
 
   /**
@@ -477,6 +510,11 @@ class VerificationsTable extends Table {
     ]);
     $validator->allowEmptyString('petition_id');
 
-    return $validator; 
+    $validator->add('attempts_count', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('attempts_count');
+
+    return $validator;
   }
 }

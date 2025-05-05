@@ -26,20 +26,53 @@
  */
 
 // This view only supports edit
-if($vv_action == 'edit') {
-  foreach(['mode',
-           'message_template_id'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => ['fieldName' => $field]
-    ]);
-  }
+if($vv_action !== 'edit') {
+  return;
+}
 
+$defaultValues = array_combine(
+  array_values($defaults),
+  array_keys($defaults)
+);
+
+foreach(['mode',
+          'message_template_id'
+        ] as $field) {
   print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'request_validity',
-      'fieldOptions' => [
-        'default' => 60
-      ]]
+    'arguments' => ['fieldName' => $field]
   ]);
 }
+
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'request_validity',
+    'fieldOptions' => [
+      'placeholder' => $defaultValues['DefaultVerificationValidity']
+    ]]
+]);
+
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'verification_code_charset',
+    'fieldOptions' => [
+      'required' => false,
+      'placeholder' => $defaultValues['DefaultCharset']
+    ]]
+]);
+
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'verification_code_length',
+    'fieldOptions' => [
+      'required' => false,
+      'placeholder' => $defaultValues['DefaultCodeLength']
+    ]]
+]);
+
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'enable_blockonfailure',
+    'fieldOptions' => [
+      'default' => true,
+    ]]
+]);

@@ -30,6 +30,8 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\Collection\Collection;
+use Cake\Controller\ControllerFactory;
+use Cake\ORM\TableRegistry;
 
 trait ApplicationStatesTrait
 {
@@ -48,16 +50,22 @@ trait ApplicationStatesTrait
   }
 
   /**
-   * @param   string      $stateTag
-   * @param   string|int  $defaultValue
-   *
+   * @param string $stateTag
+   * @param string|int $defaultValue
+   * @param bool $invalidate
    * @return string
    * @since  COmanage Registry v5.1.0
    */
-  public function getValue(string $stateTag, string|int $defaultValue): string
+  public function getValue(string $stateTag, string|int $defaultValue, $invalidate = false): string
   {
     $vv_app_prefs = [];
-    if(method_exists($this, 'getView')) {
+
+    if ($invalidate) {
+      // View, refetch
+      $curController = $this->getView()->get('controller');
+      $curController->getAppPrefs();
+      $vv_app_prefs = $curController->viewBuilder()->getVar('vv_app_prefs');
+    } elseif(method_exists($this, 'getView')) {
       // View
       $vv_app_prefs = $this->getView()?->get('vv_app_prefs');
     } elseif(method_exists($this, 'viewBuilder')) {
@@ -77,15 +85,21 @@ trait ApplicationStatesTrait
   }
 
   /**
-   * @param   string  $stateTag
-   *
+   * @param string $stateTag
+   * @param bool $invalidate
    * @return string
    * @since  COmanage Registry v5.1.0
    */
-  public function getId(string $stateTag): string
+  public function getId(string $stateTag, $invalidate = false): string
   {
     $vv_app_prefs = [];
-    if(method_exists($this, 'getView')) {
+
+    if ($invalidate) {
+      // View, refetch
+      $curController = $this->getView()->get('controller');
+      $curController->getAppPrefs();
+      $vv_app_prefs = $curController->viewBuilder()->getVar('vv_app_prefs');
+    } elseif(method_exists($this, 'getView')) {
       // View
       $vv_app_prefs = $this->getView()?->get('vv_app_prefs');
     } elseif(method_exists($this, 'viewBuilder')) {

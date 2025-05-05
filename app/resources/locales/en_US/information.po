@@ -179,3 +179,12 @@ msgstr "Installing default Mostly Static Pages for CO {0}"
 
 msgid "value.copied"
 msgstr "Value copied to clipboard."
+
+msgid "user.block.message"
+msgstr "Oops! Some information appears to be incomplete or incorrect."
+
+msgid "user.block.retry"
+msgstr "You will be able to try again in <span id=\"retry-seconds\">{0}</span> seconds."
+
+msgid "user.block.attempt"
+msgstr "This is your attempt #{0}."

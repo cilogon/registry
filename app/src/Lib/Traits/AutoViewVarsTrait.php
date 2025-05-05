@@ -55,14 +55,14 @@ trait AutoViewVarsTrait {
    * @param  array $vars Array of auto view variables
    */
   
-  public function setAutoViewVars($vars) {
+  public function setAutoViewVars($vars): void {
     $this->autoViewVars = $vars;
   }
 
   /**
    * Calculate the AutoView Vars
    *
-   * @param   int          $coId
+   * @param   int|null     $coId
    * @param   Object|null  $obj  Current object (eg: from edit), if set
    *
    * @return \Generator

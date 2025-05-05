@@ -42,7 +42,10 @@ $this->set('vv_fields_inc', 'start.inc');
 $this->set('vv_is_editable', true);
 
 // Create the Form
-print $this->Form->create();
+print $this->Form->create(null, [
+  'id' => 'enrollment-flow-start-form',
+  'type' => 'post',
+]);
 // Form body
 print $this->element('form/unorderedList');
 // Close the Form

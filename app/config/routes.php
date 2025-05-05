@@ -96,7 +96,12 @@ $routes->scope('/api/ajax/v2',
                ['_namePrefix' => 'apiAjaxV2:'],
                function (RouteBuilder $builder) {
   // Register scoped middleware for in scopes.
-  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware(['httponly' => true]));
+  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware([
+    'httponly' => true,
+    'secure' => true,
+    'cookieName' => 'csrfToken',
+    'accessibleHeaders' => ['X-CSRF-Token'],
+  ]));
   // BodyParserMiddleware will automatically parse JSON bodies, but we only
   // want that for API transactions, so we only apply it to the /api scope.
   $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
