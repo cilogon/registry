@@ -25,20 +25,34 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-use Cake\Routing\Route\DashedRoute;
+declare(strict_types=1);
 
-$routes->plugin(
-  'OrcidSource',
-  ['path' => '/orcid-source/'],
-  function ($routes) {
-    $routes->setRouteClass(DashedRoute::class);
+use Cake\Http\Middleware\BodyParserMiddleware;
+use Cake\Routing\RouteBuilder;
 
-    $routes->get(
-      'orcid-sources/callback',
-      [
-        'plugin' => 'OrcidSource',
-        'controller' => 'OrcidSources',
-        'action' => 'callback',
-      ]);
-  }
-);
+
+$routes->scope('/api/orcidsource', function (RouteBuilder $builder) {
+    // Register scoped middleware for in scopes.
+// Do not enable CSRF for the REST API, it will break standard (non-AJAX) clients
+//  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware(['httponly' => true]));
+    // BodyParserMiddleware will automatically parse JSON bodies, but we only
+    // want that for API transactions, so we only apply it to the /api scope.
+    $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
+    /*
+     * Apply a middleware to the current route scope.
+     * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
+     */
+// Do not enable CSRF for the REST API, it will break standard (non-AJAX) clients
+//  $builder->applyMiddleware('csrf');
+    $builder->setExtensions(['json']);
+    $builder->applyMiddleware('bodyparser');
+    $builder->get(
+        '/v2/token/{orcid}/co/{coId}',
+        ['plugin' => 'OrcidSource', 'controller' => 'ApiV2', 'action' => 'get']
+    )
+        ->setPass(['orcid', 'coId'])
+        ->setPatterns([
+            'orcid' => '([0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})',
+            'coId' => '[0-9]+',
+        ]);
+});

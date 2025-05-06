@@ -366,6 +366,14 @@ class OrcidSourcesTable extends Table {
             return [];
         }
 
+        // Turn the query string into an associative array
+        $queryString = $searchAttrs['q'];
+        if (!str_starts_with($searchAttrs['q'], 'q=')) {
+            $queryString = 'q=' . $searchAttrs['q'];
+        }
+        parse_str($queryString, $queryParts);
+        $searchAttrs = $queryParts;
+
         // We just let search exceptions pop up the stack
 
         $this->httpClient = $this->orcidConnect($source);
@@ -430,6 +438,17 @@ class OrcidSourcesTable extends Table {
                 'Content-Type'  => 'application/orcid+json'
             ]
         ];
+
+
+      // We do not need a token for public api and
+      if($this->orcidSource->api_type == OrcidSourceApiEnum::PUBLIC
+        && (
+          $urlPath == '/v3.0/search/'
+          || preg_match('#v3\.0/([0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})/person#', $urlPath, $matches)
+        )) {
+        // No authentication is required for the public tier. Limited to 1000 requests per day.
+        unset($options['headers']['Authorization']);
+      }
 
         $orcidUrlBase = $this->orcidUrl($this->orcidSource->api_type,  $this->orcidSource->api_tier);
         $fullUrl = $orcidUrlBase . $urlPath;
@@ -524,7 +543,7 @@ class OrcidSourcesTable extends Table {
         }
 
         // Since this is null, we will use the master access token stored in Oauth2Server Configuration
-        if ($orcidIdentifier !== null) {
+        if ($this->orcidSource->api_type !== OrcidSourceApiEnum::PUBLIC) {
             $this->orcidToken = $this->orcidTokensTable
                 ->find()
                 ->where([
