@@ -42,7 +42,7 @@ export default {
         aria-haspopup="true" 
         aria-expanded="false" 
         title="Actions">
-        <span class="material-icons" aria-hidden="true">settings</span>
+        <span class="material-symbols" aria-hidden="true">settings</span>
       </a>  
       <ul class="dropdown-menu nospin">
         <li class="action-list-item" v-for='action in this.actions'>
@@ -50,7 +50,7 @@ export default {
             class="dropdown-item"
             :href="action.url"
             @click.stop>
-            <em class="material-icons" aria-hidden="true">{{ action.icon }}</em>
+            <em class="material-symbols" aria-hidden="true">{{ action.icon }}</em>
             <span class="action-link-text">{{ action.label }}</span>
           </a>
         </li>
