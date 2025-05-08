@@ -270,6 +270,14 @@ class Oauth2ServersTable extends HttpServersTable {
     ]);
     $validator->allowEmptyString('access_token');
 
+    $validator->add('token_response', [
+      'content' => [
+        'rule' => 'validateNotBlank',
+        'provider' => 'table'
+      ]
+    ]);
+    $validator->allowEmptyString('token_response');
+
     $validator->integer('access_token_exp')
               ->allowEmptyString('access_token_exp');
 
