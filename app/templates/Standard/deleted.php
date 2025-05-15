@@ -61,14 +61,7 @@ $targetWindow = $vv_target_window ?? 'self';
     </div>
   </div>
 
-  <?php
-    // $flashArgs pass banner messages to the flash element container
-    $flashArgs = [];
-    if(!empty($banners)) {
-      $flashArgs['vv_banners'] = $banners;
-    }
-    print $this->element('flash', $flashArgs);
-  ?>
+  <?= $this->element('flash') // Flash messages ?>
   
   <button 
     class="btn btn-primary cm-deleted-close-button" 

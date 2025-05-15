@@ -35,6 +35,8 @@
   </div>
 </div>
 
+<?= $this->element('flash') // Flash messages ?>
+
 <section class="inner-content">
   <?php if(!empty($vv_platform_menu_items)): ?>
     <h2 class="config-subtitle"><?= __d('menu','co.configuration.panel.platform') ?></h2>

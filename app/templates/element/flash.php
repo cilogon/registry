@@ -28,17 +28,24 @@
 
 <!-- Flash Messages and defined Info Banners -->
 <div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-  
-  <?php if(!empty($vv_index_banners)): ?>
-    <?php foreach($vv_index_banners as $b): ?>
-      <?= $this->element('notify/alert', ['message' => $b]) ?>
-    <?php endforeach; // $vv_index_banners ?>
-  <?php endif; // $vv_index_banners ?>
-  
-  <?php if(!empty($vv_banners)): ?>
-    <?php foreach($vv_banners as $b): ?>
-      <?= $this->element('notify/alert', ['message' => $b]) ?>
-    <?php endforeach; // $vv_banners ?>
-  <?php endif; // $vv_banners ?>
+  <?php 
+    /* Render any Flash messages that have bubbled up. 
+       These will adopt the styles defined in the 
+       app/templates/element/flash/ directory. */
+    print $this->Flash->render();
+
+    /* Render information banners explicitly defined in Configuration.
+       In columns.inc files, these are defined in the banners[] array.
+       See app/templates/ApiUsers/columns.inc for an example. These must
+       be passed in as $vv_banners to this element from the calling template. 
+       
+       NOTE: In fields.inc files, add information banners by referencing
+       the 'notify/alert' element directly (just as we do here). 
+    */ 
+    if(!empty($vv_banners)) {
+      foreach($vv_banners as $b) {
+        print $this->element('notify/alert', ['message' => $b]);
+      }
+    }
+  ?>
 </div>

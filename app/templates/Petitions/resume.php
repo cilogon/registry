@@ -71,22 +71,7 @@ if(!empty($vv_cur_co) && $vv_user_roles['authuser']) {
   <?php endif; ?>
 </div>
 
-<!-- Flash Messages and defined Info Banners -->
-<div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-
-  <?php if(!empty($indexBanners)): ?>
-    <?php foreach($indexBanners as $b): ?>
-      <?=  $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $indexBanners ?>
-  <?php endif; // $indexBanners ?>
-
-  <?php if(!empty($banners)): ?>
-    <?php foreach($banners as $b): ?>
-      <?= $this->Alert->alert($b, 'warning') ?>
-    <?php endforeach; // $banners ?>
-  <?php endif; // $banners ?>
-</div>
+<?= $this->element('flash') // Flash messages ?>
 
 <!-- Our view is similar to index.php -->
 <div class="table-container">

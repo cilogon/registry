@@ -35,6 +35,8 @@ declare(strict_types = 1);
   </div>
 </div>
 
+<?= $this->element('flash') // Flash messages ?>
+
 <?php
 // Enrollment Flow Start has its own file of fields
 $this->set('vv_fields_inc', 'start.inc');

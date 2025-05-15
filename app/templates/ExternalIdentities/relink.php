@@ -34,6 +34,8 @@ declare(strict_types = 1);
   </div>
 </div>
 
+<?= $this->element('flash') // Flash messages ?>
+
 <?php
   print $this->Form->create(null, [
     'id'   => 'ei-relink-form',

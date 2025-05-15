@@ -34,22 +34,7 @@ use App\Lib\Util\StringUtilities;
   </div>
 </div>
 
-<!-- Flash Messages and defined Info Banners -->
-<div class="alert-container" id="flash-messages">
-  <?= $this->Flash->render() ?>
-
-  <?php if(!empty($indexBanners)): ?>
-    <?php foreach($indexBanners as $b): ?>
-      <?= $this->element('notify/alert', ['message' => $b]) ?>
-    <?php endforeach; // $indexBanners ?>
-  <?php endif; // $indexBanners ?>
-
-  <?php if(!empty($banners)): ?>
-    <?php foreach($banners as $b): ?>
-      <?= $this->element('notify/alert', ['message' => $b]) ?>
-    <?php endforeach; // $banners ?>
-  <?php endif; // $banners ?>
-</div>
+<?= $this->element('flash') // Flash messages ?>
 
 <!-- Our view is similar to index.php -->
 <div class="table-container">

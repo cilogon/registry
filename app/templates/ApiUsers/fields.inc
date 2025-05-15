@@ -28,7 +28,7 @@
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
   if($vv_cur_co->id == 1) {
-    print $this->element('banner', ['info' => __d('information', 'api.cmp')]);
+    print $this->element('notify/banner', ['info' => __d('information', 'api.cmp')]);
   }
 
   // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".

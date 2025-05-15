@@ -41,6 +41,8 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   </div>
 </div>
 
+<?= $this->element('flash') // Flash messages ?>
+
 <?php if(empty($vv_search_attrs)): ?>
   <?= $this->element('notify/alert', [
     'message' => __d('information', 'ExternalIdentitySources.search.attrs.none'),

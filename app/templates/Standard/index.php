@@ -66,20 +66,17 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
 
-// $flashArgs pass banner messages to the flash element container
-$flashArgs = [];
-if(!empty($indexBanners)) {
-  $flashArgs['vv_index_banners'] = $indexBanners;
-}
-if(!empty($banners)) {
-  $flashArgs['vv_banners'] = $banners;
-}
-
 // First, complete all the initial calculations and then start including
 // this way we have more ViewVars available
 include($incFile);
 if(isset($indexColumns)) {
   $this->set('vv_indexColumns', $indexColumns);
+}
+
+// $flashArgs pass banner messages to the flash element container
+$flashArgs = [];
+if(!empty($banners)) {
+  $flashArgs['vv_banners'] = $banners;
 }
 
 // Subnavigation

@@ -56,15 +56,6 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
 
-// $flashArgs pass banner messages to the flash element container
-$flashArgs = [];
-if(!empty($banners)) {
-  // XXX this doesn't work yet because we don't include fields.inc until later
-  //     either create a second file to include earlier, or use a function to emit
-  //     the fields (which would be more consistent with how Views render...)
-  $flashArgs['vv_banners'] = $banners;
-}
-
 // Subnavigation
 $hasSubnav = false;
 if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
@@ -72,8 +63,8 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   $hasSubnav = $this->get('hasSupertitle');
 }
 
-// When under a subnavigation we do not want a title with Edit or Add or View followed by a number
-// We might find ourselved in that situation since we calculate the title for the breadcrumbs and
+// When under subnavigation we do not want a title with Edit or Add or View followed by a number.
+// We might find ourselves in that situation since we calculate the title for the breadcrumbs and
 // this simple description is not wrong. It is just not appropriate for the subnavigation title
 $title = $vv_title;
 $re = '/^(Add|Edit|View)\s([a-zA-Z]+?)\s[0-9]+/m';
@@ -186,7 +177,7 @@ if (
   
 <?php if(!$hasSubnav): ?>
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
-  <?= $this->element('flash', $flashArgs) ?>
+  <?= $this->element('flash') ?>
 <?php endif; ?>
 
 <?php
