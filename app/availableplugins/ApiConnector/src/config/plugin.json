@@ -1,5 +1,8 @@
 {
   "types": {
+    "api": [
+      "ApiSourceEndpoints"
+    ],
     "source": [
       "ApiSources"
     ]
@@ -9,11 +12,21 @@
       "api_sources": {
         "columns": {
           "id": {},
-          "external_identity_source_id": {},
-          "api_user_id": {}
+          "external_identity_source_id": {}
         },
         "indexes": {
           "api_sources_i1": { "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "api_source_endpoints": {
+        "columns": {
+          "id": {},
+          "api_id": {},
+          "api_source_id": { "type": "integer", "foreignkey": { "table": "api_sources", "column": "id" } }
+        },
+        "indexes": {
+          "api_source_endpoints_i1": { "columns": [ "api_id" ] },
+          "api_source_endpoints_i2": { "columns": [ "api_source_id" ] }
         }
       },
       "api_source_records": {

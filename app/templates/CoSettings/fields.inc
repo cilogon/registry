@@ -133,4 +133,9 @@ if($vv_action == 'edit') {
     'arguments' => [
       'fieldName' => 'email_delivery_address_type_id'
     ]]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'authn_events_api_disable'
+    ]]);
 }

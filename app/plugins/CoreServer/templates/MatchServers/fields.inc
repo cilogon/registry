@@ -27,14 +27,3 @@
 
 // At least initially we use only the HttpServer fields
 include ROOT . DS . "plugins" . DS . "CoreServer" . DS . "templates" . DS . "HttpServers" . DS . "fields.inc";
-
-// Render the callback API endpoint
-
-print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'api_endpoint',
-        'fieldOptions' => [
-          'readOnly' => true,
-          'default' => $vv_api_endpoint
-        ]
-      ]]);

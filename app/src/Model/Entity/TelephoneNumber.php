@@ -49,7 +49,7 @@ class TelephoneNumber extends Entity {
    * @return string Formatted telephone number
    */
   
-  protected function _getFormattedNumber() {
+  protected function _getFormattedNumber(): string {
     // Start with number since it's always required, then prepend and/or append
     $n = $this->number;
     

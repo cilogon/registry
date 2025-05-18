@@ -99,25 +99,42 @@ class TableUtilities {
 
     // Get a table reference
     $ModelTable = TableRegistry::getTableLocator()->get($primaryLinkModelName);
-    // Get the Record from the database
-    $resp = $ModelTable->find()
-      ->where(['id' => $primaryLinkValue])
-      ->first()
-      ->toArray();
 
-    // Find all the foreign keys and fetch the rest of the tree
-    foreach($resp as $col => $val) {
-      if (
-        $val !== null
-        && $col !== $primaryLinkKey
-        && str_ends_with($col, '_id')
-      ) {
-        $fkModel = StringUtilities::foreignKeyToClassName(($col));
-        $fk_table = Inflector::underscore($fkModel);
-        if (\in_array($fk_table, $listOfTables, true)) {
-          self::treeTraversalFromPrimaryLink($col, $val, $results);
+    try {
+      // Get the Record from the database
+      $resp = $ModelTable->find()
+        ->where(['id' => $primaryLinkValue])
+        ->firstOrFail()
+        ->toArray();
+
+      // Find all the foreign keys and fetch the rest of the tree
+      foreach($resp as $col => $val) {
+        if (
+          $val !== null
+          && $col !== $primaryLinkKey
+          && str_ends_with($col, '_id')
+        ) {
+          $fkModel = StringUtilities::foreignKeyToClassName(($col));
+          $fk_table = Inflector::underscore($fkModel);
+          if (\in_array($fk_table, $listOfTables, true)) {
+            self::treeTraversalFromPrimaryLink($col, $val, $results);
+          }
         }
       }
+    }
+    catch(\Exception $e) {
+      // Because this code is trying to get the parent table from the foreign key name,
+      // it doesn't work for foreign keys to plugin provided tables. (For example, when
+      // trying to view an External Identity Source connected to a Pipeline that uses an
+      // External Match Strategy configured for a Match Server), the edit view of the EIS 
+      // no longer renders because at some point we run into a foreign key of match_server_id
+      // and there's no way to resolve that to CoreServer::MatchServersTable since the
+      // database doesn't know what plugin provides a table.
+
+      // Note that $ModelTable _is_ created in this case, because Cake by default creates
+      // a stub model if it can't find the corresponding model definition, so what actually
+      // fails is the call to first(), and then the chain to toArray(). As a workaround,
+      // we use firstOrFail() instead to cause an exception to be thrown, and then we ignore it.
     }
   }
 

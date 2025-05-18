@@ -157,6 +157,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'CoreEnroller\\' => 13,
             'CoreAssigner\\Test\\' => 18,
             'CoreAssigner\\' => 13,
+            'CoreApi\\Test\\' => 13,
+            'CoreApi\\' => 8,
             'Composer\\XdebugHandler\\' => 23,
             'Composer\\Spdx\\' => 14,
             'Composer\\Semver\\' => 16,
@@ -473,6 +475,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreAssigner\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreAssigner/src',
+        ),
+        'CoreApi\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreApi/tests',
+        ),
+        'CoreApi\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreApi/src',
         ),
         'Composer\\XdebugHandler\\' => 
         array (

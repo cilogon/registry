@@ -77,6 +77,8 @@ return array(
     'CoreEnroller\\' => array($baseDir . '/plugins/CoreEnroller/src'),
     'CoreAssigner\\Test\\' => array($baseDir . '/plugins/CoreAssigner/tests'),
     'CoreAssigner\\' => array($baseDir . '/plugins/CoreAssigner/src'),
+    'CoreApi\\Test\\' => array($baseDir . '/plugins/CoreApi/tests'),
+    'CoreApi\\' => array($baseDir . '/plugins/CoreApi/src'),
     'Composer\\XdebugHandler\\' => array($vendorDir . '/composer/xdebug-handler/src'),
     'Composer\\Spdx\\' => array($vendorDir . '/composer/spdx-licenses/src'),
     'Composer\\Semver\\' => array($vendorDir . '/composer/semver/src'),

@@ -38,29 +38,4 @@ class ApiSourcesController extends StandardPluginController {
       'ApiSources.id' => 'asc'
     ]
   ];
-
-  /**
-   * Callback run prior to the request render.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface $event Cake Event
-   * @return \Cake\Http\Response   HTTP Response
-   */
-
-  public function beforeRender(\Cake\Event\EventInterface $event) {
-    $apiSource = $this->ApiSources->get(
-      $this->request->getParam('pass.0'), 
-      ['contain' => 'ExternalIdentitySources']
-    );
-    
-    $this->set(
-      'vv_push_endpoint',
-      Router::url(
-        url: '/api/apisource/' . $apiSource->id . '/v2/sorPeople/' . $apiSource->external_identity_source->sor_label,
-        full: true
-      )
-    );
-
-    return parent::beforeRender($event);
-  }
 }

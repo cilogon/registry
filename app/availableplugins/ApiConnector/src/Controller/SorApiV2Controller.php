@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Api Sources API v2 Controller
+ * COmanage Registry Api Sources SOR API v2 Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -32,7 +32,14 @@ namespace ApiConnector\Controller;
 use \Cake\ORM\TableRegistry;
 use \App\Controller\StandardApiController;
 
-class ApiV2Controller extends StandardApiController {
+class SorApiV2Controller extends StandardApiController {
+  // Map the actions to the Entry Point Model that controls the configuration.
+  
+  public $entryPointMap = [
+    'delete' => 'ApiSourceEndpoints',
+    'get'    => 'ApiSourceEndpoints',
+    'upsert' => 'ApiSourceEndpoints'
+  ];
 
   /**
    * Calculate the CO ID associated with the request.
@@ -46,42 +53,11 @@ class ApiV2Controller extends StandardApiController {
 
     $ApiSource = TableRegistry::getTableLocator()->get('ApiConnector.ApiSources');
 
-    $cfg = $ApiSource->get($apiSourceId, ['contain' => 'ExternalIdentitySources']);
+    return $ApiSource->findCoForRecord((int)$apiSourceId);
 
-    return $cfg->external_identity_source->co_id ?? null;
-  }
+    // $cfg = $ApiSource->get($apiSourceId, ['contain' => 'ExternalIdentitySources']);
 
-  /**
-   * Calculate authorization for the current request.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @return bool     True if the current request is permitted, false otherwise
-   */
-
-  public function calculatePermission(): bool {
-    $request = $this->getRequest();
-    $action = $request->getParam('action');
-    $authUser = $this->RegistryAuth->getAuthenticatedUser();
-
-    $authorized = false;
-
-    // Our authorization is pretty straightforward, the configured API User
-    // is permitted to perform all actions.
-
-    // This should be set or the route won't match
-    $apiSourceId = $this->request->getParam('id');
-
-    $ApiSource = TableRegistry::getTableLocator()->get('ApiConnector.ApiSources');
-
-    $cfg = $ApiSource->get($apiSourceId, ['contain' => 'ApiUsers']);
-
-    if(!empty($cfg->api_user->username) 
-       && !empty($authUser)
-       && $authUser == $cfg->api_user->username) {
-      $authorized = true;
-    }
-
-    return $authorized;
+    // return $cfg->external_identity_source->co_id ?? null;
   }
 
   /**
@@ -192,18 +168,5 @@ class ApiV2Controller extends StandardApiController {
 
     $this->response = $this->response->withStatus($resultCode);
     $this->set('vv_results', $results);
-  }
-
-  /**
-   * Indicate whether this Controller will handle some or all authnz.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface   $event  Cake event, ie: from beforeFilter
-   * @return string                   "no", "open", "authz", or "yes"
-   */
-
-  public function willHandleAuth(\Cake\Event\EventInterface $event): string {
-    // We always take over authz
-    return 'authz';
   }
 }

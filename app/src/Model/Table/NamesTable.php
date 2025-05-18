@@ -101,7 +101,7 @@ class NamesTable extends Table {
     $this->setPrimaryLink(['external_identity_id', 'person_id']);
     $this->setAllowLookupPrimaryLink(['primary', 'unfreeze']);
     $this->setRequiresCO(true);
-    // Models that AcceptCoId should be explicitly added to StandardApiController::initialize()
+    // Models that AcceptCoId should be explicitly added to AppController::beforeFilter()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');

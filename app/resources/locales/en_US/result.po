@@ -141,9 +141,6 @@ msgstr "Identifiers Assigned ({0})"
 msgid "IdentifierAssignments.queued.ok"
 msgstr "Identifiers Assignment for context {0} queued for CO {1}"
 
-msgid "Names.primary_name"
-msgstr "Primary Name Updated"
-
 msgid "Jobs.canceled"
 msgstr "Job {0} canceled"
 
@@ -152,6 +149,9 @@ msgstr "Job canceled by {0}"
 
 msgid "Jobs.registered"
 msgstr "Started via JobCommand by {0} (uid {1})"
+
+msgid "Names.primary_name"
+msgstr "Primary Name Updated"
 
 # These are for generating history records
 msgid "Notifications.A"
@@ -208,11 +208,17 @@ msgstr "Created new External Identity via Pipeline {0} ({1}) using Source {2} ({
 msgid "Pipelines.matched"
 msgstr "Pipeline {0} ({1}) matched EIS {2} ({3}) source key {4} to Person using Match Strategy {5}"
 
+msgid "Pipelines.matched.external"
+msgstr "Reference Identifier {0} obtained from match server"
+
 msgid "Pipelines.requested"
 msgstr "Pipeline {0} ({1}) linked to requested Person {2} for EIS {3} ({4}) source key {5}"
 
 msgid "Pipelines.started"
 msgstr "Pipeline {0} ({1}) started for EIS {2} ({3}) source key {4}"
+
+msgid "Pipelines.updated.external"
+msgstr "Sent Update Match Attributes Request"
 
 msgid "ProvisioningTargets.queued.ok"
 msgstr "Reprovisioning for {0} queued for {1} ({2})"

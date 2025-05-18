@@ -317,7 +317,17 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
                   '?' => [$tableFK => $entity->id]
                 ];
               }
-  
+
+              if(!empty($a['query'])) {
+                $fn = $a['query'];
+
+                if(!empty($actionUrl['?'])) {
+                  $actionUrl['?'] = array_merge($actionUrl['?'], $fn($entity));
+                } else {
+                  $actionUrl['?'] = $fn($entity);
+                }
+              }
+              
               // Generate the link text and urls:
   
               if (!empty($a['confirm'])) {

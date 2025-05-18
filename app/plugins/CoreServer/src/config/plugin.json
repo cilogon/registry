@@ -3,9 +3,9 @@
     "server": [
       "HttpServers",
       "MatchServers",
+      "Oauth2Servers",
       "SmtpServers",
-      "SqlServers",
-      "Oauth2Servers"
+      "SqlServers"
     ]
   },
   "schema": {
@@ -36,6 +36,18 @@
         },
         "indexes": {
           "match_servers_i1": { "columns": [ "server_id" ] }
+        }
+      },
+      "match_server_attributes": {
+        "columns": {
+          "id": {},
+          "match_server_id": { "type": "integer", "foreignkey": { "table": "match_servers", "column": "id" }, "notnull": true },
+          "attribute": { "type": "string", "size": 80 },
+          "type_id": { "notnull": false },
+          "required": {}
+        },
+        "indexes": {
+          "match_server_attributes_i1": { "columns": [ "match_server_id" ]}
         }
       },
       "oauth2_servers": {

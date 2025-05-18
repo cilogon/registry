@@ -61,7 +61,11 @@ class SyncJob {
         'type'      => 'bool',
         'required'  => false
       ],
-// XXX addd reference_id
+      'reference_id' => [
+        'help'      => __d('core_job', 'opt.sync.reference_id'),
+        'type'      => 'string',
+        'required'  => false
+      ],
       'source_keys' => [
         'help'      => __d('core_job', 'opt.sync.source_keys'),
         'type'      => 'string',
@@ -455,6 +459,16 @@ class SyncJob {
 
         $keys = explode(',', $parameters['source_keys']);
 
+        $referenceId = null;
+
+        if(!empty($parameters['reference_id'])) {
+          if(count($keys) == 1) {
+            $referenceId = $parameters['reference_id'];
+          } else {
+            throw new \InvalidArgumentException('core_job', 'Sync.error.reference_id');
+          }
+        }
+
         $this->runContext->count = count($keys);
 
         $JobsTable->start(
@@ -463,7 +477,7 @@ class SyncJob {
         );
 
         foreach($keys as $key) {
-          if(!$this->syncRecord($key)) {
+          if(!$this->syncRecord($key, $referenceId)) {
             break;
           }
         }
@@ -501,20 +515,25 @@ class SyncJob {
    * Sync a single record.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  string $key  Source Key to process
+   * @param  string $key          Source Key to process
+   * @param  string $referenceId  Reference ID to link to record, if known
    * @return bool         True if processing should continue, false otherwise
    */
 
-  protected function syncRecord(string $key): bool {
+  protected function syncRecord(string $key, string $referenceId=null): bool {
     // comment and status for HistoryRecords
     $c = "unknown";
     $s = JobStatusEnum::Failed;
+
+    // Default result
+    $result = 'error';
 
     try {
       $result = $this->runContext->EISTable->sync(
         id: (int)$this->runContext->parameters['external_identity_source_id'], 
         sourceKey: $key, 
-        force: $this->runContext->force
+        force: $this->runContext->force,
+        referenceId: $referenceId
       );
 
       switch($result) {

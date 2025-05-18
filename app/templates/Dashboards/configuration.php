@@ -90,12 +90,17 @@
           $iconClass = !empty($cfg['iconClass']) ? $cfg['iconClass'] : 'material-symbols';
           $linkContent =  '<em class="' . $iconClass . '" aria-hidden="true">' . $cfg['icon'] . '</em>'
             . '<span class="menu-title">' . $label . '</span>';
+          $linkUrl = [
+            'plugin'     => null,
+            'controller' => $cfg['controller'],
+            'action'     => $cfg['action']
+          ];
+          if(!isset($cfg['platform']) || !$cfg['platform']) {
+            $linkUrl['?']['co_id'] = $vv_cur_co->id;
+          }
           print $this->Html->link(
             $linkContent,
-            ['plugin'     => null,
-             'controller' => $cfg['controller'],
-             'action'     => $cfg['action'],
-             '?'          => ['co_id' => $vv_cur_co->id]],
+            $linkUrl,
             ['escape' => false]
           );
         ?>

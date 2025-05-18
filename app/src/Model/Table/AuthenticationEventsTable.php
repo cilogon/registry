@@ -73,7 +73,7 @@ class AuthenticationEventsTable extends Table {
     $this->setRequiresCO(false);
     
     $this->setAutoViewVars([
-      'authentication_events' => [
+      'authenticationEvents' => [
         'type' => 'enum',
         'class' => 'AuthenticationEventEnum'
       ]
@@ -95,8 +95,8 @@ class AuthenticationEventsTable extends Table {
         // We set $manages = true here because we need to return index
         // permission for related models calculation in identifiers?person_id=X
         // (so the link to Authentication Events renders). However, in
-        // setIndexFilter below we will reject requests without a $targetIdentifier
-        // which effectively denies such requests.
+        // getIndexFilter below we will reject requests without a $targetIdentifier
+        // for non-platform admins.
         
         $manages = true;
       }
@@ -112,20 +112,6 @@ class AuthenticationEventsTable extends Table {
           'index'   => $manages
         ]
       ];
-    });
-    
-    $this->setIndexFilter(function (\Cake\Http\ServerRequest $r): array {
-      // This will be checked for authz in RegistryAuthComponent
-      $targetIdentifier = $r->getQuery('authenticated_identifier');
-      
-      // Note that in setPermissions above we permit index operations when no
-      // targetIdentifier is specified. We reject that here though since index
-      // views require a targetIdentifier.
-      if(!$targetIdentifier) {
-        throw new \InvalidArgumentException(__d('error', 'input.notprov', 'authenticated_identifier'));
-      }
-      
-      return ['authenticated_identifier' => StringUtilities::urlbase64decode($targetIdentifier)];
     });
   }
   

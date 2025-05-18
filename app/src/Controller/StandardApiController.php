@@ -31,6 +31,7 @@ namespace App\Controller;
 
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use App\Lib\Enum\SuspendableStatusEnum;
 
 class StandardApiController extends AppController {
   /**
@@ -45,5 +46,78 @@ class StandardApiController extends AppController {
     
     // We want API auth, not Web Auth
     $this->RegistryAuth->setConfig('apiUser', true);
+  }
+
+  /**
+   * Calculate authorization for the current request.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return bool     True if the current request is permitted, false otherwise
+   */
+
+  public function calculatePermission(): bool {
+    $request = $this->getRequest();
+    $action = $request->getParam('action');
+    $authuser = null;
+
+    // We let RegistryAuth handle the authentication
+    if(!$this->RegistryAuth->isApiUser()) {
+      // We don't localize exception in this function or call llog directly because
+      // any exception we throw will be caught by RegistryAuthComponent and logged there
+      throw new \InvalidArgumentException("RegistryAuth did not provide API User in calculatePermission");
+    }
+    
+    $authUser = $this->RegistryAuth->getAuthenticatedUser();
+
+    $authorized = false;
+
+    // For authorization, we need to find the corresponding entry in Apis.
+    // First we need the API User ID.
+
+    $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+
+    // RegistryAuthComponent took care of all the validation, we just need the ID
+    $apiuser = $ApiUsers->find()
+                        ->where(['username' => $authUser])
+                        ->firstOrFail();
+
+    // Next we need the Plugin's Entry Point Map to tell us what Entry Point Model the
+    // current controller points to.
+
+    if(!isset($this->entryPointMap[$action])) {
+      throw new \RuntimeException("Plugin did not provide Entry Point Map value for $action");
+    }
+
+    // Find the associated API configuration
+
+    $api = $ApiUsers->Apis->find()
+                          ->where([
+                            'api_user_id' => $apiuser->id,
+                            'plugin'      => $this->getPlugin() . "." . $this->entryPointMap[$action]
+                          ])
+                          ->firstOrFail();
+
+    // We manually check status (as opposed to updating the find) to faciliate logging
+
+    if($api->status != SuspendableStatusEnum::Active) {
+      throw new \InvalidArgumentException("API " . $api->id . " is not active");
+    }
+    
+    // If we get here the API User is authorized for the requested plugin configuration
+
+    return true;
+  }
+
+  /**
+   * Indicate whether this Controller will handle some or all authnz.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EventInterface   $event  Cake event, ie: from beforeFilter
+   * @return string                   "no", "open", "authz", or "yes"
+   */
+
+  public function willHandleAuth(\Cake\Event\EventInterface $event): string {
+    // We always take over authz
+    return 'authz';
   }
 }

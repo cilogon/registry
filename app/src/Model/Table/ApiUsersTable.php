@@ -66,6 +66,8 @@ class ApiUsersTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
+
+    $this->hasMany('Apis');
     
     $this->setDisplayField('username');
     
@@ -92,6 +94,11 @@ class ApiUsersTable extends Table {
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin']
+      ],
+      'related' => [
+        'table' => [
+          'AuthenticationEvents'
+        ]
       ]
     ]);
   }
@@ -193,11 +200,11 @@ class ApiUsersTable extends Table {
    * @param  string $username API Username
    * @param  string $apiKey   API Key to validate
    * @param  string $remoteIp IP Address of request
-   * @return boolean          true if the API Key validates
+   * @return int              The CO ID for the API User (on success)
    * @throws InvalidArgumentException
    */
   
-  public function validateKey(string $username, string $apiKey, string $remoteIp) {
+  public function validateKey(string $username, string $apiKey, string $remoteIp): int {
     // First pull the ApiUser record for $username. Note we don't know which
     // CO we're querying for, so $username requires the CO name as a prefix
     // (except for legacy usernames, which are assumed to be part of the
@@ -261,7 +268,7 @@ class ApiUsersTable extends Table {
       throw new \InvalidArgumentException(__d('error', 'auth.api.ip', [$remoteIp, $username]));
     }
     
-    return true;
+    return $apiUser->co_id;
   }
   
   /**

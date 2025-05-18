@@ -124,12 +124,12 @@ trait TableMetaTrait {
           // HasMany
 
           foreach($entity->$m as $s) {
-            $ret[$m][] = $this->filterMetadataForDuplicate($t, $s);
+            $ret[$m][] = $this->filterMetadataForCopy($t, $s);
           }
         } elseif(!empty($entity->$m1)) {
           // HasOne
 
-          $ret[$m1] = $this->filterMetadataForDuplicate($t, $entity->$m1);
+          $ret[$m1] = $this->filterMetadataForCopy($t, $entity->$m1);
         }
       } elseif(is_array($v)) {
         // $k is the model name (EnrollmentFlowSteps) and $v is an array of related models
@@ -149,12 +149,12 @@ trait TableMetaTrait {
           // HasMany
 
           foreach($entity->$m as $s) {
-            $ret[$m][] = $this->filterMetadataForDuplicate($t, $s, $v);
+            $ret[$m][] = $this->filterMetadataForCopy($t, $s, $v);
           }
         } elseif(!empty($entity->$m1)) {
           // HasOne
 
-          $ret[$m1] = $this->filterMetadataForDuplicate($t, $entity->$m1, $v);
+          $ret[$m1] = $this->filterMetadataForCopy($t, $entity->$m1, $v);
         }
       }
     }

@@ -343,12 +343,13 @@ class ExternalIdentitySourcesTable extends Table {
    * Sync an External Identity from a Source to a Person via a Pipeline.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  int    $id         External Identity Source ID
-   * @param  string $sourceKey  EIS Backend Source Key
-   * @param  bool   $force      Whether to force the full Pipeline to run even if the backend record didn't change
-   * @param  bool   $syncOnly   Whether to skip identifier assignment and provisioning
-   * @param  int    $personId   If set, request the Pipeline to link to this Person (for create operations only)
-   * @return string             Record status (new, unchanged, unknown, updated)
+   * @param  int    $id           External Identity Source ID
+   * @param  string $sourceKey    EIS Backend Source Key
+   * @param  bool   $force        Whether to force the full Pipeline to run even if the backend record didn't change
+   * @param  bool   $syncOnly     Whether to skip identifier assignment and provisioning
+   * @param  int    $personId     If set, request the Pipeline to link to this Person (for create operations only)
+   * @param  string $referenceId  Reference ID to assign to the provided EIS record
+   * @return string               Record status (new, unchanged, unknown, updated)
    */
   
   public function sync(
@@ -356,7 +357,8 @@ class ExternalIdentitySourcesTable extends Table {
     string $sourceKey, 
     bool $force=true,
     bool $syncOnly=false,
-    ?int $personId=null
+    ?int $personId=null,
+    ?string $referenceId=null
   ): string {
     // All work is actually handled by the Pipeline, but we need our configuration
     // to know which Pipeline.
@@ -373,7 +375,9 @@ class ExternalIdentitySourcesTable extends Table {
       force:            $force,
       personId:         $personId,
       // Do we want the Pipeline to assign identifiers and provision?
-      syncOnly:         $syncOnly
+      syncOnly:         $syncOnly,
+      // Reference ID should only be provided when handling Match Callback requests
+      referenceId:      $referenceId
     );
   }
 

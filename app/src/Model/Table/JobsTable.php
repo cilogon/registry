@@ -634,8 +634,14 @@ class JobsTable extends Table {
             // or it doesn't.
             $className = StringUtilities::foreignKeyToClassName($p);
             $Table = TableRegistry::getTableLocator()->get($className);
-
-            $vals = explode(',', $val);
+            
+            $vals = [];
+            
+            if(is_int($val)) {
+              $vals = [$val];
+            } else {
+              $vals = explode(',', $val);
+            }
 
             foreach($vals as $v) {
               $entity = $Table->get($val);

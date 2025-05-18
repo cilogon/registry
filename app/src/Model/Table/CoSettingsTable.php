@@ -230,6 +230,7 @@ class CoSettingsTable extends Table {
       'default_pronoun_type_id'              => null,
       'default_telephone_number_type_id'     => null,
       'default_url_type_id'                  => null,
+      'authn_events_api_disable'             => false,
       'email_smtp_server_id'                 => null,
       'email_delivery_address_type_id'       => null,
       'permitted_fields_name'                => PermittedNameFieldsEnum::HGMFS,
@@ -390,6 +391,11 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('default_url_type_id');
+    
+    $validator->add('authn_events_api_disable', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('authn_events_api_disable');
     
     $validator->add('email_delivery_address_type_id', [
       'content' => ['rule' => 'isInteger']

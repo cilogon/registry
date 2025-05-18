@@ -31,7 +31,9 @@ namespace App\Lib\Traits;
 
 use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\FunctionUtilities;
-use \Cake\ORM\TableRegistry;
+use App\Lib\Util\StringUtilities;
+use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 
 trait AutoViewVarsTrait {
   // Array (and configuration) of view variables to automatically populate
@@ -105,17 +107,16 @@ trait AutoViewVarsTrait {
           // Inject configuration. Since we're only ever looking at the types
           // table, inject the current CO along with the requested attribute
           $avv['model'] = 'Types';
-          if(\is_array($avv['attribute'])) {
-            $avv['where'] = [
-              'attribute IN' => $avv['attribute'],
-              'status'    => SuspendableStatusEnum::Active
-            ];
-          } else {
-            $avv['where'] = [
-              'attribute' => $avv['attribute'],
-              'status'    => SuspendableStatusEnum::Active
-            ];
+          $avv['where']['status'] = SuspendableStatusEnum::Active;
+          if(!empty($avv['attribute'])) {
+            if(\is_array($avv['attribute'])) {
+              $avv['where']['attribute IN'] = $avv['attribute'];
+            } else {
+              $avv['where']['attribute'] = $avv['attribute'];
+            }
           }
+          // else we allow for 'attribute' to be omitted for cases where type_id
+          // can be populated by multiple types (eg Match Server Attributes)
         // fall through
         case 'auxiliary':
 // XXX add list as in match?
@@ -202,8 +203,49 @@ trait AutoViewVarsTrait {
           $generatedValue = $table->getParents($coId);
           break;
         case 'plugin':
-          $PluginTable = TableRegistry::getTableLocator()->get('Plugins');
-          $generatedValue = $PluginTable->getActivePluginModels($avv['pluginType']);
+          if(!empty($avv['pluginType'])) {
+            // Return the list of Entry Point Models implementing the specified Plugin Type
+            // (eg: "source")
+            $PluginTable = TableRegistry::getTableLocator()->get('Plugins');
+            $generatedValue = $PluginTable->getActivePluginModels($avv['pluginType']);
+          } elseif(!empty($avv['model'])) {
+            // Return the list of instantiations of the specified Entry Point Model
+            // (eg: "ApiConnector.ApiSources")
+            $ModelTable = TableRegistry::getTableLocator()->get($avv['model']);
+
+            // We need to find the parent ("pluggable") model, but there actually isn't a way
+            // for a Plugin to explicitly say what it's pluggable model parent is. (The reverse
+            // is possible via the PluggableModel Trait.) Instead, we walk the model's primary
+            // links until we find one that implements the Pluggable functions, at which point
+            // it's safe to assume that's the correct parent model since Entry Point Models
+            // can't implement two pluggable interfaces.
+            $primaryLinks = $ModelTable->getPrimaryLinks();
+
+            foreach($primaryLinks as $l) {
+              $PluggableTable = TableRegistry::getTableLocator()->get(StringUtilities::foreignKeyToClassName($l));
+
+              if(method_exists($PluggableTable, "getPluggableModelType")) {
+                // This is the correct primary link. Note we don't necessarily know how to
+                // filter inactive records since the only column PluggableTrait requires is
+                // "plugin".
+
+                // The entity field holding the related model
+                $modelKey = StringUtilities::pluginToEntityField($avv['model']);
+
+                // For now we don't filter on status because not all Pluggable models
+                // use it consistency. (Specifically, EISs use SyncModeEnum instead.)
+                $generatedValue = $PluggableTable->find('list', [
+                                     'keyField' => $modelKey.'.id',
+                                     'valueField' => 'description'
+                                   ])
+                                   ->where(['plugin' => $avv['model']])
+                                   ->contain(StringUtilities::pluginModel($avv['model']))
+                                   ->all();
+                
+                break;
+              }
+            }
+          }
           break;
         default:
 // XXX I18n? and in match?

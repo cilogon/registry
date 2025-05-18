@@ -94,13 +94,13 @@ class RegistryAuthComponent extends Component
     
     try {
       // validateKey takes care of all validity logic, as well as rehashing (if needed)
-      if($ApiUsers->validateKey($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $_SERVER['REMOTE_ADDR'])) {
-        $this->authenticatedUser = $_SERVER['PHP_AUTH_USER'];
-        $this->authenticatedApiUser = true;
-        $this->llog('debug', "Authenticated API User \"" . $this->authenticatedUser . "\"");
+      $this->cache['api_user']['co_id'] = $ApiUsers->validateKey($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $_SERVER['REMOTE_ADDR']);
+
+      $this->authenticatedUser = $_SERVER['PHP_AUTH_USER'];
+      $this->authenticatedApiUser = true;
+      $this->llog('debug', "Authenticated API User \"" . $this->authenticatedUser . "\"");
         
-        return true;
-      }
+      return true;
     }
     catch(\Exception $e) {
       $this->llog('debug', "User authentication failed: " . $e->getMessage());
@@ -205,11 +205,28 @@ class RegistryAuthComponent extends Component
           }
 
           if($authok) {
-            $AuthenticationEvents = TableRegistry::getTableLocator()->get('AuthenticationEvents');
+            // Record an Authentication Event, unless disabled for the current CO,
+            // which should have been returned during authenticateApiUsre().
+
+            $skipRecording = false;
             
-            $AuthenticationEvents->record(identifier: $this->authenticatedUser,
-                                          eventType: AuthenticationEventEnum::ApiLogin,
-                                          remoteIp: $_SERVER['REMOTE_ADDR']);
+            if(!empty($this->cache['api_user']['co_id'])) {
+              $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+              $settings = $CoSettings->find()
+                                     ->where(['co_id' => $this->cache['api_user']['co_id']])
+                                     ->firstOrFail();
+
+              $skipRecording = ($settings->authn_events_api_disable === true);
+            }
+
+            if(!$skipRecording) {
+              $AuthenticationEvents = TableRegistry::getTableLocator()->get('AuthenticationEvents');
+              
+              $AuthenticationEvents->record(identifier: $this->authenticatedUser,
+                                            eventType: AuthenticationEventEnum::ApiLogin,
+                                            remoteIp: $_SERVER['REMOTE_ADDR']);
+            }
             
             return true;
           }

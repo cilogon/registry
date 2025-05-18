@@ -375,6 +375,12 @@ msgstr "Authentication Event"
 msgid "Cos.member.not"
 msgstr "{0} (Not a Member)"
 
+msgid "CoSettings.authn_events_api_disable"
+msgstr "Disable API User Authentication Events"
+
+msgid "CoSettings.authn_events_api_disable.desc"
+msgstr "If checked, Authentication Events will not be recorded for API User logins"
+
 msgid "CoSettings.default_address_type_id"
 msgstr "Default Address Type"
 
@@ -748,6 +754,9 @@ msgstr "Email Address Type"
 
 msgid "Pipelines.match_identifier_type_id"
 msgstr "Identifier Type"
+
+msgid "Pipelines.match_server_id"
+msgstr "Match Server"
 
 msgid "Pipelines.match_strategy"
 msgstr "Match Strategy"

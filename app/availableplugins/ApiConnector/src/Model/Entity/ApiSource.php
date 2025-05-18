@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Api Source Table
+ * COmanage Registry Api Source Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.

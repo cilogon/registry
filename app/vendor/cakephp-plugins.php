@@ -5,6 +5,7 @@ return [
     'plugins' => [
         'Bake' => $baseDir . '/vendor/cakephp/bake/',
         'Cake/TwigView' => $baseDir . '/vendor/cakephp/twig-view/',
+        'CoreApi' => $baseDir . '/plugins/CoreApi/',
         'CoreAssigner' => $baseDir . '/plugins/CoreAssigner/',
         'CoreEnroller' => $baseDir . '/plugins/CoreEnroller/',
         'CoreJob' => $baseDir . '/plugins/CoreJob/',

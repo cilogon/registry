@@ -25,6 +25,9 @@
 msgid "controller.HttpServers"
 msgstr "{0,plural,=1{HTTP Server} other{HTTP Servers}}"
 
+msgid "controller.MatchServerAttributes"
+msgstr "{0,plural,=1{Match Server Attribute} other{Match Server Attributes}}"
+
 msgid "controller.MatchServers"
 msgstr "{0,plural,=1{Match Server} other{Match Servers}}"
 
@@ -70,6 +73,15 @@ msgstr "Oracle"
 msgid "enumeration.RdbmsTypeEnum.PG"
 msgstr "Postgres"
 
+msgid "error.MatchServers.attr.none"
+msgstr "No valid attributes assembled for Match request"
+
+msgid "error.MatchServers.attr.req"
+msgstr "Required attribute {0} ({1}) not found in person record"
+
+msgid "error.MatchServers.response"
+msgstr "Match Server responded: {0}"
+
 msgid "error.Oauth2Servers.callback"
 msgstr "Incorrect parameters in callback"
 
@@ -78,6 +90,12 @@ msgstr "Invalid state received in callback"
 
 msgid "error.Oauth2Servers.token"
 msgstr "Error obtaining access token: {0}"
+
+msgid "error.SqlServers.oracle.enabled"
+msgstr "Oracle support is not enabled"
+
+msgid "error.SqlServers.oracle.plugin"
+msgstr "OracleClient plugin is not loaded"
 
 msgid "info.Oauth2Servers.token.ok"
 msgstr "Access Token Obtained"
@@ -90,9 +108,6 @@ msgstr "Authentication Type"
 
 msgid "field.skip_ssl_verification"
 msgstr "Skip SSL Verification"
-
-msgid "field.MatchServers.api_endpoint"
-msgstr "API Endpoint"
 
 msgid "field.Oauth2Servers.access_token"
 msgstr "Access Token"
@@ -136,12 +151,6 @@ msgstr "If set, all outgoing email will only be sent to this address"
 msgid "field.SmtpServers.use_tls"
 msgstr "Use TLS"
 
-msgid "error.SqlServers.oracle.enabled"
-msgstr "Oracle support is not enabled"
-
-msgid "error.SqlServers.oracle.plugin"
-msgstr "OracleClient plugin is not loaded"
-
 msgid "field.SqlServers.databas"
 msgstr "Database Name"
 
@@ -150,3 +159,6 @@ msgstr "Specify the port only if a non-standard port number is in use"
 
 msgid "field.SqlServers.type"
 msgstr "RDBMS Type"
+
+msgid "result.MatchServers.match.accepted"
+msgstr "Match request requires administrator intervention, Match Request ID: {0}"

@@ -10,6 +10,7 @@
     
     "columns": {
       "action": { "type": "string", "size": 4 },
+      "api_id": { "type": "integer", "foreignkey": { "table": "apis", "column": "id" } },
       "api_user_id": { "type": "integer", "foreignkey": { "table": "api_users", "column": "id" } },
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
       "comment": { "type": "string", "size": 256 },
@@ -130,6 +131,7 @@
         "default_pronoun_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "default_url_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
+        "authn_events_api_disable": { "type": "boolean" },
         "email_delivery_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "email_smtp_server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" } },
         "permitted_fields_name": { "type": "string", "size": 160 },
@@ -896,6 +898,21 @@
       "indexes": {
         "application_states_i1": { "columns": [ "co_id" ] },
         "application_states_i2": { "columns": [ "person_id" ] }
+      }
+    },
+
+    "apis": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "api_user_id": {}
+      },
+      "indexes": {
+        "apis_i1": { "columns": [ "co_id" ] },
+        "apis_i2": { "needed": false, "columns": [ "api_user_id" ]}
       }
     },
 

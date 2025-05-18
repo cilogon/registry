@@ -41,6 +41,7 @@ use CoreServer\Lib\Enum\HttpAuthTypeEnum;
 class HttpServersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -112,17 +113,25 @@ class HttpServersTable extends Table {
     $Client = Client::createFromUrl($httpServer->url);
 
     if($httpServer->auth_type == HttpAuthTypeEnum::Basic) {
+      $authConfig = [
+        'type' => 'Basic'
+      ];
+
       if(!empty($httpServer->username)) {
-        $Client->setConfig('username', $httpServer->username);
+        $authConfig['username'] = $httpServer->username;
       }
 
       if(!empty($httpServer->password)) {
-        $Client->setConfig('password', $httpServer->password);
+        $authConfig['password'] = $httpServer->password;
       }
+
+      $Client->setConfig('auth', $authConfig);
     }
 
     if(!empty($httpServer->skip_ssl_verification) && $httpServer->skip_ssl_verification) {
       $Client->setConfig('ssl_verify_peer', false);
+      $Client->setConfig('ssl_verify_peer_name', false);
+      $Client->setConfig('ssl_verify_host', false);
     }
 
     return $Client;

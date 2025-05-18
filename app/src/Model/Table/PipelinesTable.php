@@ -125,6 +125,11 @@ class PipelinesTable extends Table {
         'type' => 'type',
         'attribute' => 'Identifiers.type'
       ],
+      'matchServers' => [
+        'type' => 'select',
+        'model' => 'Servers',
+        'where' => ['plugin' => 'CoreServer.MatchServers']
+      ],
       'matchStrategies' => [
         'type'  => 'enum',
         'class' => 'MatchStrategyEnum'
@@ -522,27 +527,28 @@ class PipelinesTable extends Table {
     return array_filter($newdata, 'is_scalar');
   }
 
-    /**
-     * Execute the specified Pipeline on the provided EIS data.
-     *
-     * @param int $id Pipeline ID
-     * @param int $eisId Exxternal Identity Source ID
-     * @param array $eisBackendRecord Record returned by EIS Backend
-     * @param bool $force Force the Pipeline to run all steps, even if no changes were detected
-     * @param int|null $personId If set, for create operations only use this as the target Person ID
-     * @param bool $syncOnly If true, do not run Finalize steps
-     * @return string                   Record status (new, unchanged, unknown, updated)
-     * @throws \Exception
-     * @since  COmanage Registry v5.0.0
-     */
+  /**
+   * Execute the specified Pipeline on the provided EIS data.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  int    $id               Pipeline ID
+   * @param  int    $eisId            Exxternal Identity Source ID
+   * @param  array  $eisBackendRecord Record returned by EIS Backend
+   * @param  bool   $force            Force the Pipeline to run all steps, even if no changes were detected
+   * @param  int    $personId         If set, for create operations only use this as the target Person ID
+   * @param  bool   $syncOnly         If true, do not run Finalize steps
+   * @param  string $referenceId      Reference ID to assign to the provided EIS record
+   * @return string                   Record status (new, unchanged, unknown, updated)
+   */
 
   public function execute(
-    int   $id,
-    int   $eisId, 
-    array $eisBackendRecord,
-    bool  $force=false,
-    ?int  $personId=null,
-    bool  $syncOnly=false
+    int     $id,
+    int     $eisId, 
+    array   $eisBackendRecord,
+    bool    $force=false,
+    ?int    $personId=null,
+    bool    $syncOnly=false,
+    ?string $referenceId=null
   ): string {
     // We broadly split the Pipeline into two parts, "Sync" and "Finalize".
     // This is to support being called from within an Enrollment Flow to connect
@@ -589,12 +595,17 @@ class PipelinesTable extends Table {
 
       // (2) Match against an existing Person or create a new Person, in
       //     accordance with the Pipeline's Match Strategy
+
+      // Do we already have a Reference ID for this EIS Record?
+      $origReferenceId = $eisRecord['record']->reference_identifier;
+
       $personInfo = $this->obtainPerson(
         $pipeline,
         $eis,
         $eisRecord['record'],
         $eisBackendRecord['entity_data'],
-        $personId
+        $personId,
+        $referenceId
       );
 
       $person = $personInfo['person'];
@@ -617,6 +628,36 @@ class PipelinesTable extends Table {
         $eisRecord['record'],
         $eisBackendRecord['entity_data']
       );
+
+      $newReferenceId = $eisRecord['record']->reference_identifier;
+
+      // Perform some record keeping if a new Reference Identifier was assigned
+
+      if(!empty($newReferenceId) && ($newReferenceId !== $origReferenceId)) {
+        // Attach the Reference Identifier to the Person. Where we're creating a
+        // new Person, there won't be much else on the Person record at this point,
+        // but that will change quickly at step (4).
+
+        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+        $rid = $Identifiers->newEntity([
+          'identifier'  => $newReferenceId,
+          'person_id'   => $person->id,
+          'type_id'     => $Identifiers->Types->getTypeId($eis->co_id, 'Identifiers.type', 'reference'),
+          'login'       => false,
+          'status'      => SuspendableStatusEnum::Active
+        ]);
+
+        $Identifiers->saveOrFail($rid);
+
+        // We can now also record Reference ID history
+
+        $this->Cos->People->ExternalIdentities->recordHistory(
+          entity: $externalIdentity,
+          action: ActionEnum::ReferenceIdentifierObtained,
+          comment: __d('result', 'Pipelines.matched.external', [$newReferenceId])
+        );
+      }
 
       // If the Person record was matched or requested (meaning it isn't new) create a
       // History Record here, now that we have an External Identity
@@ -705,17 +746,17 @@ class PipelinesTable extends Table {
     }
   }
 
-    /**
-     * Pipeline step to create or update the External Identity Source Record.
-     *
-     * @param Pipeline $pipeline Pipeline
-     * @param ExternalIdentitySource $eis External Identity Source
-     * @param string $sourceKey Source Key
-     * @param  ?string $sourceRecord Source Record
-     * @param  ?int $personId Person ID
-     * @return array                                    ExtIdentitySourceRecord and change status
-     * @since  COmanage Registry v5.0.0
-     */
+  /**
+   * Pipeline step to create or update the External Identity Source Record.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  Pipeline               $pipeline         Pipeline
+   * @param  ExternalIdentitySource $eis              External Identity Source
+   * @param  string                 $sourceKey        Source Key
+   * @param  string                 $sourceRecord     Source Record
+   * @param  int                    $personId         Person ID (XXX ???)
+   * @return array                                    ExtIdentitySourceRecord and change status
+   */
 
   protected function manageEISRecord(
     Pipeline                $pipeline, 
@@ -1016,8 +1057,9 @@ class PipelinesTable extends Table {
    * @param  Pipeline                 $pipeline       Pipeline
    * @param  ExternalIdentitySource   $eis            External Identity Source
    * @param  ExtIdentitySourceRecord  $eisRecord      External Identity Source Record
-   * @param  array|null               $eisAttributes  Attributes provided by EIS Backend
-   * @param  int|null                 $personId       For create operations, use this as the target Person ID, if set
+   * @param  array                    $eisAttributes  Attributes provided by EIS Backend
+   * @param  int                      $personId       For create operations, use this as the target Person ID, if set
+   * @param  string                   $referenceId    For create operations, Reference ID to assign
    * @return array                                    'person': Person object
    *                                                  'status': 'linked', 'created', 'matched', 'requested'
    *                                                  'strategy': If status = 'matched', the MatchStrategy
@@ -1026,9 +1068,11 @@ class PipelinesTable extends Table {
   protected function obtainPerson(
     Pipeline                $pipeline,
     ExternalIdentitySource  $eis,
-    ExtIdentitySourceRecord $eisRecord,
-    ?array                  $eisAttributes = null,
-    ?int                    $personId = null
+    // We pass by reference so searchByApi can update reference_identifier
+    ExtIdentitySourceRecord &$eisRecord,
+    ?array                  $eisAttributes,
+    ?int                    $personId=null,
+    ?string                 $referenceId=null
   ): array {
     // Shorthand...
     $sourceKey = $eisRecord->source_key;
@@ -1038,6 +1082,41 @@ class PipelinesTable extends Table {
 
     if(!empty($eisRecord->external_identity_id)) {
       $this->llog('trace', "Using previously linked Person " . $eisRecord->external_identity->person->id . " for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
+
+      if($pipeline->match_strategy == MatchStrategyEnum::External
+         && !empty($eisRecord->reference_identifier)
+         && !empty($eisAttributes)) {
+        // If we have a Person already and we are using an External match strategy,
+        // and there is a Reference Identifier in the EIS record, issue an update
+        // match attributes request. Note we might not actually be updaing any relevant
+        // attribtues, but for most use cases this should be an inexpensive enough
+        // operation that we don't need to optimize it just yet.
+
+        // We check for a Reference Identifier because if we don't have one we don't
+        // know enough about the state of the Match server, and it's not clear that
+        // we should send the Update Match Attributes Request (which might be
+        // interpreted as a New Match Request instead). We don't actually need to
+        // use it in the request, though, since the Match Server uses SOR Label + 
+        // SOR ID (Source Key) to identify our request.
+
+        // Hand off to MatchServer to process the request
+
+        $MatchServers = TableRegistry::getTableLocator()->get('CoreServer.MatchServers');
+
+        $MatchServers->updateMatchAttributes(
+          serverId:     $pipeline->match_server_id,
+          sorLabel:     $eis->sor_label,
+          sorId:        $eisRecord->source_key,
+          attributes:   $eisAttributes
+        );
+
+        $this->Cos->People->ExternalIdentities->recordHistory(
+          entity: $eisRecord->external_identity,
+          action: ActionEnum::MatchAttributesUpdated,
+          comment: __d('result', 'Pipelines.updated.external')
+        );
+      }
+
       return [
         'person' => $eisRecord->external_identity->person,
         'status' => 'linked'
@@ -1047,7 +1126,7 @@ class PipelinesTable extends Table {
     if(empty($eisAttributes)) {
       // We shouldn't get here since attributes should only be null on a delete,
       // which should only happen for previously processed records.
-      throw new \RuntimeException('$eisAttributes unexpectedly empty in Pipeline::obtainPerson');
+      throw new \RuntimeException('$eisAttributes unexpectedly empty in Pipeline::obtainPerson (invalid source key?)');
     }
 
     // If there was a Person ID provided in the function call, use that
@@ -1085,8 +1164,36 @@ class PipelinesTable extends Table {
         );
         break;
       case MatchStrategyEnum::External:
-// XXX If we get a reference ID, attach it to the $eisRecord here CFM-33
-        throw new \RuntimeException('NOT IMPLEMENTED');
+        if($referenceId) {
+          // The reference ID was provided by the Match Callback API, and we are
+          // reprocessing the record. Use the asserted ID instead of calling the API again
+          // (though calling the API again should result in the same reference ID).
+          $this->llog('trace', "Linking provided Reference ID " . $referenceId . " for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
+
+          // We need to look up the Reference ID type ID to pass to searchByAttribute
+          // so it can convert it back to a label. Not the most efficient method, but
+          // this should be a relatively infrequent operation.
+          $Types = TableRegistry::getTableLocator()->get('Types');
+          
+          $person = $this->searchByAttribute(
+            $eis,
+            $eisRecord,
+            MatchStrategyEnum::Identifier,
+            $Types->getTypeId(
+              coId: $eis->co_id,
+              attribute: 'Identifiers.type',
+              value: 'reference'
+            ),
+            ['identifiers' => [0 => ['type' => 'reference', 'identifier' => $referenceId]]]
+          );
+        } else {
+          $person = $this->searchByApi(
+            $eis,
+            $eisRecord,
+            $pipeline->match_server_id,
+            $eisAttributes
+          );
+        }
         break;
       case MatchStrategyEnum::NoMatching:
         // No matching configured, so just fall through and create a new Person
@@ -1247,6 +1354,110 @@ class PipelinesTable extends Table {
       $cxn->rollback();
       throw $e;
     }
+  }
+
+  /**
+   * Search for an existing Person using the ID Match API.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  ExternalIdentitySource   $eis              External Identity Source
+   * @param  ExtIdentitySourceRecord  $eisRecord        External Identity Source Record
+   * @param  int                      $serverId         Server ID (NOT Match Server ID)
+   * @param  array                    $attributes       Attributes to use for searching
+   * @return Person                   Person if found, null otherwise
+   * @throws InvalidArgumentException
+   */
+
+  protected function searchByApi(
+    ExternalIdentitySource  $eis,
+    ExtIdentitySourceRecord &$eisRecord,
+    int                     $serverId,
+    array                   $attributes
+  ): ?Person {
+    // By the time the Pipeline is called, $attributes (while an array) should be
+    // normalized to the Registry data model (though we haven't yet called
+    // mapAttributesToCO).
+
+    // Hand off to MatchServer to process the request
+
+    $MatchServers = TableRegistry::getTableLocator()->get('CoreServer.MatchServers');
+
+    $referenceId = $MatchServers->requestReferenceIdentifier(
+      serverId:     $serverId,
+      sorLabel:     $eis->sor_label,
+      sorId:        $eisRecord->source_key,
+      attributes:   $attributes
+    );
+
+    // On error, including 202, an exception is thrown and we don't continue.
+    // If we get a Reference ID back, look for an existing CO Person with it.
+
+    if(is_array($referenceId)) {
+      // We received a 300 response, which is not supported in a Pipeline context
+      // and probably means the admin misconfigured the Match Server.
+
+      throw new \RuntimeException('error', 'Pipelines.match.external.response');
+    }
+
+    if(empty($referenceId)) {
+      // We shouldn't get here with an empty Reference ID, but check just in case
+
+      throw new \RuntimeException('error', 'Pipelines.match.external.empty');
+    }
+
+    // Note we can't record history here because we don't necessarily have an
+    // External Identity yet (let alone a Person). (We _could_ record history if
+    // we find an existing Person with the Reference Identifier attached.)
+
+    // Attach the Reference ID to the EIS Record. Note because we're working with
+    // a passed by reference entity, the calling function should be able to see
+    // it without having to pull an updated record from the database.
+
+    $EISRecords = TableRegistry::getTableLocator()->get('ExtIdentitySourceRecords');
+
+    $eisRecord->reference_identifier = $referenceId;
+
+    $EISRecords->save($eisRecord);
+    
+    // Look for Identifiers associated with People in the current CO.
+    // We do _not_ filter on Person status -- if a Person is Suspended but has
+    // the current Reference Identifier we still want to link to that Person.
+    // We _do_ filter on Identifier status -- if an Identifier is no longer
+    // Active it may be on the record for historical reasons.
+
+    $Identifiers = TableRegistry::getTableLocator()->get("Identifiers");
+
+    $matches = $Identifiers->find()
+                           // Select DISTINCT to avoid issues with the same Identifier
+                           // being attached to the same Person multiple times due to
+                           // coming from multiple SORs
+                           ->distinct('Identifiers.person_id')
+                           ->where([
+                             'Identifiers.identifier' => $referenceId,
+                             'Identifiers.status' => SuspendableStatusEnum::Active,
+                             'Identifiers.person_id IS NOT NULL',
+                             'People.co_id' => $eis->co_id
+                           ])
+                           ->contain(['People' => 'PrimaryName']) // XXX do we need PrimaryName?
+                           ->all();
+    
+    // We find all(), but really we should get back 0 or 1 records.
+
+    if($matches->count() == 1) {
+      $person = $matches->first();
+
+      $this->llog('trace', "Mapped Reference ID $referenceId to Person " . $person->id);
+
+      return $person;
+    } elseif($matches->count() == 0) {
+      $this->llog('trace', "No existing Person record found for Reference ID $referenceId");
+      // No match
+    } else {
+      // This is an error, we shouldn't have more than 1 matching Person
+      throw new \InvalidArgumentException('Pipelines.match.multiple', [$referenceId]);
+    }
+    
+    return null;
   }
 
   /**
@@ -1762,7 +1973,16 @@ class PipelinesTable extends Table {
     // a Person object here (it would have been created by obtainPerson if there
     // wasn't one at the start of the process).
 
-    // Start with the directly related models
+    // First handle attributes stored directly on the Person, which currently consists
+    // solely of date_of_birth.
+
+    if(!empty($externalIdentity->date_of_birth) || !empty($person->date_of_birth)) {
+      $person->date_of_birth = $externalIdentity->date_of_birth;
+
+      $this->Cos->People->saveOrFail($person, ['associated' => false]);
+    }
+
+    // Next proceed with the directly related models
 
     foreach([
       'Addresses',

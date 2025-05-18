@@ -25,6 +25,10 @@
 msgid "controller.ApiSources"
 #msgstr "{0,plural,=1{API Source} other{API Sources}}"
 
+# XXX this should autodetect and use the controller key?
+msgid "field.api_source_id"
+msgstr "API Source"
+
 msgid "field.ApiSources.push_mode"
 msgstr "Push Mode"
 

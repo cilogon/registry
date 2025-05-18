@@ -96,7 +96,7 @@ class TelephoneNumbersTable extends Table {
     
     $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
     $this->setRequiresCO(true);
-    // Models that AcceptCoId should be expicitly added to StandardApiController::initialize()
+    // Models that AcceptCoId should be explicitly added to AppController::beforeFilter()
     $this->setAcceptsCoId(true);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');

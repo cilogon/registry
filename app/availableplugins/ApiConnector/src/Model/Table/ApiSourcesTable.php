@@ -62,6 +62,9 @@ class ApiSourcesTable extends Table {
     $this->belongsTo('ExternalIdentitySources');
     $this->belongsTo('ApiUsers');
 
+    $this->hasMany('ApiConnector.ApiSourceEntities')
+      ->setDependent(true)
+      ->setCascadeCallbacks(true);
     $this->hasMany('ApiConnector.ApiSourceRecords')
       ->setDependent(true)
       ->setCascadeCallbacks(true);
@@ -70,13 +73,6 @@ class ApiSourcesTable extends Table {
     
     $this->setPrimaryLink(['external_identity_source_id']);
     $this->setRequiresCO(true);
-    
-    $this->setAutoViewVars([
-      'apiUsers' => [
-        'type' => 'select',
-        'model' => 'ApiUsers',
-      ]
-    ]);
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
@@ -490,11 +486,6 @@ class ApiSourcesTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->notEmptyString('external_source_identity_id');
-
-    $validator->add('api_user_id', [
-      'content' => ['rule' => 'isInteger']
-    ]);
-    $validator->notEmptyString('api_user_id');
 
     return $validator; 
   }

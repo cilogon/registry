@@ -340,6 +340,15 @@ msgstr "Petition {0} is not in Finalizing status"
 msgid "Pipelines.eis.record.adopted"
 msgstr "Source Key {0} has been adopted by Person ID {1} and is no longer eligible for syncing"
 
+msgid "Pipelines.match.external.empty"
+msgstr "Received unexpected empty Reference Identifier from server"
+
+msgid "Pipelines.match.external.response"
+msgstr "Received unexpected multiple choice response from server"
+
+msgid "Pipelines.match.multiple"
+msgstr "Match Strategy found more than one matching Person for Reference ID {0}"
+
 msgid "Pipelines.plugin.notimpl"
 msgstr "Pipeline plugin does not implement {0}"
 

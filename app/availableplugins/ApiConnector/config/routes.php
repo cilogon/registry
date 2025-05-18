@@ -55,21 +55,21 @@ $routes->scope('/api/apisource', function (RouteBuilder $builder) {
   
   $builder->delete(
     '/{id}/v2/sorPeople/{sorlabel}/{sorid}',
-    ['plugin' => 'ApiConnector', 'controller' => 'ApiV2', 'action' => 'delete']
+    ['plugin' => 'ApiConnector', 'controller' => 'SorApiV2', 'action' => 'delete']
   )
   ->setPass(['id', 'sorlabel', 'sorid'])
   ->setPatterns(['id' => '[0-9]+']);
 
   $builder->get(
     '/{id}/v2/sorPeople/{sorlabel}/{sorid}',
-    ['plugin' => 'ApiConnector', 'controller' => 'ApiV2', 'action' => 'get']
+    ['plugin' => 'ApiConnector', 'controller' => 'SorApiV2', 'action' => 'get']
   )
   ->setPass(['id', 'sorlabel', 'sorid'])
   ->setPatterns(['id' => '[0-9]+']);
 
   $builder->put(
     '/{id}/v2/sorPeople/{sorlabel}/{sorid}',
-    ['plugin' => 'ApiConnector', 'controller' => 'ApiV2', 'action' => 'upsert']
+    ['plugin' => 'ApiConnector', 'controller' => 'SorApiV2', 'action' => 'upsert']
   )
   ->setPass(['id', 'sorlabel', 'sorid'])
   ->setPatterns(['id' => '[0-9]+']);

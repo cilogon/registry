@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
-class AuthenticationEventsController extends MVEAController {
+class AuthenticationEventsController extends StandardController {
   public $paginate = [
     'order' => [
       'AuthenticationEvents.id' => 'desc'
@@ -42,23 +42,4 @@ class AuthenticationEventsController extends MVEAController {
   
   // Cached permissions
   protected ?array $permCache = null;
-  
-  /**
-   * Callback run prior to the request action.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface $event Cake Event
-   */
-  
-  public function beforeFilter(\Cake\Event\EventInterface $event) {
-    // If an identifier was passed in, use that to filter the index query.
-    // (Authz is handled in the closure passed to setIndexFilter by AuthenticationEventsTable.)
-    $targetIdentifier = $this->getRequest()->getQuery('authenticated_identifier');
-    
-    if($targetIdentifier) {
-      $this->AuthenticationEvents->setIndexFilter(['authenticated_identifier' => \App\Lib\Util\StringUtilities::urlbase64decode($targetIdentifier)]);
-    }
-    
-    return parent::beforeFilter($event);
-  }
 }

@@ -52,6 +52,9 @@ msgstr "External Identity Source ID (to process a single source)"
 msgid "opt.sync.force"
 msgstr "If true, force records to process even if no changes have been detected"
 
+msgid "opt.sync.reference_id"
+msgstr "Reference ID to attach to External Identity (requires exactly one value for source_keys)"
+
 msgid "opt.sync.source_keys"
 msgstr "Source Keys to process, comma separated (requires external_identity_source_id)"
 
@@ -114,6 +117,9 @@ msgstr "Post-Run Tasks failed: {0}"
 
 msgid "Sync.error.pre_run_checks"
 msgstr "Pre-Run Checks failed: {0}"
+
+msgid "Sync.error.reference_id"
+msgstr "reference_id provided but more than one source key was specified"
 
 msgid "Sync.finish_summary"
 msgstr "Sync Finished"

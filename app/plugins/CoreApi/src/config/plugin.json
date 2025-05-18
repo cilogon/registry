@@ -1,0 +1,25 @@
+{
+  "types": {
+    "api": [
+      "MatchCallbacks"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "match_callbacks": {
+        "columns": {
+          "id": {},
+          "api_id": {},
+          "server_id": {
+            "notnull": false,
+            "comment": "server_id isn't available on the initial row insert by StandardPluggableController::instantiatePlugin"
+          }
+        },
+        "indexes": {
+          "match_callbacks_i1": { "columns": [ "api_id" ]},
+          "match_callbacks_i2": { "needed": false, "columns": [ "server_id" ]}
+        }
+      }
+    }
+  }
+}

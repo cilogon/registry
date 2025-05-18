@@ -48,6 +48,7 @@ class ActionEnum extends StandardEnum {
   const GroupOwnerAdded               = 'ACGO';
   const GroupOwnerDeleted             = 'DCGO';
   const IdentifierAutoAssigned        = 'AIDA';
+  const MatchAttributesUpdated        = 'UMAT';
   const MVEAAdded                     = 'AMVE';
   const MVEADeleted                   = 'DMVE';
   const MVEAEdited                    = 'EMVE';
@@ -63,4 +64,5 @@ class ActionEnum extends StandardEnum {
   const PersonPipelineStarted         = 'SCPL';
   const PersonRoleRelinked            = 'LCPR';
   const PersonStatusRecalculated      = 'RCPS';
+  const ReferenceIdentifierObtained   = 'OIDR';
 }

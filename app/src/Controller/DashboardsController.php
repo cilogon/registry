@@ -87,6 +87,11 @@ class DashboardsController extends StandardController {
         'controller'    => 'api_users',
         'action'        => 'index'
       ],
+      __d('controller', 'Apis', [99]) => [
+        'icon'          => 'api',
+        'controller'    => 'apis',
+        'action'        => 'index'
+      ],
       __d('controller', 'Cous', [99]) => [
         'icon'          => 'people_outline',
         'controller'    => 'cous',
@@ -179,7 +184,7 @@ class DashboardsController extends StandardController {
           'controller'    => 'plugins',
           'action'        => 'index'
         ],
-        __d('controller', "TrafficDetours", [99]) => [
+        __d('controller', 'TrafficDetours', [99]) => [
           'icon'          => 'fork_right',
           'controller'    => 'traffic_detours',
           'action'        => 'index'
@@ -234,6 +239,19 @@ class DashboardsController extends StandardController {
         'action'        => 'index'
       ]
     ];
+
+    if($co->isCOmanageCO()) {
+      $artifactMenuItems[__d('controller', 'AuthenticationEvents', [99])] = [
+        // Authentication Events are only visible to the Platform Administrators
+        // since they are tied to Identifiers, not CO-specific information.
+        'icon'          => 'lock',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'authentication_events',
+        'action'        => 'index',
+        // Suppress injection of CO ID
+        'platform'      => true
+      ];
+    }
 
     ksort($artifactMenuItems);
 

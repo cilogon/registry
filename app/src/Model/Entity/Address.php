@@ -41,4 +41,32 @@ class Address extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+  
+  /**
+   * Generate a formatted address.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return string Formatted address
+   * @todo   This is an incredibly simplistic initial implementation that is not locale aware
+   */
+  
+  protected function _getFormattedAddress(): string {
+    $a = "";
+
+    foreach([
+      'street',
+      'room',
+      'locality',
+      'state',
+      'postal_code',
+      'country'
+    ] as $f) {
+      if(!empty($this->$f)) {
+        if($a != "") { $a .= ", "; }
+        $a .= $this->$f;
+      }
+    }
+
+    return $a;
+  }
 }

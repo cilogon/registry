@@ -34,7 +34,7 @@ $indexColumns = [
   ]
 ];
 
-$indexActions = [
+$rowActions = [
   [
     'controller' => 'authentication_events',
     'action'     => 'index',

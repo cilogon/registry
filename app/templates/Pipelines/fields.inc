@@ -33,13 +33,29 @@
     var strategy = document.getElementById('match-strategy').value;
     
     if(strategy == '<?= \App\Lib\Enum\MatchStrategyEnum::EmailAddress ?>') {
-      hideFields(['match-identifier-type-id'], isPageLoad);
+      hideFields([
+        'match-identifier-type-id',
+        'match-server-id'
+      ], isPageLoad);
       showFields(['match-email-address-type-id'], isPageLoad);
+    } else if(strategy == '<?= \App\Lib\Enum\MatchStrategyEnum::External ?>') {
+      hideFields([
+        'match-email-address-type-id',
+        'match-identifier-type-id'
+      ], isPageLoad);
+      showFields(['match-server-id'], isPageLoad);
     } else if(strategy == '<?= \App\Lib\Enum\MatchStrategyEnum::Identifier ?>') {
-      hideFields(['match-email-address-type-id'], isPageLoad);
+      hideFields([
+        'match-email-address-type-id',
+        'match-server-id'
+      ], isPageLoad);
       showFields(['match-identifier-type-id'], isPageLoad);
     } else {
-      hideFields(['match-email-address-type-id', 'match-identifier-type-id'], isPageLoad);
+      hideFields([
+        'match-email-address-type-id',
+        'match-identifier-type-id',
+        'match-server-id'
+      ], isPageLoad);
     }
   }
 
@@ -75,6 +91,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
   foreach([
             'match_email_address_type_id',
             'match_identifier_type_id',
+            'match_server_id',
 //            'sync_on_update',
 //            'sync_on_delete',
             'sync_status_on_delete',

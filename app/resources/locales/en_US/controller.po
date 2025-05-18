@@ -33,6 +33,9 @@ msgstr "{0,plural,=1{Ad Hoc Attribute} other{Ad Hoc Attributes}}"
 msgid "ApiUsers"
 msgstr "{0,plural,=1{API User} other{API Users}}"
 
+msgid "Apis"
+msgstr "{0,plural,=1{API} other{APIs}}"
+
 msgid "AuthenticationEvents"
 msgstr "{0,plural,=1{Authentication Event} other{Authentication Events}}"
 

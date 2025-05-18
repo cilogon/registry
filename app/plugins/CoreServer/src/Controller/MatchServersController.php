@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry-plugins
- * @since         COmanage Registry v5.2.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -30,7 +30,6 @@ declare(strict_types=1);
 namespace CoreServer\Controller;
 
 use App\Controller\StandardPluginController;
-use Cake\Event\EventInterface;
 
 class MatchServersController extends StandardPluginController {
   public $paginate = [
@@ -38,22 +37,4 @@ class MatchServersController extends StandardPluginController {
       'MatchServers.url' => 'asc'
     ]
   ];
-
-  /**
-   * Callback run prior to the request render.
-   *
-   * @param   EventInterface  $event  Cake Event
-   *
-   * @return Response|void
-   * @since  COmanage Registry v5.2.0
-   */
-
-  public function beforeRender(EventInterface $event) {
-    // Generate the callback URL
-
-// XXX this needs to be updated for whereever the new API lands
-    $this->set('vv_api_endpoint', \Cake\Routing\Router::url('/', true) . 'api/co/' . $this->getCOID() . '/core/v1/resolution');
-
-    return parent::beforeRender($event);
-  }
 }
