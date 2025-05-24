@@ -27,9 +27,11 @@
 
 // This view does currently not support read-only
 if($vv_action == 'edit') {
-  print $this->element('notify/banner', [
-    'info' => __d('api_connector', 'information.endpoint.push', [$vv_push_endpoint])
-  ]);
+  if(!empty($vv_push_endpoint)) {
+    print $this->element('notify/banner', [
+      'info' => __d('api_connector', 'information.endpoint.push', [$vv_push_endpoint])
+    ]);
+  }
 
   print $this->element('form/listItem', [
     'arguments' => [

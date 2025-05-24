@@ -50,7 +50,7 @@ class ApiSourceEndpointsController extends StandardPluginController {
   public function beforeRender(\Cake\Event\EventInterface $event) {
     $vv_obj = $this->viewBuilder()->getVar('vv_obj');
 
-    if(!empty($vv_obj)) {
+    if(!empty($vv_obj->api_source_id)) {
       $apiSource = $this->ApiSourceEndpoints->ApiSources->get(
         $vv_obj->api_source_id,
         ['contain' => 'ExternalIdentitySources']
