@@ -91,7 +91,8 @@ class DatabaseCommand extends Command {
 
         if($pSchemaConfig) {
           $io->out(__d('command', 'db.schema.plugin', [$p->plugin]));
-          $SchemaManager->applySchemaObject($pSchemaConfig);
+          $SchemaManager->applySchemaObject(schemaObject: $pSchemaConfig,
+                                            diffOnly: $args->getOption('not'));
         } else {
           $io->out(__d('command', 'db.schema.plugin.none', [$p->plugin]));
         }

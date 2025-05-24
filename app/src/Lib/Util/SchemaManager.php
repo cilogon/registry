@@ -122,17 +122,25 @@ class SchemaManager {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  object $schemaObject Schema object
+   * @param  bool   $diffOnly     If true, generate a diff against the current database state, but do not apply it
    * @param  string $tablePrefix  String to prefix to table names
    */
 
-  public function applySchemaObject(object $schemaObject, string $tablePrefix="") {
+  public function applySchemaObject(
+    object $schemaObject,
+    bool   $diffOnly=false,
+    string $tablePrefix=""
+  ) {
     if(!$this->columnLibrary) {
       // We need the column library from the core config
-      $this->applySchemaFile(schemaFile: ROOT . DS . 'config' . DS . 'schema' . DS . 'schema.json',
-                             parseOnly: true);
+      $this->applySchemaFile(
+        schemaFile: ROOT . DS . 'config' . DS . 'schema' . DS . 'schema.json',
+        parseOnly: true,
+        diffOnly: $diffOnly
+      );
     }
 
-    $this->processSchema(schemaConfig: $schemaObject, tablePrefix: $tablePrefix);
+    $this->processSchema(schemaConfig: $schemaObject, diffOnly: $diffOnly, tablePrefix: $tablePrefix);
   }
 
   /**
