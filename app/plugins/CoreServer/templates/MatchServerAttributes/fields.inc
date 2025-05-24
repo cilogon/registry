@@ -85,6 +85,16 @@
 
   function jsLocalOnLoad() {
     updateGadgets(true);
+
+    // On page load, set the appropriate widget to the current type (if set)
+    var curattr = "<?= \Cake\Utility\Inflector::Singularize(\Cake\Utility\Inflector::dasherize($vv_obj->attribute ?? '')) ?>";
+    var curtype = "<?= $vv_obj->type_id ?? ''?>";
+
+    if(curattr != "") {
+      curattr = curattr + "-type-id";
+
+      document.getElementById(curattr).value = curtype;
+    }
   }
 </script>
 <?php
