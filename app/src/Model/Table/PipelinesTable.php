@@ -582,8 +582,7 @@ class PipelinesTable extends Table {
         $pipeline, 
         $eis, 
         $eisBackendRecord['source_key'],
-        $eisBackendRecord['source_record'],
-        $personId
+        $eisBackendRecord['source_record']
       );
 
       if(!$force && $eisRecord['status'] == 'unchanged') {
@@ -762,8 +761,7 @@ class PipelinesTable extends Table {
     Pipeline                $pipeline, 
     ExternalIdentitySource  $eis,
     string                  $sourceKey,
-    ?string                 $sourceRecord=null,
-    ?int                    $personId=null,
+    ?string                 $sourceRecord=null
   ): array {
     $status = 'unknown';
 
@@ -796,12 +794,6 @@ class PipelinesTable extends Table {
 
         $this->llog('rule', "AR-ExternalIdentity-1 Rejecting request to update adopted record for EIS " . $eis->description . " (" . $eis->id . ") source key $sourceKey");
         throw new \InvalidArgumentException(__d('error', 'Pipelines.eis.record.adopted', [$sourceKey, $eisRecord->adopted_person_id]));
-      }
-
-      // The Person that initiated the Link does not match the one of the eisRecord found
-      if($eisRecord->external_identity?->person_id !== $personId) {
-          $this->llog('rule', "AR-ExternalIdentity-2 Rejecting request to update duplicate/used record for EIS" . $eis->description . " (" . $eis->id . ") source key $sourceKey");
-          throw new \InvalidArgumentException(__d('error', 'Pipelines.eis.record.used', [$sourceKey, $eisRecord->external_identity->person_id]));
       }
 
       // Update the record as needed, but only if the source record changed.
