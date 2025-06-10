@@ -29,14 +29,10 @@ declare(strict_types=1);
 
 namespace CoreAssigner\Model\Table;
 
-use Cake\Datasource\ConnectionManager;
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
+use App\Lib\Enum\PermittedCharactersEnum;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-
 use CoreAssigner\Lib\Enum\CollisionModeEnum;
-use CoreAssigner\Lib\Enum\PermittedCharactersEnum;
 
 class FormatAssignersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -83,7 +79,7 @@ class FormatAssignersTable extends Table {
       ],
       'permittedCharacters' => [
         'type' => 'enum',
-        'class' => 'CoreAssigner.PermittedCharactersEnum'
+        'class' => 'PermittedCharactersEnum'
       ]
     ]);
 

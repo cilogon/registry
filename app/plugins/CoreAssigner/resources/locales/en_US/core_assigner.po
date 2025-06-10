@@ -34,18 +34,6 @@ msgstr "Random"
 msgid "enumeration.CollisionModeEnum.S"
 msgstr "Sequential"
 
-msgid "enumeration.PermittedCharactersEnum.AN"
-msgstr "AlphaNumeric Only"
-
-msgid "enumeration.PermittedCharactersEnum.AD"
-msgstr "AlphaNumeric and Dot, Dash, Underscore"
-
-msgid "enumeration.PermittedCharactersEnum.AQ"
-msgstr "AlphaNumeric and Dot, Dash, Underscore, Apostrophe"
-
-msgid "enumeration.PermittedCharactersEnum.AL"
-msgstr "Any"
-
 msgid "error.SqlAssigners.failed"
 msgstr "Could not map key Identifier to target Identifier"
 

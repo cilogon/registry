@@ -27,9 +27,7 @@
 
 declare(strict_types = 1);
 
-namespace CoreAssigner\Lib\Enum;
-
-use App\Lib\Enum\StandardEnum;
+namespace App\Lib\Enum;
 
 class PermittedCharactersEnum extends StandardEnum {
   const AlphaNumeric       = 'AN';

@@ -124,26 +124,27 @@ $resendLink = $this->Html->link(
       history.pushState(null, null, document.URL);
     });
 
-    $('#code').bind('keypress', function (event) {
-      if (event.charCode === 13) {
-        $("#verification-code-form").submit();
-      } else {
-        // Allow for regular characters and include these special few:
-        // comma, period, explanation point, new line
-        var regex = new RegExp("^[a-zA-Z0-9\-]+$");
-        var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
-        if (!regex.test(key)) {
-          event.preventDefault();
-          return false;
-        }
-      }
-    });
-
-    $('#code').on('keyup', function() {
-      $(this).val (function () {
-        return this.value.toUpperCase();
-      }).trigger('change');
-    })
-  });
+  //  XXX Keep for now. This is the old way to handle the enter key
+  //   $('#code').bind('keypress', function (event) {
+  //     if (event.charCode === 13) {
+  //       $("#verification-code-form").submit();
+  //     } else {
+  //       // Allow for regular characters and include these special few:
+  //       // comma, period, explanation point, new line
+  //       var regex = new RegExp("^[a-zA-Z0-9\-]+$");
+  //       var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+  //       if (!regex.test(key)) {
+  //         event.preventDefault();
+  //         return false;
+  //       }
+  //     }
+  //   });
+  //
+  //   $('#code').on('keyup', function() {
+  //     $(this).val (function () {
+  //       return this.value.toUpperCase();
+  //     }).trigger('change');
+  //   })
+  // });
 
 </script>

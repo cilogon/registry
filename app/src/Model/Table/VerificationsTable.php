@@ -248,7 +248,8 @@ class VerificationsTable extends Table {
    * @param int $messageTemplateId Message Template ID
    * @param int $validity Request validity, in minutes
    * @param int $codeLength
-   * @param string $codeCharset
+   * @param string|null $codeCharset
+   * @param string|null $codeRegex
    * @param int|null $verificationId If set, resend Verification for this request
    * @return int                        Verification ID
    * @throws RandomException
@@ -261,11 +262,12 @@ class VerificationsTable extends Table {
     int     $messageTemplateId,
     int     $validity,
     int     $codeLength,
-    string  $codeCharset,
+    ?string  $codeCharset,
+    ?string  $codeRegex,
     int     $verificationId = null
   ): int {
     // First generate a new code
-    $code = RandomString::generateToken($codeLength, $codeCharset);
+    $code = RandomString::generateToken($codeLength, $codeCharset, $codeRegex);
     $expiry = date('Y-m-d H:i:s', time() + ($validity * 60));
 
     $verification = null;

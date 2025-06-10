@@ -46,7 +46,8 @@
           "request_validity": { "type": "integer" },
           "enable_blockonfailure": { "type": "boolean" },
           "verification_code_length": { "type": "integer" },
-          "verification_code_charset": { "type": "string", "size": 64 }
+          "verification_code_charset": { "type": "string", "size": 64 },
+          "verification_code_regex": { "type": "string", "size": 2 }
         },
         "indexes": {
           "email_verifiers_i1": { "columns": [ "enrollment_flow_step_id" ] },

@@ -405,6 +405,18 @@ msgstr "Error Landing"
 msgid "PageContextEnum.G"
 msgstr "General"
 
+msgid "PermittedCharactersEnum.AL"
+msgstr "Any"
+
+msgid "PermittedCharactersEnum.AN"
+msgstr "AlphaNumeric Only"
+
+msgid "PermittedCharactersEnum.AD"
+msgstr "AlphaNumeric and Dot, Dash, Underscore"
+
+msgid "PermittedCharactersEnum.AQ"
+msgstr "AlphaNumeric and Dot, Dash, Underscore, Apostrophe"
+
 msgid "PermittedNameFieldsEnum.given,family"
 msgstr "Given, Family"
 

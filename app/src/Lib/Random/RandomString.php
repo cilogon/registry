@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Random;
 
+use App\Lib\Enum\PermittedCharactersEnum;
 use Random\RandomException;
 
 class RandomString {
@@ -102,17 +103,32 @@ class RandomString {
    * @since  COmanage Registry v5.0.0
    */
 
-  public static function generateToken(int $length = 16, string $allowedCharset = null): string
-  {
+  public static function generateToken(
+    int $length = 16,
+    string $allowedCharset = null,
+    string $regex = null, // Permitted
+  ): string {
     // Unlike App Keys, tokens don't have restrictions on characters.
 
     $chars = $allowedCharset ?? 'abcdefghijklmnopqrstuvwxyz01234567890';
 
     $token = "";
 
-    $allowedCharsetLength = strlen($chars) - 1;
-    for($i = 0;$i < $length;$i++) {
-      $token .= $chars[random_int(0, $allowedCharsetLength)];
+    if ($regex !== null) {
+      // We allow the characters that match the regex.
+      while(strlen($token) < $length) {
+        $ascii = random_int(32, 126); // 32 is space, 126 is '~'
+        $randomChar = chr($ascii);
+        if (preg_match('/'. $regex . '/', $randomChar) === 1) {
+          $token .= $randomChar;
+
+        }
+      }
+    } else {
+      $allowedCharsetLength = strlen($chars) - 1;
+      for($i = 0;$i < $length;$i++) {
+        $token .= $chars[random_int(0, $allowedCharsetLength)];
+      }
     }
 
     return $token;

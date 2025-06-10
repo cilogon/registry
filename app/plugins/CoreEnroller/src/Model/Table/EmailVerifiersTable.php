@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace CoreEnroller\Model\Table;
 
 use App\Lib\Enum\EnrollmentActorEnum;
+use App\Lib\Enum\PermittedCharactersEnum;
 use App\Lib\Enum\PetitionStatusEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Enum\TableTypeEnum;
@@ -122,6 +123,10 @@ class EmailVerifiersTable extends Table {
       'types' => [
         'type' => 'auxiliary',
         'model' => 'Types'
+      ],
+      'permittedCharacters' => [
+        'type' => 'enum',
+        'class' => 'PermittedCharactersEnum'
       ]
     ]);
 
@@ -440,10 +445,17 @@ class EmailVerifiersTable extends Table {
                                            ])
                                            ->first();
 
+    [$charset, $regex] = $this->calculateVerificationCodeCharsetMode(
+      $emailVerifier->verification_code_charset,
+      $emailVerifier->verification_code_regex
+    );
+
     if (empty($pVerification)) {
       // Request Verification and create an associated Petition Verification
 
       $this->llog('debug', "Sending verification code to $mail for Petition " . $petition->id);
+
+      // I need to figure out the allowed characters for the code.
 
       $verificationId = $Verifications->requestCodeForPetition(
         petitionId: $petition->id,
@@ -451,7 +463,8 @@ class EmailVerifiersTable extends Table {
         messageTemplateId: $emailVerifier->message_template_id,
         validity:  $emailVerifier->request_validity,
         codeLength: !empty($emailVerifier->verification_code_length) ? $emailVerifier->verification_code_length : VerificationDefaultsEnum::DefaultCodeLength,
-        codeCharset: !empty($emailVerifier->verification_code_charset) ? $emailVerifier->verification_code_charset : VerificationDefaultsEnum::DefaultCharset,
+        codeCharset: $charset,
+        codeRegex: $regex,
       );
 
       $pVerification = $PetitionVerifications->saveOrFail(
@@ -474,7 +487,8 @@ class EmailVerifiersTable extends Table {
         messageTemplateId: $emailVerifier->message_template_id,
         validity: $emailVerifier->request_validity,
         codeLength: !empty($emailVerifier->verification_code_length) ? $emailVerifier->verification_code_length : VerificationDefaultsEnum::DefaultCodeLength,
-        codeCharset: !empty($emailVerifier->verification_code_charset) ? $emailVerifier->verification_code_charset : VerificationDefaultsEnum::DefaultCharset,
+        codeCharset: $charset,
+        codeRegex: $regex,
         verificationId: $pVerification->verification_id,
       );
       // There's nothing to update in the Petition Verification
@@ -483,6 +497,30 @@ class EmailVerifiersTable extends Table {
     }
 
     return false;
+  }
+
+
+  /**
+   * Calculate verification code charset based on provided charset or permitted characters.
+   * Returns default charset if neither is provided.
+   *
+   * @param  ?string $charset Custom charset for verification code
+   * @param  ?string $permitted Permitted characters enum value
+   * @return array Resolved charset to use for verification code
+   * @since  COmanage Registry v5.1.0
+   */
+  protected function calculateVerificationCodeCharsetMode(
+    ?string $charset,
+    ?string $permitted
+  ): array {
+    if (empty($charset) && empty($permitted)) {
+      return [VerificationDefaultsEnum::DefaultCharset, null];
+    }
+    if (!empty($permitted)) {
+      return [null, PermittedCharactersEnum::getPermittedCharacters(enum: $permitted)];
+    }
+
+    return [$charset, null];
   }
 
   /**
@@ -530,6 +568,11 @@ class EmailVerifiersTable extends Table {
         ],
       ]);
     $validator->allowEmptyString('verification_code_charset');
+
+    $validator->add('verification_code_regex', [
+      'content' => ['rule' => ['inList', PermittedCharactersEnum::getConstValues()]]
+    ]);
+    $validator->allowEmptyString('verification_code_regex');
 
     $validator
       ->add('verification_code_length', 'content', [

@@ -51,14 +51,79 @@ print $this->element('form/listItem', [
     ]]
 ]);
 
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'verification_code_charset',
-    'fieldOptions' => [
-      'required' => false,
-      'placeholder' => $defaultValues['DefaultCharset']
-    ]]
+// Textbox for "Other"
+$otherField = $this->Form->control('verification_code_charset', [
+  'type' => 'text',
+  'label' => false,
+  'id' => 'verification-code-charset',
+  'style' => !empty($vv_obj?->verification_code_charset) ? '' : 'display: none;',
+  'required' => false,
 ]);
+
+$checked = !empty($vv_obj?->verification_code_charset) ? 'checked' : '';
+$otherLabel = __d('field','other.value');
+$beforeField = <<<OTHER
+<div class="field-suppliment">
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" value="" id="other-toggle" $checked/>
+    <label class="form-check-label" for="other-toggle">$otherLabel</label>
+  </div>
+</div>
+$otherField
+OTHER;
+
+$afterField = <<<'JS'
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var checkbox = document.getElementById('other-toggle');
+    var select = document.getElementById('verification-code-regex');
+    var textbox = document.getElementById('verification-code-charset');
+    // Variables to hold previous values
+    var previousSelectValue = select.value;
+    var previousTextboxValue = textbox.value;
+
+    checkbox.addEventListener('change', function() {
+        if (checkbox.checked) {
+            select.style.display = 'none';
+            select.value = '';
+            textbox.style.display = '';
+            
+            // Restore previous textbox value if it exists
+            if (previousTextboxValue !== undefined && previousTextboxValue !== '') {
+                textbox.value = previousTextboxValue;
+            }
+        } else {
+            select.style.display = '';
+            textbox.style.display = 'none';
+            textbox.value = '';
+            // Restore previous select value if it exists
+            if (previousSelectValue !== undefined && previousSelectValue !== '') {
+                select.value = previousSelectValue;
+            }
+        }
+    });
+});
+</script>
+JS;
+
+$regexDisplayFirstTime = empty($vv_obj?->verification_code_charset) && empty($vv_obj?->verification_code_regex);
+print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'verification_code_regex',
+      'fieldLabel' => __d('core_enroller','field.EmailVerifiers.verification_code_charset'),
+      'fieldOptions' => [
+        'id' => 'verification-code-regex',
+        'required' => false,
+        'empty' => true,
+        'style' => $regexDisplayFirstTime || !empty($vv_obj?->verification_code_regex) ? '' : 'display: none;',
+      ],
+      'fieldType' => 'select',
+      'fieldSelectOptions' => $permittedCharacters,
+    ],
+    'beforeField' => $beforeField,
+    'afterField' => $afterField,
+  ]
+);
 
 print $this->element('form/listItem', [
   'arguments' => [
