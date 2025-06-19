@@ -168,15 +168,17 @@ class SqlServersTable extends Table {
 
         // Use 'CakeDC\\OracleDriver\\Database\\Driver\\OraclePDO' for PDO_OCI, but CakeDC
         // recommends OCI8
-        // The plugin documentation says certain features are enabled at v12, so we hard
-        // code that version to simplify configuration. As of this writing, Oracle 11g
-        // is the oldest supported version, but 12c dates back to July 2013, so it seems
-        // reasonable to require v12 (at least for now). Note Oracle changed their release
-        // numbers to be based on calendar years, retroactively assigning 18c (12.2.0.2)
-        // and 19c (12.2.0.3), so this approach should work at least for those versions.
-        // Since semantic versioning is not being used, it's unclear when backwards
-        // incompatible changes might be introduced, or if the CakeDC plugin even cares.
-        $dbconfig['server_version'] = 12;
+        // The plugin documentation says certain features are enabled at v12, and more
+        // specifically we require support for long aliases (Oracle only supported 30
+        // characters until 12.2, which allows 128). See eg this commit
+        // https://github.com/CakeDC/cakephp-oracle-driver/pull/57/commits/1461451ce896aa55a14b08fddc0b28266a3391df
+        // Oracle 19c (aka 19.1.0 aka 12.2.0.3) appears to be the current oldest release
+        // (as of this writing), and based on testing from SMU setting this value to "19"
+        // correctly enables the long alias support, to we hard code that version to simplify
+        // configuration. Note Oracle changed their release numbers to be based on calendar years,
+        // retroactively assigning 18c (12.2.0.2) and 19c (12.2.0.3), so this approach should
+        // work at least for those versions. 
+        $dbconfig['server_version'] = 19;
       }
     }
 
