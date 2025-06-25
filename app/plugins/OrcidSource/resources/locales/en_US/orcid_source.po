@@ -55,7 +55,7 @@ msgstr "Access token not configured (try resaving configuration)"
 msgid "error.param.notfound"
 msgstr "{0} was not found"
 
-msgid "error.orcid_source.no_orcid"
+msgid "error.response.no_orcid"
 msgstr "ORCID identifier missing from response."
 
 msgid "field.OrcidSources.api_type"

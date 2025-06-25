@@ -91,9 +91,8 @@ class OrcidSourceCollectorsTable extends Table {
 
         $this->setAutoViewVars([
             'externalIdentitySources' => [
-                'type' => 'select',
-                'model' => 'ExternalIdentitySources',
-                'where' => ['plugin' => 'OrcidSource.OrcidSources']
+                'type' => 'plugin',
+                'model' => 'OrcidSource.OrcidSources',
             ]
         ]);
 

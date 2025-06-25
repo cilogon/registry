@@ -138,7 +138,7 @@ class OrcidSourceCollectorsController extends StandardEnrollerController {
 
                 // Use the response and save the data to petitions table
                 if(empty($response->orcid)) {
-                    throw new \RuntimeException(__d('orcid_source', 'error.orcid_source.no_orcid'));
+                    throw new \RuntimeException(__d('orcid_source', 'error.response.no_orcid'));
                 }
                 $this->set('vv_orcid', $response->orcid);
                 $this->set('vv_token', $response);
