@@ -59,41 +59,6 @@ RUN apt-get update && apt-get install -y \
             libmysqlclient-dev \
          && apt-get clean
 
-#
-#--------------------------------------------------------------------------
-# Application Dependencies
-#--------------------------------------------------------------------------
-#
-
-ARG ORACLE_VERSION=21.14.0.0
-ARG ORACLE_URL_VERSION=2114000
-ARG ORACLE_PATH=/usr/lib/oracle
-ARG ORACLE_INSTACLIENT_DIR=instantclient_21_14
-
-# Download oracle packages and install OCI8
-RUN mkdir -p ${ORACLE_PATH} \
-    && wget -O instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_URL_VERSION}/instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip \
-    && unzip -o instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip -d ${ORACLE_PATH}/ \
-    && rm instantclient-basic-linux.x64-${ORACLE_VERSION}.0dbru.zip \
-    && wget -O instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_URL_VERSION}/instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip \
-    && unzip -o instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip -d ${ORACLE_PATH}/ \
-    && rm instantclient-sdk-linux.x64-${ORACLE_VERSION}.0dbru.zip \
-    && wget -O instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_URL_VERSION}/instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip \
-    && unzip -o instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip -d ${ORACLE_PATH}/ \
-    && rm instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.0dbru.zip \
-    && echo ${ORACLE_PATH}/${ORACLE_INSTACLIENT_DIR} > /etc/ld.so.conf.d/oracle-instantclient.conf \
-    && ldconfig
-
-# Setting the LD_LIBRARY_PATH environment variable so the systems dynamic linker can find the newly installed libraries.
-ENV LD_LIBRARY_PATH ${ORACLE_PATH}/${ORACLE_INSTACLIENT_DIR}
-# Updating PATH environment program so that utility binaries installed by the various libraries will be found.
-ENV PATH="${PATH}:${ORACLE_PATH}/${ORACLE_INSTACLIENT_DIR}"
-
-# Install our compiled oci8 extensions
-RUN docker-php-ext-configure oci8 --with-oci8=instantclient,${ORACLE_PATH}/${ORACLE_INSTACLIENT_DIR} \
-    && docker-php-ext-install -j$(nproc) oci8 \
-    && docker-php-source delete
-
 # Build the redis extension to use Redis for session storage.
 RUN docker-php-source extract \
     && pecl bundle -d /usr/src/php/ext redis \
