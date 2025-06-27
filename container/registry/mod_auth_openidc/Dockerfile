@@ -25,7 +25,7 @@ FROM comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_BAS
 FROM debian:12-slim AS building
 
 ARG MOD_AUTH_OPENIDC_VERSION
-ENV MOD_AUTH_OPENIDC_VERSION ${MOD_AUTH_OPENIDC_VERSION:-2.4.12.2}
+ENV MOD_AUTH_OPENIDC_VERSION ${MOD_AUTH_OPENIDC_VERSION:-2.4.16.11}
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
