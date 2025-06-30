@@ -1,3 +1,6 @@
+#syntax=docker/dockerfile:1
+#check=skip=SecretsUsedInArgOrEnv
+#
 # COmanage Registry Dockerfile template
 #
 # Portions licensed to the University Corporation for Advanced Internet
@@ -25,7 +28,7 @@ FROM comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_BAS
 FROM debian:12-slim AS building
 
 ARG MOD_AUTH_OPENIDC_VERSION
-ENV MOD_AUTH_OPENIDC_VERSION ${MOD_AUTH_OPENIDC_VERSION:-2.4.16.11}
+ENV MOD_AUTH_OPENIDC_VERSION=${MOD_AUTH_OPENIDC_VERSION:-2.4.16.11}
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
@@ -54,12 +57,12 @@ RUN MOD_AUTH_OPENIDC_URL="https://github.com/zmartzone/mod_auth_openidc/releases
 FROM comanage
 
 ARG COMANAGE_REGISTRY_BASE_IMAGE_VERSION
-ENV COMANAGE_REGISTRY_BASE_IMAGE_VERSION ${COMANAGE_REGISTRY_BASE_IMAGE_VERSION}
+ENV COMANAGE_REGISTRY_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_BASE_IMAGE_VERSION}
 LABEL comanage_registry_base_image_version=${COMANAGE_REGISTRY_BASE_IMAGE_VERSION}
 
 ARG MOD_AUTH_OPENIDC_VERSION
-ENV MOD_AUTH_OPENIDC_VERSION ${MOD_AUTH_OPENIDC_VERSION:-2.4.10}
-LABEL mod_auth_openidc_version ${MOD_AUTH_OPENIDC_VERSION}
+ENV MOD_AUTH_OPENIDC_VERSION=${MOD_AUTH_OPENIDC_VERSION:-2.4.10}
+LABEL mod_auth_openidc_version=${MOD_AUTH_OPENIDC_VERSION}
 
 RUN apt-get update \
         && apt-get install -y --no-install-recommends \
