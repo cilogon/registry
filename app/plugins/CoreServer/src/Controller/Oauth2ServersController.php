@@ -31,7 +31,7 @@ namespace CoreServer\Controller;
 
 use App\Controller\StandardPluginController;
 use Cake\Event\EventInterface;
-use CoreServer\Lib\Enum\Oauth2GrandTypesEnum;
+use CoreServer\Lib\Enum\GrantTypesEnum;
 
 class Oauth2ServersController extends StandardPluginController
 {
@@ -125,7 +125,7 @@ class Oauth2ServersController extends StandardPluginController
 
     try {
       switch($osrvr->access_grant_type) {
-        case Oauth2GrandTypesEnum::AuthorizationCode:
+        case GrantTypesEnum::AuthorizationCode:
           // Issue a redirect to the server
           $targetUrl = $osrvr->url
             . '/authorize?response_type=code'
@@ -139,7 +139,7 @@ class Oauth2ServersController extends StandardPluginController
 
           $this->redirect($targetUrl);
           break;
-        case Oauth2GrandTypesEnum::ClientCredentials:
+        case GrantTypesEnum::ClientCredentials:
           // Make a direct call to the server
           $this->Oauth2Servers->obtainToken((int)$id, 'client_credentials');
           $this->Flash->success(__d('core_server', 'info.Oauth2Servers.access_token.ok'));

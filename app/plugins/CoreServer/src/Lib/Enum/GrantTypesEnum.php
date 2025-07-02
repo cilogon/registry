@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Grand Types Enum
+ * COmanage Registry Grant Types Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -31,7 +31,7 @@ namespace CoreServer\Lib\Enum;
 
 use App\Lib\Enum\StandardEnum;
 
-class Oauth2GrandTypesEnum extends StandardEnum
+class GrantTypesEnum extends StandardEnum
 {
   const AuthorizationCode = 'AC';
   const ClientCredentials = 'CC';

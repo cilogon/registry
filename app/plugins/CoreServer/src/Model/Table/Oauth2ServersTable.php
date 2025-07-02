@@ -31,7 +31,7 @@ namespace CoreServer\Model\Table;
 
 use Cake\Routing\Router;
 use Cake\Validation\Validator;
-use CoreServer\Lib\Enum\Oauth2GrandTypesEnum;
+use CoreServer\Lib\Enum\GrantTypesEnum;
 
 class Oauth2ServersTable extends HttpServersTable {
   use \App\Lib\Traits\PrimaryLinkTrait;
@@ -66,7 +66,7 @@ class Oauth2ServersTable extends HttpServersTable {
     $this->setAutoViewVars([
       'types' => [
         'type' => 'enum',
-        'class' => 'CoreServer.Oauth2GrandTypesEnum'
+        'class' => 'CoreServer.GrantTypesEnum'
       ]
     ]);
 
@@ -236,7 +236,7 @@ class Oauth2ServersTable extends HttpServersTable {
     $validator->notEmptyString('server_id');
 
     $validator->add('access_grant_type', [
-      'content' => ['rule' => ['inList', Oauth2GrandTypesEnum::getConstValues()]]
+      'content' => ['rule' => ['inList', GrantTypesEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('access_grant_type');
 

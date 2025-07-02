@@ -49,10 +49,10 @@ msgstr "Bearer"
 msgid "enumeration.HttpAuthTypeEnum.X"
 msgstr "None"
 
-msgid "enumeration.Oauth2GrandTypesEnum.AC"
+msgid "enumeration.GrantTypesEnum.AC"
 msgstr "Authorization Code"
 
-msgid "enumeration.Oauth2GrandTypesEnum.CC"
+msgid "enumeration.GrantTypesEnum.CC"
 msgstr "Client Credentials"
 
 msgid "enumeration.RdbmsTypeEnum.LT"
@@ -125,10 +125,10 @@ msgid "field.Oauth2Servers.access_grant_type"
 msgstr "Access Token Grant Type"
 
 msgid "field.Oauth2Servers.url"
-msgstr "Server  URL"
+msgstr "Server URL"
 
 msgid "field.Oauth2Servers.redirect_uri"
-msgstr "Redirect  URI"
+msgstr "Redirect URI"
 
 msgid "field.Oauth2Servers.scope"
 msgstr "Scopes"
