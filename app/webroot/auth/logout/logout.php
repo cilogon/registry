@@ -40,4 +40,5 @@ $re = '/(.*)\/auth\/logout\/logout(?:.php)?(.*)/m';
 $subst = '$1$2';
 $path = preg_replace($re, $subst, urldecode($_SERVER['REQUEST_URI']), 1);
 
+header('Clear-Site-Data: "cookies"');
 header("Location: " . $path);
