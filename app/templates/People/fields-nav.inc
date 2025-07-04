@@ -127,7 +127,7 @@ $addMenuLinks = [
   [
     'controller' => 'ad_hoc_attributes',
     'action' => 'add',
-    'icon' => 'check_box',
+    'icon' => 'user_attributes',
     'iconClass' => 'material-symbols-outlined'
   ],
   [
@@ -139,7 +139,8 @@ $addMenuLinks = [
   [
     'controller' => 'pronouns',
     'action' => 'add',
-    'icon' => 'transgender'
+    'icon' => '3p',
+    'iconClass' => 'material-symbols-outlined'
   ],
   [
     'controller' => 'telephone_numbers',

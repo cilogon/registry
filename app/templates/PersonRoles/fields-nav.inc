@@ -45,7 +45,7 @@ $addMenuLinks = [
   [
     'controller' => 'ad_hoc_attributes',
     'action' => 'add',
-    'icon' => 'check_box',
+    'icon' => 'user_attributes',
     'iconClass' => 'material-symbols-outlined'
   ],
   [

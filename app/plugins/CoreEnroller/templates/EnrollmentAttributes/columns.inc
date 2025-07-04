@@ -64,7 +64,7 @@ if(empty($attributes)) {
 // Map attributes to icons
 $attributeToIcons =
   [
-    'adHocAttribute' => 'grass',
+    'adHocAttribute' => 'user_attributes',
     'address' => 'home',
     'affiliation_type_id' => 'person_search',
     'cou_id' => 'supervised_user_circle',
@@ -76,7 +76,7 @@ $attributeToIcons =
     'manager_person_id' => 'supervisor_account',
     'name' => 'face',
     'organization' => 'corporate_fare',
-    'pronoun' => 'transgender',
+    'pronoun' => '3p',
     'sponsor_person_id' => 'person',
     'telephoneNumber' => 'call',
     'petition_textarea' => 'text_fields',
@@ -119,7 +119,7 @@ foreach ($attributes as $attr => $hr_name) {
   $action_args['vv_actions'][] = [
     'order' => $actionOrder,
     'icon' => $actionIcon,
-    'iconClass' => '',
+    'iconClass' => 'material-symbols-outlined',
     'url' => $actionUrl,
     'class' => $actionClass ?? '',
     'label' => $actionLabel,
