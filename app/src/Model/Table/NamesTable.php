@@ -235,7 +235,7 @@ class NamesTable extends Table {
    * Obtain the primary name entity for a person.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int    $id         Record ID
+   * @param  int    $id         Record ID (person_id or external_identity_id, NOT name_id)
    * @param  string $recordType Type of record to find primary name for, 'person' or 'external_identity'
    * @param  array  $options
    * @return Name               Name Entity

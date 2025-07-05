@@ -31,6 +31,7 @@ namespace EnvSource\Model\Table;
 
 use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\EntityInterface;
+use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -206,6 +207,55 @@ class EnvSourceCollectorsTable extends Table {
           action:               PetitionActionEnum::Finalized,
           comment:              __d('env_source', 'result.pipeline.status', [$status])
         );
+
+        // Because PetitionsTable::hydrate() creates a skeletal Person record without
+        // a Name, PipelinesTable::createPersonFromEIS() won't be called from sync(),
+        // so the Pipeline won't create a Primary Name if there isn't one already.
+        // As such, we need to check here if there is a Primary Name (highly dependent
+        // on the Flow configuration), and if there isn't one we'll create one (even
+        // though a subsequent step such as an Attribute Collector might create a new
+        // one later).
+
+        $Names = TableRegistry::getTableLocator()->get('Names');
+
+        try {
+          $Names->primaryName($petition->enrollee_person_id);
+        }
+        catch(RecordNotFoundException $e) {
+          // No Primary Name found, create one. Note we need to honor
+          //   AR-Pipeline-1 If a Pipeline creates a new Person, the first Name
+          //   returned by the External Identity Source backend will be used as
+          //   the initial Primary Name for the new Person.
+          // so we call retrieve() for consistency (though note EnvSource only
+          // supports 1 name currently).
+
+          $EnvSources = TableRegistry::getTableLocator()->get('EnvSource.EnvSources');
+
+          $eis = $ExtIdentitySources->get(
+            $cfg->external_identity_source_id,
+            ['contain' => 'EnvSources']
+          );
+
+          $eisrecord = $EnvSources->retrieve($eis, $pei->env_source_identity->source_key);
+
+          if(!empty($eisrecord['entity_data']['names'][0])) {
+            $name = $eisrecord['entity_data']['names'][0];
+
+            // Add the additional attributes and convert the type back to a type_id
+            $name['person_id'] = $petition->enrollee_person_id;
+            $name['primary_name'] = true;
+            $name['type_id'] = $eis->env_source->name_type_id;
+            unset($name['type']);
+
+            $Names->saveOrFail($Names->newEntity($name));
+
+            $this->llog('trace', 'EnvSource created Primary Name for Petition ' . $petition->id);
+          } else {
+            // This isn't necessarily an error since a subsequent step could create
+            // a Primary Name
+            $this->llog('trace', 'EnvSource could not find a Name for Petition ' . $petition->id);
+          }
+        }
       }
       catch(\Exception $e) {
         // We allow an error in the sync process (probably a duplicate record) to interrupt
@@ -232,6 +282,41 @@ class EnvSourceCollectorsTable extends Table {
     }
 
     return true;
+  }
+
+  /**
+   * Load environment variables from a lookaside file based on the given configuration.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  string                            $filename Path to the lookaside file
+   * @param  \EnvSource\Model\Entity\EnvSource $envSource EnvSource configuration entity
+   * @return array                             Array of environment variables and their parsed values
+   * @throws InvalidArgumentException
+   */
+  
+  public function loadFromLookasideFile(string $filename, \EnvSource\Model\Entity\EnvSource $envSource): array {
+    $src = parse_ini_file($filename);
+    $ret = [];
+
+    if(!$src) {
+      throw new \InvalidArgumentException(__d('env_source', 'error.lookaside_file', [$filename]));
+    }
+
+    // We walk through our configuration and only copy the variables that were configured
+    foreach($envSource->getVisible() as $field) {
+      // We only want the fields starting env_ (except env_source_id, which is changelog metadata)
+
+      if(strncmp($field, "env_", 4)==0 && $field != "env_source_id"
+        && !empty($envSource->$field)          // This field is configured with an env var name
+        && isset($src[$envSource->$field])     // This env var is populated
+      ) {
+        // Note we're using the EnvSource field name (eg: env_name_given) as the key
+        // and not the configured variable name (which might be something like SHIB_FIRST_NAME)
+        $ret[$field] = $src[$envSource->$field];
+      }
+    }
+
+    return $ret;
   }
 
   /**
@@ -268,40 +353,6 @@ class EnvSourceCollectorsTable extends Table {
         // and not the configured variable name (which might be something like SHIB_FIRST_NAME)
         $ret[$field] = getenv($envSource->$field);
       } 
-    }
-
-    return $ret;
-  }
-
-  /**
-   * Load environment variables from a lookaside file based on the given configuration.
-   *
-   * @param string $filename Path to the lookaside file
-   * @param \EnvSource\Model\Entity\EnvSource $envSource EnvSource configuration entity
-   * @return array                  Array of environment variables and their parsed values
-   * @throws InvalidArgumentException
-   *@since  COmanage Registry v5.1.0
-   */
-  public function loadFromLookasideFile(string $filename, \EnvSource\Model\Entity\EnvSource $envSource): array {
-    $src = parse_ini_file($filename);
-    $ret = [];
-
-    if(!$src) {
-      throw new \InvalidArgumentException(__d('env_source', 'error.lookaside_file', [$filename]));
-    }
-
-    // We walk through our configuration and only copy the variables that were configured
-    foreach($envSource->getVisible() as $field) {
-      // We only want the fields starting env_ (except env_source_id, which is changelog metadata)
-
-      if(strncmp($field, "env_", 4)==0 && $field != "env_source_id"
-        && !empty($envSource->$field)          // This field is configured with an env var name
-        && isset($src[$envSource->$field])     // This env var is populated
-      ) {
-        // Note we're using the EnvSource field name (eg: env_name_given) as the key
-        // and not the configured variable name (which might be something like SHIB_FIRST_NAME)
-        $ret[$field] = $src[$envSource->$field];
-      }
     }
 
     return $ret;
