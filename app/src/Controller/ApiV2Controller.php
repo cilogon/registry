@@ -240,9 +240,12 @@ class ApiV2Controller extends AppController {
     // Construct the Query
     $query = $this->getIndexQuery($pickerMode, $reqParameters);
 
-    if(method_exists($table, 'findIndexed')) {
+    // findIndexed breaks the REST API (which doesn't pull related models),
+    // so only use it in Picker Mode
+    if($pickerMode && method_exists($table, 'findIndexed')) {
       $query = $table->findIndexed($query);
     }
+    
     // This magically makes REST calls paginated... can use eg direction=,
     // sort=, limit=, page=
     $this->set($this->tableName, $this->paginate($query));

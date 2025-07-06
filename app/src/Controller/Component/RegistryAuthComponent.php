@@ -956,17 +956,20 @@ class RegistryAuthComponent extends Component
   /**
    * Determine if the current user is acting as themselves within the specified CO.
    *
-   * @param int|null $coId CO ID
-   * @param int|null $id   ID
-   * @return bool          True if the current user is acting as themselves
    * @since  COmanage Registry v5.1.0
+   * @param  int|null $coId CO ID
+   * @param  int|null $id   ID
+   * @return bool           True if the current user is acting as themselves
    */
+
   public function isSelf(?int $coId, ?int $id): bool {
     // We might get called in some contexts without a coId, in which case there
     // are no members.
 
     if(!$coId
       || empty($this->cache['isCoMember'][$coId])
+      // API Users can't be self and getPersonID() will throw errors if called by one
+      || $this->isApiUser()
     ) {
       return false;
     }
