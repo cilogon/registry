@@ -427,6 +427,9 @@ msgstr "Invalid code"
 msgid "Verifications.expired"
 msgstr "Verification request has expired"
 
+msgid "Verifications.mode.unknown"
+msgstr "Unknown Verification Mode \"{0}\""
+
 msgid "Verifications.petition"
 msgstr "Verification does not match requested Petition"
 

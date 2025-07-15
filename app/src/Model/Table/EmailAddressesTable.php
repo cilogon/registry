@@ -220,15 +220,11 @@ class EmailAddressesTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int $id            EmailAddress ID
-   * @param  int $actorPersonId Actor Person ID
    * @return string             The verified Email Address
    * @throws InvalidArgumentException
    */
 
-  public function forceVerify(
-    int $id,
-    int $actorPersonId,
-  ): string {
+  public function forceVerify(int $id): string {
     $email = $this->get($id);
 
     // We only permit Email Addresses associated with a Person (not External Identity)

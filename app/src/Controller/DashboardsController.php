@@ -232,6 +232,12 @@ class DashboardsController extends StandardController {
         'controller'    => 'jobs',
         'action'        => 'index'
       ],
+      __d('controller', 'Notifications', [99]) => [
+        'icon'          => 'notifications_active',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'notifications',
+        'action'        => 'index'
+      ],
       __d('controller', 'Petitions', [99]) => [
         'icon'          => 'pending_actions',
         'iconClass'     => 'material-symbols-outlined',

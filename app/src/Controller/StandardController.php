@@ -654,6 +654,17 @@ class StandardController extends AppController {
       $query = $table->findIndexed($query);
     }
 
+    if(method_exists($table, 'filterIndexByCO')) {
+      // Sometimes (in particular for Artifacts) we want to filter the index by CO
+      // but CO is not a direct primary link. We could try to figure out the CO
+      // via primary links, but that gets complicated especially for artifacts which
+      // have multiple primary links. We could look up each entity in the result
+      // set, but that's a lot of work and messes up pagination. So instead we let
+      // the model figure out the best way to do it.
+
+      $query = $table->filterIndexByCO($query, $this->getCOID());
+    }
+
     // Fetch the data and paginate
     $paginationLimit = $this->getValue(ApplicationStateEnum::PaginationLimit, DEF_SEARCH_LIMIT);
     $resultSet = $this->paginate($query, [

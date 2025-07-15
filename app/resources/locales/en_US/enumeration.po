@@ -24,6 +24,15 @@
 
 # Enumerations
 
+msgid "AllTernaryEnum.0"
+msgstr "None"
+
+msgid "AllTernaryEnum.1"
+msgstr "One"
+
+msgid "AllTernaryEnum.A"
+msgstr "All"
+
 msgid "AuthenticationEventEnum.AI"
 msgstr "API Login"
 
@@ -173,6 +182,9 @@ msgstr "Active Members"
 
 msgid "GroupTypeEnum.A"
 msgstr "Admins"
+
+msgid "GroupTypeEnum.AP"
+msgstr "Approvers"
 
 msgid "GroupTypeEnum.M"
 msgstr "All Members"
@@ -351,23 +363,22 @@ msgstr "HTML"
 msgid "MessageFormatEnum.text"
 msgstr "Plain Text"
 
-# msgid "MessageTemplateContextEnum.AP"
-# msgstr "Enrollment Approver"
-
 # msgid "MessageTemplateContextEnum.AU"
 # msgstr "Authenticator"
 
-# msgid "MessageTemplateContextEnum.EA"
-# msgstr "Enrollment Approval"
+msgid "MessageTemplateContextEnum.EA"
+# We no longer have notifications on Approval (use Finalization or Handoff instead)
+# but we maintain the use of EA from v4 and just change the text string
+msgstr "Enrollment Denial"
 
-# msgid "MessageTemplateContextEnum.EF"
-# msgstr "Enrollment Finalization"
+msgid "MessageTemplateContextEnum.EF"
+msgstr "Enrollment Finalization"
 
 msgid "MessageTemplateContextEnum.EH"
 msgstr "Enrollment Handoff"
 
-# msgid "MessageTemplateContextEnum.EI"
-# msgstr "Enrollment Invitation"
+msgid "MessageTemplateContextEnum.ES"
+msgstr "Enrollment Step Completed"
 
 msgid "MessageTemplateContextEnum.PL"
 msgstr "Plugin"
@@ -495,6 +506,9 @@ msgstr "Accepted"
 
 msgid "PetitionStatusEnum.CR"
 msgstr "Created"
+
+msgid "PetitionStatusEnum.CX"
+msgstr "Terminated"
 
 msgid "PetitionStatusEnum.D2"
 msgstr "Duplicate"

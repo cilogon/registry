@@ -357,8 +357,23 @@ class RegistryAuthComponent extends Component
     // Is this me?
     $selfMember = $this->isSelf($controller->getCOID(), $id);
 
-    // Get the action
-    $reqAction = $controller->getRequest()->getParam('action');
+    // Is the user an approver for the current Petition?
+    // In order to calculate this we need to have a Petition ID. This will primarily
+    // come from the URL in the form /petitions/view/{id}, but we'll also accept a
+    // petition_id in the query parameter. (It's not ideal to hardcode a Controller
+    // like this, but Approvers are something of a special case and we don't have a
+    // better approach at the moment.)
+    $petitionId = null;
+
+    if($modelsName == 'Petitions' 
+       && in_array($reqAction, ['continue', 'view'])
+       && !empty($controller->getRequest()->getParam('pass.0'))) {
+      $petitionId = $controller->getRequest()->getParam('pass.0');
+    } elseif(!empty($controller->getRequest()->getQuery('petition_id'))) {
+      $petitionId = $controller->getRequest()->getQuery('petition_id');
+    }
+
+    $approver = !empty($petitionId) ? $this->isApprover((int)$petitionId) : false;
     
     // Is this record read only?
     $readOnly = false;
@@ -779,6 +794,49 @@ class RegistryAuthComponent extends Component
   
   public function isApiUser(): bool {
     return $this->authenticatedApiUser;
+  }
+
+  /**
+   * Determine if the current user is an approver for the specified Petition.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int  $petitionId Petition ID
+   * @return bool             true if the current user is an Approver, false otherwise
+   */
+
+  public function isApprover(int $petitionId): bool {
+    if(!isset($this->cache['isApprover'][$petitionId])) {
+      $this->cache['isApprover'][$petitionId] = false;
+
+      if(!empty($this->authenticatedUser)) {
+        // We need to map the authenticated user to a Person in the same CO as the Petition
+
+        $Petitions = TableRegistry::getTableLocator()->get('Petitions');
+        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+        // Pull the Petition to find its CO
+        $petition = $Petitions->get($petitionId, ['contain' => 'EnrollmentFlows']);
+
+        try {
+          // Map the authenticated user to a Person ID
+          $personId = $Identifiers->lookupPersonByLogin(
+            coId:       $petition->enrollment_flow->co_id, 
+            identifier: $this->authenticatedUser
+          );
+
+          // Finally determine if the Person ID is an approver for the flow
+          $this->cache['isApprover'][$petitionId] = $Petitions->isApproverForFlow(
+            id:       $petition->id,
+            personId: $personId
+          );
+        }
+        catch(RecordNotFoundException $e) {
+          // This is an unregistered user running a Petition, just ignore this exception
+        }
+      }
+    }
+
+    return $this->cache['isApprover'][$petitionId];
   }
   
   /**

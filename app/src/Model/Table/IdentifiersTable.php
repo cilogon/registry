@@ -72,6 +72,7 @@ class IdentifiersTable extends Table {
       'reference',
       'pairwiseid',
       'subjectid',
+      // sorid is now localized as "source key" but we still use "sorid" for compatibility
       'sorid',
       'uid'
     ]
@@ -201,6 +202,31 @@ class IdentifiersTable extends Table {
     $this->recordHistory($entity);
     
     return true;
+  }
+  
+  /**
+   * Look up a Group ID from an identifier and identifier type ID.
+   * Only active Identifiers can be used for lookups.
+   *
+   * @param   int       $typeId      Identifier Type ID
+   * @param   string    $identifier  Identifier
+   *
+   * @return int                     Group ID
+   * @since  COmanage Registry v5.2.0
+   */
+
+  public function lookupGroup(int $typeId, string $identifier): int {
+    // Note this function signature is intentionally the same as lookupPerson()
+    $id = $this->find()
+               ->where([
+                'identifier'  => $identifier,
+                'type_id'     => $typeId,
+                'status'      => SuspendableStatusEnum::Active,
+                'group_id IS NOT NULL'
+               ])
+               ->firstOrFail();
+
+    return $id->group_id;
   }
 
   /**

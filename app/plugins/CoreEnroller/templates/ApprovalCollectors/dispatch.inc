@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Basic Attribute Collector Petition Fields
+ * COmanage Registry Approval Colectors Petition Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,48 +21,52 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
 declare(strict_types = 1);
 
+use \App\Lib\Enum\StatusEnum;
+
+print $this->element('flash', []);
+
 // Make the Form fields editable
 $this->Field->enableFormEditMode();
 ?>
-  
-<li class="fields-name">
-  <fieldset>
-    <legend class="fieldset-name"><?=  __d('field','name') ?></legend>
-    <div class="fieldset-info">
-      
-      <?php foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $n): ?>
-        <?php if(in_array($n, $vv_permitted_name_fields)): ?>
-          <div class="fieldset-field fields-<?= $n ?>">
-            <label for="<?= $n ?>"><?= __d('field', $n) ?></label>
-            <?= in_array($n, $vv_required_name_fields) ? $this->element('form/requiredSpan') : ''?>
-            <?= $this->element('form/infoDiv/default', [
-              'vv_field_arguments' => [
-                'fieldName' => $n,
-                'fieldOptions' => [
-                  'required' => in_array($n, $vv_required_name_fields),
-                  'default' => $petition_basic_attribute_sets[$n] ?? ""
-                ]
-              ]]);
-            ?>
-          </div>
-        <?php endif; ?>
-      <?php endforeach; ?>
-    
-    </div>
-  </fieldset>
-</li>
-  
+
+<p><?= __d('core_enroller', 'information.ApprovalCollectors.review', [$vv_petition->id]); ?></p>
+
+<p><?= $this->Html->link(__d('operation', 'view'), ['plugin' => null, 'controller' => 'petitions', 'action' => 'view', $vv_petition->id]); ?></p>
+
 <?php
+  // Begin the form
+  print $this->Form->create(null, [
+    'id'   => 'approval-form',
+    'type' => 'post'
+  ]);
+
+  print $this->Form->radio(
+    'approved', 
+    [
+      StatusEnum::Approved => __d('enumeration', 'StatusEnum.'.StatusEnum::Approved), 
+      StatusEnum::Denied => __d('enumeration', 'StatusEnum.'.StatusEnum::Denied)
+    ],
+    [
+      'value' => !empty($petition_approvals)
+                 ? ($petition_approvals['approved'] === true
+                   ? StatusEnum::Approved
+                   : ($petition_approvals['approved'] === false
+                     ? StatusEnum::Denied
+                     : ""))
+                 : ""
+    ]
+  );
+
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'mail',
+      'fieldName' => 'comment',
       'fieldOptions' => [
-        'default' => $petition_basic_attribute_sets['mail'] ?? ""
+        'default' => $petition_approvals['comment'] ?? ""
       ]
   ]]);

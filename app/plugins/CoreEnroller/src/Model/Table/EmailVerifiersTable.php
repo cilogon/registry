@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
+use App\Lib\Enum\AllTernaryEnum;
 use App\Lib\Enum\EnrollmentActorEnum;
 use App\Lib\Enum\PermittedCharactersEnum;
 use App\Lib\Enum\PetitionStatusEnum;
@@ -39,7 +40,6 @@ use App\Model\Entity\Petition;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
-use CoreEnroller\Lib\Enum\VerificationModeEnum;
 use CoreEnroller\Lib\Enum\VerificationDefaultsEnum;
 use CoreEnroller\Model\Entity\EmailVerifier;
 
@@ -105,7 +105,7 @@ class EmailVerifiersTable extends Table {
     $this->setAutoViewVars([
       'modes' => [
         'type' => 'enum',
-        'class' => 'CoreEnroller.VerificationModeEnum'
+        'class' => 'AllTernaryEnum'
       ],
       'defaults' => [
         'type' => 'enum',
@@ -540,7 +540,7 @@ class EmailVerifiersTable extends Table {
     $validator->notEmptyString('enrollment_flow_step_id');
 
     $validator->add('mode', [
-      'content' => ['rule' => ['inList', VerificationModeEnum::getConstValues()]]
+      'content' => ['rule' => ['inList', AllTernaryEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('mode');
 

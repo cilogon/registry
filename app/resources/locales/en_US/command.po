@@ -120,6 +120,9 @@ msgstr "This Notification must be resolved, not acknowledged"
 msgid "opt.notify.recipientid"
 msgstr "Recipient Identifier"
 
+msgid "opt.notify.recipientgroupid"
+msgstr "Recipient Group Identifier"
+
 msgid "opt.notify.resolve"
 msgstr "Resolve the Notification associated with this source"
 
@@ -128,6 +131,9 @@ msgstr "Notification source"
 
 msgid "opt.notify.subjectid"
 msgstr "Subject Identifier"
+
+msgid "opt.notify.subjectgroupid"
+msgstr "Subject Group Identifier"
 
 msgid "opt.notify.templateid"
 msgstr "Message Template ID"

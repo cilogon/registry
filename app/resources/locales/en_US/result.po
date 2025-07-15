@@ -196,6 +196,12 @@ msgstr "Petition Finalized"
 msgid "Petitions.flaggedduplicate"
 msgstr "Petition flagged as Duplicate"
 
+msgid "Petitions.step.completed"
+msgstr "Petition {0} Step {1} completed"
+
+msgid "Petitions.terminated"
+msgstr "Petition Terminated"
+
 msgid "Petitions.viewed.inv"
 msgstr "Invitation Viewed"
 

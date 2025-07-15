@@ -64,5 +64,8 @@ class ActionEnum extends StandardEnum {
   const PersonPipelineStarted         = 'SCPL';
   const PersonRoleRelinked            = 'LCPR';
   const PersonStatusRecalculated      = 'RCPS';
+  const PetitionCreated               = 'CPPC';
+  const PetitionFinalized             = 'CPPF';
+  const PetitionUpdated               = 'CPUP';
   const ReferenceIdentifierObtained   = 'OIDR';
 }

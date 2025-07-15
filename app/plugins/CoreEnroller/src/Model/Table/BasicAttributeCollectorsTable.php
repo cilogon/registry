@@ -150,6 +150,46 @@ class BasicAttributeCollectorsTable extends Table {
   }
 
   /**
+   * Obtain a name (as a string) for the Enrollee associated with the specified Petition.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $config       Configuration entity for this plugin
+   * @param  int              $petitionId   Petition ID
+   * @return string                         Name, or null if thre is no name data
+   */
+
+  public function enrolleeName(
+    EntityInterface $config, 
+    int $petitionId
+  ): ?string {
+    $set = $this->PetitionBasicAttributeSets->find()
+                                            ->where([
+                                              'basic_attribute_collector_id' => $config->id,
+                                              'petition_id' => $petitionId
+                                            ])
+                                            ->first();
+    
+    if(!empty($set)) {
+      // We construct a throw-away Name entity so we can use it to generate the string
+      // representation of the name data we have.
+
+      $Names = TableRegistry::getTableLocator()->get('Names');
+
+      $name = $Names->newEntity([
+        'honorific' => $set->honorific,
+        'given'     => $set->given,
+        'middle'    => $set->middle,
+        'family'    => $set->family,
+        'suffix'    => $set->suffix
+      ]);
+
+      return $name->full_name;
+    }
+
+    return null;
+  }
+
+  /**
    * Perform steps necessary to hydrate the Person record as part of Petition finalization.
    * 
    * @since  COmanage Registry v5.1.0
@@ -232,8 +272,6 @@ class BasicAttributeCollectorsTable extends Table {
       enrollmentFlowStepId: $cfg->enrollment_flow_step_id,
       action:               PetitionActionEnum::Finalized,
       comment:              __d('core_enroller', 'result.basicattr.finalized')
-// We don't have $actorPersonId yet...
-//    ?int $actorPersonId=null
     );
 
     return true;
@@ -253,35 +291,35 @@ class BasicAttributeCollectorsTable extends Table {
   public function upsert(int $id, int $petitionId, array $attributes) {
     $basicAttributeCollector = $this->get($id);
 
-    // Do we have existing attributes for this petition? Note this will pull
-    // _all_ attributes for the Petition, not just those associated with this
-    // particular Attribute Collector; however we'll only look at the attributes
-    // we need below.
-    $entity = $this->PetitionBasicAttributeSets
-                   ->find()
-                   ->where([
-                     'petition_id' => $petitionId,
-                     // Strictly speaking we only support one instance per Flow,
-                     // but we'll filter on the $id anyway since we have it
-                     'basic_attribute_collector_id' => $id
-                   ])
-                   ->first();
-
-    if(!$entity) {
-      // insert, not update
-
-      $entity = $this->PetitionBasicAttributeSets->newEntity([
-        'basic_attribute_collector_id'  => $id,
-        'petition_id'                   => $petitionId
-      ]);
-    }
+    $data = [
+      'basic_attribute_collector_id'  => $id,
+      'petition_id' => $petitionId
+    ];
 
     foreach(['honorific', 'given', 'middle', 'family', 'suffix', 'mail'] as $f) {
 // XXX we should probably check CoSettings for name settings
-      $entity->$f = $attributes[$f] ?? null;
+      $data[$f] = $attributes[$f] ?? null;
     }
 
-    $this->PetitionBasicAttributeSets->saveOrFail($entity);
+    $pei = $this->PetitionBasicAttributeSets->upsertOrFail(
+      data: $data,
+      whereClause: [
+        'petition_id' => $petitionId,
+        'basic_attribute_collector_id' => $id,
+      ]
+    );
+
+    if(!empty($basicAttributeCollector->cou_id)) {
+      // Insert the COU ID into the primary Petition artifact
+
+      $Petitions = TableRegistry::getTableLocator()->get('Petitions');
+
+      $petition = $Petitions->get($petitionId);
+
+      $petition->cou_id = $basicAttributeCollector->cou_id;
+
+      $Petitions->save($petition);
+    }
 
     // Record Petition History
 
@@ -292,8 +330,6 @@ class BasicAttributeCollectorsTable extends Table {
       enrollmentFlowStepId: $basicAttributeCollector->enrollment_flow_step_id,
       action:               PetitionActionEnum::AttributesUpdated,
       comment:              __d('core_enroller', 'result.attr.saved')
-// We don't have $actorPersonId yet...
-//    ?int $actorPersonId=null
     );
 
     return true;

@@ -29,12 +29,14 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
+use \App\Lib\Enum\EnrollmentActorEnum;
 use \App\Lib\Enum\PetitionActionEnum;
 use \App\Lib\Enum\PetitionStatusEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
@@ -102,7 +104,15 @@ class PetitionsTable extends Table {
     
     $this->setPrimaryLink('enrollment_flow_id');
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['continue', 'finalize', 'pending', 'result', 'resume']);
+    $this->setAllowLookupPrimaryLink([
+      'continue',
+      'finalize',
+      'pending',
+      'result',
+      'resume',
+      'terminate'
+    ]);
+    $this->setRedirectGoal(action: 'terminate', goal: 'self');
 
     // These are required for the link to work from the Artifacts page
     $this->setAllowUnkeyedPrimaryCO(['index']);
@@ -116,10 +126,16 @@ class PetitionsTable extends Table {
     ]);
 
     $viewContainsRelations = [
-      'EnrollmentFlows' => ['EnrollmentFlowSteps' => ['sort' => ['ordr' => 'ASC']]],
+      'EnrollmentFlows' => ['EnrollmentFlowSteps' => 
+        // This magic will pass the Step plugin configuration to each Cell automatically
+        array_merge($this->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations(),
+                    ['sort' => ['ordr' => 'ASC']])
+      ],
       'EnrolleePeople' => ['PrimaryName' => ['foreignKey' => 'person_id']],
       'PetitionerPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']],
-      'PetitionHistoryRecords',
+      'PetitionHistoryRecords' => [
+        'ActorPeople' => ['PrimaryName' => ['foreignKey' => 'person_id']]
+      ],
       'PetitionStepResults',
     ];
 
@@ -177,7 +193,10 @@ class PetitionsTable extends Table {
         // resume renders a landing page, the admin can copy a URL and resend it
         // to the appropriate actor if the actor is not also an admin
         'resume' =>   ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        // terminate an in-progress Petition
+        'terminate' =>   ['platformAdmin', 'coAdmin'],
+        // Any approver for the associated Enrollment Flow can view the entire Petition
+        'view' =>     ['platformAdmin', 'coAdmin', 'approver']
       ],
       // Actions that are permitted on readonly entities (besides view)
       'readOnly' =>   ['result'],
@@ -205,6 +224,42 @@ class PetitionsTable extends Table {
         'counter' => ['EnrollmentFlowSteps', 'Petitions']
       ]
     );
+  }
+
+  /**
+   * Find the Approver Group for the specified Step for this Petition.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int    $id         Petition ID
+   * @param  int    $stepId     Enrollment Flow Step ID
+   * @return int                Group ID
+   * @return bool               true if $personId is an Approver for this Step for this Petition, false otherwise
+   */
+
+  public function approverGroupId(int $id, int $stepId): int {
+    $EnrollmentFlowSteps = TableRegistry::getTableLocator()->get("EnrollmentFlowSteps");
+    $Groups = TableRegistry::getTableLocator()->get("Groups");
+
+    $petition = $this->get($id);
+
+    $step = $EnrollmentFlowSteps->get($stepId);
+
+    if(!empty($step->approver_group_id)) {
+      // If there is an Approver Group set, use that.
+      
+      return $step->approver_group_id;
+    } else {
+      if(!empty($petition->cou_id)) {
+        // If there is a COU set on the Petition (which is why this function is here and
+        // not in EnrollmentFlowStepsTable) use the Approvers Group for that COU.
+
+        return $Groups->getApproversGroupId(couId: $petition->cou_id);
+      } else {
+        // $personId must be a member of the Approvers Group for the CO.
+
+        return $Groups->getApproversGroupId(coId: $this->calculateCoForRecord($petition));
+      }
+    }
   }
 
   /**
@@ -325,7 +380,7 @@ class PetitionsTable extends Table {
    */
 
   public function finalize(int $id) {
-    $petition = $this->get($id);
+    $petition = $this->get($id, ['contain' => 'EnrollmentFlows']);
 
     if($petition->isComplete()) {
       throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
@@ -334,7 +389,7 @@ class PetitionsTable extends Table {
     // Update the Petition status and create a History Record.
     $petition->status = PetitionStatusEnum::Finalized;
 
-    $this->saveOrFail($petition);
+    $this->saveOrFail($petition, ['associated' => false]);
 
     $this->PetitionHistoryRecords->record(
       petitionId:           $petition->id,
@@ -343,6 +398,76 @@ class PetitionsTable extends Table {
       comment:              __d('result', 'Petitions.finalized')
       // actorPersonId
     );
+
+    if(!empty($petition->enrollment_flow->finalization_message_template_id)) {
+      // A finalization Message Template was specified, use it to notify the Enrollee.
+      // We use the enrollee_email address, if populated, otherwise we generate a
+      // Notification to the Enrollee Person (which may or may not have a deliverable
+      // email address).
+
+      $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
+
+      $template = $MessageTemplates->get($petition->enrollment_flow->finalization_message_template_id);
+
+      $template->setContextPetition($petition);
+
+      if(!empty($petition->enrollee_email)) {
+        // Send the message. sendEmailToAddress will throw an Exception if SMTP failed,
+        // but if there is no SMTP server configured we'll just get false back.
+
+        // Because we're calling DeliveryUtilities directly we need to generate the message
+        // from the template here.
+
+        $template->generateMessage();
+
+        if(!DeliveryUtilities::sendEmailToAddress(
+          coId:       $coId,
+          recipient:  $petition->enrollee_email,
+          subject:    $template->getMessagePart('subject'),
+          body_text:  $template->getMessagePart('body_text'),
+          body_html:  $template->getMessagePart('body_html')
+        )) {
+          throw new \RuntimeException("Message delivery failed"); // XXX I18n. can we get an exception from sendEmailToAddress instead?
+        }
+      } elseif(!empty($petition->enrollee_person)) {
+        // Register a Notification.
+
+        $Notifications = TableRegistry::getTableLocator()->get('Notifications');
+
+        $Notifications->register(
+          subjectPersonId: $petition->enrollee_person_id,
+          subjectGroupId: null,
+          actorPersonId: null, //$actorInfo['person_id'],
+          recipientPersonId: $petition->enrollee_person_id,
+          recipientGroupId: null,
+          action: ActionEnum::PetitionFinalized,
+          comment: __d('result', 'Petitions.finalized'),
+          messageTemplate: $template,
+          // We'll set the source to be the URL to the Petition itself
+          source: [
+            'controller'  => 'petitions',
+            'action'      => 'view',
+            $id
+          ],
+          mustResolve: false
+        );
+      } else {
+        $this->llog('debug', "Cannot send finalization notification for Petition " . $id . " due to lack of email or enrollee Person rocerd");
+      }
+    }
+  }
+
+  /**
+   * Modify an index Query to specify how to filter on the requested CO.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Query  $query  Query object
+   * @param  int    $coId   CO ID to filter on
+   * @return Query          Modified query
+   */
+
+  public function filterIndexByCO(Query $query, int $coId): Query {
+    return $query->where(['EnrollmentFlows.co_id' => $coId]);
   }
 
   /**
@@ -383,6 +508,57 @@ class PetitionsTable extends Table {
     }
 
     return true;
+  }
+
+  /**
+   * Determine the Name associated with the Enrollee for this Petition. Not all Petitions
+   * will have Enrollee Names, and some Petitions could have more than one Name. This
+   * function will try to find a suitable Name, but no guarantees can be made as to the
+   * result; different values can be returned across subsequent calls, especially if the
+   * Petition state changes.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int   $id    Petition ID
+   * @return string       A name if found, null otherwise
+   */
+
+  public function getEnrolleeName(int $id): ?string {
+    $ret = null;
+
+    // First see if there is an Enrollee Person associated with the Petition, which would
+    // be the case for (eg) account linking. If so, use their Primary Name.
+
+    $petition = $this->get($id, ['contain' => [
+      'EnrolleePeople' => 'PrimaryName',
+      'PetitionStepResults' => [
+        'EnrollmentFlowSteps' => $this->PetitionStepResults->EnrollmentFlowSteps->getPluginRelations()
+      ]
+    ]]);
+
+    if(!empty($petition->enrollee_person->primary_name)) {
+      return $petition->enrollee_person->primary_name->full_name;
+    }
+
+    // Next walk through the Petition Step Results (ie: the completed Steps) and query the
+    // associated plugins for a Name. We'll stop at the first one we find, which might or
+    // might not be the correct thing to do under all circumstances. Note the step results
+    // are returned in a non-deterministic order.
+
+    foreach($petition->petition_step_results as $psr) {
+      $PluginTable = TableRegistry::getTableLocator()->get($psr->enrollment_flow_step->plugin);
+
+      if(method_exists($PluginTable, "enrolleeName")) {
+        $pmodel = StringUtilities::pluginToEntityField($psr->enrollment_flow_step->plugin);
+
+        $name = $PluginTable->enrolleeName($psr->enrollment_flow_step->$pmodel, $petition->id);
+
+        if(!empty($name)) {
+          return $name;
+        }
+      }
+    }
+
+    return $ret;
   }
 
   /**
@@ -540,6 +716,74 @@ class PetitionsTable extends Table {
   }
 
   /**
+   * Determine if a Person can approve the specified Step of the specified Petition.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int    $id         Petition ID
+   * @param  int    $stepId     Enrollment Flow Step ID
+   * @param  int    $personId   Person ID
+   * @return bool               true if $personId is an Approver for this Step for this Petition, false otherwise
+   */
+
+  public function isApprover(int $id, int $stepId, int $personId): bool {
+    // This function is here and not in EnrollmentFlowStepsTable because the Approvers Group
+    // can be influenced by the COU ID of the Petition.
+
+    // $EnrollmentFlowSteps = TableRegistry::getTableLocator()->get("EnrollmentFlowSteps");
+
+    $step = $this->EnrollmentFlows->EnrollmentFlowSteps->get($stepId);
+
+    if($step->actor_type == EnrollmentActorEnum::Approver) {
+      $GroupMembers = TableRegistry::getTableLocator()->get("GroupMembers");
+
+      return $GroupMembers->isMember(
+        groupId: $this->approverGroupId($id, $stepId),
+        personId: $personId
+      );
+    }
+
+    return false;
+  }
+
+  /**
+   * Determine if a Person can Approve any Step for the specified Petition..
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int    $id         Petition ID
+   * @param  int    $personId   Person ID
+   * @return bool               true if $personId is an Approver for this Flow, false otherwise
+   */
+
+  public function isApproverForFlow(int $id, int $personId): bool {
+    // This function is here and not in EnrollmentFlowStepsTable because the Approvers Group
+    // can be influenced by the COU ID of the Petition.
+
+    $petition = $this->get($id);
+
+    $steps = $this->EnrollmentFlows->EnrollmentFlowSteps
+                  ->find()
+                  ->where([
+                    'enrollment_flow_id' => $petition->enrollment_flow_id,
+                    'status' => SuspendableStatusEnum::Active
+                  ])
+                  ->order(['EnrollmentFlowSteps.ordr' => 'ASC'])
+                  ->all();
+
+    foreach($steps as $step) {
+      if($step->actor_type == EnrollmentActorEnum::Approver) {
+        if($this->EnrollmentFlows->EnrollmentFlowSteps->ApproverGroups->GroupMembers->isMember(
+          groupId: $this->approverGroupId($id, $step->id),
+          personId: $personId
+        )) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Run Provisioning for a Petition.
    * 
    * @since  COmanage Registry v5.1.0
@@ -633,6 +877,25 @@ class PetitionsTable extends Table {
     // by the Petition having been created
 
     return $petition;    
+  }
+
+  /**
+   * Terminate a Petition.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int  $id   Petition ID
+   */
+
+  public function terminate(int $id) {
+    $petition = $this->get($id);
+
+    if($petition->isComplete()) {
+      throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
+    }
+
+    $petition->status = PetitionStatusEnum::Terminated;
+
+    $this->save($petition);
   }
 
   /**

@@ -155,6 +155,19 @@ class ExtIdentitySourceRecordsTable extends Table {
   }
 
   /**
+   * Modify an index Query to specify how to filter on the requested CO.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Query  $query  Query object
+   * @param  int    $coId   CO ID to filter on
+   * @return Query          Modified query
+   */
+
+  public function filterIndexByCO(Query $query, int $coId): Query {
+    return $query->where(['ExternalIdentitySources.co_id' => $coId]);
+  }
+
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.0.0

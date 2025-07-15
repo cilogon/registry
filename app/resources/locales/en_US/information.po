@@ -126,14 +126,17 @@ msgstr "Petition History"
 msgid "petition.information"
 msgstr "Petition Information"
 
-msgid "Petitions.pending"
-msgstr "This Petition has now been assigned to someone else. There is no further action for you at this time."
-
 msgid "petition.step.toggle.details"
 msgstr "toggle petition step details"
 
 msgid "petition.step.toggle.details.all"
 msgstr "toggle all petition step details"
+
+msgid "Petitions.pending"
+msgstr "This Petition has now been assigned to someone else. There is no further action for you at this time."
+
+msgid "Petitions.pending.approval"
+msgstr "Petition {0} is now Pending Approval for Enrollment Flow Step {1}"
 
 msgid "plugin.active"
 msgstr "Active"
@@ -174,7 +177,13 @@ msgstr "Current version: {0}"
 msgid "ug.version.target"
 msgstr "Target version: {0}"
 
-msgid "ug.installMostlyStaticPages"
+msgid "ug.tasks.createApproverGroups.co"
+msgstr "Creating Approver Groups for CO {0}"
+
+msgid "ug.tasks.createApproverGroups.cou"
+msgstr "Creating Approver Groups for COU {0}"
+
+msgid "ug.tasks.installMostlyStaticPages.co"
 msgstr "Installing default Mostly Static Pages for CO {0}"
 
 msgid "value.copied"

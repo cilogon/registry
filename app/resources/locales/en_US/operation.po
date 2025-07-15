@@ -252,6 +252,9 @@ msgstr "Go to page"
 msgid "Petitions.rerun"
 msgstr "Rerun"
 
+msgid "Petitions.terminate.confirm"
+msgstr "Are you sure you want to terminate Petition {0}? This action cannot be undone."
+
 msgid "pick"
 msgstr "Pick"
 
@@ -317,6 +320,9 @@ msgstr "Start"
 
 msgid "Cos.switch"
 msgstr "Switch To This CO"
+
+msgid "terminate"
+msgstr "Terminate"
 
 msgid "toggle.all"
 msgstr "Toggle All"

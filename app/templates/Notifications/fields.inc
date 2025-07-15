@@ -80,6 +80,20 @@ if($vv_action == 'view') {
 
   print $this->element('form/listItem', [
     'arguments' => [
+      'fieldName' => 'subject_group_id',
+      'status'    => $vv_obj->subject_group->name ?? '',
+      'link'      => !empty($vv_obj->subject_group)
+                     ? ['url' => [
+                       'controller' => 'groups',
+                       'action' => 'edit',
+                       $vv_obj->subject_group->id
+                     ]]
+                     : []
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
       'fieldName' => 'recipient_person_id',
       'status'    => $vv_obj->recipient_person->primary_name?->full_name ?? '',
       'link'      => !empty($vv_obj->recipient_person)
@@ -87,6 +101,20 @@ if($vv_action == 'view') {
                        'controller' => 'people',
                        'action' => 'edit',
                        $vv_obj->recipient_person->id
+                     ]]
+                     : []
+    ]
+  ]);
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'recipient_group_id',
+      'status'    => $vv_obj->recipient_group->name ?? '',
+      'link'      => !empty($vv_obj->recipient_group)
+                     ? ['url' => [
+                       'controller' => 'groups',
+                       'action' => 'edit',
+                       $vv_obj->recipient_group->id
                      ]]
                      : []
     ]

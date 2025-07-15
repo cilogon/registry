@@ -25,16 +25,77 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+use \App\Lib\Enum\EnrollmentActorEnum;
+?>
+<script type="text/javascript">
+  // JS specific to these fields
+
+  function updateGadgets(isPageLoad) {
+    // Hide or show gadgets according to current state
+
+    var actorType = document.getElementById('actor-type').value;
+
+    if(actorType == "<?= EnrollmentActorEnum::Approver ?>") {
+      showFields(['approver-group-id'], isPageLoad);
+    } else {
+      hideFields(['approver-group-id'], isPageLoad);
+    }
+
+    var notificationGroup = document.getElementById('notification-group-id').value;
+
+    if(notificationGroup) {
+      showFields(['notification-message-template-id'], isPageLoad);
+    } else {
+      hideFields(['notification-message-template-id'], isPageLoad);
+    }
+  }
+
+  function jsLocalOnLoad() {
+    updateGadgets(true);
+  }
+</script>
+
+<?php
 // This view does not support read-only
 if($vv_action == 'add' || $vv_action == 'edit') {
-
   foreach (['description',
-             'status',
-             'plugin',
-             'ordr',
-             'actor_type',
-             'message_template_id',
-             'redirect_on_handoff'
+            'status',
+            'plugin',
+            'ordr'
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'actor_type',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()'
+      ]
+    ]]);
+
+  foreach (['approver_group_id',
+            'message_template_id',
+            'redirect_on_handoff'
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'notification_group_id',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()'
+      ]
+    ]]);
+
+  foreach (['notification_message_template_id'
            ] as $field) {
     print $this->element('form/listItem', [
       'arguments' => [

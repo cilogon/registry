@@ -575,10 +575,10 @@
       "columns": {
         "id": {},
         "subject_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
-        "subject_group_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "subject_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
         "actor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
         "recipient_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
-        "recipient_group_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+        "recipient_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
         "resolver_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
         "action": {
           "comment": "revert this to use the library definition after feature-cfm31 merge",
@@ -636,12 +636,18 @@
         "authz_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
         "collect_enrollee_email": { "type": "boolean" },
         "redirect_on_duplicate": { "type": "string", "size": 256 },
-        "redirect_on_finalize": { "type": "string", "size": 256 }
+        "redirect_on_finalize": { "type": "string", "size": 256 },
+        "finalization_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }},
+        "notification_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
+        "notification_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }}
       },
       "indexes": {
         "enrollment_flows_i1": { "columns": [ "co_id" ]},
         "enrollment_flows_i2": { "needed": false, "columns": [ "authz_cou_id" ]},
-        "enrollment_flows_i3": { "needed": false, "columns": [ "authz_group_id" ]}
+        "enrollment_flows_i3": { "needed": false, "columns": [ "authz_group_id" ]},
+        "enrollment_flows_i4": { "needed": false, "columns": [ "finalization_message_template_id" ]},
+        "enrollment_flows_i5": { "needed": false, "columns": [ "notification_group_id" ]},
+        "enrollment_flows_i6": { "needed": false, "columns": [ "notification_message_template_id" ]}
       }
     },
 
@@ -654,12 +660,18 @@
         "plugin": {},
         "ordr": {},
         "actor_type": { "type": "string", "size": 2 },
+        "approver_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
         "message_template_id": {},
-        "redirect_on_handoff": { "type": "string", "size": 256 }
+        "redirect_on_handoff": { "type": "string", "size": 256 },
+        "notification_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
+        "notification_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }}
       },
       "indexes": {
         "enrollment_flow_steps_i1": { "columns": [ "enrollment_flow_id" ]},
-        "enrollment_flow_steps_i2": { "needed": false, "columns": [ "message_template_id" ]}
+        "enrollment_flow_steps_i2": { "needed": false, "columns": [ "message_template_id" ]},
+        "enrollment_flow_steps_i3": { "needed": false, "columns": [ "notification_group_id" ]},
+        "enrollment_flow_steps_i4": { "needed": false, "columns": [ "notification_message_template_id" ]},
+        "enrollment_flow_steps_i5": { "needed": false, "columns": [ "approver_group_id" ]}
       }
     },
 

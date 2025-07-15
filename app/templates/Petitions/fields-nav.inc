@@ -26,6 +26,22 @@
  */
 
 $topLinks = [
+  // Note we don't need an 'if' test for cancel or resume because the generalized permission
+  // calculation will call isReadOnly() (and not insert these items when true) which is sufficient.
+  [
+    'icon'  => 'cancel',
+    'order' => 'Default',
+    // We localize the text as "terminate" to make the confirmation dialog less confusing
+    'label' => __d('operation', 'terminate'),
+    'link'  => [
+      'action' => 'terminate',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'Petitions.terminate.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'terminate')
+    ]
+  ],
   [
     'icon'  => 'resume',
     'order' => 'Default',

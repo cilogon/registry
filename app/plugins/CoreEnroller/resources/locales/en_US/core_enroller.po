@@ -64,14 +64,8 @@ msgstr "DefaultCodeLength"
 msgid "enumeration.VerificationDefaultsEnum.60"
 msgstr "DefaultVerificationValidity"
 
-msgid "enumeration.VerificationModeEnum.0"
-msgstr "None"
-
-msgid "enumeration.VerificationModeEnum.1"
-msgstr "One"
-
-msgid "enumeration.VerificationModeEnum.A"
-msgstr "All"
+msgid "error.ApprovalCollectors.comment"
+msgstr "Comment is required"
 
 msgid "error.EmailVerifiers.candidate"
 msgstr "Requested address is not a valid candidate"
@@ -109,6 +103,9 @@ msgstr "This Invitation has expired"
 msgid "error.PetitionAcceptances.processed"
 msgstr "This Invitation has already been processed"
 
+msgid "information.ApprovalCollectors.review"
+msgstr "Please approve or deny Petition {0}."
+
 msgid "information.EmailVerifiers.done"
 msgstr "All email addresses in this Petition have been verified. You may continue on to the next Enrollment Step."
 
@@ -141,6 +138,27 @@ msgstr "New code sent"
 
 msgid "information.EmailVerifiers.abort"
 msgstr "Abort"
+
+msgid "field.ApprovalCollectors.denial_message_template_id"
+msgstr "Denial Message Template"
+
+msgid "field.ApprovalCollectors.denial_message_template_id.desc"
+msgstr "Message Template to use when notifying the Enrollee of a denial (no denial message is sent if not set)"
+
+msgid "field.ApprovalCollectors.mode.desc"
+msgstr "How many members of the Approver Group must approve Petitions for this Enrollment Flow Step"
+
+msgid "field.ApprovalCollectors.redirect_on_denial"
+msgstr "Redirect on Denial"
+
+msgid "field.ApprovalCollectors.redirect_on_denial.desc"
+msgstr "If the Petition is denied, the Approver will be redirected here instead of the default handoff page"
+
+msgid "field.ApprovalCollectors.require_comment"
+msgstr "Require Comment"
+
+msgid "field.ApprovalCollectors.require_comment.desc"
+msgstr "If set, the Approver must add a comment when approving or denying Petitions for this Enrollment Flow Step"
 
 msgid "field.AttributeCollectors.valid_through.default.after.desc"
 msgstr "Days After Finalization"
@@ -301,6 +319,15 @@ msgstr "Petition Attributes recorded"
 
 msgid "result.basicattr.finalized"
 msgstr "Name, Email Address, and Person Role created during finalization"
+
+msgid "result.ApprovalCollectors.approved"
+msgstr "Petition Approved"
+
+msgid "result.ApprovalCollectors.denied"
+msgstr "Petition Denied"
+
+msgid "result.ApprovalCollectors.status"
+msgstr "Petition {0} by {1} at {2} ({3})"
 
 msgid "result.EmailVerifiers.verified"
 msgstr "Verified {0} of {1} available {2}"

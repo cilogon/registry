@@ -36,7 +36,7 @@ use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Util\StringUtilities;
 use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\TableRegistry;
-use CoreEnroller\Lib\Enum\VerificationModeEnum;
+use \App\Lib\Enum\AllTernaryEnum;
 use \App\Lib\Enum\HttpStatusCodesEnum;
 
 class EmailVerifiersController extends StandardEnrollerController {
@@ -168,10 +168,10 @@ class EmailVerifiersController extends StandardEnrollerController {
     $doneCount = count($verifiedAddresses);
     $totalCount = count($candidateAddresses);
     $allDone = $doneCount == $totalCount;
-    $minimumMet = $cfg->mode == VerificationModeEnum::None
-                  || ($cfg->mode == VerificationModeEnum::One
+    $minimumMet = $cfg->mode == AllTernaryEnum::None
+                  || ($cfg->mode == AllTernaryEnum::One
                       && $doneCount > 0)
-                  || ($cfg->mode == VerificationModeEnum::All
+                  || ($cfg->mode == AllTernaryEnum::All
                       && $allDone);
 
     $this->set('vv_all_done', $allDone);

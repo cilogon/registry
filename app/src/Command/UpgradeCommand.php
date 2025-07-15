@@ -58,7 +58,7 @@ class UpgradeCommand extends Command
   // compare version strings. You must specify the 'block' parameter. If you flag
   // a version as blocking, be sure to document why.
 
-  // As of v5, pre and post are now a list of tasks instead of a single function
+  // As of v5, pre and post are now a list of tasks instead of a single function.
 
   protected $versions = [
     "5.0.0" => [
@@ -67,9 +67,21 @@ class UpgradeCommand extends Command
     "5.1.0" => [
       'block' => false,
       'post' => ['installMostlyStaticPages']
+    ],
+    "5.2.0" => [
+      'block' => false,
+      'post' => ['createApproverGroups']
     ]
   ];
   
+  // For descriptions of task parameters, see dispatch(). We store these separately
+  // to make them easier to use regardless of context (pre/post/manual).
+
+  protected $taskParams = [
+    'createApproverGroups' => ['perCO' => true, 'perCOU' => true],
+    'installMostlyStaticPages' => ['perCO' => true]
+  ];
+
   /**
    * Register command specific options.
    *
@@ -252,23 +264,80 @@ class UpgradeCommand extends Command
    */
 
   protected function dispatch(string $task) {
+    // We support tasks being flagged to behave in certain ways.
+
+    //  global: The task should be run once
+    //  perCO: The task should be run once per CO
+    //  perCOU: The task should be run once per COU
+    //   - perCOU does NOT imply perCO, though tasks will also be passed the CO ID
+
+    $global = isset($this->taskParams[$task]['global'])
+               && $this->taskParams[$task]['global'];
+    $perCO = isset($this->taskParams[$task]['perCO'])
+               && $this->taskParams[$task]['perCO'];
+    $perCOU = isset($this->taskParams[$task]['perCOU'])
+               && $this->taskParams[$task]['perCOU'];
+
     if(method_exists($this, $task)) {
-      // Pull the set of COs. We'll generally apply changes to _all_ COs, even if
-      // they're Suspended or Templates.
+      if($global) {
+        $this->io->out(__d('information', 'ug.tasks.'.$task));
+        $this->$task();
+      }
 
-      $CosTable = $this->getTableLocator()->get('Cos');
+      $cos = [];
 
-      $cos = $CosTable->find()->all();
+      if($perCO || $perCOU) {
+        // Pull the list of COs once. We'll generally apply changes to _all_ COs, 
+        // even if they're Suspended or Templates.
 
-      foreach($cos as $co) {
-        $this->io->out(__d('information', 'ug.'.$task, [$co->id]));
-        $this->$task($co->id);
+        $CosTable = $this->getTableLocator()->get('Cos');
+
+        $cos = $CosTable->find()->all();
+      }
+
+      if($perCO) {
+        foreach($cos as $co) {
+          $this->io->out(__d('information', 'ug.tasks.'.$task.'.co', [$co->id]));
+          $this->$task(coId: $co->id);
+        }
+      }
+
+      if($perCOU) {
+        $CousTable = $this->getTableLocator()->get('Cous');
+
+        // We iterate per CO rather than pull all COUs at once in case the task
+        // wants to know the CO for each COU.
+
+        foreach($cos as $co) {
+          $cous = $CousTable->find()->where(['co_id' => $co->id])->all();
+
+          foreach($cous as $cou) {
+            $this->io->out(__d('information', 'ug.tasks.'.$task.'.cou', [$cou->id]));
+            $this->$task(coId: $co->id, couId: $cou->id);
+          }
+        }
       }
 
       $this->io->out(__d('result', 'ug.task.done', [$task]));
     } else {
       $this->io->err(__d('error', 'ug.task.unknown', [$task]));
     }
+  }
+
+  /**
+   * Create Approver Groups.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int  $coId   CO ID
+   * @param  int  $couId  COU ID
+   */
+
+  protected function createApproverGroups(int $coId, int $couId=null) {
+    $GroupsTable = $this->getTableLocator()->get('Groups');
+
+    // Technically this will try to add all the default Groups, which is fine since
+    // it will skip the ones that already exist.
+    $GroupsTable->addDefaults($coId, $couId);
   }
 
   /**

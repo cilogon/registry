@@ -33,7 +33,7 @@ declare(strict_types = 1);
 
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
-    var authz = document.getElementById('authz-type').value;
+    //var authz = document.getElementById('authz-type').value;
 
     // Handle page interaction
 /* CFM-31 not yet implemented
@@ -49,6 +49,14 @@ declare(strict_types = 1);
     }*/
 
     hideFields(['authz-cou-id', 'authz-group-id'], isPageLoad);
+
+    var notificationGroup = document.getElementById('notification-group-id').value;
+
+    if(notificationGroup) {
+      showFields(['notification-message-template-id'], isPageLoad);
+    } else {
+      hideFields(['notification-message-template-id'], isPageLoad);
+    }
   }
 
   function jsLocalOnLoad() {
@@ -84,6 +92,24 @@ if($vv_action == 'add' || $vv_action == 'edit') {
             'collect_enrollee_email',
             'redirect_on_duplicate',
             'redirect_on_finalize',
+            'finalization_message_template_id'
+           ] as $field) {
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => $field
+      ]]);
+  }
+
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'notification_group_id',
+      'fieldOptions' => [
+        'onChange' => 'updateGadgets()'
+      ]
+    ]
+  ]);
+
+  foreach (['notification_message_template_id'
            ] as $field) {
     print $this->element('form/listItem', [
       'arguments' => [

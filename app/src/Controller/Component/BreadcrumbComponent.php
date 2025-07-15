@@ -178,6 +178,11 @@ class BreadcrumbComponent extends Component
   {
     // eg: "People"
     $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
+    if(!empty($this->getController()->viewBuilder()->getVar('vv_primary_link_model'))) {
+      // $link doesn't seem to handle table aliases (eg "Groups" instead of "RecipientGroups" for
+      // Notifications)).
+      $modelsName = $this->getController()->viewBuilder()->getVar('vv_primary_link_model');
+    }
     $modelPath = $modelsName;
 
     if(!empty($link->plugin)) {

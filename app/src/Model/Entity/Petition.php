@@ -58,9 +58,10 @@ class Petition extends Entity {
       PetitionStatusEnum::Denied,
       PetitionStatusEnum::Duplicate,
       PetitionStatusEnum::Failed,
-      PetitionStatusEnum::Finalized
+      PetitionStatusEnum::Finalized,
       // A Finalizing Petition is NOT complete
       // PetitionStatusEnum::Finalizing
+      PetitionStatusEnum::Terminated
     ]);
   }
 

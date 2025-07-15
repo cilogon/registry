@@ -31,6 +31,7 @@ namespace App\Lib\Traits;
 
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\ORM\TableRegistry;
+use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\EnrollmentActorEnum;
 use \App\Lib\Enum\PetitionStatusEnum;
 use \App\Lib\Util\DeliveryUtilities;
@@ -44,13 +45,17 @@ trait EnrollmentControllerTrait {
    * 
    * @since  COmanage Registry v5.1.0
    * @param  int    $petitionId   Petition ID (if null, no role information is retrieved)
+   * @param  int    $stepId       Step ID (if null, no approver information is retrieved)
    * @return array                Array of actor information
    */
 
-  protected function getCurrentActor(?int $petitionId=null): array {
-    // We only check the cache if we have a Petition ID, see below
-    if($petitionId && !empty($this->cache['actor'])) {
-      return $this->cache['actor'];
+  protected function getCurrentActor(?int $petitionId=null, ?int $stepId=null): array {
+    // We only check the cache if we have a Petition ID, see below. We also track
+    // the stepId since we might get different results for different Steps (in particular
+    // for Approvers).
+
+    if($petitionId && !empty($this->cache['actor'][$stepId ?? "null"])) {
+      return $this->cache['actor'][$stepId ?? "null"];
     }
 
     $ret = [
@@ -81,6 +86,9 @@ trait EnrollmentControllerTrait {
 
       try {
         $ret['person_id'] = $Identifiers->lookupPersonByLogin($this->getCOID(), $ret['identifier']);
+
+        // We also store platform administator as a role to faciliate superuser access.
+        // (We don't currently recognize CO Admins the same way pending further requirements.)
       } catch(RecordNotFoundException $e) {
         $ret['person_id'] = null;
       }
@@ -89,6 +97,14 @@ trait EnrollmentControllerTrait {
         $ret['type'] = 'person';
       } else {
         $ret['type'] = 'identifier';
+      }
+
+      if($this->RegistryAuth->isPlatformAdmin()) {
+        // We don't define an Enum for this because we currently don't support
+        // configuring a Step to be runnable only by a Platform Administrator.
+        // (Note a Platform Admin will have a valid identifier, but may not have
+        // a person_id if they're not also registered in the current CO.)
+        $ret['roles'][] = 'cmpadmin';
       }
     }
 
@@ -108,6 +124,17 @@ trait EnrollmentControllerTrait {
         
         if($ret['person_id'] === $petition->enrollee_person_id) {
           $ret['roles'][] = EnrollmentActorEnum::Enrollee;
+        }
+
+        // Only People (as opposed to authenticated, unregistered Enrollees)
+        // can be Approvers, so check here. We only check for the current Step
+        // because different Steps can have different Approvers (and we don't
+        // currently have a use case for "Any Approver for the entire Petition").
+
+        if($stepId) {
+          if($Petitions->isApprover(id: $petitionId, stepId: $stepId, personId: $ret['person_id'])) {
+            $ret['roles'][] = EnrollmentActorEnum::Approver;
+          }
         }
       } elseif($ret['type'] == 'identifier' && !empty($ret['identifier'])) {
         if($ret['identifier'] === $petition->petitioner_identifier) {
@@ -219,8 +246,8 @@ trait EnrollmentControllerTrait {
 
     $stepInfo = $EnrollmentFlows->calculateNextStep($petitionId);
     $petition = $stepInfo['petition'];
-
-    $coId = $EnrollmentFlows->findCoForRecord($petition->enrollment_flow_id);
+    $flow = $EnrollmentFlows->get($petition->enrollment_flow_id);
+    $coId = $flow->co_id;
 
 /* no need to to this, we don't cache on start()
     if($start) {
@@ -228,12 +255,91 @@ trait EnrollmentControllerTrait {
       unset($this->cache['actor']);
     }*/
 
-    $actorInfo = $this->getCurrentActor($petitionId);
+    // Approvers vary according to the current step. If there is no current step, we
+    // want the approvers from the last step so finalization can run. Note that
+    // because approvers can vary from step to step, two consecutive Approval steps
+    // that use two different Approvers Groups will generate a handoff (unless the
+    // current Actor is in both Groups).
 
-    // Before we process the handoff, give the plugin an opportunity to run any
-    // preparatory steps. We don't specifically support errors here, ie: if a plugin
-    // throws an Exception we let it bubble up because it's not really clear what we
-    // should do if a plugin fails.
+    $stepId = ($stepInfo['step']->id ?? ($stepInfo['lastStep']->id ?? null));
+
+    $actorInfo = $this->getCurrentActor($petitionId, $stepId);
+
+    // Before we process the handoff, we take care of some other tasks that we want
+    // to run before any redirect is issued. First, issue any Notifications configured
+    // on either the Enrollment Flow or the _previous_ Step. (If we're transitioning
+    // from start, there are no notifications to send.)
+
+    if(!$start) {
+      $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
+
+      if(!empty($flow->notification_group_id)) {
+        // There is a Notification Group on the Flow, make sure we have a Message Template
+
+        if(!empty($flow->notification_message_template_id)) {
+          $template = $MessageTemplates->get($flow->notification_message_template_id);
+
+          $template->setContextPetition($petition);
+          $template->setContextEnrollmentFlowSteps($stepInfo['lastStep'], $stepInfo['step']); 
+
+          $MessageTemplates->Notifications->register(
+            subjectPersonId: $petition->enrollee_person_id,
+            subjectGroupId: null,
+            actorPersonId: $actorInfo['person_id'],
+            recipientPersonId: null,
+            recipientGroupId: $flow->notification_group_id,
+            action: ActionEnum::PetitionUpdated,
+            comment: __d('result', 'Petitions.step.completed', [$petition->id, $stepInfo['lastStep']->id]),
+            messageTemplate: $template,
+            // We'll set the source to be the URL to the Petition itself
+            source: [
+              'controller'  => 'petitions',
+              'action'      => 'view',
+              $petitionId
+            ],
+            mustResolve: false
+          );
+        } else {
+          $this->log('debug', "Enrollment Flow " . $flow->id . " has a Notification Group configured, but no Message Template");
+        }
+      }
+
+      if(!empty($stepInfo['lastStep']->notification_group_id)) {
+        // There is a Notification Group on this Step. Note we do _not_ check 'lastStep'
+        // since if we're finalizing notifications will be handled by PetitionsTable::finalize.
+
+        if(!empty($stepInfo['lastStep']->notification_message_template_id)) {
+          $template = $MessageTemplates->get($stepInfo['lastStep']->notification_message_template_id);
+
+          $template->setContextPetition($petition);
+          $template->setContextEnrollmentFlowSteps($stepInfo['lastStep'], $stepInfo['step']); 
+
+          $MessageTemplates->Notifications->register(
+            subjectPersonId: $petition->enrollee_person_id,
+            subjectGroupId: null,
+            actorPersonId: $actorInfo['person_id'],
+            recipientPersonId: null,
+            recipientGroupId: $stepInfo['lastStep']->notification_group_id,
+            action: ActionEnum::PetitionUpdated,
+            comment: __d('result', 'Petitions.step.completed', [$petition->id, $stepInfo['lastStep']->id]),
+            messageTemplate: $template,
+            // We'll set the source to be the URL to the Petition itself
+            source: [
+              'controller'  => 'petitions',
+              'action'      => 'view',
+              $id
+            ],
+            mustResolve: false
+          );
+        } else {
+          $this->log('debug', "Enrollment Flow Step " . $stepInfo['step']->id . " has a Notification Group configured, but no Message Template");
+        }
+      }
+    }
+
+    // Next, give the plugin an opportunity to run any preparatory steps. We don't
+    // specifically support errors here, ie: if a plugin throws an Exception we let it
+    // bubble up because it's not really clear what we should do if a plugin fails.
 
     // (If this is the last step, 'step' will be null, and there's no prepare() to call.)
 
@@ -277,6 +383,23 @@ trait EnrollmentControllerTrait {
       // Note that we only permit a single non-authenticated email address since
       // we don't support different anonymous petitioners and enrollees.
 
+      // Pull the MessageTemplate and attach context to it.
+      $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
+
+      // Message Template is _not_ a required field in the Enrollment Flow Step data model
+      // because steps can transition without it. However, for approval notifications to be
+      // sent we need a Message Template. We can't easily enforce this properly at configuration
+      // time, but at run time this will throw an Exception.
+
+      if(empty($stepInfo['step']->message_template_id)) {
+        // Throw a more helpful error than "Record not found"
+        throw new \RuntimeException(__d('error', 'EnrollmentFlowSteps.message_template', [ $stepInfo['step']->id ]));
+      }
+
+      $template = $MessageTemplates->get($stepInfo['step']->message_template_id);
+
+      $template->setContextPetition($petition);
+
       if($petition->useToken($nextActorType)) {
         // We only have an enrollee_email field to use since either the petitioner _is_
         // the enrollee (in which case that address is sufficient, eg: self signup),
@@ -286,47 +409,68 @@ trait EnrollmentControllerTrait {
         $token = $EnrollmentFlows->Petitions->getToken($petitionId);
 
         // For simplicity, we just inject the continue URL into the message.
-        $entryUrl = [
+
+        $template->setContextEntryUrl([
+          'plugin'      => null,
           'controller'  => 'petitions',
           'action'      => 'continue',
           $petition->id,
           '?' => [
-            'token' => $token //$this->requestParam('token')
+            'token' => $token
           ]
-        ];
-
-        // Message Templates handle substitutions, so if none is configured it's an error
-        if(empty($stepInfo['step']->message_template_id)) {
-          throw new \RuntimeException(__d('error', 'EnrollmentFlowSteps.message_template', [ $stepInfo['step']->id ]));
-        }
-
-        $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
-
-        // Perform substitutions
-
-        $msg = $MessageTemplates->generateMessage(
-          id: $stepInfo['step']->message_template_id,
-          entryUrl: $entryUrl,
-        );
+       ]);
 
         // Send the message. sendEmailToAddress will throw an Exception if SMTP failed,
         // but if there is no SMTP server configured we'll just get false back.
 
+        // Because we're calling DeliveryUtilities directly we need to generate the
+        // message from the template here.
+
+        $template->generateMessage();
+
         if(!DeliveryUtilities::sendEmailToAddress(
           coId:       $coId,
           recipient:  $petition->enrollee_email,
-          subject:    $msg['subject'],
-          body_text:  $msg['body_text'],
-          body_html:  $msg['body_html']
+          subject:    $template->getMessagePart('subject'),
+          body_text:  $template->getMessagePart('body_text'),
+          body_html:  $template->getMessagePart('body_html')
         )) {
           throw new \RuntimeException("Message delivery failed"); // XXX I18n. can we get an exception from sendEmailToAddress instead?
         }
       } else {
-        // XXX Register a notification or send an email or whatever
-        // (once notification infrastructure is available)
+        // For simplicity, we just inject the continue URL. Note that SUBJECT_NAME
+        // (and subjectPersonId) is (probably) not available yet, at least for new
+        // enrollments where a Person hasn't been created yet.
 
-debug("Handing off to actor type " . $nextActorType . " would send a notitication to visit "
-      . \Cake\Routing\Router::url(url: $stepInfo['url'], full: true));
+        $template->setContextEntryUrl([
+          'plugin'      => null,
+          'controller'  => 'petitions',
+          'action'      => 'continue',
+          $petition->id,
+        ]);
+
+        $Notifications = TableRegistry::getTableLocator()->get('Notifications');
+
+        // Although we register the Notification here, the Plugin must resolve it
+        // since we don't know at what point the Plugin will consider the Notification
+        // handled.
+
+        $Notifications->register(
+          subjectPersonId: $petition->enrollee_person_id,
+          subjectGroupId: null,
+          actorPersonId: $actorInfo['person_id'],
+          recipientPersonId: null,
+          recipientGroupId: $EnrollmentFlows->Petitions->approverGroupId($petition->id, $stepId),
+          action: ActionEnum::PetitionUpdated,
+          comment: __d('information', 'Petitions.pending.approval', [$petition->id, $stepInfo['step']->description]),
+          // Message Template is _not_ a required field in the Enrollment Flow Step data model
+          // because steps can transition without it. However, for approval notifications to be
+          // sent we need a Message Template. We can't easily enforce this properly at configuration
+          // time, but at run time DeliveryUtilities::sendEmailFromTemplate will throw an error.
+          messageTemplate: $template,
+          source: $stepInfo['url'],
+          mustResolve: true
+        );
       }
 
       // Redirect to a landing page indicating that no further action is required at this time

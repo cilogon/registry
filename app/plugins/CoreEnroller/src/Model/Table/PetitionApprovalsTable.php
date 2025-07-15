@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Petition Basic Attribute Sets Table
+ * COmanage Registry Petition Approvals Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry-plugins
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -29,19 +29,22 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
+use Cake\I18n\FrozenTime;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
+use App\Lib\Enum\PetitionActionEnum;
 
-class PetitionBasicAttributeSetsTable extends Table {
+class PetitionApprovalsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
-
+  
   /**
    * Perform Cake Model initialization.
    *
@@ -59,10 +62,14 @@ class PetitionBasicAttributeSetsTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Artifact);
 
     // Define associations
-    $this->belongsTo('CoreEnroller.BasicAttributeCollectors');
-    $this->belongsTo('Petition');
-
-    $this->setDisplayField('mail');
+    $this->belongsTo('CoreEnroller.ApprovalCollectors');
+    $this->belongsTo('Petitions');
+    $this->belongsTo('ApproverPeople')
+         ->setClassName('People')
+         ->setForeignKey('approver_person_id')
+         ->setProperty('approver_person');
+    
+    $this->setDisplayField('comment');
 
     $this->setPrimaryLink('petition_id');
     $this->setRequiresCO(true);
@@ -77,7 +84,7 @@ class PetitionBasicAttributeSetsTable extends Table {
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
+        'index' =>    false
       ]
     ]);
   }
@@ -85,7 +92,7 @@ class PetitionBasicAttributeSetsTable extends Table {
   /**
    * Set validation rules.
    *
-   * @since  COmanage Registry v5.1.0
+   * @since  COmanage Registry v5.2.0
    * @param  Validator $validator Validator
    * @return Validator            Validator
    */
@@ -98,29 +105,23 @@ class PetitionBasicAttributeSetsTable extends Table {
     ]);
     $validator->notEmptyString('petition_id');
 
-    $validator->add('basic_attribute_collector_id', [
+    $validator->add('approval_collector_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('basic_attribute_collector_id');
+    $validator->notEmptyString('approval_collector_id');
 
-    // For now we allow any attribute to be empty and rely on upsert and the UI to
-    // enforce requirements.
-    foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
-      $validator->add($f, [
-        'size'    => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn($f)]],
-                      'provider' => 'table'],
-        'filter'  => ['rule'     => ['validateInput'],
-                      'provider' => 'table']
-      ]);
-      $validator->allowEmptyString($f);
-    }
-
-    $this->registerStringValidation($validator, $schema, 'mail', false);
-    $validator->add('mail', [
-      'content' => ['rule'    => ['email'],
-                    'message' => __d('error', 'input.invalid.email')]
+    $validator->add('approver_person_id', [
+      'content' => ['rule' => 'isInteger']
     ]);
+    $validator->notEmptyString('approver_person_id');
 
+    $validator->add('approved', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('approved');
+
+    $this->registerStringValidation($validator, $schema, 'comment', false);
+    
     return $validator;
   }
 }

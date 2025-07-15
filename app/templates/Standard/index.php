@@ -436,8 +436,13 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
                 }
                 break;
               case 'enum':
-                if($entity->$col) {
-                  // XXX Need to add badging - see index.php in Match
+// XXX Need to add badging - see index.php in Match
+                if(!empty($cfg['model']) && !empty($cfg['field'])) {
+                  $m = $cfg['model'];
+                  $f = $cfg['field'];
+
+                  print __d('enumeration', $cfg['class'].'.'.$entity->$m->$f) . $suffix;
+                } elseif($entity->$col) {
                   print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
                 }
                 break;

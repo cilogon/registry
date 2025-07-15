@@ -95,6 +95,8 @@ class GroupsTable extends Table {
          ->setClassName('Groups')
          ->setForeignKey('owners_group_id');
 
+    $this->hasMany('EnrollmentFlowSteps')
+         ->setForeignKey('notification_group_id');
     $this->hasMany('GroupMembers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -290,6 +292,14 @@ class GroupsTable extends Table {
         'status'      => SuspendableStatusEnum::Active,
         'cou_id'      => ($couId ?: null)
       ],
+      ':approvers' => array(
+        'group_type'  => GroupTypeEnum::Approvers,
+        'auto'        => false,
+        'description' => __d('field', 'Groups.desc.approvers', [$couName ?: $co->name]),
+        'open'        => false,
+        'status'      => SuspendableStatusEnum::Active,
+        'cou_id'      => ($couId ?: null)
+      ),
       ':members:active' => [
         'group_type'  => GroupTypeEnum::ActiveMembers,
         'auto'        => true,
@@ -507,27 +517,113 @@ class GroupsTable extends Table {
   }
   
   /**
+   * Get the Approvers Group for a CO or COU.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int  $coId   CO ID
+   * @param  int  $couId  COU ID
+   * @return int          Group ID
+   * @throws \Cake\Datasource\Exception\RecordNotFoundException
+   */
+
+  public function getApproversGroupId(?int $coId=null, ?int $couId=null): int {
+    $whereClause = [
+      'status'      => SuspendableStatusEnum::Active,
+      'group_type'  => GroupTypeEnum::Approvers
+    ];
+
+    if($coId) {
+      $whereClause['co_id'] = $coId;
+    }
+
+    if($couId) {
+      $whereClause['cou_id'] = $couId;
+    } else {
+      // Make sure not to pull the CO level Approvers group
+      $whereClause['cou_ID IS'] = null;
+    }
+
+    $group = $this->find()->where($whereClause)->firstOrFail();
+
+    return $group->id;
+  }
+
+  /**
    * Obtain an iterator for all members of the requested Group.
-   *
+   * 
    * @since  COmanage Registry v5.0.0
-   * @param  int                  $id             Group ID
-   * @param  int                  $groupNestingId If provided, only members due to this Group Nesting ID
-   * @return PaginatedSqlIterator                 Iterator for GroupMembers
+   * @param  int    $id             Group ID
+   * @param  int    $groupNestingId If provided, only members due to this Group Nesting ID
+   * @param  bool   $valid          If true, only return members with valid validity dates
+   * @param  bool   $active         If true, only return members with an active Person status
+   * @param  bool   $activeGroup    If true, the Group itself must be Active
+   * @return PaginatedSqlIterator   Iterator for GroupMembers
+   * @throws InvalidArgumentException
    */
   
-  public function getMembers(int $id, int $groupNestingId=null): PaginatedSqlIterator {
+  public function getMembers(
+    int   $id,
+    int   $groupNestingId=null,
+    bool  $valid=true,
+    bool  $active=true,
+    bool  $activeGroup=true
+  ): PaginatedSqlIterator {
     $conditions = [
       'group_id' => $id,
-// XXX add check for valid_from/through and test
-//      'valid_from'
-//      'valid_through'
     ];
+
+    $filter = null;
+
+    if($activeGroup) {
+      // Do a separate check on the Group itself since we only need to do that once
+
+      $group = $this->get($id);
+
+      if($group->status != SuspendableStatusEnum::Active) {
+        throw new \InvalidArgumentException(__d('error', 'inactive', [__d('controller', 'Groups', [1]), $id]));
+      }
+    }
     
     if($groupNestingId) {
       $conditions['group_nesting_id'] = $groupNestingId;
     }
+
+    if($active || $valid) {
+      // We handle these constraints via filters to avoid reproducing application
+      // logic in multiple places. This means the Paginator count will be an upper
+      // bound instead of an exact count, but we don't need that here.
+
+      // Retrieve the PeopleTable once and pass it to the callback to use.
+      $People = TableRegistry::getTableLocator()->get('People');
+
+      $filter = function ($entity) use ($People, $active, $valid) {
+        // $entity is a GroupMember object from the result set.
+
+        if($active) {
+          // Retrieve the Person to check its status
+
+          // person_id is a required field, so this get() shouldn't fail.
+          // If it does, an exception will be thrown.
+          $person = $People->get($entity->person_id);
+
+          if(!$person->isActive()) {
+            return false;
+          }
+        }
+
+        if($valid && !$entity->isValid()) {
+          return false;
+        }
+
+        return true;
+      };
+    }
     
-    return new PaginatedSqlIterator($this->GroupMembers->getTarget(), $conditions);
+    return new PaginatedSqlIterator(
+      table: $this->GroupMembers->getTarget(), 
+      conditions: $conditions,
+      filter: $filter
+    );
   }
   
   /**
@@ -541,7 +637,7 @@ class GroupsTable extends Table {
    */
   
   public function getMembersViaNesting(int $id, int $groupNestingId): PaginatedSqlIterator {
-    return $this->getMembers($id, $groupNestingId);
+    return $this->getMembers($id, $groupNestingId, false, false, false);
   }
   
   /**
@@ -718,7 +814,7 @@ class GroupsTable extends Table {
     // First, we pull the current members of the Group, and for each member
     // make sure they are still eligible.
     
-    $iterator = $this->getMembers($entity->id);
+    $iterator = $this->getMembers($entity->id, null, false, false, false);
     
     foreach($iterator as $k => $groupMember) {
       if(!empty($entity->cou_id)) {
@@ -840,7 +936,7 @@ class GroupsTable extends Table {
     // to check here.)
     
     foreach($groupNestings->toArray() as $groupNesting) {
-      $iterator = $this->getMembers($groupNesting->group_id);
+      $iterator = $this->getMembers($groupNesting->group_id, null, false, false, false);
       
       foreach($iterator as $k => $sourceGroupMember) {
         $this->GroupMembers->syncNestedMembership($sourceGroupMember->person_id,

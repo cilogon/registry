@@ -1,6 +1,7 @@
 {
   "types": {
     "enroller": [
+      "ApprovalCollectors",
       "AttributeCollectors",
       "BasicAttributeCollectors",
       "EmailVerifiers",
@@ -10,6 +11,19 @@
   },
   "schema": {
     "tables": {
+      "approval_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "require_comment": { "type": "boolean" },
+          "denial_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }},
+          "redirect_on_denial": { "type": "string", "size": 256 }
+        },
+        "indexes": {
+          "approval_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "approval_collectors_i2": { "needed": false, "columns": [ "denial_message_template_id" ] }
+        }
+      },
       "attribute_collectors": {
         "columns": {
           "id": {},
@@ -108,6 +122,21 @@
         },
         "indexes": {
           "petition_acceptances_i1": { "columns": [ "petition_id" ] }
+        }
+      },
+      "petition_approvals": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "approval_collector_id": { "type": "integer", "foreignkey": { "table": "approval_collectors", "column": "id" } },
+          "approver_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
+          "approved": { "type": "boolean" },
+          "comment": {}
+        },
+        "indexes": {
+          "petition_approvals_i1": { "columns": [ "petition_id" ] },
+          "petition_approvals_i2": { "needed": false, "columns": [ "approval_collector_id" ] },
+          "petition_approvals_i3": { "needed": false, "columns": [ "approver_person_id" ] }
         }
       },
       "petition_attributes": {

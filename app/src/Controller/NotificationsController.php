@@ -35,7 +35,7 @@ use Cake\Log\Log;
 class NotificationsController extends StandardController {
   public $paginate = [
     'order' => [
-      'Notifications.comment' => 'asc'
+      'Notifications.modified' => 'desc'
     ]
   ];
 

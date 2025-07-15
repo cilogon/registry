@@ -1,6 +1,6 @@
 <?php
-/**
- * COmanage Registry Email Addresses Controller
+/*
+ * COmanage Registry Approval Collectors Cell
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,40 +21,44 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ *
+ * This generic modal dialog stub is used for confirmations, e.g. when deleting a record.
+ * The text of the box is overridden with JavaScript, and the confirm button is intended to
+ * click a CakePHP postLink or postButton in the DOM. Use jsConfirmGeneric() to call it.
  */
 
-declare(strict_types = 1);
+use \App\Lib\Enum\StatusEnum;
 
-namespace App\Controller;
+$status = null;
+$approver = null;
 
-// XXX not doing anything with Log yet
-use Cake\Log\Log;
-use Cake\ORM\TableRegistry;
+if(!empty($vv_pa->approver_person_id)) {
+  $enum = ($vv_pa->approved ? StatusEnum::Approved : StatusEnum::Denied);
 
-class EmailAddressesController extends MVEAController {
-  public $paginate = [
-    'order' => [
-      'EmailAddresses.mail' => 'asc'
+  $approver = $this->Html->link(
+    $vv_pa->approver_person->primary_name->full_name,
+    [
+      'plugin' => null,
+      'controller' => 'people',
+      'action' => 'edit',
+      $vv_pa->approver_person_id
     ]
-  ];
+  );
 
-  /**
-   * Force an Email Address to verified status.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function forceVerify(string $id) {
-    try {
-      $addr = $this->EmailAddresses->forceVerify((int)$id);
-      $this->Flash->success(__d('result', 'EmailAddresses.verify.manual', [$addr]));
-    }
-    catch(Exception $e) {
-      $this->Flash->error($e->getMessage());
-    }
-    
-    return $this->generateRedirect(null);
-  }
+  $status = __d('core_enroller', 'result.ApprovalCollectors.status', [
+    __d('enumeration', 'StatusEnum.'.$enum),
+    $approver,
+    $vv_pa->modified,
+    $vv_pa->comment
+  ]); 
 }
+?>
+<?php if(!empty($status)): ?>
+  <ul>
+    <li>
+      <?= $status; ?>
+    </li>
+  </ul>
+<?php endif; ?>

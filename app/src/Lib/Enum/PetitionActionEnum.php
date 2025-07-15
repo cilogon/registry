@@ -30,7 +30,11 @@ declare(strict_types = 1);
 namespace App\Lib\Enum;
 
 class PetitionActionEnum extends StandardEnum {
+  const Accepted                = 'IC';  // Previously "Invitation Confirmed"
+  const Approved                = 'PY';
   const AttributesUpdated       = 'AU';
+  const Declined                = 'PX';
+  const Denied                  = 'PN';
   const EmailVerified           = 'EV';
   const Finalized               = 'F';
   const FlaggedDuplicate        = 'FD';

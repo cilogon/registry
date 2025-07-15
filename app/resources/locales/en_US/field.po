@@ -441,8 +441,26 @@ msgstr "If true, Global Search will only search Names, Email Addresses, and Iden
 msgid "EnrollmentFlowSteps.actor_type"
 msgstr "Actor Type"
 
+msgid "EnrollmentFlowSteps.approver_group_id"
+msgstr "Approver Group"
+
+msgid "EnrollmentFlowSteps.approver_group_id.desc"
+msgstr "The members of this Group may approve Petitions for this Enrollment Flow Step, as per the mode configuration"
+
+msgid "EnrollmentFlowSteps.message_template_id"
+msgstr "Handoff Message Template"
+
 msgid "EnrollmentFlowSteps.message_template_id.desc"
 msgstr "If a handoff is required to start this step, this Message Template will be used to notify the next Actor"
+
+msgid "EnrollmentFlowSteps.notification_group_id"
+msgstr "Notification Group"
+
+msgid "EnrollmentFlowSteps.notification_group_id.desc"
+msgstr "If set, this Group will be notified when this Step is completed"
+
+msgid "EnrollmentFlowSteps.notification_message_template_id"
+msgstr "Group Notification Message Template"
 
 msgid "EnrollmentFlowSteps.redirect_on_handoff"
 msgstr "Redirect on Handoff"
@@ -461,6 +479,24 @@ msgstr "Petitioner Authorization"
 
 msgid "EnrollmentFlows.collect_enrollee_email"
 msgstr "Collect Enrollee Email"
+
+msgid "EnrollmentFlows.finalization_message_template_id"
+msgstr "Finalization Message Template"
+
+msgid "EnrollmentFlows.finalization_message_template_id.desc"
+msgstr "If set, this Message Template will be used to notify the Enrollee"
+
+msgid "EnrollmentFlows.notification_group_id"
+msgstr "Notification Group"
+
+msgid "EnrollmentFlows.notification_group_id.desc"
+msgstr "If set, this Group will be notified whenever any Step associated with this Enrollment Flow is completed"
+
+msgid "EnrollmentFlows.notification_message_template_id"
+msgstr "Group Notification Message Template"
+
+msgid "EnrollmentFlows.notification_message_template_id.desc"
+msgstr "This Message Template will be used to notify the Notification Group"
 
 msgid "EnrollmentFlows.redirect_on_duplicate"
 msgstr "Redirect on Duplicate"
@@ -512,6 +548,9 @@ msgstr "Where the current group will be nested"
 
 msgid "Groups.desc.admins"
 msgstr "{0} Administrators"
+
+msgid "Groups.desc.approvers"
+msgstr "{0} Approvers"
 
 msgid "Groups.desc.members"
 msgstr "{0} Members"
@@ -713,8 +752,11 @@ msgstr "Notification Email Subject"
 msgid "Notifications.notification_time"
 msgstr "Notification Time"
 
+msgid "Notifications.recipient_group_id"
+msgstr "Recipient (Group)"
+
 msgid "Notifications.recipient_person_id"
-msgstr "Recipient"
+msgstr "Recipient (Person)"
 
 msgid "Notifications.resolver_person_id"
 msgstr "Resolved By"
@@ -728,14 +770,23 @@ msgstr "Resolution Email Subject"
 msgid "Notifications.resolution_time"
 msgstr "Resolution Time"
 
+msgid "Notifications.subject_group_id"
+msgstr "Subject (Group)"
+
 msgid "Notifications.subject_person_id"
-msgstr "Subject"
+msgstr "Subject (Person)"
 
 msgid "Petitions.enrollee_email"
 msgstr "Enrollee Email Address"
 
 msgid "Petitions.enrollee_email.desc"
 msgstr "The Email Address provided at the creation of the Petition"
+
+msgid "Petitions.enrollee_identifier"
+msgstr "Enrollee Identifier"
+
+msgid "Petitions.enrollee_name"
+msgstr "Enrollee Name"
 
 msgid "Petitions.enrollee.new"
 msgstr "New Enrollee"

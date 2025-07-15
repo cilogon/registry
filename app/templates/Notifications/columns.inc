@@ -26,8 +26,21 @@
  */
 
 $indexColumns = [
+  'id' => [
+    'type' => 'echo'
+  ],
   'action' => [
     'type' => 'echo'
+  ],
+  'subject_person_id' => [
+    'type' => 'relatedLink',
+    'action' => 'edit',
+    'label' => __d('field', 'Notifications.subject_person_id'),
+    'model' => 'subject_person',
+    'submodel' => 'primary_name',
+    'field' => 'full_name'
+// XXX see comments in whichever controller this came from about sorting on given vs family
+//    'sortable' => 'PrimaryName.family'
   ],
   'comment' => [
     'type' => 'link'

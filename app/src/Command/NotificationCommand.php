@@ -64,9 +64,16 @@ class NotificationCommand extends Command
     )->addOption(
       'subjectIdentifier',
       [
-        'required'  => true,
+        'required'  => false,
         'short'     => 's',
         'help'      => __d('command', 'opt.notify.subjectid')
+      ]
+    )->addOption(
+      'subjectGroupIdentifier',
+      [
+        'required'  => false,
+        'short'     => 'g',
+        'help'      => __d('command', 'opt.notify.subjectgroupid')
       ]
     )->addOption(
       'actorIdentifier',
@@ -78,9 +85,16 @@ class NotificationCommand extends Command
     )->addOption(
       'recipientIdentifier',
       [
-        'required'  => true,
+        'required'  => false,
         'short'     => 'r',
         'help'      => __d('command', 'opt.notify.recipientid')
+      ]
+    )->addOption(
+      'recipientGroupIdentifier',
+      [
+        'required'  => false,
+        'short'     => 'G',
+        'help'      => __d('command', 'opt.notify.recipientgroupid')
       ]
     )->addOption(
       'action',
@@ -154,28 +168,46 @@ class NotificationCommand extends Command
     $typeId = $Types->getTypeId($coId, 'Identifiers.type', $args->getOption('typeLabel'));
 
     // Subject
+    $subjectGroupId = null;
+    $subjectPersonId = null;
 
-    $subjectPersonId = $Identifiers->lookupPerson($typeId, $args->getOption('subjectIdentifier'));
+    if($args->getOption('subjectGroupIdentifier')) {
+      $subjectGroupId = $Identifiers->lookupGroup($typeId, $args->getOption('subjectGroupIdentifier'));
+    }
+
+    if($args->getOption('subjectIdentifier')) {
+      $subjectPersonId = $Identifiers->lookupPerson($typeId, $args->getOption('subjectIdentifier'));
+    }
 
     // Actor
 
     $actorPersonId = $Identifiers->lookupPerson($typeId, $args->getOption('actorIdentifier'));
 
     // Recipient
+    $recipientGroupId = null;
+    $recipientPersonId = null;
 
-    $recipientPersonId = $Identifiers->lookupPerson($typeId, $args->getOption('recipientIdentifier'));
+    if($args->getOption('recipientGroupIdentifier')) {
+      $recipientGroupId = $Identifiers->lookupGroup($typeId, $args->getOption('recipientGroupIdentifier'));
+    }
+
+    if($args->getOption('recipientIdentifier')) {
+      $recipientPersonId = $Identifiers->lookupPerson($typeId, $args->getOption('recipientIdentifier'));
+    }
 
     $io->out("Registering notification:");
     $io->out("- Subject Person ID: " . $subjectPersonId);
+    $io->out("- Subject Group ID: " . $subjectGroupId);
     $io->out("- Actor Person ID: " . $actorPersonId);
     $io->out("- Recipient Person ID: " . $recipientPersonId);
+    $io->out("- Recipient Group ID: " . $recipientGroupId);
 
     $notificationIds = $Notifications->register(
       subjectPersonId:    $subjectPersonId,
-      subjectGroupId:     null,
+      subjectGroupId:     $subjectGroupId,
       actorPersonId:      $actorPersonId,
       recipientPersonId:  $recipientPersonId,
-      recipientGroupId:   null,
+      recipientGroupId:   $recipientGroupId,
       action:             $args->getOption('action'),
       comment:            $args->getOption('comment'),
       messageTemplateId:  (int)$args->getOption('messageTemplateId'),

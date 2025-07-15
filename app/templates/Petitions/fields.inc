@@ -214,11 +214,37 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
   <div class="field">
     <div class="field-name ">
       <div class="field-title">
+        <?= __d('field','Petitions.enrollee_name') ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?= $vv_enrollee_name ?? __d('field', 'Petitions.enrollee.new') ?>
+    </div>
+  </div>
+</li>
+<li>
+  <?php // Email Address provided at Petition creation, might be empty but the field should render anyway ?>
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
         <?= __d('field','Petitions.enrollee_email') ?>
       </div>
     </div>
     <div class="field-info">
       <?= $vv_obj->enrollee_email ?>
+    </div>
+  </div>
+</li>
+<li>
+  <?php // Email Address provided at Petition creation, might be empty but the field should render anyway ?>
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('field','Petitions.enrollee_identifier') ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?= $vv_obj->enrollee_identifier ?>
     </div>
   </div>
 </li>
@@ -325,10 +351,31 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
       <tbody>
       <?php foreach($vv_obj->petition_history_records as $hr): ?>
         <tr>
-          <td><?= __d('enumeration','PetitionActionEnum.' . $hr['action']) ?></td>
-          <td><?= $hr['actor_person_id'] // XXX Replace with link to actor and name of ?></td>
-          <td><?= $hr['comment'] ?></td>
-          <td><?= $hr['created'] ?></td>
+          <td>
+            <?= 
+              // We only render the code here (not the localization) partly because some
+              // codes may not be localized (especially local plugins) but also because
+              // it's noisy to render the full string when mostly 'comment' has the content
+              // of actual interest
+              $hr->action //__d('enumeration','PetitionActionEnum.' . $hr['action']) 
+            ?>
+          </td>
+          <td>
+            <?= 
+              !empty($hr->actor_person_id) 
+              ? $this->Html->link(
+                  $hr->actor_person->primary_name->full_name,
+                  [
+                    'controller' => 'people',
+                    'action' => 'edit',
+                    $hr->actor_person_id
+                  ]
+                )
+              : ""          
+            ?>
+          </td>
+          <td><?= $hr->comment ?></td>
+          <td><?= $hr->created ?></td>
         </tr>
       <?php endforeach; ?>
       </tbody>

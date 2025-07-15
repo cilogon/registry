@@ -35,6 +35,7 @@ namespace App\Lib\Util;
 use Cake\Mailer\Message;
 use Cake\Mailer\Transport\SmtpTransport;
 use Cake\ORM\TableRegistry;
+use App\Model\Entity\MessageTemplate;
 
 class DeliveryUtilities {
   use \App\Lib\Traits\LabeledLogTrait;
@@ -153,67 +154,41 @@ class DeliveryUtilities {
    * if $subject and $body are used intead.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  int          $messageTemplateId  Message Template ID
-   * @param  int          $personId           Recipient Person ID
-   * @param  string       $address            Recipient Email Address
-   * @param  Person       $subjectPerson      Subject Person, including Primary Name
-   * @param  Notification $notification       Notification
-   * @param  string       $code               Verification code
-   * @return array                            'recipient': Recipient email address ("to" only, not "cc" or "bcc")
+   * @param  MessageTemplate  $template   Message Template
+   * @param  int              $personId   Recipient Person ID
+   * @param  string           $address    Recipient Email Address
+   * @param  int              $groupId    Recipient Group ID
+   * @return array                        'recipient': Recipient email address ("to" only, not "cc" or "bcc")
    */
 
   public static function sendEmailFromTemplate(
-    int                               $messageTemplateId,
+    MessageTemplate                   $template,
     ?int                              $personId=null,
     ?string                           $address=null,
-    ?\App\Model\Entity\Person         $subjectPerson=null,
-    ?\App\Model\Entity\Notification   $notification=null,
-    ?string                           $code=null
+    ?int                              $groupId=null
   ): array {
-    $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
-
-    $messageTemplate = $MessageTemplates->get($messageTemplateId);
-
-    // Generate the message from the template
-    $message = $MessageTemplates->generateMessage(
-      id:             $messageTemplateId,
-      subjectPerson:  $subjectPerson,
-      notification:   $notification,
-      code:           $code
-    );
-
-    if($notification) {
-      // Since we have the notification, we'll store the message here rather than
-      // make the calling code do it.
-
-      $notification->email_subject = $message['subject'];
-      $notification->email_body_text = $message['body_text'];
-      $notification->email_body_html = $message['body_html'];
-
-      $Notifications = TableRegistry::getTableLocator()->get('Notifications');
-      $Notifications->save($notification);
-    }
+    $template->generateMessage();
 
     if($personId) {
       return self::sendEmailToPerson(
         personId:   $personId,
-        subject:    $message['subject'],
-        body_text:  $message['body_text'] ?? "",
-        body_html:  $message['body_html'] ?? "",
-        cc:         $messageTemplate->cc,
-        bcc:        $messageTemplate->bcc,
-        replyTo:    $messageTemplate->reply_to
+        subject:    $template->getMessagePart('subject'),
+        body_text:  $template->getMessagePart('body_text'),
+        body_html:  $template->getMessagePart('body_html'),
+        cc:         $template->cc,
+        bcc:        $template->bcc,
+        replyTo:    $template->reply_to
       );
     } else {
       self::sendEmailToAddress(
-        coId:       $messageTemplate->co_id,
+        coId:       $template->co_id,
         recipient:  $address,
-        subject:    $message['subject'],
-        body_text:  $message['body_text'] ?? "",
-        body_html:  $message['body_html'] ?? "",
-        cc:         $messageTemplate->cc,
-        bcc:        $messageTemplate->bcc,
-        replyTo:    $messageTemplate->reply_to
+        subject:    $template->getMessagePart('subject'),
+        body_text:  $template->getMessagePart('body_text'),
+        body_html:  $template->getMessagePart('body_html'),
+        cc:         $template->cc,
+        bcc:        $template->bcc,
+        replyTo:    $template->reply_to
       );
 
       return [

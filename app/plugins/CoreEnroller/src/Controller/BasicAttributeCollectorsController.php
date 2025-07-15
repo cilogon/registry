@@ -78,7 +78,6 @@ class BasicAttributeCollectorsController extends StandardEnrollerController {
     $this->set('vv_required_name_fields', $settings->name_required_fields_array());
 
     if($this->request->is(['post', 'put'])) {
-      
       try {
         $this->BasicAttributeCollectors->upsert(
           id:         (int)$id,
@@ -102,6 +101,12 @@ class BasicAttributeCollectorsController extends StandardEnrollerController {
         $this->Flash->error($e->getMessage());
       }
     }
+    
+    // Check for existing values in case we're re-running the step
+    $this->set('petition_basic_attribute_sets',
+               $this->BasicAttributeCollectors->PetitionBasicAttributeSets->find()
+                    ->where(['petition_id' => $petition->id, 'basic_attribute_collector_id' => $id])
+                    ->first());
 
     // Fall through and let the form render
 

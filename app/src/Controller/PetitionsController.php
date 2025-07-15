@@ -69,6 +69,14 @@ class PetitionsController extends StandardController {
       $this->set('vv_bc_parent_primarykey', $this->Petitions->EnrollmentFlows->getPrimaryKey());
     }
 
+    if($this->request->getParam('action') == 'view') {
+      $id = $this->request->getParam('pass.0');
+
+      if($id) {
+        $this->set('vv_enrollee_name', $this->Petitions->getEnrolleeName((int)$id));
+      }
+    }
+
     return parent::beforeRender($event);
   }
 
@@ -85,17 +93,30 @@ class PetitionsController extends StandardController {
 
     $authorized = false;
 
-    // We're currently only used for finalize
+    if($action == 'continue') {
+      // If we're called here it's because we have an authenticated user step.
+      // (The token for unauthenticated users was validated by willHandleAuth()).
+      
+      $currentActor = $this->getCurrentActor(
+        petitionId: $this->nextStep['petition']->id,
+        stepId: $this->nextStep['step']->id
+      );
 
-    if($action == 'finalize') {
+      $authorized = in_array($this->nextStep['step']->actor_type, $currentActor['roles']);
+    } elseif($action == 'finalize' && ($this->nextStep['finalize'] === true)) {
       // If we're using token auth, we checked the token in willHandleAuth(),
       // so all we really need to do here is compare the actor roles (including
       // for actors authenticated via the web server) against the role for the
       // last step.
 
       // willHandleAuth() already checked that we have a valid Petition ID, and
-      // also set $this->nextStep
-      $currentActor = $this->getCurrentActor((int)$this->request->getParam('pass.0'));
+      // also set $this->nextStep. We need to specifically request the permissions
+      // for the previous step to ensure Approver permissions are calculated properly.
+
+      $currentActor = $this->getCurrentActor(
+        petitionId: $this->nextStep['petition']->id,
+        stepId: $this->nextStep['lastStep']->id
+      );
 
       $authorized = in_array($this->nextStep['lastStep']->actor_type, $currentActor['roles']);
     }
@@ -359,6 +380,25 @@ class PetitionsController extends StandardController {
   }
 
   /**
+   * Terminate an in-progress Petition.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  string   $id   Petition ID
+   */
+
+  public function terminate(string $id) {
+    try {
+      $this->Petitions->terminate((int)$id);
+      $this->Flash->success(__d('result', 'Petitions.terminated'));
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
+
+    return $this->generateRedirect(null);
+  }
+
+  /**
    * Indicate whether this Controller will handle some or all authnz.
    * 
    * @since  COmanage Registry v5.1.0
@@ -386,20 +426,39 @@ class PetitionsController extends StandardController {
     }
 
     if($action == 'continue') {
-      // For continue, we mostly just check that if the user type is anonymous
-      // that a token was provided and validates.
-      $actorInfo = $this->getCurrentActor($petitionId);
+      // We can't reliably determine the actor type yet since we haven't necessarily
+      // run authentication. In particular, a new enrollee clicking a continue link
+      // sent out of band and an approver clicking a continue link sent out of band
+      // will look the same to us most likely (unless the approver happend to login
+      // already).
+      
+      // We are basically just issuing a redirect here (the target of which will
+      // implement authnz anyway), but there is a small bit of information leakage
+      // possible by introspecting the redirect target, so we try to make sure we at
+      // least have some sort of authenticated user.
 
-      if($actorInfo['type'] == 'anonymous') {
-        if(!$actorInfo['token_ok']) {
+      $this->nextStep = $this->Petitions->EnrollmentFlows->calculateNextStep($petitionId);
+
+      if($this->nextStep['petition']->useToken($this->nextStep['step']->actor_type)) {
+        // A token is required, so make sure we have one and that it validates
+
+        $actorInfo = $this->getCurrentActor($petitionId);
+
+        if($actorInfo['token_ok']) {
+          // We can return 'yes' without calling calculatePermission since we're
+          // just issuing a redirect, and presumably the person with the token already
+          // more or less knows the state of the Petition.
+
+          return 'yes';
+        } else {
           $this->llog('trace', "Token validation failed for Petition " . $petitionId);
           return 'notauth';
         }
-      }
+      } else {
+        // No token is needed, but we do need authentication to run.
 
-      // We'll allow any authenticated user through since continue is basically
-      // a redirect
-      return 'yes';
+        return 'authz';
+      }
     } elseif($action == 'finalize') {
       // For finalize, the relevant Step is the last one. We'll use calculateNextStep()
       // to get the last Step, which will also check if the petition is already completed.

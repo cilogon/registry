@@ -66,8 +66,20 @@ class EnrollmentFlowStepsTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
+    $this->belongsTo('ApproverGroups')
+         ->setClassName('Groups')
+         ->setForeignKey('approver_group_id')
+         ->setProperty('approver_group');
     $this->belongsTo('EnrollmentFlows');
     $this->belongsTo('MessageTemplates');
+    $this->belongsTo('NotificationGroups')
+         ->setClassName('Groups')
+         ->setForeignKey('notification_group_id')
+         ->setProperty('notification_group');
+    $this->belongsTo('NotificationMessageTemplates')
+         ->setClassName('MessageTemplates')
+         ->setForeignKey('notification_message_template_id')
+         ->setProperty('notification_message_template');
     $this->hasMany('PetitionStepResults');
 
     $this->setPluginRelations();
@@ -84,10 +96,23 @@ class EnrollmentFlowStepsTable extends Table {
         'type'  => 'enum',
         'class' => 'EnrollmentActorEnum'
       ],
+      'approverGroups' => [
+        'type'  => 'select',
+        'model' => 'Groups'
+      ],
       'messageTemplates' => [
         'type' => 'select',
         'model' => 'MessageTemplates',
         'where' => ['context' => \App\Lib\Enum\MessageTemplateContextEnum::EnrollmentHandoff]
+      ],
+      'notificationGroups' => [
+        'type'  => 'select',
+        'model' => 'Groups'
+      ],
+      'notificationMessageTemplates' => [
+        'type' => 'select',
+        'model' => 'MessageTemplates',
+        'where' => ['context' => \App\Lib\Enum\MessageTemplateContextEnum::EnrollmentStepCompleted]
       ],
       'plugins' => [
         'type'        => 'plugin',
@@ -240,6 +265,20 @@ class EnrollmentFlowStepsTable extends Table {
     ]);
     $validator->notEmptyString('actor_type');
 
+    $validator->add('approver_group_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('approver_group_id');
+    /*
+    // An approvers group is required when the actor_type is Approver
+    $validator->notEmptyString(
+      field: 'approver_group_id',
+      when: function($context) {
+        return (!empty($context['data']['actor_type'])
+                && ($context['data']['actor_type'] == EnrollmentActorEnum::Approver));
+      }
+    );*/
+
     $validator->add('message_template_id', [
       'content' => ['rule' => 'isInteger']
     ]);
@@ -249,6 +288,16 @@ class EnrollmentFlowStepsTable extends Table {
       'content' => ['rule' => 'url']
     ]);
     $validator->allowEmptyString('redirect_on_handoff');
+
+    $validator->add('notification_group_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('notification_group_id');
+
+    $validator->add('notification_message_template_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('notification_message_template_id');
 
     return $validator; 
   }

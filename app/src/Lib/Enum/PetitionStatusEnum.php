@@ -45,6 +45,7 @@ class PetitionStatusEnum extends StandardEnum {
   const PendingApproval     = 'PA';
   const PendingVerification = 'PE';
   const PendingVetting      = 'PV';
+  const Terminated          = 'CX';
   const Verified            = 'VE';
   const Vetted              = 'VT';
 }

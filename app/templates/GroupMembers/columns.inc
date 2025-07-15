@@ -40,6 +40,12 @@ $indexColumns = [
 // XXX not clear how to sort on submodel, but maybe just leave it for UX revisions?
 //    'sortable' => 'PrimaryName.family'
   ],
+  'status' => [
+    'type' => 'enum',
+    'model' => 'person',
+    'field' => 'status',
+    'class' => 'StatusEnum'
+  ],
   'source' => [
     'type' => 'closure',
     'function' => function ($entity) {

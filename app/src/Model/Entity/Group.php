@@ -96,6 +96,7 @@ class Group extends Entity {
                       GroupTypeEnum::ActiveMembers,
                       GroupTypeEnum::Admins,
                       GroupTypeEnum::AllMembers,
+                      GroupTypeEnum::Approvers,
                       GroupTypeEnum::Owners
                     ]);
   }

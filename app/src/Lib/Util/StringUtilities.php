@@ -34,6 +34,31 @@ use \Cake\Utility\Inflector;
 
 class StringUtilities {
   /**
+   * Converts a token by adding dashes for improved readability.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  string $token The token to be formatted
+   * @param  int    $jump  Characters to skip before adding a dash
+   * @return string        The formatted token with dashes
+   */
+
+  public static function addDashesToToken(string $token, int $jump = 4): string {
+    // Insert some dashes to improve readability
+    $dtoken = '';
+
+    for($i = 0, $iMax = strlen($token); $i < $iMax; $i++) {
+      $dtoken .= $token[$i];
+
+      if((($i + 1) % $jump == 0)
+        && ($i + 1 < strlen($token))) {
+        $dtoken .= '-';
+      }
+    }
+
+    return $dtoken;
+  }
+
+  /**
    * Determine the foreign key name to point to a Cake Class Name (eg: foo_id for Foo).
    * 
    * @since  COmanage Registry v5.0.0

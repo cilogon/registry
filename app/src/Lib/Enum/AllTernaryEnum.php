@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Verification Mode Enum
+ * COmanage Registry All Ternary Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,17 +21,19 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry-plugins
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
 declare(strict_types = 1);
 
-namespace CoreEnroller\Lib\Enum;
+namespace App\Lib\Enum;
 
 use App\Lib\Enum\StandardEnum;
 
-class VerificationModeEnum extends StandardEnum {
+// This is intentionally called "AllTernaryEnum" to guarantee it will only ever have
+// these three values. Do not add values here, create a new Enum instead.
+class AllTernaryEnum extends StandardEnum {
   const All   = 'A';
   const None  = '0';
   const One   = '1';

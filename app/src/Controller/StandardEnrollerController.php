@@ -93,9 +93,24 @@ class StandardEnrollerController extends StandardPluginController {
       return false;
     }
 
-    $actorInfo = $this->getCurrentActor((int)$petitionId);
-    $this->petition = $actorInfo['petition'];
+    // We need the Step configuration to properly calculate the current Actor
+    // for Approval Steps.
 
+    $modelsName = $this->name;
+    $modelId = $this->request->getParam('pass.0');
+
+    if(!$modelId) {
+      $this->llog('error', "Model ID missing from request");
+      return false;
+    }
+    
+    $stepConfig = $this->$modelsName->get($modelId, ['contain' => ['EnrollmentFlowSteps' => ['EnrollmentFlows']]]);
+    $this->set('vv_step_config', $stepConfig);
+    $this->set('vv_title', $stepConfig['enrollment_flow_step']['enrollment_flow']['name']);
+
+    $actorInfo = $this->getCurrentActor((int)$petitionId, $stepConfig->enrollment_flow_step->id);
+    $this->petition = $actorInfo['petition'];
+    
     // We only accept anonymous requests for 'dispatch', and only if the token matches.
     // We'll further check authorization below.
     if($actorInfo['type'] == 'anonymous') {
@@ -116,18 +131,6 @@ class StandardEnrollerController extends StandardPluginController {
     if($action == 'dispatch') {
       // We already validated the petition state in willHandleAuth
 
-      $modelsName = $this->name;
-      $modelId = $this->request->getParam('pass.0'); // XXX check if empty
-
-      if(!$modelId) {
-        $this->llog('error', "Model ID missing from request");
-        return false;
-      }
-      
-      $stepConfig = $this->$modelsName->get($modelId, ['contain' => ['EnrollmentFlowSteps' => ['EnrollmentFlows']]]);
-      $this->set('vv_step_config', $stepConfig);
-      $this->set('vv_title', $stepConfig['enrollment_flow_step']['enrollment_flow']['name']);
-
       // Check that the current actor has the role required for this step.
       // Note that role validation has already been performed for anonymous access
       // via tokens (via getcurrentActor) so we don't have to recheck that here.
@@ -135,6 +138,12 @@ class StandardEnrollerController extends StandardPluginController {
       if(in_array($stepConfig->enrollment_flow_step->actor_type,
                   $actorInfo['roles'])) {
         $this->llog('trace', "Authorizing access to petition " . $petitionId . " step " . $stepConfig->enrollment_flow_step_id);
+        return true;
+      }
+
+      // As a special case, we allow the Platform adminstrator to perform all actions.
+      if(in_array('cmpadmin', $actorInfo['roles'])) {
+        $this->llog('trace', "Authorizing access to petition " . $petitionId . " step " . $stepConfig->enrollment_flow_step_id) . " for platform administrator";
         return true;
       }
     } elseif($action == 'display') {

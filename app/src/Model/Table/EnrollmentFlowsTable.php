@@ -80,7 +80,19 @@ class EnrollmentFlowsTable extends Table {
          // Property is set so ruleValidateCO can find it. We don't use the
          // _id suffix to match Cake's default pattern.
          ->setProperty('authz_group');
-  
+    $this->belongsTo('NotificationGroups')
+         ->setClassName('Groups')
+         ->setForeignKey('notification_group_id')
+         ->setProperty('notification_group');
+    $this->belongsTo('FinalizationMessageTemplates')
+         ->setClassName('MessageTemplates')
+         ->setForeignKey('finalization_message_template_id')
+         ->setProperty('finalization_message_template');
+    $this->belongsTo('NotificationMessageTemplates')
+         ->setClassName('MessageTemplates')
+         ->setForeignKey('notification_message_template_id')
+         ->setProperty('notification_message_template');
+
     $this->hasMany('Petitions');
     $this->hasMany('EnrollmentFlowSteps')
          ->setDependent(true)
@@ -97,6 +109,20 @@ class EnrollmentFlowsTable extends Table {
       'authzTypes' => [
         'type'  => 'enum',
         'class' => 'EnrollmentAuthzEnum'
+      ],
+      'finalizationMessageTemplates' => [
+        'type' => 'select',
+        'model' => 'MessageTemplates',
+        'where' => ['context' => \App\Lib\Enum\MessageTemplateContextEnum::EnrollmentFinalization]
+      ],
+      'notificationGroups' => [
+        'type'  => 'select',
+        'model' => 'Groups'
+      ],
+      'notificationMessageTemplates' => [
+        'type' => 'select',
+        'model' => 'MessageTemplates',
+        'where' => ['context' => \App\Lib\Enum\MessageTemplateContextEnum::EnrollmentStepCompleted]
       ],
       'statuses' => [
         'type'  => 'enum',
@@ -151,9 +177,9 @@ class EnrollmentFlowsTable extends Table {
    * @since  COmanage Registry v5.1.0
    * @param  int    $petitionId   Petition ID
    * @return array                url: URL to redirect to
-   *                              step: EnrollmentFlowStep
+   *                              step: EnrollmentFlowStep (null if finalize is true)
    *                              finalize: True if there are no further steps
-   *                              lastStep: If finalize is true, the last EnrollmentFlowStep
+   *                              lastStep: The prior EnrollmentFlowStep (the one before 'step')
    *                              petition: The Petition entity
    * @throws InvalidArgumentException
    */
@@ -202,6 +228,8 @@ class EnrollmentFlowsTable extends Table {
       throw new \InvalidArgumentException(__d('error', 'EnrollmentFlowSteps.none'));
     }
 
+    $prior = null;
+
     foreach($steps as $step) {
       if(!array_key_exists($step->id, $results)) {
         // We do not have an array for this step, so it is the next step
@@ -217,15 +245,17 @@ class EnrollmentFlowsTable extends Table {
             'action'      => 'dispatch',
             $step->$pluginName->id,
             '?' => [
-              'petition_id'             => $petition->id
+              'petition_id' => $petition->id
             ]
           ],
           'step' => $step,
           'finalize' => false,
-          'lastStep' => null,
+          'lastStep' => $prior,
           'petition' => $petition
         ];
       }
+
+      $prior = $step;
     }
 
     // If we didn't find a Step, it's time to Finalize the Petition.
@@ -301,6 +331,21 @@ class EnrollmentFlowsTable extends Table {
     ]);
     $validator->allowEmptyString('redirect_on_finalize');
     
+    $validator->add('finalization_message_template_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('finalization_message_template_id');
+
+    $validator->add('notification_group_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('notification_group_id');
+
+    $validator->add('notification_message_template_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('notification_message_template_id');
+
     return $validator; 
   }
 }

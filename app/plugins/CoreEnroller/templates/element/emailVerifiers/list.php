@@ -27,7 +27,7 @@
 
 declare(strict_types = 1);
 
-use CoreEnroller\Lib\Enum\VerificationModeEnum;
+use App\Lib\Enum\AllTernaryEnum;
 use App\Lib\Util\StringUtilities;
 
 // Render the list of known email addresses and their verification statuses.
@@ -38,12 +38,12 @@ if($vv_all_done) {
   $title = __d('core_enroller', 'information.EmailVerifiers.done');
 } else {
   $title = match ($vv_config->mode) {
-    VerificationModeEnum::All  => __d('core_enroller', 'information.EmailVerifiers.A'),
-    VerificationModeEnum::None => __d('core_enroller', 'information.EmailVerifiers.0'),
-    VerificationModeEnum::One  => $vv_minimum_met
+    AllTernaryEnum::All  => __d('core_enroller', 'information.EmailVerifiers.A'),
+    AllTernaryEnum::None => __d('core_enroller', 'information.EmailVerifiers.0'),
+    AllTernaryEnum::One  => $vv_minimum_met
       ? __d('core_enroller', 'information.EmailVerifiers.1.met')
       : __d('core_enroller', 'information.EmailVerifiers.1.none'),
-    default => 'Unknown Verification Mode' // Optional fallback for unexpected cases
+    default => __d('error', 'Verifications.mode.unknown', [$vv_config->mode]) // Optional fallback for unexpected cases
   };
 
 }

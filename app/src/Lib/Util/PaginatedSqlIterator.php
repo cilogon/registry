@@ -34,7 +34,9 @@ class PaginatedSqlIterator implements \Iterator {
   // This is suitable for iterating large datasets sequentially, but not so
   // good for random pagination (eg: via the UI) of large datasets.
   
-  // Number of results to pull at one time, for now this is not configurable
+  // Number of results to pull at one time, for now this is not configurable,
+  // though note that when $filter is used the actual result set may be smaller
+  // on any given page load.
   private $pageSize = 100;
   
   // For now we only iterate over id, which we know is indexed and is an integer
@@ -61,10 +63,34 @@ class PaginatedSqlIterator implements \Iterator {
   // Options for find()
   private $options = [];
 
-  public function __construct($table, $conditions=null, $options=[]) {
+  // Filter to apply on individual results.
+  
+  // Why use a Filter instead of $conditions? Primarily to facilitate the encapsulation of
+  // logic, rather than copy/paste. $filter will be passed entities, which can be worked with
+  // in standard Cake style, avoiding the need to rewrite logic in direct $conditions.
+  // Given that PaginatedSqlIterator is usually called in the context of processing (large
+  // sets of) records anyway, there is already a cost being incurred in processing time, and
+  // the savings in most cases of optimizing the database query will be trivial. Where they
+  // are non-trivial, don't use a filter. Note that (additionally) $count will no longer be
+  // accurate when $filter is used (it will be an upper bound instead).
+  private $filter = null;
+
+  /**
+   * Construct a new PaginatedSqlIterator.
+   * 
+   * @since  COmanage Registry v3.3.0
+   * @param  Table    $table        Table
+   * @param  array    $condititions Query condittions (use direct queries only, avoid joins due to ChangelogBehavior complications)
+   * @param  array    $options      Options to pass to cake find()
+   * @param  callable $filter       Optional filter to apply to individual results
+   * @return PaginatedSqlIterator
+   */
+
+  public function __construct($table, $conditions=null, $options=[], $filter=null) {
     $this->table = $table;
     $this->conditions = $conditions;
     $this->options = $options;
+    $this->filter = $filter;
     
     $this->position = 0;
   }
@@ -161,9 +187,32 @@ class PaginatedSqlIterator implements \Iterator {
       $this->maxid = $max->id;
     }
     // else no remaining rows. valid() will return false.
-    
-    // Convert the result set to an array for our own iterator use
-    $this->results = $resultSet->toArray();
+
+    if($this->filter) {
+      // Build our result cache by manually applying the callback to each result
+      // and converting that result to an array.
+
+      foreach($resultSet as $k => $entity) {
+        // We expect a simple boolean true/false from $filter
+        $filter = $this->filter;
+
+        if($filter($entity)) {
+          $this->results[] = $entity;
+        }
+      }
+
+      if(empty($this->results) && $max) {
+        // If we didn't get at least one non-filtered result and we're not at the
+        // end of the table then current() won't return correctly. Proactively call
+        // loadPage() again.
+
+        $this->loadPage();
+      }
+    } else {
+      // Convert the result set to an array for our own iterator use
+      // (Note this is an array of entities, not an array of arrays)
+      $this->results = $resultSet->toArray();
+    }    
   }
   
   /**

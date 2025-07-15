@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Group Type Enum
+ * COmanage Registry Attribute Collectors Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,20 +21,20 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+// This view only supports edit
+if($vv_action !== 'edit') {
+  return;
+}
 
-namespace App\Lib\Enum;
-
-class GroupTypeEnum extends StandardEnum {
-  const ActiveMembers = 'MA';
-  const Admins        = 'A';
-  const AllMembers    = 'M';
-  // Note that other groups can be used for Approval, this is the _default_ group for the CO/COU
-  const Approvers     = 'AP';
-  const Owners        = 'O';
-  const Standard      = 'S';
+foreach(['require_comment',
+         'denial_message_template_id',
+         'redirect_on_denial'
+        ] as $field) {
+  print $this->element('form/listItem', [
+    'arguments' => ['fieldName' => $field]
+  ]);
 }

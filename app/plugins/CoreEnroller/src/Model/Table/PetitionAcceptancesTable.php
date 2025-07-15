@@ -144,10 +144,8 @@ class PetitionAcceptancesTable extends Table {
     $this->Petitions->PetitionHistoryRecords->record(
       petitionId:           $petitionId,
       enrollmentFlowStepId: $enrollmentFlowStepId,
-      action:               PetitionActionEnum::StatusUpdated,
+      action:               $accepted ? PetitionActionEnum::Accepted : PetitionActionEnum::Declined,
       comment:              __d('core_enroller', $accepted ? 'result.accept.accepted' : 'result.accept.declined')
-// We don't have $actorPersonId yet...
-//    ?int $actorPersonId=null
     );
   }
 

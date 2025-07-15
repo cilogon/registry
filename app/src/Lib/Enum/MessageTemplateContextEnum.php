@@ -31,12 +31,12 @@ namespace App\Lib\Enum;
 
 class MessageTemplateContextEnum extends StandardEnum {
 //  const Authenticator          = 'AU';
-//  const EnrollmentApproval     = 'EA';
-//  const EnrollmentApprover     = 'AP';
-//  const EnrollmentFinalization = 'EF';
-  const EnrollmentHandoff      = 'EH';
-//  const EnrollmentInvitation   = 'EI'; -- we probably don't want to use this, use Handoff instead
+  // EnrollmentApproval is only used for denial notifications in v5
+  const EnrollmentApproval     = 'EA';
+  const EnrollmentFinalization  = 'EF';
+  const EnrollmentHandoff       = 'EH';
+  const EnrollmentStepCompleted = 'ES';
 //  const ExpirationNotification = 'XN';
-  const Plugin                 = 'PL';
-  const Verification           = 'V';
+  const Plugin                  = 'PL';
+  const Verification            = 'V';
 }

@@ -38,6 +38,7 @@ use App\Lib\Enum\ActionEnum;
 use App\Lib\Enum\VerificationMethodEnum;
 use App\Lib\Random\RandomString;
 use App\Lib\Util\DeliveryUtilities;
+use App\Lib\Util\StringUtilities;
 use App\Model\Entity\Verification;
 use Random\RandomException;
 
@@ -297,10 +298,15 @@ class VerificationsTable extends Table {
 
     // Send the verification message
 
+    $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
+
+    $template = $MessageTemplates->get($messageTemplateId);
+
+    $template->setContextCode(StringUtilities::addDashesToToken($code));
+    
     DeliveryUtilities::sendEmailFromTemplate(
-      address:            $mail,
-      messageTemplateId:  $messageTemplateId,
-      code:               $this->tokenToD($code)
+      template: $template,
+      address:  $mail
     );
 
     // We'll try to record history, but most likely it'll fail due to lack of a Person
@@ -440,32 +446,6 @@ class VerificationsTable extends Table {
     $newVerification->email_address_id = $emailAddressId;
 
     $this->saveOrFail($newVerification);
-  }
-
-
-  /**
-   * Converts a token by adding dashes for improved readability.
-   *
-   * @param string $token The token to be formatted
-   * @param int    $jump  Characters to skip before adding a dash
-   * @return string        The formatted token with dashes
-   * @since  COmanage Registry v5.2.0
-   */
-  public function tokenToD(string $token, int $jump = 4): string
-  {
-    // Insert some dashes to improve readability
-    $dtoken = '';
-
-    for($i = 0, $iMax = strlen($token); $i < $iMax; $i++) {
-      $dtoken .= $token[$i];
-
-      if((($i + 1) % $jump == 0)
-        && ($i + 1 < strlen($token))) {
-        $dtoken .= '-';
-      }
-    }
-
-    return $dtoken;
   }
 
   /**

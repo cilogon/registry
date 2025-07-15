@@ -32,11 +32,13 @@ namespace App\Model\Table;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use App\Lib\Enum\MessageFormatEnum;
 use App\Lib\Enum\MessageTemplateContextEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
+use \App\Model\Entity\Notification;
+use \App\Model\Entity\Person;
+use \App\Model\Entity\Petition;
 
 class MessageTemplatesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -46,7 +48,7 @@ class MessageTemplatesTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  
+
   /**
    * Perform Cake Model initialization.
    *
@@ -65,6 +67,8 @@ class MessageTemplatesTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
     $this->hasMany('EnrollmentFlowSteps');
+    $this->hasMany('EnrollmentFlowStepNotifications')
+         ->setForeignKey('notification_message_template_id');
     $this->hasMany('Notifications');
     
     $this->setDisplayField('description');
@@ -100,85 +104,6 @@ class MessageTemplatesTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
-  }
-
-  /**
-   * Generate a message based on a Message Template, using the provided entities to
-   * perform variable substitution.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int          $id             Message Template ID
-   * @param  array        $entryUrl       Entry URL for responding to a handoff or notification
-   * @param  Notification $notification   Notification
-   * @param  Person       $subjectPerson  Subject Person, including Primary Name
-   * @param  string       $code           Verification code
-   * @return array                        'subject': Message subject
-   *                                      'body_text': Plaintext message
-   *                                      'body_html': HTML message
-   */
-
-  public function generateMessage(
-    int                             $id,
-    array                           $entryUrl=[],
-    \App\Model\Entity\Notification  $notification=null,
-    \App\Model\Entity\Person        $subjectPerson=null,
-    ?string                         $code=null
-  ): array {
-    // We return "" instead of null by default for compatibility with DeliveryUtilities
-    $ret = [
-      'subject'     => "",
-      'body_text'   => "",
-      'body_html'   => ""
-    ];
-
-    // First retrieve the requested template
-    $template = $this->get($id);
-
-    // Next build an array of supported substitutions for which appropriate
-    // entities were provided.
-
-    $substitutions = [];
-
-    // Lookup the CO Name
-    $co = $this->Cos->get($template->co_id);
-
-    $substitutions['CO_NAME'] = $co->name;
-
-    if(!empty($entryUrl)) {
-      $substitutions['ENTRY_URL'] = \Cake\Routing\Router::url(
-        array_merge($entryUrl, ['_full' => true])
-      );
-    }
-
-    if($notification) {
-      $substitutions['NOTIFICATION_COMMENT'] = $notification->comment;
-      $substitutions['NOTIFICATION_SOURCE'] = $notification->source;
-    }
-    
-    if($subjectPerson && !empty($subjectPerson->primary_name)) {
-      $substitutions['SUBJECT_NAME'] = $subjectPerson->primary_name->full_name;
-    }
-
-    $substitutions['VERIFICATION_CODE'] = $code;
-
-    // Finally run the substitutions through each of the supported parts
-    
-    foreach(array_keys($ret) as $part) {
-      if(!empty($template->$part)) {
-        // Process the (@SUBSTITUTIONS) for this part
-        $searchKeys = [];
-        $replaceVals = [];
-
-        foreach(array_keys($substitutions) as $k) {
-          $searchKeys[] = "(@" . $k . ")";
-          $replaceVals[] = $substitutions[$k] ?? "(?)";
-        }
-
-        $ret[$part] = str_replace($searchKeys, $replaceVals, $template->$part);
-      }
-    }
-
-    return $ret;
   }
   
   /**
