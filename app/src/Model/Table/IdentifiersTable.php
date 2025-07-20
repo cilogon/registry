@@ -50,6 +50,7 @@ class IdentifiersTable extends Table {
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TypeTrait;
+  use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
 
   // Default "out of the box" types for this model. Entries here should be

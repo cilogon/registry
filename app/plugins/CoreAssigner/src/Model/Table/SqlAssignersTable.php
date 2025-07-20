@@ -31,6 +31,7 @@ namespace CoreAssigner\Model\Table;
 
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
+use Cake\ORM\ResultSet;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -112,6 +113,10 @@ class SqlAssignersTable extends Table {
    */
 
   public function assign($ia, $entity): string {
+    // We follow the same pattern as SqlSourcesTable::getRecordTable to create
+    // a backend-specific connection label in case we're instantiated multiple
+    // times to different servers.
+
     // Find the key identifier type in the $entity data
     $keyIdentifier = Hash::extract($entity->identifiers, '{n}[type_id='.$ia->sql_assigner->type_id.']');
 
@@ -119,20 +124,7 @@ class SqlAssignersTable extends Table {
       throw new \InvalidArgumentException(__d('core_assigner', 'error.SqlAssigners.key.none'));
     }
 
-    $SqlServer = TableRegistry::getTableLocator()->get('CoreServer.SqlServers');
-
-    $SqlServer->connect($ia->sql_assigner->server_id, 'sqlassigner');
-
-    $options = [
-      'table'       => $ia->sql_assigner->source_table,
-      'alias'       => 'SqlSourceIdentifiers',
-      'connection'  => ConnectionManager::get('sqlassigner')
-    ];
-
-    $SourceTable = TableUtilities::getTableFromRegistry(
-      alias: 'SqlSourceIdentifiers',
-      options: $options
-    );
+    $SourceTable = $this->connect($ia->sql_assigner);
 
     $identifier = $SourceTable->find()
                               ->where(['key' => $keyIdentifier[0]->identifier])
@@ -143,6 +135,50 @@ class SqlAssignersTable extends Table {
     }
 
     throw new \InvalidArgumentException(__d('core_assigner', 'error.SqlAssigners.failed'));
+  }
+
+  /**
+   * Connect to the SQL Server for this SQL Assigner.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  SqlAssigner    $sa   SQL Assigner describing the requested configuration
+   * @return Table                Dynamic Table for the SQL Assigner source table
+   */
+
+  protected function connect($sa): Table {
+    $SqlServer = TableRegistry::getTableLocator()->get('CoreServer.SqlServers');
+    $cxnLabel = "sqlassigner" . $sa->server_id;
+    $sourceAlias = "SqlAssignerIdentifiers" . $sa->server_id;
+
+    $SqlServer->connect($sa->server_id, $cxnLabel);
+
+    $options = [
+      'table'       => $sa->source_table,
+      'alias'       => $sourceAlias,
+      'connection'  => ConnectionManager::get($cxnLabel)
+    ];
+
+    return TableUtilities::getTableFromRegistry(
+      alias: $sourceAlias,
+      options: $options
+    );
+  }
+
+  /**
+   * Obtain the set of changed records within the specified lookback window.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  IdentifierAssignment $ia       Identifier Assignment describing the requested configuration
+   * @param  int                  $interval Lookback interval, in seconds
+   * @return ResultSet                      ResultSet of records modified in $interval
+   */
+
+  public function getChangedRecords($ia, $interval): ResultSet {
+    $SourceTable = $this->connect($ia->sql_assigner);
+
+    return $SourceTable->find()
+                       ->where(['modified >' => time()-$interval])
+                       ->all();
   }
 
   /**

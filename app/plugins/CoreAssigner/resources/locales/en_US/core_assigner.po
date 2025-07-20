@@ -34,6 +34,12 @@ msgstr "Random"
 msgid "enumeration.CollisionModeEnum.S"
 msgstr "Sequential"
 
+msgid "error.SqlAssignerJob.context"
+msgstr "SqlAssignerJob does not support Identifier Assignment context {0}"
+
+msgid "error.SqlAssignerJob.plugin"
+msgstr "Plugin for requested Identifier Assignment is {0}"
+
 msgid "error.SqlAssigners.failed"
 msgstr "Could not map key Identifier to target Identifier"
 
@@ -84,3 +90,42 @@ msgstr "Key Identifier Type"
 
 msgid "field.SqlAssigners.type_id.desc"
 msgstr "Type of existing Identifier used to query the Source Table"
+
+msgid "opt.sqlassigner.identifier_assignment_id"
+msgstr "Identifier Assignment ID"
+
+msgid "opt.sqlassigner.lookback"
+msgstr "Lookback interval in seconds for modified records"
+
+msgid "opt.sqlassigner.reprocess_assignments"
+msgstr "Reprocess other Identifier Assignments"
+
+msgid "opt.sqlassigner.suppress_noops"
+msgstr "Do not record history when the record is unchanged"
+
+msgid "result.SqlAssignerJob.assigned"
+msgstr "{0} assigned from source"
+
+msgid "result.SqlAssignerJob.derived"
+msgstr "Deleting derived {0} {1}"
+
+msgid "result.SqlAssignerJob.finish_summary"
+msgstr "Reviewed {0} People: {1} assigned and {2} updated Identifier(s), {3} error(s)"
+
+msgid "result.SqlAssignerJob.finish_summary.changelist"
+msgstr "Reviewed {0} source identifiers: {1} assigned and {2} updated Identifier(s), {3} error(s)"
+
+msgid "result.SqlAssignerJob.ia"
+msgstr "Re-running all Identifier Assignments"
+
+msgid "result.SqlAssignerJob.start_summary.changelist"
+msgstr "Syncing Identifiers for {0} changed record(s)"
+
+msgid "result.SqlAssignerJob.start_summary"
+msgstr "Syncing Identifiers for {0} People"
+
+msgid "result.SqlAssignerJob.unchanged"
+msgstr "{0} unchanged in source"
+
+msgid "result.SqlAssignerJob.updated"
+msgstr "{0} updated from source"

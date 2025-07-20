@@ -31,7 +31,7 @@ namespace App\Lib\Traits;
 
 trait UpsertTrait {
   /**
-   * Perform an upsert.
+   * Perform an upsert. The upsert status is available in $entity->_upsertStatus.
    * 
    * @since  COmanage Registry v5.1.0
    * @param  array                            $data         Data to persist
@@ -57,11 +57,18 @@ trait UpsertTrait {
       // This is an update
 
       $entity = $this->patchEntity($entity, $data);
+      $entity->_upsertStatus = !empty($entity->getDirty()) ? 'update' : 'unchanged';
     } else {
       // This is an insert
 
       $entity = $this->newEntity($data);
+      $entity->_upsertStatus = 'insert';
     }
+
+    // We inject a hidden field into the entity to return the status because after
+    // the save is called the standard Cake metadata will be reset, so calls like
+    // isNew() or getOriginal() can't be used to determine what happened.
+    $entity->setHidden(['_upsertStatus']);
 
     return $orFail ? $this->saveOrFail($entity) : $this->save($entity);
   }
