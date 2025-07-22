@@ -457,7 +457,7 @@ class NotificationsTable extends Table {
   public function resolveFromSource(
     mixed   $source,
     string  $resolution=NotificationStatusEnum::Resolved,
-    ?int    $resolverPersonId,
+    ?int    $resolverPersonId=null,
   ) {
     $sourceUrl = $source;
 
