@@ -334,6 +334,9 @@ class RegistryAuthComponent extends Component
 
     $ret = [];
     
+    // Get the action
+    $reqAction = $controller->getRequest()->getParam('action');
+    
     // This will need to be prefixed to the model, if set
     $pluginName = $controller->getPlugin();
     
