@@ -55,6 +55,7 @@ class CoSettingsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -127,6 +128,8 @@ class CoSettingsTable extends Table {
     $this->setRequiresCO(true);
     $this->setAllowUnkeyedPrimaryCO(['manage']);
     $this->setRedirectGoal('self');
+
+    $this->setEditContains(['Cos']);
     
     $this->setAutoViewVars([
       'defaultAddressTypes' => [
@@ -289,6 +292,33 @@ class CoSettingsTable extends Table {
   }
 
   /**
+   * Get the MFA Indicator configuration.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return array|false  Arrof of configuration data if MFA is required, false otherwise
+   */
+
+  public function getMfaIndicator(): array|false {
+    // The MFA Indicator only applies to the COmanage CO.
+
+    $COmanageCO = $this->Cos->find('COmanageCO')->firstOrFail();
+
+    $settings = $this->find()->where(['co_id' => $COmanageCO->id])->firstOrFail();
+
+    if(!empty($settings->platform_env_mfa) && !ctype_space($settings->platform_env_mfa)) {
+      return [
+        'indicator'       => $settings->platform_env_mfa,
+        'value'           => $settings->platform_env_mfa_value,
+        'exempt_groups'   => $settings->platform_env_mfa_enable_eg ?? false,
+        // We return the COmanage CO ID so AppController doesn't have to look it up again
+        'comanage_co_id'  => $COmanageCO->id
+      ];
+    }
+
+    return false;
+  }
+
+  /**
    * Get the outgoing SMTP Server for the specified CO.
    * 
    * @since  COmanage Registry v5.0.0
@@ -322,6 +352,29 @@ class CoSettingsTable extends Table {
     return null;
   }
   
+  /**
+   * Reset (disable) the MFA requirement.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return bool     true on success
+   */
+
+  public function resetMfaIndicator(): bool {
+    // The MFA Indicator only applies to the COmanage CO.
+
+    $COmanageCO = $this->Cos->find('COmanageCO')->firstOrFail();
+
+    $settings = $this->find()->where(['co_id' => $COmanageCO->id])->firstOrFail();
+
+    $settings->platform_env_mfa = null;
+    $settings->platform_env_mfa_value = null;
+    $settings->platform_env_mfa_enable_eg = false;
+
+    $this->saveOrFail($settings);
+
+    return true;
+  }
+
   /**
    * Determine if a requested Type is in use as a default via CoSettings.
    *
@@ -357,6 +410,8 @@ class CoSettingsTable extends Table {
    */
   
   public function validationDefault(Validator $validator): Validator {
+    $schema = $this->getSchema();
+
     $validator->add('default_address_type_id', [
       'content' => ['rule' => 'isInteger']
     ]);
@@ -451,6 +506,19 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => ['comparison', '>', 0]]
     ]);
     $validator->notEmptyString('search_global_limit');
+
+    // "platform_" prefixed fields are intended to be available in the COmanage CO only.
+    // We do this rather than create a separate table (like "meta") to leverage the existing
+    // infrastructure and not have to fight Cake to maintain a table with a single row.
+
+    $this->registerStringValidation($validator, $schema, 'platform_env_mfa', false);
+
+    $this->registerStringValidation($validator, $schema, 'platform_env_mfa_value', false);
+
+    $validator->add('platform_env_mfa_enable_eg', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('platform_env_mfa_enable_eg');
 
     return $validator;
   }

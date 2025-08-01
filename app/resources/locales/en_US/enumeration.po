@@ -195,6 +195,9 @@ msgstr "Owners"
 msgid "GroupTypeEnum.S"
 msgstr "Standard"
 
+msgid "GroupTypeEnum.2X"
+msgstr "MFA Exempt"
+
 msgid "GroupedAddressFieldsEnum.street,room"
 msgstr "Street, Room"
 

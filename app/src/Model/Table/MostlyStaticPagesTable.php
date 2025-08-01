@@ -138,6 +138,15 @@ class MostlyStaticPagesTable extends Table {
       ],
       [
         'co_id'       => $coId,
+        'name'        => 'mfa-required',
+        'title'       => __d('field', 'MostlyStaticPages.default.mr.title'),
+        'description' => __d('field', 'MostlyStaticPages.default.mr.description'),
+        'status'      => SuspendableStatusEnum::Active,
+        'context'     => PageContextEnum::ErrorLanding,
+        'body'        => __d('field', 'MostlyStaticPages.default.mr.body')
+      ],
+      [
+        'co_id'       => $coId,
         'name'        => 'petition-complete',
         'title'       => __d('field', 'MostlyStaticPages.default.pc.title'),
         'description' => __d('field', 'MostlyStaticPages.default.pc.description'),

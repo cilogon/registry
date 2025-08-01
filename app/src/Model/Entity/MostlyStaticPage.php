@@ -41,6 +41,19 @@ class MostlyStaticPage extends Entity {
   ];
 
   /**
+   * Determine if this entity record can be deleted.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @return bool True if the record can be deleted, false otherwise
+   */
+
+  public function canDelete(): bool {
+    // AR-MostlyStaticPage-3 Default Pages can not be deleted, or have their names, status,
+    // or context changed.
+    return !$this->isDefaultPage();
+  }
+
+  /**
    * Determine if this entity is a default Page (shipped out of the box and relied on by other
    * parts of the Application).
    *
@@ -55,6 +68,7 @@ class MostlyStaticPage extends Entity {
       'default-handoff',
       'duplicate-landing',
       'error-landing',
+      'mfa-required',
       'petition-complete'
     ]);
   }

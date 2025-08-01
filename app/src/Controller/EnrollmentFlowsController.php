@@ -130,6 +130,39 @@ class EnrollmentFlowsController extends StandardController {
   }
 
   /**
+   * Determine if MFA, if otherwise required, is not required for this action.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  string   $action   Controller action
+   * @return bool               true if MFA can be skipped, false otherwise
+   */
+
+  public function skipMfa(string $action): bool {
+    if($action == 'start') {
+      // We allow unregistered identities (any actor type other than "person")
+      // to skip MFA because they might not have MFA until they finish enrollment.
+      // (This is similar to PetitionsController::dispatch().) Note that since this
+      // is the 'start' call we don't yet have a Petition ID.
+
+      $actorInfo = $this->getCurrentActor();
+
+      if(!empty($actorInfo['type']) && $actorInfo['type'] != 'person') {
+        // This implies that someone who is registered on the platform but NOT enrolled
+        // in the current CO (including, potentially, Platform Admins, will be exempt from MFA).
+        // This is probably ok since these people presumably don't have any authorization,
+        // and if anything are trying to run an enrollment. One exception is Platform Admins,
+        // so we check for that specifically.
+
+        if(!in_array('cmpadmin', $actorInfo['roles'])) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
    * Start an Enrollment Flow.
    * 
    * @since  COmanage Registry v5.1.0

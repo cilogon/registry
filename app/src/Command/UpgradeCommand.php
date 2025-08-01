@@ -70,7 +70,7 @@ class UpgradeCommand extends Command
     ],
     "5.2.0" => [
       'block' => false,
-      'post' => ['createApproverGroups']
+      'post' => ['createDefaultGroups', 'installMostlyStaticPages']
     ]
   ];
   
@@ -78,7 +78,7 @@ class UpgradeCommand extends Command
   // to make them easier to use regardless of context (pre/post/manual).
 
   protected $taskParams = [
-    'createApproverGroups' => ['perCO' => true, 'perCOU' => true],
+    'createDefaultGroups' => ['perCO' => true, 'perCOU' => true],
     'installMostlyStaticPages' => ['perCO' => true]
   ];
 
@@ -325,14 +325,14 @@ class UpgradeCommand extends Command
   }
 
   /**
-   * Create Approver Groups.
+   * Create Approver and MFA Exemption Groups.
    * 
    * @since  COmanage Registry v5.2.0
    * @param  int  $coId   CO ID
    * @param  int  $couId  COU ID
    */
 
-  protected function createApproverGroups(int $coId, int $couId=null) {
+  protected function createDefaultGroups(int $coId, int $couId=null) {
     $GroupsTable = $this->getTableLocator()->get('Groups');
 
     // Technically this will try to add all the default Groups, which is fine since

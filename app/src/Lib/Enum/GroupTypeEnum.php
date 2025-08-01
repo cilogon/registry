@@ -35,6 +35,7 @@ class GroupTypeEnum extends StandardEnum {
   const AllMembers    = 'M';
   // Note that other groups can be used for Approval, this is the _default_ group for the CO/COU
   const Approvers     = 'AP';
+  const MfaExempt     = '2X';
   const Owners        = 'O';
   const Standard      = 'S';
 }

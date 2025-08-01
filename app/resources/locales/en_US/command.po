@@ -69,6 +69,9 @@ msgstr "Launching queue runner {0} (of {1}) for CO {2}"
 msgid "job.run.waiting"
 msgstr "{0,plural,=1{Waiting for the last queue runner to complete} other{Waiting for # queue runners to complete}}"
 
+msgid "mfa.reset.done"
+msgstr "Removed MFA configuration for access to Registry"
+
 msgid "opt.admin-family-name"
 msgstr "Family Name of initial platform administrator"
 

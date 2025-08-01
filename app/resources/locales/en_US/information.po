@@ -177,11 +177,11 @@ msgstr "Current version: {0}"
 msgid "ug.version.target"
 msgstr "Target version: {0}"
 
-msgid "ug.tasks.createApproverGroups.co"
-msgstr "Creating Approver Groups for CO {0}"
+msgid "ug.tasks.createDefaultGroups.co"
+msgstr "Creating new Default Groups for CO {0}"
 
-msgid "ug.tasks.createApproverGroups.cou"
-msgstr "Creating Approver Groups for COU {0}"
+msgid "ug.tasks.createDefaultGroups.cou"
+msgstr "Creating new Default Groups for COU {0}"
 
 msgid "ug.tasks.installMostlyStaticPages.co"
 msgstr "Installing default Mostly Static Pages for CO {0}"

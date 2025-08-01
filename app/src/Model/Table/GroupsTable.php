@@ -315,8 +315,21 @@ class GroupsTable extends Table {
         'open'        => false,
         'status'      => SuspendableStatusEnum::Active,
         'cou_id'      => ($couId ?: null)
-      ],
+      ]
     ];
+
+    if(!$couId) {
+      // Registry MFA Exempt group only exists at the CO level
+
+      $defaultGroups[':mfaexempt'] = [
+        'group_type'  => GroupTypeEnum::MfaExempt,
+        'auto'        => false,
+        'description' => __d('field', 'Groups.desc.mfaexempt', [$couName]),
+        'open'        => false,
+        'status'      => SuspendableStatusEnum::Active,
+        'cou_id'      => null
+      ];
+    };
     
     foreach($defaultGroups as $suffix => $attrs) {
       // Construct the full group name
@@ -503,6 +516,24 @@ class GroupsTable extends Table {
   }
   
   /**
+   * Find a CO's MFA Exemption Group.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  \Cake\ORM\Query $query   Query
+   * @param  array           $options Options: co_id (required)
+   * @return \Cake\ORM\Query          Query
+   */
+  
+  public function findMfaExemptGroup(Query $query, array $options): Query {
+    return $query->where([
+      'co_id'       => $options['co_id'],
+      'cou_id IS'   => null,
+      'status'      => SuspendableStatusEnum::Active,
+      'group_type'  => GroupTypeEnum::MfaExempt
+    ]);
+  }
+
+  /**
    * Get the Admin Group for a CO.
    *
    * @since  COmanage Registry v5.0.0
@@ -512,6 +543,20 @@ class GroupsTable extends Table {
   
   public function getAdminGroupId(int $coId): int {
     $g = $this->find('adminGroup', ['co_id' => $coId])->firstOrFail();
+    
+    return $g->id;
+  }
+  
+  /**
+   * Get the MFA Exemption Group for a CO.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  int $coId CO ID
+   * @return int       Group ID
+   */
+  
+  public function getMfaExemptGroupId(int $coId): int {
+    $g = $this->find('mfaExemptGroup', ['co_id' => $coId])->firstOrFail();
     
     return $g->id;
   }

@@ -138,6 +138,63 @@ class AppController extends Controller {
     if(isset($this->RegistryAuth)) {
       // Components might not be loaded on error, so check
       
+      // We check for MFA Indicators here since we need to do this before
+      // each page load, since different pages may have different requirements.
+
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+      $mfaConfig = $CoSettings->getMfaIndicator();
+
+      if(!empty($mfaConfig['indicator']) && !empty($mfaConfig['value'])) {
+        $this->llog('trace', "MFA is required for access to Registry");
+
+        if(!method_exists($this, "skipMfa")
+           || !$this->skipMfa($this->request->getParam('action'))) {
+          // MFA is required for access to Registry, and is not skipped for this
+          // action, so check for it and throw an error if not asserted
+
+          if(getenv($mfaConfig['indicator']) !== $mfaConfig['value']) {
+            $this->llog('trace', "MFA indicator was not found");
+
+            $exempt = false;
+
+            if($mfaConfig['exempt_groups']) {
+              // If MFA exemption groups are enabled, figure out the MFA Exemption Group
+              // for the CO associated with the current request and then see if the
+              // Person ID associated with that CO is in that Group.
+
+              if($this->getCOID() !== null) {
+                $Groups = $CoSettings = TableRegistry::getTableLocator()->get('Groups');
+
+                $groupId = $Groups->getMfaExemptGroupId($this->getCOID());
+                $personId = $this->RegistryAuth->getPersonID($this->getCOID());
+
+                if($personId && $groupId) {
+                  $exempt = $Groups->GroupMembers->isMember(
+                    groupId: $groupId,
+                    personId: $personId
+                  );
+
+                  if($exempt) {
+                    $this->llog('trace', "Person $personId is exempt from MFA via Group $groupId");
+                  }
+                }
+                // else we might (eg) have a Platform Admin trying to access a CO specific page
+              }
+            }
+
+            if(!$exempt) {
+              // We redirect to the CO's Mostly Static Page if we can figure out which CO,
+              // otherwise we default to the Platform one.
+
+              return $this->redirect("/" . ($this->getCOID() ?? $mfaConfig['comanage_co_id']) . "/mfa-required");
+            }
+          }
+        } else {
+          $this->llog('trace', "MFA check is skipped for this request (" . $this->name . ")");
+        }
+      }
+
       // We need to populate this in beforeFilter (rather than beforeRender)
       // so it's available to CosController::select
       $this->populateAvailableCos();

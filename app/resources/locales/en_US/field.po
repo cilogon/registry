@@ -423,6 +423,24 @@ msgstr "This determines what fields to display alongside the person name when us
 msgid "CoSettings.person_picker_display_types"
 msgstr "Display field types in the picker"
 
+msgid "CoSettings.platform_env_mfa"
+msgstr "MFA Assertion Indicator"
+
+msgid "CoSettings.platform_env_mfa.desc"
+msgstr "Name of the Environment Variable that indicates if MFA was asserted at login; if set, MFA must be asserted for most access to Registry"
+
+msgid "CoSettings.platform_env_mfa_enable_eg"
+msgstr "Enable MFA Exemption Groups"
+
+msgid "CoSettings.platform_env_mfa_enable_eg.desc"
+msgstr "If enabled, People placed in each CO's MFA Exemption Group will not require MFA when logging into Registry"
+
+msgid "CoSettings.platform_env_mfa_value"
+msgstr "MFA Assertion Indicator Value"
+
+msgid "CoSettings.platform_env_mfa_value.desc"
+msgstr "Expected value of the Environment Variable to indicate that MFA as asserted at login"
+
 msgid "CoSettings.required_fields_address"
 msgstr "Address Required Fields"
 
@@ -557,6 +575,9 @@ msgstr "{0} Members"
 
 msgid "Groups.desc.members.active"
 msgstr "{0} Active Members"
+
+msgid "Groups.desc.mfaexempt"
+msgstr "{0} MFA Exemptions"
 
 msgid "Groups.group_type"
 msgstr "Group Type"
@@ -730,6 +751,15 @@ msgstr "Default Error Landing Page"
 
 msgid "MostlyStaticPages.default.el.body"
 msgstr "An unexpected error occurred. Please contact your administrator for further assistance."
+
+msgid "MostlyStaticPages.default.mr.title"
+msgstr "MFA Required"
+
+msgid "MostlyStaticPages.default.mr.description"
+msgstr "MFA Not Provided Default Landing Page"
+
+msgid "MostlyStaticPages.default.mr.body"
+msgstr "MFA is required to access Registry, but was not signaled by your login provider. Please contact your administrator for further assistance."
 
 msgid "MostlyStaticPages.default.pc.title"
 msgstr "Enrollment Complete"

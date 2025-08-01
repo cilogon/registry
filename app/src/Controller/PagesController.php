@@ -148,6 +148,18 @@ class PagesController extends AppController
     }
 
     /**
+     * Determine if MFA, if otherwise required, is not required for this action.
+     *
+     * @since  COmanage Registry v5.2.0
+     * @param  string   $action   Controller action
+     * @return bool               true if MFA can be skipped, false otherwise
+     */
+
+    public function skipMfa(string $action): bool {
+        return in_array($action, ['display', 'show']);
+    }
+
+    /**
      * Indicate whether this Controller will handle some or all authnz.
      * 
      * @since  COmanage Registry v5.0.0

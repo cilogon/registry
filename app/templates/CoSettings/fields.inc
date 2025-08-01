@@ -24,8 +24,7 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
+
 // This view does not support add or read-only
 if($vv_action == 'edit') {
   print $this->element('form/listItem', [
@@ -97,7 +96,7 @@ if($vv_action == 'edit') {
       'fieldName' => 'search_global_limited_models'
     ]]);
 
-    print $this->element('form/listItem', [
+  print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'person_picker_display_fields',
       'labelIsTextOnly' => true,
@@ -138,4 +137,23 @@ if($vv_action == 'edit') {
     'arguments' => [
       'fieldName' => 'authn_events_api_disable'
     ]]);
+  
+  if($vv_obj->co->isCOmanageCO()) {
+    // Fields prefixed platform_ are only available within the COmanage CO
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'platform_env_mfa'
+      ]]);
+
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'platform_env_mfa_value'
+      ]]);
+    
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldName' => 'platform_env_mfa_enable_eg'
+      ]]);
+  }
 }
