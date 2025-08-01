@@ -116,7 +116,7 @@ trait ValidationTrait {
   }
   
   /**
-   * Verify that $value is a valid 
+   * Verify that $value is a valid record in the current CO
    *
    * @since  COmanage Registry v5.0.0
    * @param  string $value   Value to validate
@@ -315,7 +315,7 @@ trait ValidationTrait {
 
     $maxLength = $context['column']['length'];
     
-    if(!empty($value) && strlen($value) > $maxLength) {
+    if(!empty($value) && mb_strlen($value) > $maxLength) {
       return __d('error', 'input.length', [$maxLength]);
     }
     
