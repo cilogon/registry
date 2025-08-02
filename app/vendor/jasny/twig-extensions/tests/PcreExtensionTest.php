@@ -1,9 +1,9 @@
 <?php
 
-namespace Jasny\Twig;
+namespace Jasny\Twig\Tests;
 
 use Jasny\Twig\PcreExtension;
-use Jasny\Twig\TestHelper;
+use Jasny\Twig\Tests\Support\TestHelper;
 use PHPUnit\Framework\TestCase;
 use Twig\Error\RuntimeError as TwigRuntimeError;
 
@@ -113,6 +113,14 @@ class PcreExtensionTest extends TestCase
         $this->assertRender(
             'hello|sweet|wareld|hawe|are|yaue',
             '{{ ["hello", "sweet", "world", "how", "are", "you"]|preg_replace("/o(.)/", "a$1e")|join("|") }}'
+        );
+    }
+
+    public function testReplaceWithArrayOfPatterns()
+    {
+        $this->assertRender(
+            '0000AAAA',
+            "{{ '1234ABCD'|preg_replace(['/\\\\d/','/[A-Z]/'],['0', 'A']) }}"
         );
     }
 

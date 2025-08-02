@@ -34,9 +34,17 @@ use Symfony\Component\HttpFoundation\IpUtils;
  */
 class CurlDownloader
 {
-    /** @var ?resource */
+    /**
+     * Known libcurl's broken versions when proxy is in use with HTTP/2
+     * multiplexing.
+     *
+     * @var list<non-empty-string>
+     */
+    private const BAD_MULTIPLEXING_CURL_VERSIONS = ['7.87.0', '7.88.0', '7.88.1'];
+
+    /** @var \CurlMultiHandle */
     private $multiHandle;
-    /** @var ?resource */
+    /** @var \CurlShareHandle */
     private $shareHandle;
     /** @var Job[] */
     private $jobs = [];
@@ -99,7 +107,18 @@ class CurlDownloader
 
         $this->multiHandle = $mh = curl_multi_init();
         if (function_exists('curl_multi_setopt')) {
-            curl_multi_setopt($mh, CURLMOPT_PIPELINING, PHP_VERSION_ID >= 70400 ? /* CURLPIPE_MULTIPLEX */ 2 : /*CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX*/ 3);
+            if (ProxyManager::getInstance()->hasProxy() && ($version = curl_version()) !== false && in_array($version['version'], self::BAD_MULTIPLEXING_CURL_VERSIONS, true)) {
+                /**
+                 * Disable HTTP/2 multiplexing for some broken versions of libcurl.
+                 *
+                 * In certain versions of libcurl when proxy is in use with HTTP/2
+                 * multiplexing, connections will continue stacking up. This was
+                 * fixed in libcurl 8.0.0 in curl/curl@821f6e2a89de8aec1c7da3c0f381b92b2b801efc
+                 */
+                curl_multi_setopt($mh, CURLMOPT_PIPELINING, /* CURLPIPE_NOTHING */ 0);
+            } else {
+                curl_multi_setopt($mh, CURLMOPT_PIPELINING, \PHP_VERSION_ID >= 70400 ? /* CURLPIPE_MULTIPLEX */ 2 : /*CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX*/ 3);
+            }
             if (defined('CURLMOPT_MAX_HOST_CONNECTIONS') && !defined('HHVM_VERSION')) {
                 curl_multi_setopt($mh, CURLMOPT_MAX_HOST_CONNECTIONS, 8);
             }
@@ -176,12 +195,13 @@ class CurlDownloader
         }
 
         $errorMessage = '';
-        // @phpstan-ignore-next-line
-        set_error_handler(static function ($code, $msg) use (&$errorMessage): void {
+        set_error_handler(static function (int $code, string $msg) use (&$errorMessage): bool {
             if ($errorMessage) {
                 $errorMessage .= "\n";
             }
             $errorMessage .= Preg::replace('{^fopen\(.*?\): }', '', $msg);
+
+            return true;
         });
         $bodyHandle = fopen($bodyTarget, 'w+b');
         restore_error_handler();
@@ -362,7 +382,7 @@ class CurlDownloader
                         continue;
                     }
 
-                    if ($errno === 28 /* CURLE_OPERATION_TIMEDOUT */ && PHP_VERSION_ID >= 70300 && $progress['namelookup_time'] === 0.0 && !$timeoutWarning) {
+                    if ($errno === 28 /* CURLE_OPERATION_TIMEDOUT */ && \PHP_VERSION_ID >= 70300 && $progress['namelookup_time'] === 0.0 && !$timeoutWarning) {
                         $timeoutWarning = true;
                         $this->io->writeError('<warning>A connection timeout was encountered. If you intend to run Composer without connecting to the internet, run the command again prefixed with COMPOSER_DISABLE_NETWORK=1 to make Composer run in offline mode.</warning>');
                     }
@@ -406,7 +426,7 @@ class CurlDownloader
                 }
                 fclose($job['bodyHandle']);
 
-                if ($response->getStatusCode() >= 400 && $response->getHeader('content-type') === 'application/json') {
+                if ($response->getStatusCode() >= 300 && $response->getHeader('content-type') === 'application/json') {
                     HttpDownloader::outputWarnings($this->io, $job['origin'], json_decode($response->getBody(), true));
                 }
 
@@ -492,7 +512,7 @@ class CurlDownloader
                         is_callable($this->jobs[$i]['options']['prevent_ip_access_callable']) &&
                         $this->jobs[$i]['options']['prevent_ip_access_callable']($progress['primary_ip'])
                     ) {
-                        throw new TransportException(sprintf('IP "%s" is blocked for "%s".', $progress['primary_ip'], $progress['url']));
+                        $this->rejectJob($this->jobs[$i], new TransportException(sprintf('IP "%s" is blocked for "%s".', $progress['primary_ip'], $progress['url'])));
                     }
 
                     $this->jobs[$i]['primaryIp'] = (string) $progress['primary_ip'];

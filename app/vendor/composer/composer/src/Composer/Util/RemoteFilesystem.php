@@ -12,6 +12,7 @@
 
 namespace Composer\Util;
 
+use Closure;
 use Composer\Config;
 use Composer\Downloader\MaxFileSizeExceededException;
 use Composer\IO\IOInterface;
@@ -271,7 +272,7 @@ class RemoteFilesystem
             unset($options['max_file_size']);
         }
 
-        $ctx = StreamContextFactory::getContext($fileUrl, $options, ['notification' => [$this, 'callbackGet']]);
+        $ctx = StreamContextFactory::getContext($fileUrl, $options, ['notification' => Closure::fromCallable([$this, 'callbackGet'])]);
 
         $proxy = ProxyManager::getInstance()->getProxyForRequest($fileUrl);
         $usingProxy = $proxy->getStatus(' using proxy (%s)');
@@ -304,7 +305,7 @@ class RemoteFilesystem
 
             if (!empty($http_response_header[0])) {
                 $statusCode = self::findStatusCode($http_response_header);
-                if ($statusCode >= 400 && Response::findHeaderValue($http_response_header, 'content-type') === 'application/json') {
+                if ($statusCode >= 300 && Response::findHeaderValue($http_response_header, 'content-type') === 'application/json') {
                     HttpDownloader::outputWarnings($this->io, $originUrl, json_decode($result, true));
                 }
 
@@ -533,7 +534,12 @@ class RemoteFilesystem
         }
 
         // https://www.php.net/manual/en/reserved.variables.httpresponseheader.php
-        $responseHeaders = $http_response_header ?? [];
+        if (\PHP_VERSION_ID >= 80400) {
+            $responseHeaders = http_get_last_response_headers() ?? [];
+            http_clear_last_response_headers();
+        } else {
+            $responseHeaders = $http_response_header ?? [];
+        }
 
         if (null !== $e) {
             throw $e;

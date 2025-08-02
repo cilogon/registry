@@ -7,9 +7,9 @@ namespace Composer\Autoload;
 class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
 {
     public static $files = array (
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
-        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '89efb1254ef2d1c5d80096acd12c4098' => __DIR__ . '/..' . '/twig/twig/src/Resources/core.php',
         'ffecb95d45175fd40f75be8a23b34f90' => __DIR__ . '/..' . '/twig/twig/src/Resources/debug.php',
         'c7baa00073ee9c61edf148c51917cfb4' => __DIR__ . '/..' . '/twig/twig/src/Resources/escaper.php',
@@ -44,6 +44,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
+        'f278094c42a52b6bff77f375d59c1278' => __DIR__ . '/..' . '/twig/markdown-extra/Resources/functions.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
@@ -55,6 +56,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
+            'TestPlugin\\Test\\' => 16,
+            'TestPlugin\\' => 11,
         ),
         'S' => 
         array (
@@ -74,6 +77,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Symfony\\Component\\Filesystem\\' => 29,
             'Symfony\\Component\\Console\\' => 26,
             'Symfony\\Component\\Config\\' => 25,
+            'SshKeyAuthenticator\\Test\\' => 25,
+            'SshKeyAuthenticator\\' => 20,
             'SqlConnector\\Test\\' => 18,
             'SqlConnector\\' => 13,
             'SlevomatCodingStandard\\' => 23,
@@ -99,18 +104,21 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'PipelineToolkit\\' => 16,
             'PhpParser\\' => 10,
             'Phinx\\' => 6,
+            'PasswordAuthenticator\\Test\\' => 27,
+            'PasswordAuthenticator\\' => 22,
             'PHPStan\\PhpDocParser\\' => 21,
             'PHPCSStandards\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 57,
         ),
-        'O' =>
+        'O' => 
         array (
             'OrcidSource\\Test\\' => 17,
             'OrcidSource\\' => 12,
         ),
-        'M' =>
+        'M' => 
         array (
             'Migrations\\' => 11,
             'Masterminds\\' => 12,
+            'MabeEnum\\' => 9,
             'M1\\Env\\' => 7,
         ),
         'L' => 
@@ -141,7 +149,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Doctrine\\Instantiator\\' => 22,
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\DBAL\\' => 14,
-            'Doctrine\\Common\\Cache\\' => 22,
             'Doctrine\\Common\\' => 16,
             'DeepCopy\\' => 9,
             'DebugKit\\Test\\Fixture\\' => 22,
@@ -151,6 +158,8 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'CoreServer\\Test\\' => 16,
             'CoreServer\\' => 11,
+            'CoreReport\\Test\\' => 16,
+            'CoreReport\\' => 11,
             'CoreJob\\Test\\' => 13,
             'CoreJob\\' => 8,
             'CoreEnroller\\Test\\' => 18,
@@ -196,6 +205,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
+        ),
+        'TestPlugin\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/tests',
+        ),
+        'TestPlugin\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/TestPlugin/src',
         ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (
@@ -260,6 +277,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Symfony\\Component\\Config\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/config',
+        ),
+        'SshKeyAuthenticator\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/SshKeyAuthenticator/tests',
+        ),
+        'SshKeyAuthenticator\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/SshKeyAuthenticator/src',
         ),
         'SqlConnector\\Test\\' => 
         array (
@@ -339,6 +364,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/robmorgan/phinx/src/Phinx',
         ),
+        'PasswordAuthenticator\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/PasswordAuthenticator/tests',
+        ),
+        'PasswordAuthenticator\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/PasswordAuthenticator/src',
+        ),
         'PHPStan\\PhpDocParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpstan/phpdoc-parser/src',
@@ -347,21 +380,25 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/dealerdirect/phpcodesniffer-composer-installer/src',
         ),
-        'OrcidSource\\Test\\' =>
+        'OrcidSource\\Test\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/OrcidSource/tests',
         ),
-        'OrcidSource\\' =>
+        'OrcidSource\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/OrcidSource/src',
         ),
-        'Migrations\\' =>
+        'Migrations\\' => 
         array (
             0 => __DIR__ . '/..' . '/cakephp/migrations/src',
         ),
         'Masterminds\\' => 
         array (
             0 => __DIR__ . '/..' . '/masterminds/html5/src',
+        ),
+        'MabeEnum\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/marc-mabe/php-enum/src',
         ),
         'M1\\Env\\' => 
         array (
@@ -418,15 +455,11 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         ),
         'Doctrine\\Deprecations\\' => 
         array (
-            0 => __DIR__ . '/..' . '/doctrine/deprecations/lib/Doctrine/Deprecations',
+            0 => __DIR__ . '/..' . '/doctrine/deprecations/src',
         ),
         'Doctrine\\DBAL\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/dbal/src',
-        ),
-        'Doctrine\\Common\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/cache/lib/Doctrine/Common/Cache',
         ),
         'Doctrine\\Common\\' => 
         array (
@@ -451,6 +484,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreServer\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreServer/src',
+        ),
+        'CoreReport\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreReport/tests',
+        ),
+        'CoreReport\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreReport/src',
         ),
         'CoreJob\\Test\\' => 
         array (

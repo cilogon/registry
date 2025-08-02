@@ -6,12 +6,14 @@ use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
 use SlevomatCodingStandard\Helpers\ClassHelper;
+use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 use function array_keys;
 use function count;
 use function in_array;
 use function sprintf;
 use const T_CONST;
+use const T_EQUAL;
 use const T_FINAL;
 use const T_PRIVATE;
 use const T_PROTECTED;
@@ -22,8 +24,7 @@ class ClassConstantVisibilitySniff implements Sniff
 
 	public const CODE_MISSING_CONSTANT_VISIBILITY = 'MissingConstantVisibility';
 
-	/** @var bool */
-	public $fixable = false;
+	public bool $fixable = false;
 
 	/**
 	 * @return array<int, (int|string)>
@@ -62,17 +63,20 @@ class ClassConstantVisibilitySniff implements Sniff
 			return;
 		}
 
+		$equalSignPointer = TokenHelper::findNext($phpcsFile, T_EQUAL, $constantPointer + 1);
+		$namePointer = TokenHelper::findPreviousEffective($phpcsFile, $equalSignPointer - 1);
+
 		$message = sprintf(
 			'Constant %s::%s visibility missing.',
 			ClassHelper::getFullyQualifiedName($phpcsFile, $classPointer),
-			$tokens[TokenHelper::findNextEffective($phpcsFile, $constantPointer + 1)]['content']
+			$tokens[$namePointer]['content'],
 		);
 
 		if ($this->fixable) {
 			$fix = $phpcsFile->addFixableError($message, $constantPointer, self::CODE_MISSING_CONSTANT_VISIBILITY);
 			if ($fix) {
 				$phpcsFile->fixer->beginChangeset();
-				$phpcsFile->fixer->addContentBefore($constantPointer, 'public ');
+				FixerHelper::addBefore($phpcsFile, $constantPointer, 'public ');
 				$phpcsFile->fixer->endChangeset();
 			}
 		} else {

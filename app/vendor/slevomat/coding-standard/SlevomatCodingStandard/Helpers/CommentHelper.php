@@ -5,7 +5,7 @@ namespace SlevomatCodingStandard\Helpers;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Util\Tokens;
 use function array_key_exists;
-use function array_merge;
+use function in_array;
 use function preg_match;
 use function strpos;
 use const T_COMMENT;
@@ -38,13 +38,23 @@ class CommentHelper
 			return null;
 		}
 
-		$nextPointerAfterComment = TokenHelper::findNextExcluding(
-			$phpcsFile,
-			array_merge([T_COMMENT], Tokens::$phpcsCommentTokens),
-			$commentStartPointer + 1
-		);
+		$commentEndPointer = $commentStartPointer;
 
-		return $nextPointerAfterComment - 1;
+		for ($i = $commentStartPointer + 1; $i < $phpcsFile->numTokens; $i++) {
+			if ($tokens[$i]['code'] === T_COMMENT) {
+				$commentEndPointer = $i;
+				continue;
+			}
+
+			if (in_array($tokens[$i]['code'], Tokens::$phpcsCommentTokens, true)) {
+				$commentEndPointer = $i;
+				continue;
+			}
+
+			break;
+		}
+
+		return $commentEndPointer;
 	}
 
 	public static function getMultilineCommentStartPointer(File $phpcsFile, int $commentEndPointer): int
@@ -53,7 +63,7 @@ class CommentHelper
 
 		$commentStartPointer = $commentEndPointer;
 		do {
-			$commentBefore = TokenHelper::findPrevious($phpcsFile, TokenHelper::$inlineCommentTokenCodes, $commentStartPointer - 1);
+			$commentBefore = TokenHelper::findPrevious($phpcsFile, TokenHelper::INLINE_COMMENT_TOKEN_CODES, $commentStartPointer - 1);
 			if ($commentBefore === null) {
 				break;
 			}
@@ -74,7 +84,7 @@ class CommentHelper
 
 		$commentEndPointer = $commentStartPointer;
 		do {
-			$commentAfter = TokenHelper::findNext($phpcsFile, TokenHelper::$inlineCommentTokenCodes, $commentEndPointer + 1);
+			$commentAfter = TokenHelper::findNext($phpcsFile, TokenHelper::INLINE_COMMENT_TOKEN_CODES, $commentEndPointer + 1);
 			if ($commentAfter === null) {
 				break;
 			}

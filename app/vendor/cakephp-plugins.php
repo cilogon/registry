@@ -14,6 +14,7 @@ return [
         'EnvSource' => $baseDir . '/plugins/EnvSource/',
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',
         'OrcidSource' => $baseDir . '/plugins/OrcidSource/',
+        'SshKeyAuthenticator' => $baseDir . '/plugins/SshKeyAuthenticator/',
         'TestWidget' => $baseDir . '/plugins/TestWidget/',
     ],
 ];

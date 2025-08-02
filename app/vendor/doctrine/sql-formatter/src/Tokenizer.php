@@ -4,33 +4,35 @@ declare(strict_types=1);
 
 namespace Doctrine\SqlFormatter;
 
-use function array_combine;
-use function array_keys;
+use function array_key_last;
 use function array_map;
-use function arsort;
+use function array_pop;
 use function assert;
+use function count;
 use function implode;
+use function is_int;
 use function preg_match;
 use function preg_quote;
+use function reset;
 use function str_replace;
+use function str_starts_with;
 use function strlen;
-use function strpos;
 use function strtoupper;
 use function substr;
+use function usort;
 
-/**
- * @internal
- */
+/** @internal */
 final class Tokenizer
 {
     /**
      * Reserved words (for syntax highlighting)
      *
-     * @var string[]
+     * @var list<string>
      */
-    private $reserved = [
+    private array $reserved = [
         'ACCESSIBLE',
         'ACTION',
+        'ADD',
         'AFTER',
         'AGAINST',
         'AGGREGATE',
@@ -39,6 +41,7 @@ final class Tokenizer
         'ALTER',
         'ANALYSE',
         'ANALYZE',
+        'AND',
         'AS',
         'ASC',
         'AUTOCOMMIT',
@@ -46,13 +49,18 @@ final class Tokenizer
         'BACKUP',
         'BEGIN',
         'BETWEEN',
+        'BIGINT',
+        'BINARY',
         'BINLOG',
+        'BLOB',
         'BOTH',
+        'BY',
         'CASCADE',
         'CASE',
         'CHANGE',
         'CHANGED',
-        'CHARACTER SET',
+        'CHAR',
+        'CHARACTER',
         'CHARSET',
         'CHECK',
         'CHECKSUM',
@@ -70,7 +78,7 @@ final class Tokenizer
         'CONVERT',
         'CREATE',
         'CROSS',
-        'CURRENT ROW',
+        'CURRENT',
         'CURRENT_TIMESTAMP',
         'DATABASE',
         'DATABASES',
@@ -78,6 +86,7 @@ final class Tokenizer
         'DAY_HOUR',
         'DAY_MINUTE',
         'DAY_SECOND',
+        'DECIMAL',
         'DEFAULT',
         'DEFINER',
         'DELAYED',
@@ -89,6 +98,8 @@ final class Tokenizer
         'DISTINCTROW',
         'DIV',
         'DO',
+        'DOUBLE',
+        'DROP',
         'DUMPFILE',
         'DUPLICATE',
         'DYNAMIC',
@@ -96,27 +107,35 @@ final class Tokenizer
         'ENCLOSED',
         'END',
         'ENGINE',
-        'ENGINE_TYPE',
         'ENGINES',
+        'ENGINE_TYPE',
         'ESCAPE',
         'ESCAPED',
         'EVENTS',
+        'EXCEPT',
+        'EXCLUDE',
         'EXEC',
         'EXECUTE',
         'EXISTS',
         'EXPLAIN',
         'EXTENDED',
+        'FALSE',
         'FAST',
+        'FETCH',
         'FIELDS',
         'FILE',
         'FILTER',
         'FIRST',
         'FIXED',
+        'FLOAT',
+        'FLOAT4',
+        'FLOAT8',
         'FLUSH',
+        'FOLLOWING',
         'FOR',
         'FORCE',
-        'FOLLOWING',
         'FOREIGN',
+        'FROM',
         'FULL',
         'FULLTEXT',
         'FUNCTION',
@@ -125,6 +144,7 @@ final class Tokenizer
         'GRANTS',
         'GROUP',
         'GROUPS',
+        'HAVING',
         'HEAP',
         'HIGH_PRIORITY',
         'HOSTS',
@@ -139,21 +159,33 @@ final class Tokenizer
         'INDEX',
         'INDEXES',
         'INFILE',
+        'INNER',
         'INSERT',
         'INSERT_ID',
         'INSERT_METHOD',
+        'INT',
+        'INT1',
+        'INT2',
+        'INT3',
+        'INT4',
+        'INT8',
+        'INTEGER',
+        'INTERSECT',
         'INTERVAL',
         'INTO',
         'INVOKER',
         'IS',
         'ISOLATION',
+        'JOIN',
         'KEY',
         'KEYS',
         'KILL',
         'LAST_INSERT_ID',
         'LEADING',
+        'LEFT',
         'LEVEL',
         'LIKE',
+        'LIMIT',
         'LINEAR',
         'LINES',
         'LOAD',
@@ -161,6 +193,9 @@ final class Tokenizer
         'LOCK',
         'LOCKS',
         'LOGS',
+        'LONG',
+        'LONGBLOB',
+        'LONGTEXT',
         'LOW_PRIORITY',
         'MARIA',
         'MASTER',
@@ -174,28 +209,32 @@ final class Tokenizer
         'MAX_UPDATES_PER_HOUR',
         'MAX_USER_CONNECTIONS',
         'MEDIUM',
+        'MEDIUMBLOB',
+        'MEDIUMINT',
+        'MEDIUMTEXT',
         'MERGE',
         'MINUTE',
         'MINUTE_SECOND',
         'MIN_ROWS',
         'MODE',
+        'MODIFY',
         'MONTH',
         'MRG_MYISAM',
         'MYISAM',
         'NAMES',
         'NATURAL',
-        'NO OTHERS',
         'NOT',
-        'NOW()',
         'NULL',
+        'NUMERIC',
         'OFFSET',
         'ON',
         'OPEN',
         'OPTIMIZE',
         'OPTION',
         'OPTIONALLY',
-        'ON UPDATE',
-        'ON DELETE',
+        'OR',
+        'ORDER',
+        'OUTER',
         'OUTFILE',
         'OVER',
         'PACK_KEYS',
@@ -212,14 +251,15 @@ final class Tokenizer
         'PROCESSLIST',
         'PURGE',
         'QUICK',
-        'RANGE',
         'RAID0',
         'RAID_CHUNKS',
         'RAID_CHUNKSIZE',
         'RAID_TYPE',
+        'RANGE',
         'READ',
         'READ_ONLY',
         'READ_WRITE',
+        'REAL',
         'RECURSIVE',
         'REFERENCES',
         'REGEXP',
@@ -235,6 +275,7 @@ final class Tokenizer
         'RETURN',
         'RETURNS',
         'REVOKE',
+        'RIGHT',
         'RLIKE',
         'ROLLBACK',
         'ROW',
@@ -242,13 +283,16 @@ final class Tokenizer
         'ROW_FORMAT',
         'SECOND',
         'SECURITY',
+        'SELECT',
         'SEPARATOR',
         'SERIALIZABLE',
         'SESSION',
+        'SET',
         'SHARE',
         'SHOW',
         'SHUTDOWN',
         'SLAVE',
+        'SMALLINT',
         'SONAME',
         'SOUNDS',
         'SQL',
@@ -257,20 +301,20 @@ final class Tokenizer
         'SQL_BIG_SELECTS',
         'SQL_BIG_TABLES',
         'SQL_BUFFER_RESULT',
+        'SQL_CACHE',
         'SQL_CALC_FOUND_ROWS',
         'SQL_LOG_BIN',
         'SQL_LOG_OFF',
         'SQL_LOG_UPDATE',
         'SQL_LOW_PRIORITY_UPDATES',
         'SQL_MAX_JOIN_SIZE',
+        'SQL_NO_CACHE',
         'SQL_QUOTE_SHOW_CREATE',
         'SQL_SAFE_UPDATES',
         'SQL_SELECT_LIMIT',
         'SQL_SLAVE_SKIP_COUNTER',
         'SQL_SMALL_RESULT',
         'SQL_WARNINGS',
-        'SQL_CACHE',
-        'SQL_NO_CACHE',
         'START',
         'STARTING',
         'STATUS',
@@ -286,6 +330,9 @@ final class Tokenizer
         'TERMINATED',
         'THEN',
         'TIES',
+        'TINYBLOB',
+        'TINYINT',
+        'TINYTEXT',
         'TO',
         'TRAILING',
         'TRANSACTIONAL',
@@ -295,18 +342,27 @@ final class Tokenizer
         'TYPES',
         'UNBOUNDED',
         'UNCOMMITTED',
+        'UNION',
         'UNIQUE',
         'UNLOCK',
         'UNSIGNED',
+        'UPDATE',
         'USAGE',
         'USE',
         'USING',
+        'VALUES',
+        'VARBINARY',
+        'VARCHAR',
+        'VARCHARACTER',
         'VARIABLES',
         'VIEW',
         'WHEN',
+        'WHERE',
+        'WINDOW',
         'WITH',
         'WORK',
         'WRITE',
+        'XOR',
         'YEAR_MONTH',
     ];
 
@@ -314,54 +370,57 @@ final class Tokenizer
      * For SQL formatting
      * These keywords will all be on their own line
      *
-     * @var string[]
+     * @var list<string>
      */
-    private $reservedToplevel = [
-        'WITH',
-        'SELECT',
-        'FROM',
-        'WHERE',
-        'SET',
-        'ORDER BY',
-        'GROUP BY',
-        'LIMIT',
-        'DROP',
-        'VALUES',
-        'UPDATE',
-        'HAVING',
+    private array $reservedToplevel = [
         'ADD',
-        'CHANGE',
-        'MODIFY',
         'ALTER TABLE',
+        'CHANGE',
         'DELETE FROM',
-        'UNION ALL',
-        'UNION',
+        'DROP',
         'EXCEPT',
-        'INTERSECT',
-        'PARTITION BY',
-        'ROWS',
-        'RANGE',
+        'FETCH',
+        'FROM',
+        'GROUP BY',
         'GROUPS',
+        'HAVING',
+        'INTERSECT',
+        'LIMIT',
+        'MODIFY',
+        'OFFSET',
+        'ORDER BY',
+        'PARTITION BY',
+        'RANGE',
+        'ROWS',
+        'SELECT',
+        'SET',
+        'UNION',
+        'UNION ALL',
+        'UPDATE',
+        'VALUES',
+        'WHERE',
         'WINDOW',
+        'WITH',
     ];
 
-    /** @var string[] */
-    private $reservedNewline = [
-        'LEFT OUTER JOIN',
-        'RIGHT OUTER JOIN',
-        'LEFT JOIN',
-        'RIGHT JOIN',
-        'OUTER JOIN',
-        'INNER JOIN',
-        'JOIN',
-        'XOR',
-        'OR',
+    /** @var list<string> */
+    private array $reservedNewline = [
         'AND',
         'EXCLUDE',
+        'INNER JOIN',
+        'JOIN',
+        'LEFT JOIN',
+        'LEFT OUTER JOIN',
+        'OR',
+        'OUTER JOIN',
+        'RIGHT JOIN',
+        'RIGHT OUTER JOIN',
+        'STRAIGHT_JOIN',
+        'XOR',
     ];
 
-    /** @var string[] */
-    private $functions = [
+    /** @var list<string> */
+    private array $functions = [
         'ABS',
         'ACOS',
         'ADDDATE',
@@ -394,21 +453,16 @@ final class Tokenizer
         'CEIL',
         'CEILING',
         'CENTROID',
-        'CHAR',
         'CHARACTER_LENGTH',
-        'CHARSET',
         'CHAR_LENGTH',
         'CHECKSUM_AGG',
         'COALESCE',
         'COERCIBILITY',
-        'COLLATION',
         'COMPRESS',
         'CONCAT',
         'CONCAT_WS',
         'CONNECTION_ID',
-        'CONTAINS',
         'CONV',
-        'CONVERT',
         'CONVERT_TZ',
         'CONVEXHULL',
         'COS',
@@ -421,23 +475,19 @@ final class Tokenizer
         'CURDATE',
         'CURRENT_DATE',
         'CURRENT_TIME',
-        'CURRENT_TIMESTAMP',
         'CURRENT_USER',
         'CURTIME',
-        'DATABASE',
         'DATE',
         'DATEDIFF',
         'DATE_ADD',
         'DATE_DIFF',
         'DATE_FORMAT',
         'DATE_SUB',
-        'DAY',
         'DAYNAME',
         'DAYOFMONTH',
         'DAYOFWEEK',
         'DAYOFYEAR',
         'DECODE',
-        'DEFAULT',
         'DEGREES',
         'DENSE_RANK',
         'DES_DECRYPT',
@@ -485,17 +535,12 @@ final class Tokenizer
         'GROUP_CONCAT',
         'GROUP_UNIQUE_USERS',
         'HEX',
-        'HOUR',
-        'IF',
-        'IFNULL',
         'INET_ATON',
         'INET_NTOA',
-        'INSERT',
         'INSTR',
         'INTERIORRINGN',
         'INTERSECTION',
         'INTERSECTS',
-        'INTERVAL',
         'ISCLOSED',
         'ISEMPTY',
         'ISNULL',
@@ -505,12 +550,10 @@ final class Tokenizer
         'IS_USED_LOCK',
         'LAG',
         'LAST_DAY',
-        'LAST_INSERT_ID',
         'LAST_VALUE',
         'LCASE',
         'LEAD',
         'LEAST',
-        'LEFT',
         'LENGTH',
         'LINEFROMTEXT',
         'LINEFROMWKB',
@@ -545,11 +588,9 @@ final class Tokenizer
         'MICROSECOND',
         'MID',
         'MIN',
-        'MINUTE',
         'MLINEFROMTEXT',
         'MLINEFROMWKB',
         'MOD',
-        'MONTH',
         'MONTHNAME',
         'MPOINTFROMTEXT',
         'MPOINTFROMWKB',
@@ -565,6 +606,7 @@ final class Tokenizer
         'MULTIPOLYGONFROMTEXT',
         'MULTIPOLYGONFROMWKB',
         'NAME_CONST',
+        'NOW',
         'NTH_VALUE',
         'NTILE',
         'NULLIF',
@@ -576,10 +618,9 @@ final class Tokenizer
         'OLD_PASSWORD',
         'ORD',
         'OVERLAPS',
-        'PASSWORD',
-        'PERCENT_RANK',
         'PERCENTILE_CONT',
         'PERCENTILE_DISC',
+        'PERCENT_RANK',
         'PERIOD_ADD',
         'PERIOD_DIFF',
         'PI',
@@ -604,16 +645,13 @@ final class Tokenizer
         'RELATED',
         'RELEASE_LOCK',
         'REPEAT',
-        'REPLACE',
         'REVERSE',
-        'RIGHT',
         'ROUND',
         'ROW_COUNT',
         'ROW_NUMBER',
         'RPAD',
         'RTRIM',
         'SCHEMA',
-        'SECOND',
         'SEC_TO_TIME',
         'SESSION_USER',
         'SHA',
@@ -627,13 +665,13 @@ final class Tokenizer
         'SRID',
         'STARTPOINT',
         'STD',
-        'STDEV',
-        'STDEVP',
         'STDDEV',
         'STDDEV_POP',
         'STDDEV_SAMP',
-        'STRING_AGG',
+        'STDEV',
+        'STDEVP',
         'STRCMP',
+        'STRING_AGG',
         'STR_TO_DATE',
         'SUBDATE',
         'SUBSTR',
@@ -655,7 +693,6 @@ final class Tokenizer
         'TOUCHES',
         'TO_DAYS',
         'TRIM',
-        'TRUNCATE',
         'UCASE',
         'UNCOMPRESS',
         'UNCOMPRESSED_LENGTH',
@@ -685,29 +722,15 @@ final class Tokenizer
         'YEARWEEK',
     ];
 
-    // Regular expressions for tokenizing
-
-    /** @var string */
-    private $regexBoundaries;
-
-    /** @var string */
-    private $regexReserved;
-
-    /** @var string */
-    private $regexReservedNewline;
-
-    /** @var string */
-    private $regexReservedToplevel;
-
-    /** @var string */
-    private $regexFunction;
+    /** Regular expression for tokenizing. */
+    private readonly string $tokenizeRegex;
 
     /**
      * Punctuation that can be used as a boundary between other tokens
      *
-     * @var string[]
+     * @var list<string>
      */
-    private $boundaries = [
+    private array $boundaries = [
         ',',
         ';',
         '::', // PostgreSQL cast operator
@@ -731,36 +754,140 @@ final class Tokenizer
     ];
 
     /**
-     * Stuff that only needs to be done once. Builds regular expressions and
-     * sorts the reserved words.
+     * Stuff that only needs to be done once. Builds tokenizing regular expression.
      */
     public function __construct()
     {
-        // Sort reserved word list from longest word to shortest, 3x faster than usort
-        $reservedMap = array_combine($this->reserved, array_map('strlen', $this->reserved));
-        assert($reservedMap !== false);
-        arsort($reservedMap);
-        $this->reserved = array_keys($reservedMap);
+        $this->tokenizeRegex = $this->makeTokenizeRegex($this->makeTokenizeRegexes());
+    }
 
+    /**
+     * Make regex from a list of values matching longest value first.
+     *
+     * Optimized for speed by matching alternative branch only once
+     * https://github.com/PCRE2Project/pcre2/issues/411 .
+     *
+     * @param list<string> $values
+     */
+    private function makeRegexFromList(array $values, bool $sorted = false): string
+    {
+        // sort list alphabetically and from longest word to shortest
+        if (! $sorted) {
+            usort($values, static function (string $a, string $b) {
+                return str_starts_with($a, $b) || str_starts_with($b, $a)
+                    ? strlen($b) <=> strlen($a)
+                    : $a <=> $b;
+            });
+        }
+
+        /** @var array<int|string, list<string>> $valuesBySharedPrefix */
+        $valuesBySharedPrefix = [];
+        $items                = [];
+        $prefix               = null;
+
+        foreach ($values as $v) {
+            if ($prefix !== null && ! str_starts_with($v, substr($prefix, 0, 1))) {
+                $valuesBySharedPrefix[$prefix] = $items;
+                $items                         = [];
+                $prefix                        = null;
+            }
+
+            $items[] = $v;
+
+            if ($prefix === null) {
+                $prefix = $v;
+            } else {
+                while (! str_starts_with($v, $prefix)) {
+                    $prefix = substr($prefix, 0, -1);
+                }
+            }
+        }
+
+        if ($items !== []) {
+            $valuesBySharedPrefix[$prefix] = $items;
+            $items                         = [];
+            $prefix                        = null;
+        }
+
+        $regex = '(?>';
+
+        foreach ($valuesBySharedPrefix as $prefix => $items) {
+            if ($regex !== '(?>') {
+                $regex .= '|';
+            }
+
+            if (is_int($prefix)) {
+                $prefix = (string) $prefix;
+            }
+
+            $regex .= preg_quote($prefix, '/');
+
+            $regex .= count($items) === 1
+                ? preg_quote(substr(reset($items), strlen($prefix)), '/')
+                : $this->makeRegexFromList(array_map(static fn ($v) => substr($v, strlen($prefix)), $items), true);
+        }
+
+        return $regex . ')';
+    }
+
+    /** @return array<Token::TOKEN_TYPE_*, string> */
+    private function makeTokenizeRegexes(): array
+    {
         // Set up regular expressions
-        $this->regexBoundaries       = '(' . implode(
-            '|',
-            $this->quoteRegex($this->boundaries)
-        ) . ')';
-        $this->regexReserved         = '(' . implode(
-            '|',
-            $this->quoteRegex($this->reserved)
-        ) . ')';
-        $this->regexReservedToplevel = str_replace(' ', '\\s+', '(' . implode(
-            '|',
-            $this->quoteRegex($this->reservedToplevel)
-        ) . ')');
-        $this->regexReservedNewline  = str_replace(' ', '\\s+', '(' . implode(
-            '|',
-            $this->quoteRegex($this->reservedNewline)
-        ) . ')');
+        $regexBoundaries       = $this->makeRegexFromList($this->boundaries);
+        $regexReserved         = $this->makeRegexFromList($this->reserved);
+        $regexReservedToplevel = str_replace(' ', '\s+', $this->makeRegexFromList($this->reservedToplevel));
+        $regexReservedNewline  = str_replace(' ', '\s+', $this->makeRegexFromList($this->reservedNewline));
+        $regexFunction         = $this->makeRegexFromList($this->functions);
 
-        $this->regexFunction = '(' . implode('|', $this->quoteRegex($this->functions)) . ')';
+        return [
+            Token::TOKEN_TYPE_WHITESPACE => '\s+',
+            Token::TOKEN_TYPE_COMMENT => '(?:--|#)[^\n]*+',
+            Token::TOKEN_TYPE_BLOCK_COMMENT => '/\*(?:[^*]+|\*(?!/))*+(?:\*|$)(?:/|$)',
+            // 1. backtick quoted string using `` to escape
+            // 2. square bracket quoted string (SQL Server) using ]] to escape
+            Token::TOKEN_TYPE_BACKTICK_QUOTE => <<<'EOD'
+                (?>(?x)
+                    `(?:[^`]+|`(?:`|$))*+(?:`|$)
+                    |\[(?:[^\]]+|\](?:\]|$))*+(?:\]|$)
+                )
+                EOD,
+            // 3. double quoted string using "" or \" to escape
+            // 4. single quoted string using '' or \' to escape
+            Token::TOKEN_TYPE_QUOTE => <<<'EOD'
+                (?>(?sx)
+                    '(?:[^'\\]+|\\(?:.|$)|'(?:'|$))*+(?:'|$)
+                    |"(?:[^"\\]+|\\(?:.|$)|"(?:"|$))*+(?:"|$)
+                )
+                EOD,
+            // User-defined variable, possibly with quoted name
+            Token::TOKEN_TYPE_VARIABLE => '[@:](?:[\w.$]++|(?&t_' . Token::TOKEN_TYPE_BACKTICK_QUOTE . ')|(?&t_' . Token::TOKEN_TYPE_QUOTE . '))',
+            // decimal, binary, or hex
+            Token::TOKEN_TYPE_NUMBER => '(?:\d+(?:\.\d+)?|0x[\da-fA-F]+|0b[01]+)(?=$|\s|"\'`|' . $regexBoundaries . ')',
+            // punctuation and symbols
+            Token::TOKEN_TYPE_BOUNDARY => $regexBoundaries,
+            // A reserved word cannot be preceded by a '.'
+            // this makes it so in "mytable.from", "from" is not considered a reserved word
+            Token::TOKEN_TYPE_RESERVED_TOPLEVEL => '(?<!\.|\sCHARACTER\s(?=SET\s))' . $regexReservedToplevel . '(?=$|\s|' . $regexBoundaries . ')',
+            Token::TOKEN_TYPE_RESERVED_NEWLINE => '(?<!\.)' . $regexReservedNewline . '(?=$|\s|' . $regexBoundaries . ')',
+            Token::TOKEN_TYPE_RESERVED => '(?<!\.)' . $regexReserved . '(?=$|\s|' . $regexBoundaries . ')'
+                // A function must be succeeded by '('
+                // this makes it so "count(" is considered a function, but "count" alone is not function
+                . '|' . $regexFunction . '(?=\s*\()',
+            Token::TOKEN_TYPE_WORD => '.*?(?=$|\s|["\'`]|' . $regexBoundaries . ')',
+        ];
+    }
+
+    /** @param array<Token::TOKEN_TYPE_*, string> $regexes */
+    private function makeTokenizeRegex(array $regexes): string
+    {
+        $parts = [];
+
+        foreach ($regexes as $type => $regex) {
+            $parts[] = '(?<t_' . $type . '>' . $regex . ')';
+        }
+
+        return '~\G(?:' . implode('|', $parts) . ')~';
     }
 
     /**
@@ -771,230 +898,33 @@ final class Tokenizer
      */
     public function tokenize(string $string): Cursor
     {
+        $tokenizeRegex = $this->tokenizeRegex;
+        $upper         = strtoupper($string);
+
         $tokens = [];
+        $offset = 0;
 
-        // Used to make sure the string keeps shrinking on each iteration
-        $oldStringLen = strlen($string) + 1;
+        while ($offset < strlen($string)) {
+            // Get the next token and the token type
+            preg_match($tokenizeRegex, $upper, $matches, 0, $offset);
+            assert(($matches[0] ?? '') !== '');
 
-        $token = null;
-
-        $currentLength = strlen($string);
-
-        // Keep processing the string until it is empty
-        while ($currentLength) {
-            // If the string stopped shrinking, there was a problem
-            if ($oldStringLen <= $currentLength) {
-                $tokens[] = new Token(Token::TOKEN_TYPE_ERROR, $string);
-
-                return new Cursor($tokens);
+            while (is_int($lastMatchesKey = array_key_last($matches))) {
+                array_pop($matches);
             }
 
-            $oldStringLen =  $currentLength;
+            assert(str_starts_with($lastMatchesKey, 't_'));
 
-            // Get the next token and the token type
-            $token       = $this->createNextToken($string, $token);
-            $tokenLength = strlen($token->value());
+            /** @var Token::TOKEN_TYPE_* $tokenType */
+            $tokenType = (int) substr($lastMatchesKey, 2);
+
+            $token = new Token($tokenType, substr($string, $offset, strlen($matches[0])));
+
+            $offset += strlen($token->value());
 
             $tokens[] = $token;
-
-            // Advance the string
-            $string = substr($string, $tokenLength);
-
-            $currentLength -= $tokenLength;
         }
 
         return new Cursor($tokens);
-    }
-
-    /**
-     * Return the next token and token type in a SQL string.
-     * Quoted strings, comments, reserved words, whitespace, and punctuation
-     * are all their own tokens.
-     *
-     * @param string     $string   The SQL string
-     * @param Token|null $previous The result of the previous createNextToken() call
-     *
-     * @return Token An associative array containing the type and value of the token.
-     */
-    private function createNextToken(string $string, ?Token $previous = null): Token
-    {
-        $matches = [];
-        // Whitespace
-        if (preg_match('/^\s+/', $string, $matches)) {
-            return new Token(Token::TOKEN_TYPE_WHITESPACE, $matches[0]);
-        }
-
-        // Comment
-        if (
-            $string[0] === '#' ||
-            (isset($string[1]) && ($string[0] === '-' && $string[1] === '-') ||
-            (isset($string[1]) && $string[0] === '/' && $string[1] === '*'))
-        ) {
-            // Comment until end of line
-            if ($string[0] === '-' || $string[0] === '#') {
-                $last = strpos($string, "\n");
-                $type = Token::TOKEN_TYPE_COMMENT;
-            } else { // Comment until closing comment tag
-                $pos = strpos($string, '*/', 2);
-                assert($pos !== false);
-                $last = $pos + 2;
-                $type = Token::TOKEN_TYPE_BLOCK_COMMENT;
-            }
-
-            if ($last === false) {
-                $last = strlen($string);
-            }
-
-            return new Token($type, substr($string, 0, $last));
-        }
-
-        // Quoted String
-        if ($string[0] === '"' || $string[0] === '\'' || $string[0] === '`' || $string[0] === '[') {
-            return new Token(
-                ($string[0] === '`' || $string[0] === '['
-                    ? Token::TOKEN_TYPE_BACKTICK_QUOTE
-                    : Token::TOKEN_TYPE_QUOTE),
-                $this->getQuotedString($string)
-            );
-        }
-
-        // User-defined Variable
-        if (($string[0] === '@' || $string[0] === ':') && isset($string[1])) {
-            $value = null;
-            $type  = Token::TOKEN_TYPE_VARIABLE;
-
-            // If the variable name is quoted
-            if ($string[1] === '"' || $string[1] === '\'' || $string[1] === '`') {
-                $value = $string[0] . $this->getQuotedString(substr($string, 1));
-            } else {
-                // Non-quoted variable name
-                preg_match('/^(' . $string[0] . '[a-zA-Z0-9\._\$]+)/', $string, $matches);
-                if ($matches) {
-                    $value = $matches[1];
-                }
-            }
-
-            if ($value !== null) {
-                return new Token($type, $value);
-            }
-        }
-
-        // Number (decimal, binary, or hex)
-        if (
-            preg_match(
-                '/^([0-9]+(\.[0-9]+)?|0x[0-9a-fA-F]+|0b[01]+)($|\s|"\'`|' . $this->regexBoundaries . ')/',
-                $string,
-                $matches
-            )
-        ) {
-            return new Token(Token::TOKEN_TYPE_NUMBER, $matches[1]);
-        }
-
-        // Boundary Character (punctuation and symbols)
-        if (preg_match('/^(' . $this->regexBoundaries . ')/', $string, $matches)) {
-            return new Token(Token::TOKEN_TYPE_BOUNDARY, $matches[1]);
-        }
-
-        // A reserved word cannot be preceded by a '.'
-        // this makes it so in "mytable.from", "from" is not considered a reserved word
-        if (! $previous || $previous->value() !== '.') {
-            $upper = strtoupper($string);
-            // Top Level Reserved Word
-            if (
-                preg_match(
-                    '/^(' . $this->regexReservedToplevel . ')($|\s|' . $this->regexBoundaries . ')/',
-                    $upper,
-                    $matches
-                )
-            ) {
-                return new Token(
-                    Token::TOKEN_TYPE_RESERVED_TOPLEVEL,
-                    substr($upper, 0, strlen($matches[1]))
-                );
-            }
-
-            // Newline Reserved Word
-            if (
-                preg_match(
-                    '/^(' . $this->regexReservedNewline . ')($|\s|' . $this->regexBoundaries . ')/',
-                    $upper,
-                    $matches
-                )
-            ) {
-                return new Token(
-                    Token::TOKEN_TYPE_RESERVED_NEWLINE,
-                    substr($upper, 0, strlen($matches[1]))
-                );
-            }
-
-            // Other Reserved Word
-            if (
-                preg_match(
-                    '/^(' . $this->regexReserved . ')($|\s|' . $this->regexBoundaries . ')/',
-                    $upper,
-                    $matches
-                )
-            ) {
-                return new Token(
-                    Token::TOKEN_TYPE_RESERVED,
-                    substr($upper, 0, strlen($matches[1]))
-                );
-            }
-        }
-
-        // A function must be succeeded by '('
-        // this makes it so "count(" is considered a function, but "count" alone is not
-        $upper = strtoupper($string);
-        // function
-        if (preg_match('/^(' . $this->regexFunction . '[(]|\s|[)])/', $upper, $matches)) {
-            return new Token(
-                Token::TOKEN_TYPE_RESERVED,
-                substr($upper, 0, strlen($matches[1]) - 1)
-            );
-        }
-
-        // Non reserved word
-        preg_match('/^(.*?)($|\s|["\'`]|' . $this->regexBoundaries . ')/', $string, $matches);
-
-        return new Token(Token::TOKEN_TYPE_WORD, $matches[1]);
-    }
-
-    /**
-     * Helper function for building regular expressions for reserved words and boundary characters
-     *
-     * @param string[] $strings The strings to be quoted
-     *
-     * @return string[] The quoted strings
-     */
-    private function quoteRegex(array $strings): array
-    {
-        return array_map(static function (string $string): string {
-            return preg_quote($string, '/');
-        }, $strings);
-    }
-
-    private function getQuotedString(string $string): string
-    {
-        $ret = '';
-
-        // This checks for the following patterns:
-        // 1. backtick quoted string using `` to escape
-        // 2. square bracket quoted string (SQL Server) using ]] to escape
-        // 3. double quoted string using "" or \" to escape
-        // 4. single quoted string using '' or \' to escape
-        if (
-            preg_match(
-                '/^(((`[^`]*($|`))+)|
-            ((\[[^\]]*($|\]))(\][^\]]*($|\]))*)|
-            (("[^"\\\\]*(?:\\\\.[^"\\\\]*)*("|$))+)|
-            ((\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*(\'|$))+))/sx',
-                $string,
-                $matches
-            )
-        ) {
-            $ret = $matches[1];
-        }
-
-        return $ret;
     }
 }

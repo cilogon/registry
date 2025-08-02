@@ -3,7 +3,6 @@
 namespace SlevomatCodingStandard\Helpers;
 
 use PHP_CodeSniffer\Files\File;
-use function array_merge;
 use function array_reverse;
 use function sprintf;
 use const T_ANON_CLASS;
@@ -111,9 +110,11 @@ class ClassHelper
 	 */
 	private static function getAllClassPointers(File $phpcsFile): array
 	{
-		$lazyValue = static function () use ($phpcsFile): array {
-			return TokenHelper::findNextAll($phpcsFile, array_merge(TokenHelper::$typeKeywordTokenCodes, [T_ANON_CLASS]), 0);
-		};
+		$lazyValue = static fn (): array => TokenHelper::findNextAll(
+			$phpcsFile,
+			TokenHelper::CLASS_TYPE_WITH_ANONYMOUS_CLASS_TOKEN_CODES,
+			0,
+		);
 
 		return SniffLocalCache::getAndSetIfNotCached($phpcsFile, 'classPointers', $lazyValue);
 	}

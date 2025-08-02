@@ -37,10 +37,7 @@ class UseFromSameNamespaceSniff implements Sniff
 	 */
 	public function process(File $phpcsFile, $usePointer): void
 	{
-		if (
-			UseStatementHelper::isAnonymousFunctionUse($phpcsFile, $usePointer)
-			|| UseStatementHelper::isTraitUse($phpcsFile, $usePointer)
-		) {
+		if (!UseStatementHelper::isImportUse($phpcsFile, $usePointer)) {
 			return;
 		}
 
@@ -70,7 +67,7 @@ class UseFromSameNamespaceSniff implements Sniff
 
 		$fix = $phpcsFile->addFixableError(sprintf(
 			'Use %s is from the same namespace – that is prohibited.',
-			$usedTypeName
+			$usedTypeName,
 		), $usePointer, self::CODE_USE_FROM_SAME_NAMESPACE);
 		if (!$fix) {
 			return;

@@ -3,15 +3,19 @@
 namespace SlevomatCodingStandard\Helpers;
 
 use PHP_CodeSniffer\Files\File;
-use function array_merge;
+use function array_key_exists;
 use function array_reverse;
 use function count;
 use function current;
 use function in_array;
-use const T_ANON_CLASS;
+use function strtolower;
 use const T_AS;
+use const T_CLOSE_CURLY_BRACKET;
 use const T_COMMA;
+use const T_DECLARE;
+use const T_FUNCTION;
 use const T_NAMESPACE;
+use const T_OPEN_CURLY_BRACKET;
 use const T_OPEN_PARENTHESIS;
 use const T_OPEN_TAG;
 use const T_OPEN_USE_GROUP;
@@ -25,29 +29,68 @@ use const T_USE;
 class UseStatementHelper
 {
 
-	public static function isAnonymousFunctionUse(File $phpcsFile, int $usePointer): bool
+	public static function isImportUse(File $phpcsFile, int $usePointer): bool
 	{
 		$tokens = $phpcsFile->getTokens();
 		$nextPointer = TokenHelper::findNextEffective($phpcsFile, $usePointer + 1);
-		$nextToken = $tokens[$nextPointer];
 
-		return $nextToken['code'] === T_OPEN_PARENTHESIS;
+		// Anonymous function use
+		if ($tokens[$nextPointer]['code'] === T_OPEN_PARENTHESIS) {
+			return false;
+		}
+
+		if (
+			$tokens[$nextPointer]['code'] === T_STRING
+			&& in_array(strtolower($tokens[$nextPointer]['content']), ['function', 'const'], true)
+		) {
+			return true;
+		}
+
+		$previousPointer = TokenHelper::findPrevious(
+			$phpcsFile,
+			[T_OPEN_TAG, T_DECLARE, T_NAMESPACE, T_OPEN_CURLY_BRACKET, T_CLOSE_CURLY_BRACKET],
+			$usePointer,
+		);
+
+		if (in_array($tokens[$previousPointer]['code'], [T_OPEN_TAG, T_DECLARE, T_NAMESPACE], true)) {
+			return true;
+		}
+
+		if (array_key_exists('scope_condition', $tokens[$previousPointer])) {
+			$scopeConditionPointer = $tokens[$previousPointer]['scope_condition'];
+
+			if (
+				$tokens[$previousPointer]['code'] === T_OPEN_CURLY_BRACKET
+				&& in_array($tokens[$scopeConditionPointer]['code'], TokenHelper::CLASS_TYPE_WITH_ANONYMOUS_CLASS_TOKEN_CODES, true)
+			) {
+				return false;
+			}
+
+			// Trait use after another trait use
+			if ($tokens[$scopeConditionPointer]['code'] === T_USE) {
+				return false;
+			}
+
+			// Trait use after method or import use after function
+			if ($tokens[$scopeConditionPointer]['code'] === T_FUNCTION) {
+				return ClassHelper::getClassPointer($phpcsFile, $usePointer) === null;
+			}
+		}
+
+		return true;
 	}
 
 	public static function isTraitUse(File $phpcsFile, int $usePointer): bool
 	{
-		$typePointer = TokenHelper::findPrevious($phpcsFile, array_merge(TokenHelper::$typeKeywordTokenCodes, [T_ANON_CLASS]), $usePointer);
-		if ($typePointer !== null) {
-			$tokens = $phpcsFile->getTokens();
-			$typeToken = $tokens[$typePointer];
-			$openerPointer = $typeToken['scope_opener'];
-			$closerPointer = $typeToken['scope_closer'];
+		$tokens = $phpcsFile->getTokens();
+		$nextPointer = TokenHelper::findNextEffective($phpcsFile, $usePointer + 1);
 
-			return $usePointer > $openerPointer && $usePointer < $closerPointer
-				&& !self::isAnonymousFunctionUse($phpcsFile, $usePointer);
+		// Anonymous function use
+		if ($tokens[$nextPointer]['code'] === T_OPEN_PARENTHESIS) {
+			return false;
 		}
 
-		return false;
+		return !self::isImportUse($phpcsFile, $usePointer);
 	}
 
 	public static function getAlias(File $phpcsFile, int $usePointer): ?string
@@ -79,10 +122,10 @@ class UseStatementHelper
 		$tokens = $phpcsFile->getTokens();
 
 		$nameEndPointer = TokenHelper::findNext($phpcsFile, [T_SEMICOLON, T_AS, T_COMMA], $usePointer + 1) - 1;
-		if (in_array($tokens[$nameEndPointer]['code'], TokenHelper::$ineffectiveTokenCodes, true)) {
+		if (in_array($tokens[$nameEndPointer]['code'], TokenHelper::INEFFECTIVE_TOKEN_CODES, true)) {
 			$nameEndPointer = TokenHelper::findPreviousEffective($phpcsFile, $nameEndPointer);
 		}
-		$nameStartPointer = TokenHelper::findPreviousExcluding($phpcsFile, TokenHelper::getNameTokenCodes(), $nameEndPointer - 1) + 1;
+		$nameStartPointer = TokenHelper::findPreviousExcluding($phpcsFile, TokenHelper::NAME_TOKEN_CODES, $nameEndPointer - 1) + 1;
 
 		$name = TokenHelper::getContent($phpcsFile, $nameStartPointer, $nameEndPointer);
 
@@ -147,7 +190,7 @@ class UseStatementHelper
 					self::getFullyQualifiedTypeNameFromUse($phpcsFile, $usePointer),
 					$usePointer,
 					$type,
-					self::getAlias($phpcsFile, $usePointer)
+					self::getAlias($phpcsFile, $usePointer),
 				);
 				$useStatements[$pointerBeforeUseStatements][UseStatement::getUniqueId($type, $name)] = $useStatement;
 			}
@@ -183,14 +226,13 @@ class UseStatementHelper
 			$pointer = $openTagPointer + 1;
 			$pointers = [];
 			while (true) {
-				$typesToFind = array_merge([T_USE], TokenHelper::$typeKeywordTokenCodes);
-				$pointer = TokenHelper::findNext($phpcsFile, $typesToFind, $pointer);
+				$pointer = TokenHelper::findNext($phpcsFile, [T_USE, ...TokenHelper::CLASS_TYPE_TOKEN_CODES], $pointer);
 				if ($pointer === null) {
 					break;
 				}
 
 				$token = $tokens[$pointer];
-				if (in_array($token['code'], TokenHelper::$typeKeywordTokenCodes, true)) {
+				if (in_array($token['code'], TokenHelper::CLASS_TYPE_TOKEN_CODES, true)) {
 					$pointer = $token['scope_closer'] + 1;
 					continue;
 				}
@@ -200,7 +242,7 @@ class UseStatementHelper
 					continue;
 				}
 
-				if (self::isAnonymousFunctionUse($phpcsFile, $pointer)) {
+				if (!self::isImportUse($phpcsFile, $pointer)) {
 					$pointer++;
 					continue;
 				}

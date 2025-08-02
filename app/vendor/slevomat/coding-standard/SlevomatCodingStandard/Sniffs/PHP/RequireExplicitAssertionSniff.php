@@ -46,11 +46,9 @@ class RequireExplicitAssertionSniff implements Sniff
 
 	public const CODE_REQUIRED_EXPLICIT_ASSERTION = 'RequiredExplicitAssertion';
 
-	/** @var bool */
-	public $enableIntegerRanges = false;
+	public bool $enableIntegerRanges = false;
 
-	/** @var bool */
-	public $enableAdvancedStringTypes = false;
+	public bool $enableAdvancedStringTypes = false;
 
 	/**
 	 * @return array<int, (int|string)>
@@ -149,7 +147,7 @@ class RequireExplicitAssertionSniff implements Sniff
 					T_VARIABLE,
 					$variableName,
 					$listParenthesisOpener + 1,
-					$tokens[$listParenthesisOpener]['parenthesis_closer']
+					$tokens[$listParenthesisOpener]['parenthesis_closer'],
 				);
 				if ($variablePointerInList === null) {
 					continue;
@@ -169,7 +167,7 @@ class RequireExplicitAssertionSniff implements Sniff
 					T_VARIABLE,
 					$variableName,
 					$codePointer + 1,
-					$tokens[$codePointer]['bracket_closer']
+					$tokens[$codePointer]['bracket_closer'],
 				);
 				if ($variablePointerInList === null) {
 					continue;
@@ -178,7 +176,7 @@ class RequireExplicitAssertionSniff implements Sniff
 				$pointerToAddAssertion = $this->getNextSemicolonInSameScope(
 					$phpcsFile,
 					$codePointer,
-					$tokens[$codePointer]['bracket_closer'] + 1
+					$tokens[$codePointer]['bracket_closer'] + 1,
 				);
 				$indentation = IndentationHelper::getIndentation($phpcsFile, $docCommentOpenPointer);
 
@@ -189,7 +187,7 @@ class RequireExplicitAssertionSniff implements Sniff
 						T_VARIABLE,
 						$variableName,
 						$tokens[$codePointer]['parenthesis_opener'] + 1,
-						$tokens[$codePointer]['parenthesis_closer']
+						$tokens[$codePointer]['parenthesis_closer'],
 					);
 					if ($variablePointerInWhile === null) {
 						continue;
@@ -204,14 +202,14 @@ class RequireExplicitAssertionSniff implements Sniff
 						$phpcsFile,
 						T_AS,
 						$tokens[$codePointer]['parenthesis_opener'] + 1,
-						$tokens[$codePointer]['parenthesis_closer']
+						$tokens[$codePointer]['parenthesis_closer'],
 					);
 					$variablePointerInForeach = TokenHelper::findNextContent(
 						$phpcsFile,
 						T_VARIABLE,
 						$variableName,
 						$asPointer + 1,
-						$tokens[$codePointer]['parenthesis_closer']
+						$tokens[$codePointer]['parenthesis_closer'],
 					);
 					if ($variablePointerInForeach === null) {
 						continue;
@@ -219,13 +217,13 @@ class RequireExplicitAssertionSniff implements Sniff
 				}
 
 				$pointerToAddAssertion = $tokens[$codePointer]['scope_opener'];
-				$indentation = IndentationHelper::addIndentation(IndentationHelper::getIndentation($phpcsFile, $codePointer));
+				$indentation = IndentationHelper::addIndentation($phpcsFile, IndentationHelper::getIndentation($phpcsFile, $codePointer));
 			}
 
 			$fix = $phpcsFile->addFixableError(
 				'Use assertion instead of inline documentation comment.',
 				$variableAnnotation->getStartPointer(),
-				self::CODE_REQUIRED_EXPLICIT_ASSERTION
+				self::CODE_REQUIRED_EXPLICIT_ASSERTION,
 			);
 			if (!$fix) {
 				continue;
@@ -251,13 +249,13 @@ class RequireExplicitAssertionSniff implements Sniff
 				$phpcsFile,
 				T_WHITESPACE,
 				$phpcsFile->eolChar,
-				$docCommentOpenPointer - 1
+				$docCommentOpenPointer - 1,
 			);
 			$pointerAfterDocComment = TokenHelper::findNextContent(
 				$phpcsFile,
 				T_WHITESPACE,
 				$phpcsFile->eolChar,
-				$docCommentClosePointer + 1
+				$docCommentClosePointer + 1,
 			);
 
 			if (!$docCommentUseful) {
@@ -268,9 +266,9 @@ class RequireExplicitAssertionSniff implements Sniff
 				$pointerToAddAssertion < $docCommentClosePointer
 				&& array_key_exists($pointerAfterDocComment + 1, $tokens)
 			) {
-				$phpcsFile->fixer->addContentBefore($pointerAfterDocComment + 1, $indentation . $assertion . $phpcsFile->eolChar);
+				FixerHelper::addBefore($phpcsFile, $pointerAfterDocComment + 1, $indentation . $assertion . $phpcsFile->eolChar);
 			} else {
-				$phpcsFile->fixer->addContent($pointerToAddAssertion, $phpcsFile->eolChar . $indentation . $assertion);
+				FixerHelper::add($phpcsFile, $pointerToAddAssertion, $phpcsFile->eolChar . $indentation . $assertion);
 			}
 
 			$phpcsFile->fixer->endChangeset();

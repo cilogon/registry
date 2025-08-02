@@ -2,11 +2,11 @@
 
 [![Latest version](https://img.shields.io/packagist/v/slevomat/coding-standard.svg?colorB=007EC6)](https://packagist.org/packages/slevomat/coding-standard)
 [![Downloads](https://img.shields.io/packagist/dt/slevomat/coding-standard.svg?colorB=007EC6)](https://packagist.org/packages/slevomat/coding-standard)
-[![Build status](https://github.com/slevomat/coding-standard/workflows/Build/badge.svg?branch=master)](https://github.com/slevomat/coding-standard/actions?query=workflow%3ABuild+branch%3Amaster)
+[![Build status](https://github.com/slevomat/coding-standard/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/slevomat/coding-standard/actions?query=workflow%3ABuild+branch%3Amaster)
 [![Code coverage](https://codecov.io/gh/slevomat/coding-standard/branch/master/graph/badge.svg)](https://codecov.io/gh/slevomat/coding-standard)
 ![PHPStan](https://img.shields.io/badge/style-level%207-brightgreen.svg?&label=phpstan)
 
-Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) provides sniffs that fall into three categories:
+Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/PHPCSStandards/PHP_CodeSniffer) provides sniffs that fall into three categories:
 
 * Functional - improving the safety and behaviour of code
 * Cleaning - detecting dead code
@@ -30,10 +30,10 @@ Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/squizlabs/PHP_
 🚧 = [Sniff check can be suppressed locally](#suppressing-sniffs-locally)
 
  - [SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys](doc/arrays.md#slevomatcodingstandardarrayalphabeticallysortedbykeys) 🔧
+ - [SlevomatCodingStandard.Arrays.ArrayAccess](doc/arrays.md#slevomatcodingstandardarraysarrayaccess-) 🔧
  - [SlevomatCodingStandard.Arrays.DisallowImplicitArrayCreation](doc/arrays.md#slevomatcodingstandardarraysdisallowimplicitarraycreation)
  - [SlevomatCodingStandard.Arrays.DisallowPartiallyKeyed](doc/arrays.md#slevomatcodingstandardarraysdisallowpartiallykeyed) 🚧
  - [SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement](doc/arrays.md#slevomatcodingstandardarraysmultilinearrayendbracketplacement-) 🔧
- - [SlevomatCodingStandard.Arrays.ArrayAccessSniff.php](doc/arrays.md#slevomatcodingstandardarraysarrayaccess-) 🔧
  - [SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace](doc/arrays.md#slevomatcodingstandardarrayssinglelinearraywhitespace-) 🔧
  - [SlevomatCodingStandard.Arrays.TrailingArrayComma](doc/arrays.md#slevomatcodingstandardarraystrailingarraycomma-) 🔧
  - [SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing](doc/attributes.md#slevomatcodingstandardattributesattributeandtargetspacing-) 🔧
@@ -175,9 +175,11 @@ Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/squizlabs/PHP_
  - [SlevomatCodingStandard.PHP.UselessParentheses](doc/php.md#slevomatcodingstandardphpuselessparentheses-) 🔧
  - [SlevomatCodingStandard.PHP.UselessSemicolon](doc/php.md#slevomatcodingstandardphpuselesssemicolon-) 🔧
  - [SlevomatCodingStandard.Strings.DisallowVariableParsing](doc/strings.md#slevomatcodingstandardstringsdisallowvariableparsing)
+ - [SlevomatCodingStandard.TypeHints.ClassConstantTypeHint](doc/type-hints.md#slevomatcodingstandardtypehintsclassconstanttypehint-) 🔧
  - [SlevomatCodingStandard.TypeHints.DeclareStrictTypes](doc/type-hints.md#slevomatcodingstandardtypehintsdeclarestricttypes-) 🔧
  - [SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax](doc/type-hints.md#slevomatcodingstandardtypehintsdisallowarraytypehintsyntax-) 🔧
  - [SlevomatCodingStandard.TypeHints.DisallowMixedTypeHint](doc/type-hints.md#slevomatcodingstandardtypehintsdisallowmixedtypehint)
+ - [SlevomatCodingStandard.TypeHints.DNFTypeHintFormat](doc/type-hints.md#slevomatcodingstandardtypehintsdnftypehintformat-) 🔧
  - [SlevomatCodingStandard.TypeHints.LongTypeHints](doc/type-hints.md#slevomatcodingstandardtypehintslongtypehints-) 🔧
  - [SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition](doc/type-hints.md#slevomatcodingstandardtypehintsnulltypehintonlastposition-) 🔧
  - [SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue](doc/type-hints.md#slevomatcodingstandardtypehintsnullabletypefornulldefaultvalue-) 🔧🚧
@@ -249,7 +251,7 @@ However it is not a recommended way to use Slevomat Coding Standard, because you
 
 ## Fixing errors automatically
 
-Sniffs in this standard marked by the 🔧 symbol support [automatic fixing of coding standard violations](https://github.com/squizlabs/PHP_CodeSniffer/wiki/Fixing-Errors-Automatically). To fix your code automatically, run phpcbf instead of phpcs:
+Sniffs in this standard marked by the 🔧 symbol support [automatic fixing of coding standard violations](https://github.com/PHPCSStandards/PHP_CodeSniffer/wiki/Fixing-Errors-Automatically). To fix your code automatically, run phpcbf instead of phpcs:
 
 ```
 vendor/bin/phpcbf --standard=ruleset.xml --extensions=php --tab-width=4 -sp src tests

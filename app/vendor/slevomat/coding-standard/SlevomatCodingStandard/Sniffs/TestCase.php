@@ -29,6 +29,8 @@ use const PHP_EOL;
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
 
+	private const TAB_WIDTH = 4;
+
 	/**
 	 * @param array<string, string|int|bool|array<int|string, (string|int|bool|null)>> $sniffProperties
 	 * @param list<string> $codesToCheck
@@ -44,6 +46,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 		$codeSniffer->init();
 
 		if (count($sniffProperties) > 0) {
+			foreach ($sniffProperties as $name => $value) {
+				$sniffProperties[$name] = [
+					'value' => $value,
+					'scope' => 'sniff',
+				];
+			}
+
 			$codeSniffer->ruleset->ruleset[self::getSniffName()]['properties'] = $sniffProperties;
 		}
 
@@ -64,6 +73,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 		}
 
 		$codeSniffer->ruleset->populateTokenListeners();
+		$codeSniffer->config->tabWidth = self::TAB_WIDTH;
 
 		$file = new LocalFile($filePath, $codeSniffer->ruleset, $codeSniffer->config);
 		$file->process();
@@ -103,8 +113,8 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 				$line,
 				PHP_EOL,
 				self::getFormattedErrors($errors[$line]),
-				PHP_EOL
-			)
+				PHP_EOL,
+			),
 		);
 	}
 
@@ -128,8 +138,8 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 				$line,
 				PHP_EOL,
 				self::getFormattedErrors($errors[$line]),
-				PHP_EOL
-			)
+				PHP_EOL,
+			),
 		);
 	}
 
@@ -143,8 +153,8 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 				$line,
 				PHP_EOL . PHP_EOL,
 				isset($errors[$line]) ? self::getFormattedErrors($errors[$line]) : '',
-				PHP_EOL
-			)
+				PHP_EOL,
+			),
 		);
 	}
 
@@ -215,11 +225,16 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 	 */
 	private static function getFormattedErrors(array $errors): string
 	{
-		return implode(PHP_EOL, array_map(static function (array $errors): string {
-			return implode(PHP_EOL, array_map(static function (array $error): string {
-				return sprintf("\t%s: %s", $error['source'], $error['message']);
-			}, $errors));
-		}, $errors));
+		return implode(
+			PHP_EOL,
+			array_map(
+				static fn (array $errors): string => implode(
+					PHP_EOL,
+					array_map(static fn (array $error): string => sprintf("\t%s: %s", $error['source'], $error['message']), $errors),
+				),
+				$errors,
+			),
+		);
 	}
 
 }
