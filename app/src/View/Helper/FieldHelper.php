@@ -256,7 +256,7 @@ class FieldHelper extends Helper {
 
     if(!empty($matchesId[0][1]) && !empty($matchesName[0][1])) {
       $vueElementProperties = [
-        'htmlId' => $matchesId[0][1],
+        'htmlId' => $matchesId[0][1] . '-picker',
         'fieldName' => $matchesName[0][1],
         'containerClasses' => $matchesClass[0][1],
         'type' => 'field',

@@ -35,9 +35,11 @@ declare(strict_types = 1);
     const filterForm = document.getElementById("top-filters-form");
     filterForm.addEventListener('formdata', (event) => {
       if(event.formData.has('person_id')) {
-        const personId = $(filterForm).find('#person_id')[0].getAttribute('datapersonid')
+        const personId = $(filterForm).find('#person-id-picker')[0].getAttribute('datapersonid')
         if(personId != undefined && personId != '') {
           event.formData.set('person_id', personId)
+        } else {
+          event.formData.delete('person_id')
         }
       }
     });

@@ -268,7 +268,7 @@ trait SearchFilterTrait {
           'type' => 'search',
           'fieldName' => $field,
           'personType' => $f['picker']['type'],
-          'htmlId' => $field, // This is the input ID
+          'htmlId' => Inflector::dasherize($field) . '-picker', // This is the input ID
           'viewConfigParameters' => $f['picker']['configuration']
         ];
         $this->viewVars['vv_autocomplete_arguments'] = $autocompleteArgs;

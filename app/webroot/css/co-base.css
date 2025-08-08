@@ -1928,6 +1928,17 @@ li[data-pc-section="emptymessage"] {
 [v-cloak] {
   display: none;
 }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap; /* Prevent text wrapping */
+}
 /* ENTITY ID under each Edit/View Form/List */
 #cm-entity-id {
   position: absolute;

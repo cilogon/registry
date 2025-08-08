@@ -37,7 +37,7 @@
   $fieldName = $fieldName ?? 'person_id';
   // Used by the SearchFilter Configuration
   $personType = $personType ?? 'person';
-  $htmlId = $htmlId ?? 'cmPersonPickerId';
+  $htmlId = $htmlId ?? 'person-id-picker';
   // Does it have a value already. Default or stored
   // CAKEPHP automatically generates a select element if the value is an integer. This is not helpful here.
   $inputValue = $inputValue ?? $vv_field_arguments["fieldOptions"]["default"] ?? $vv_field_arguments["fieldOptions"]["value"] ?? '';
@@ -63,6 +63,20 @@
     $personRecord = $this->Petition->getRecordForId('person_id', $inputValue, ['PrimaryName', 'EmailAddresses']);
     $canvasUrl = $this->Url->build(['controller' => 'people', 'action' => 'edit', $inputValue]);
   }
+  $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id;
+  if (isset($vv_petition->id)) {
+      $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id . '&petition_id=' . $vv_petition->id;
+  }
+
+  // This is the actual field that will be submitted.
+  print $this->Form->control($fieldName, [
+      'id' => $fieldName,
+      'value' => '',
+      'type' => 'text',
+      'class' => 'visually-hidden',
+      'label' => false,
+    ]
+  );
 ?>
 
 <script type="module">
@@ -84,7 +98,7 @@
       viewConfigParameters: <?= json_encode($viewConfigParameters) ?>,
       webroot: '<?= $this->request->getAttribute('webroot') ?>',
       // co_id query parameter is required since it is the People's primary link
-      searchPeople: `<?= $this->request->getAttribute('webroot') ?>api/ajax/v2/people/pick?co_id=<?= $vv_cur_co->id ?>`
+      searchPeople: `<?= $searchPeople ?>`
     }
   }
 
@@ -93,15 +107,17 @@
       return {
         autocompleteOptions: {
           label: '<?= $label ?>',
-          fieldName: '<?= $fieldName ?>',
+          fieldName: '<?= $fieldName ?>', // This property hold the form input id
           type: '<?= $type ?>',
           personType: '<?= $personType ?>',
           minLength: 2, // XXX probably should be set by config and default to 3
-          htmlId: '<?= $htmlId ?>',
+          htmlId: '<?= $htmlId ?>', // This property holds the vuejs input id
           actionUrl: '<?= $constructedActionUrl ?>',
           inputValue: '<?= $inputValue ?>',
           inputProps: {
-            name: '<?= $fieldName ?>',
+            // We need to skip the name since we do not want to submit the vue input field
+            //name: '<?php //= $htmlId ?>//',
+            dataName: '<?= $htmlId ?>',
             // This is not translated to data-personid but to datapersonid.
             dataPersonid: '<?= $inputValue ?>'
           },

@@ -195,6 +195,10 @@ export default {
     setPerson() {
       if(['search', 'field'].includes(this.options.type)) {
         this.options.inputProps.dataPersonid = this.person.value;
+        // Update the field that will be submitted
+        let inputElement = document.getElementById(this.options.fieldName)
+        inputElement.value = this.person.value;
+
       } else {
         // The picker is stand-alone, and should render the configured page in a modal on @item-select
         const urlForModal = this.options.actionUrl + '&person_id=' + this.person.value;
@@ -258,9 +262,11 @@ export default {
   mounted() {
     if(this.options.inputValue != undefined
       && this.options.inputValue != ''
-      && this.options.inputProps.name.endsWith('person_id')) {
+      && this.options.inputProps.dataName.endsWith('person-id-picker')) {
       this.person = `${this.options.personRecord.primary_name.given} ${this.options.personRecord.primary_name.family} (ID: ${this.options.personRecord.id})`;
       this.personUrl = `${this.options.canvasUrl}`;
+      let inputElement = document.getElementById(this.options.fieldName)
+      inputElement.value = this.options.personRecord.id;
     }
   },
   computed: {

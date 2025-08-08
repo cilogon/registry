@@ -35,6 +35,9 @@ $aria_controls = $key;
 // to store the correct identifier in the case of dates. Dates have two search fields for each column
 // which makes it more complicated to keep track of the id.
 $data_identifier = is_array($params) ? implode(':', array_keys($params)) : $key;
+if ($data_identifier === 'person_id') {
+  $data_identifier = 'person_id_picker';
+}
 
 // The populated variables are in plural while the column names are singular
 // Convention: It is a prerequisite that the vvar should be the plural of the column name

@@ -159,6 +159,8 @@
         let ident_to_snake = ident.replace(/_/g, "-");
         let filterId = '#' + ident_to_snake;
         $(filterId).val("");
+        // This will only apply to the people picker field
+        $(filterId).attr('datapersonid', '');
       });
 
       $(this).closest('form').submit();
