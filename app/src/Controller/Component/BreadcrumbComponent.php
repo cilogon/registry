@@ -185,7 +185,7 @@ class BreadcrumbComponent extends Component
     }
     $modelPath = $modelsName;
 
-    if(!empty($link->plugin)) {
+    if(!empty($link->plugin) && !str_starts_with($modelsName, $link->plugin . '.')) {
       // eg: "CoreEnroller.AttributeCollectors"
       $modelPath = $link->plugin . '.' . $modelsName;
     }
