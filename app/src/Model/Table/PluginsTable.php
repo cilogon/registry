@@ -284,7 +284,9 @@ class PluginsTable extends Table {
       if(isset($pConfig->$type) && is_array($pConfig->$type)) {
         return $pConfig->$type;
       } else {
-        $this->llog('debug', "Plugin $plugin->plugin does not have a valid types configuration");
+        // This plugin does not implement the requested type. Don't log here since it'll
+        // cause noise and confusion in the logs.
+        // $this->llog('debug', "Plugin $plugin->plugin does not have a valid types configuration");
       }
     } else {
       $this->llog('debug', "Plugin $plugin->plugin does not have a plugin.json file");
@@ -340,7 +342,7 @@ class PluginsTable extends Table {
    */
 
   protected function readPluginConfig(\App\Model\Entity\Plugin $plugin, string $key): ?object {
-    $cfg = $this->pluginPath($plugin, 'src' . DS . 'config' . DS . 'plugin.json');;
+    $cfg = $this->pluginPath($plugin, 'config' . DS . 'plugin.json');;
 
     $json = file_get_contents($cfg);
 

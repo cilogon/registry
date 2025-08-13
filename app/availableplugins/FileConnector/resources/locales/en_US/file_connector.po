@@ -28,14 +28,29 @@ msgstr "{0,plural,=1{File Provisioner} other{File Provisioners}}"
 msgid "enumeration.FileSourceFormatEnum.C3"
 msgstr "CSV v3"
 
+msgid "error.filename.absolute"
+msgstr "File path \"{0}\" does not begin with \"/\""
+
 msgid "error.filename.readable"
 msgstr "The file \"{0}\" is not readable"
 
-msgid "error.filename.writeable"
+msgid "error.filename.writable"
 msgstr "The file \"{0}\" is not writable"
+
+msgid "error.FileSource.copy"
+msgstr "Failed to copy {0} to {1}"
+
+msgid "error.FileSource.threshold"
+msgstr "{0} of {1} records changed ({2}%, including new records), exceeding threshold of {3}% - processing canceled"
+
+msgid "error.FileSource.threshold.config"
+msgstr "Threshold Check requires Archive Directory"
 
 msgid "error.header"
 msgstr "Did not find CSV file header"
+
+msgid "error.header.invalid"
+msgstr "\"{0}\" is not a valid field"
 
 msgid "error.header.sorid"
 msgstr "Did not find SORID as first defined column, check file header definition"
@@ -61,10 +76,10 @@ msgstr "Full path to file to read from, which must exist and be readable"
 msgid "field.FileSources.format"
 msgstr "File Format"
 
-msgid "field.FileSources.threshold_warn"
+msgid "field.FileSources.threshold_check"
 msgstr "Warning Threshold"
 
-msgid "field.FileSources.threshold_warn.desc"
+msgid "field.FileSources.threshold_check.desc"
 msgstr "If the number of changed records exceeds the specified percentage, a warning will be generated and processing will stop (requires Archive Directory)"
 
 msgid "field.FileSources.threshold_override"
@@ -72,3 +87,6 @@ msgstr "Warning Threshold Override"
 
 msgid "field.FileSources.threshold_override.desc"
 msgstr "If set, the next Full sync will ignore the Warning Threshold"
+
+msgid "result.FileProvisioner.done"
+msgstr "Wrote 1 record to file"

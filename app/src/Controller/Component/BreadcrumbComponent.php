@@ -180,13 +180,14 @@ class BreadcrumbComponent extends Component
     $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
     if(!empty($this->getController()->viewBuilder()->getVar('vv_primary_link_model'))) {
       // $link doesn't seem to handle table aliases (eg "Groups" instead of "RecipientGroups" for
-      // Notifications)).
+      // Notifications)). This may also return a plugin qualified path (eg SshKeyAuthenticator.SshKeyAuthenticators).
       $modelsName = $this->getController()->viewBuilder()->getVar('vv_primary_link_model');
     }
     $modelPath = $modelsName;
 
     if(!empty($link->plugin) && !str_starts_with($modelsName, $link->plugin . '.')) {
-      // eg: "CoreEnroller.AttributeCollectors"
+      // eg: "CoreEnroller.AttributeCollectors", however check first since we may have the
+      // path from vv_primary_link_model.
       $modelPath = $link->plugin . '.' . $modelsName;
     }
 

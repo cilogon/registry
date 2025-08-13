@@ -31,7 +31,7 @@ if($vv_action == 'add' || $vv_action == 'edit') {
             'filename',
             'format',
             'archivedir',
-            'threshold_warn',
+            'threshold_check',
             'threshold_override',
           ] as $field) {
     print $this->element('form/listItem', [

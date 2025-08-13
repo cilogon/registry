@@ -1,9 +1,9 @@
 {
   "types": {
-    "provisioner": [
+    "provisioning_target": [
       "FileProvisioners"
     ],
-    "source": [
+    "external_identity_source": [
       "FileSources"
     ]
   },
@@ -26,7 +26,7 @@
           "filename": { "type": "string", "size": 256 },
           "format": { "type": "string", "size": 2 },
           "archivedir": { "type": "string", "size": 256 },
-          "threshold_warn": { "type": "integer" },
+          "threshold_check": { "type": "integer" },
           "threshold_override": { "type": "boolean" }
         },
         "indexes": {

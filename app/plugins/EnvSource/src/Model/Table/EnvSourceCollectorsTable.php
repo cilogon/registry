@@ -99,9 +99,8 @@ class EnvSourceCollectorsTable extends Table {
 
     $this->setAutoViewVars([
       'externalIdentitySources' => [
-        'type' => 'select',
-        'model' => 'ExternalIdentitySources',
-        'where' => ['plugin' => 'EnvSource.EnvSources']
+        'type' => 'plugin',
+        'model' => 'EnvSource.EnvSources'
       ]
     ]);
 

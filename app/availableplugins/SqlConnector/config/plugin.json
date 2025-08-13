@@ -1,9 +1,9 @@
 {
   "types": {
-    "provisioner": [
+    "provisioning_target": [
       "SqlProvisioners"
     ],
-    "source": [
+    "external_identity_source": [
       "SqlSources"
     ]
   },

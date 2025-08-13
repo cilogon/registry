@@ -256,9 +256,8 @@ class SqlProvisionersTable extends Table {
     
     $this->setAutoViewVars([
       'servers' => [
-        'type' => 'select',
-        'model' => 'Servers',
-        'where' => ['plugin' => 'CoreServer.SqlServers']
+        'type' => 'plugin',
+        'model' => 'CoreServer.SqlServers'
       ]
     ]);
     
@@ -355,7 +354,7 @@ class SqlProvisionersTable extends Table {
    * Provision object data to the provisioning target.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  SqlProvisioner               $provisioningTarget SqlProvisioner configuration
+   * @param  ProvisioningTarget           $provisioningTarget SqlProvisioner configuration
    * @param  string                       $className          Class name of primary object being provisioned
    * @param  object                       $data               Provisioning data in Entity format (eg: \App\Model\Entity\Person)
    * @param  ProvisioningEligibilityEnum  $eligibility        Provisioning Eligibility Enum
@@ -363,16 +362,16 @@ class SqlProvisionersTable extends Table {
    */
 
   public function provision(
-    \SqlConnector\Model\Entity\SqlProvisioner $provisioningTarget,
+    \App\Model\Entity\ProvisioningTarget $provisioningTarget,
     string $className,
     object $data,       // $data is currently only \App\Model\Entity\Person, but that might change
     string $eligibility
   ): array {
     // Connect to the target database
-    $this->Servers->SqlServers->connect($provisioningTarget->server_id, 'targetdb');
+    $this->Servers->SqlServers->connect($provisioningTarget->sql_provisioner->server_id, 'targetdb');
 
     return $this->syncEntity(
-      $provisioningTarget,
+      $provisioningTarget->sql_provisioner,
       $className,
       $data,
       $eligibility

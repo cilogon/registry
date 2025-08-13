@@ -140,9 +140,8 @@ class OrcidSourcesTable extends Table {
 
         $this->setAutoViewVars([
             'servers' => [
-                'type' => 'select',
-                'model' => 'Servers',
-                'where' => ['plugin' => 'CoreServer.Oauth2Servers']
+                'type' => 'plugin',
+                'model' => 'CoreServer.Oauth2Servers'
             ],
             'api_tiers' => [
                 'type'  => 'enum',

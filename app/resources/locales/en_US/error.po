@@ -229,6 +229,9 @@ msgstr "Could not copy."
 msgid "javascript.requires.https"
 msgstr "This feature requires HTTPS."
 
+msgid "Jobs.command.plugin"
+msgstr "Job Plugin not provided"
+
 msgid "Jobs.failed.abnormal"
 msgstr "The Job terminated unexpectedly"
 

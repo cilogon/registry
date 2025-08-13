@@ -76,9 +76,8 @@ class SqlAssignersTable extends Table {
 
     $this->setAutoViewVars([
       'servers' => [
-        'type' => 'select',
-        'model' => 'Servers',
-        'where' => ['plugin' => 'CoreServer.SqlServers']
+        'type' => 'plugin',
+        'model' => 'CoreServer.SqlServers'
       ],
       'types' => [
         'type' => 'type',

@@ -248,6 +248,15 @@ class JobCommand extends Command
         $pidcount--;
       }
     } else {
+      // We have a specific job to process. Note that JobCommand can't require -j
+      // since the -r usage doesn't need it, so we have to check for it manually.
+
+      $jobPlugin = $args->getOption('job');
+
+      if(empty($jobPlugin)) {
+        throw new \InvalidArgumentException(__d('error', 'Jobs.command.plugin'));
+      }
+
       // Run the requested job synchronously?
       $synchronous = $args->getOption('synchronous');
 
@@ -268,7 +277,7 @@ class JobCommand extends Command
 
       $job = $JobTable->register(
         coId:             (int)$args->getOption('co_id'),
-        plugin:           $args->getOption('job'),
+        plugin:           $jobPlugin,
         parameters:       $params,
         registerSummary:  __d('result', 'Jobs.registered', [$pwent['name'], $pwent['uid']]),
         synchronous:      $synchronous

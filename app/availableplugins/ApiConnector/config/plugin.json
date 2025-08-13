@@ -3,7 +3,7 @@
     "api": [
       "ApiSourceEndpoints"
     ],
-    "source": [
+    "external_identity_source": [
       "ApiSources"
     ]
   },

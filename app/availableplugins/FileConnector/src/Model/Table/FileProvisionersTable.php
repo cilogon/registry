@@ -34,7 +34,7 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use App\Lib\Enum\ProvisioningEligibilityEnum;
 use App\Lib\Enum\ProvisioningStatusEnum;
-use \FileConnector\Model\Entity\FileProvisioner;
+use App\Model\Entity\ProvisioningTarget;
 
 class FileProvisionersTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
@@ -98,10 +98,10 @@ class FileProvisionersTable extends Table {
    */
 
   public function buildRules(RulesChecker $rules): RulesChecker {
-    // The requested file must exist and be writeable.
+    // The requested file must exist and be writable.
 
-    $rules->add([$this, 'ruleIsFileWriteable'],
-                'isFileWriteable',
+    $rules->add([$this, 'ruleIsFileWritable'],
+                'isFileWritable',
                 ['errorField' => 'filename']);
 
     return $rules;
@@ -110,17 +110,17 @@ class FileProvisionersTable extends Table {
   /**
    * Provision object data to the provisioning target.
    *
-   * @param   FileProvisioner  $provisioningTarget  FileProvisioner configuration
-   * @param   string           $entityName
-   * @param   object           $data                Provisioning data in Entity format (eg: \App\Model\Entity\Person)
-   * @param   string           $eligibility         Provisioning Eligibility Enum
+   * @param   ProvisioningTarget  $provisioningTarget  FileProvisioner configuration
+   * @param   string              $entityName
+   * @param   object              $data                Provisioning data in Entity format (eg: \App\Model\Entity\Person)
+   * @param   string              $eligibility         Provisioning Eligibility Enum
    *
    * @return array                                            Array of status, comment, and optional identifier
    * @since  COmanage Registry v5.0.0
    */
 
   public function provision(
-    FileProvisioner $provisioningTarget,
+    ProvisioningTarget $provisioningTarget,
     string $entityName,
     object $data,
     string $eligibility
@@ -133,22 +133,22 @@ class FileProvisionersTable extends Table {
     }
 
     if(file_put_contents(
-      filename: $provisioningTarget->filename,
+      filename: $provisioningTarget->file_provisioner->filename,
       data: json_encode($output, JSON_INVALID_UTF8_SUBSTITUTE) . "\n",
       flags: FILE_APPEND
     ) === false) {
-      throw new \RuntimeException("Write to " . $provisioningTarget->filename . " failed");
+      throw new \RuntimeException("Write to " . $provisioningTarget->file_provisioner->filename . " failed");
     }
     
     return [
       'status'      => ProvisioningStatusEnum::Provisioned,
-      'comment'     => "Wrote 1 record to file",
+      'comment'     => __d('file_connector', 'result.FileProvisioner.done'),
       'identifier'  => null
     ];
   }
 
   /**
-   * Application Rule to determine if the current entity is a writeable file.
+   * Application Rule to determine if the current entity is a writable file.
    *
    * @param   Entity  $entity   Entity to be validated
    * @param   array   $options  Application rule options
@@ -157,9 +157,9 @@ class FileProvisionersTable extends Table {
    * @since  COmanage Registry v5.0.0
    */
 
-  public function ruleIsFileWriteable($entity, array $options): string|bool {
+  public function ruleIsFileWritable($entity, array $options): string|bool {
     if(!is_writable($entity->filename)) {
-      return __d('file_connector', 'error.filename.writeable', [$entity->filename]);
+      return __d('file_connector', 'error.filename.writable', [$entity->filename]);
     }
 
     return true;

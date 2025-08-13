@@ -73,9 +73,8 @@ class MatchCallbacksTable extends Table {
 
     $this->setAutoViewVars([
       'servers' => [
-        'type' => 'select',
-        'model' => 'Servers',
-        'where' => ['plugin' => 'CoreServer.MatchServers']
+        'type' => 'plugin',
+        'model' => 'CoreServer.MatchServers'
       ]
     ]);
 

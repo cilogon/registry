@@ -89,7 +89,7 @@ class ExternalIdentitySourcesTable extends Table {
     $this->setAutoViewVars([
       'plugins' => [
         'type'        => 'plugin',
-        'pluginType'  => 'source'
+        'pluginType'  => 'external_identity_source'
       ],
       'pipelines' => [
         'type'  => 'select',

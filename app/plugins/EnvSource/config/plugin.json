@@ -1,12 +1,12 @@
 {
   "types": {
-    "enroller": [
+    "enrollment_flow_step": [
       "EnvSourceCollectors"
     ],
-    "source": [
+    "external_identity_source": [
       "EnvSources"
     ],
-    "traffic": [
+    "traffic_detour": [
       "EnvSourceDetours"
     ]
   },

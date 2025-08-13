@@ -128,9 +128,8 @@ class SqlSourcesTable extends Table {
         'attribute' => 'Pronouns.type'
       ],
       'servers' => [
-        'type' => 'select',
-        'model' => 'Servers',
-        'where' => ['plugin' => 'CoreServer.SqlServers']
+        'type' => 'plugin',
+        'model' => 'CoreServer.SqlServers'
       ],
       'telephoneNumberTypes' => [
         'type' => 'type',

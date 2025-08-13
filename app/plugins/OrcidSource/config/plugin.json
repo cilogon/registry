@@ -1,9 +1,9 @@
 {
   "types": {
-    "enroller": [
+    "enrollment_flow_step": [
       "OrcidSourceCollectors"
     ],
-    "source": [
+    "external_identity_source": [
       "OrcidSources"
     ]
   },

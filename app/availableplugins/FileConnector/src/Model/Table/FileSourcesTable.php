@@ -32,6 +32,7 @@ namespace FileConnector\Model\Table;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Model\Entity\ExternalIdentity;
 use \FileConnector\Lib\Enum\FileSourceFormatEnum;
@@ -40,6 +41,7 @@ class FileSourcesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -48,6 +50,13 @@ class FileSourcesTable extends Table {
 
   // Cache of the field configuration
   protected $fieldCfg = null;
+
+  // Cache of archive file paths
+  protected $archive1 = null;
+  protected $archive2 = null;
+
+  // Whether postRunTasks should rotate the archive
+  protected $rotate = false;
 
   /**
    * Perform Cake Model initialization.
@@ -126,9 +135,32 @@ class FileSourcesTable extends Table {
                 'isFileReadable',
                 ['errorField' => 'filename']);
 
-// XXX CFM-117 should we also check that the archive dir, if specified, is writeable?
+    $rules->add([$this, 'ruleIsArchiveWriteable'],
+                'isArchiveWriteable',
+                ['errorField' => 'archivedir']);
 
     return $rules;
+  }
+
+  /**
+   * Obtain the set of changed records from the source file.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  ExternalIdentitySource $source     External Identity Source
+   * @param  int                    $lastStart  Timestamp of last run
+   * @param  int                    $curStart   Timestamp of current run
+   * @return array|bool                         An array of changed source keys, or false
+   * @throws RuntimeException
+   */
+
+  public function getChangeList(
+    \App\Model\Entity\ExternalIdentitySource $source,
+    int $lastStart, // timestamp of last run
+    int $curStart   // timestamp of current run
+  ): array|bool {
+    $changeList = $this->processChangeList($source, $lastStart, $curStart);
+
+    return ($changeList == false) ? false : $changeList['changeList'];
   }
 
   /**
@@ -154,9 +186,11 @@ class FileSourcesTable extends Table {
     fgetcsv($handle);
 
     while(($data = fgetcsv($handle)) !== false) {
-      // The source key is always the first field in each line
+      // The source key is always the first field in each line, make sure it is not empty
 
-      $ret[] = $data[0];
+      if(!empty($data[0]) && !ctype_space($data[0])) {
+        $ret[] = $data[0];
+      }
     }
 
     fclose($handle);
@@ -165,6 +199,236 @@ class FileSourcesTable extends Table {
     sort($ret);
     
     return $ret;
+  }
+
+  /**
+   * Perform checks before a Sync Job proceeds.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  ExternalIdentitySource $source     External Identity Source
+   * @param  int                    $lastStart  Timestamp of last run
+   * @param  int                    $curStart   Timestamp of current run
+   * @throws RuntimeException
+   */
+
+  public function preRunChecks(
+    \App\Model\Entity\ExternalIdentitySource $source,
+    int $lastStart,
+    int $curStart
+  ) {
+    // If a threshold is set, check to make sure less than that many records changed
+    // (by percent).
+
+    // By default, we'll rotate the archive files in postRunTasks. (If we throw an
+    // exception, that hook won't be called.)
+
+    $this->rotate = true;
+
+    if(!empty($source->file_source->threshold_check)
+       && $source->file_source->threshold_check > 0) {
+      // threshold_check requires archive directories since we can't otherwise
+      // efficiently calculate diffs.
+
+      if(empty($source->file_source->archivedir)) {
+        $this->llog('debug', 'Threshold Check for ' . $source->description . ' is configured but no Archive Directory is available, ignoring');
+        throw new \RuntimeException(__d('file_connector', 'error.FileSource.threshold.config'));
+      }
+
+      // Check the number of changed records vs warning threshold. Note this
+      // check (correctly) does not run the first time a file is processed
+      // since there will be no archive file to compare against.
+
+      if($source->file_source->threshold_override) {
+        // Ignore thresholds, but unset this configuration for our next run
+
+        $source->file_source->threshold_override = false;
+        $this->saveOrFail($source->file_source, ['associated' => false]);
+        
+        $this->llog('trace', 'Threshold Check for ' . $source->description . ' is overridden, ignoring this time only');
+      } else {
+        $info = $this->processChangeList($source, $lastStart, $curStart);
+        
+        if($info['knownCount'] > 0) {
+          $changed = count($info['changeList']) + $info['newCount'];
+          $pct = floor(($changed * 100) / $info['knownCount']);
+
+          if($pct > $source->file_source->threshold_check) {
+            $this->llog('trace', 'Threshold Check for ' . $source->description . ' exceeded, stopping processing (changed=' . $changed . ', known=' . $info['knownCount'] . ', percent=' . $pct . ')');
+
+            throw new \RuntimeException(__d('file_connector', 'error.FileSource.threshold', [
+              $changed, $info['knownCount'], $pct, $source->file_source->threshold_check
+            ]));
+          }
+        }
+        // else no previous records, so treat as all new
+
+        if(empty($info['changeList']
+           && $info['newCount'] == 0)
+           && $info['knownCount'] > 0) {
+          // We don't want to rotate the Archive files if there were no changed records
+          // (since nothing happened).
+
+          $this->rotate = false;
+        }
+      }
+    }
+  }
+
+  /**
+   * Obtain the set of changed records from the source file.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  ExternalIdentitySource $source     External Identity Source
+   * @param  int                    $lastStart  Timestamp of last run
+   * @param  int                    $curStart   Timestamp of current run
+   * @return array|bool                         An array of
+   *                                              changelist: Changed record Source Keys
+   *                                              newCount: Count of new records
+   *                                              knownCount: Count of known records
+   *                                            or false
+   * @throws RuntimeException
+   */
+
+  protected function processChangeList(
+    \App\Model\Entity\ExternalIdentitySource $source,
+    int $lastStart, // timestamp of last run
+    int $curStart   // timestamp of current run
+  ): array|bool {
+    if(empty($source->file_source->archivedir)) {
+      // If there is no archivedir we don't support changelist calculation
+      return false;
+    }
+
+    $ret = [];
+    $knownCount = 0;
+    $newCount = 0;
+
+    $infile = $source->file_source->filename;
+    $basename = basename($infile);
+    $this->archive1 = $source->file_source->archivedir . DS . $basename . ".1";
+    $this->archive2 = $source->file_source->archivedir . DS . $basename . ".2";
+
+    // We could either read the files simultaneously in order (lower memory requirement),
+    // or read one and hash it (can read records out of sequence). For now we'll take
+    // the second approach.
+
+    if(is_readable($this->archive1)) {
+      // Start by creating a set of previously known records.
+      $knownRecords = [];
+
+      $handle = fopen($this->archive1, "r");
+
+      if(!$handle) {
+        throw new \RuntimeException(__d('file_connector', 'error.filename.readable', [$this->archive1]));
+      }
+
+      // Ignore the header line
+      fgetcsv($handle);
+
+      while(($data = fgetcsv($handle)) !== false) {
+        // Implode the record back together for string comparison purposes.
+        // This may not be the same as the original line due to quotes, etc.
+        // $data[0] is the SORID
+        $knownRecords[ $data[0] ] = implode(',', $data);
+      }
+
+      $knownCount = count($knownRecords);
+
+      fclose($handle);
+
+      // Now read the new file and look for changes.
+      $handle = fopen($infile, "r");
+
+      if(!$handle) {
+        throw new \RuntimeException(__d('file_connector', 'error.filename.readable', [$infile]));
+      }
+
+      // Ignore the header line
+      fgetcsv($handle);
+
+      while(($data = fgetcsv($handle)) !== false) {
+        // $data[0] is the SORID
+        if(array_key_exists($data[0], $knownRecords)) {
+          $newData = implode(',', $data);
+
+          if($newData != $knownRecords[ $data[0] ]) {
+            // This record changed, push the SORID onto the change list
+            $ret[] = $data[0];
+          }
+
+          // Unset the key so we can see which records were deleted.
+          unset($knownRecords[ $data[0] ]);
+        } else {
+          // This is a new record (ie: in $infile, not in $archive1),
+          // so we ignore it, except to count it.
+          $newCount++;
+        }
+      }
+
+      fclose($handle);
+
+      // Finally, any remaining keys in $knownRecords are delete operations.
+      if(!empty($knownRecords)) {
+        $ret = array_merge($ret, array_keys($knownRecords));
+      }
+    } else {
+      // If there is no archive file, we've either never run at all, or the admin
+      // updated the configuration and we have no idea what changed. In either case
+      // we'll report all records as new, which will cause them all to be
+      // (re)processed. In the latter case, admins can avoid this by manually creating
+      // the .1 file before updating the configuration.
+
+      $ret = $this->inventory($source);
+      $newCount = count($ret);
+    }
+
+    return [
+      'changeList'  => $ret,
+      'newCount'    => $newCount,
+      'knownCount'  => $knownCount
+    ];
+  }
+
+  /**
+   * Perform tasks following a Sync Job.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  ExternalIdentitySource $source     External Identity Source
+   */
+
+  public function postRunTasks(
+    \App\Model\Entity\ExternalIdentitySource $source
+  ) {
+    // Update the archive file. updateCache() is called after processing is complete,
+    // and only if at least one record changed. It's possible an irregular exit will
+    // prevent the cache from being updated, in that case we'll just end up reprocessing
+    // some records, which should effectively be a no-op. Historically, we kept two backup
+    // copies in case something went wrong, we still do so here, though it's less critical now.
+
+    if(!$this->rotate) {
+      $this->llog('trace', 'Not rotating archive files due to no changes');
+      return;
+    }
+
+    if(is_readable($this->archive1)) {
+      $this->llog('trace', 'Copying ' . $this->archive1 . ' to ' . $this->archive2);
+
+      if(!copy($this->archive1, $this->archive2)) {
+        throw new \RuntimeException(__d('file_connector', 'error.FileSource.copy', [
+          $this->archive1, $this->archive2
+        ]));
+      }
+    }
+
+    if(is_readable($source->file_source->filename)) {
+      $this->llog('trace', 'Copying ' . $source->file_source->filename . ' to ' . $this->archive1);
+
+      if(!copy($source->file_source->filename, $this->archive1)) {
+        throw new \RuntimeException(__d('file_connector', 'error.FileSource.copy', [
+          $source->file_source->filename, $this->archive1
+        ]));
+      }
+    }
   }
 
   /**
@@ -202,9 +466,12 @@ class FileSourcesTable extends Table {
       throw new \RuntimeException(__d('error.header'));
     }
 
+    // Calculate the CO for $filesource, which we'll need for field type validation
+    $coId = $this->calculateCoForRecord($filesource);
+
     foreach($cfg as $i => $label) {
       // Labels are of the forms described in the switch statement.
-      // Parse them out into the fieldcfg array.
+      // Parse them out into the fieldcfg array. We also validate them as we parse them.
 
       $bits = explode('.', $label, 5);
 
@@ -221,20 +488,37 @@ class FileSourcesTable extends Table {
           // external_identity.field
           // ad_hoc_attributes.tag (attached to EI)
           // related_model.field (not currently used)
+          if(!in_array($bits[0], ['ad_hoc_attributes', 'external_identity'])) {
+            throw new \RuntimeException(__d('file_connector', 'error.header.invalid', [$label]));
+          }
+
+          if($bits[0] != 'ad_hoc_attributes' && !$this->validField($bits[0], $bits[1], $coId)) {
+            throw new \RuntimeException(__d('file_connector', 'error.header.invalid', [$label]));
+          }
+
           $this->fieldCfg[ $bits[0] ][ $bits[1] ] = $i;
           break;
         case 3:
-          // related_models.type.field
+          // related_models.field.type
           // external_identity_roles.#.field (special case)
-          // Note we _no longer_ flip the order model/type/field
-          // (this is inverted from CSV v2)
+          // Note the old v2 order model/type/field is inverted here
           // and identifier+login is no longer supported
           if($bits[0] == 'external_identity_roles') {
             // Store based on role
+
+            if(!$this->validField($bits[0], $bits[2], $coId)) {
+              throw new \RuntimeException(__d('file_connector', 'error.header.invalid', [$label]));
+            }
+            
             $this->fieldCfg[ $bits[0] ]['roles'][ $bits[1] ]['fields'][ $bits[2] ] = $i;
           } else {
             // Store based on type
-            $this->fieldCfg[ $bits[0] ]['types'][ $bits[1] ][ $bits[2] ] = $i;
+
+            if(!$this->validField($bits[0], $bits[1], $coId, $bits[2])) {
+              throw new \RuntimeException(__d('file_connector', 'error.header.invalid', [$label]));
+            }
+            
+            $this->fieldCfg[ $bits[0] ]['types'][ $bits[2] ][ $bits[1] ] = $i;
           }
           break;
         case 4:
@@ -242,9 +526,9 @@ class FileSourcesTable extends Table {
           $this->fieldCfg[ $bits[0] ]['roles'][ $bits[1] ]['related'][ $bits[2] ][ $bits[3] ] = $i;
           break;
         case 5:
-          // external_identity_roles.#.related_models.type.field
+          // external_identity_roles.#.related_models.field.type
           // Note these are keyed on an SOR Role ID
-          $this->fieldCfg[ $bits[0] ]['roles'][ $bits[1] ]['related'][ $bits[2] ]['types'][ $bits[3] ][ $bits[4] ] = $i;
+          $this->fieldCfg[ $bits[0] ]['roles'][ $bits[1] ]['related'][ $bits[2] ]['types'][ $bits[4] ][ $bits[3] ] = $i;
           break;
       }
     }
@@ -308,7 +592,7 @@ class FileSourcesTable extends Table {
         }
       }
     }
-
+/* External Identities no longer have Primary Names
     // Make sure we have a Primary Name
     $primaryNameSet = false;
 
@@ -321,7 +605,7 @@ class FileSourcesTable extends Table {
 
     if(!$primaryNameSet) {
       $eidata['names'][0]['primary_name'] = true;
-    }
+    }*/
 
     // Process Ad Hoc Attributes (case 2)
     if(!empty($this->fieldCfg['ad_hoc_attributes'])) {
@@ -457,16 +741,52 @@ class FileSourcesTable extends Table {
   }
 
   /**
-   * Application Rule to determine if the current entity is a readable file.
+   * Application Rule to determine if the current entity has a writeable archive directory.
    *
-   * @param   Entity  $entity   Entity to be validated
-   * @param   array   $options  Application rule options
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity   Entity to be validated
+   * @param  array   $options  Application rule options
+   * @return string|bool       true if the Rule check passes, false otherwise
+   */
+
+  public function ruleIsArchiveWriteable($entity, array $options): string|bool {
+    // Archive Directory is optional, so we only complain if it's set but not writeable
+
+    if(!empty($entity->archivedir)) {
+      // We also check if the archive directory is absolute or relative. This is partly to give a
+      // more helpful message, and partly because if a deployer configures the directory into
+      // $webroot it'll be readable by the web server but not the command line.
+
+      if(mb_substr($entity->archivedir, 0, 1) != '/') {
+        return __d('file_connector', 'error.filename.absolute', [$entity->archivedir]);
+      }
+
+      if(!is_writable($entity->archivedir)) {
+        return __d('file_connector', 'error.filename.writable', [$entity->archivedir]);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the current entity has a readable file.
    *
-   * @return string|bool true if the Rule check passes, false otherwise
    * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity   Entity to be validated
+   * @param  array   $options  Application rule options
+   * @return string|bool       true if the Rule check passes, false otherwise
    */
 
   public function ruleIsFileReadable($entity, array $options): string|bool {
+    // We also check if the file path is absolute or relative. This is partly to give a
+    // more helpful message, and partly because if a deployer drops the file into $webroot
+    // it'll be readable by the web server but not the command line.
+    
+    if(mb_substr($entity->filename, 0, 1) != '/') {
+      return __d('file_connector', 'error.filename.absolute', [$entity->filename]);
+    }
+
     if(!is_readable($entity->filename)) {
       return __d('file_connector', 'error.filename.readable', [$entity->filename]);
     }
@@ -542,6 +862,61 @@ class FileSourcesTable extends Table {
       'q' => __d('field', 'search.placeholder')
     ];
   }
+  
+  /**
+   * Determine if $field is a valid field for $model.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  string $model  Model, in under_score format 
+   * @param  string $field  Field name
+   * @param  int    $coId   Current CO ID (only used for Type validation)
+   * @param  string $type   Field type, for MVEAs
+   * @return bool           true if $field is a field of $model, false otherwise
+   */
+
+  protected function validField(
+    string $model,
+    string $field,
+    int $coId,
+    ?string $type=null
+  ): bool {
+    // As a first pass, we just check the schema for the field, which means metadata
+    // such as revision or created will be accepted as valid. A better approach would
+    // be to do somethnig like TabelMetaTrait::filterMetadataFields, since we probably
+    // don't want to accept metadata fields as valid.
+
+    $tableName = Inflector::pluralize(Inflector::classify($model));
+
+    $Table = TableRegistry::getTableLocator()->get($tableName);
+
+    $schema = $Table->getSchema();
+
+    if(!$schema->hasColumn($field)) {
+      return false;
+    }
+
+    if($type) {
+      // We need to see if $type is a valid Type value. This will mostly be
+      // $tableName.type (eg: Names.type), except for ExternalIdentityRoles
+      // which will be PersonRoles.affiliation.
+
+      $attr = ($tableName == 'ExternalIdentityRoles')
+              ? "PersonRoles.affiliation_type"
+              : ($tableName . ".type");
+
+      try {
+        $Types = TableRegistry::getTableLocator()->get("Types");
+
+        // This will throw an exception if not valid
+        $Types->getTypeId($coId, $attr, $type);
+      }
+      catch(\Exception $e) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * Set validation rules.
@@ -570,13 +945,13 @@ class FileSourcesTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'archivedir', false);
 
-    $validator->add('threshold_warn', [
+    $validator->add('threshold_check', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->add('threshold_warn', [
+    $validator->add('threshold_check', [
       'range'   => ['rule' => 'range', 0, 100]
     ]);
-    $validator->allowEmptyString('threshold_warn');
+    $validator->allowEmptyString('threshold_check');
 
     $validator->add('threshold_override', [
       'content' => ['rule' => ['boolean']]

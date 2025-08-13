@@ -112,7 +112,7 @@ class IdentifierAssignmentsTable extends Table {
       ],
       'plugins' => [
         'type'        => 'plugin',
-        'pluginType'  => 'assigner'
+        'pluginType'  => 'identifier_assignment'
       ],
       'statuses' => [
         'type'  => 'enum',

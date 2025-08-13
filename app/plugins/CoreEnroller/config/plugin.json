@@ -1,6 +1,6 @@
 {
   "types": {
-    "enroller": [
+    "enrollment_flow_step": [
       "ApprovalCollectors",
       "AttributeCollectors",
       "BasicAttributeCollectors",

@@ -284,7 +284,7 @@ class SyncJob {
 
       $this->runContext->eis = $this->runContext->EISTable->get(
         $eisId,
-        ['contain' => 'SqlSources']
+        ['contain' => $this->runContext->EISTable->getPluginRelations()]
       );
     }
 

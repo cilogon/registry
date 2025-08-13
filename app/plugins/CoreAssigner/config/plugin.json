@@ -1,6 +1,6 @@
 {
   "types": {
-    "assigner": [
+    "identifier_assignment": [
       "FormatAssigners",
       "SqlAssigners"
     ]

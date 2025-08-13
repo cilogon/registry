@@ -92,7 +92,7 @@ class ProvisioningTargetsTable extends Table {
     $this->setAutoViewVars([
       'plugins' => [
         'type'        => 'plugin',
-        'pluginType'  => 'provisioner'
+        'pluginType'  => 'provisioning_target'
       ],
       'provisioningGroups' => [
         'type'  => 'select',
@@ -200,7 +200,7 @@ class ProvisioningTargetsTable extends Table {
       try {
         $this->llog('trace', "Provisioning $provisionedModel for $pluginModel (context: $context)", $t->id);
 
-        $result = $this->$pluginModel->provision($t->$uPluginModel, $provisionedModel, $data, $eligibility);
+        $result = $this->$pluginModel->provision($t, $provisionedModel, $data, $eligibility);
 
         $this->alog('trace', $result);
 

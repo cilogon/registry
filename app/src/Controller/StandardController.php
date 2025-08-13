@@ -252,7 +252,6 @@ class StandardController extends AppController {
     try {
       $obj = $table->findById($id)->firstOrFail();
       
-// XXX throw 404 on RESTful not found?
       // By default, a delete is a soft delete. The exceptions are when
       // deleting a CO (AR-CO-1) or when an expunge flag is passed and
       // expunge is enabled within the CO (XXX not yet implemented).

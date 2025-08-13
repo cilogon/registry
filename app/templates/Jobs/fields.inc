@@ -40,7 +40,10 @@ if($vv_action == 'add') {
   print $this->element('form/listItem', [
     'arguments' => [
       'fieldName' => 'plugin',
-      'fieldLabel' => __d('controller', 'Jobs', [1])
+      'fieldLabel' => __d('controller', 'Jobs', [1]),
+      'fieldOptions' => [
+        'type' => 'text'
+      ]
     ]
   ]);
 
