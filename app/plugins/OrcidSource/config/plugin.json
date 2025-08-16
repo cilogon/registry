@@ -48,11 +48,12 @@
           "refresh_token": { "type":  "text" }
         },
         "indexes": {
-          "orcid_source_collectors_i1": {
+          "orcid_source_tokens_i1": {
             "columns": [ "orcid_source_id",  "orcid_identifier"],
             "unique": true
           },
-          "orcid_source_collectors_i2": { "columns": [ "orcid_identifier" ] }
+          "orcid_source_tokens_i2": { "columns": [ "orcid_identifier" ] },
+          "orcid_source_tokens_i3": { "needed": false, "columns": [ "orcid_source_id" ] }
         }
       },
       "petition_orcids": {
