@@ -82,6 +82,12 @@ class DatabaseCommand extends Command {
     // want to skip this with -n since most of the time the database won't be empty.
     $Plugins = TableRegistry::getTableLocator()->get('Plugins');
 
+    // If we're dealing with a brand new installation, the Plugin Registry will be empty,
+    // and even core Plugins won't be returned here, so we need to sync it here. (This will
+    // also handle the case of upgrading when a new core Plugin is introduced.)
+
+    $Plugins->syncPluginRegistry();
+
     // AR-Plugin-6 Only apply schemas from active plugins
     $activePlugins = $Plugins->find('active')->all();
 
