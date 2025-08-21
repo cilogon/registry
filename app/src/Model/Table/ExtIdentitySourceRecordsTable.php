@@ -192,7 +192,7 @@ class ExtIdentitySourceRecordsTable extends Table {
 // enforce any validation on it.
 //    $this->registerStringValidation($validator, $schema, 'source_record', false);
     
-    $validator->add('last_updane', [
+    $validator->add('last_update', [
       'content' => ['rule' => 'dateTime']
     ]);
     $validator->allowEmptyString('last_update');
