@@ -144,7 +144,7 @@ class JobHistoryRecordsTable extends Table {
    */
   
   public function record(int $jobId, 
-                         string $recordKey,
+                         ?string $recordKey,
                          string $comment,
                          string $status=JobStatusEnum::Notice,
                          ?int $personId=null,

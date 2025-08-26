@@ -57,6 +57,30 @@ msgstr "Adopt"
 msgid "apply"
 msgstr "Apply"
 
+msgid "Authenticators.lock"
+msgstr "Lock"
+
+msgid "Authenticators.lock.confirm"
+msgstr "Are you sure you wish to lock this Authenticator?"
+
+msgid "Authenticators.manage"
+msgstr "Manage"
+
+msgid "Authenticators.reset"
+msgstr "Reset"
+
+msgid "Authenticators.reset.confirm"
+msgstr "Are you sure you wish to reset this Authenticator?"
+
+msgid "Authenticators.unlock"
+msgstr "Unlock"
+
+msgid "Authenticators.unlock.confirm"
+msgstr "Are you sure you wish to unlock this Authenticator?"
+
+msgid "Authenticators.view"
+msgstr "View"
+
 msgid "autocomplete.pager.show.more"
 msgstr "show more"
 
@@ -329,6 +353,9 @@ msgstr "Toggle All"
 
 msgid "unfreeze"
 msgstr "Unfreeze"
+
+msgid "upload"
+msgstr "Upload"
 
 msgid "verify"
 msgstr "Verify"

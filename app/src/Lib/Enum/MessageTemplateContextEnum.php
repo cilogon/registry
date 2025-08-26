@@ -30,7 +30,7 @@ declare(strict_types = 1);
 namespace App\Lib\Enum;
 
 class MessageTemplateContextEnum extends StandardEnum {
-//  const Authenticator          = 'AU';
+  const Authenticator          = 'AU';
   // EnrollmentApproval is only used for denial notifications in v5
   const EnrollmentApproval     = 'EA';
   const EnrollmentFinalization  = 'EF';

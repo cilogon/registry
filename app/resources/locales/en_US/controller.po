@@ -39,6 +39,12 @@ msgstr "{0,plural,=1{API} other{APIs}}"
 msgid "AuthenticationEvents"
 msgstr "{0,plural,=1{Authentication Event} other{Authentication Events}}"
 
+msgid "AuthenticatorStatuses"
+msgstr "{0,plural,=1{Authenticator Status} other{Authenticator Statuses}}"
+
+msgid "Authenticators"
+msgstr "{0,plural,=1{Authenticator} other{Authenticators}}"
+
 msgid "CoSettings"
 msgstr "{0,plural,=1{CO Setting} other{CO Settings}}"
 

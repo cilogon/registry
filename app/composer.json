@@ -39,8 +39,10 @@
             "EnvSource\\": "plugins/EnvSource/src/",
             "FileConnector\\": "availableplugins/FileConnector/src/",
             "OrcidSource\\": "plugins/OrcidSource/src/",
+            "PasswordAuthenticator\\": "availableplugins/PasswordAuthenticator/src/",
             "PipelineToolkit\\": "availableplugins/PipelineToolkit/src/",
             "SqlConnector\\": "availableplugins/SqlConnector/src/",
+            "SshKeyAuthenticator\\": "plugins/SshKeyAuthenticator/src/",
             "CoreJob\\": "plugins/CoreJob/src/"
         }
     },
@@ -56,8 +58,10 @@
             "EnvSource\\Test\\": "plugins/EnvSource/tests/",
             "FileConnector\\Test\\": "availableplugins/FileConnector/tests/",
             "OrcidSource\\Test\\": "plugins/OrcidSource/tests/",
+            "PasswordAuthenticator\\Test\\": "availableplugins/PasswordAuthenticator/tests/",
             "PipelineToolkit\\Test\\": "availableplugins/PipelineToolkit/tests/",
             "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/",
+            "SshKeyAuthenticator\\Test\\": "plugins/SshKeyAuthenticator/tests/",
             "CoreJob\\Test\\": "plugins/CoreJob/tests/"
         }
     },

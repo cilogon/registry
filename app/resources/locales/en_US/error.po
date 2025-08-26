@@ -112,6 +112,15 @@ msgstr "Cannot read file {0}"
 msgid "flash"
 msgstr "{0}: {1}"
 
+msgid "Authenticators.manage.locked"
+msgstr "Authenticator is locked and cannot be updated"
+
+msgid "Authenticators.status.locked"
+msgstr "Authenticator is already locked"
+
+msgid "Authenticators.status.unlocked"
+msgstr "Authenticator is not currently locked"
+
 msgid "Cos.active"
 msgstr "Requested CO {0} is not active"
 

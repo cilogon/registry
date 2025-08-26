@@ -39,6 +39,18 @@ msgstr "API Login"
 msgid "AuthenticationEventEnum.IN"
 msgstr "Registry Login"
 
+msgid "AuthenticatorStatusEnum.A"
+msgstr "Active"
+
+msgid "AuthenticatorStatusEnum.L"
+msgstr "Locked"
+
+msgid "AuthenticatorStatusEnum.NS"
+msgstr "Not Set"
+
+msgid "AuthenticatorStatusEnum.XP"
+msgstr "Expired"
+
 msgid "BooleanEnum.0"
 msgstr "False"
 
@@ -366,8 +378,8 @@ msgstr "HTML"
 msgid "MessageFormatEnum.text"
 msgstr "Plain Text"
 
-# msgid "MessageTemplateContextEnum.AU"
-# msgstr "Authenticator"
+msgid "MessageTemplateContextEnum.AU"
+msgstr "Authenticator"
 
 msgid "MessageTemplateContextEnum.EA"
 # We no longer have notifications on Approval (use Finalization or Handoff instead)

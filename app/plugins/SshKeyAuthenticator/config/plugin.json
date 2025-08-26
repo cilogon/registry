@@ -1,0 +1,34 @@
+{
+  "types": {
+    "authenticator": [
+      "SshKeyAuthenticators"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "ssh_key_authenticators": {
+        "columns": {
+          "id": {},
+          "authenticator_id": {}
+        },
+        "indexes": {
+          "ssh_key_authenticators_i1": { "columns": [ "authenticator_id" ]}
+        }
+      },
+      "ssh_keys": {
+        "columns": {
+          "id": {},
+          "ssh_key_authenticator_id": { "type": "integer", "foreignkey": { "table": "ssh_key_authenticators", "column": "id" }, "notnull": true },
+          "person_id": {},
+          "skey": { "type": "text" },
+          "comment": {},
+          "type": { "type": "string", "size": 32 }
+        },
+        "indexes": {
+          "ssh_keys_i1": { "columns": [ "ssh_key_authenticator_id" ]},
+          "ssh_keys_i2": { "columns": [ "person_id" ]}
+        }
+      }
+    }
+  }
+}

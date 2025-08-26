@@ -437,13 +437,23 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
                 break;
               case 'enum':
 // XXX Need to add badging - see index.php in Match
+                // Core enumerations are __d('enumeration', 'Enum.value')
+                $d = 'enumeration';
+                $p = "";
+
+                if(!empty($cfg['plugin'])) {
+                  // Plugin enumerations are __d($plugindomain, 'enumeration.Enum.value')
+                  $d = Inflector::underscore($cfg['plugin']);
+                  $p = "enumeration.";
+                }
+                
                 if(!empty($cfg['model']) && !empty($cfg['field'])) {
                   $m = $cfg['model'];
                   $f = $cfg['field'];
 
-                  print __d('enumeration', $cfg['class'].'.'.$entity->$m->$f) . $suffix;
+                  print __d($d, $p.$cfg['class'].'.'.$entity->$m->$f) . $suffix;
                 } elseif($entity->$col) {
-                  print __d('enumeration', $cfg['class'].'.'.$entity->$col) . $suffix;
+                  print __d($d, $p.$cfg['class'].'.'.$entity->$col) . $suffix;
                 }
                 break;
               case 'fk':
@@ -658,4 +668,8 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   </table>
 </div>
 
-<?= $this->element("pagination");
+<?php
+/// columns.inc can disable pagination where not needed or appropriate
+if(!isset($pagination) || $pagination) {
+  print $this->element("pagination");
+}

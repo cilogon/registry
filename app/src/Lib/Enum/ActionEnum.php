@@ -32,6 +32,10 @@ namespace App\Lib\Enum;
 class ActionEnum extends StandardEnum {
   // Codes beginning with 'X' (eg: 'XABC') are reserved for local use
   // Codes beginning with a lowercase 'p' (eg: 'pABC') are reserved for plugin use
+  const AuthenticatorEdited           = 'EAUT';
+  const AuthenticatorLocked           = 'LAUT';
+  const AuthenticatorReset            = 'RAUT';
+  const AuthenticatorUnlocked         = 'UAUT';
   const CommentAdded                  = 'CMNT';
   const EmailForceVerified            = 'EMFV';
   const EmailVerified                 = 'EMLV';

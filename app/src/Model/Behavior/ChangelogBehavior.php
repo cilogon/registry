@@ -69,7 +69,7 @@ class ChangelogBehavior extends Behavior
     // Update this record as deleted
 
     $entity->deleted = true;
-    $subject->saveOrFail($entity, ['checkRules' => false, 'archive' => false]);
+    $subject->saveOrFail($entity, new \ArrayObject(array_merge($options->getArrayCopy(), ['checkRules' => false, 'archive' => false])));
     
     // Stop the delete from actually happening
     $event->stopPropagation();

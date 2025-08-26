@@ -12,6 +12,7 @@
       "action": { "type": "string", "size": 4 },
       "api_id": { "type": "integer", "foreignkey": { "table": "apis", "column": "id" } },
       "api_user_id": { "type": "integer", "foreignkey": { "table": "api_users", "column": "id" } },
+      "authenticator_id": { "type": "integer", "foreignkey": { "table": "authenticators", "column": "id" }, "notnull": true },
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
       "comment": { "type": "string", "size": 256 },
       "context": { "type": "string", "size": 2 },
@@ -423,7 +424,8 @@
       "indexes": {
         "email_addresses_i1": { "columns": [ "mail", "type_id", "person_id" ] },
         "email_addresses_i2": { "columns": [ "mail", "type_id", "external_identity_id" ] },
-        "email_addresses_i3": { "columns": [ "type_id" ] }
+        "email_addresses_i3": { "columns": [ "type_id" ] },
+        "email_addresses_i4": { "columns": [ "type_id", "person_id" ] }
       },
       "mvea": [ "person", "external_identity" ],
       "sourced": true
@@ -477,7 +479,8 @@
         "identifiers_i1": { "columns": [ "identifier", "type_id", "person_id" ] },
         "identifiers_i2": { "columns": [ "identifier", "type_id", "external_identity_id" ] },
         "identifiers_i3": { "columns": [ "type_id" ] },
-        "identifiers_i4": { "needed": false, "columns": [ "provisioning_target_id" ] }
+        "identifiers_i4": { "needed": false, "columns": [ "provisioning_target_id" ] },
+        "identifiers_i5": { "columns": [ "type_id", "person_id" ] }
       },
       "mvea": [ "person", "external_identity", "group" ],
       "sourced": true
@@ -938,6 +941,35 @@
         "ordr": {}
       },
       "indexes": {
+      }
+    },
+
+    "authenticators": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {},
+        "message_template_id": {}
+      },
+      "indexes": {
+        "authenticators_i1": { "columns": [ "co_id" ] },
+        "authenticators_i2": { "needed": false, "columns": [ "message_template_id" ] }
+      }
+    },
+
+    "authenticator_statuses": {
+      "columns": {
+        "id": {},
+        "authenticator_id": {},
+        "person_id": {},
+        "locked": { "type": "boolean" }
+      },
+      "indexes": {
+        "authenticator_statuses_i1": { "columns": [ "authenticator_id", "person_id" ] },
+        "authenticator_statuses_i2": { "needed": false, "columns": [ "authenticator_id"] },
+        "authenticator_statuses_i3": { "needed": false, "columns": [ "person_id"] }
       }
     }
   },

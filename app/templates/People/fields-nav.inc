@@ -70,6 +70,20 @@ $topLinks = [
     'class' => ''
   ],
   [
+    'icon' => 'lock',
+    'order' => 'Default',
+    // We use "Authenticators" as the label because it's less confusiong
+    'label' => __d('controller', 'Authenticators', [99]),
+    'link' => [
+      'controller' => 'authenticator_statuses',
+      'action' => 'index',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
     'icon' => 'notifications',
     'iconClass' => 'material-symbols-outlined',
     'order' => 'Default',

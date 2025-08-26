@@ -94,6 +94,9 @@ class PeopleTable extends Table {
     $this->hasMany('ApplicationStates')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('AuthenticatorStatuses')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('EmailAddresses')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -284,6 +287,7 @@ class PeopleTable extends Table {
         'table' => [
           'Addresses',
           'AdHocAttributes',
+          'AuthenticatorStatuses',
           'Names',
           'EmailAddresses',
           'ExternalIdentities',

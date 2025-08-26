@@ -36,6 +36,24 @@ msgstr "Ad hoc attribute deleted"
 msgid "applied.schema"
 msgstr "Successfully applied database schema"
 
+msgid "Authenticators.locked"
+msgstr "Authenticator Locked"
+
+msgid "Authenticators.locked-a"
+msgstr "Authenticator {0} Locked"
+
+msgid "Authenticators.reset"
+msgstr "Authenticator Reset"
+
+msgid "Authenticators.reset-a"
+msgstr "Authenticator {0} Reset"
+
+msgid "Authenticators.unlocked"
+msgstr "Authenticator Unlocked"
+
+msgid "Authenticators.unlocked-a"
+msgstr "Authenticator {0} Unlocked"
+
 msgid "copied"
 msgstr "Copied"
 
@@ -264,6 +282,9 @@ msgstr "Search Results"
 
 msgid "search.retry"
 msgstr "Please select an option from a menu, or try your search again."
+
+msgid "set.not"
+msgstr "Not Set"
 
 msgid "TelephoneNumber.deleted"
 msgstr "Telephone number deleted"
