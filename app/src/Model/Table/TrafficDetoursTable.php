@@ -70,7 +70,7 @@ class TrafficDetoursTable extends Table {
     $this->setAutoViewVars([
       'plugins' => [
         'type'        => 'plugin',
-        'pluginType'  => 'traffic'
+        'pluginType'  => 'traffic_detour'
       ],
       'statuses' => [
         'type'  => 'enum',

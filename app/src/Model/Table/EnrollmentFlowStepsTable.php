@@ -116,7 +116,7 @@ class EnrollmentFlowStepsTable extends Table {
       ],
       'plugins' => [
         'type'        => 'plugin',
-        'pluginType'  => 'enroller'
+        'pluginType'  => 'enrollment_flow_step'
       ],
       'statuses' => [
         'type'  => 'enum',

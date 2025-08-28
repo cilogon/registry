@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.1.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -64,14 +64,13 @@ trait AutoViewVarsTrait {
   /**
    * Calculate the AutoView Vars
    *
-   * @param   int|null     $coId
-   * @param   Object|null  $obj  Current object (eg: from edit), if set
-   *
+   * @since  COmanage Registry v5.1.0
+   * @param  int|null     $coId
+   * @param  Object|null  $obj  Current object (eg: from edit), if set
    * @return \Generator
-   * @since  COmanage Registry v5.0.0
    */
-  public function calculateAutoViewVars(int|null $coId, Object $obj = null): \Generator
-  {
+
+  public function calculateAutoViewVars(int|null $coId, Object $obj = null): \Generator {
     // $table = the actual table object
     $table = $this;
 
@@ -225,30 +224,31 @@ trait AutoViewVarsTrait {
               $PluggableTable = TableRegistry::getTableLocator()->get(StringUtilities::foreignKeyToClassName($l));
 
               if(method_exists($PluggableTable, "getPluggableModelType")) {
-                // This is the correct primary link. Note we don't necessarily know how to
-                // filter inactive records since the only column PluggableTrait requires is
-                // "plugin".
+                // This is the correct primary link.
 
-                // The entity field holding the related model
-                $modelKey = StringUtilities::pluginToEntityField($avv['model']);
-
-                // For now we don't filter on status because not all Pluggable models
-                // use it consistency. (Specifically, EISs use SyncModeEnum instead.)
+                // This isn't really an Application Rule, but per the documentation at
+                // https://spaces.at.internet2.edu/display/COmanage/Adding+a+Pluggable+Model
+                // we require all Pluggable Models to have a status field, and define "S" as the
+                // value that will remove values from this list. (The recommendation is to use "X"
+                // to disable but allow the value to still appear.) 
                 $generatedValue = $PluggableTable->find('list', [
-                                     'keyField' => $modelKey.'.id',
+                                     'keyField' => 'id',
                                      'valueField' => 'description'
                                    ])
-                                   ->where(['plugin' => $avv['model']])
-                                   ->contain(StringUtilities::pluginModel($avv['model']))
+                                   // We assume Pluggable tables always FK to co_id which
+                                   // is currently true but might not always be true
+                                   ->where([
+                                    'plugin' => $avv['model'],
+                                    'co_id' => $coId,
+                                    'status IS NOT' => "S"
+                                   ])
                                    ->all();
-                
                 break;
               }
             }
           }
           break;
         default:
-// XXX I18n? and in match?
           throw new \LogicException(__d('error', 'auto.viewvar.type.unknown', [$avv['type']]));
       }
 
