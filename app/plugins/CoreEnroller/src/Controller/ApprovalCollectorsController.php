@@ -76,7 +76,7 @@ class ApprovalCollectorsController extends StandardEnrollerController {
           comment:              $comment
         );
 
-        if($approved == StatusEnum::Denied) {
+        if($approved != StatusEnum::Approved) {
           // If we have a denial Message Template, send the notification to the enrollee
           // email address. We don't currently support using a Notification, since in most
           // cases the Enrollee will not have a Person record yet. (There are some edge

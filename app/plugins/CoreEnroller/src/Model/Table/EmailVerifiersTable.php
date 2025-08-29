@@ -216,26 +216,61 @@ class EmailVerifiersTable extends Table {
 
       if(!$verified) {
         // We can consider this address verified if there was a transition _to_ a Step
-        // with an Enrollee actor no later than the current Step.
+        // with an Enrollee actor no later than the current Step. In order to allow this
+        // we need to confirm that the Petitioner is not also the Enrollee. We can't rely
+        // on the Enrollment Flow Petitioner Authorization because for any possible setting
+        // the Enrollee could also be the Petitioner (eg: Additional Role Enrollment,
+        // Account Linking, etc).
 
-        foreach($steps as $step) {
-          if($step->status == SuspendableStatusEnum::Active
-             && $step->actor_type == EnrollmentActorEnum::Enrollee) {
-            $this->llog('debug', "Flagging " . $petition->enrollee_email . " as verified via Handoff");
+        // We can definitively compare petitioner_identifier with enrollee_identifier
+        // (if both are set) or petitioner_person_id and enrollee_person_id (if both
+        // are set), or if neither petitioner value is set (unauthenticated enrollments
+        // are presumed to be self signups).
+        
+        // We default to the initial Actor being Enrollee to require an Actor flip
+        // if we can't otherwise determine that the Petitioner is the Enrollee.
+        $lastActor = EnrollmentActorEnum::Enrollee;
 
-            $ret[ $petition->enrollee_email ] = $PetitionVerifications->verifyFromHandoff(
-              $petition->id,
-              $emailVerifier->enrollment_flow_step_id,
-              $petition->enrollee_email
-            );
+        // We basically look to see if we can confirm the Petitioner is _not_ the
+        // Enrollee, and if we can then we flip $lastActor to Petitioner.
 
-            $verified = true;
-            break;
+        if(!empty($petition->petitioner_person_id)) {
+          // This Petitioner is an authenticated, registered Person, and is not
+          // the Enrollee.
+
+          if(empty($petition->enrollee_person_id)
+             || $petition->petitioner_person_id != $petition->enrollee_person_id) {
+            $lastActor = EnrollmentActorEnum::Petitioner;
           }
 
-          if($step->id == $emailVerifier->enrollment_flow_step_id) {
-            // Don't check future Steps
-            break;
+          // There could potentially be other scenarios, but currently the above is
+          // the only one we can confirm.
+        }
+
+        $petitionerIsEnrollee = false;
+
+        foreach($steps as $step) {
+          if($step->status == SuspendableStatusEnum::Active) {
+            if($lastActor != EnrollmentActorEnum::Enrollee
+               && $step->actor_type == EnrollmentActorEnum::Enrollee) {
+              $this->llog('debug', "Flagging " . $petition->enrollee_email . " as verified via Handoff");
+
+              $ret[ $petition->enrollee_email ] = $PetitionVerifications->verifyFromHandoff(
+                $petition->id,
+                $emailVerifier->enrollment_flow_step_id,
+                $petition->enrollee_email
+              );
+
+              $verified = true;
+              break;
+
+              if($step->id == $emailVerifier->enrollment_flow_step_id) {
+                // Don't check future Steps
+                break;
+              }
+            }
+
+            $lastActor = $step->actor_type;
           }
         }
       }

@@ -188,7 +188,7 @@ class EnrollmentFlowsController extends StandardController {
     $actor = $this->getCurrentActor();
 
     if($this->request->is(['post', 'put'])) {
-      // We should now have an enrollee email, so we can create the Pettion.
+      // We should now have an enrollee email, so we can create the Petition.
       // Saving the entity should syntactically validate the email address.
 
       $petition = $this->EnrollmentFlows->Petitions->start(
