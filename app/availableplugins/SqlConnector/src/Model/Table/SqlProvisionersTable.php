@@ -367,14 +367,20 @@ class SqlProvisionersTable extends Table {
     object $data,       // $data is currently only \App\Model\Entity\Person, but that might change
     string $eligibility
   ): array {
-    // Connect to the target database
-    $this->Servers->SqlServers->connect($provisioningTarget->sql_provisioner->server_id, 'targetdb');
+    // Connect to the target database. We append the SQL Provisioner ID to generate a
+    // unique data source name in case there are multiple SQL Provisioners in the same CO.
+    // Table Alias construction in the sync* commands will need to do the same thing.
+
+    $cxnLabel = "targetdb" . $provisioningTarget->sql_provisioner->id;
+
+    $this->Servers->SqlServers->connect($provisioningTarget->sql_provisioner->server_id, $cxnLabel);
 
     return $this->syncEntity(
       $provisioningTarget->sql_provisioner,
       $className,
       $data,
-      $eligibility
+      $eligibility,
+      $cxnLabel
     );
   }
   
@@ -395,7 +401,8 @@ class SqlProvisionersTable extends Table {
     string $entityName,
     $data,
     string $eligibility, 
-    string $dataSource='targetdb'): array {
+    string $dataSource='targetdb'
+  ): array {
     // Find the model config, which may vary depending on the type of entity.
     // We don't check secondaryModels because those aren't directly provisioned.
     $mconfig = $this->primaryModels[$entityName] 
@@ -409,11 +416,11 @@ class SqlProvisionersTable extends Table {
 // XXX similar code in syncReferenceData, refactor?
     $options = [
       'table'       => $SqlProvisioner->table_prefix . $mconfig['table'],
-      'alias'       => $mconfig['name'],
+      'alias'       => $mconfig['name'] . $SqlProvisioner->id,
       'connection'  => ConnectionManager::get($dataSource)
     ];
 
-    $SpTable = TableUtilities::getTableFromRegistry(alias: $mconfig['name'], options: $options);
+    $SpTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
 
     try {
       $curEntity = $SpTable->get($data->id);
@@ -565,11 +572,11 @@ class SqlProvisionersTable extends Table {
 
       $options = [
         'table'       => $spcfg->table_prefix . $m['table'],
-        'alias'       => $m['name'],
+        'alias'       => $m['name'] . $SqlProvisioner->id,
         'connection'  => ConnectionManager::get($dataSource)
       ];
 
-      $SpTable = TableUtilities::getTableFromRegistry(alias: $m['name'], options: $options);
+      $SpTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
 
       // Next get the source table model
 
@@ -640,7 +647,8 @@ class SqlProvisionersTable extends Table {
     string $relatedEntityName,
     $parentData,
     string $eligibility, 
-    string $dataSource='targetdb') {
+    string $dataSource='targetdb'
+  ) {
     // eg: person_id
     $parentFk = StringUtilities::entityToForeignKey($parentData);
     // eg: names
@@ -657,11 +665,11 @@ class SqlProvisionersTable extends Table {
 
     $options = [
       'table'       => $SqlProvisioner->table_prefix . $mconfig['table'],
-      'alias'       => $mconfig['name'],
+      'alias'       => $mconfig['name'] . $SqlProvisioner->id,
       'connection'  => ConnectionManager::get($dataSource)
     ];
 
-    $SpTable = TableUtilities::getTableFromRegistry(alias: $mconfig['name'], options: $options);
+    $SpTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
 
     // We have the source values, but we need to convert them to arrays
     // for patchEntities
@@ -741,11 +749,11 @@ class SqlProvisionersTable extends Table {
 
           $options = [
             'table'       => $SqlProvisioner->table_prefix . $subconfig['table'],
-            'alias'       => $subconfig['name'],
+            'alias'       => $subconfig['name'] . $SqlProvisioner->id,
             'connection'  => ConnectionManager::get($dataSource)
           ];
 
-          $SubTable = TableUtilities::getTableFromRegistry(alias: $subconfig['name'], options: $options);
+          $SubTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
 
           foreach($toDelete as $d) {
             // We shouldn't get here if either $parentKey or $d->id is null...

@@ -74,6 +74,10 @@ class DBALConnection extends Connection {
       'driver'   => ($cfg['driver'] == 'Cake\Database\Driver\Postgres' ? "pdo_pgsql" : "mysqli")
     ];
     
+    if(!empty($cfg['port'])) {
+      $cfargs['port'] = $cfg['port'];
+    }
+    
     // For MySQL SSL
     if(!empty($cfg['ssl_ca'])) {
       $cfargs['ssl_ca'] = $cfg['ssl_ca'];
