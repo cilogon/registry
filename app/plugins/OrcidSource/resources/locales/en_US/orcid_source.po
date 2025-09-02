@@ -58,6 +58,9 @@ msgstr "{0} was not found"
 msgid "error.response.no_orcid"
 msgstr "ORCID identifier missing from response."
 
+msgid "error.exists"
+msgstr "Orcid Token already exists with this Identifier"
+
 msgid "field.OrcidSources.api_type"
 msgstr "API Type"
 

@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace OrcidSource\Model\Table;
 
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Utility\Security;
 use Cake\Validation\Validator;
@@ -118,6 +119,24 @@ class OrcidTokensTable extends Table {
         }
 
     }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    $rules->add(
+     $rules->isUnique(
+         ["orcid_source_id",  "orcid_identifier"]),
+        __d('orcid_source', 'error.exists')
+    );
+
+    return $rules;
+  }
 
     /**
      * Unencrypt a value previously encrypted using salt
