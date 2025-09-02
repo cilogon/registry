@@ -88,16 +88,10 @@ class ApiV2Controller extends StandardApiController {
             $orcidSourcesRecords = $this->OrcidSources
                 ->find()
                 ->contain([
-                    'Servers.Oauth2Servers' => function ($q) {
-                        return $q->where(["LOWER(Oauth2Servers.url) LIKE" => '%orcid%']);
-                    },
+                    'Servers',
                     'ExternalIdentitySources',
                 ])
-                ->innerJoinWith('Servers.Oauth2Servers', function ($q) {
-                    return $q->where([
-                        "LOWER(Oauth2Servers.url) LIKE" => '%orcid%'
-                    ]);
-                })
+                ->innerJoinWith('Servers')
                 ->innerJoinWith('ExternalIdentitySources')
                 ->where([
                     'Servers.plugin' => 'CoreServer.Oauth2Servers',

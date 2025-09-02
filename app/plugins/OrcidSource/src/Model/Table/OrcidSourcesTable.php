@@ -516,28 +516,22 @@ class OrcidSourcesTable extends Table {
     ): \Cake\Http\Client {
         $this->orcidSource = $this->find()
             ->contain([
-                'Servers.Oauth2Servers' => function ($q) {
-                    return $q->where(["LOWER(Oauth2Servers.url) LIKE" => '%orcid%']);
-                },
+                'Servers' => ['Oauth2Servers'],
                 'ExternalIdentitySources',
             ])
-            ->innerJoinWith('Servers.Oauth2Servers', function ($q) {
-                return $q->where([
-                    "LOWER(Oauth2Servers.url) LIKE" => '%orcid%'
-                ]);
-            })
+            ->innerJoinWith('Servers.Oauth2Servers')
             ->innerJoinWith('ExternalIdentitySources')
             ->where([
                 'Servers.plugin' => 'CoreServer.Oauth2Servers',
                 'ExternalIdentitySources.id' => $exterrnalIdentitySource->id,
-                'ExternalIdentitySources.plugin' => 'OrcidSource.OrcidSources'
+                'ExternalIdentitySources.plugin' => 'OrcidSource.OrcidSources',
             ])
             ->first();
 
         // Set the CO ID
         $this->setCurCoId($this->orcidSource->server->co_id);
 
-        if ( empty($this->orcidSource->id)) {
+        if (empty($this->orcidSource->id)) {
             throw new \InvalidArgumentException(__d('error', 'notfound', [__d('core_server', 'controller.Oauth2Servers')]));
         }
 
