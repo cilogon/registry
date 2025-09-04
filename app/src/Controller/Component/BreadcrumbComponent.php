@@ -35,8 +35,9 @@ use \Cake\ORM\TableRegistry;
 use \Cake\Utility\Inflector;
 use \App\Lib\Util\StringUtilities;
 
-class BreadcrumbComponent extends Component
-{
+class BreadcrumbComponent extends Component {
+  use \App\Lib\Traits\LabeledLogTrait;
+
   /*
    * Breadcrump example
    * COmanage Registry > Alfa Community > Configuration > External Identity Sources > Test Filesource Plugin > Configure Test Filesource Plugin
@@ -176,95 +177,101 @@ class BreadcrumbComponent extends Component
 
   public function injectPrimaryLink(object $link, bool $index=true, string $linkLabel=null): void
   {
-    // eg: "People"
-    $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
-    if(!empty($this->getController()->viewBuilder()->getVar('vv_primary_link_model'))) {
-      // $link doesn't seem to handle table aliases (eg "Groups" instead of "RecipientGroups" for
-      // Notifications)). This may also return a plugin qualified path (eg SshKeyAuthenticator.SshKeyAuthenticators).
-      $modelsName = $this->getController()->viewBuilder()->getVar('vv_primary_link_model');
-    }
-    $modelPath = $modelsName;
-
-    if(!empty($link->plugin) && !str_starts_with($modelsName, $link->plugin . '.')) {
-      // eg: "CoreEnroller.AttributeCollectors", however check first since we may have the
-      // path from vv_primary_link_model.
-      $modelPath = $link->plugin . '.' . $modelsName;
-    }
-
-    // Construct the get<Request Action>Contains function name
-    $requestAction = $this->getController()->getRequest()->getParam('action');
-    $mappedRequestAction = $requestAction;
-    // In the case we are dealing with non-standard actions we need to fallback to a standard one
-    // in order to get access to the contain array. We will use the permissions to decide which
-    // action to fall back to
-    if(!\in_array($requestAction, [
-      'index', 'view', 'delete', 'add', 'edit'
-    ])) {
-      $permissionsArray = $this->getController()->RegistryAuth->calculatePermissionsForView($requestAction);
-      $id               = $this->getController()->getRequest()->getParam('pass')[0] ?? null;
-      if (isset($id)) {
-        $mappedRequestAction = ( isset($permissionsArray['edit']) && $permissionsArray['edit'] ) ? 'edit' : 'view';
-      } else {
-        $mappedRequestAction = 'index';
+    try {
+      // eg: "People"
+      $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
+      if(!empty($this->getController()->viewBuilder()->getVar('vv_primary_link_model'))) {
+        // $link doesn't seem to handle table aliases (eg "Groups" instead of "RecipientGroups" for
+        // Notifications)). This may also return a plugin qualified path (eg SshKeyAuthenticator.SshKeyAuthenticators).
+        $modelsName = $this->getController()->viewBuilder()->getVar('vv_primary_link_model');
       }
-    }
-    $containsList = 'get' . ucfirst($mappedRequestAction) . 'Contains';
+      $modelPath = $modelsName;
 
-    $linkTable = TableRegistry::getTableLocator()->get($modelPath);
-    $contain = method_exists($linkTable, $containsList) ? $linkTable->$containsList() : [];
-
-    $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
-
-    if($index) {
-      // We need to determine the primary link of the parent, which might or might
-      // not be co_id
-
-      if(method_exists($linkTable, "findPrimaryLink")) {
-        // If findPrimaryLink doesn't exist, we're probably working with CosTable
-
-        $parentLink = $linkTable->findPrimaryLink($linkObj->id);
-
-        $this->injectParents[ $modelPath . $parentLink->value] = [
-          'target' => [
-            'plugin'      => $parentLink->plugin ?? null,
-            'controller'  => $modelsName,
-            'action'      => 'index',
-            '?'           => [
-              $parentLink->attr => $parentLink->value
-            ]
-          ],
-          'label' => StringUtilities::localizeController(
-            controllerName: $modelsName,
-            pluginName:     $link->plugin ?? null,
-            plural:         true
-          )
-        ];
+      if(!empty($link->plugin) && !str_starts_with($modelsName, $link->plugin . '.')) {
+        // eg: "CoreEnroller.AttributeCollectors", however check first since we may have the
+        // path from vv_primary_link_model.
+        $modelPath = $link->plugin . '.' . $modelsName;
       }
+
+      // Construct the get<Request Action>Contains function name
+      $requestAction = $this->getController()->getRequest()->getParam('action');
+      $mappedRequestAction = $requestAction;
+      // In the case we are dealing with non-standard actions we need to fallback to a standard one
+      // in order to get access to the contain array. We will use the permissions to decide which
+      // action to fall back to
+      if(!\in_array($requestAction, [
+        'index', 'view', 'delete', 'add', 'edit'
+      ])) {
+        $permissionsArray = $this->getController()->RegistryAuth->calculatePermissionsForView($requestAction);
+        $id               = $this->getController()->getRequest()->getParam('pass')[0] ?? null;
+        if (isset($id)) {
+          $mappedRequestAction = ( isset($permissionsArray['edit']) && $permissionsArray['edit'] ) ? 'edit' : 'view';
+        } else {
+          $mappedRequestAction = 'index';
+        }
+      }
+      $containsList = 'get' . ucfirst($mappedRequestAction) . 'Contains';
+
+      $linkTable = TableRegistry::getTableLocator()->get($modelPath);
+      $contain = method_exists($linkTable, $containsList) ? $linkTable->$containsList() : [];
+
+      $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
+
+      if($index) {
+        // We need to determine the primary link of the parent, which might or might
+        // not be co_id
+
+        if(method_exists($linkTable, "findPrimaryLink")) {
+          // If findPrimaryLink doesn't exist, we're probably working with CosTable
+
+          $parentLink = $linkTable->findPrimaryLink($linkObj->id);
+
+          $this->injectParents[ $modelPath . $parentLink->value] = [
+            'target' => [
+              'plugin'      => $parentLink->plugin ?? null,
+              'controller'  => $modelsName,
+              'action'      => 'index',
+              '?'           => [
+                $parentLink->attr => $parentLink->value
+              ]
+            ],
+            'label' => StringUtilities::localizeController(
+              controllerName: $modelsName,
+              pluginName:     $link->plugin ?? null,
+              plural:         true
+            )
+          ];
+        }
+      }
+
+      // Find the allowed action
+      $breadcrumbAction = method_exists($linkObj, 'isReadOnly') ?
+                          ($linkObj->isReadOnly() ? 'view' : 'edit') :
+                          $mappedRequestAction;
+
+      // We specifically need to check for the add action
+      if($mappedRequestAction == 'add' || $mappedRequestAction == 'delete') {
+        $breadcrumbAction = $mappedRequestAction;
+      }
+
+
+      // The action in the following injectParents dictates the action here
+      [$title,,] = StringUtilities::entityAndActionToTitle($linkObj, $modelPath, $breadcrumbAction);
+
+      $this->injectParents[ $linkTable->getTable() . $linkObj->id ] = [
+        'target' => [
+          'plugin'      => $link->plugin ?? null,
+          'controller'  => $modelsName,
+          'action'      => $breadcrumbAction,
+          $linkObj->id
+        ],
+        'label' => $linkLabel ?? $title
+      ];
     }
-
-    // Find the allowed action
-    $breadcrumbAction = method_exists($linkObj, 'isReadOnly') ?
-                        ($linkObj->isReadOnly() ? 'view' : 'edit') :
-                        $mappedRequestAction;
-
-    // We specifically need to check for the add action
-    if($mappedRequestAction == 'add' || $mappedRequestAction == 'delete') {
-      $breadcrumbAction = $mappedRequestAction;
+    catch(\Exception $e) {
+      // If anything goes wrong we don't want to crash the entire page
+      $this->llog('error', "Breadcrumbs failed: " . $e->getMessage());
     }
-
-
-    // The action in the following injectParents dictates the action here
-    [$title,,] = StringUtilities::entityAndActionToTitle($linkObj, $modelPath, $breadcrumbAction);
-
-    $this->injectParents[ $linkTable->getTable() . $linkObj->id ] = [
-      'target' => [
-        'plugin'      => $link->plugin ?? null,
-        'controller'  => $modelsName,
-        'action'      => $breadcrumbAction,
-        $linkObj->id
-      ],
-      'label' => $linkLabel ?? $title
-    ];
   }
 
   /**
