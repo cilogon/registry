@@ -215,7 +215,17 @@ class BreadcrumbComponent extends Component {
       $linkTable = TableRegistry::getTableLocator()->get($modelPath);
       $contain = method_exists($linkTable, $containsList) ? $linkTable->$containsList() : [];
 
-      $linkObj = $linkTable->get($link->value, ['contain' => $contain]);
+      // Use the table alias for query building (avoid plugin-qualified names in SQL)
+      $modelAlias = $linkTable->getAlias();
+
+      $modelNameForeignKey = StringUtilities::classNameToForeignKey($modelAlias);
+      $linkAttr = $link->attr == $modelNameForeignKey ? 'id' : $link->attr;
+      $linkObj = $linkTable
+        ->find()
+        ->where(["$modelAlias.$linkAttr" => $link->value])
+        ->contain($contain)
+        ->firstOrFail();
+
 
       if($index) {
         // We need to determine the primary link of the parent, which might or might
@@ -271,6 +281,9 @@ class BreadcrumbComponent extends Component {
     catch(\Exception $e) {
       // If anything goes wrong we don't want to crash the entire page
       $this->llog('error', "Breadcrumbs failed: " . $e->getMessage());
+      $this->llog(
+        'error',
+        "Breadcrumbs failed: " . json_encode($e->getTrace(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
   }
 
