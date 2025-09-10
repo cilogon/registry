@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace FileConnector\Model\Table;
 
+use App\Model\Entity\ExternalIdentitySource;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -389,16 +390,16 @@ class FileSourcesTable extends Table {
     ];
   }
 
-  /**
-   * Perform tasks following a Sync Job.
-   * 
-   * @since  COmanage Registry v5.2.0
-   * @param  ExternalIdentitySource $source     External Identity Source
-   */
+    /**
+     * Perform tasks following a Sync Job.
+     *
+     * @param ExternalIdentitySource $source External Identity Source
+     * @since  COmanage Registry v5.2.0
+     */
 
   public function postRunTasks(
     \App\Model\Entity\ExternalIdentitySource $source
-  ) {
+  ): void {
     // Update the archive file. updateCache() is called after processing is complete,
     // and only if at least one record changed. It's possible an irregular exit will
     // prevent the cache from being updated, in that case we'll just end up reprocessing
@@ -410,7 +411,7 @@ class FileSourcesTable extends Table {
       return;
     }
 
-    if(is_readable($this->archive1)) {
+    if($this->archive1 !== null && is_readable($this->archive1)) {
       $this->llog('trace', 'Copying ' . $this->archive1 . ' to ' . $this->archive2);
 
       if(!copy($this->archive1, $this->archive2)) {
@@ -420,7 +421,11 @@ class FileSourcesTable extends Table {
       }
     }
 
-    if(is_readable($source->file_source->filename)) {
+    if(
+      $source->file_source->filename !== null
+      && $this->archive1 !== null
+      && is_readable($source->file_source->filename)
+    ) {
       $this->llog('trace', 'Copying ' . $source->file_source->filename . ' to ' . $this->archive1);
 
       if(!copy($source->file_source->filename, $this->archive1)) {
@@ -454,7 +459,7 @@ class FileSourcesTable extends Table {
     $handle = fopen($filesource->filename, "r");
 
     if(!$handle) {
-      throw new \RuntimeException(__d('file_connector', 'error.filename.readable', $file_source->filename));
+      throw new \RuntimeException(__d('file_connector', 'error.filename.readable', $filesource->filename));
     }
 
     // The first line is our configuration
@@ -867,7 +872,7 @@ class FileSourcesTable extends Table {
    * Determine if $field is a valid field for $model.
    * 
    * @since  COmanage Registry v5.2.0
-   * @param  string $model  Model, in under_score format 
+   * @param  string $model  Model, in under_score format
    * @param  string $field  Field name
    * @param  int    $coId   Current CO ID (only used for Type validation)
    * @param  string $type   Field type, for MVEAs
@@ -882,7 +887,7 @@ class FileSourcesTable extends Table {
   ): bool {
     // As a first pass, we just check the schema for the field, which means metadata
     // such as revision or created will be accepted as valid. A better approach would
-    // be to do somethnig like TabelMetaTrait::filterMetadataFields, since we probably
+    // be to do something like TabelMetaTrait::filterMetadataFields, since we probably
     // don't want to accept metadata fields as valid.
 
     $tableName = Inflector::pluralize(Inflector::classify($model));
@@ -891,6 +896,13 @@ class FileSourcesTable extends Table {
 
     $schema = $Table->getSchema();
 
+    // We need to handle the ExternalIdentityRoles.affiliation csv header specially.
+    if($field == 'affiliation' && $tableName == 'ExternalIdentityRoles') {
+      // We do not know the type. Because the type is part of each record. As a result we will return true
+      // and the validation will fail later.
+      $field = 'affiliation_type_id';
+    }
+
     if(!$schema->hasColumn($field)) {
       return false;
     }
@@ -898,17 +910,12 @@ class FileSourcesTable extends Table {
     if($type) {
       // We need to see if $type is a valid Type value. This will mostly be
       // $tableName.type (eg: Names.type), except for ExternalIdentityRoles
-      // which will be PersonRoles.affiliation.
-
-      $attr = ($tableName == 'ExternalIdentityRoles')
-              ? "PersonRoles.affiliation_type"
-              : ($tableName . ".type");
 
       try {
         $Types = TableRegistry::getTableLocator()->get("Types");
 
         // This will throw an exception if not valid
-        $Types->getTypeId($coId, $attr, $type);
+        $Types->getTypeId($coId, $tableName . ".type", $type);
       }
       catch(\Exception $e) {
         return false;

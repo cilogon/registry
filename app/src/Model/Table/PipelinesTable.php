@@ -442,7 +442,7 @@ class PipelinesTable extends Table {
           $PluginTable = TableRegistry::getTableLocator()->get($flange->plugin);
 
           if(!method_exists($PluginTable, $fn)) {
-            throw new \RuntimeException(__d('Pipelines.plugin.notimpl', [$fn]));
+            throw new \RuntimeException(__d('error', 'Pipelines.plugin.notimpl', [$fn]));
           }
 
           // The plugin should modify $newdata (via our local copy $ret) as needed, then return it
@@ -1388,13 +1388,13 @@ class PipelinesTable extends Table {
       // We received a 300 response, which is not supported in a Pipeline context
       // and probably means the admin misconfigured the Match Server.
 
-      throw new \RuntimeException('error', 'Pipelines.match.external.response');
+      throw new \RuntimeException(__d('error', 'Pipelines.match.external.response'));
     }
 
     if(empty($referenceId)) {
       // We shouldn't get here with an empty Reference ID, but check just in case
 
-      throw new \RuntimeException('error', 'Pipelines.match.external.empty');
+      throw new \RuntimeException(__d('error', 'Pipelines.match.external.empty'));
     }
 
     // Note we can't record history here because we don't necessarily have an
@@ -1446,7 +1446,7 @@ class PipelinesTable extends Table {
       // No match
     } else {
       // This is an error, we shouldn't have more than 1 matching Person
-      throw new \InvalidArgumentException('Pipelines.match.multiple', [$referenceId]);
+      throw new \InvalidArgumentException(__d('error', 'Pipelines.match.multiple', [$referenceId]));
     }
     
     return null;
