@@ -31,14 +31,14 @@ abstract class AbstractTransport
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     /**
      * Send mail
      *
      * @param \Cake\Mailer\Message $message Email message.
-     * @return array
-     * @psalm-return array{headers: string, message: string}
+     * @return array<string, mixed> Contains 'headers' and 'message' keys. Additional keys allowed.
+     * @phpstan-return array{headers: string, message: string, ...}
      */
     abstract public function send(Message $message): array;
 
@@ -68,7 +68,7 @@ abstract class AbstractTransport
         ) {
             throw new CakeException(
                 'You must specify at least one recipient.'
-                . ' Use one of `setTo`, `setCc` or `setBcc` to define a recipient.'
+                . ' Use one of `setTo`, `setCc` or `setBcc` to define a recipient.',
             );
         }
     }

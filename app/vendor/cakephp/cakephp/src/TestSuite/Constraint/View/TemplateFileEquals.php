@@ -27,7 +27,7 @@ class TemplateFileEquals extends Constraint
     /**
      * @var string
      */
-    protected $filename;
+    protected string $filename;
 
     /**
      * Constructor
@@ -45,9 +45,9 @@ class TemplateFileEquals extends Constraint
      * @param mixed $other Expected filename
      * @return bool
      */
-    public function matches($other): bool
+    public function matches(mixed $other): bool
     {
-        return strpos($this->filename, $other) !== false;
+        return str_contains($this->filename, $other);
     }
 
     /**

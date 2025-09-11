@@ -34,7 +34,7 @@ class LocaleSelectorMiddleware implements MiddlewareInterface
      *
      * @var array
      */
-    protected $locales = [];
+    protected array $locales = [];
 
     /**
      * Constructor.
@@ -63,7 +63,7 @@ class LocaleSelectorMiddleware implements MiddlewareInterface
         if ($this->locales !== ['*']) {
             $locale = Locale::lookup($this->locales, $locale, true);
         }
-        if ($locale || $this->locales === ['*']) {
+        if ($locale) {
             I18n::setLocale($locale);
         }
 

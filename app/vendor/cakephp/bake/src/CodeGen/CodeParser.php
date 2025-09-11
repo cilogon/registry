@@ -17,17 +17,19 @@ declare(strict_types=1);
 namespace Bake\CodeGen;
 
 use PhpParser\Error;
-use PhpParser\Lexer\Emulative;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\GroupUse;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
-use PhpParser\Node\Stmt\UseUse;
+use PhpParser\Node\UseItem;
 use PhpParser\NodeAbstract;
 use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
+use PhpParser\Parser;
 use PhpParser\ParserFactory;
+use PhpParser\PhpVersion;
 
 /**
  * @internal
@@ -42,34 +44,30 @@ class CodeParser extends NodeVisitorAbstract
     /**
      * @var \PhpParser\Parser
      */
-    protected $parser;
+    protected Parser $parser;
 
     /**
      * @var \PhpParser\NodeTraverser
      */
-    protected $traverser;
+    protected NodeTraverser $traverser;
 
     /**
      * @var string
      */
-    protected $fileText = '';
+    protected string $fileText = '';
 
     /**
      * @var array
      */
-    protected $parsed = [];
+    protected array $parsed = [];
 
     /**
      * Constructor
      */
     public function __construct()
     {
-        $this->parser = (new ParserFactory())->create(
-            ParserFactory::PREFER_PHP7,
-            new Emulative([
-                'usedAttributes' => ['comments', 'startLine', 'endLine', 'startFilePos', 'endFilePos'],
-            ])
-        );
+        $version = PhpVersion::fromComponents(8, 1);
+        $this->parser = (new ParserFactory())->createForVersion($version);
         $this->traverser = new NodeTraverser();
         $this->traverser->addVisitor($this);
     }
@@ -97,7 +95,7 @@ class CodeParser extends NodeVisitorAbstract
             $this->parsed['imports']['class'],
             $this->parsed['imports']['function'],
             $this->parsed['imports']['const'],
-            $this->parsed['class']
+            $this->parsed['class'],
         );
     }
 
@@ -136,7 +134,11 @@ class CodeParser extends NodeVisitorAbstract
                 throw new ParseException('Multiple use statements per line are not supported, update your file');
             }
 
-            [$alias, $target] = $this->normalizeUse(current($node->uses));
+            if ($node->uses === []) {
+                throw new ParseException('Use statement without uses!');
+            }
+
+            [$alias, $target] = $this->normalizeUse($node->uses[0]);
             switch ($node->type) {
                 case Use_::TYPE_NORMAL:
                     $this->parsed['imports']['class'][$alias] = $target;
@@ -149,7 +151,7 @@ class CodeParser extends NodeVisitorAbstract
                     break;
             }
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return NodeVisitor::DONT_TRAVERSE_CHILDREN;
         }
 
         if ($node instanceof GroupUse) {
@@ -199,10 +201,10 @@ class CodeParser extends NodeVisitorAbstract
                 $implements,
                 $constants,
                 $properties,
-                $methods
+                $methods,
             );
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return NodeVisitor::DONT_TRAVERSE_CHILDREN;
         }
 
         return null;
@@ -229,11 +231,11 @@ class CodeParser extends NodeVisitorAbstract
     }
 
     /**
-     * @param \PhpParser\Node\Stmt\UseUse $use Use node
+     * @param \PhpParser\Node\UseItem $use Use item
      * @param string|null $prefix Group use prefix
      * @return array{string, string}
      */
-    protected function normalizeUse(UseUse $use, ?string $prefix = null): array
+    protected function normalizeUse(UseItem $use, ?string $prefix = null): array
     {
         $name = (string)$use->name;
         if ($prefix) {

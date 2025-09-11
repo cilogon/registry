@@ -35,7 +35,7 @@ use Cake\ORM\TableRegistry;
 use http\QueryString;
 
 class PeopleController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
 // XXX this will sort by family name, but it this universally correct?
 // so we need a configuration, or can we do something automagic?
@@ -53,6 +53,20 @@ class PeopleController extends StandardController {
     ],
     'finder' => 'indexed'
   ];
+
+  /**
+   * Perform Cake Controller initialization.
+   *
+   * @since  COmanage Registry v5.2.0
+   */
+  public function initialize(): void
+  {
+    parent::initialize();
+
+    if (!$this->request->is('restful') && !$this->request->is('ajax')) {
+      unset($this->paginate['finder']);
+    }
+  }
   
   /**
    * Callback run prior to the request render.

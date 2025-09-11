@@ -25,7 +25,7 @@ class DuplicateNamedRouteException extends CakeException
     /**
      * @inheritDoc
      */
-    protected $_messageTemplate = 'A route named "%s" has already been connected to "%s".';
+    protected string $_messageTemplate = 'A route named `%s` has already been connected to `%s`.';
 
     /**
      * Constructor.
@@ -35,7 +35,7 @@ class DuplicateNamedRouteException extends CakeException
      * @param int|null $code The code of the error, is also the HTTP status code for the error. Defaults to 404.
      * @param \Throwable|null $previous the previous exception.
      */
-    public function __construct($message, ?int $code = 404, ?Throwable $previous = null)
+    public function __construct(array|string $message, ?int $code = 404, ?Throwable $previous = null)
     {
         if (is_array($message) && isset($message['message'])) {
             $this->_messageTemplate = $message['message'];

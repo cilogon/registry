@@ -23,6 +23,7 @@ use Cake\Http\Client\Request;
 use Cake\Http\Client\Response;
 use Cake\Http\Exception\HttpException;
 use Composer\CaBundle\CaBundle;
+use CurlHandle;
 use Psr\Http\Message\RequestInterface;
 
 /**
@@ -48,12 +49,11 @@ class Curl implements AdapterInterface
         $options = $this->buildOptions($request, $options);
         curl_setopt_array($ch, $options);
 
-        /** @var string|false $body */
         $body = $this->exec($ch);
+        assert($body !== true);
         if ($body === false) {
             $errorCode = curl_errno($ch);
             $error = curl_error($ch);
-            curl_close($ch);
 
             $message = "cURL Error ({$errorCode}) {$error}";
             $errorNumbers = [
@@ -68,7 +68,6 @@ class Curl implements AdapterInterface
         }
 
         $responses = $this->createResponse($ch, $body);
-        curl_close($ch);
 
         return $responses;
     }
@@ -118,7 +117,7 @@ class Curl implements AdapterInterface
         $out[CURLOPT_POSTFIELDS] = $body->getContents();
         // GET requests with bodies require custom request to be used.
         if ($out[CURLOPT_POSTFIELDS] !== '' && isset($out[CURLOPT_HTTPGET])) {
-            $out[CURLOPT_CUSTOMREQUEST] = 'get';
+            $out[CURLOPT_CUSTOMREQUEST] = 'GET';
         }
         if ($out[CURLOPT_POSTFIELDS] === '') {
             unset($out[CURLOPT_POSTFIELDS]);
@@ -169,36 +168,28 @@ class Curl implements AdapterInterface
      */
     protected function getProtocolVersion(RequestInterface $request): int
     {
-        switch ($request->getProtocolVersion()) {
-            case '1.0':
-                return CURL_HTTP_VERSION_1_0;
-            case '1.1':
-                return CURL_HTTP_VERSION_1_1;
-            case '2':
-            case '2.0':
-                if (defined('CURL_HTTP_VERSION_2TLS')) {
-                    return CURL_HTTP_VERSION_2TLS;
-                }
-                if (defined('CURL_HTTP_VERSION_2_0')) {
-                    return CURL_HTTP_VERSION_2_0;
-                }
-                throw new HttpException('libcurl 7.33 or greater required for HTTP/2 support');
-        }
-
-        return CURL_HTTP_VERSION_NONE;
+        return match ($request->getProtocolVersion()) {
+            '1.0' => CURL_HTTP_VERSION_1_0,
+            '1.1' => CURL_HTTP_VERSION_1_1,
+            '2', '2.0' => defined('CURL_HTTP_VERSION_2TLS')
+                ? CURL_HTTP_VERSION_2TLS
+                : (defined('CURL_HTTP_VERSION_2_0')
+                    ? CURL_HTTP_VERSION_2_0
+                    : throw new HttpException('libcurl 7.33 or greater required for HTTP/2 support')
+                ),
+            default => CURL_HTTP_VERSION_NONE,
+        };
     }
 
     /**
      * Convert the raw curl response into an Http\Client\Response
      *
-     * @param resource|\CurlHandle $handle Curl handle
+     * @param \CurlHandle $handle Curl handle
      * @param string $responseData string The response data from curl_exec
      * @return array<\Cake\Http\Client\Response>
-     * @psalm-suppress UndefinedDocblockClass
      */
-    protected function createResponse($handle, $responseData): array
+    protected function createResponse(CurlHandle $handle, string $responseData): array
     {
-        /** @psalm-suppress PossiblyInvalidArgument */
         $headerSize = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
         $headers = trim(substr($responseData, 0, $headerSize));
         $body = substr($responseData, $headerSize);
@@ -210,13 +201,11 @@ class Curl implements AdapterInterface
     /**
      * Execute the curl handle.
      *
-     * @param resource|\CurlHandle $ch Curl Resource handle
+     * @param \CurlHandle $ch Curl Resource handle
      * @return string|bool
-     * @psalm-suppress UndefinedDocblockClass
      */
-    protected function exec($ch)
+    protected function exec(CurlHandle $ch): string|bool
     {
-        /** @psalm-suppress PossiblyInvalidArgument */
         return curl_exec($ch);
     }
 }

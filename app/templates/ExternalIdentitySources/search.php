@@ -28,7 +28,7 @@
 declare(strict_types = 1);
 
 // Required by the subnavigation partial
-$modelsName = $this->name;
+$modelsName = $this->getName();
 // Subnavigation calculations
 if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');

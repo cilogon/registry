@@ -285,7 +285,7 @@ class TypesTable extends Table {
   public function marshalProvisioningData(int $id): array {
     $ret = [];
     // We need the archived record on delete to properly deprovision
-    $ret['data'] = $this->get($id, ['archived' => true]);
+    $ret['data'] = $this->get($id, archived: true);
 
     // Provisioning Eligibility is
     // - Deleted if the changelog deleted flag is true
@@ -323,7 +323,7 @@ class TypesTable extends Table {
     // record was created that references this type and then was subsequently
     // deleted, it is still considered "in use".
     
-    $count = $table->find('all', ['archived' => true])
+    $count = $table->find('all', archived: true)
                    ->where([$attr[1]."_id" => $entity->id])
                    ->count();
     

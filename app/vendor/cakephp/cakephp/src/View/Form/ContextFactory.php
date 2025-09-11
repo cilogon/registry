@@ -17,11 +17,10 @@ declare(strict_types=1);
 namespace Cake\View\Form;
 
 use Cake\Collection\Collection;
+use Cake\Core\Exception\CakeException;
 use Cake\Datasource\EntityInterface;
 use Cake\Form\Form;
 use Cake\Http\ServerRequest;
-use RuntimeException;
-use function Cake\Core\getTypeName;
 
 /**
  * Factory for getting form context instance based on provided data.
@@ -33,7 +32,7 @@ class ContextFactory
      *
      * @var array<string, array>
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
      * Constructor.
@@ -55,7 +54,7 @@ class ContextFactory
      *   be of form `['type' => 'a-string', 'callable' => ..]`
      * @return static
      */
-    public static function createWithDefaults(array $providers = [])
+    public static function createWithDefaults(array $providers = []): static
     {
         $providers = [
             [
@@ -71,9 +70,9 @@ class ContextFactory
                         $pass = (new Collection($data['entity']))->first() !== null;
                         if ($pass) {
                             return new EntityContext($data);
-                        } else {
-                            return new NullContext($data);
                         }
+
+                        return new NullContext($data);
                     }
                 },
             ],
@@ -137,12 +136,13 @@ class ContextFactory
      * @param \Cake\Http\ServerRequest $request Request instance.
      * @param array<string, mixed> $data The data to get a context provider for.
      * @return \Cake\View\Form\ContextInterface Context provider.
-     * @throws \RuntimeException When a context instance cannot be generated for given entity.
+     * @throws \Cake\Core\Exception\CakeException When a context instance cannot be generated for given entity.
      */
     public function get(ServerRequest $request, array $data = []): ContextInterface
     {
         $data += ['entity' => null];
 
+        $context = null;
         foreach ($this->providers as $provider) {
             $check = $provider['callable'];
             $context = $check($request, $data);
@@ -151,11 +151,11 @@ class ContextFactory
             }
         }
 
-        if (!isset($context)) {
-            throw new RuntimeException(sprintf(
+        if ($context === null) {
+            throw new CakeException(sprintf(
                 'No context provider found for value of type `%s`.'
                 . ' Use `null` as 1st argument of FormHelper::create() to create a context-less form.',
-                getTypeName($data['entity'])
+                get_debug_type($data['entity']),
             ));
         }
 

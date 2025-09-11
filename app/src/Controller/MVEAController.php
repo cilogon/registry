@@ -45,8 +45,8 @@ class MVEAController extends StandardController {
    */
   
   public function beforeFilter(\Cake\Event\EventInterface $event) {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
 
     if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // Provide additional hints to BreadcrumbsComponent. This needs to be here
@@ -127,7 +127,7 @@ class MVEAController extends StandardController {
       }
     }
     
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
 
   /**
@@ -138,8 +138,8 @@ class MVEAController extends StandardController {
    */
   
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     // field = model (or model_name)
     $fieldName = Inflector::underscore(Inflector::singularize($modelsName));
     

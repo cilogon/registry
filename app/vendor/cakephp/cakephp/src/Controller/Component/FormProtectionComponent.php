@@ -17,10 +17,10 @@ declare(strict_types=1);
 namespace Cake\Controller\Component;
 
 use Cake\Controller\Component;
+use Cake\Controller\Exception\FormProtectionException;
 use Cake\Core\Configure;
 use Cake\Event\EventInterface;
 use Cake\Form\FormProtector;
-use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Response;
 use Cake\Routing\Router;
 use Closure;
@@ -33,7 +33,7 @@ use Closure;
  * - Existing fields have not been removed from the form.
  * - Values of hidden inputs have not been changed.
  *
- * @psalm-property array{validate:bool, unlockedFields:array, unlockedActions:array, validationFailureCallback:?\Closure} $_config
+ * @phpstan-property array{validate:bool, unlockedFields:array, unlockedActions:array, validationFailureCallback:?\Closure} $_config
  */
 class FormProtectionComponent extends Component
 {
@@ -60,7 +60,7 @@ class FormProtectionComponent extends Component
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'validate' => true,
         'unlockedFields' => [],
         'unlockedActions' => [],
@@ -86,7 +86,7 @@ class FormProtectionComponent extends Component
      *
      * Token check happens here.
      *
-     * @param \Cake\Event\EventInterface $event An Event instance
+     * @param \Cake\Event\EventInterface<\Cake\Controller\Controller> $event An Event instance
      * @return \Cake\Http\Response|null
      */
     public function startup(EventInterface $event): ?Response
@@ -107,7 +107,9 @@ class FormProtectionComponent extends Component
             $isValid = $formProtector->validate($data, $url, $sessionId);
 
             if (!$isValid) {
-                return $this->validationFailure($formProtector);
+                $event->setResult($this->validationFailure($formProtector));
+
+                return null;
             }
         }
 
@@ -148,14 +150,14 @@ class FormProtectionComponent extends Component
      *
      * @param \Cake\Form\FormProtector $formProtector Form Protector instance.
      * @return \Cake\Http\Response|null If specified, validationFailureCallback's response, or no return otherwise.
-     * @throws \Cake\Http\Exception\BadRequestException
+     * @throws \Cake\Controller\Exception\FormProtectionException
      */
     protected function validationFailure(FormProtector $formProtector): ?Response
     {
         if (Configure::read('debug')) {
-            $exception = new BadRequestException($formProtector->getError());
+            $exception = new FormProtectionException($formProtector->getError());
         } else {
-            $exception = new BadRequestException(static::DEFAULT_EXCEPTION_MESSAGE);
+            $exception = new FormProtectionException(static::DEFAULT_EXCEPTION_MESSAGE);
         }
 
         if ($this->_config['validationFailureCallback']) {
@@ -168,11 +170,11 @@ class FormProtectionComponent extends Component
     /**
      * Execute callback.
      *
-     * @param \Closure $callback A valid callable
-     * @param \Cake\Http\Exception\BadRequestException $exception Exception instance.
+     * @param \Closure $callback Callback
+     * @param \Cake\Controller\Exception\FormProtectionException $exception Exception instance.
      * @return \Cake\Http\Response|null
      */
-    protected function executeCallback(Closure $callback, BadRequestException $exception): ?Response
+    protected function executeCallback(Closure $callback, FormProtectionException $exception): ?Response
     {
         return $callback($exception);
     }

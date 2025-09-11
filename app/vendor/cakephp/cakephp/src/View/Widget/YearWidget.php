@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\View\Widget;
 
+use Cake\Chronos\ChronosDate;
 use Cake\View\Form\ContextInterface;
 use Cake\View\StringTemplate;
 use DateTimeInterface;
@@ -34,7 +35,7 @@ class YearWidget extends BasicWidget
      *
      * @var array<string, mixed>
      */
-    protected $defaults = [
+    protected array $defaults = [
         'name' => '',
         'val' => null,
         'min' => null,
@@ -48,7 +49,7 @@ class YearWidget extends BasicWidget
      *
      * @var \Cake\View\Widget\SelectBoxWidget
      */
-    protected $_select;
+    protected SelectBoxWidget $_select;
 
     /**
      * Constructor
@@ -58,8 +59,9 @@ class YearWidget extends BasicWidget
      */
     public function __construct(StringTemplate $templates, SelectBoxWidget $selectBox)
     {
+        parent::__construct($templates);
+
         $this->_select = $selectBox;
-        $this->_templates = $templates;
     }
 
     /**
@@ -84,7 +86,10 @@ class YearWidget extends BasicWidget
         $data['min'] = (int)$data['min'];
         $data['max'] = (int)$data['max'];
 
-        if ($data['val'] instanceof DateTimeInterface) {
+        if (
+            $data['val'] instanceof ChronosDate ||
+            $data['val'] instanceof DateTimeInterface
+        ) {
             $data['val'] = $data['val']->format('Y');
         }
 

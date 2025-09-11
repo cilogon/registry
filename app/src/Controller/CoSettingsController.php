@@ -57,7 +57,7 @@ class CoSettingsController extends StandardController {
     // We basically use this as a switch into the correct settings entry and
     // then redirect to the edit view
     
-    $settings = $this->CoSettings->find('all', ['conditions' => ['CoSettings.co_id' => $this->getCOID()]])->first();
+    $settings = $this->CoSettings->find('all', conditions: ['CoSettings.co_id' => $this->getCOID()])->first();
     
     return $this->redirect(['action' => 'edit', $settings->id]);
   }

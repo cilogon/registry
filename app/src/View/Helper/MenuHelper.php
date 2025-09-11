@@ -33,7 +33,7 @@ use \Cake\View\Helper;
 
 class MenuHelper extends Helper {
 
-  public $helpers = ['Html'];
+ public array $helpers = ['Html'];
 
   /**
    * Get the Menu Order per action

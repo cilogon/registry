@@ -27,11 +27,11 @@ $validator
     ->notEmptyString('comment', 'You need to give a comment.');
 
 $errors = $validator->validate($_POST);
-if (!empty($errors)) {
+if ($errors) {
     // display errors.
 }
 ```
 
 ## Documentation
 
-Please make sure you check the [official documentation](https://book.cakephp.org/4/en/core-libraries/validation.html)
+Please make sure you check the [official documentation](https://book.cakephp.org/5/en/core-libraries/validation.html)

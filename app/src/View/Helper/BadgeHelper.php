@@ -32,7 +32,7 @@ use \Cake\View\Helper;
 
 class BadgeHelper extends Helper {
 
-  public $helpers = ['Html'];
+ public array $helpers = ['Html'];
 
   /**
    * Helper which will produce Bootstrap based Badge

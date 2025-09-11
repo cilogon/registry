@@ -1,6 +1,6 @@
 # CakePHP Plugin Installer
 
-[![Build Status](https://img.shields.io/travis/com/cakephp/plugin-installer?style=flat-square)](https://travis-ci.com/cakephp/plugin-installer)
+![Build Status](https://github.com/cakephp/plugin-installer/actions/workflows/ci.yml/badge.svg?branch=master)
 [![Latest Stable Version](https://img.shields.io/github/v/release/cakephp/plugin-installer?sort=semver&style=flat-square)](https://packagist.org/packages/cakephp/plugin-installer)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/plugin-installer?style=flat-square)](https://packagist.org/packages/cakephp/plugin-installer/stats)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
@@ -86,3 +86,21 @@ would be like:
     }
 }
 ```
+
+## Generating Manually
+
+If you need to generate `cakephp-plugins.php` separately, you can simply run the `dumpautoload` command:
+
+```
+composer dumpautoload
+```
+
+You cannot use `--no-scripts` with `dumpautoload` or `cakephp-plugins.php` will not generate.
+
+If you don't want to re-generate the entire autoload dump, you can run just the scripts:
+
+```
+composer run-script post-autoload-dump
+```
+
+Please see [composer documentation](https://getcomposer.org/doc/03-cli.md#dump-autoload-dumpautoload-) for details.

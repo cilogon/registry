@@ -30,14 +30,14 @@ declare(strict_types = 1);
 namespace App\Command;
 
 use Cake\Console\Arguments;
-use Cake\Console\Command;
+use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\ORM\TableRegistry;
 
 use App\Lib\Util\SchemaManager;
 
-class DatabaseCommand extends Command {
+class DatabaseCommand extends BaseCommand {
   /**
    * Build an Option Parser.
    *

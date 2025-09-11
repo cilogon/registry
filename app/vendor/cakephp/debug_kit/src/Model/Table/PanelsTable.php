@@ -14,7 +14,7 @@ declare(strict_types=1);
  */
 namespace DebugKit\Model\Table;
 
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 
 /**
@@ -22,7 +22,7 @@ use Cake\ORM\Table;
  * each request.
  *
  * @property \DebugKit\Model\Table\RequestsTable&\Cake\ORM\Association\BelongsTo $Requests
- * @method \DebugKit\Model\Entity\Panel get($primaryKey, $options = [])
+ * @method \DebugKit\Model\Entity\Panel get(mixed $primaryKey, array|string $finder = 'all', \Psr\SimpleCache\CacheInterface|string|null $cache = null, \Closure|string|null $cacheKey = null, ...$args)
  * @method \DebugKit\Model\Entity\Panel newEntity($data = null, array $options = [])
  * @method \DebugKit\Model\Entity\Panel[] newEntities(array $data, array $options = [])
  * @method \DebugKit\Model\Entity\Panel|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
@@ -33,6 +33,7 @@ use Cake\ORM\Table;
 class PanelsTable extends Table
 {
     use LazyTableTrait;
+    use SqlTraceTrait;
 
     /**
      * initialize method
@@ -43,25 +44,20 @@ class PanelsTable extends Table
     public function initialize(array $config): void
     {
         $this->belongsTo('DebugKit.Requests');
-        $this->ensureTables(['DebugKit.Requests', 'DebugKit.Panels']);
+        $this->ensureTables(['requests', 'panels']);
     }
 
     /**
-     * Find panels by requestid
+     * Find panels by request id
      *
-     * @param \Cake\ORM\Query $query The query
-     * @param array $options The options to use.
-     * @return \Cake\ORM\Query The query.
-     * @throws \RuntimeException
+     * @param \Cake\ORM\Query\SelectQuery $query The query
+     * @param string|int $requestId The request id
+     * @return \Cake\ORM\Query\SelectQuery The query.
      */
-    public function findByRequest(Query $query, array $options)
+    public function findByRequest(SelectQuery $query, string|int $requestId): SelectQuery
     {
-        if (empty($options['requestId'])) {
-            throw new \RuntimeException('Missing request id in findByRequest().');
-        }
-
-        return $query->where(['Panels.request_id' => $options['requestId']])
-            ->order(['Panels.title' => 'ASC']);
+        return $query->where(['Panels.request_id' => $requestId])
+            ->orderBy(['Panels.title' => 'ASC']);
     }
 
     /**

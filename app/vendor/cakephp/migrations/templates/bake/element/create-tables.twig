@@ -38,36 +38,25 @@
 {%     endfor %}
 {%     if createData.tables[table].constraints is not empty %}
 {%         for name, constraint in createData.tables[table].constraints %}
-{%             if constraint['columns'] != primaryKeysColumns %}
-            ->addIndex(
-                [{{ Migration.stringifyList(constraint['columns'], {'indent': 5}) | raw }}],
-{%                 set params = {'name': name} %}
-{%                 if constraint['type'] == 'unique' %}
-{%                     set params = params|merge({'unique': true}) %}
-{%                 endif %}
-                [{{ Migration.stringifyList(params, {'indent': 5}) | raw }}]
-            )
+{%             if constraint['type'] == 'unique' %}
+{{                 element('Migrations.add-indexes', {
+                     indexes: {(name): constraint},
+                     backend: backend,
+                  }) -}}
 {%             endif %}
 {%         endfor %}
 {%     endif %}
-{%     for indexName, index in createData.tables[table].indexes %}
-{%         set indexColumns = index['columns'] | sort %}
-            ->addIndex(
-                [{{ Migration.stringifyList(index['columns'], {'indent': 5}) | raw }}],
-{%         set params = {'name': indexName} %}
-{%         if index['type'] == 'fulltext' %}
-{%             set params = params|merge({'fulltext': true}) %}
-{%         endif %}
-                [{{ Migration.stringifyList(params, {'indent': 5}) | raw }}]
-            )
-{%     endfor %}
-            ->create();
+{{-     element('Migrations.add-indexes', {
+           indexes: createData.tables[table].indexes,
+           backend: backend,
+}) }}            ->create();
 {% endfor -%}
 {% if createData.constraints %}
 {%   for table, tableConstraints in createData.constraints %}
 {{-     element('Migrations.add-foreign-keys', {
-         constraints: createData.constraints,
+         constraints: tableConstraints,
          table: table,
+         backend: backend,
        })
 -}}
 {%   endfor -%}

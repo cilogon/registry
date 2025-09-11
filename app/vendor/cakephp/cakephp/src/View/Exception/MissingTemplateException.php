@@ -25,22 +25,22 @@ class MissingTemplateException extends CakeException
     /**
      * @var string|null
      */
-    protected $templateName;
+    protected ?string $templateName = null;
 
     /**
      * @var string
      */
-    protected $filename;
+    protected string $filename;
 
     /**
      * @var array<string>
      */
-    protected $paths;
+    protected array $paths;
 
     /**
      * @var string
      */
-    protected $type = 'Template';
+    protected string $type = 'Template';
 
     /**
      * Constructor
@@ -50,10 +50,10 @@ class MissingTemplateException extends CakeException
      * @param int|null $code The code of the error.
      * @param \Throwable|null $previous the previous exception.
      */
-    public function __construct($file, array $paths = [], ?int $code = null, ?Throwable $previous = null)
+    public function __construct(array|string $file, array $paths = [], ?int $code = null, ?Throwable $previous = null)
     {
         if (is_array($file)) {
-            $this->filename = array_pop($file);
+            $this->filename = (string)array_pop($file);
             $this->templateName = array_pop($file);
         } else {
             $this->filename = $file;
@@ -86,8 +86,8 @@ class MissingTemplateException extends CakeException
     /**
      * Get the passed in attributes
      *
-     * @return array
-     * @psalm-return array{file: string, paths: array<string>}
+     * @return array<string, mixed>
+     * @phpstan-return array{file: string, paths: array<string>}
      */
     public function getAttributes(): array
     {

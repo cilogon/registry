@@ -198,7 +198,7 @@ class IdentifierAssignmentsTable extends Table {
                     'IdentifierAssignments.status' => SuspendableStatusEnum::Active,
                     'IdentifierAssignments.context' => $context
                   ])
-                  ->order(['IdentifierAssignments.ordr' => 'ASC'])
+                  ->orderBy(['IdentifierAssignments.ordr' => 'ASC'])
                   ->contain($this->getPluginRelations())
                   ->all();
       

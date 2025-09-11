@@ -10,7 +10,6 @@ use Cake\Error\Renderer\HtmlErrorRenderer;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Routing\Router;
 use Exception;
-use function Cake\Core\deprecationWarning;
 
 /**
  * Entry point to CakePHP's error handling.
@@ -23,6 +22,9 @@ use function Cake\Core\deprecationWarning;
  */
 class ErrorTrap
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<\Cake\Error\ErrorTrap>
+     */
     use EventDispatcherTrait;
     use InstanceConfigTrait;
 
@@ -32,14 +34,14 @@ class ErrorTrap
      * - `errorLevel` - int - The level of errors you are interested in capturing.
      * - `errorRenderer` - string - The class name of render errors with. Defaults
      *   to choosing between Html and Console based on the SAPI.
-     * - `log` - boolean - Whether or not you want errors logged.
+     * - `log` - boolean - Whether you want errors logged.
      * - `logger` - string - The class name of the error logger to use.
-     * - `trace` - boolean - Whether or not backtraces should be included in
+     * - `trace` - boolean - Whether backtraces should be included in
      *   logged errors.
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'errorLevel' => E_ALL,
         'errorRenderer' => null,
         'log' => true,
@@ -88,7 +90,7 @@ class ErrorTrap
     {
         $level = $this->_config['errorLevel'] ?? -1;
         error_reporting($level);
-        set_error_handler([$this, 'handleError'], $level);
+        set_error_handler($this->handleError(...), $level);
     }
 
     /**
@@ -110,7 +112,7 @@ class ErrorTrap
         int $code,
         string $description,
         ?string $file = null,
-        ?int $line = null
+        ?int $line = null,
     ): bool {
         if (!(error_reporting() & $code)) {
             return false;
@@ -119,8 +121,7 @@ class ErrorTrap
             throw new FatalErrorException($description, $code, $file, $line);
         }
 
-        /** @var array $trace */
-        $trace = Debugger::trace(['start' => 1, 'format' => 'points']);
+        $trace = (array)Debugger::trace(['start' => 0, 'format' => 'points']);
         $error = new PhpError($code, $description, $file, $line, $trace);
 
         $ignoredPaths = (array)Configure::read('Error.ignoredDeprecationPaths');
@@ -138,7 +139,7 @@ class ErrorTrap
         $renderer = $this->renderer();
 
         try {
-            // Log first incase rendering or event listeners fail
+            // Log first in case rendering or event listeners fail
             $this->logError($error);
             $event = $this->dispatchEvent('Error.beforeRender', ['error' => $error]);
             if ($event->isStopped()) {
@@ -147,7 +148,7 @@ class ErrorTrap
             $renderer->write($event->getResult() ?: $renderer->render($error, $debug));
         } catch (Exception $e) {
             // Fatal errors always log.
-            $this->logger()->logMessage('error', 'Could not render error. Got: ' . $e->getMessage());
+            $this->logger()->logException($e);
 
             return false;
         }
@@ -166,24 +167,7 @@ class ErrorTrap
         if (!$this->_config['log']) {
             return;
         }
-        $logger = $this->logger();
-        if (method_exists($logger, 'logError')) {
-            $logger->logError($error, Router::getRequest(), $this->_config['trace']);
-        } else {
-            $loggerClass = get_class($logger);
-            deprecationWarning(
-                "The configured logger `{$loggerClass}` does not implement `logError()` " .
-                'which will be required in future versions of CakePHP.'
-            );
-            $context = [];
-            if ($this->_config['trace']) {
-                $context = [
-                    'trace' => $error->getTraceAsString(),
-                    'request' => Router::getRequest(),
-                ];
-            }
-            $logger->logMessage($error->getLabel(), $error->getMessage(), $context);
-        }
+        $this->logger()->logError($error, Router::getRequest(), $this->_config['trace']);
     }
 
     /**
@@ -206,12 +190,6 @@ class ErrorTrap
      */
     public function logger(): ErrorLoggerInterface
     {
-        $oldConfig = $this->getConfig('errorLogger');
-        if ($oldConfig !== null) {
-            deprecationWarning('The `errorLogger` configuration key is deprecated. Use `logger` instead.');
-            $this->setConfig(['logger' => $oldConfig, 'errorLogger' => null]);
-        }
-
         /** @var class-string<\Cake\Error\ErrorLoggerInterface> $class */
         $class = $this->getConfig('logger', $this->_defaultConfig['logger']);
 

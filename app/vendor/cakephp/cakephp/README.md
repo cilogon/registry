@@ -10,6 +10,9 @@
     <a href="https://codecov.io/gh/cakephp/cakephp/branch/4.x" target="_blank">
         <img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/cakephp/cakephp?style=flat-square">
     </a>
+    <a href="https://phpstan.org/" target="_blank">
+        <img alt="PHPStan" src="https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg?style=flat">
+    </a>
     <a href="https://squizlabs.github.io/PHP_CodeSniffer/analysis/cakephp/cakephp/" target="_blank">
         <img alt="Code Consistency" src="https://squizlabs.github.io/PHP_CodeSniffer/analysis/cakephp/cakephp/grade.svg">
     </a>
@@ -35,7 +38,7 @@ recommend using the [app skeleton](https://github.com/cakephp/app) as
 a starting point. For existing applications you can run the following:
 
 ``` bash
-$ composer require cakephp/cakephp
+composer require cakephp/cakephp
 ```
 
 For details on the (minimum/maximum) PHP version see [version map](https://github.com/cakephp/cakephp/wiki#version-map).
@@ -51,13 +54,12 @@ tests for CakePHP by doing the following:
    a non-SQLite datasource.
 3. Run `phpunit`.
 
-## Some Handy Links
+## Learn More
 
-* [CakePHP](https://cakephp.org) - The rapid development PHP framework.
-* [CookBook](https://book.cakephp.org) - The CakePHP user documentation; start learning here!
-* [API](https://api.cakephp.org) - A reference to CakePHP's classes.
-* [Awesome CakePHP](https://github.com/FriendsOfCake/awesome-cakephp) - A list of featured resources around the framework.
-* [Plugins](https://plugins.cakephp.org) - A repository of extensions to the framework.
+* [CakePHP](https://cakephp.org) - The home of the CakePHP project.
+* [Book](https://book.cakephp.org) - The CakePHP documentation; start learning here!
+* [API](https://api.cakephp.org) - A reference to CakePHP's classes and API documentation.
+* [Awesome CakePHP](https://github.com/FriendsOfCake/awesome-cakephp) - A curated list of featured resources around the framework.
 * [The Bakery](https://bakery.cakephp.org) - Tips, tutorials and articles.
 * [Community Center](https://community.cakephp.org) - A source for everything community related.
 * [Training](https://training.cakephp.org) - Join a live session and get skilled with the framework.
@@ -76,7 +78,7 @@ tests for CakePHP by doing the following:
 ## Contributing
 
 * [CONTRIBUTING.md](.github/CONTRIBUTING.md) - Quick pointers for contributing to the CakePHP project.
-* [CookBook "Contributing" Section](https://book.cakephp.org/4/en/contributing.html) - Details about contributing to the project.
+* [CookBook "Contributing" Section](https://book.cakephp.org/5/en/contributing.html) - Details about contributing to the project.
 
 # Security
 

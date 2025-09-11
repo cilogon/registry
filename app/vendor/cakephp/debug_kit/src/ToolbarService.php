@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace DebugKit;
 
 use Cake\Core\Configure;
+use Cake\Core\Exception\CakeException;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Core\Plugin as CorePlugin;
 use Cake\Datasource\Exception\MissingDatasourceConfigException;
@@ -22,9 +23,11 @@ use Cake\Http\ServerRequest;
 use Cake\Log\Log;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\Routing\Router;
+use DebugKit\Model\Entity\Request;
 use DebugKit\Panel\PanelRegistry;
-use PDOException;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
+use function Cake\Core\env;
 
 /**
  * Used to create the panels and inject a toolbar into
@@ -42,29 +45,28 @@ class ToolbarService
      *
      * @var \DebugKit\Panel\PanelRegistry
      */
-    protected $registry;
+    protected PanelRegistry $registry;
 
     /**
      * Default configuration.
      *
      * @var array
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'panels' => [
             'DebugKit.Cache' => true,
-            'DebugKit.Session' => true,
             'DebugKit.Request' => true,
             'DebugKit.SqlLog' => true,
             'DebugKit.Timer' => true,
             'DebugKit.Log' => true,
             'DebugKit.Variables' => true,
             'DebugKit.Environment' => true,
-            'DebugKit.Include' => true,
             'DebugKit.History' => true,
             'DebugKit.Routes' => true,
             'DebugKit.Packages' => true,
             'DebugKit.Mail' => true,
             'DebugKit.Deprecations' => true,
+            'DebugKit.Plugins' => true,
         ],
         'forceEnable' => false,
         'safeTld' => [],
@@ -88,7 +90,7 @@ class ToolbarService
      *
      * @return \DebugKit\Panel\PanelRegistry
      */
-    public function registry()
+    public function registry(): PanelRegistry
     {
         return $this->registry;
     }
@@ -98,9 +100,15 @@ class ToolbarService
      *
      * @return bool
      */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
-        if (isset($GLOBALS['__PHPUNIT_BOOTSTRAP'])) {
+        if (!isset($GLOBALS['FORCE_DEBUGKIT_TOOLBAR'])) {
+            $GLOBALS['FORCE_DEBUGKIT_TOOLBAR'] = false;
+        }
+        if (
+            defined('PHPUNIT_COMPOSER_INSTALL') &&
+            !$GLOBALS['FORCE_DEBUGKIT_TOOLBAR']
+        ) {
             return false;
         }
         $enabled = (bool)Configure::read('debug')
@@ -131,10 +139,10 @@ class ToolbarService
      *
      * @return bool
      */
-    protected function isSuspiciouslyProduction()
+    protected function isSuspiciouslyProduction(): bool
     {
         $host = parse_url('http://' . env('HTTP_HOST'), PHP_URL_HOST);
-        if ($host === false) {
+        if ($host === false || $host === null) {
             return false;
         }
 
@@ -157,7 +165,7 @@ class ToolbarService
 
         // Check if the TLD is in the list of safe TLDs.
         $tld = end($parts);
-        $safeTlds = ['localhost', 'invalid', 'test', 'example', 'local'];
+        $safeTlds = ['localhost', 'invalid', 'test', 'example', 'local', 'internal'];
         $safeTlds = array_merge($safeTlds, (array)$this->getConfig('safeTld'));
 
         if (in_array($tld, $safeTlds, true)) {
@@ -170,7 +178,7 @@ class ToolbarService
             Log::warning(
                 "DebugKit is disabling itself as your host `{$host}` " .
                 "is not in the known safe list of top-level-domains ({$safeList}). " .
-                'If you would like to force DebugKit on use the `DebugKit.forceEnable` Configure option.'
+                'If you would like to force DebugKit on use the `DebugKit.forceEnable` Configure option.',
             );
         }
 
@@ -182,7 +190,7 @@ class ToolbarService
      *
      * @return array
      */
-    public function loadedPanels()
+    public function loadedPanels(): array
     {
         return $this->registry->loaded();
     }
@@ -193,7 +201,7 @@ class ToolbarService
      * @param string $name The name of the panel you want to get.
      * @return \DebugKit\DebugPanel|null The panel or null.
      */
-    public function panel($name)
+    public function panel(string $name): ?DebugPanel
     {
         return $this->registry->{$name};
     }
@@ -203,7 +211,7 @@ class ToolbarService
      *
      * @return void
      */
-    public function loadPanels()
+    public function loadPanels(): void
     {
         foreach ($this->getConfig('panels') as $panel => $enabled) {
             [$panel, $enabled] = is_numeric($panel) ? [$enabled, true] : [$panel, $enabled];
@@ -218,7 +226,7 @@ class ToolbarService
      *
      * @return void
      */
-    public function initializePanels()
+    public function initializePanels(): void
     {
         foreach ($this->registry->loaded() as $panel) {
             $this->registry->{$panel}->initialize();
@@ -230,9 +238,9 @@ class ToolbarService
      *
      * @param \Cake\Http\ServerRequest $request The request
      * @param \Psr\Http\Message\ResponseInterface $response The response
-     * @return false|\DebugKit\Model\Entity\Request Saved request data.
+     * @return \DebugKit\Model\Entity\Request|false Saved request data.
      */
-    public function saveData(ServerRequest $request, ResponseInterface $response)
+    public function saveData(ServerRequest $request, ResponseInterface $response): Request|false
     {
         $path = $request->getUri()->getPath();
         $dashboardUrl = '/debug-kit';
@@ -265,12 +273,12 @@ class ToolbarService
         ];
         try {
             /** @var \DebugKit\Model\Table\RequestsTable $requests */
-            $requests = $this->getTableLocator()->get('DebugKit.Requests');
+            $requests = $this->fetchTable('DebugKit.Requests');
             $requests->gc();
         } catch (MissingDatasourceConfigException $e) {
             Log::warning(
                 'Unable to save request. Check your debug_kit datasource connection ' .
-                'or ensure that PDO SQLite extension is enabled.'
+                'or ensure that PDO SQLite extension is enabled.',
             );
             Log::warning($e->getMessage());
 
@@ -284,7 +292,7 @@ class ToolbarService
             $panel = $this->registry->{$name};
             try {
                 $content = serialize($panel->data());
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $content = serialize([
                     'error' => $e->getMessage(),
                 ]);
@@ -300,7 +308,7 @@ class ToolbarService
 
         try {
             return $requests->save($row);
-        } catch (PDOException $e) {
+        } catch (CakeException $e) {
             Log::warning('Unable to save request. This is probably due to concurrent requests.');
             Log::warning($e->getMessage());
         }
@@ -313,7 +321,7 @@ class ToolbarService
      *
      * @return string
      */
-    public function getToolbarUrl()
+    public function getToolbarUrl(): string
     {
         $url = 'js/inject-iframe.js';
         $filePaths = [
@@ -340,7 +348,7 @@ class ToolbarService
      * @param \Psr\Http\Message\ResponseInterface $response The response to augment.
      * @return \Psr\Http\Message\ResponseInterface The modified response
      */
-    public function injectScripts($row, ResponseInterface $response)
+    public function injectScripts(Request $row, ResponseInterface $response): ResponseInterface
     {
         $response = $response->withHeader('X-DEBUGKIT-ID', (string)$row->id);
         if (strpos($response->getHeaderLine('Content-Type'), 'html') === false) {
@@ -371,7 +379,7 @@ class ToolbarService
             $row->id,
             $url,
             Router::url($this->getToolbarUrl()),
-            $nonce
+            $nonce,
         );
         $contents = substr($contents, 0, $pos) . $script . substr($contents, $pos);
         $body->rewind();

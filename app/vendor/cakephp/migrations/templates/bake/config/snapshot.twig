@@ -16,19 +16,24 @@
 {% set constraints = [] %}
 {% set foreignKeys = [] %}
 {% set dropForeignKeys = [] %}
-{% set hasUnsignedPk = Migration.hasUnsignedPrimaryKey(tables) %}
-{% if autoId and hasUnsignedPk %}
+{% if autoId and Migration.hasAutoIdIncompatiblePrimaryKey(tables) %}
 {%     set autoId = false %}
 {% endif %}
 <?php
 declare(strict_types=1);
 
+{% if backend == "builtin" %}
+use Migrations\BaseMigration;
+
+class {{ name }} extends BaseMigration
+{% else %}
 use Migrations\AbstractMigration;
 
 class {{ name }} extends AbstractMigration
+{% endif %}
 {
 {% if not autoId  %}
-    public $autoId = false;
+    public bool $autoId = false;
 
 {% endif %}
     /**
@@ -36,6 +41,7 @@ class {{ name }} extends AbstractMigration
      *
      * More information on this method is available here:
      * https://book.cakephp.org/phinx/0/en/migrations.html#the-up-method
+     *
      * @return void
      */
     public function up(): void
@@ -43,7 +49,8 @@ class {{ name }} extends AbstractMigration
 {{~ element('Migrations.create-tables', {
     tables: tables,
     autoId: autoId,
-    useSchema: false
+    useSchema: false,
+    backend: backend
 })
 }}    }
 
@@ -52,6 +59,7 @@ class {{ name }} extends AbstractMigration
      *
      * More information on this method is available here:
      * https://book.cakephp.org/phinx/0/en/migrations.html#the-down-method
+     *
      * @return void
      */
     public function down(): void

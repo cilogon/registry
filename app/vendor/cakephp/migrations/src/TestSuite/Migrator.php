@@ -13,9 +13,11 @@ declare(strict_types=1);
  */
 namespace Migrations\TestSuite;
 
+use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
 use Cake\Log\Log;
 use Cake\TestSuite\ConnectionHelper;
+use Exception;
 use Migrations\Migrations;
 use RuntimeException;
 
@@ -24,7 +26,7 @@ class Migrator
     /**
      * @var \Cake\TestSuite\ConnectionHelper
      */
-    protected $helper;
+    protected ConnectionHelper $helper;
 
     /**
      * Constructor.
@@ -51,7 +53,7 @@ class Migrator
      */
     public function run(
         array $options = [],
-        bool $truncateTables = true
+        bool $truncateTables = true,
     ): void {
         $this->runMany([$options], $truncateTables);
     }
@@ -75,7 +77,7 @@ class Migrator
      */
     public function runMany(
         array $options = [],
-        bool $truncateTables = true
+        bool $truncateTables = true,
     ): void {
         // Don't recreate schema if we are in a phpunit separate process test.
         if (isset($GLOBALS['__PHPUNIT_BOOTSTRAP'])) {
@@ -113,18 +115,18 @@ class Migrator
             try {
                 if (!$migrations->migrate($migrationSet)) {
                     throw new RuntimeException(
-                        "Unable to migrate fixtures for `{$migrationSet['connection']}`."
+                        "Unable to migrate fixtures for `{$migrationSet['connection']}`.",
                     );
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException(
                     'Could not apply migrations for ' . json_encode($migrationSet) . "\n\n" .
                     "Migrations failed to apply with message:\n\n" .
                     $e->getMessage() . "\n\n" .
                     'If you are using the `skip` option and running multiple sets of migrations ' .
-                    'on the same connection try calling `truncate()` before `runMany()` to avoid this.',
+                    'on the same connection, you can\'t skip tables managed by CakePHP in the connection.',
                     0,
-                    $e
+                    $e,
                 );
             }
         }
@@ -204,7 +206,7 @@ class Migrator
             $output = array_merge(
                 ['Your migration status some differences with the expected state.', ''],
                 $output,
-                ['Going to drop all tables in this source, and re-apply migrations.']
+                ['Going to drop all tables in this source, and re-apply migrations.'],
             );
             Log::write('debug', implode("\n", $output));
         }
@@ -240,7 +242,9 @@ class Migrator
      */
     protected function getPhinxTables(string $connection): array
     {
-        $tables = ConnectionManager::get($connection)->getSchemaCollection()->listTables();
+        $connection = ConnectionManager::get($connection);
+        assert($connection instanceof Connection);
+        $tables = $connection->getSchemaCollection()->listTables();
 
         return array_filter($tables, function ($table) {
             return strpos($table, 'phinxlog') !== false;
@@ -256,7 +260,9 @@ class Migrator
      */
     protected function getNonPhinxTables(string $connection, array $skip): array
     {
-        $tables = ConnectionManager::get($connection)->getSchemaCollection()->listTables();
+        $connection = ConnectionManager::get($connection);
+        assert($connection instanceof Connection);
+        $tables = $connection->getSchemaCollection()->listTables();
         $skip[] = '*phinxlog*';
 
         return array_filter($tables, function ($table) use ($skip) {

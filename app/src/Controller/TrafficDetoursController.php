@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class TrafficDetoursController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'TrafficDetours.description' => 'asc'
     ]

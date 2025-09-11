@@ -30,7 +30,7 @@
 
 use App\Lib\Enum\ApplicationStateEnum;
 
-$userHasMenu = in_array(true, $vv_menu_permissions, true );
+$userHasMenu = in_array(true, $vv_menu_permissions ?? [], true );
 $drawerState = $this->ApplicationState->getValue(ApplicationStateEnum::UiDrawerState, 'open');
 $appStateId = $this->ApplicationState->getId(ApplicationStateEnum::UiDrawerState);
 

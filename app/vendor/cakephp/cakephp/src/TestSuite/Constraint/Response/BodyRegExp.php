@@ -27,6 +27,7 @@ class BodyRegExp extends ResponseBase
      *
      * @param mixed $other Expected pattern
      * @return bool
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
     public function matches($other): bool
     {
@@ -47,7 +48,7 @@ class BodyRegExp extends ResponseBase
      * @param mixed $other Expected
      * @return string
      */
-    public function failureDescription($other): string
+    public function failureDescription(mixed $other): string
     {
         return '`' . $other . '`' . ' ' . $this->toString();
     }

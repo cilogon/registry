@@ -16,7 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Error\Debug;
 
-use RuntimeException;
+use InvalidArgumentException;
 use function Cake\Core\env;
 
 /**
@@ -31,7 +31,7 @@ class ConsoleFormatter implements FormatterInterface
      *
      * @var array<string, string>
      */
-    protected $styles = [
+    protected array $styles = [
         // bold yellow
         'const' => '1;33',
         // green
@@ -67,8 +67,8 @@ class ConsoleFormatter implements FormatterInterface
         // Windows environment checks
         if (
             DIRECTORY_SEPARATOR === '\\' &&
-            strpos(strtolower(php_uname('v')), 'windows 10') === false &&
-            strpos(strtolower((string)env('SHELL')), 'bash.exe') === false &&
+            !str_contains(strtolower(php_uname('v')), 'windows 10') &&
+            !str_contains(strtolower((string)env('SHELL')), 'bash.exe') &&
             !(bool)env('ANSICON') &&
             env('ConEmuANSI') !== 'ON'
         ) {
@@ -121,20 +121,14 @@ class ConsoleFormatter implements FormatterInterface
     protected function export(NodeInterface $var, int $indent): string
     {
         if ($var instanceof ScalarNode) {
-            switch ($var->getType()) {
-                case 'bool':
-                    return $this->style('const', $var->getValue() ? 'true' : 'false');
-                case 'null':
-                    return $this->style('const', 'null');
-                case 'string':
-                    return $this->style('string', "'" . (string)$var->getValue() . "'");
-                case 'int':
-                case 'float':
-                    return $this->style('visibility', "({$var->getType()})") .
-                        ' ' . $this->style('number', "{$var->getValue()}");
-                default:
-                    return "({$var->getType()}) {$var->getValue()}";
-            }
+            return match ($var->getType()) {
+                'bool' => $this->style('const', $var->getValue() ? 'true' : 'false'),
+                'null' => $this->style('const', 'null'),
+                'string' => $this->style('string', "'" . $var->getValue() . "'"),
+                'int', 'float' => $this->style('visibility', "({$var->getType()})") .
+                        ' ' . $this->style('number', "{$var->getValue()}"),
+                default => "({$var->getType()}) {$var->getValue()}",
+            };
         }
         if ($var instanceof ArrayNode) {
             return $this->exportArray($var, $indent + 1);
@@ -145,7 +139,7 @@ class ConsoleFormatter implements FormatterInterface
         if ($var instanceof SpecialNode) {
             return $this->style('special', $var->getValue());
         }
-        throw new RuntimeException('Unknown node received ' . get_class($var));
+        throw new InvalidArgumentException('Unknown node received ' . $var::class);
     }
 
     /**
@@ -169,7 +163,7 @@ class ConsoleFormatter implements FormatterInterface
         }
 
         $close = $this->style('punct', ']');
-        if (count($vars)) {
+        if ($vars !== []) {
             return $out . implode($this->style('punct', ','), $vars) . $end . $close;
         }
 
@@ -184,7 +178,7 @@ class ConsoleFormatter implements FormatterInterface
      * @return string
      * @see \Cake\Error\Debugger::exportVar()
      */
-    protected function exportObject($var, int $indent): string
+    protected function exportObject(ClassNode|ReferenceNode $var, int $indent): string
     {
         $props = [];
 
@@ -221,7 +215,7 @@ class ConsoleFormatter implements FormatterInterface
                     $this->export($property->getValue(), $indent);
             }
         }
-        if (count($props)) {
+        if ($props !== []) {
             return $out . $break . implode($break, $props) . $end;
         }
 

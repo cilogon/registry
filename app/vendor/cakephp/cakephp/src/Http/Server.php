@@ -23,27 +23,32 @@ use Cake\Event\EventDispatcherInterface;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Event\EventManager;
 use Cake\Event\EventManagerInterface;
+use Cake\Routing\Router;
 use InvalidArgumentException;
-use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Runs an application invoking all the PSR7 middleware and the registered application.
+ *
+ * @implements \Cake\Event\EventDispatcherInterface<\Cake\Core\HttpApplicationInterface>
  */
 class Server implements EventDispatcherInterface
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<\Cake\Core\HttpApplicationInterface>
+     */
     use EventDispatcherTrait;
 
     /**
      * @var \Cake\Core\HttpApplicationInterface
      */
-    protected $app;
+    protected HttpApplicationInterface $app;
 
     /**
      * @var \Cake\Http\Runner
      */
-    protected $runner;
+    protected Runner $runner;
 
     /**
      * Constructor
@@ -75,7 +80,7 @@ class Server implements EventDispatcherInterface
      */
     public function run(
         ?ServerRequestInterface $request = null,
-        ?MiddlewareQueue $middlewareQueue = null
+        ?MiddlewareQueue $middlewareQueue = null,
     ): ResponseInterface {
         $this->bootstrap();
 
@@ -124,17 +129,35 @@ class Server implements EventDispatcherInterface
     /**
      * Emit the response using the PHP SAPI.
      *
+     * After the response has been emitted, the `Server.terminate` event will be triggered.
+     *
+     * The `Server.terminate` event can be used to do potentially heavy tasks after the
+     * response is sent to the client. Only the PHP FPM server API is able to send a
+     * response to the client while the server's PHP process still performs some tasks.
+     * For other environments the event will be triggered before the response is flushed
+     * to the client and will have no benefit.
+     *
      * @param \Psr\Http\Message\ResponseInterface $response The response to emit
-     * @param \Laminas\HttpHandlerRunner\Emitter\EmitterInterface|null $emitter The emitter to use.
+     * @param \Cake\Http\ResponseEmitter|null $emitter The emitter to use.
      *   When null, a SAPI Stream Emitter will be used.
      * @return void
      */
-    public function emit(ResponseInterface $response, ?EmitterInterface $emitter = null): void
+    public function emit(ResponseInterface $response, ?ResponseEmitter $emitter = null): void
     {
-        if (!$emitter) {
-            $emitter = new ResponseEmitter();
-        }
+        $emitter ??= new ResponseEmitter();
         $emitter->emit($response);
+
+        $request = null;
+        if ($this->app instanceof ContainerApplicationInterface) {
+            $container = $this->app->getContainer();
+            if ($container->has(ServerRequest::class)) {
+                $request = $container->get(ServerRequest::class);
+            }
+        }
+        if (!$request) {
+            $request = Router::getRequest();
+        }
+        $this->dispatchEvent('Server.terminate', compact('request', 'response'));
     }
 
     /**

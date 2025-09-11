@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class ApisController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Apis.description' => 'asc'
     ]

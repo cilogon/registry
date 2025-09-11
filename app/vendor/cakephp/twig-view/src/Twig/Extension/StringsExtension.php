@@ -30,7 +30,7 @@ class StringsExtension extends AbstractExtension
     /**
      * Get declared filters.
      *
-     * @return \Twig\TwigFilter[]
+     * @return array<\Twig\TwigFilter>
      */
     public function getFilters(): array
     {
@@ -51,8 +51,7 @@ class StringsExtension extends AbstractExtension
             new TwigFilter('utf8', 'Cake\Utility\Text::utf8'),
             new TwigFilter('ascii', 'Cake\Utility\Text::ascii'),
             new TwigFilter('parseFileSize', 'Cake\Utility\Text::parseFileSize'),
-            new TwigFilter('none', function ($string) {
-                return;
+            new TwigFilter('none', function (): void {
             }),
         ];
     }
@@ -60,7 +59,7 @@ class StringsExtension extends AbstractExtension
     /**
      * Get declared functions.
      *
-     * @return \Twig\TwigFunction[]
+     * @return array<\Twig\TwigFunction>
      */
     public function getFunctions(): array
     {

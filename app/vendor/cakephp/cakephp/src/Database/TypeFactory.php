@@ -29,9 +29,9 @@ class TypeFactory
      * representing the class that will do actual type conversions.
      *
      * @var array<string, string>
-     * @psalm-var array<string, class-string<\Cake\Database\TypeInterface>>
+     * @phpstan-var array<string, class-string<\Cake\Database\TypeInterface>>
      */
-    protected static $_types = [
+    protected static array $_types = [
         'tinyinteger' => Type\IntegerType::class,
         'smallinteger' => Type\IntegerType::class,
         'integer' => Type\IntegerType::class,
@@ -53,6 +53,11 @@ class TypeFactory
         'timestampfractional' => Type\DateTimeFractionalType::class,
         'timestamptimezone' => Type\DateTimeTimezoneType::class,
         'uuid' => Type\UuidType::class,
+        'nativeuuid' => Type\UuidType::class,
+        'linestring' => Type\StringType::class,
+        'geometry' => Type\StringType::class,
+        'point' => Type\StringType::class,
+        'polygon' => Type\StringType::class,
     ];
 
     /**
@@ -60,7 +65,7 @@ class TypeFactory
      *
      * @var array<\Cake\Database\TypeInterface>
      */
-    protected static $_builtTypes = [];
+    protected static array $_builtTypes = [];
 
     /**
      * Returns a Type object capable of converting a type identified by name.
@@ -75,7 +80,7 @@ class TypeFactory
             return static::$_builtTypes[$name];
         }
         if (!isset(static::$_types[$name])) {
-            throw new InvalidArgumentException(sprintf('Unknown type "%s"', $name));
+            throw new InvalidArgumentException(sprintf('Unknown type `%s`', $name));
         }
 
         return static::$_builtTypes[$name] = new static::$_types[$name]($name);
@@ -88,12 +93,11 @@ class TypeFactory
      */
     public static function buildAll(): array
     {
-        $result = [];
         foreach (static::$_types as $name => $type) {
-            $result[$name] = static::$_builtTypes[$name] ?? static::build($name);
+            static::$_builtTypes[$name] ??= static::build($name);
         }
 
-        return $result;
+        return static::$_builtTypes;
     }
 
     /**
@@ -106,7 +110,6 @@ class TypeFactory
     public static function set(string $name, TypeInterface $instance): void
     {
         static::$_builtTypes[$name] = $instance;
-        static::$_types[$name] = get_class($instance);
     }
 
     /**
@@ -115,7 +118,7 @@ class TypeFactory
      * @param string $type Name of type to map.
      * @param string $className The classname to register.
      * @return void
-     * @psalm-param class-string<\Cake\Database\TypeInterface> $className
+     * @phpstan-param class-string<\Cake\Database\TypeInterface> $className
      */
     public static function map(string $type, string $className): void
     {
@@ -126,9 +129,9 @@ class TypeFactory
     /**
      * Set type to classname mapping.
      *
-     * @param array<string> $map List of types to be mapped.
+     * @param array<string, string> $map List of types to be mapped.
      * @return void
-     * @psalm-param array<string, class-string<\Cake\Database\TypeInterface>> $map
+     * @phpstan-param array<string, class-string<\Cake\Database\TypeInterface>> $map
      */
     public static function setMap(array $map): void
     {
@@ -140,9 +143,9 @@ class TypeFactory
      * Get mapped class name for given type or map array.
      *
      * @param string|null $type Type name to get mapped class for or null to get map array.
-     * @return array<string>|string|null Configured class name for given $type or map array.
+     * @return array<string, class-string<\Cake\Database\TypeInterface>>|string|null Configured class name for given $type or map array.
      */
-    public static function getMap(?string $type = null)
+    public static function getMap(?string $type = null): array|string|null
     {
         if ($type === null) {
             return static::$_types;
@@ -162,10 +165,3 @@ class TypeFactory
         static::$_builtTypes = [];
     }
 }
-
-// phpcs:disable
-class_alias(
-    'Cake\Database\TypeFactory',
-    'Cake\Database\Type'
-);
-// phpcs:enable

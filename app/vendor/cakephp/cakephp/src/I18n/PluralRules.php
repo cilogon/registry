@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\I18n;
 
 use Cake\Core\Exception\CakeException;
+use InvalidArgumentException;
 use Locale;
 
 /**
@@ -33,7 +34,7 @@ class PluralRules
      *
      * @var array<string, int>
      */
-    protected static $_rulesMap = [
+    protected static array $_rulesMap = [
         'af' => 1,
         'am' => 2,
         'ar' => 13,
@@ -53,14 +54,14 @@ class PluralRules
         'el' => 1,
         'en' => 1,
         'eo' => 1,
-        'es' => 1,
+        'es' => 17,
         'et' => 1,
         'eu' => 1,
         'fa' => 1,
         'fi' => 1,
         'fil' => 2,
         'fo' => 1,
-        'fr' => 2,
+        'fr' => 16,
         'fur' => 1,
         'fy' => 1,
         'ga' => 5,
@@ -74,7 +75,7 @@ class PluralRules
         'hu' => 1,
         'id' => 0,
         'is' => 15,
-        'it' => 1,
+        'it' => 17,
         'ja' => 0,
         'jv' => 0,
         'ka' => 0,
@@ -106,8 +107,8 @@ class PluralRules
         'pap' => 1,
         'pl' => 11,
         'ps' => 1,
-        'pt_BR' => 2,
-        'pt' => 1,
+        'pt_PT' => 17,
+        'pt' => 16,
         'ro' => 12,
         'ru' => 3,
         'sk' => 4,
@@ -138,12 +139,15 @@ class PluralRules
      * @param string $locale The locale to get the rule calculated for.
      * @param int $n The number to apply the rules to.
      * @return int The plural rule number that should be used.
-     * @link http://localization-guide.readthedocs.org/en/latest/l10n/pluralforms.html
-     * @link https://developer.mozilla.org/en-US/docs/Mozilla/Localization/Localization_and_Plurals#List_of_Plural_Rules
+     * @link https://php-gettext.github.io/Languages/#47
      */
-    public static function calculate(string $locale, $n): int
+    public static function calculate(string $locale, int $n): int
     {
         $locale = Locale::canonicalize($locale);
+
+        if ($locale === null) {
+            throw new InvalidArgumentException('Invalid locale provided');
+        }
 
         if (!isset(static::$_rulesMap[$locale])) {
             $locale = explode('_', $locale)[0];
@@ -153,56 +157,41 @@ class PluralRules
             return 0;
         }
 
-        switch (static::$_rulesMap[$locale]) {
-            case 0:
-                return 0;
-            case 1:
-                return $n === 1 ? 0 : 1;
-            case 2:
-                return $n > 1 ? 1 : 0;
-            case 3:
-                return $n % 10 === 1 && $n % 100 !== 11 ? 0 :
-                    (($n % 10 >= 2 && $n % 10 <= 4) && ($n % 100 < 10 || $n % 100 >= 20) ? 1 : 2);
-            case 4:
-                return $n === 1 ? 0 :
-                    ($n >= 2 && $n <= 4 ? 1 : 2);
-            case 5:
-                return $n === 1 ? 0 :
-                    ($n === 2 ? 1 : ($n < 7 ? 2 : ($n < 11 ? 3 : 4)));
-            case 6:
-                return $n % 10 === 1 && $n % 100 !== 11 ? 0 :
-                    ($n % 10 >= 2 && ($n % 100 < 10 || $n % 100 >= 20) ? 1 : 2);
-            case 7:
-                return $n % 100 === 1 ? 1 :
-                    ($n % 100 === 2 ? 2 : ($n % 100 === 3 || $n % 100 === 4 ? 3 : 0));
-            case 8:
-                return $n % 10 === 1 ? 0 : ($n % 10 === 2 ? 1 : 2);
-            case 9:
-                return $n === 1 ? 0 :
+        return match (static::$_rulesMap[$locale]) {
+            0 => 0,
+            1 => $n === 1 ? 0 : 1,
+            2 => $n > 1 ? 1 : 0,
+            3 => $n % 10 === 1 && $n % 100 !== 11 ? 0 :
+                    (($n % 10 >= 2 && $n % 10 <= 4) && ($n % 100 < 10 || $n % 100 >= 20) ? 1 : 2),
+            4 => $n === 1 ? 0 :
+                    ($n >= 2 && $n <= 4 ? 1 : 2),
+            5 => $n === 1 ? 0 :
+                    ($n === 2 ? 1 : ($n < 7 ? 2 : ($n < 11 ? 3 : 4))),
+            6 => $n % 10 === 1 && $n % 100 !== 11 ? 0 :
+                    ($n % 10 >= 2 && ($n % 100 < 10 || $n % 100 >= 20) ? 1 : 2),
+            7 => $n % 100 === 1 ? 1 :
+                    ($n % 100 === 2 ? 2 : ($n % 100 === 3 || $n % 100 === 4 ? 3 : 0)),
+            8 => $n % 10 === 1 ? 0 : ($n % 10 === 2 ? 1 : 2),
+            9 => $n === 1 ? 0 :
                     ($n === 0 || ($n % 100 > 0 && $n % 100 <= 10) ? 1 :
-                    ($n % 100 > 10 && $n % 100 < 20 ? 2 : 3));
-            case 10:
-                return $n % 10 === 1 && $n % 100 !== 11 ? 0 : ($n !== 0 ? 1 : 2);
-            case 11:
-                return $n === 1 ? 0 :
-                    ($n % 10 >= 2 && $n % 10 <= 4 && ($n % 100 < 10 || $n % 100 >= 20) ? 1 : 2);
-            case 12:
-                return $n === 1 ? 0 :
-                    ($n === 0 || $n % 100 > 0 && $n % 100 < 20 ? 1 : 2);
-            case 13:
-                return $n === 0 ? 0 :
+                    ($n % 100 > 10 && $n % 100 < 20 ? 2 : 3)),
+            10 => $n % 10 === 1 && $n % 100 !== 11 ? 0 : ($n !== 0 ? 1 : 2),
+            11 => $n === 1 ? 0 :
+                    ($n % 10 >= 2 && $n % 10 <= 4 && ($n % 100 < 10 || $n % 100 >= 20) ? 1 : 2),
+            12 => $n === 1 ? 0 :
+                    ($n === 0 || $n % 100 > 0 && $n % 100 < 20 ? 1 : 2),
+            13 => $n === 0 ? 0 :
                     ($n === 1 ? 1 :
                     ($n === 2 ? 2 :
                     ($n % 100 >= 3 && $n % 100 <= 10 ? 3 :
-                    ($n % 100 >= 11 ? 4 : 5))));
-            case 14:
-                return $n === 1 ? 0 :
+                    ($n % 100 >= 11 ? 4 : 5)))),
+            14 => $n === 1 ? 0 :
                     ($n === 2 ? 1 :
-                    ($n !== 8 && $n !== 11 ? 2 : 3));
-            case 15:
-                return $n % 10 !== 1 || $n % 100 === 11 ? 1 : 0;
-        }
-
-        throw new CakeException('Unable to find plural rule number.');
+                    ($n !== 8 && $n !== 11 ? 2 : 3)),
+            15 => $n % 10 !== 1 || $n % 100 === 11 ? 1 : 0,
+            16 => $n === 0 || $n === 1 ? 0 : ($n % 1000000 === 0 ? 1 : 2),
+            17 => $n === 1 ? 0 : ($n !== 0 && $n % 1000000 === 0 ? 1 : 2),
+            default => throw new CakeException('Unable to find plural rule number.'),
+        };
     }
 }

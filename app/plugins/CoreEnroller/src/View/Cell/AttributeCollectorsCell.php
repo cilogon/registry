@@ -44,12 +44,27 @@ use Cake\Utility\Hash;
 class AttributeCollectorsCell extends Cell
 {
   /**
+   * @var mixed
+   */
+  public $vv_obj;
+
+  /**
+   * @var mixed
+   */
+  public $vv_step;
+
+  /**
+   * @var mixed
+   */
+  public $viewVars;
+
+  /**
    * List of valid options that can be passed into this
    * cell's constructor.
    *
    * @var array<string, mixed>
    */
-  protected $_validCellOptions = [
+  protected array $_validCellOptions = [
     'vv_obj',
     'vv_step',
     'viewVars',
@@ -81,7 +96,7 @@ class AttributeCollectorsCell extends Cell
       $vv_enrollment_attributes = $this->fetchTable('EnrollmentAttributes')
         ->find()
         ->where(fn(QueryExpression $exp, Query $q) => $exp->in('id', $vv_enrollment_atttributes_ids))
-        ->order(['ordr' => 'ASC'])
+        ->orderBy(['ordr' => 'ASC'])
         ->toArray();
     }
 

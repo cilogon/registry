@@ -64,7 +64,9 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     
     if(strncmp($subjectTable->getRegistryAlias(), "DebugKit.", 9)==0) {
       // Skip DebugKit calls
-      return $rules;
+      $event->setResult($rules);
+      return;
+
     }
 
     $schema = $subjectTable->getSchema();
@@ -93,7 +95,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
       if(in_array($col, $primaryLinks)) {
         $rules->addUpdate(
           [$this, 'ruleFreezePrimaryLink'],
-          'freezePrimaryLink',
+          'freezePrimaryLink_' . $col,
           ['errorField' => $col]
         );
       } elseif(preg_match('/^.*_id$/', $col)) {
@@ -101,15 +103,13 @@ class RuleBuilderEventListener Implements EventListenerInterface {
 // XXX still need to handle whatever "unfreeze" is going to become
         $rules->add(
           [$this, 'ruleValidateCO'],
-          'validateCO',
+          'validateCO_' .  $col,
           ['errorField' => $col]
         );
       }
     }
-    
-    // The documentation is ambiguous as to whether or not we need to return $rules.
-    // The API docs say yes but the example doesn't have it.
-    return $rules;
+
+    $event->setResult($rules);
   }
   
   /**

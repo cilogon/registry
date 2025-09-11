@@ -32,6 +32,11 @@ use function Cake\Core\env;
  * - `info` Informational messages.
  * - `comment` Additional text.
  * - `question` Magenta text used for user prompts
+ * - `success` Green foreground text
+ * - `info.bg` Cyan background with black text
+ * - `warning.bg` Yellow background with black text
+ * - `error.bg` Red background with black text
+ * - `success.bg` Green background with black text
  *
  * By defining styles with addStyle() you can create custom console styles.
  *
@@ -90,14 +95,14 @@ class ConsoleOutput
      * @see setOutputAs() For manipulation.
      * @var int
      */
-    protected $_outputAs = self::COLOR;
+    protected int $_outputAs = self::COLOR;
 
     /**
      * text colors used in colored output.
      *
      * @var array<string, int>
      */
-    protected static $_foregroundColors = [
+    protected static array $_foregroundColors = [
         'black' => 30,
         'red' => 31,
         'green' => 32,
@@ -113,7 +118,7 @@ class ConsoleOutput
      *
      * @var array<string, int>
      */
-    protected static $_backgroundColors = [
+    protected static array $_backgroundColors = [
         'black' => 40,
         'red' => 41,
         'green' => 42,
@@ -129,7 +134,7 @@ class ConsoleOutput
      *
      * @var array<string, int>
      */
-    protected static $_options = [
+    protected static array $_options = [
         'bold' => 1,
         'underline' => 4,
         'blink' => 5,
@@ -142,18 +147,23 @@ class ConsoleOutput
      *
      * @var array<string, array>
      */
-    protected static $_styles = [
+    protected static array $_styles = [
         'emergency' => ['text' => 'red'],
         'alert' => ['text' => 'red'],
         'critical' => ['text' => 'red'],
         'error' => ['text' => 'red'],
+        'error.bg' => ['background' => 'red', 'text' => 'black'],
         'warning' => ['text' => 'yellow'],
+        'warning.bg' => ['background' => 'yellow', 'text' => 'black'],
         'info' => ['text' => 'cyan'],
+        'info.bg' => ['background' => 'white', 'text' => 'cyan'],
         'debug' => ['text' => 'yellow'],
         'success' => ['text' => 'green'],
+        'success.bg' => ['background' => 'green', 'text' => 'black'],
+        'notice' => ['text' => 'cyan'],
+        'notice.bg' => ['background' => 'cyan', 'text' => 'black'],
         'comment' => ['text' => 'blue'],
         'question' => ['text' => 'magenta'],
-        'notice' => ['text' => 'cyan'],
     ];
 
     /**
@@ -162,7 +172,7 @@ class ConsoleOutput
      * Checks for a pretty console environment. Ansicon and ConEmu allows
      *  pretty consoles on Windows, and is supported.
      *
-     * @param string|resource $stream The identifier of the stream to write output to.
+     * @param resource|string $stream The identifier of the stream to write output to.
      * @throws \Cake\Console\Exception\ConsoleException If the given stream is not a valid resource.
      */
     public function __construct($stream = 'php://stdout')
@@ -180,8 +190,8 @@ class ConsoleOutput
         if (
             (
                 DIRECTORY_SEPARATOR === '\\' &&
-                strpos(strtolower(php_uname('v')), 'windows 10') === false &&
-                strpos(strtolower((string)env('SHELL')), 'bash.exe') === false &&
+                !str_contains(strtolower(php_uname('v')), 'windows 10') &&
+                !str_contains(strtolower((string)env('SHELL')), 'bash.exe') &&
                 !(bool)env('ANSICON') &&
                 env('ConEmuANSI') !== 'ON'
             ) ||
@@ -205,7 +215,7 @@ class ConsoleOutput
      * @param int $newlines Number of newlines to append
      * @return int The number of bytes returned from writing to output.
      */
-    public function write($message, int $newlines = 1): int
+    public function write(array|string $message, int $newlines = 1): int
     {
         if (is_array($message)) {
             $message = implode(static::LF, $message);
@@ -226,10 +236,13 @@ class ConsoleOutput
             return $text;
         }
         if ($this->_outputAs !== static::PLAIN) {
+            /** @var \Closure $replaceTags */
+            $replaceTags = $this->_replaceTags(...);
+
             $output = preg_replace_callback(
-                '/<(?P<tag>[a-z0-9-_]+)>(?P<text>.*?)<\/(\1)>/ims',
-                [$this, '_replaceTags'],
-                $text
+                '/<(?P<tag>[a-z0-9-_.]+)>(?P<text>.*?)<\/(\1)>/ims',
+                $replaceTags,
+                $text,
             );
             if ($output !== null) {
                 return $output;
@@ -239,11 +252,7 @@ class ConsoleOutput
         $tags = implode('|', array_keys(static::$_styles));
         $output = preg_replace('#</?(?:' . $tags . ')>#', '', $text);
 
-        if ($output === null) {
-            return $text;
-        }
-
-        return $output;
+        return $output ?? $text;
     }
 
     /**
@@ -255,7 +264,7 @@ class ConsoleOutput
     protected function _replaceTags(array $matches): string
     {
         $style = $this->getStyle($matches['tag']);
-        if (empty($style)) {
+        if (!$style) {
             return '<' . $matches['tag'] . '>' . $matches['text'] . '</' . $matches['tag'] . '>';
         }
 
@@ -284,6 +293,10 @@ class ConsoleOutput
      */
     protected function _write(string $message): int
     {
+        if (!isset($this->_output)) {
+            return 0;
+        }
+
         return (int)fwrite($this->_output, $message);
     }
 
@@ -358,7 +371,7 @@ class ConsoleOutput
     public function setOutputAs(int $type): void
     {
         if (!in_array($type, [self::RAW, self::PLAIN, self::COLOR], true)) {
-            throw new InvalidArgumentException(sprintf('Invalid output type "%s".', $type));
+            throw new InvalidArgumentException(sprintf('Invalid output type `%s`.', $type));
         }
 
         $this->_outputAs = $type;
@@ -369,8 +382,9 @@ class ConsoleOutput
      */
     public function __destruct()
     {
-        if (is_resource($this->_output)) {
+        if (isset($this->_output) && is_resource($this->_output)) {
             fclose($this->_output);
         }
+        unset($this->_output);
     }
 }

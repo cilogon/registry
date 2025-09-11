@@ -19,7 +19,7 @@ namespace Cake\Log\Engine;
 use Cake\Console\ConsoleOutput;
 use Cake\Log\Formatter\DefaultFormatter;
 use InvalidArgumentException;
-use function Cake\Core\deprecationWarning;
+use Stringable;
 
 /**
  * Console logging. Writes logs to console output.
@@ -31,7 +31,7 @@ class ConsoleLog extends BaseLog
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'stream' => 'php://stderr',
         'levels' => null,
         'scopes' => [],
@@ -47,7 +47,7 @@ class ConsoleLog extends BaseLog
      *
      * @var \Cake\Console\ConsoleOutput
      */
-    protected $_output;
+    protected ConsoleOutput $_output;
 
     /**
      * Constructs a new Console Logger.
@@ -79,25 +79,21 @@ class ConsoleLog extends BaseLog
         if (isset($config['outputAs'])) {
             $this->_output->setOutputAs($config['outputAs']);
         }
-
-        if (isset($this->_config['dateFormat'])) {
-            deprecationWarning('`dateFormat` option should now be set in the formatter options.', 0);
-            $this->formatter->setConfig('dateFormat', $this->_config['dateFormat']);
-        }
     }
 
     /**
      * Implements writing to console.
      *
      * @param mixed $level The severity level of log you are making.
-     * @param string $message The message you want to log.
+     * @param \Stringable|string $message The message you want to log.
      * @param array $context Additional information about the logged message
      * @return void success of write.
      * @see \Cake\Log\Log::$_levels
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
-    public function log($level, $message, array $context = [])
+    public function log($level, Stringable|string $message, array $context = []): void
     {
-        $message = $this->_format($message, $context);
+        $message = $this->interpolate($message, $context);
         $this->_output->write($this->formatter->format($level, $message, $context));
     }
 }

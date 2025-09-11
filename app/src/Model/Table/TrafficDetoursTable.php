@@ -107,7 +107,7 @@ class TrafficDetoursTable extends Table {
 
     $detours = $this->find()
                           ->where(['status' => SuspendableStatusEnum::Active])
-                          ->order(['TrafficDetours.ordr' => 'ASC'])
+                          ->orderBy(['TrafficDetours.ordr' => 'ASC'])
                           ->all();
 
     // Should we return the next Traffic Detour? If we haven't seen any yet then we

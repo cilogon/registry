@@ -17,13 +17,9 @@ declare(strict_types=1);
 namespace Cake\Http;
 
 use Cake\Core\Configure;
-use Cake\Http\Uri as CakeUri;
 use Cake\Utility\Hash;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UriInterface;
-use function Laminas\Diactoros\marshalHeadersFromSapi;
-use function Laminas\Diactoros\marshalUriFromSapi;
 use function Laminas\Diactoros\normalizeServer;
 use function Laminas\Diactoros\normalizeUploadedFiles;
 
@@ -34,7 +30,7 @@ use function Laminas\Diactoros\normalizeUploadedFiles;
  * attributes. Furthermore the Uri's path is corrected to only contain the
  * 'virtual' path for the request.
  */
-abstract class ServerRequestFactory implements ServerRequestFactoryInterface
+class ServerRequestFactory implements ServerRequestFactoryInterface
 {
     /**
      * Create a request from the supplied superglobal values.
@@ -55,21 +51,10 @@ abstract class ServerRequestFactory implements ServerRequestFactoryInterface
         ?array $query = null,
         ?array $parsedBody = null,
         ?array $cookies = null,
-        ?array $files = null
+        ?array $files = null,
     ): ServerRequest {
-        $server = normalizeServer($server ?: $_SERVER);
-        $uri = static::createUri($server);
-
-        $webroot = '';
-        $base = '';
-        if ($uri instanceof CakeUri) {
-            // Unwrap our shim for base and webroot.
-            // For 5.x we should change the interface on createUri() to return a
-            // tuple of [$uri, $base, $webroot] and remove the wrapper.
-            $webroot = $uri->getWebroot();
-            $base = $uri->getBase();
-            $uri->getUri();
-        }
+        $server = normalizeServer($server ?? $_SERVER);
+        ['uri' => $uri, 'base' => $base, 'webroot' => $webroot] = UriFactory::marshalUriAndBaseFromSapi($server);
 
         $sessionConfig = (array)Configure::read('Session') + [
             'defaults' => 'php',
@@ -80,8 +65,8 @@ abstract class ServerRequestFactory implements ServerRequestFactoryInterface
         $request = new ServerRequest([
             'environment' => $server,
             'uri' => $uri,
-            'cookies' => $cookies ?: $_COOKIE,
-            'query' => $query ?: $_GET,
+            'cookies' => $cookies ?? $_COOKIE,
+            'query' => $query ?? $_GET,
             'webroot' => $webroot,
             'base' => $base,
             'session' => $session,
@@ -91,7 +76,7 @@ abstract class ServerRequestFactory implements ServerRequestFactoryInterface
         $request = static::marshalBodyAndRequestMethod($parsedBody ?? $_POST, $request);
         // This is required as `ServerRequest::scheme()` ignores the value of
         // `HTTP_X_FORWARDED_PROTO` unless `trustProxy` is enabled, while the
-        // `Uri` instance intially created always takes values of `HTTP_X_FORWARDED_PROTO`
+        // `Uri` instance initially created always takes values of `HTTP_X_FORWARDED_PROTO`
         // into account.
         $uri = $request->getUri()->withScheme($request->scheme());
         $request = $request->withUri($uri, true);
@@ -118,7 +103,7 @@ abstract class ServerRequestFactory implements ServerRequestFactoryInterface
 
         if (
             in_array($method, ['PUT', 'DELETE', 'PATCH'], true) &&
-            strpos((string)$request->contentType(), 'application/x-www-form-urlencoded') === 0
+            str_starts_with((string)$request->contentType(), 'application/x-www-form-urlencoded')
         ) {
             $data = (string)$request->getBody();
             parse_str($data, $parsedBody);
@@ -162,26 +147,7 @@ abstract class ServerRequestFactory implements ServerRequestFactoryInterface
             return $request;
         }
 
-        if (Configure::read('App.uploadedFilesAsObjects', true)) {
-            $parsedBody = Hash::merge($parsedBody, $files);
-        } else {
-            // Make a flat map that can be inserted into body for BC.
-            $fileMap = Hash::flatten($files);
-            foreach ($fileMap as $key => $file) {
-                $error = $file->getError();
-                $tmpName = '';
-                if ($error === UPLOAD_ERR_OK) {
-                    $tmpName = $file->getStream()->getMetadata('uri');
-                }
-                $parsedBody = Hash::insert($parsedBody, (string)$key, [
-                    'tmp_name' => $tmpName,
-                    'error' => $error,
-                    'name' => $file->getClientFilename(),
-                    'type' => $file->getClientMediaType(),
-                    'size' => $file->getSize(),
-                ]);
-            }
-        }
+        $parsedBody = Hash::merge($parsedBody, $files);
 
         return $request->withParsedBody($parsedBody);
     }
@@ -200,159 +166,18 @@ abstract class ServerRequestFactory implements ServerRequestFactoryInterface
      * @param array $serverParams Array of SAPI parameters with which to seed
      *     the generated request instance.
      * @return \Psr\Http\Message\ServerRequestInterface
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
     public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequestInterface
     {
         $serverParams['REQUEST_METHOD'] = $method;
         $options = ['environment' => $serverParams];
 
-        if ($uri instanceof UriInterface) {
-            $options['uri'] = $uri;
-        } else {
-            $options['url'] = $uri;
+        if (is_string($uri)) {
+            $uri = (new UriFactory())->createUri($uri);
         }
+        $options['uri'] = $uri;
 
         return new ServerRequest($options);
-    }
-
-    /**
-     * Create a new Uri instance from the provided server data.
-     *
-     * @param array $server Array of server data to build the Uri from.
-     *   $_SERVER will be added into the $server parameter.
-     * @return \Psr\Http\Message\UriInterface New instance.
-     */
-    public static function createUri(array $server = []): UriInterface
-    {
-        $server += $_SERVER;
-        $server = normalizeServer($server);
-        $headers = marshalHeadersFromSapi($server);
-
-        return static::marshalUriFromSapi($server, $headers);
-    }
-
-    /**
-     * Build a UriInterface object.
-     *
-     * Add in some CakePHP specific logic/properties that help
-     * preserve backwards compatibility.
-     *
-     * @param array $server The server parameters.
-     * @param array $headers The normalized headers
-     * @return \Cake\Http\Uri A constructed Uri
-     */
-    protected static function marshalUriFromSapi(array $server, array $headers): UriInterface
-    {
-        /** @psalm-suppress DeprecatedFunction */
-        $uri = marshalUriFromSapi($server, $headers);
-        [$base, $webroot] = static::getBase($uri, $server);
-
-        $uri = static::updatePath($base, $uri);
-
-        if (!$uri->getHost()) {
-            $uri = $uri->withHost('localhost');
-        }
-
-        return new CakeUri($uri, $base, $webroot);
-    }
-
-    /**
-     * Updates the request URI to remove the base directory.
-     *
-     * @param string $base The base path to remove.
-     * @param \Psr\Http\Message\UriInterface $uri The uri to update.
-     * @return \Psr\Http\Message\UriInterface The modified Uri instance.
-     */
-    protected static function updatePath(string $base, UriInterface $uri): UriInterface
-    {
-        $path = $uri->getPath();
-        if ($base !== '' && strpos($path, $base) === 0) {
-            $path = substr($path, strlen($base));
-        }
-        if ($path === '/index.php' && $uri->getQuery()) {
-            $path = $uri->getQuery();
-        }
-        if (empty($path) || $path === '/' || $path === '//' || $path === '/index.php') {
-            $path = '/';
-        }
-        // Check for $webroot/index.php at the start and end of the path.
-        $search = '';
-        if ($path[0] === '/') {
-            $search .= '/';
-        }
-        $search .= (Configure::read('App.webroot') ?: 'webroot') . '/index.php';
-        if (strpos($path, $search) === 0) {
-            $path = substr($path, strlen($search));
-        } elseif (substr($path, -strlen($search)) === $search) {
-            $path = '/';
-        }
-        if (!$path) {
-            $path = '/';
-        }
-
-        return $uri->withPath($path);
-    }
-
-    /**
-     * Calculate the base directory and webroot directory.
-     *
-     * @param \Psr\Http\Message\UriInterface $uri The Uri instance.
-     * @param array $server The SERVER data to use.
-     * @return array An array containing the [baseDir, webroot]
-     */
-    protected static function getBase(UriInterface $uri, array $server): array
-    {
-        $config = (array)Configure::read('App') + [
-            'base' => null,
-            'webroot' => null,
-            'baseUrl' => null,
-        ];
-        $base = $config['base'];
-        $baseUrl = $config['baseUrl'];
-        $webroot = $config['webroot'];
-
-        if ($base !== false && $base !== null) {
-            return [$base, $base . '/'];
-        }
-
-        if (!$baseUrl) {
-            $base = dirname(Hash::get($server, 'PHP_SELF'));
-            // Clean up additional / which cause following code to fail..
-            $base = preg_replace('#/+#', '/', $base);
-
-            $indexPos = strpos($base, '/index.php');
-            if ($indexPos !== false) {
-                $base = substr($base, 0, $indexPos);
-            }
-            if ($webroot === basename($base)) {
-                $base = dirname($base);
-            }
-
-            if ($base === DIRECTORY_SEPARATOR || $base === '.') {
-                $base = '';
-            }
-            $base = implode('/', array_map('rawurlencode', explode('/', $base)));
-
-            return [$base, $base . '/'];
-        }
-
-        $file = '/' . basename($baseUrl);
-        $base = dirname($baseUrl);
-
-        if ($base === DIRECTORY_SEPARATOR || $base === '.') {
-            $base = '';
-        }
-        $webrootDir = $base . '/';
-
-        $docRoot = Hash::get($server, 'DOCUMENT_ROOT');
-        $docRootContainsWebroot = strpos($docRoot, $webroot);
-
-        if (!empty($base) || !$docRootContainsWebroot) {
-            if (strpos($webrootDir, '/' . $webroot . '/') === false) {
-                $webrootDir .= $webroot . '/';
-            }
-        }
-
-        return [$base . $file, $webrootDir];
     }
 }

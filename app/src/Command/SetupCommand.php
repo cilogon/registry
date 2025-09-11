@@ -30,14 +30,14 @@ declare(strict_types=1);
 namespace App\Command;
 
 use Cake\Console\Arguments;
-use Cake\Console\Command;
+use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Utility\Security;
 use App\Lib\Enum\PermissionEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
 
-class SetupCommand extends Command
+class SetupCommand extends BaseCommand
 {
   /**
    * Register command specific options.
@@ -177,7 +177,7 @@ class SetupCommand extends Command
     ],
     ['validate' => false])];
     
-    $g = $coTable->Groups->find('adminGroup', ['co_id' => $co_id])->firstOrFail();
+    $g = $coTable->Groups->find('adminGroup', co_id: $co_id)->firstOrFail();
 
     $person->group_members = [
       $coTable->People->GroupMembers->newEntity(

@@ -20,7 +20,9 @@ use ArrayObject;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\Association;
+use Cake\ORM\Association\BelongsTo;
 use Cake\ORM\Behavior;
+use Cake\ORM\Query\SelectQuery;
 use Closure;
 
 /**
@@ -108,19 +110,19 @@ class CounterCacheBehavior extends Behavior
      *
      * @var array<string, array<string, bool>>
      */
-    protected $_ignoreDirty = [];
+    protected array $_ignoreDirty = [];
 
     /**
      * beforeSave callback.
      *
      * Check if a field, which should be ignored, is dirty
      *
-     * @param \Cake\Event\EventInterface $event The beforeSave event that was fired
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The beforeSave event that was fired
      * @param \Cake\Datasource\EntityInterface $entity The entity that is going to be saved
-     * @param \ArrayObject $options The options for the query
+     * @param \ArrayObject<string, mixed> $options The options for the query
      * @return void
      */
-    public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options)
+    public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options): void
     {
         if (isset($options['ignoreCounterCache']) && $options['ignoreCounterCache'] === true) {
             return;
@@ -128,6 +130,7 @@ class CounterCacheBehavior extends Behavior
 
         foreach ($this->_config as $assoc => $settings) {
             $assoc = $this->_table->getAssociation($assoc);
+            /** @var string|int $field */
             foreach ($settings as $field => $config) {
                 if (is_int($field)) {
                     continue;
@@ -135,12 +138,14 @@ class CounterCacheBehavior extends Behavior
 
                 $registryAlias = $assoc->getTarget()->getRegistryAlias();
                 $entityAlias = $assoc->getProperty();
+                /** @var \Cake\Datasource\EntityInterface $assocEntity */
+                $assocEntity = $entity->$entityAlias;
 
                 if (
                     !is_callable($config) &&
                     isset($config['ignoreDirty']) &&
                     $config['ignoreDirty'] === true &&
-                    $entity->$entityAlias->isDirty($field)
+                    $assocEntity->isDirty($field)
                 ) {
                     $this->_ignoreDirty[$registryAlias][$field] = true;
                 }
@@ -153,9 +158,9 @@ class CounterCacheBehavior extends Behavior
      *
      * Makes sure to update counter cache when a new record is created or updated.
      *
-     * @param \Cake\Event\EventInterface $event The afterSave event that was fired.
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The afterSave event that was fired.
      * @param \Cake\Datasource\EntityInterface $entity The entity that was saved.
-     * @param \ArrayObject $options The options for the query
+     * @param \ArrayObject<string, mixed> $options The options for the query
      * @return void
      */
     public function afterSave(EventInterface $event, EntityInterface $entity, ArrayObject $options): void
@@ -173,12 +178,12 @@ class CounterCacheBehavior extends Behavior
      *
      * Makes sure to update counter cache when a record is deleted.
      *
-     * @param \Cake\Event\EventInterface $event The afterDelete event that was fired.
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The afterDelete event that was fired.
      * @param \Cake\Datasource\EntityInterface $entity The entity that was deleted.
-     * @param \ArrayObject $options The options for the query
+     * @param \ArrayObject<string, mixed> $options The options for the query
      * @return void
      */
-    public function afterDelete(EventInterface $event, EntityInterface $entity, ArrayObject $options)
+    public function afterDelete(EventInterface $event, EntityInterface $entity, ArrayObject $options): void
     {
         if (isset($options['ignoreCounterCache']) && $options['ignoreCounterCache'] === true) {
             return;
@@ -188,9 +193,105 @@ class CounterCacheBehavior extends Behavior
     }
 
     /**
+     * Update counter cache for a batch of records.
+     *
+     * Counter caches configured to use closures will not be updated by the method.
+     *
+     * @param string|null $assocName The association name to update counter cache for.
+     *  If null, all configured associations will be processed.
+     * @param int $limit The number of records to update per page/iteration.
+     * @param int|null $page The page/iteration number. If null (default), all
+     *   records will be updated one page at a time.
+     * @return void
+     * @since 5.2.0
+     */
+    public function updateCounterCache(?string $assocName = null, int $limit = 100, ?int $page = null): void
+    {
+        $config = $this->_config;
+        if ($assocName !== null) {
+            $config = [$assocName => $config[$assocName]];
+        }
+
+        foreach ($config as $assoc => $settings) {
+            /** @var \Cake\ORM\Association\BelongsTo $belongsTo */
+            $belongsTo = $this->_table->getAssociation($assoc);
+
+            foreach ($settings as $field => $config) {
+                if ($config instanceof Closure) {
+                    // Cannot update counter cache which use a closure
+                    return;
+                }
+
+                if (is_int($field)) {
+                    $field = $config;
+                    $config = [];
+                }
+
+                $this->updateCountForAssociation($belongsTo, $field, $config, $limit, $page);
+            }
+        }
+    }
+
+    /**
+     * Update counter cache for the given association.
+     *
+     * @param \Cake\ORM\Association\BelongsTo $assoc The association object.
+     * @param string $field Counter cache field.
+     * @param array $config Config array.
+     * @param int $limit Limit.
+     * @param int|null $page Page number.
+     * @return void
+     */
+    protected function updateCountForAssociation(
+        BelongsTo $assoc,
+        string $field,
+        array $config,
+        int $limit = 100,
+        ?int $page = null,
+    ): void {
+        $primaryKeys = (array)$assoc->getBindingKey();
+        /** @var array<string> $foreignKeys */
+        $foreignKeys = (array)$assoc->getForeignKey();
+
+        $query = $assoc->getTarget()->find()
+            ->select($primaryKeys)
+            ->limit($limit);
+
+        foreach ($primaryKeys as $key) {
+            $query->orderByAsc($key);
+        }
+
+        $singlePage = $page !== null;
+        $page ??= 1;
+
+        do {
+            $results = $query
+                ->page($page++)
+                ->all();
+
+            /** @var \Cake\Datasource\EntityInterface $entity */
+            foreach ($results as $entity) {
+                $updateConditions = $entity->extract($primaryKeys);
+
+                foreach ($updateConditions as $f => $value) {
+                    if ($value === null) {
+                        $updateConditions[$f . ' IS'] = $value;
+                        unset($updateConditions[$f]);
+                    }
+                }
+
+                $countConditions = array_combine($foreignKeys, $updateConditions);
+
+                $count = $this->_getCount($config, $countConditions);
+                $assoc->getTarget()->updateAll([$field => $count], $updateConditions);
+            }
+        } while (!$singlePage && $results->count() === $limit);
+    }
+
+    /**
      * Iterate all associations and update counter caches.
      *
-     * @param \Cake\Event\EventInterface $event Event instance.
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event Event instance.
      * @param \Cake\Datasource\EntityInterface $entity Entity.
      * @return void
      */
@@ -205,7 +306,7 @@ class CounterCacheBehavior extends Behavior
     /**
      * Updates counter cache for a single association
      *
-     * @param \Cake\Event\EventInterface $event Event instance.
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event Event instance.
      * @param \Cake\Datasource\EntityInterface $entity Entity
      * @param \Cake\ORM\Association $assoc The association object
      * @param array $settings The settings for counter cache for this association
@@ -216,8 +317,9 @@ class CounterCacheBehavior extends Behavior
         EventInterface $event,
         EntityInterface $entity,
         Association $assoc,
-        array $settings
+        array $settings,
     ): void {
+        /** @var array<string> $foreignKeys */
         $foreignKeys = (array)$assoc->getForeignKey();
         $countConditions = $entity->extract($foreignKeys);
 
@@ -232,6 +334,7 @@ class CounterCacheBehavior extends Behavior
         $updateConditions = array_combine($primaryKeys, $countConditions);
 
         $countOriginalConditions = $entity->extractOriginalChanged($foreignKeys);
+        $updateOriginalConditions = null;
         if ($countOriginalConditions !== []) {
             $updateOriginalConditions = array_combine($primaryKeys, $countOriginalConditions);
         }
@@ -260,7 +363,7 @@ class CounterCacheBehavior extends Behavior
                 }
             }
 
-            if (isset($updateOriginalConditions) && $this->_shouldUpdateCount($updateOriginalConditions)) {
+            if ($updateOriginalConditions && $this->_shouldUpdateCount($updateOriginalConditions)) {
                 if ($config instanceof Closure) {
                     $count = $config($event, $entity, $this->_table, true);
                 } else {
@@ -279,7 +382,7 @@ class CounterCacheBehavior extends Behavior
      * @param array $conditions Conditions to update count.
      * @return bool True if the count update should happen, false otherwise.
      */
-    protected function _shouldUpdateCount(array $conditions)
+    protected function _shouldUpdateCount(array $conditions): bool
     {
         return !empty(array_filter($conditions, function ($value) {
             return $value !== null;
@@ -291,9 +394,10 @@ class CounterCacheBehavior extends Behavior
      *
      * @param array<string, mixed> $config The counter cache configuration for a single field
      * @param array $conditions Additional conditions given to the query
-     * @return int The number of relations matching the given config and conditions
+     * @return \Cake\ORM\Query\SelectQuery|int The query to fetch the number of
+     *   relations matching the given config and conditions or the number itself.
      */
-    protected function _getCount(array $config, array $conditions): int
+    protected function _getCount(array $config, array $conditions): SelectQuery|int
     {
         $finder = 'all';
         if (!empty($config['finder'])) {
@@ -302,8 +406,14 @@ class CounterCacheBehavior extends Behavior
         }
 
         $config['conditions'] = array_merge($conditions, $config['conditions'] ?? []);
-        $query = $this->_table->find($finder, $config);
+        $query = $this->_table->find($finder, ...$config);
 
-        return $query->count();
+        if (isset($config['useSubQuery']) && $config['useSubQuery'] === false) {
+            return $query->count();
+        }
+
+        return $query
+            ->select(['count' => $query->func()->count('*')], true)
+            ->orderBy([], true);
     }
 }

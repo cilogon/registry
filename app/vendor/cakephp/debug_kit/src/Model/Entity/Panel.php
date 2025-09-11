@@ -31,12 +31,12 @@ class Panel extends Entity
     /**
      * Some fields should not be in JSON/array exports.
      *
-     * @var string[]
+     * @var list<string>
      */
-    protected $_hidden = ['content'];
+    protected array $_hidden = ['content'];
 
     /**
-     * Read the stream contents.
+     * Read the stream contents or inflate deflated data.
      *
      * Over certain sizes PDO will return file handles.
      * For backwards compatibility and consistency we smooth over that difference here.
@@ -44,10 +44,37 @@ class Panel extends Entity
      * @param mixed $content Content
      * @return string
      */
-    protected function _getContent($content)
+    protected function _getContent(mixed $content): string
     {
         if (is_resource($content)) {
-            return stream_get_contents($content);
+            $content = (string)stream_get_contents($content);
+        }
+
+        if (is_string($content) && function_exists('gzinflate')) {
+            // phpcs:disable
+            $contentInflated = @gzinflate($content);
+            // phpcs:enable
+            if ($contentInflated !== false) {
+                return $contentInflated;
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * Deflate the string data before saving it into database
+     *
+     * @param mixed $content Content
+     * @return mixed
+     */
+    protected function _setContent(mixed $content): mixed
+    {
+        if (is_string($content) && function_exists('gzdeflate')) {
+            $contentDeflated = gzdeflate($content, 9);
+            if ($contentDeflated !== false) {
+                $content = $contentDeflated;
+            }
         }
 
         return $content;

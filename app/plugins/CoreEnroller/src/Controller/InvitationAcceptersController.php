@@ -34,7 +34,7 @@ use App\Controller\StandardEnrollerController;
 use App\Lib\Enum\PetitionActionEnum;
 
 class InvitationAcceptersController extends StandardEnrollerController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'InvitationAccepters.id' => 'asc'
     ]

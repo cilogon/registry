@@ -229,10 +229,8 @@ class MatchServersTable extends HttpServersTable {
     // Pull the Match Server configuration
 
     $matchServer = $this->Servers->get(
-      $serverId, 
-      [ 'contain' => [ 
-        'MatchServers' => ['MatchServerAttributes' => 'Types']
-      ]]
+      $serverId,
+      contain: ['MatchServers' => ['MatchServerAttributes' => 'Types']],
     );
 
     if($matchServer->status != SuspendableStatusEnum::Active) {

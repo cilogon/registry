@@ -20,6 +20,7 @@ use Cake\Console\ConsoleOptionParser;
 use Migrations\MigrationsDispatcher;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * A wrapper command for phinx migrations, used to inject our own
@@ -40,7 +41,7 @@ class MigrationsCommand extends Command
      *
      * @var string
      */
-    protected static $commandName = '';
+    protected static string $commandName = '';
 
     /**
      * @inheritDoc
@@ -50,8 +51,9 @@ class MigrationsCommand extends Command
         if (parent::defaultName() === 'migrations') {
             return 'migrations';
         }
-        $command = new MigrationsDispatcher::$phinxCommands[static::$commandName]();
-        $name = $command->getName();
+        $className = MigrationsDispatcher::getCommands()[static::$commandName];
+        $command = new $className();
+        $name = (string)$command->getName();
 
         return 'migrations ' . $name;
     }
@@ -59,9 +61,9 @@ class MigrationsCommand extends Command
     /**
      * Array of arguments to run the shell with.
      *
-     * @var array
+     * @var list<string>
      */
-    public $argv = [];
+    public array $argv = [];
 
     /**
      * Defines what options can be passed to the shell.
@@ -76,11 +78,14 @@ class MigrationsCommand extends Command
             return parent::getOptionParser();
         }
         $parser = parent::getOptionParser();
-        $command = new MigrationsDispatcher::$phinxCommands[static::$commandName]();
+        $className = MigrationsDispatcher::getCommands()[static::$commandName];
+        $command = new $className();
+
+        // Skip conversions for new commands.
         $parser->setDescription($command->getDescription());
         $definition = $command->getDefinition();
-        foreach ($definition->getOptions() as $key => $option) {
-            if (!empty($option->getShortcut())) {
+        foreach ($definition->getOptions() as $option) {
+            if ($option->getShortcut()) {
                 $parser->addOption($option->getName(), [
                     'short' => $option->getShortcut(),
                     'help' => $option->getDescription(),
@@ -135,12 +140,12 @@ class MigrationsCommand extends Command
             $exitCode === 0
         ) {
             $newArgs = [];
-            if (!empty($args->getOption('connection'))) {
+            if ($args->getOption('connection')) {
                 $newArgs[] = '-c';
                 $newArgs[] = $args->getOption('connection');
             }
 
-            if (!empty($args->getOption('plugin'))) {
+            if ($args->getOption('plugin')) {
                 $newArgs[] = '-p';
                 $newArgs[] = $args->getOption('plugin');
             }
@@ -164,7 +169,7 @@ class MigrationsCommand extends Command
      *
      * @return \Migrations\MigrationsDispatcher
      */
-    protected function getApp()
+    protected function getApp(): MigrationsDispatcher
     {
         return new MigrationsDispatcher(PHINX_VERSION);
     }
@@ -172,9 +177,9 @@ class MigrationsCommand extends Command
     /**
      * Returns the instance of OutputInterface the MigrationsDispatcher will have to use.
      *
-     * @return \Symfony\Component\Console\Output\ConsoleOutput
+     * @return \Symfony\Component\Console\Output\OutputInterface
      */
-    protected function getOutput()
+    protected function getOutput(): OutputInterface
     {
         return new ConsoleOutput();
     }
@@ -193,6 +198,7 @@ class MigrationsCommand extends Command
         $name = explode(' ', $name);
 
         array_unshift($argv, ...$name);
+        /** @var list<string> $argv */
         $this->argv = $argv;
 
         return parent::run($argv, $io);

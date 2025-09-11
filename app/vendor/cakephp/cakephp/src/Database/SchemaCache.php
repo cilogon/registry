@@ -35,7 +35,7 @@ class SchemaCache
      *
      * @var \Cake\Database\Schema\CachedCollection
      */
-    protected $_schema;
+    protected CachedCollection $_schema;
 
     /**
      * Constructor
@@ -106,9 +106,7 @@ class SchemaCache
             $connection->cacheMetadata(true);
         }
 
-        /** @var \Cake\Database\Schema\CachedCollection $schemaCollection */
-        $schemaCollection = $connection->getSchemaCollection();
-
-        return $schemaCollection;
+        /** @var \Cake\Database\Schema\CachedCollection */
+        return $connection->getSchemaCollection();
     }
 }

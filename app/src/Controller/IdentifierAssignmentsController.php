@@ -35,7 +35,7 @@ use Cake\ORM\TableRegistry;
 use \App\Lib\Util\StringUtilities;
 
 class IdentifierAssignmentsController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'IdentifierAssignments.description' => 'asc'
     ]

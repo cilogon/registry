@@ -227,7 +227,7 @@ class CousTable extends Table {
   public function marshalProvisioningData(int $id): array {
     $ret = [];
     // We need the archived record on delete to properly deprovision
-    $ret['data'] = $this->get($id, ['archived' => true]);
+    $ret['data'] = $this->get($id, archived: true);
 
     // Provisioning Eligibility is
     // - Deleted if the changelog deleted flag is true
@@ -268,7 +268,7 @@ class CousTable extends Table {
     $query = $query->where(['co_id' => $coId])
                   // true overrides the default Cake order for treeList so we get
                   // our items sorted alphabetically instead of by tree ID
-                   ->order(['name' => 'ASC'], true);
+                   ->orderBy(['name' => 'ASC'], true);
     
     if($id) {
       $query = $query->where(['id <>' => $id]);

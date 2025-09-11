@@ -32,7 +32,7 @@ namespace App\Controller;
 use App\Lib\Util\StringUtilities;
 
 class ApiUsersController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ApiUsers.username' => 'asc'
     ]

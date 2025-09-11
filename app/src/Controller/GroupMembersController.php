@@ -35,7 +35,7 @@ use Cake\Http\Response;
 use Cake\Log\Log;
 
 class GroupMembersController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'People.primary_name.name' => 'asc'
     ]

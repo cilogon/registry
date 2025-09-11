@@ -15,9 +15,11 @@ declare(strict_types=1);
  */
 namespace Cake\Http\Client;
 
+use Cake\Utility\Xml;
 use Laminas\Diactoros\RequestTrait;
 use Laminas\Diactoros\Stream;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Implements methods for HTTP requests.
@@ -35,13 +37,17 @@ class Request extends Message implements RequestInterface
      * Provides backwards compatible defaults for some properties.
      *
      * @phpstan-param array<non-empty-string, non-empty-string> $headers
-     * @param string $url The request URL
+     * @param \Psr\Http\Message\UriInterface|string $url The request URL
      * @param string $method The HTTP method to use.
      * @param array $headers The HTTP headers to set.
      * @param array|string|null $data The request body to use.
      */
-    public function __construct(string $url = '', string $method = self::METHOD_GET, array $headers = [], $data = null)
-    {
+    public function __construct(
+        UriInterface|string $url = '',
+        string $method = self::METHOD_GET,
+        array $headers = [],
+        array|string|null $data = null,
+    ) {
         $this->setMethod($method);
         $this->uri = $this->createUri($url);
         $headers += [
@@ -49,8 +55,7 @@ class Request extends Message implements RequestInterface
             'User-Agent' => ini_get('user_agent') ?: 'CakePHP',
         ];
         $this->addHeaders($headers);
-
-        if ($data === null) {
+        if ($data === null || $data === '' || $data === []) {
             $this->stream = new Stream('php://memory', 'rw');
         } else {
             $this->setContent($data);
@@ -82,15 +87,25 @@ class Request extends Message implements RequestInterface
      * @param array|string $content The body for the request.
      * @return $this
      */
-    protected function setContent($content)
+    protected function setContent(array|string $content)
     {
         if (is_array($content)) {
-            $formData = new FormData();
-            $formData->addMany($content);
-            /** @phpstan-var array<non-empty-string, non-empty-string> $headers */
-            $headers = ['Content-Type' => $formData->contentType()];
-            $this->addHeaders($headers);
-            $content = (string)$formData;
+            $contentType = $this->getHeaderLine('content-type');
+
+            if (str_contains($contentType, 'application/json')) {
+                $content = json_encode($content, JSON_THROW_ON_ERROR);
+            } elseif (str_contains($contentType, 'application/xml')) {
+                /** @phpstan-ignore-next-line */
+                $content = (string)Xml::fromArray($content);
+            } else {
+                $formData = new FormData();
+                $formData->addMany($content);
+
+                /** @phpstan-var array<non-empty-string, non-empty-string> $headers */
+                $headers = ['Content-Type' => $formData->contentType()];
+                $this->addHeaders($headers);
+                $content = (string)$formData;
+            }
         }
 
         $stream = new Stream('php://memory', 'rw');

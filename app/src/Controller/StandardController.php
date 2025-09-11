@@ -32,15 +32,11 @@ namespace App\Controller;
 use App\Lib\Enum\ApplicationStateEnum;
 use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Traits\IndexQueryTrait;
-use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
-use InvalidArgumentException;
 use \App\Lib\Enum\ProvisioningContextEnum;
-use \App\Lib\Enum\SuspendableStatusEnum;
-use \App\Lib\Util\{StringUtilities, FunctionUtilities};
-use \Cake\Http\Exception\BadRequestException;
+use \App\Lib\Util\StringUtilities;
 
 class StandardController extends AppController {
   use IndexQueryTrait;
@@ -56,10 +52,10 @@ class StandardController extends AppController {
    */
   
   public function add() {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
     // Schema
@@ -162,23 +158,23 @@ class StandardController extends AppController {
       }
     }
 
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
 
   /**
    * Standard operations before the view is rendered.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  EventInterface      $event BeforeRender event
+   * @param  \Cake\Event\EventInterface      $event BeforeRender event
    * @return \Cake\Http\Response        HTTP Response
    */
   
 // XXX can we merge calls ot (eg) getPrimaryLink and populateAutoViewVars here?
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     
     // Provide some hints to the views
     if($this->request->getParam('action') != 'deleted') {
@@ -240,10 +236,10 @@ class StandardController extends AppController {
    */
   
   public function delete($id) {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     
     // Allow a delete via a POST or DELETE
     $this->request->allowMethod(['post', 'delete']);
@@ -350,7 +346,7 @@ class StandardController extends AppController {
   public function deleted() {
     // Set the title when not set at the individual controller
     if(empty($this->viewBuilder()->getVar('vv_title'))) {
-      $modelsName = $this->name;
+      $modelsName = $this->getName();
       $fieldName = Inflector::singularize($modelsName);
       if(__d('result', $fieldName . '.deleted') != $fieldName . '.deleted') {
         // Use the standard (singular) deleted message for the field when it exists
@@ -377,10 +373,10 @@ class StandardController extends AppController {
    */
   
   public function edit(string $id) {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
     
@@ -590,10 +586,10 @@ class StandardController extends AppController {
    */
 
   protected function getFieldTypes() {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
 
     $schema = $table->getSchema();
 
@@ -613,10 +609,10 @@ class StandardController extends AppController {
    */
   
   protected function getRequiredFields() {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     
     // Build a list of required fields for FieldHelper
     $reqFields = [];
@@ -640,10 +636,10 @@ class StandardController extends AppController {
    */
 
   public function index() {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
     // Construct the Query
@@ -692,10 +688,10 @@ class StandardController extends AppController {
    */
 
   protected function populateAutoViewVars(object $obj=null) {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
 
     // AutoViewVarsTrait
     if(method_exists($table, 'getAutoViewVars') && $table->getAutoViewVars()) {
@@ -713,10 +709,10 @@ class StandardController extends AppController {
    */
 
   public function provision($id) {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
 
@@ -758,10 +754,10 @@ class StandardController extends AppController {
    */
 
   public function unfreeze($id) {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
 
     try {
       // Pull the current record
@@ -789,10 +785,10 @@ class StandardController extends AppController {
    */
   
   public function view($id = null) {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
     

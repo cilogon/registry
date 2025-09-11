@@ -40,26 +40,41 @@ use Cake\View\Cell;
  */
 class BasicAttributeCollectorsCell extends Cell
 {
-    /**
-     * List of valid options that can be passed into this
-     * cell's constructor.
-     *
-     * @var array<string, mixed>
-     */
-  protected $_validCellOptions = [
+  /**
+   * @var mixed
+   */
+  public $vv_obj;
+
+  /**
+   * @var mixed
+   */
+  public $vv_step;
+
+  /**
+   * @var mixed
+   */
+  public $viewVars;
+
+  /**
+   * List of valid options that can be passed into this
+   * cell's constructor.
+   *
+   * @var array<string, mixed>
+   */
+  protected array $_validCellOptions = [
     'vv_obj',
     'vv_step',
     'viewVars',
   ];
 
-    /**
-     * Initialization logic run at the end of object construction.
-     *
-     * @return void
-     */
-    public function initialize(): void
-    {
-    }
+  /**
+   * Initialization logic run at the end of object construction.
+   *
+   * @return void
+   */
+  public function initialize(): void
+  {
+  }
 
   /**
    * Default display method.
@@ -68,14 +83,14 @@ class BasicAttributeCollectorsCell extends Cell
    * @return string
    * @since  COmanage Registry v5.1.0
    */
-    public function display(int $petitionId): void
-    {
-      $vv_petition_basic_attribute_set = $this->fetchTable('PetitionBasicAttributeSets')
-        ->find()
-        ->where(['PetitionBasicAttributeSets.petition_id' => $this->vv_obj->id])
-        ->firstOrFail();
-      
-      $this->set('vv_petition_basic_attribute_set', $vv_petition_basic_attribute_set);
-      $this->set('vv_obj', $this->vv_obj);
-    }
+  public function display(int $petitionId): void
+  {
+    $vv_petition_basic_attribute_set = $this->fetchTable('PetitionBasicAttributeSets')
+      ->find()
+      ->where(['PetitionBasicAttributeSets.petition_id' => $this->vv_obj->id])
+      ->firstOrFail();
+
+    $this->set('vv_petition_basic_attribute_set', $vv_petition_basic_attribute_set);
+    $this->set('vv_obj', $this->vv_obj);
+  }
 }

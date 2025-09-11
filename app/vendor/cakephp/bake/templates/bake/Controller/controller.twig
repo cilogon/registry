@@ -21,6 +21,8 @@
     namespace: "#{namespace}\\Controller#{prefix}",
     classImports: (plugin or prefix) ? ["#{baseNamespace}\\Controller\\AppController"] : [],
 }) }}
+{% set has_login = 'login' in actions and Bake.hasPlugin('Authentication') %}
+{% set include_initialize = components or helpers or has_login %}
 
 /**
  * {{ name }} Controller
@@ -33,14 +35,10 @@
 {% set classInfo = Bake.classInfo(component, 'Controller/Component', 'Component') %}
  * @property {{ classInfo.fqn }} ${{ classInfo.name }}
 {% endfor %}
-
-{%- if 'index' in actions %}
- * @method \{{ namespace }}\Model\Entity\{{ entityClassName }}[]|\Cake\Datasource\ResultSetInterface paginate($object = null, array $settings = [])
-{% endif %}
  */
 class {{ name }}Controller extends AppController
 {
-{% if components or helpers %}
+{% if include_initialize %}
     /**
      * Initialize controller
      *
@@ -55,6 +53,9 @@ class {{ name }}Controller extends AppController
 {% endfor %}
 {% if helpers %}
         $this->viewBuilder()->setHelpers({{ Bake.exportArray(helpers)|raw }});
+{% endif %}
+{% if has_login %}
+        $this->Authentication->allowUnauthenticated(['login']);
 {% endif %}
     }
 {% if actions|length %}{{ "\n" }}{% endif %}

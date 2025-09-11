@@ -212,7 +212,7 @@ class PluginsTable extends Table {
 
   public function findActive(Query $query): Query {
     return $query->where(['Plugins.status' => SuspendableStatusEnum::Active])
-                 ->order(['plugin' => 'ASC']);
+                 ->orderBy(['plugin' => 'ASC']);
   }
 
   /**

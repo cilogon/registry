@@ -189,7 +189,7 @@ class EmailVerifiersTable extends Table {
                                         'enrollment_flow_id' => $petition->enrollment_flow_id,
                                         'status' => SuspendableStatusEnum::Active
                                        ])
-                                       ->order(['EnrollmentFlowSteps.ordr' => 'ASC'])
+                                       ->orderBy(['EnrollmentFlowSteps.ordr' => 'ASC'])
                                        ->contain($this->EnrollmentFlowSteps->getPluginRelations())
                                        ->all();
     

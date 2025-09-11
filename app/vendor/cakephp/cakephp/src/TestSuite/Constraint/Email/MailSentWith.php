@@ -26,7 +26,7 @@ class MailSentWith extends MailConstraintBase
     /**
      * @var string
      */
-    protected $method;
+    protected string $method;
 
     /**
      * Constructor
@@ -50,7 +50,7 @@ class MailSentWith extends MailConstraintBase
      * @param mixed $other Constraint check
      * @return bool
      */
-    public function matches($other): bool
+    public function matches(mixed $other): bool
     {
         $emails = $this->getMessages();
         foreach ($emails as $email) {

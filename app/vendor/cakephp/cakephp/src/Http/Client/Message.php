@@ -154,7 +154,7 @@ class Message
      *
      * @var array
      */
-    protected $_cookies = [];
+    protected array $_cookies = [];
 
     /**
      * Get all cookies

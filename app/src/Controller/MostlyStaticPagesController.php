@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class MostlyStaticPagesController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'MostlyStaticPages.title' => 'asc'
     ]

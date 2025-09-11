@@ -34,7 +34,7 @@ use App\Controller\SingleAuthenticatorController;
 use App\Lib\Enum\ProvisioningContextEnum;
 
 class PasswordsController extends SingleAuthenticatorController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Passwords.id' => 'asc'
     ]

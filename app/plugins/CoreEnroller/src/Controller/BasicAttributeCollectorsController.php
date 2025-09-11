@@ -33,7 +33,7 @@ use Cake\ORM\TableRegistry;
 use App\Controller\StandardEnrollerController;
 
 class BasicAttributeCollectorsController extends StandardEnrollerController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'BasicAttributeCollectors.id' => 'asc'
     ]

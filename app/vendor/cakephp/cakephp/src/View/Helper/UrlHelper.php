@@ -33,7 +33,7 @@ class UrlHelper extends Helper
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'assetUrlClassName' => Asset::class,
     ];
 
@@ -41,9 +41,9 @@ class UrlHelper extends Helper
      * Asset URL engine class name
      *
      * @var string
-     * @psalm-var class-string<\Cake\Routing\Asset>
+     * @phpstan-var class-string<\Cake\Routing\Asset>
      */
-    protected $_assetUrlClassName;
+    protected string $_assetUrlClassName;
 
     /**
      * Check proper configuration
@@ -56,10 +56,10 @@ class UrlHelper extends Helper
         parent::initialize($config);
         $engineClassConfig = $this->getConfig('assetUrlClassName');
 
-        /** @psalm-var class-string<\Cake\Routing\Asset>|null $engineClass */
+        /** @var class-string<\Cake\Routing\Asset>|null $engineClass */
         $engineClass = App::className($engineClassConfig, 'Routing');
         if ($engineClass === null) {
-            throw new CakeException(sprintf('Class for `%s` could not be found', $engineClassConfig));
+            throw new CakeException(sprintf('Class for `%s` could not be found.', $engineClassConfig));
         }
 
         $this->_assetUrlClassName = $engineClass;
@@ -80,7 +80,7 @@ class UrlHelper extends Helper
      * @param array<string, mixed> $options Array of options.
      * @return string Full translated URL with base path.
      */
-    public function build($url = null, array $options = []): string
+    public function build(array|string|null $url = null, array $options = []): string
     {
         $defaults = [
             'fullBase' => false,
@@ -90,8 +90,7 @@ class UrlHelper extends Helper
 
         $url = Router::url($url, $options['fullBase']);
         if ($options['escape']) {
-            /** @var string $url */
-            $url = h($url);
+            return (string)h($url);
         }
 
         return $url;
@@ -227,10 +226,10 @@ class UrlHelper extends Helper
      * a timestamp will be added.
      *
      * @param string $path The file path to timestamp, the path must be inside `App.wwwRoot` in Configure.
-     * @param string|bool $timestamp If set will overrule the value of `Asset.timestamp` in Configure.
+     * @param string|bool|null $timestamp If set will overrule the value of `Asset.timestamp` in Configure.
      * @return string Path with a timestamp added, or not.
      */
-    public function assetTimestamp(string $path, $timestamp = null): string
+    public function assetTimestamp(string $path, string|bool|null $timestamp = null): string
     {
         return h($this->_assetUrlClassName::assetTimestamp($path, $timestamp));
     }

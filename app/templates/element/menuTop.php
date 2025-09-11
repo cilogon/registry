@@ -174,7 +174,7 @@ $darkModeStateId = $this->ApplicationState->getId(ApplicationStateEnum::ProfileD
             </li>
           </ul>
         </div>
-        <?php if(count($vv_available_cos) > 1): // More than one CO is available, so present the switch button ?>
+        <?php if(count($vv_available_cos ?? []) > 1): // More than one CO is available, so present the switch button ?>
           <div id="user-panel-switch-co">
             <?= $this->Html->link('<em class="material-symbols" aria-hidden="true">transfer_within_a_station</em> ' . __d('menu','co.switch'),
               '/cos/select',

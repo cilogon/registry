@@ -26,14 +26,14 @@ abstract class AbstractDecorator
      *
      * @var callable
      */
-    protected $_callable;
+    protected mixed $_callable;
 
     /**
      * Decorator options
      *
      * @var array
      */
-    protected $_options = [];
+    protected array $_options = [];
 
     /**
      * Constructor.
@@ -53,7 +53,7 @@ abstract class AbstractDecorator
      * @link https://secure.php.net/manual/en/language.oop5.magic.php#object.invoke
      * @return mixed
      */
-    public function __invoke()
+    public function __invoke(): mixed
     {
         return $this->_call(func_get_args());
     }
@@ -64,7 +64,7 @@ abstract class AbstractDecorator
      * @param array $args Arguments for the callable.
      * @return mixed
      */
-    protected function _call(array $args)
+    protected function _call(array $args): mixed
     {
         $callable = $this->_callable;
 

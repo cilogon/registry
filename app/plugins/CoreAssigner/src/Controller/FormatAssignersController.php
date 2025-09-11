@@ -32,7 +32,7 @@ namespace CoreAssigner\Controller;
 use App\Controller\StandardPluginController;
 
 class FormatAssignersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'FormatAssigners.format' => 'asc'
     ]

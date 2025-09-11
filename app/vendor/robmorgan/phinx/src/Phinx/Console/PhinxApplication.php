@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -7,6 +8,7 @@
 
 namespace Phinx\Console;
 
+use Composer\InstalledVersions;
 use Phinx\Console\Command\Breakpoint;
 use Phinx\Console\Command\Create;
 use Phinx\Console\Command\Init;
@@ -23,17 +25,20 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Phinx console application.
- *
- * @author Rob Morgan <robbym@gmail.com>
  */
 class PhinxApplication extends Application
 {
+    /**
+     * @var string The current application version as determined by the getVersion() function.
+     */
+    private string $version;
+
     /**
      * Initialize the Phinx console application.
      */
     public function __construct()
     {
-        parent::__construct('Phinx by CakePHP - https://phinx.org.');
+        parent::__construct('Phinx by CakePHP - https://phinx.org.', $this->getVersion());
 
         $this->addCommands([
             new Init(),
@@ -68,5 +73,31 @@ class PhinxApplication extends Application
         }
 
         return parent::doRun($input, $output);
+    }
+
+    /**
+     * Get the current application version.
+     *
+     * @return string The application version if it could be found, otherwise 'UNKNOWN'
+     */
+    public function getVersion(): string
+    {
+        if (isset($this->version)) {
+            return $this->version;
+        }
+
+        // humbug/box will replace this with actual version when building
+        // so use that if available
+        $gitTag = '@git_tag@';
+        if (!str_starts_with($gitTag, '@')) {
+            return $this->version = $gitTag;
+        }
+
+        // Otherwise fallback to the version as reported by composer
+        if (class_exists(InstalledVersions::class)) {
+            return $this->version = InstalledVersions::getPrettyVersion('robmorgan/phinx') ?? 'UNKNOWN';
+        }
+
+        return $this->version = 'UNKNOWN';
     }
 }

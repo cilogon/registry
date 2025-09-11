@@ -41,12 +41,27 @@ use Cake\View\Cell;
 class OrcidSourceCollectorsCell extends Cell
 {
     /**
+     * @var mixed
+     */
+    public $vv_obj;
+
+    /**
+     * @var mixed
+     */
+    public $vv_step;
+
+    /**
+     * @var mixed
+     */
+    public $viewVars;
+
+    /**
      * List of valid options that can be passed into this
      * cell's constructor.
      *
      * @var array<string, mixed>
      */
-    protected $_validCellOptions = [
+    protected array $_validCellOptions = [
         'vv_obj',
         'vv_step',
         'viewVars',

@@ -766,7 +766,7 @@ class PetitionsTable extends Table {
                     'enrollment_flow_id' => $petition->enrollment_flow_id,
                     'status' => SuspendableStatusEnum::Active
                   ])
-                  ->order(['EnrollmentFlowSteps.ordr' => 'ASC'])
+                  ->orderBy(['EnrollmentFlowSteps.ordr' => 'ASC'])
                   ->all();
 
     foreach($steps as $step) {

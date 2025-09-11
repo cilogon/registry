@@ -47,14 +47,14 @@ trait TypeTrait {
   public function availableTypes(int $coId, string $attribute) {
     $Types = $this->getTableLocator()->get("Types");
     
-    $query = $Types->find('list', [
-                            'keyField'    => 'value',
-                            'valueField'  => 'display_name'
-                          ])
+    $query = $Types->find('list',
+                            keyField:  'value',
+                            valueField: 'display_name',
+                          )
                    ->where(['co_id'     => $coId,
                             'attribute' => $attribute,
                             'status'    => SuspendableStatusEnum::Active])
-                   ->order(['Types.display_name' => 'ASC']);
+                   ->orderBy(['Types.display_name' => 'ASC']);
     
     return $query->toArray();
   }

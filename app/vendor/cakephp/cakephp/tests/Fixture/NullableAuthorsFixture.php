@@ -23,7 +23,7 @@ class NullableAuthorsFixture extends TestFixture
      *
      * @var array
      */
-    public $fields = [
+    public array $fields = [
         'id' => ['type' => 'integer'],
         'author_id' => ['type' => 'integer', 'null' => true],
         '_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]],
@@ -34,7 +34,7 @@ class NullableAuthorsFixture extends TestFixture
      *
      * @var array
      */
-    public $records = [
+    public array $records = [
         ['author_id' => 3],
         ['author_id' => null],
     ];

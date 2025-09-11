@@ -34,7 +34,7 @@ use \App\Controller\StandardEnrollerController;
 use \App\Lib\Util\StringUtilities;
 
 class EnrollmentAttributesController extends StandardEnrollerController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EnrollmentAttributes.ordr' => 'asc'
     ]

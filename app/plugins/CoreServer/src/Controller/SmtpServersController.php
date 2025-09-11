@@ -32,7 +32,7 @@ namespace CoreServer\Controller;
 use App\Controller\StandardPluginController;
 
 class SmtpServersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'SmtpServers.hostname' => 'asc'
     ]

@@ -34,7 +34,9 @@ use Cake\Log\Log;
 //use \App\Lib\Enum\PermissionEnum;
 
 class CousController extends StandardController {
-  public $paginate = [
+
+
+  protected array $paginate = [
     'order' => [
       'Cous.name' => 'asc'
     ]

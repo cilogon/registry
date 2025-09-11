@@ -15,8 +15,9 @@ declare(strict_types=1);
  */
 namespace DebugKit\Model\Behavior;
 
-use Cake\Event\Event;
+use Cake\Event\EventInterface;
 use Cake\ORM\Behavior;
+use Cake\ORM\Query\SelectQuery;
 use DebugKit\DebugTimer;
 
 /**
@@ -27,13 +28,15 @@ class TimedBehavior extends Behavior
     /**
      * beforeFind, starts a timer for a find operation.
      *
-     * @param \Cake\Event\Event $event The beforeFind event
-     * @param \Cake\ORM\Query $query Query
-     * @return \Cake\ORM\Query
+     * @param \Cake\Event\EventInterface $event The beforeFind event
+     * @param \Cake\ORM\Query\SelectQuery $query SelectQuery
+     * @return \Cake\ORM\Query\SelectQuery
      */
-    public function beforeFind(Event $event, $query)
+    public function beforeFind(EventInterface $event, SelectQuery $query): SelectQuery
     {
-        $alias = $event->getSubject()->getAlias();
+        /** @var \Cake\Datasource\RepositoryInterface $table */
+        $table = $event->getSubject();
+        $alias = $table->getAlias();
         DebugTimer::start($alias . '_find', $alias . '->find()');
 
         return $query->formatResults(function ($results) use ($alias) {
@@ -46,24 +49,28 @@ class TimedBehavior extends Behavior
     /**
      * beforeSave, starts a time before a save is initiated.
      *
-     * @param \Cake\Event\Event $event The beforeSave event
+     * @param \Cake\Event\EventInterface $event The beforeSave event
      * @return void
      */
-    public function beforeSave(Event $event)
+    public function beforeSave(EventInterface $event): void
     {
-        $alias = $event->getSubject()->getAlias();
+        /** @var \Cake\Datasource\RepositoryInterface $table */
+        $table = $event->getSubject();
+        $alias = $table->getAlias();
         DebugTimer::start($alias . '_save', $alias . '->save()');
     }
 
     /**
      * afterSave, stop the timer started from a save.
      *
-     * @param \Cake\Event\Event $event The afterSave event
+     * @param \Cake\Event\EventInterface $event The afterSave event
      * @return void
      */
-    public function afterSave(Event $event)
+    public function afterSave(EventInterface $event): void
     {
-        $alias = $event->getSubject()->getAlias();
+        /** @var \Cake\Datasource\RepositoryInterface $table */
+        $table = $event->getSubject();
+        $alias = $table->getAlias();
         DebugTimer::stop($alias . '_save');
     }
 }

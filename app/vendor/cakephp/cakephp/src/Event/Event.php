@@ -21,7 +21,7 @@ use Cake\Core\Exception\CakeException;
 /**
  * Class Event
  *
- * @template TSubject
+ * @template TSubject of object
  * @implements \Cake\Event\EventInterface<TSubject>
  */
 class Event implements EventInterface
@@ -31,22 +31,22 @@ class Event implements EventInterface
      *
      * @var string
      */
-    protected $_name;
+    protected string $_name;
 
     /**
      * The object this event applies to (usually the same object that generates the event)
      *
      * @var object|null
-     * @psalm-var TSubject|null
+     * @phpstan-var TSubject|null
      */
-    protected $_subject;
+    protected ?object $_subject = null;
 
     /**
      * Custom data for the method that receives the event
      *
      * @var array
      */
-    protected $_data;
+    protected array $_data;
 
     /**
      * Property used to retain the result value of the event listeners
@@ -55,14 +55,14 @@ class Event implements EventInterface
      *
      * @var mixed
      */
-    protected $result;
+    protected mixed $result = null;
 
     /**
      * Flags an event as stopped or not, default is false
      *
      * @var bool
      */
-    protected $_stopped = false;
+    protected bool $_stopped = false;
 
     /**
      * Constructor
@@ -77,15 +77,15 @@ class Event implements EventInterface
      * @param string $name Name of the event
      * @param object|null $subject the object that this event applies to
      *   (usually the object that is generating the event).
-     * @param \ArrayAccess|array|null $data any value you wish to be transported
+     * @param array $data any value you wish to be transported
      *   with this event to it can be read by listeners.
-     * @psalm-param TSubject|null $subject
+     * @phpstan-param TSubject|null $subject
      */
-    public function __construct(string $name, $subject = null, $data = null)
+    public function __construct(string $name, ?object $subject = null, array $data = [])
     {
         $this->_name = $name;
         $this->_subject = $subject;
-        $this->_data = (array)$data;
+        $this->_data = $data;
     }
 
     /**
@@ -105,9 +105,9 @@ class Event implements EventInterface
      *
      * @return object
      * @throws \Cake\Core\Exception\CakeException
-     * @psalm-return TSubject
+     * @phpstan-return TSubject
      */
-    public function getSubject()
+    public function getSubject(): object
     {
         if ($this->_subject === null) {
             throw new CakeException('No subject set for this event');
@@ -141,7 +141,7 @@ class Event implements EventInterface
      *
      * @return mixed
      */
-    public function getResult()
+    public function getResult(): mixed
     {
         return $this->result;
     }
@@ -149,10 +149,12 @@ class Event implements EventInterface
     /**
      * Listeners can attach a result value to the event.
      *
+     * Setting the result to `false` will also stop event propagation.
+     *
      * @param mixed $value The value to set.
      * @return $this
      */
-    public function setResult($value = null)
+    public function setResult(mixed $value = null)
     {
         $this->result = $value;
 
@@ -160,13 +162,9 @@ class Event implements EventInterface
     }
 
     /**
-     * Access the event data/payload.
-     *
-     * @param string|null $key The data payload element to return, or null to return all data.
-     * @return mixed|array|null The data payload if $key is null, or the data value for the given $key.
-     *   If the $key does not exist a null value is returned.
+     * @inheritDoc
      */
-    public function getData(?string $key = null)
+    public function getData(?string $key = null): mixed
     {
         if ($key !== null) {
             return $this->_data[$key] ?? null;
@@ -176,13 +174,9 @@ class Event implements EventInterface
     }
 
     /**
-     * Assigns a value to the data/payload of this event.
-     *
-     * @param array|string $key An array will replace all payload data, and a key will set just that array item.
-     * @param mixed $value The value to set.
-     * @return $this
+     * @inheritDoc
      */
-    public function setData($key, $value = null)
+    public function setData(array|string $key, $value = null)
     {
         if (is_array($key)) {
             $this->_data = $key;

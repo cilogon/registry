@@ -36,7 +36,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class CosController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Cos.name' => 'asc'
     ]

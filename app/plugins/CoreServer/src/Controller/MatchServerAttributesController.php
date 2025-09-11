@@ -33,7 +33,7 @@ use App\Controller\StandardPluginController;
 use Cake\Event\EventInterface;
 
 class MatchServerAttributesController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'MatchServerAttributes.attribute' => 'asc'
     ]

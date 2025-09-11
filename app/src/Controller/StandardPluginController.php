@@ -46,8 +46,8 @@ class StandardPluginController extends StandardController {
    */
 
   public function beforeFilter(\Cake\Event\EventInterface $event) {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
 
     if(!$this->request->is('restful')) {
       // Provide additional hints to BreadcrumbsComponent. This needs to be here
@@ -71,7 +71,7 @@ class StandardPluginController extends StandardController {
       }
     }
     
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
 
   /**
@@ -82,10 +82,10 @@ class StandardPluginController extends StandardController {
    */
 
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    // $this->name = Models (ie: from ModelsTable, eg FileProvisionersTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */ (ie: from ModelsTable, eg FileProvisionersTable)
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
 
     $link = $this->getPrimaryLink(true);
     

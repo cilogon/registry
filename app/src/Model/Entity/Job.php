@@ -33,7 +33,7 @@ use Cake\ORM\Entity;
 use \App\Lib\Enum\JobStatusEnum;
 
 class Job extends Entity {
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 

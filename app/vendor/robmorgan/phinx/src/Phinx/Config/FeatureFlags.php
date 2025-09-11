@@ -17,11 +17,15 @@ class FeatureFlags
     /**
      * @var bool Should Phinx create unsigned primary keys by default?
      */
-    public static $unsignedPrimaryKeys = true;
+    public static bool $unsignedPrimaryKeys = true;
     /**
      * @var bool Should Phinx create columns NULL by default?
      */
-    public static $columnNullDefault = true;
+    public static bool $columnNullDefault = true;
+    /**
+     * @var bool Should Phinx create datetime columns for addTimestamps instead of timestamp?
+     */
+    public static bool $addTimestampsUseDateTime = false;
 
     /**
      * Set the feature flags from the `feature_flags` section of the overall
@@ -36,6 +40,9 @@ class FeatureFlags
         }
         if (isset($config['column_null_default'])) {
             self::$columnNullDefault = (bool)$config['column_null_default'];
+        }
+        if (isset($config['add_timestamps_use_datetime'])) {
+            self::$addTimestampsUseDateTime = (bool)$config['add_timestamps_use_datetime'];
         }
     }
 }

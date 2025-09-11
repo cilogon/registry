@@ -26,6 +26,14 @@ use Cake\Console\ConsoleOptionParser;
 class I18nCommand extends Command
 {
     /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'I18n commands let you generate .pot files to power translations in your application.';
+    }
+
+    /**
      * Execute interactive mode
      *
      * @param \Cake\Console\Arguments $args The command arguments.
@@ -34,7 +42,7 @@ class I18nCommand extends Command
      */
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
-        $io->out('<info>I18n Shell</info>');
+        $io->out('<info>I18n Command</info>');
         $io->hr();
         $io->out('[E]xtract POT file from sources');
         $io->out('[I]nitialize a language from POT file');
@@ -60,7 +68,7 @@ class I18nCommand extends Command
                 default:
                     $io->err(
                         'You have made an invalid selection. ' .
-                        'Please choose a command to execute by entering E, I, H, or Q.'
+                        'Please choose a command to execute by entering E, I, H, or Q.',
                     );
             }
             if ($code === static::CODE_ERROR) {
@@ -79,9 +87,7 @@ class I18nCommand extends Command
      */
     public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
-        $parser->setDescription(
-            'I18n commands let you generate .pot files to power translations in your application.'
-        );
+        $parser->setDescription(static::getDescription());
 
         return $parser;
     }

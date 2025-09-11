@@ -16,9 +16,11 @@ declare(strict_types=1);
  */
 namespace Cake\Command;
 
+use Cake\Console\Arguments;
+use Cake\Console\ConsoleIo;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
-use Cake\Filesystem\Filesystem;
+use Cake\Utility\Filesystem;
 use Cake\Utility\Inflector;
 
 /**
@@ -33,14 +35,14 @@ trait PluginAssetsTrait
      *
      * @var \Cake\Console\Arguments
      */
-    protected $args;
+    protected Arguments $args;
 
     /**
      * Console IO
      *
      * @var \Cake\Console\ConsoleIo
      */
-    protected $io;
+    protected ConsoleIo $io;
 
     /**
      * Get list of plugins to process. Plugins without a webroot directory are skipped.
@@ -65,7 +67,7 @@ trait PluginAssetsTrait
                 $this->io->verbose('', 1);
                 $this->io->verbose(
                     sprintf('Skipping plugin %s. It does not have webroot folder.', $plugin),
-                    2
+                    2,
                 );
                 continue;
             }
@@ -74,7 +76,7 @@ trait PluginAssetsTrait
             $wwwRoot = Configure::read('App.wwwRoot');
             $dir = $wwwRoot;
             $namespaced = false;
-            if (strpos($link, '/') !== false) {
+            if (str_contains($link, '/')) {
                 $namespaced = true;
                 $parts = explode('/', $link);
                 $link = array_pop($parts);
@@ -120,12 +122,12 @@ trait PluginAssetsTrait
             if (file_exists($dest)) {
                 if ($overwrite && !$this->_remove($config)) {
                     continue;
-                } elseif (!$overwrite) {
+                }
+                if (!$overwrite) {
                     $this->io->verbose(
                         $dest . ' already exists',
-                        1
+                        1,
                     );
-
                     continue;
                 }
             }
@@ -133,7 +135,7 @@ trait PluginAssetsTrait
             if (!$copy) {
                 $result = $this->_createSymlink(
                     $config['srcPath'],
-                    $dest
+                    $dest,
                 );
                 if ($result) {
                     continue;
@@ -142,7 +144,7 @@ trait PluginAssetsTrait
 
             $this->_copyDirectory(
                 $config['srcPath'],
-                $dest
+                $dest,
             );
         }
 
@@ -161,7 +163,7 @@ trait PluginAssetsTrait
         if ($config['namespaced'] && !is_dir($config['destDir'])) {
             $this->io->verbose(
                 $config['destDir'] . $config['link'] . ' does not exist',
-                1
+                1,
             );
 
             return false;
@@ -172,7 +174,7 @@ trait PluginAssetsTrait
         if (!file_exists($dest)) {
             $this->io->verbose(
                 $dest . ' does not exist',
-                1
+                1,
             );
 
             return false;
@@ -180,16 +182,15 @@ trait PluginAssetsTrait
 
         if (is_link($dest)) {
             // phpcs:ignore
-            $success = DS === '\\' ? @rmdir($dest) : @unlink($dest);
+            $success = DIRECTORY_SEPARATOR === '\\' ? @rmdir($dest) : @unlink($dest);
             if ($success) {
                 $this->io->out('Unlinked ' . $dest);
 
                 return true;
-            } else {
-                $this->io->err('Failed to unlink  ' . $dest);
-
-                return false;
             }
+            $this->io->err('Failed to unlink  ' . $dest);
+
+            return false;
         }
 
         $fs = new Filesystem();
@@ -197,11 +198,10 @@ trait PluginAssetsTrait
             $this->io->out('Deleted ' . $dest);
 
             return true;
-        } else {
-            $this->io->err('Failed to delete ' . $dest);
-
-            return false;
         }
+        $this->io->err('Failed to delete ' . $dest);
+
+        return false;
     }
 
     /**

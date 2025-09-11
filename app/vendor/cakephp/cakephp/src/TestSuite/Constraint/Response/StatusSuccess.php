@@ -25,7 +25,7 @@ class StatusSuccess extends StatusCodeBase
     /**
      * @var array<int, int>|int
      */
-    protected $code = [200, 308];
+    protected array|int $code = [200, 308];
 
     /**
      * Assertion message

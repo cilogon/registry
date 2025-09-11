@@ -161,14 +161,14 @@ class PaginatedSqlIterator implements \Iterator {
     
     $this->position = 0;
     
-    $query = $this->table->find('all', $this->options)
+    $query = $this->table->find('all', options: $this->options)
                          ->where([$this->keyField . ' >' => $this->maxid]);
     
     if($this->conditions) {
       $query = $query->where($this->conditions);
     }
     
-    $query = $query->order([$this->keyField => 'ASC'])
+    $query = $query->orderBy([$this->keyField => 'ASC'])
                    ->limit($this->pageSize)
                    // We always request exactly one page, starting from $this->maxid.
                    // We don't use Cake's pagination because the resultset could

@@ -17,14 +17,12 @@ declare(strict_types=1);
 namespace Cake\Command;
 
 use Cake\Console\Arguments;
+use Cake\Console\BaseCommand;
 use Cake\Console\CommandCollection;
 use Cake\Console\CommandCollectionAwareInterface;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
-use Cake\Console\Shell;
-use Cake\Utility\Inflector;
 use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Provide command completion shells such as bash.
@@ -34,7 +32,15 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
     /**
      * @var \Cake\Console\CommandCollection
      */
-    protected $commands;
+    protected CommandCollection $commands;
+
+    /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'Used by shells like bash to autocomplete command name, options and arguments';
+    }
 
     /**
      * Set the command collection used to get completion data on.
@@ -59,7 +65,6 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
             'commands' => 'Output a list of available commands',
             'subcommands' => 'Output a list of available sub-commands for a command',
             'options' => 'Output a list of available options for a command and possible subcommand.',
-            'fuzzy' => 'Does nothing. Only for backwards compatibility',
         ];
         $modeHelp = '';
         foreach ($modes as $key => $help) {
@@ -67,7 +72,7 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
         }
 
         $parser->setDescription(
-            'Used by shells like bash to autocomplete command name, options and arguments'
+            static::getDescription(),
         )->addArgument('mode', [
             'help' => 'The type of thing to get completion on.',
             'required' => true,
@@ -96,25 +101,16 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
      *
      * @param \Cake\Console\Arguments $args The command arguments.
      * @param \Cake\Console\ConsoleIo $io The console io
-     * @return int
+     * @return int|null
      */
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
-        $mode = $args->getArgument('mode');
-        switch ($mode) {
-            case 'commands':
-                return $this->getCommands($args, $io);
-            case 'subcommands':
-                return $this->getSubcommands($args, $io);
-            case 'options':
-                return $this->getOptions($args, $io);
-            case 'fuzzy':
-                return static::CODE_SUCCESS;
-            default:
-                $io->err('Invalid mode chosen.');
-        }
-
-        return static::CODE_SUCCESS;
+        return match ($args->getArgument('mode')) {
+            'commands' => $this->getCommands($args, $io),
+            'subcommands' => $this->getSubcommands($args, $io),
+            'options' => $this->getOptions($args, $io),
+            default => static::CODE_ERROR,
+        };
     }
 
     /**
@@ -162,17 +158,6 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
             // hits as subcommands
             if (count($parts) > 1) {
                 $options[] = implode(' ', array_slice($parts, 1));
-                continue;
-            }
-
-            // Handle class strings
-            if (is_string($value)) {
-                $reflection = new ReflectionClass($value);
-                $value = $reflection->newInstance();
-            }
-            if ($value instanceof Shell) {
-                $shellCommands = $this->shellSubcommands($value);
-                $options = array_merge($options, $shellCommands);
             }
         }
         $options = array_unique($options);
@@ -182,48 +167,11 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
     }
 
     /**
-     * Reflect the subcommands names out of a shell.
-     *
-     * @param \Cake\Console\Shell $shell The shell to get commands for
-     * @return array<string> A list of commands
-     */
-    protected function shellSubcommands(Shell $shell): array
-    {
-        $shell->initialize();
-        $shell->loadTasks();
-
-        $optionParser = $shell->getOptionParser();
-        $subcommands = $optionParser->subcommands();
-
-        $output = array_keys($subcommands);
-
-        // If there are no formal subcommands all methods
-        // on a shell are 'subcommands'
-        if (count($subcommands) === 0) {
-            /** @psalm-suppress DeprecatedClass */
-            $coreShellReflection = new ReflectionClass(Shell::class);
-            $reflection = new ReflectionClass($shell);
-            foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                if (
-                    $shell->hasMethod($method->getName())
-                    && !$coreShellReflection->hasMethod($method->getName())
-                ) {
-                    $output[] = $method->getName();
-                }
-            }
-        }
-        $taskNames = array_map('Cake\Utility\Inflector::underscore', $shell->taskNames);
-        $output = array_merge($output, $taskNames);
-
-        return array_unique($output);
-    }
-
-    /**
      * Get the options for a command or subcommand
      *
      * @param \Cake\Console\Arguments $args The command arguments.
      * @param \Cake\Console\ConsoleIo $io The console io
-     * @return int
+     * @return int|null
      */
     protected function getOptions(Arguments $args, ConsoleIo $io): ?int
     {
@@ -247,28 +195,18 @@ class CompletionCommand extends Command implements CommandCollectionAwareInterfa
             if (is_string($value)) {
                 $reflection = new ReflectionClass($value);
                 $value = $reflection->newInstance();
-            }
-            $parser = null;
-            if ($value instanceof Command) {
-                $parser = $value->getOptionParser();
-            }
-            if ($value instanceof Shell) {
-                $value->initialize();
-                $value->loadTasks();
-
-                $parser = $value->getOptionParser();
-                $subcommand = Inflector::camelize((string)$subcommand);
-                if ($subcommand && $value->hasTask($subcommand)) {
-                    $parser = $value->{$subcommand}->getOptionParser();
-                }
+                assert($value instanceof BaseCommand);
             }
 
-            if ($parser) {
+            if (method_exists($value, 'getOptionParser')) {
+                /** @var \Cake\Console\ConsoleOptionParser $parser */
+                $parser = $value->getOptionParser();
+
                 foreach ($parser->options() as $name => $option) {
-                    $options[] = "--$name";
+                    $options[] = "--{$name}";
                     $short = $option->short();
                     if ($short) {
-                        $options[] = "-$short";
+                        $options[] = "-{$short}";
                     }
                 }
             }

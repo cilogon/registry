@@ -27,6 +27,7 @@ class HeaderContains extends HeaderEquals
      *
      * @param mixed $other Expected content
      * @return bool
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
     public function matches($other): bool
     {
@@ -41,9 +42,9 @@ class HeaderContains extends HeaderEquals
     public function toString(): string
     {
         return sprintf(
-            'is in header \'%s\' (`%s`)',
+            "is in header '%s' (`%s`)",
             $this->headerName,
-            $this->response->getHeaderLine($this->headerName)
+            $this->response->getHeaderLine($this->headerName),
         );
     }
 }

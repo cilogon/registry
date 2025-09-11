@@ -31,17 +31,17 @@ class DebugContext
     /**
      * @var int
      */
-    private $maxDepth;
+    private int $maxDepth = 0;
 
     /**
      * @var int
      */
-    private $depth = 0;
+    private int $depth = 0;
 
     /**
-     * @var \SplObjectStorage
+     * @var \SplObjectStorage<object, int>
      */
-    private $refs;
+    private SplObjectStorage $refs;
 
     /**
      * Constructor
@@ -59,7 +59,7 @@ class DebugContext
      *
      * @return static
      */
-    public function withAddedDepth()
+    public function withAddedDepth(): static
     {
         $new = clone $this;
         $new->depth += 1;
@@ -88,11 +88,11 @@ class DebugContext
      */
     public function getReferenceId(object $object): int
     {
-        if ($this->refs->contains($object)) {
+        if ($this->refs->offsetExists($object)) {
             return $this->refs[$object];
         }
         $refId = $this->refs->count();
-        $this->refs->attach($object, $refId);
+        $this->refs->offsetSet($object, $refId);
 
         return $refId;
     }
@@ -105,6 +105,6 @@ class DebugContext
      */
     public function hasReference(object $object): bool
     {
-        return $this->refs->contains($object);
+        return $this->refs->offsetExists($object);
     }
 }

@@ -17,6 +17,7 @@ namespace DebugKit\View\Helper;
 
 use Cake\Utility\Hash;
 use Cake\View\Helper;
+use function Cake\Core\h;
 
 /**
  * CredentialsHelper
@@ -33,23 +34,23 @@ class CredentialsHelper extends Helper
      *
      * @var array
      */
-    public $helpers = ['Html', 'DebugKit.Toolbar'];
+    public array $helpers = ['Html', 'DebugKit.Toolbar'];
 
     /**
      * Replace credentials in url's by *****
      * Example mysql://username:password@localhost/my_db -> mysql://******@localhost/my_db
      *
      * @param mixed $in variable to filter
-     * @return string
+     * @return mixed
      */
-    public function filter($in)
+    public function filter(mixed $in): mixed
     {
         $regexp = '/^([^:;]+:\/\/)([^:;]+:?.*?)@(.*)$/i';
         if (!is_string($in) || empty($in)) {
             return $in;
         }
         preg_match_all($regexp, $in, $tokens);
-        if (empty($tokens[0])) {
+        if ($tokens[0] === []) {
             return h($in);
         }
         $protocol = Hash::get($tokens, '1.0');

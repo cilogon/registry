@@ -38,7 +38,7 @@ class SimpleGraphHelper extends Helper
      *
      * @var array
      */
-    protected $_defaultSettings = [
+    protected array $_defaultSettings = [
         'max' => 100,
         'width' => 350,
         'valueType' => 'value',
@@ -47,12 +47,12 @@ class SimpleGraphHelper extends Helper
     /**
      * bar method
      *
-     * @param float $value Value to be graphed
-     * @param int $offset how much indentation
+     * @param float|int $value Value to be graphed
+     * @param float|int $offset how much indentation
      * @param array $options Graph options
      * @return string Html graph
      */
-    public function bar($value, $offset, $options = [])
+    public function bar(float|int $value, float|int $offset, array $options = []): string
     {
         $settings = array_merge($this->_defaultSettings, $options);
         $max = $settings['max'];
@@ -73,7 +73,7 @@ class SimpleGraphHelper extends Helper
             '<div class="c-graph-bar" style="%s"><div class="c-graph-bar__value" style="%s" title="%s"> </div></div>',
             "width: {$width}px",
             "margin-left: {$graphOffset}px; width: {$graphValue}px",
-            "Starting {$offset}ms into the request, taking {$value}ms"
+            "Starting {$offset}ms into the request, taking {$value}ms",
         );
     }
 }

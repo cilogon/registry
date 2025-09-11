@@ -49,8 +49,8 @@ declare(strict_types = 1);
 <?php
 use Cake\Utility\Inflector;
 
-// $this->name = Models
-$modelsName = $this->name;
+/** var string $modelsName */
+$modelsName = $this->getName();
 // $modelName = Model
 $modelName = Inflector::singularize($modelsName);
 

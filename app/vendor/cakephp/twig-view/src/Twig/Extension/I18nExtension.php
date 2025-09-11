@@ -29,19 +29,19 @@ class I18nExtension extends AbstractExtension
     /**
      * Get declared functions.
      *
-     * @return \Twig\TwigFunction[]
+     * @return array<\Twig\TwigFunction>
      */
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('__', '__'),
-            new TwigFunction('__n', '__n'),
-            new TwigFunction('__d', '__d'),
-            new TwigFunction('__dn', '__dn'),
-            new TwigFunction('__x', '__x'),
-            new TwigFunction('__xn', '__xn'),
-            new TwigFunction('__dx', '__dx'),
-            new TwigFunction('__dxn', '__dxn'),
+            new TwigFunction('__', 'Cake\I18n\__'),
+            new TwigFunction('__n', 'Cake\I18n\__n'),
+            new TwigFunction('__d', 'Cake\I18n\__d'),
+            new TwigFunction('__dn', 'Cake\I18n\__dn'),
+            new TwigFunction('__x', 'Cake\I18n\__x'),
+            new TwigFunction('__xn', 'Cake\I18n\__xn'),
+            new TwigFunction('__dx', 'Cake\I18n\__dx'),
+            new TwigFunction('__dxn', 'Cake\I18n\__dxn'),
         ];
     }
 }

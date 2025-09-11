@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class ExtIdentitySourceRecordsController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ExtIdentitySourceRecords.id' => 'asc'
     ]

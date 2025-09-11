@@ -29,7 +29,7 @@ class ValidFunctionNameSniff extends AbstractScopeSniff
      *
      * @var array
      */
-    protected $_magicMethods = [
+    protected array $_magicMethods = [
         'construct',
         'destruct',
         'call',
@@ -63,6 +63,10 @@ class ValidFunctionNameSniff extends AbstractScopeSniff
     protected function processTokenWithinScope(File $phpcsFile, $stackPtr, $currScope)
     {
         $methodName = $phpcsFile->getDeclarationName($stackPtr);
+        if ($methodName === null) {
+            return;
+        }
+
         $className = $phpcsFile->getDeclarationName($currScope);
         $errorData = [$className . '::' . $methodName];
 

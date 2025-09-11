@@ -24,7 +24,7 @@ class BadRequestException extends HttpException
     /**
      * @inheritDoc
      */
-    protected $_defaultCode = 400;
+    protected int $_defaultCode = 400;
 
     /**
      * Constructor
@@ -35,7 +35,7 @@ class BadRequestException extends HttpException
      */
     public function __construct(?string $message = null, ?int $code = null, ?Throwable $previous = null)
     {
-        if (empty($message)) {
+        if (!$message) {
             $message = 'Bad Request';
         }
         parent::__construct($message, $code, $previous);

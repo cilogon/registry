@@ -14,6 +14,8 @@ declare(strict_types=1);
  */
 namespace DebugKit\Panel;
 
+use Cake\Core\Configure;
+use Cake\Error\Debugger;
 use Cake\Event\EventInterface;
 use DebugKit\DebugPanel;
 use Exception;
@@ -29,11 +31,12 @@ class RequestPanel extends DebugPanel
      * @param \Cake\Event\EventInterface $event The shutdown event.
      * @return void
      */
-    public function shutdown(EventInterface $event)
+    public function shutdown(EventInterface $event): void
     {
         /** @var \Cake\Controller\Controller $controller */
         $controller = $event->getSubject();
         $request = $controller->getRequest();
+        $maxDepth = Configure::read('DebugKit.maxDepth', 5);
 
         $attributes = [];
         foreach ($request->getAttributes() as $attr => $value) {
@@ -42,17 +45,23 @@ class RequestPanel extends DebugPanel
             } catch (Exception $e) {
                 $value = "Could not serialize `{$attr}`. It failed with {$e->getMessage()}";
             }
-            $attributes[$attr] = $value;
+            $attributes[$attr] = Debugger::exportVarAsNodes($value, $maxDepth);
         }
 
         $this->_data = [
+            'params' => $request->getAttribute('params'),
             'attributes' => $attributes,
-            'query' => $request->getQueryParams(),
-            'data' => $request->getData(),
-            'cookie' => $request->getCookieParams(),
-            'get' => $_GET,
+            'query' => Debugger::exportVarAsNodes($request->getQueryParams(), $maxDepth),
+            'data' => Debugger::exportVarAsNodes($request->getData(), $maxDepth),
+            'cookie' => Debugger::exportVarAsNodes($request->getCookieParams(), $maxDepth),
+            'get' => Debugger::exportVarAsNodes($_GET, $maxDepth),
+            'session' => Debugger::exportVarAsNodes($request->getSession()->read(), $maxDepth),
             'matchedRoute' => $request->getParam('_matchedRoute'),
-            'headers' => ['response' => headers_sent($file, $line), 'file' => $file, 'line' => $line],
+            'headers' => [
+                'response' => headers_sent($file, $line),
+                'file' => $file,
+                'line' => $line,
+            ],
         ];
     }
 }

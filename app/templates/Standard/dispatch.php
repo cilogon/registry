@@ -27,10 +27,10 @@
 
 declare(strict_types = 1);
 
-// $this->name = Models
+/** var string $modelsName */
 use Cake\Utility\Inflector;
 
-$modelsName = $this->name;
+$modelsName = $this->getName();
 // $tablename = models
 $tableName = Inflector::tableize(Inflector::singularize($this->name));
 // Populate the AutoViewVars. These are the same we do for the EnrollmentAttributes configuration view

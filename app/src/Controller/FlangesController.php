@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class FlangesController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Flanges.description' => 'asc'
     ]

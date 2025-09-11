@@ -42,7 +42,7 @@ use \App\Lib\Enum\HttpStatusCodesEnum;
 class EmailVerifiersController extends StandardEnrollerController {
   use ApplicationStatesTrait;
 
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EmailVerifiers.id' => 'asc'
     ]

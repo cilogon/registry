@@ -16,6 +16,8 @@ namespace Cake\Controller\Exception;
 
 /**
  * Auth Security exception - used when SecurityComponent detects any issue with the current request
+ *
+ * @deprecated 5.2.0 This exception is no longer used in the CakePHP core.
  */
 class AuthSecurityException extends SecurityException
 {
@@ -24,5 +26,5 @@ class AuthSecurityException extends SecurityException
      *
      * @var string
      */
-    protected $_type = 'auth';
+    protected string $_type = 'auth';
 }

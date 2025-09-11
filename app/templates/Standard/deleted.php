@@ -28,7 +28,7 @@
 
 declare(strict_types = 1);
 
-$modelsName = $this->name;
+$modelsName = $this->getName();
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
 
 // $vv_template_path will be set for plugins

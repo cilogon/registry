@@ -35,7 +35,7 @@ use Cake\Http\Response;
 use Cake\ORM\TableRegistry;
 
 class AttributeCollectorsController extends StandardEnrollerController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'AttributeCollectors.id' => 'asc'
     ]

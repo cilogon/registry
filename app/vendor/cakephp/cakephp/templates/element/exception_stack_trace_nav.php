@@ -20,17 +20,17 @@ use function Cake\Core\h;
 ?>
 <a href="#" class="toggle-link toggle-vendor-frames">Toggle Vendor Stack Frames</a>
 
-<ul class="stack-trace">
+<ul>
 <?php foreach ($exceptions as $level => $exc): ?>
     <?php if ($level > 0): ?>
         <li class="stack-previous">
-            <span class="stack-function">Caused by</span> <?= h(get_class($exc)) ?>
+            <span class="stack-function">Caused by</span> <?= h($exc::class) ?>
         </li>
     <?php endif; ?>
     <?php $stackTrace = Debugger::formatTrace($exc->getTrace(), ['format' => 'array']); ?>
     <?php foreach ($stackTrace as $i => $stack): ?>
         <?php
-        $class = isset($stack['file']) && strpos($stack['file'], APP) === false ? 'vendor-frame' : 'app-frame';
+        $class = isset($stack['file']) && str_contains($stack['file'], APP) ? 'vendor-frame' : 'app-frame';
         $class .= $i == 0 ? ' active' : '';
         ?>
         <li class="stack-frame <?= $class ?>">

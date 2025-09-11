@@ -48,10 +48,10 @@ class MultipleAuthenticatorController extends StandardPluginController {
 
   public function beforeFilter(\Cake\Event\EventInterface $event) {
     // $modelsName = Models (eg: SshKeys)
-    $modelsName = $this->name;
+    $modelsName = $this->getName();
     // $authModelName = eg SshKeyAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
-    // $table = the actual table object
+    /** var Cake\ORM\Table $table */
     $Table = $this->$modelsName;
     // $authFK = eg ssh_key_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
@@ -71,7 +71,7 @@ class MultipleAuthenticatorController extends StandardPluginController {
       $this->redirectInfo['person_id'] = $this->requestParam('person_id');
     }
 
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
 
   /**
@@ -98,10 +98,10 @@ class MultipleAuthenticatorController extends StandardPluginController {
   
   public function generateRedirect($entity) {
     // $modelsName = Models (eg: SshKeys)
-    $modelsName = $this->name;
+    $modelsName = $this->getName();
     // $authModelName = eg SshKeyAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
-    // $table = the actual table object
+    /** var Cake\ORM\Table $table */
     $Table = $this->$modelsName;
     // $authFK = eg ssh_key_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
@@ -132,10 +132,10 @@ class MultipleAuthenticatorController extends StandardPluginController {
    */
 
   public function index() {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
     // Construct the Query
@@ -181,10 +181,10 @@ class MultipleAuthenticatorController extends StandardPluginController {
 
   public function willHandleAuth(\Cake\Event\EventInterface $event): string {
     // $modelsName = Models (eg: SshKeys)
-    $modelsName = $this->name;
+    $modelsName = $this->getName();
     // $authModelName = eg SshKeyAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
-    // $table = the actual table object
+    /** var Cake\ORM\Table $table */
     $Table = $this->$modelsName;
     // $authFK = eg ssh_key_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);

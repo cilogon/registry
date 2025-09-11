@@ -16,7 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Http;
 
-use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * A builder object that assists in defining Cross Origin Request related
@@ -26,7 +26,7 @@ use Psr\Http\Message\MessageInterface;
  * set all the headers you want to use, the `build()` method can be used to return
  * a modified Response.
  *
- * It is most convenient to get this object via `Request::cors()`.
+ * It is most convenient to get this object via `Response::cors()`.
  *
  * @see \Cake\Http\Response::cors()
  */
@@ -35,39 +35,39 @@ class CorsBuilder
     /**
      * The response object this builder is attached to.
      *
-     * @var \Psr\Http\Message\MessageInterface
+     * @var \Psr\Http\Message\ResponseInterface
      */
-    protected $_response;
+    protected ResponseInterface $_response;
 
     /**
      * The request's Origin header value
      *
      * @var string
      */
-    protected $_origin;
+    protected string $_origin;
 
     /**
      * Whether the request was over SSL.
      *
      * @var bool
      */
-    protected $_isSsl;
+    protected bool $_isSsl;
 
     /**
      * The headers that have been queued so far.
      *
      * @var array<string, mixed>
      */
-    protected $_headers = [];
+    protected array $_headers = [];
 
     /**
      * Constructor.
      *
-     * @param \Psr\Http\Message\MessageInterface $response The response object to add headers onto.
+     * @param \Psr\Http\Message\ResponseInterface $response The response object to add headers onto.
      * @param string $origin The request's Origin header.
      * @param bool $isSsl Whether the request was over SSL.
      */
-    public function __construct(MessageInterface $response, string $origin, bool $isSsl = false)
+    public function __construct(ResponseInterface $response, string $origin, bool $isSsl = false)
     {
         $this->_origin = $origin;
         $this->_isSsl = $isSsl;
@@ -80,9 +80,9 @@ class CorsBuilder
      * If the builder has no Origin, or if there are no allowed domains,
      * or if the allowed domains do not match the Origin header no headers will be applied.
      *
-     * @return \Psr\Http\Message\MessageInterface A new instance of the response with new headers.
+     * @return \Psr\Http\Message\ResponseInterface A new instance of the response with new headers.
      */
-    public function build(): MessageInterface
+    public function build(): ResponseInterface
     {
         $response = $this->_response;
         if (empty($this->_origin)) {
@@ -107,7 +107,7 @@ class CorsBuilder
      * @param array<string>|string $domains The allowed domains
      * @return $this
      */
-    public function allowOrigin($domains)
+    public function allowOrigin(array|string $domains)
     {
         $allowed = $this->_normalizeDomains((array)$domains);
         foreach ($allowed as $domain) {
@@ -126,7 +126,7 @@ class CorsBuilder
      * Normalize the origin to regular expressions and put in an array format
      *
      * @param array<string> $domains Domain names to normalize.
-     * @return array
+     * @return array<array<string, string>>
      */
     protected function _normalizeDomains(array $domains): array
     {
@@ -136,9 +136,9 @@ class CorsBuilder
                 $result[] = ['preg' => '@.@', 'original' => '*'];
                 continue;
             }
-
-            $original = $preg = $domain;
-            if (strpos($domain, '://') === false) {
+            $original = $domain;
+            $preg = $domain;
+            if (!str_contains($domain, '://')) {
                 $preg = ($this->_isSsl ? 'https://' : 'http://') . $domain;
             }
             $preg = '@^' . str_replace('\*', '.*', preg_quote($preg, '@')) . '$@';
@@ -205,7 +205,7 @@ class CorsBuilder
      * @param string|int $age The max-age for OPTIONS requests in seconds
      * @return $this
      */
-    public function maxAge($age)
+    public function maxAge(string|int $age)
     {
         $this->_headers['Access-Control-Max-Age'] = $age;
 

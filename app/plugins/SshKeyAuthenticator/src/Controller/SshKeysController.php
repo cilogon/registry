@@ -34,7 +34,7 @@ use App\Controller\MultipleAuthenticatorController;
 use App\Lib\Util\StringUtilities;
 
 class SshKeysController extends MultipleAuthenticatorController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'SshKeys.comment' => 'asc'
     ]

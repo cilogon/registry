@@ -32,7 +32,7 @@ namespace SqlConnector\Controller;
 use App\Controller\StandardPluginController;
 
 class SqlProvisionersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'SqlProvisioners.id' => 'asc'
     ]

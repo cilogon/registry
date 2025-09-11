@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class JobHistoryRecordsController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'JobHistoryRecords.id' => 'desc'
     ]

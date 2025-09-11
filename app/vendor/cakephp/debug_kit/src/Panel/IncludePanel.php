@@ -14,10 +14,12 @@ declare(strict_types=1);
  */
 namespace DebugKit\Panel;
 
+use Cake\Error\Debugger;
 use Cake\Event\EventInterface;
 use Cake\Utility\Hash;
 use DebugKit\DebugInclude;
 use DebugKit\DebugPanel;
+use function Cake\Core\deprecationWarning;
 
 /**
  * Provides a list of included files for the current request
@@ -29,7 +31,7 @@ class IncludePanel extends DebugPanel
      *
      * @var \DebugKit\DebugInclude
      */
-    protected $_debug;
+    protected DebugInclude $_debug;
 
     /**
      * construct
@@ -37,6 +39,10 @@ class IncludePanel extends DebugPanel
     public function __construct()
     {
         $this->_debug = new DebugInclude();
+        deprecationWarning(
+            '5.1.0',
+            'Include panel is deprecated. Remove it from your panel configuration, and use Environment Panel instead.',
+        );
     }
 
     /**
@@ -44,24 +50,26 @@ class IncludePanel extends DebugPanel
      *
      * @return array
      */
-    protected function _prepare()
+    protected function _prepare(): array
     {
         $return = ['cake' => [], 'app' => [], 'plugins' => [], 'vendor' => [], 'other' => []];
 
         foreach (get_included_files() as $file) {
+            /** @var string|false $pluginName */
             $pluginName = $this->_debug->getPluginName($file);
 
             if ($pluginName) {
                 $return['plugins'][$pluginName][$this->_debug->getFileType($file)][] = $this->_debug->niceFileName(
                     $file,
                     'plugin',
-                    $pluginName
+                    $pluginName,
                 );
             } elseif ($this->_debug->isAppFile($file)) {
                 $return['app'][$this->_debug->getFileType($file)][] = $this->_debug->niceFileName($file, 'app');
             } elseif ($this->_debug->isCakeFile($file)) {
                 $return['cake'][$this->_debug->getFileType($file)][] = $this->_debug->niceFileName($file, 'cake');
             } else {
+                /** @var string|false $vendorName */
                 $vendorName = $this->_debug->getComposerPackageName($file);
 
                 if ($vendorName) {
@@ -83,6 +91,10 @@ class IncludePanel extends DebugPanel
             ksort($plugin);
         }
 
+        foreach ($return as $k => $v) {
+            $return[$k] = Debugger::exportVarAsNodes($v);
+        }
+
         return $return;
     }
 
@@ -91,7 +103,7 @@ class IncludePanel extends DebugPanel
      *
      * @return string
      */
-    public function summary()
+    public function summary(): string
     {
         $data = $this->_data;
         if (empty($data)) {
@@ -112,7 +124,7 @@ class IncludePanel extends DebugPanel
      * @param \Cake\Event\EventInterface $event Event
      * @return void
      */
-    public function shutdown(EventInterface $event)
+    public function shutdown(EventInterface $event): void
     {
         $this->_data = $this->_prepare();
     }

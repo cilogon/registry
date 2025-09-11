@@ -44,10 +44,10 @@ trait IndexQueryTrait {
    * @since  COmanage Registry v5.0.0
    */
   public function constructGetIndexContains(Query $query): object {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // Initialize the containClause
     $containClause = [];
 
@@ -73,10 +73,10 @@ trait IndexQueryTrait {
    * @since  COmanage Registry v5.0.0
    */
   public function constructGetPickerContains(Query $query): object {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // Initialize the containClause
     $containClause = [];
 
@@ -104,10 +104,10 @@ trait IndexQueryTrait {
    */
   public function containClauseFromQueryParams(): array
   {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
 
     // Restfull and ajax do not include the IndexContains by default.
     $containClause = [];
@@ -153,10 +153,10 @@ trait IndexQueryTrait {
    * @since  COmanage Registry v5.0.0
    */
   public function getIndexQuery(bool $pickerMode = false, array $requestParams = []): object {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // PrimaryLinkTrait
     $link = $this->getPrimaryLink(true);
     // Initialize the Query Object

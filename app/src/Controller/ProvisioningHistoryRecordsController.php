@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class ProvisioningHistoryRecordsController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ProvisioningHistoryRecords.id' => 'desc'
     ]

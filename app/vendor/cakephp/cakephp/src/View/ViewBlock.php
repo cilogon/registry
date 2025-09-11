@@ -50,16 +50,16 @@ class ViewBlock
     /**
      * Block content. An array of blocks indexed by name.
      *
-     * @var array<string>
+     * @var array<string, string>
      */
-    protected $_blocks = [];
+    protected array $_blocks = [];
 
     /**
      * The active blocks being captured.
      *
-     * @var array<string>
+     * @var array<string, string>
      */
-    protected $_active = [];
+    protected array $_active = [];
 
     /**
      * Should the currently captured content be discarded on ViewBlock::end()
@@ -67,7 +67,7 @@ class ViewBlock
      * @see \Cake\View\ViewBlock::end()
      * @var bool
      */
-    protected $_discardActiveBufferOnEnd = false;
+    protected bool $_discardActiveBufferOnEnd = false;
 
     /**
      * Start capturing output for a 'block'
@@ -88,7 +88,7 @@ class ViewBlock
     public function start(string $name, string $mode = ViewBlock::OVERRIDE): void
     {
         if (array_key_exists($name, $this->_active)) {
-            throw new CakeException(sprintf("A view block with the name '%s' is already/still open.", $name));
+            throw new CakeException(sprintf('A view block with the name `%s` is already/still open.', $name));
         }
         $this->_active[$name] = $mode;
         ob_start();
@@ -115,9 +115,9 @@ class ViewBlock
 
         $mode = end($this->_active);
         $active = key($this->_active);
-        $content = ob_get_clean();
+        $content = (string)ob_get_clean();
         if ($mode === ViewBlock::OVERRIDE) {
-            $this->_blocks[$active] = (string)$content;
+            $this->_blocks[$active] = $content;
         } else {
             $this->concat($active, $content, $mode);
         }
@@ -126,7 +126,7 @@ class ViewBlock
 
     /**
      * Concat content to an existing or new block.
-     * Concating to a new block will create the block.
+     * Concatenating to a new block will create the block.
      *
      * Calling concat() without a value will create a new capturing
      * block that needs to be finished with View::end(). The content
@@ -139,7 +139,7 @@ class ViewBlock
      *   If ViewBlock::PREPEND it will be prepended.
      * @return void
      */
-    public function concat(string $name, $value = null, $mode = ViewBlock::APPEND): void
+    public function concat(string $name, mixed $value = null, string $mode = ViewBlock::APPEND): void
     {
         if ($value === null) {
             $this->start($name, $mode);
@@ -166,7 +166,7 @@ class ViewBlock
      *   to string.
      * @return void
      */
-    public function set(string $name, $value): void
+    public function set(string $name, mixed $value): void
     {
         $this->_blocks[$name] = (string)$value;
     }
@@ -213,13 +213,14 @@ class ViewBlock
     {
         end($this->_active);
 
+        /** @var string|null */
         return key($this->_active);
     }
 
     /**
      * Get the unclosed/active blocks. Key is name, value is mode.
      *
-     * @return array<string> An array of unclosed blocks.
+     * @return array<string, string> An array of unclosed blocks.
      */
     public function unclosed(): array
     {

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Log\Engine;
 
 use Cake\Log\Formatter\DefaultFormatter;
+use Stringable;
 
 /**
  * Array logger.
@@ -32,7 +33,7 @@ class ArrayLog extends BaseLog
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'levels' => [],
         'scopes' => [],
         'formatter' => [
@@ -46,20 +47,21 @@ class ArrayLog extends BaseLog
      *
      * @var array<string>
      */
-    protected $content = [];
+    protected array $content = [];
 
     /**
      * Implements writing to the internal storage.
      *
      * @param mixed $level The severity level of log you are making.
-     * @param string $message The message you want to log.
+     * @param \Stringable|string $message The message you want to log.
      * @param array $context Additional information about the logged message
      * @return void success of write.
      * @see \Cake\Log\Log::$_levels
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
-    public function log($level, $message, array $context = [])
+    public function log($level, Stringable|string $message, array $context = []): void
     {
-        $message = $this->_format($message, $context);
+        $message = $this->interpolate($message, $context);
         $this->content[] = $this->formatter->format($level, $message, $context);
     }
 

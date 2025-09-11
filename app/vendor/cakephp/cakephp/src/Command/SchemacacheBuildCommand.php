@@ -19,6 +19,7 @@ namespace Cake\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use Cake\Database\Connection;
 use Cake\Database\SchemaCache;
 use Cake\Datasource\ConnectionManager;
 use RuntimeException;
@@ -39,6 +40,14 @@ class SchemacacheBuildCommand extends Command
     }
 
     /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'Build all metadata caches for the connection.';
+    }
+
+    /**
      * Display all routes in an application
      *
      * @param \Cake\Console\Arguments $args The command arguments.
@@ -48,8 +57,8 @@ class SchemacacheBuildCommand extends Command
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
         try {
-            /** @var \Cake\Database\Connection $connection */
             $connection = ConnectionManager::get((string)$args->getOption('connection'));
+            assert($connection instanceof Connection);
 
             $cache = new SchemaCache($connection);
         } catch (RuntimeException $e) {
@@ -60,7 +69,7 @@ class SchemacacheBuildCommand extends Command
         $tables = $cache->build($args->getArgument('name'));
 
         foreach ($tables as $table) {
-            $io->verbose(sprintf('Cached "%s"', $table));
+            $io->verbose(sprintf('Cached `%s`', $table));
         }
 
         $io->out('<success>Cache build complete</success>');
@@ -76,10 +85,10 @@ class SchemacacheBuildCommand extends Command
      */
     public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
-        $parser->setDescription(
-            'Build all metadata caches for the connection. If a ' .
-            'table name is provided, only that table will be cached.'
-        )->addOption('connection', [
+        $parser->setDescription([
+            static::getDescription(),
+            ' If a table name is provided, only that table will be cached.',
+        ])->addOption('connection', [
             'help' => 'The connection to build/clear metadata cache data for.',
             'short' => 'c',
             'default' => 'default',

@@ -24,7 +24,6 @@ use Cake\Http\Exception\MissingControllerException;
 use Cake\Http\MiddlewareQueue;
 use Cake\Http\Runner;
 use Cake\Http\ServerRequest;
-use Cake\Utility\Inflector;
 use Closure;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -32,7 +31,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionNamedType;
-use function Cake\Core\deprecationWarning;
+use function Cake\Core\toBool;
+use function Cake\Core\toFloat;
+use function Cake\Core\toInt;
 
 /**
  * Factory method for building controllers for request.
@@ -44,12 +45,12 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
     /**
      * @var \Cake\Core\ContainerInterface
      */
-    protected $container;
+    protected ContainerInterface $container;
 
     /**
      * @var \Cake\Controller\Controller
      */
-    protected $controller;
+    protected Controller $controller;
 
     /**
      * Constructor
@@ -70,6 +71,7 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
      */
     public function create(ServerRequestInterface $request): Controller
     {
+        assert($request instanceof ServerRequest);
         $className = $this->getControllerClass($request);
         if ($className === null) {
             throw $this->missingController($request);
@@ -79,13 +81,37 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
         if ($reflection->isAbstract()) {
             throw $this->missingController($request);
         }
+        $this->container->addShared(
+            ComponentRegistry::class,
+            new ComponentRegistry(container: $this->container),
+        );
 
         // Get the controller from the container if defined.
         // The request is in the container by default.
         if ($this->container->has($className)) {
             $controller = $this->container->get($className);
         } else {
-            $controller = $reflection->newInstance($request);
+            $components = $this->container->get(ComponentRegistry::class);
+            $constructor = $reflection->getConstructor();
+            assert($constructor !== null);
+            $hasComponents = false;
+            foreach ($constructor->getParameters() as $parameter) {
+                $paramType = $parameter->getType();
+                // TODO: In a future minor release it would be good to start requiring the components parameter
+                if (
+                    $parameter->getName() === 'components' &&
+                    $paramType !== null &&
+                    $paramType->getName() == ComponentRegistry::class
+                ) {
+                    $hasComponents = true;
+                    break;
+                }
+            }
+            if ($hasComponents) {
+                $controller = $reflection->newInstance(request: $request, components: $components);
+            } else {
+                $controller = $reflection->newInstance($request);
+            }
         }
 
         return $controller;
@@ -99,7 +125,7 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
      * @throws \Cake\Controller\Exception\MissingActionException If controller action is not found.
      * @throws \UnexpectedValueException If return value of action method is not null or ResponseInterface instance.
      */
-    public function invoke($controller): ResponseInterface
+    public function invoke(mixed $controller): ResponseInterface
     {
         $this->controller = $controller;
 
@@ -123,24 +149,24 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        assert($request instanceof ServerRequest);
         $controller = $this->controller;
-        /** @psalm-suppress ArgumentTypeCoercion */
         $controller->setRequest($request);
 
         $result = $controller->startupProcess();
-        if ($result instanceof ResponseInterface) {
+        if ($result !== null) {
             return $result;
         }
 
         $action = $controller->getAction();
         $args = $this->getActionArgs(
             $action,
-            array_values((array)$controller->getRequest()->getParam('pass'))
+            array_values((array)$controller->getRequest()->getParam('pass')),
         );
         $controller->invokeAction($action, $args);
 
         $result = $controller->shutdownProcess();
-        if ($result instanceof ResponseInterface) {
+        if ($result !== null) {
             return $result;
         }
 
@@ -171,7 +197,7 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
 
                 // Use passedParams as a source of typed dependencies.
                 // The accepted types for passedParams was never defined and userland code relies on that.
-                if ($passedParams && is_object($passedParams[0]) && $passedParams[0] instanceof $typeName) {
+                if ($passedParams && $passedParams[0] instanceof $typeName) {
                     $resolved[] = array_shift($passedParams);
                     continue;
                 }
@@ -250,30 +276,23 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
      * @param \ReflectionNamedType $type Parameter type
      * @return array|string|float|int|bool|null
      */
-    protected function coerceStringToType(string $argument, ReflectionNamedType $type)
+    protected function coerceStringToType(string $argument, ReflectionNamedType $type): array|string|float|int|bool|null
     {
-        switch ($type->getName()) {
-            case 'string':
-                return $argument;
-            case 'float':
-                return is_numeric($argument) ? (float)$argument : null;
-            case 'int':
-                return filter_var($argument, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
-            case 'bool':
-                return $argument === '0' ? false : ($argument === '1' ? true : null);
-            case 'array':
-                return $argument === '' ? [] : explode(',', $argument);
-        }
-
-        return null;
+        return match ($type->getName()) {
+            'string' => $argument,
+            'float' => toFloat($argument),
+            'int' => toInt($argument),
+            'bool' => toBool($argument),
+            'array' => $argument === '' ? [] : explode(',', $argument),
+            default => null,
+        };
     }
 
     /**
      * Determine the controller class name based on current request and controller param
      *
      * @param \Cake\Http\ServerRequest $request The request to build a controller for.
-     * @return string|null
-     * @psalm-return class-string<\Cake\Controller\Controller>|null
+     * @return class-string<\Cake\Controller\Controller>|null
      */
     public function getControllerClass(ServerRequest $request): ?string
     {
@@ -285,29 +304,7 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
         }
         if ($request->getParam('prefix')) {
             $prefix = $request->getParam('prefix');
-
-            $firstChar = substr($prefix, 0, 1);
-            if ($firstChar !== strtoupper($firstChar)) {
-                deprecationWarning(
-                    "The `{$prefix}` prefix did not start with an upper case character. " .
-                    'Routing prefixes should be defined as CamelCase values. ' .
-                    'Prefix inflection will be removed in 5.0'
-                );
-
-                if (strpos($prefix, '/') === false) {
-                    $namespace .= '/' . Inflector::camelize($prefix);
-                } else {
-                    $prefixes = array_map(
-                        function ($val) {
-                            return Inflector::camelize($val);
-                        },
-                        explode('/', $prefix)
-                    );
-                    $namespace .= '/' . implode('/', $prefixes);
-                }
-            } else {
-                $namespace .= '/' . $prefix;
-            }
+            $namespace .= '/' . $prefix;
         }
         $firstChar = substr($controller, 0, 1);
 
@@ -315,9 +312,9 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
         // controller names as they allow direct references to
         // be created.
         if (
-            strpos($controller, '\\') !== false ||
-            strpos($controller, '/') !== false ||
-            strpos($controller, '.') !== false ||
+            str_contains($controller, '\\') ||
+            str_contains($controller, '/') ||
+            str_contains($controller, '.') ||
             $firstChar === strtolower($firstChar)
         ) {
             throw $this->missingController($request);
@@ -333,14 +330,13 @@ class ControllerFactory implements ControllerFactoryInterface, RequestHandlerInt
      * @param \Cake\Http\ServerRequest $request The request.
      * @return \Cake\Http\Exception\MissingControllerException
      */
-    protected function missingController(ServerRequest $request)
+    protected function missingController(ServerRequest $request): MissingControllerException
     {
         return new MissingControllerException([
             'controller' => $request->getParam('controller'),
             'plugin' => $request->getParam('plugin'),
             'prefix' => $request->getParam('prefix'),
             '_ext' => $request->getParam('_ext'),
-            'class' => $request->getParam('controller'), // Deprecated: Will be removed in 4.5. Use `controller` instead.
         ]);
     }
 }

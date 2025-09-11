@@ -15,6 +15,7 @@ namespace Migrations\Command;
 
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
+use Cake\Core\Configure;
 
 /**
  * Trait needed for all "snapshot" type of bake operations.
@@ -41,6 +42,15 @@ trait SnapshotTrait
     }
 
     /**
+     * @internal
+     * @return bool Whether the builtin backend is active.
+     */
+    protected function useBuiltinBackend(): bool
+    {
+        return Configure::read('Migrations.backend', 'builtin') === 'builtin';
+    }
+
+    /**
      * Will mark a snapshot created, the snapshot being identified by its
      * full file path.
      *
@@ -49,7 +59,7 @@ trait SnapshotTrait
      * @param \Cake\Console\ConsoleIo $io The console io
      * @return void
      */
-    protected function markSnapshotApplied($path, Arguments $args, ConsoleIo $io)
+    protected function markSnapshotApplied(string $path, Arguments $args, ConsoleIo $io): void
     {
         $fileName = pathinfo($path, PATHINFO_FILENAME);
         [$version, ] = explode('_', $fileName, 2);
@@ -62,7 +72,11 @@ trait SnapshotTrait
         $newArgs = array_merge($newArgs, $this->parseOptions($args));
 
         $io->out('Marking the migration ' . $fileName . ' as migrated...');
-        $this->executeCommand(MigrationsMarkMigratedCommand::class, $newArgs, $io);
+        if ($this->useBuiltinBackend()) {
+            $this->executeCommand(MarkMigratedCommand::class, $newArgs, $io);
+        } else {
+            $this->executeCommand(MigrationsMarkMigratedCommand::class, $newArgs, $io);
+        }
     }
 
     /**
@@ -73,12 +87,16 @@ trait SnapshotTrait
      * @param \Cake\Console\ConsoleIo $io The console io
      * @return void
      */
-    protected function refreshDump(Arguments $args, ConsoleIo $io)
+    protected function refreshDump(Arguments $args, ConsoleIo $io): void
     {
         $newArgs = $this->parseOptions($args);
 
         $io->out('Creating a dump of the new database state...');
-        $this->executeCommand(MigrationsDumpCommand::class, $newArgs, $io);
+        if ($this->useBuiltinBackend()) {
+            $this->executeCommand(DumpCommand::class, $newArgs, $io);
+        } else {
+            $this->executeCommand(MigrationsDumpCommand::class, $newArgs, $io);
+        }
     }
 
     /**

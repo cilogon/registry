@@ -28,7 +28,7 @@ class RoutesPanel extends DebugPanel
      *
      * @return string
      */
-    public function summary()
+    public function summary(): string
     {
         $routes = array_filter(Router::routes(), function ($route) {
             return !isset($route->defaults['plugin']) || $route->defaults['plugin'] !== 'DebugKit';
@@ -40,16 +40,14 @@ class RoutesPanel extends DebugPanel
     /**
      * Data collection callback.
      *
-     * @param \Cake\Event\EventInterface $event The shutdown event.
+     * @param \Cake\Event\EventInterface<\Cake\Controller\Controller> $event The shutdown event.
      * @return void
      */
-    public function shutdown(EventInterface $event)
+    public function shutdown(EventInterface $event): void
     {
-        /** @var \Cake\Controller\Controller|null $controller */
         $controller = $event->getSubject();
-        $request = $controller ? $controller->getRequest() : null;
         $this->_data = [
-            'matchedRoute' => $request ? $request->getParam('_matchedRoute') : null,
+            'matchedRoute' => $controller->getRequest()->getParam('_matchedRoute'),
         ];
     }
 }

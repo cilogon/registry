@@ -14,9 +14,8 @@
 /**
  * @var \DebugKit\View\AjaxView $this
  * @var string $error
- * @var bool $sort
+ * @var bool|null $sort
  * @var array $variables
- * @var array $content
  * @var array $errors
  */
 ?>
@@ -34,22 +33,6 @@
         printf('<p class="c-flash c-flash--info">%s</p>', $msg);
     }
 
-    // Backwards compatibility for old debug kit data.
-    if (!empty($content)) :?>
-        <div class="o-checkbox">
-            <label>
-                <input
-                    type="checkbox"
-                    class="js-debugkit-sort-variables"
-                    <?= $sort ? ' checked="checked"' : '' ?>>
-                    Sort variables by name
-            </label>
-        </div>
-        <?php
-        $this->Toolbar->setSort($sort);
-        echo $this->Toolbar->dump($content);
-    endif;
-
     // New node based data.
     if (!empty($variables)) :?>
         <div class="o-checkbox">
@@ -62,13 +45,13 @@
             </label>
         </div>
         <?php
-        $this->Toolbar->setSort($sort);
+        $this->Toolbar->setSort($sort ?? false);
         echo $this->Toolbar->dumpNodes($variables);
     endif;
 
     if (!empty($errors)) :
         echo '<h4>Validation errors</h4>';
-        echo $this->Toolbar->dump($errors);
+        echo $this->Toolbar->dumpNodes($errors);
     endif;
     ?>
 </div>

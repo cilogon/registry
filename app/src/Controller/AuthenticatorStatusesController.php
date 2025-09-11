@@ -35,7 +35,7 @@ use Cake\ORM\TableRegistry;
 use App\Lib\Enum\AuthenticatorStatusEnum;
 
 class AuthenticatorStatusesController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'AuthenticatorStatuses.id' => 'asc'
     ]

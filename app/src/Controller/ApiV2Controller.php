@@ -55,15 +55,18 @@ class ApiV2Controller extends AppController {
     
     // requested model = models
     $reqModel = $this->request->getParam('model');
-    // $this->name = Models
+    /** var string $modelsName */
     // We override $this->name (which is ApiV2) to make it match to the expected
     // behavior for UI calls (which is Models, eg "Cous"). We need to do this
     // before RegistryAuthComponent runs.
     $modelsName = Inflector::camelize($reqModel);
-    $this->name = $modelsName;
-    // Similarly, for compatibility with UI related calls we load the model
-    $this->$modelsName = TableRegistry::getTableLocator()->get($modelsName);
-    $this->tableName = $this->$modelsName->getTable();
+    $this->setName($modelsName);
+    // Make this the default table for fetchTable()
+    $this->defaultTable = $modelsName;
+    // If you need a reusable handle for this request, keep it in a declared property
+    $this->table = $this->fetchTable();
+    // If you still need the table name as a property, assign it to a declared one
+    $this->tableName = $this->table->getTable();
     
     // We want API auth, not Web Auth
     $this->RegistryAuth->setConfig('apiUser', true);
@@ -76,10 +79,10 @@ class ApiV2Controller extends AppController {
    */
   
   public function add() {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $this->tableName;
     
@@ -119,6 +122,7 @@ class ApiV2Controller extends AppController {
     $this->set('vv_results', $results);
 
     // Let the view render
+    $this->viewBuilder()->setLayout(null);
     $this->render('/Standard/api/v2/json/add-edit');
   }
 
@@ -179,10 +183,10 @@ class ApiV2Controller extends AppController {
    */
   
   public function delete($id) {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
 
@@ -206,6 +210,7 @@ class ApiV2Controller extends AppController {
       }
 
       // Render an empty view
+      $this->viewBuilder()->setLayout('rest');
       $this->render('/Standard/api/v2/json/delete');
     }
     catch(\Exception $e) {
@@ -230,9 +235,9 @@ class ApiV2Controller extends AppController {
     }
 
     // $modelsName = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
 
     $reqParameters = [...$this->request->getQuery()];
     $pickerMode = ($mode === 'picker');
@@ -251,6 +256,7 @@ class ApiV2Controller extends AppController {
     $this->set($this->tableName, $this->paginate($query));
 
     // Let the view render
+    $this->viewBuilder()->setLayout('rest');
     $this->render('/Standard/api/v2/json/index');
   }
 
@@ -262,10 +268,10 @@ class ApiV2Controller extends AppController {
    */
   
   public function edit($id) {
-    // $this->name = Models (ie: from ModelsTable)
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
 
@@ -296,6 +302,7 @@ class ApiV2Controller extends AppController {
       }
 
       // Let the view render
+      $this->viewBuilder()->setLayout('rest');
       $this->render('/Standard/api/v2/json/add-edit');
     }
     catch(\Exception $e) {
@@ -362,6 +369,7 @@ class ApiV2Controller extends AppController {
     $this->set('vv_results', ['api_key' => $api_key]);
     
     // Let the view render
+    $this->viewBuilder()->setLayout('rest');
     $this->render('/Standard/api/v2/json/add-edit');
   }
   
@@ -382,10 +390,10 @@ class ApiV2Controller extends AppController {
    */
 
   public function view($id = null) {
-    // $this->name = Models
-    $modelsName = $this->name;
-    // $table = the actual table object
-    $table = $this->$modelsName;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
+    /** var Cake\ORM\Table $table */
+    $table = $this->fetchTable($modelsName);
     // $tableName = models
     $tableName = $table->getTable();
     
@@ -398,6 +406,7 @@ class ApiV2Controller extends AppController {
     $this->set($tableName, [$obj]);
     
     // Let the view render
+    $this->viewBuilder()->setLayout('rest');
     $this->render('/Standard/api/v2/json/index');
   }
 

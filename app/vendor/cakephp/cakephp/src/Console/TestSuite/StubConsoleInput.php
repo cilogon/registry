@@ -31,14 +31,14 @@ class StubConsoleInput extends ConsoleInput
      *
      * @var array<string>
      */
-    protected $replies = [];
+    protected array $replies = [];
 
     /**
      * Current message index
      *
      * @var int
      */
-    protected $currentIndex = -1;
+    protected int $currentIndex = -1;
 
     /**
      * Constructor
@@ -47,9 +47,10 @@ class StubConsoleInput extends ConsoleInput
      */
     public function __construct(array $replies)
     {
-        parent::__construct();
-
+        // Don't call parent on purpose as it opens php://stdin which doesn't
+        // always exist in RunInSeparateProcess tests.
         $this->replies = $replies;
+        $this->_canReadline = false;
     }
 
     /**
@@ -81,7 +82,7 @@ class StubConsoleInput extends ConsoleInput
      * @param int $timeout An optional time to wait for data
      * @return bool True for data available, false otherwise
      */
-    public function dataAvailable($timeout = 0): bool
+    public function dataAvailable(int $timeout = 0): bool
     {
         return true;
     }

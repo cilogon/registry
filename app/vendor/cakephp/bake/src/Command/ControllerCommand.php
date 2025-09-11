@@ -21,6 +21,7 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 
 /**
@@ -33,7 +34,7 @@ class ControllerCommand extends BakeCommand
      *
      * @var string
      */
-    public $pathFragment = 'Controller/';
+    public string $pathFragment = 'Controller/';
 
     /**
      * Execute the command.
@@ -85,6 +86,9 @@ class ControllerCommand extends BakeCommand
         if ($args->getOption('actions')) {
             $actions = array_map('trim', explode(',', $args->getOption('actions')));
             $actions = array_filter($actions);
+        }
+        if (!$args->getOption('actions') && Plugin::isLoaded('Authentication') && $controllerName === 'Users') {
+            $actions[] = 'login';
         }
 
         $helpers = $this->getHelpers($args);
@@ -146,7 +150,7 @@ class ControllerCommand extends BakeCommand
             'pluralName',
             'prefix',
             'singularHumanName',
-            'singularName'
+            'singularName',
         );
         $data['name'] = $controllerName;
 
@@ -202,7 +206,7 @@ class ControllerCommand extends BakeCommand
         $testArgs = new Arguments(
             ['controller', $className],
             $args->getOptions(),
-            ['type', 'name']
+            ['type', 'name'],
         );
         $test->execute($testArgs, $io);
     }
@@ -211,7 +215,7 @@ class ControllerCommand extends BakeCommand
      * Get the list of components for the controller.
      *
      * @param \Cake\Console\Arguments $args The console arguments
-     * @return string[]
+     * @return array<string>
      */
     public function getComponents(Arguments $args): array
     {
@@ -219,6 +223,10 @@ class ControllerCommand extends BakeCommand
         if ($args->getOption('components')) {
             $components = explode(',', $args->getOption('components'));
             $components = array_values(array_filter(array_map('trim', $components)));
+        } else {
+            if (Plugin::isLoaded('Authorization')) {
+                $components[] = 'Authorization.Authorization';
+            }
         }
 
         return $components;
@@ -228,7 +236,7 @@ class ControllerCommand extends BakeCommand
      * Get the list of helpers for the controller.
      *
      * @param \Cake\Console\Arguments $args The console arguments
-     * @return string[]
+     * @return array<string>
      */
     public function getHelpers(Arguments $args): array
     {
@@ -251,7 +259,7 @@ class ControllerCommand extends BakeCommand
     {
         $parser = $this->_setCommonOptions($parser);
         $parser->setDescription(
-            'Bake a controller skeleton.'
+            'Bake a controller skeleton.',
         )->addArgument('name', [
             'help' => 'Name of the controller to bake (without the `Controller` suffix). ' .
                 'You can use Plugin.name to bake controllers into plugins.',

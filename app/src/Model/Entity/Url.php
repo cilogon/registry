@@ -36,7 +36,7 @@ class Url extends Entity {
   use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 

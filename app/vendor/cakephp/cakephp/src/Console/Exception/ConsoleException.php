@@ -9,7 +9,7 @@ declare(strict_types=1);
  * Redistributions of files must retain the above copyright notice.
  *
  * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- * @link          https://book.cakephp.org/4/en/development/errors.html#error-exception-configuration
+ * @link          https://book.cakephp.org/5/en/development/errors.html#error-exception-configuration
  * @since         3.0.0
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
@@ -29,5 +29,5 @@ class ConsoleException extends CakeException
      *
      * @var int
      */
-    protected $_defaultCode = CommandInterface::CODE_ERROR;
+    protected int $_defaultCode = CommandInterface::CODE_ERROR;
 }

@@ -36,29 +36,35 @@ class BenchmarkCommand extends Command
      *
      * @var \Cake\Console\ConsoleIo
      */
-    protected $io;
+    protected ConsoleIo $io;
 
     /**
      * Execute.
      *
      * @param \Cake\Console\Arguments $args The command arguments.
      * @param \Cake\Console\ConsoleIo $io The console io
-     * @return null|int The exit code or null for success
+     * @return int|null The exit code or null for success
      */
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
         $this->io = $io;
         /** @var string $url */
         $url = $args->getArgumentAt(0);
-        $defaults = ['t' => 100, 'n' => 10];
-        $options = array_merge($defaults, $args->getOptions());
         $times = [];
 
         $io->out(Text::insert('-> Testing :url', compact('url')));
         $io->out('');
-        for ($i = 0; $i < $options['n']; $i++) {
-            /** @psalm-suppress PossiblyInvalidOperand */
-            if (floor($options['t'] - array_sum($times)) <= 0 || $options['n'] <= 1) {
+        $count = 10;
+        if ($args->hasOption('n')) {
+            $count = (float)$args->getOption('n');
+        }
+        $timeout = 100;
+        if ($args->hasOption('t')) {
+            $timeout = (float)$args->getOption('t');
+        }
+
+        for ($i = 0; $i < $count; $i++) {
+            if (floor($timeout - array_sum($times)) <= 0 || $count <= 1) {
                 break;
             }
 
@@ -76,10 +82,10 @@ class BenchmarkCommand extends Command
     /**
      * Prints calculated results
      *
-     * @param float[] $times Array of time values
+     * @param array<float> $times Array of time values
      * @return void
      */
-    protected function _results($times)
+    protected function _results(array $times): void
     {
         $duration = array_sum($times);
         $requests = count($times);
@@ -123,7 +129,7 @@ class BenchmarkCommand extends Command
      *                           variance from a finite sample.
      * @return float Variance
      */
-    protected function _variance($times, $sample = true)
+    protected function _variance(array $times, bool $sample = true): float
     {
         $n = $mean = $M2 = 0;
 
@@ -148,7 +154,7 @@ class BenchmarkCommand extends Command
      * @param bool $sample ''
      * @return float Standard deviation
      */
-    protected function _deviation($times, $sample = true)
+    protected function _deviation(array $times, bool $sample = true): float
     {
         return sqrt($this->_variance($times, $sample));
     }
@@ -163,25 +169,25 @@ class BenchmarkCommand extends Command
     {
         $parser->setDescription(
             'Allows you to obtain some rough benchmarking statistics' .
-            'about a fully qualified URL.'
+            'about a fully qualified URL.',
         )
         ->addArgument('url', [
             'help' => 'The URL to request.',
             'required' => true,
         ])
         ->addOption('n', [
-            'default' => 10,
+            'default' => '10',
             'help' => 'Number of iterations to perform.',
         ])
         ->addOption('t', [
-            'default' => 100,
+            'default' => '100',
             'help' =>
                 'Maximum total time for all iterations, in seconds. ' .
                 'If a single iteration takes more than the timeout, only one request will be made',
         ])
         ->setEpilog(
             'Example Use: `cake benchmark --n 10 --t 100 http://localhost/testsite`. ' .
-            '<info>Note:</info> this benchmark does not include browser render times.'
+            '<info>Note:</info> this benchmark does not include browser render times.',
         );
 
         return $parser;

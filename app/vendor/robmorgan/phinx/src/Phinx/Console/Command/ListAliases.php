@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -18,6 +19,7 @@ class ListAliases extends AbstractCommand
     /**
      * @var string|null
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
     protected static $defaultName = 'list:aliases';
 
     /**
@@ -61,17 +63,17 @@ class ListAliases extends AbstractCommand
                             return sprintf('%s %s', str_pad($alias, $maxAliasLength), str_pad($class, $maxClassLength));
                         },
                         array_keys($aliases),
-                        $aliases
-                    )
+                        $aliases,
+                    ),
                 ),
-                $this->verbosityLevel
+                $this->verbosityLevel,
             );
         } else {
             $output->writeln(
-                sprintf(
-                    '<error>No aliases defined in %s</error>',
-                    Util::relativePath($this->config->getConfigFilePath())
-                )
+                '<comment>warning</comment> no aliases defined in ' . Util::relativePath(
+                    $this->config->getConfigFilePath(),
+                ),
+                $this->verbosityLevel,
             );
         }
 

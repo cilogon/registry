@@ -9,13 +9,18 @@
  */
 namespace SebastianBergmann\CodeCoverage\Report\Xml;
 
+use function assert;
 use DOMDocument;
+use DOMElement;
 
 /**
  * @internal This class is not covered by the backward compatibility promise for phpunit/php-code-coverage
  */
 final class Project extends Node
 {
+    /**
+     * @phpstan-ignore constructor.missingParentCall
+     */
     public function __construct(string $directory)
     {
         $this->init();
@@ -31,17 +36,19 @@ final class Project extends Node
     {
         $buildNode = $this->dom()->getElementsByTagNameNS(
             'https://schema.phpunit.de/coverage/1.0',
-            'build'
+            'build',
         )->item(0);
 
-        if (!$buildNode) {
+        if ($buildNode === null) {
             $buildNode = $this->dom()->documentElement->appendChild(
                 $this->dom()->createElementNS(
                     'https://schema.phpunit.de/coverage/1.0',
-                    'build'
-                )
+                    'build',
+                ),
             );
         }
+
+        assert($buildNode instanceof DOMElement);
 
         return new BuildInformation($buildNode);
     }
@@ -50,17 +57,19 @@ final class Project extends Node
     {
         $testsNode = $this->contextNode()->getElementsByTagNameNS(
             'https://schema.phpunit.de/coverage/1.0',
-            'tests'
+            'tests',
         )->item(0);
 
-        if (!$testsNode) {
+        if ($testsNode === null) {
             $testsNode = $this->contextNode()->appendChild(
                 $this->dom()->createElementNS(
                     'https://schema.phpunit.de/coverage/1.0',
-                    'tests'
-                )
+                    'tests',
+                ),
             );
         }
+
+        assert($testsNode instanceof DOMElement);
 
         return new Tests($testsNode);
     }
@@ -78,8 +87,8 @@ final class Project extends Node
         $this->setContextNode(
             $dom->getElementsByTagNameNS(
                 'https://schema.phpunit.de/coverage/1.0',
-                'project'
-            )->item(0)
+                'project',
+            )->item(0),
         );
     }
 

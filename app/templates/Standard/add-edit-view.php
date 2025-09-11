@@ -28,8 +28,8 @@
 declare(strict_types = 1);
 
 //$action = $this->template;
-// $this->name = Models
-$modelsName = $this->name;
+/** var string $modelsName */
+$modelsName = $this->getName();
 // $tablename = models
 // XXX backport to match?
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));

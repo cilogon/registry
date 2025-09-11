@@ -96,7 +96,7 @@ class StandardEnrollerController extends StandardPluginController {
     // We need the Step configuration to properly calculate the current Actor
     // for Approval Steps.
 
-    $modelsName = $this->name;
+    $modelsName = $this->getName();
     $modelId = $this->request->getParam('pass.0');
 
     if(!$modelId) {
@@ -220,8 +220,8 @@ class StandardEnrollerController extends StandardPluginController {
       // Determine if we're going to use a token to authenticate the current request.
       // For this, we need the current step's authorization.
 
-      // $this->name = Models (ie: from ModelsTable)
-      $modelsName = $this->name;
+      /** var string $modelsName */
+      $modelsName = $this->getName();
       $modelId = $this->request->getParam('pass.0');
 
       if(empty($modelId)) {

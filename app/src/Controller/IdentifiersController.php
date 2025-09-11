@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class IdentifiersController extends MVEAController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Identifiers.identifier' => 'asc'
     ]

@@ -27,8 +27,8 @@
 
 declare(strict_types = 1);
 
-// $this->name = Models
-$modelsName = $this->name;
+/** var string $modelsName */
+$modelsName = $this->getName();
 // $tablename = models
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
 // Table Reference

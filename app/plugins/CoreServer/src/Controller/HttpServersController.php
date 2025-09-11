@@ -32,7 +32,7 @@ namespace CoreServer\Controller;
 use App\Controller\StandardPluginController;
 
 class HttpServersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'HttpServers.url' => 'asc'
     ]

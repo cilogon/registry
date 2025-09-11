@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class NamesController extends MVEAController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Names.family' => 'asc',
       'Names.given' => 'asc'

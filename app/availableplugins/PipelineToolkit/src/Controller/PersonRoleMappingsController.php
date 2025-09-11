@@ -32,7 +32,7 @@ namespace PipelineToolkit\Controller;
 use App\Controller\StandardPluginController;
 
 class PersonRoleMappingsController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'PersonRoleMappings.id' => 'asc'
     ]

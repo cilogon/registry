@@ -30,7 +30,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use Cake\Console\Arguments;
-use Cake\Console\Command;
+use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionManager;
@@ -39,7 +39,7 @@ use Cake\Utility\Security;
 use App\Lib\Enum\JobStatusEnum;
 use App\Lib\Events\CoIdEventListener;
 
-class JobCommand extends Command
+class JobCommand extends BaseCommand
 {
   /**
    * Register command specific options.
@@ -71,7 +71,7 @@ class JobCommand extends Command
       [
         'required'  => false,
         'short'     => 'p',
-        'default'   => 1,
+        'default'   => '1',
         'help'      => __d('command', 'opt.job.parallel')
       ]
     )->addOption(
@@ -79,7 +79,7 @@ class JobCommand extends Command
       [
         'required'  => false,
         'short'     => 'm',
-        'default'   => 10,
+        'default'   => '10',
         'help'      => __d('command', 'opt.job.max')
       ]
     )->addOption(

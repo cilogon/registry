@@ -41,7 +41,7 @@ class MailTransport extends AbstractTransport
         $to = $message->getHeaders(['to'])['To'];
         $to = str_replace("\r\n", '', $to);
 
-        $eol = $this->getConfig('eol', version_compare(PHP_VERSION, '8.0', '>=') ? "\r\n" : "\n");
+        $eol = $this->getConfig('eol', "\r\n");
         $headers = $message->getHeadersString(
             [
                 'from',
@@ -55,7 +55,7 @@ class MailTransport extends AbstractTransport
             $eol,
             function ($val) {
                 return str_replace("\r\n", '', $val);
-            }
+            },
         );
 
         $message = $message->getBodyString($eol);
@@ -85,7 +85,7 @@ class MailTransport extends AbstractTransport
         string $subject,
         string $message,
         string $headers = '',
-        string $params = ''
+        string $params = '',
     ): void {
         // phpcs:disable
         if (!@mail($to, $subject, $message, $headers, $params)) {

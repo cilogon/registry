@@ -42,7 +42,7 @@ use \App\Lib\Util\StringUtilities;
 class PetitionsController extends StandardController {
   use \App\Lib\Traits\EnrollmentControllerTrait;
 
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Petitions.modified' => 'desc'
     ]
@@ -329,7 +329,7 @@ class PetitionsController extends StandardController {
                         ['PetitionStepResults' => ['conditions' => ['PetitionStepResults.petition_id' => $petition->id]]],
                         $this->Petitions->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations()
                       ))
-                    ->order(['EnrollmentFlowSteps.ordr'])
+                    ->orderBy(['EnrollmentFlowSteps.ordr'])
                     ->all();
       
       $this->set('vv_steps', $steps);

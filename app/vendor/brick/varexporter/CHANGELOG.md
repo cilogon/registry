@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.6.0](https://github.com/brick/varexporter/releases/tag/0.6.0) - 2025-02-20
+
+💥 **BC breaks**
+
+- Minimum PHP version is now `8.1` (#39)
+
+✨ **New features**
+
+- Support for exporting `match` constructs in closures (#38)
+
+Thanks to @reinfi!
+
+## [0.5.0](https://github.com/brick/varexporter/releases/tag/0.5.0) - 2024-05-10
+
+✨ **Compatibility**
+
+- Added compatibility with `nikic/php-parser` `5.x`
+- Removed compatibility with `nikic/php-parser` `4.x`
+
+💥 **BC breaks**
+
+- deprecated constant `VarExporter::INLINE_NUMERIC_SCALAR_ARRAY` has been removed, please use `INLINE_SCALAR_LIST` instead
+
+## [0.4.0](https://github.com/brick/varexporter/releases/tag/0.4.0) - 2023-09-01
+
+Minimum PHP version is now `7.4`. No breaking changes.
+
 ## [0.3.8](https://github.com/brick/varexporter/releases/tag/0.3.8) - 2023-01-22
 
 ✨ **New feature**

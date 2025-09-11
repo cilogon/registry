@@ -18,53 +18,58 @@ namespace Cake\Controller;
 
 use Cake\Controller\Exception\MissingComponentException;
 use Cake\Core\App;
+use Cake\Core\ContainerInterface;
 use Cake\Core\Exception\CakeException;
 use Cake\Core\ObjectRegistry;
 use Cake\Event\EventDispatcherInterface;
 use Cake\Event\EventDispatcherTrait;
+use League\Container\Argument\ArgumentResolverTrait;
+use League\Container\Exception\NotFoundException;
+use ReflectionClass;
+use RuntimeException;
 
 /**
  * ComponentRegistry is a registry for loaded components
  *
  * Handles loading, constructing and binding events for component class objects.
  *
+ * @template TSubject of \Cake\Controller\Controller
  * @extends \Cake\Core\ObjectRegistry<\Cake\Controller\Component>
+ * @implements \Cake\Event\EventDispatcherInterface<TSubject>
  */
 class ComponentRegistry extends ObjectRegistry implements EventDispatcherInterface
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<TSubject>
+     */
     use EventDispatcherTrait;
 
+    use ArgumentResolverTrait;
+
     /**
-     * The controller that this collection was initialized with.
+     * The controller that this collection is associated with.
      *
      * @var \Cake\Controller\Controller|null
      */
-    protected $_Controller;
+    protected ?Controller $_Controller = null;
+
+    /**
+     * @var \Cake\Core\ContainerInterface|null
+     */
+    protected ?ContainerInterface $container = null;
 
     /**
      * Constructor.
      *
      * @param \Cake\Controller\Controller|null $controller Controller instance.
+     * @param \Cake\Core\ContainerInterface|null $container Container instance.
      */
-    public function __construct(?Controller $controller = null)
+    public function __construct(?Controller $controller = null, ?ContainerInterface $container = null)
     {
-        if ($controller) {
+        if ($controller !== null) {
             $this->setController($controller);
         }
-    }
-
-    /**
-     * Get the controller associated with the collection.
-     *
-     * @return \Cake\Controller\Controller Controller instance or null if not set.
-     */
-    public function getController(): Controller
-    {
-        if ($this->_Controller === null) {
-            throw new CakeException('Controller not set for ComponentRegistry');
-        }
-
-        return $this->_Controller;
+        $this->container = $container;
     }
 
     /**
@@ -82,16 +87,30 @@ class ComponentRegistry extends ObjectRegistry implements EventDispatcherInterfa
     }
 
     /**
+     * Get the controller associated with the collection.
+     *
+     * @return \Cake\Controller\Controller Controller instance.
+     */
+    public function getController(): Controller
+    {
+        if ($this->_Controller === null) {
+            throw new RuntimeException('Controller must be set first.');
+        }
+
+        return $this->_Controller;
+    }
+
+    /**
      * Resolve a component classname.
      *
      * Part of the template method for {@link \Cake\Core\ObjectRegistry::load()}.
      *
      * @param string $class Partial classname to resolve.
-     * @return string|null Either the correct class name or null.
-     * @psalm-return class-string|null
+     * @return class-string<\Cake\Controller\Component>|null Either the correct class name or null.
      */
     protected function _resolveClassName(string $class): ?string
     {
+        /** @var class-string<\Cake\Controller\Component>|null */
         return App::className($class, 'Controller/Component', 'Component');
     }
 
@@ -120,22 +139,55 @@ class ComponentRegistry extends ObjectRegistry implements EventDispatcherInterfa
      * Part of the template method for {@link \Cake\Core\ObjectRegistry::load()}
      * Enabled components will be registered with the event manager.
      *
-     * @param string $class The classname to create.
+     * @param \Cake\Controller\Component|class-string<\Cake\Controller\Component> $class The classname to create.
      * @param string $alias The alias of the component.
      * @param array<string, mixed> $config An array of config to use for the component.
      * @return \Cake\Controller\Component The constructed component class.
-     * @psalm-suppress MoreSpecificImplementedParamType
-     * @psalm-param class-string $class
      */
-    protected function _create($class, string $alias, array $config): Component
+    protected function _create(object|string $class, string $alias, array $config): Component
     {
-        /** @var \Cake\Controller\Component $instance */
-        $instance = new $class($this, $config);
-        $enable = $config['enabled'] ?? true;
-        if ($enable) {
+        if (is_object($class)) {
+            return $class;
+        }
+        if ($this->container?->has($class)) {
+            $constructor = (new ReflectionClass($class))->getConstructor();
+
+            if ($constructor !== null) {
+                $args = $this->reflectArguments($constructor, ['config' => $config]);
+
+                try {
+                    $this->container->extend($class)
+                        ->addArguments($args);
+                } catch (NotFoundException) {
+                    $this->container->add($class)
+                        ->addArguments($args);
+                }
+            }
+
+            /** @var \Cake\Controller\Component $instance */
+            $instance = $this->container->get($class);
+        } else {
+            $instance = new $class($this, $config);
+        }
+
+        if ($config['enabled'] ?? true) {
             $this->getEventManager()->on($instance);
         }
 
         return $instance;
+    }
+
+    /**
+     * Get container instance.
+     *
+     * @return \Cake\Core\ContainerInterface
+     */
+    protected function getContainer(): ContainerInterface
+    {
+        if ($this->container === null) {
+            throw new CakeException('Container not set.');
+        }
+
+        return $this->container;
     }
 }

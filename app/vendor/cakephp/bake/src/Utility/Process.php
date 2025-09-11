@@ -29,7 +29,7 @@ class Process
     /**
      * @var \Cake\Console\ConsoleIo
      */
-    protected $io;
+    protected ConsoleIo $io;
 
     /**
      * Constructor
@@ -59,7 +59,7 @@ class Process
         $process = proc_open(
             $command,
             $descriptorSpec,
-            $pipes
+            $pipes,
         );
         if (!is_resource($process)) {
             throw new RuntimeException("Could not start subprocess for `$command`");
@@ -74,7 +74,7 @@ class Process
         $exit = proc_close($process);
 
         if ($exit !== 0) {
-            throw new \RuntimeException($error);
+            throw new RuntimeException($error);
         }
 
         return $output;

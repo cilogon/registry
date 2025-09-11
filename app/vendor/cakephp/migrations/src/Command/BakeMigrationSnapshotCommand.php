@@ -19,10 +19,12 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\Database\Connection;
+use Cake\Database\Schema\CollectionInterface;
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
-use Migrations\TableFinderTrait;
+use Migrations\Util\TableFinder;
 use Migrations\Util\UtilTrait;
 
 /**
@@ -31,13 +33,12 @@ use Migrations\Util\UtilTrait;
 class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
 {
     use SnapshotTrait;
-    use TableFinderTrait;
     use UtilTrait;
 
     /**
      * @var string
      */
-    protected $_name;
+    protected string $_name;
 
     /**
      * @inheritDoc
@@ -53,9 +54,14 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
     public function bake(string $name, Arguments $args, ConsoleIo $io): void
     {
         $collection = $this->getCollection($this->connection);
-        EventManager::instance()->on('Bake.initialize', function (Event $event) use ($collection) {
+
+        $connection = ConnectionManager::get($this->connection);
+        assert($connection instanceof Connection);
+
+        EventManager::instance()->on('Bake.initialize', function (Event $event) use ($collection, $connection): void {
             $event->getSubject()->loadHelper('Migrations.Migration', [
                 'collection' => $collection,
+                'connection' => $connection,
             ]);
         });
         $this->_name = $name;
@@ -88,7 +94,8 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
             'require-table' => $arguments->getOption('require-table'),
             'plugin' => $this->plugin,
         ];
-        $tables = $this->getTablesToBake($collection, $options);
+        $finder = new TableFinder($this->connection);
+        $tables = $finder->getTablesToBake($collection, $options);
 
         sort($tables, SORT_NATURAL);
 
@@ -108,6 +115,7 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
             'action' => 'create_table',
             'name' => $this->_name,
             'autoId' => $autoId,
+            'backend' => Configure::read('Migrations.backend', 'builtin'),
         ];
     }
 
@@ -115,11 +123,12 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
      * Get a collection from a database
      *
      * @param string $connection Database connection name.
-     * @return \Cake\Database\Schema\Collection
+     * @return \Cake\Database\Schema\CollectionInterface
      */
-    public function getCollection($connection)
+    public function getCollection(string $connection): CollectionInterface
     {
         $connection = ConnectionManager::get($connection);
+        assert($connection instanceof Connection);
 
         return $connection->getSchemaCollection();
     }
@@ -132,7 +141,7 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
      * @deprecated Will be removed in the next version
      * @return bool True if the model is to be added.
      */
-    public function tableToAdd($tableName, $pluginName = null)
+    public function tableToAdd(string $tableName, ?string $pluginName = null): bool
     {
         return true;
     }
@@ -150,7 +159,7 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
             "Bake migration snapshot class\n" .
             "\n" .
             'Migration snapshots capture the current schema of an application into a ' .
-            'migration that will reproduce the current state as accurately as possible.'
+            'migration that will reproduce the current state as accurately as possible.',
         )->addArgument('name', [
             'help' => 'Name of the migration to bake. Can use Plugin.name to bake migration files into plugins.',
             'required' => true,

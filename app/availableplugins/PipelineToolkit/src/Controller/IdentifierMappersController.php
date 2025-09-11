@@ -32,7 +32,7 @@ namespace PipelineToolkit\Controller;
 use App\Controller\StandardPluginController;
 
 class IdentifierMappersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'IdentifierMappers.id' => 'asc'
     ]

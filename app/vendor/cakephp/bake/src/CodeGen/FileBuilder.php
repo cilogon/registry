@@ -23,22 +23,22 @@ class FileBuilder
     /**
      * @var \Cake\Console\ConsoleIo
      */
-    protected $io;
+    protected ConsoleIo $io;
 
     /**
      * @var string
      */
-    protected $namespace;
+    protected string $namespace;
 
     /**
      * @var \Bake\CodeGen\ParsedFile|null
      */
-    protected $parsedFile;
+    protected ?ParsedFile $parsedFile;
 
     /**
      * @var \Bake\CodeGen\ClassBuilder
      */
-    protected $classBuilder;
+    protected ClassBuilder $classBuilder;
 
     /**
      * @param \Cake\Console\ConsoleIo $io Console io
@@ -51,7 +51,7 @@ class FileBuilder
             throw new ParseException(sprintf(
                 'Existing namespace `%s` does not match expected namespace `%s`, cannot update existing file',
                 $parsedFile->namespace,
-                $namespace
+                $namespace,
             ));
         }
 

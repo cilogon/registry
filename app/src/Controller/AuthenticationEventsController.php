@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class AuthenticationEventsController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'AuthenticationEvents.id' => 'desc'
     ]

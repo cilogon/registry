@@ -16,8 +16,9 @@ declare(strict_types=1);
  */
 namespace Cake\I18n;
 
-use Cake\Chronos\ChronosInterface;
+use Cake\Chronos\ChronosDate;
 use Cake\Chronos\DifferenceFormatterInterface;
+use DateTimeInterface;
 
 /**
  * Helper class for formatting relative dates & times.
@@ -29,23 +30,31 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
     /**
      * Get the difference in a human readable format.
      *
-     * @param \Cake\Chronos\ChronosInterface $date The datetime to start with.
-     * @param \Cake\Chronos\ChronosInterface|null $other The datetime to compare against.
+     * @param \Cake\Chronos\ChronosDate|\DateTimeInterface $first The datetime to start with.
+     * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|null $second The datetime to compare against.
      * @param bool $absolute Removes time difference modifiers ago, after, etc.
      * @return string The difference between the two days in a human readable format.
-     * @see \Cake\Chronos\ChronosInterface::diffForHumans
+     * @see \Cake\Chronos\Chronos::diffForHumans
      */
     public function diffForHumans(
-        ChronosInterface $date,
-        ?ChronosInterface $other = null,
-        bool $absolute = false
+        ChronosDate|DateTimeInterface $first,
+        ChronosDate|DateTimeInterface|null $second = null,
+        bool $absolute = false,
     ): string {
-        $isNow = $other === null;
-        if ($isNow) {
-            $other = $date->now($date->getTimezone());
+        $isNow = $second === null;
+        if ($second === null) {
+            if ($first instanceof ChronosDate) {
+                $second = Date::now();
+            } else {
+                $second = DateTime::now($first->getTimezone());
+            }
         }
-        /** @psalm-suppress PossiblyNullArgument */
-        $diffInterval = $date->diff($other);
+        assert(
+            ($first instanceof ChronosDate && $second instanceof ChronosDate) ||
+            ($first instanceof DateTimeInterface && $second instanceof DateTimeInterface),
+        );
+
+        $diffInterval = $first->diff($second);
 
         switch (true) {
             case $diffInterval->y > 0:
@@ -58,8 +67,8 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
                 break;
             case $diffInterval->d > 0:
                 $count = $diffInterval->d;
-                if ($count >= I18nDateTimeInterface::DAYS_PER_WEEK) {
-                    $count = (int)($count / I18nDateTimeInterface::DAYS_PER_WEEK);
+                if ($count >= DateTime::DAYS_PER_WEEK) {
+                    $count = (int)($count / DateTime::DAYS_PER_WEEK);
                     $message = __dn('cake', '{0} week', '{0} weeks', $count, $count);
                 } else {
                     $message = __dn('cake', '{0} day', '{0} days', $count, $count);
@@ -92,20 +101,22 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
     /**
      * Format a into a relative timestring.
      *
-     * @param \Cake\I18n\I18nDateTimeInterface $time The time instance to format.
+     * @param \Cake\I18n\DateTime|\Cake\I18n\Date $time The time instance to format.
      * @param array<string, mixed> $options Array of options.
      * @return string Relative time string.
      * @see \Cake\I18n\Time::timeAgoInWords()
      */
-    public function timeAgoInWords(I18nDateTimeInterface $time, array $options = []): string
+    public function timeAgoInWords(DateTime|Date $time, array $options = []): string
     {
-        $options = $this->_options($options, FrozenTime::class);
+        $options = $this->_options($options, DateTime::class);
         if ($options['timezone']) {
             $time = $time->setTimezone($options['timezone']);
         }
 
-        $now = $options['from']->format('U');
-        $inSeconds = $time->format('U');
+        /** @var \Cake\Chronos\Chronos $from */
+        $from = $options['from'];
+        $now = (int)$from->format('U');
+        $inSeconds = (int)$time->format('U');
         $backwards = ($inSeconds > $now);
 
         $futureTime = $now;
@@ -120,7 +131,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
             return __d('cake', 'just now', 'just now');
         }
 
-        if ($diff > abs($now - (new FrozenTime($options['end']))->format('U'))) {
+        if ($diff > abs($now - (int)(new DateTime($options['end']))->format('U'))) {
             return sprintf($options['absoluteString'], $time->i18nFormat($options['format']));
         }
 
@@ -192,7 +203,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
      * @param array<string, mixed> $options An array of options.
      * @return array An array of values.
      */
-    protected function _diffData($futureTime, $pastTime, bool $backwards, $options): array
+    protected function _diffData(string|int $futureTime, string|int $pastTime, bool $backwards, array $options): array
     {
         $futureTime = (int)$futureTime;
         $pastTime = (int)$pastTime;
@@ -219,7 +230,11 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
                 $past['m'],
                 $past['Y'],
             ] = explode('/', date('H/i/s/d/m/Y', $pastTime));
-            $weeks = $days = $hours = $minutes = $seconds = 0;
+            $weeks = 0;
+            $days = 0;
+            $hours = 0;
+            $minutes = 0;
+            $seconds = 0;
 
             $years = (int)$future['Y'] - (int)$past['Y'];
             $months = (int)$future['m'] + (12 * $years) - (int)$past['m'];
@@ -236,7 +251,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
                 $days = (int)$future['d'] - (int)$past['d'];
             } else {
                 $daysInPastMonth = (int)date('t', $pastTime);
-                $daysInFutureMonth = (int)date('t', mktime(0, 0, 0, (int)$future['m'] - 1, 1, (int)$future['Y']));
+                $daysInFutureMonth = (int)date('t', (int)mktime(0, 0, 0, (int)$future['m'] - 1, 1, (int)$future['Y']));
 
                 if (!$backwards) {
                     $days = $daysInPastMonth - (int)$past['d'] + (int)$future['d'];
@@ -264,7 +279,9 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
                 $days -= $weeks * 7;
             }
         } else {
-            $years = $months = $weeks = 0;
+            $years = 0;
+            $months = 0;
+            $weeks = 0;
             $days = floor($diff / 86400);
 
             $diff -= $days * 86400;
@@ -295,7 +312,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
         $fNum = str_replace(
             ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'],
             ['1', '2', '3', '4', '5', '6', '7'],
-            $fWord
+            $fWord,
         );
 
         return [
@@ -314,20 +331,22 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
     /**
      * Format a into a relative date string.
      *
-     * @param \Cake\I18n\I18nDateTimeInterface $date The date to format.
+     * @param \Cake\I18n\DateTime|\Cake\I18n\Date $date The date to format.
      * @param array<string, mixed> $options Array of options.
      * @return string Relative date string.
      * @see \Cake\I18n\Date::timeAgoInWords()
      */
-    public function dateAgoInWords(I18nDateTimeInterface $date, array $options = []): string
+    public function dateAgoInWords(DateTime|Date $date, array $options = []): string
     {
-        $options = $this->_options($options, FrozenDate::class);
-        if ($options['timezone']) {
+        $options = $this->_options($options, Date::class);
+        if ($date instanceof DateTime && $options['timezone']) {
             $date = $date->setTimezone($options['timezone']);
         }
 
-        $now = $options['from']->format('U');
-        $inSeconds = $date->format('U');
+        /** @var \Cake\Chronos\Chronos $from */
+        $from = $options['from'];
+        $now = (int)$from->format('U');
+        $inSeconds = (int)$date->format('U');
         $backwards = ($inSeconds > $now);
 
         $futureTime = $now;
@@ -342,7 +361,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
             return __d('cake', 'today');
         }
 
-        if ($diff > abs($now - (new FrozenDate($options['end']))->format('U'))) {
+        if ($diff > abs($now - (int)(new Date($options['end']))->format('U'))) {
             return sprintf($options['absoluteString'], $date->i18nFormat($options['format']));
         }
 
@@ -396,7 +415,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
      * @param array<string, mixed> $options The options provided by the user.
      * @param string $class The class name to use for defaults.
      * @return array<string, mixed> Options with defaults applied.
-     * @psalm-param class-string<\Cake\I18n\FrozenDate>|class-string<\Cake\I18n\FrozenTime> $class
+     * @phpstan-param class-string<\Cake\I18n\Date>|class-string<\Cake\I18n\DateTime> $class
      */
     protected function _options(array $options, string $class): array
     {

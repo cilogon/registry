@@ -36,7 +36,7 @@ use Cake\Http\Response;
 use Cake\ORM\TableRegistry;
 
 class EnvSourceCollectorsController extends StandardEnrollerController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EnvSourceCollectors.id' => 'asc'
     ]

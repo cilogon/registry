@@ -36,7 +36,7 @@ use \App\Lib\Enum\EnrollmentAuthzEnum;
 class EnrollmentFlowsController extends StandardController {
   use \App\Lib\Traits\EnrollmentControllerTrait;
 
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EnrollmentFlows.name' => 'asc'
     ]

@@ -32,7 +32,7 @@ class InflectedRoute extends Route
      *
      * @var array|null
      */
-    protected $_inflectedDefaults;
+    protected ?array $_inflectedDefaults = null;
 
     /**
      * Parses a string URL into an array. If it matches, it will convert the prefix, controller and
@@ -52,7 +52,7 @@ class InflectedRoute extends Route
             $params['controller'] = Inflector::camelize($params['controller']);
         }
         if (!empty($params['plugin'])) {
-            if (strpos($params['plugin'], '/') === false) {
+            if (!str_contains($params['plugin'], '/')) {
                 $params['plugin'] = Inflector::camelize($params['plugin']);
             } else {
                 [$vendor, $plugin] = explode('/', $params['plugin'], 2);

@@ -19,9 +19,10 @@ namespace Cake\ORM\Behavior\Translate;
 use ArrayObject;
 use Cake\Collection\CollectionInterface;
 use Cake\Datasource\EntityInterface;
+use Cake\Datasource\ResultSetInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\PropertyMarshalInterface;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 
 /**
@@ -48,7 +49,7 @@ interface TranslateStrategyInterface extends PropertyMarshalInterface
      *
      * @param string|null $locale The locale to use for fetching and saving
      *   records. Pass `null` in order to unset the current locale, and to make
-     *   the behavior fall back to using the globally configured locale.
+     *   the behavior falls back to using the globally configured locale.
      * @return $this
      */
     public function setLocale(?string $locale);
@@ -79,40 +80,40 @@ interface TranslateStrategyInterface extends PropertyMarshalInterface
      * Modifies the results from a table find in order to merge full translation records
      * into each entity under the `_translations` key
      *
-     * @param \Cake\Datasource\ResultSetInterface $results Results to modify.
+     * @param \Cake\Datasource\ResultSetInterface<\Cake\Datasource\EntityInterface|array> $results Results to modify.
      * @return \Cake\Collection\CollectionInterface
      */
-    public function groupTranslations($results): CollectionInterface;
+    public function groupTranslations(ResultSetInterface $results): CollectionInterface;
 
     /**
      * Callback method that listens to the `beforeFind` event in the bound
      * table. It modifies the passed query by eager loading the translated fields
      * and adding a formatter to copy the values into the main table records.
      *
-     * @param \Cake\Event\EventInterface $event The beforeFind event that was fired.
-     * @param \Cake\ORM\Query $query Query
-     * @param \ArrayObject $options The options for the query
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The beforeFind event that was fired.
+     * @param \Cake\ORM\Query\SelectQuery $query Query
+     * @param \ArrayObject<string, mixed> $options The options for the query
      * @return void
      */
-    public function beforeFind(EventInterface $event, Query $query, ArrayObject $options);
+    public function beforeFind(EventInterface $event, SelectQuery $query, ArrayObject $options): void;
 
     /**
      * Modifies the entity before it is saved so that translated fields are persisted
      * in the database too.
      *
-     * @param \Cake\Event\EventInterface $event The beforeSave event that was fired
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The beforeSave event that was fired
      * @param \Cake\Datasource\EntityInterface $entity The entity that is going to be saved
-     * @param \ArrayObject $options the options passed to the save method
+     * @param \ArrayObject<string, mixed> $options the options passed to the save method
      * @return void
      */
-    public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options);
+    public function beforeSave(EventInterface $event, EntityInterface $entity, ArrayObject $options): void;
 
     /**
      * Unsets the temporary `_i18n` property after the entity has been saved
      *
-     * @param \Cake\Event\EventInterface $event The beforeSave event that was fired
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The beforeSave event that was fired
      * @param \Cake\Datasource\EntityInterface $entity The entity that is going to be saved
      * @return void
      */
-    public function afterSave(EventInterface $event, EntityInterface $entity);
+    public function afterSave(EventInterface $event, EntityInterface $entity): void;
 }

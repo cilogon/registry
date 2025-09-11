@@ -5,7 +5,7 @@ namespace Migrations\Util;
 
 use Cake\Collection\Collection;
 use Cake\Utility\Hash;
-use Phinx\Db\Adapter\AdapterInterface;
+use Migrations\Db\Adapter\AdapterInterface;
 use ReflectionClass;
 
 /**
@@ -18,7 +18,7 @@ class ColumnParser
      *
      * @var string
      */
-    protected $regexpParseColumn = '/
+    protected string $regexpParseColumn = '/
         ^
         (\w+)
         (?::(\w+\??
@@ -37,15 +37,15 @@ class ColumnParser
      *
      * @var string
      */
-    protected $regexpParseField = '/(\w+\??)\[([0-9,]+)\]/';
+    protected string $regexpParseField = '/(\w+\??)\[([0-9,]+)\]/';
 
     /**
      * Parses a list of arguments into an array of fields
      *
-     * @param array $arguments A list of arguments being parsed
-     * @return array
+     * @param array<int, string> $arguments A list of arguments being parsed
+     * @return array<string, array>
      */
-    public function parseFields(array $arguments)
+    public function parseFields(array $arguments): array
     {
         $fields = [];
         $arguments = $this->validArguments($arguments);
@@ -95,10 +95,10 @@ class ColumnParser
     /**
      * Parses a list of arguments into an array of indexes
      *
-     * @param array $arguments A list of arguments being parsed
-     * @return array
+     * @param array<int, string> $arguments A list of arguments being parsed
+     * @return array<string, array>
      */
-    public function parseIndexes(array $arguments)
+    public function parseIndexes(array $arguments): array
     {
         $indexes = [];
         $arguments = $this->validArguments($arguments);
@@ -144,10 +144,10 @@ class ColumnParser
      * Parses a list of arguments into an array of fields composing the primary key
      * of the table
      *
-     * @param array $arguments A list of arguments being parsed
-     * @return array
+     * @param array<int, string> $arguments A list of arguments being parsed
+     * @return array<string>
      */
-    public function parsePrimaryKey(array $arguments)
+    public function parsePrimaryKey(array $arguments): array
     {
         $primaryKey = [];
         $arguments = $this->validArguments($arguments);
@@ -171,10 +171,10 @@ class ColumnParser
     /**
      * Returns a list of only valid arguments
      *
-     * @param array $arguments A list of arguments
-     * @return array
+     * @param array<string> $arguments A list of arguments
+     * @return array<string>
      */
-    public function validArguments(array $arguments)
+    public function validArguments(array $arguments): array
     {
         $collection = new Collection($arguments);
 
@@ -188,13 +188,13 @@ class ColumnParser
      *
      * @param string $field Name of field
      * @param string|null $type User-specified type
-     * @return array First value is the field type, second value is the field length. If no length
+     * @return array<string|int|array|null> First value is the field type, second value is the field length. If no length
      * can be extracted, null is returned for the second value
      */
-    public function getTypeAndLength($field, $type)
+    public function getTypeAndLength(string $field, ?string $type): array
     {
         if ($type && preg_match($this->regexpParseField, $type, $matches)) {
-            if (strpos($matches[2], ',') !== false) {
+            if (str_contains($matches[2], ',')) {
                 $matches[2] = explode(',', $matches[2]);
             }
 
@@ -215,7 +215,7 @@ class ColumnParser
      * @param string|null $type User-specified type
      * @return string|null
      */
-    public function getType($field, $type): ?string
+    public function getType(string $field, ?string $type): ?string
     {
         $reflector = new ReflectionClass(AdapterInterface::class);
         $collection = new Collection($reflector->getConstants());
@@ -245,10 +245,9 @@ class ColumnParser
      * Returns the default length to be used for a given type.
      *
      * @param string $type User-specified type
-     * @return int|int[]
-     * @psalm-suppress InvalidNullableReturnType
+     * @return int|int[]|null
      */
-    public function getLength($type)
+    public function getLength(string $type): int|array|null
     {
         $length = null;
         if ($type === 'string') {
@@ -265,7 +264,6 @@ class ColumnParser
             $length = [10, 6];
         }
 
-        /** @psalm-suppress NullableReturnStatement */
         return $length;
     }
 
@@ -278,9 +276,9 @@ class ColumnParser
      * @param bool $indexUnique Whether this is a unique index or not
      * @return string
      */
-    public function getIndexName($field, $indexType, $indexName, $indexUnique)
+    public function getIndexName(string $field, ?string $indexType, ?string $indexName, bool $indexUnique): string
     {
-        if (empty($indexName)) {
+        if (!$indexName) {
             $indexName = strtoupper('BY_' . $field);
             if ($indexType === 'primary') {
                 $indexName = 'PRIMARY';

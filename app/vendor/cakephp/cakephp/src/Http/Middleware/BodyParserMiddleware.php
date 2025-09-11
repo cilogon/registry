@@ -38,14 +38,14 @@ class BodyParserMiddleware implements MiddlewareInterface
      *
      * @var array<\Closure>
      */
-    protected $parsers = [];
+    protected array $parsers = [];
 
     /**
      * The HTTP methods to parse data on.
      *
      * @var array<string>
      */
-    protected $methods = ['PUT', 'POST', 'PATCH', 'DELETE'];
+    protected array $methods = ['PUT', 'POST', 'PATCH', 'DELETE'];
 
     /**
      * Constructor
@@ -65,13 +65,13 @@ class BodyParserMiddleware implements MiddlewareInterface
         if ($options['json']) {
             $this->addParser(
                 ['application/json', 'text/json'],
-                Closure::fromCallable([$this, 'decodeJson'])
+                $this->decodeJson(...),
             );
         }
         if ($options['xml']) {
             $this->addParser(
                 ['application/xml', 'text/xml'],
-                Closure::fromCallable([$this, 'decodeXml'])
+                $this->decodeXml(...),
             );
         }
         if ($options['methods']) {
@@ -178,17 +178,17 @@ class BodyParserMiddleware implements MiddlewareInterface
      * @param string $body The request body to decode
      * @return array|null
      */
-    protected function decodeJson(string $body)
+    protected function decodeJson(string $body): ?array
     {
         if ($body === '') {
             return [];
         }
         $decoded = json_decode($body, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return (array)$decoded;
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
         }
 
-        return null;
+        return (array)$decoded;
     }
 
     /**
@@ -202,12 +202,14 @@ class BodyParserMiddleware implements MiddlewareInterface
         try {
             $xml = Xml::build($body, ['return' => 'domdocument', 'readFile' => false]);
             // We might not get child nodes if there are nested inline entities.
-            if ((int)$xml->childNodes->length > 0) {
+            /** @var \DOMNodeList $domNodeList */
+            $domNodeList = $xml->childNodes;
+            if ((int)$domNodeList->length > 0) {
                 return Xml::toArray($xml);
             }
 
             return [];
-        } catch (XmlException $e) {
+        } catch (XmlException) {
             return [];
         }
     }

@@ -24,15 +24,13 @@ For details and older versions see [version map](https://github.com/cakephp/debu
 
 * Install the plugin with [Composer](https://getcomposer.org/) from your CakePHP Project's ROOT directory (where the **composer.json** file is located)
 ```sh
-php composer.phar require --dev cakephp/debug_kit:"^4.0"
+php composer.phar require --dev cakephp/debug_kit:"^5.0"
 ```
 
-* [Load the plugin](https://book.cakephp.org/4/en/plugins.html#loading-a-plugin)
-```php
-// src/Application.php
-$this->addPlugin('DebugKit');
+* [Load the plugin](https://book.cakephp.org/5/en/plugins.html#loading-a-plugin)
 ```
-* Set `'debug' => true,` in `config/app.php`.
+bin/cake plugin load DebugKit --only-debug
+```
 
 ## Is DebugKit not working?
 
@@ -64,4 +62,9 @@ requests](https://help.github.com/articles/using-pull-requests) or open
 ## Documentation
 
 Documentation for DebugKit can be found in the
-[CakePHP documentation](https://book.cakephp.org/debugkit/4/en/index.html).
+[CakePHP documentation](https://book.cakephp.org/debugkit/5/en/index.html).
+
+## Panels
+Panels by other plugins:
+- `L10n` by [Setup plugin](https://github.com/dereuromark/cakephp-setup) to show current localization for Date, DateTime, Time objects/values.
+- `Twig` by [Twig plugin](https://github.com/cakephp/twig-view/) to list all templates.

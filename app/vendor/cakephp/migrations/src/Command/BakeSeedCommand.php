@@ -35,12 +35,12 @@ class BakeSeedCommand extends SimpleBakeCommand
      *
      * @var string
      */
-    public $pathFragment = 'config/Seeds/';
+    public string $pathFragment = 'config/Seeds/';
 
     /**
      * @var string
      */
-    protected $_name;
+    protected string $_name;
 
     /**
      * @inheritDoc
@@ -101,7 +101,7 @@ class BakeSeedCommand extends SimpleBakeCommand
             $namespace = $this->_pluginNamespace($this->plugin);
         }
 
-        $table = Inflector::tableize((string)$arguments->getArgumentAt(0));
+        $table = Inflector::underscore((string)$arguments->getArgumentAt(0));
         if ($arguments->hasOption('table')) {
             /** @var string $table */
             $table = $arguments->getOption('table');
@@ -142,6 +142,7 @@ class BakeSeedCommand extends SimpleBakeCommand
             'namespace' => $namespace,
             'records' => $records,
             'table' => $table,
+            'backend' => Configure::read('Migrations.backend', 'builtin'),
         ];
     }
 
@@ -150,10 +151,12 @@ class BakeSeedCommand extends SimpleBakeCommand
      */
     public function bake(string $name, Arguments $args, ConsoleIo $io): void
     {
+        /** @var array<string, bool|string|null> $options */
+        $options = array_merge($args->getOptions(), ['no-test' => true]);
         $newArgs = new Arguments(
             $args->getArguments(),
-            ['no-test' => true] + $args->getOptions(),
-            ['name']
+            $options,
+            ['name'],
         );
         $this->_name = $name;
         parent::bake($name, $newArgs, $io);
@@ -170,7 +173,7 @@ class BakeSeedCommand extends SimpleBakeCommand
         $parser = parent::buildOptionParser($parser);
 
         $parser->setDescription(
-            'Bake seed class.'
+            'Bake seed class.',
         )->addOption('table', [
             'help' => 'The database table to use.',
         ])->addOption('data', [
@@ -195,7 +198,7 @@ class BakeSeedCommand extends SimpleBakeCommand
      * @param string $indentCharacter   Desired indent for the code.
      * @return string
      */
-    protected function prettifyArray(array $array, $tabCount = 3, $indentCharacter = '    ')
+    protected function prettifyArray(array $array, int $tabCount = 3, string $indentCharacter = '    '): string
     {
         $content = var_export($array, true);
 

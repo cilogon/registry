@@ -26,17 +26,9 @@ use TypeError;
 abstract class SerializedView extends View
 {
     /**
-     * Response type.
-     *
-     * @var string
-     * @deprecated 4.4.0 Implement ``public static contentType(): string`` instead.
-     */
-    protected $_responseType;
-
-    /**
      * Default config options.
      *
-     * Use ViewBuilder::setOption()/setOptions() in your controlle to set these options.
+     * Use ViewBuilder::setOption()/setOptions() in your controller to set these options.
      *
      * - `serialize`: Option to convert a set of view variables into a serialized response.
      *   Its value can be a string for single variable name or array for multiple
@@ -45,21 +37,9 @@ abstract class SerializedView extends View
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'serialize' => null,
     ];
-
-    /**
-     * @inheritDoc
-     */
-    public function initialize(): void
-    {
-        parent::initialize();
-        if ($this->_responseType) {
-            $response = $this->getResponse()->withType($this->_responseType);
-            $this->setResponse($response);
-        }
-    }
 
     /**
      * Load helpers only if serialization is disabled.
@@ -82,7 +62,7 @@ abstract class SerializedView extends View
      *   need(s) to be serialized
      * @return string The serialized data.
      */
-    abstract protected function _serialize($serialize): string;
+    abstract protected function _serialize(array|string $serialize): string;
 
     /**
      * Render view template or return serialized data.
@@ -92,23 +72,9 @@ abstract class SerializedView extends View
      * @return string The rendered view.
      * @throws \Cake\View\Exception\SerializationFailureException When serialization fails.
      */
-    public function render(?string $template = null, $layout = null): string
+    public function render(?string $template = null, string|false|null $layout = null): string
     {
-        $serialize = $this->getConfig('serialize', false);
-
-        if ($serialize === true) {
-            $options = array_map(
-                function ($v) {
-                    return '_' . $v;
-                },
-                array_keys($this->_defaultConfig)
-            );
-
-            $serialize = array_diff(
-                array_keys($this->viewVars),
-                $options
-            );
-        }
+        $serialize = $this->serializeKeys();
         if ($serialize !== false) {
             try {
                 return $this->_serialize($serialize);
@@ -116,11 +82,25 @@ abstract class SerializedView extends View
                 throw new SerializationFailureException(
                     'Serialization of View data failed.',
                     null,
-                    $e
+                    $e,
                 );
             }
         }
 
         return parent::render($template, false);
+    }
+
+    /**
+     * @return array|string|false
+     */
+    protected function serializeKeys(): array|string|false
+    {
+        $serialize = $this->getConfig('serialize', false);
+
+        if ($serialize === true) {
+            $serialize = array_keys($this->viewVars);
+        }
+
+        return $serialize;
     }
 }

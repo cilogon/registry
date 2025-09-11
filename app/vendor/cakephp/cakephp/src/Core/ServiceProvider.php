@@ -19,7 +19,7 @@ namespace Cake\Core;
 use League\Container\DefinitionContainerInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use League\Container\ServiceProvider\BootableServiceProviderInterface;
-use RuntimeException;
+use LogicException;
 
 /**
  * Container ServiceProvider
@@ -37,13 +37,10 @@ abstract class ServiceProvider extends AbstractServiceProvider implements Bootab
      * @var array<string>
      * @see ServiceProvider::provides()
      */
-    protected $provides = [];
+    protected array $provides = [];
 
     /**
      * Get the container.
-     *
-     * This method's actual return type and documented return type differ
-     * because PHP 7.2 doesn't support return type narrowing.
      *
      * @return \Cake\Core\ContainerInterface
      */
@@ -51,14 +48,14 @@ abstract class ServiceProvider extends AbstractServiceProvider implements Bootab
     {
         $container = parent::getContainer();
 
-        if (!($container instanceof ContainerInterface)) {
-            $message = sprintf(
+        assert(
+            $container instanceof ContainerInterface,
+            sprintf(
                 'Unexpected container type. Expected `%s` got `%s` instead.',
                 ContainerInterface::class,
-                getTypeName($container)
-            );
-            throw new RuntimeException($message);
-        }
+                get_debug_type($container),
+            ),
+        );
 
         return $container;
     }
@@ -108,7 +105,7 @@ abstract class ServiceProvider extends AbstractServiceProvider implements Bootab
      * The provides method is a way to let the container know that a service
      * is provided by this service provider.
      *
-     * Every service that is registered via this service provider must have an
+     * Every service registered via this service provider must have an
      * alias added to this array or it will be ignored.
      *
      * @param string $id Identifier.
@@ -116,6 +113,12 @@ abstract class ServiceProvider extends AbstractServiceProvider implements Bootab
      */
     public function provides(string $id): bool
     {
+        if (!$this->provides) {
+            throw new LogicException(
+                'The property `$provides` should contain a list with service ids for this service provider',
+            );
+        }
+
         return in_array($id, $this->provides, true);
     }
 

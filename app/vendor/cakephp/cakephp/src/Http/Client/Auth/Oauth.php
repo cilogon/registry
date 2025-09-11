@@ -19,7 +19,6 @@ use Cake\Core\Exception\CakeException;
 use Cake\Http\Client\Request;
 use Cake\Utility\Security;
 use Psr\Http\Message\UriInterface;
-use RuntimeException;
 
 /**
  * Oauth 1 authentication strategy for Cake\Http\Client
@@ -57,7 +56,7 @@ class Oauth
                 $hasKeys = isset(
                     $credentials['consumerSecret'],
                     $credentials['token'],
-                    $credentials['tokenSecret']
+                    $credentials['tokenSecret'],
                 );
                 if (!$hasKeys) {
                     return $request;
@@ -76,7 +75,7 @@ class Oauth
                 $hasKeys = isset(
                     $credentials['consumerSecret'],
                     $credentials['token'],
-                    $credentials['tokenSecret']
+                    $credentials['tokenSecret'],
                 );
                 if (!$hasKeys) {
                     return $request;
@@ -85,7 +84,7 @@ class Oauth
                 break;
 
             default:
-                throw new CakeException(sprintf('Unknown Oauth signature method %s', $credentials['method']));
+                throw new CakeException(sprintf('Unknown Oauth signature method `%s`.', $credentials['method']));
         }
 
         return $request->withHeader('Authorization', $value);
@@ -153,11 +152,11 @@ class Oauth
             $values['oauth_realm'] = $credentials['realm'];
         }
         $key = [$credentials['consumerSecret'], $credentials['tokenSecret']];
-        $key = array_map([$this, '_encode'], $key);
+        $key = array_map($this->_encode(...), $key);
         $key = implode('&', $key);
 
         $values['oauth_signature'] = base64_encode(
-            hash_hmac('sha1', $baseString, $key, true)
+            hash_hmac('sha1', $baseString, $key, true),
         );
 
         return $this->_buildAuth($values);
@@ -171,12 +170,11 @@ class Oauth
      * @param \Cake\Http\Client\Request $request The request object.
      * @param array $credentials Authentication credentials.
      * @return string
-     * @throws \RuntimeException
      */
     protected function _rsaSha1(Request $request, array $credentials): string
     {
         if (!function_exists('openssl_pkey_get_private')) {
-            throw new RuntimeException('RSA-SHA1 signature method requires the OpenSSL extension.');
+            throw new CakeException('RSA-SHA1 signature method requires the OpenSSL extension.');
         }
 
         $nonce = $credentials['nonce'] ?? bin2hex(Security::randomBytes(16));
@@ -219,16 +217,15 @@ class Oauth
             rewind($resource);
             $credentials['privateKeyPassphrase'] = $passphrase;
         }
+        /** @var \OpenSSLAsymmetricKey|false $privateKey */
         $privateKey = openssl_pkey_get_private($credentials['privateKey'], $credentials['privateKeyPassphrase']);
         $this->checkSslError();
+
+        assert($privateKey !== false);
 
         $signature = '';
         openssl_sign($baseString, $signature, $privateKey);
         $this->checkSslError();
-
-        if (PHP_MAJOR_VERSION < 8) {
-            openssl_free_key($privateKey);
-        }
 
         $values['oauth_signature'] = base64_encode($signature);
 
@@ -255,7 +252,7 @@ class Oauth
             $this->_normalizedUrl($request->getUri()),
             $this->_normalizedParams($request, $oauthValues),
         ];
-        $parts = array_map([$this, '_encode'], $parts);
+        $parts = array_map($this->_encode(...), $parts);
 
         return implode('&', $parts);
     }
@@ -373,9 +370,10 @@ class Oauth
     }
 
     /**
-     * Check for SSL errors and raise if one is encountered.
+     * Check for SSL errors and throw an exception if found.
      *
      * @return void
+     * @throws \Cake\Core\Exception\CakeException When an error is found
      */
     protected function checkSslError(): void
     {
@@ -385,7 +383,7 @@ class Oauth
         }
 
         if (strlen($error) > 0) {
-            throw new RuntimeException('openssl error: ' . $error);
+            throw new CakeException('openssl error: ' . $error);
         }
     }
 }

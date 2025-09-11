@@ -35,7 +35,7 @@ use Cake\Http\Response;
 use Cake\Log\Log;
 
 class EnrollmentFlowStepsController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EnrollmentFlowSteps.ordr' => 'asc'
     ]

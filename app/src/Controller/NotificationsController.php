@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class NotificationsController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Notifications.modified' => 'desc'
     ]

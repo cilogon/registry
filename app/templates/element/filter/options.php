@@ -29,7 +29,7 @@ declare(strict_types = 1);
 
 use App\Lib\Enum\ApplicationStateEnum;
 
-$modelsName = $this->name;
+$modelsName = $this->getName();
 
 ?>
 

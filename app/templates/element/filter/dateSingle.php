@@ -43,7 +43,7 @@ use Cake\Utility\Inflector;
 // $columns = the passed parameter $indexColumns as found in columns.inc;
 // provides overrides for labels and sorting.
 $columns = $vv_indexColumns;
-$modelsName = $this->name;
+$modelsName = $this->getName();
 
 $label = Inflector::humanize(
   Inflector::underscore(

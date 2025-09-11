@@ -38,32 +38,34 @@ class RoutesCheckCommand extends Command
     }
 
     /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'Check a URL string against the routes.';
+    }
+
+    /**
      * Display all routes in an application
      *
      * @param \Cake\Console\Arguments $args The command arguments.
      * @param \Cake\Console\ConsoleIo $io The console io
      * @return int|null The exit code or null for success
+     * @throws \JsonException
      */
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
         $url = $args->getArgument('url');
         try {
-            $request = new ServerRequest(['url' => $url]);
-            $route = Router::parseRequest($request);
-            $name = null;
-            foreach (Router::routes() as $r) {
-                if ($r->match($route)) {
-                    $name = $r->options['_name'] ?? $r->getName();
-                    break;
-                }
-            }
+            $parsed = Router::parseRequest(new ServerRequest(['url' => $url]));
+            $name = $parsed['_name'] ?? $parsed['_route']->getName();
 
-            unset($route['_route'], $route['_matchedRoute']);
-            ksort($route);
+            unset($parsed['_route'], $parsed['_matchedRoute']);
+            ksort($parsed);
 
             $output = [
                 ['Route name', 'URI template', 'Defaults'],
-                [$name, $url, json_encode($route)],
+                [$name, $url, json_encode($parsed, JSON_THROW_ON_ERROR)],
             ];
             $io->helper('table')->output($output);
             $io->out();
@@ -74,8 +76,8 @@ class RoutesCheckCommand extends Command
             ];
             $io->helper('table')->output($output);
             $io->out();
-        } catch (MissingRouteException $e) {
-            $io->warning("'$url' did not match any routes.");
+        } catch (MissingRouteException) {
+            $io->warning("'{$url}' did not match any routes.");
             $io->out();
 
             return static::CODE_ERROR;
@@ -92,10 +94,10 @@ class RoutesCheckCommand extends Command
      */
     public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
-        $parser->setDescription(
-            'Check a URL string against the routes. ' .
-            'Will output the routing parameters the route resolves to.'
-        )
+        $parser->setDescription([
+            static::getDescription(),
+            'Will output the routing parameters the route resolves to.',
+        ])
         ->addArgument('url', [
             'help' => 'The URL to check.',
             'required' => true,

@@ -166,7 +166,7 @@ trait PluggableModelTrait {
    */
 
   public function pluginModelForEntityId(int $id, array $options=[]) {
-    $entity = $this->get($id, $options);
+    $entity = $this->get($id, ...$options);
     $pModel = StringUtilities::pluginModel($entity->plugin);
 
     return $this->$pModel;

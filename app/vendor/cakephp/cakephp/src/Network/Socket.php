@@ -23,7 +23,6 @@ use Cake\Validation\Validation;
 use Composer\CaBundle\CaBundle;
 use Exception;
 use InvalidArgumentException;
-use function Cake\Core\deprecationWarning;
 
 /**
  * CakePHP network socket connection class.
@@ -39,7 +38,7 @@ class Socket
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'persistent' => false,
         'host' => 'localhost',
         'protocol' => 'tcp',
@@ -59,28 +58,28 @@ class Socket
      *
      * @var bool
      */
-    protected $connected = false;
+    protected bool $connected = false;
 
     /**
      * This variable contains an array with the last error number (num) and string (str)
      *
      * @var array<string, mixed>
      */
-    protected $lastError = [];
+    protected array $lastError = [];
 
     /**
      * True if the socket stream is encrypted after a {@link \Cake\Network\Socket::enableCrypto()} call
      *
      * @var bool
      */
-    protected $encrypted = false;
+    protected bool $encrypted = false;
 
     /**
      * Contains all the encryption methods available
      *
      * @var array<string, int>
      */
-    protected $_encryptMethods = [
+    protected array $_encryptMethods = [
         'sslv23_client' => STREAM_CRYPTO_METHOD_SSLv23_CLIENT,
         'tls_client' => STREAM_CRYPTO_METHOD_TLS_CLIENT,
         'tlsv10_client' => STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT,
@@ -99,7 +98,7 @@ class Socket
      *
      * @var array<string>
      */
-    protected $_connectionErrors = [];
+    protected array $_connectionErrors = [];
 
     /**
      * Constructor.
@@ -124,8 +123,7 @@ class Socket
             $this->disconnect();
         }
 
-        $hasProtocol = strpos($this->_config['host'], '://') !== false;
-        if ($hasProtocol) {
+        if (str_contains($this->_config['host'], '://')) {
             [$this->_config['protocol'], $this->_config['host']] = explode('://', $this->_config['host']);
         }
         $scheme = null;
@@ -145,8 +143,10 @@ class Socket
             $connectAs |= STREAM_CLIENT_PERSISTENT;
         }
 
-        /** @psalm-suppress InvalidArgument */
-        set_error_handler([$this, '_connectionErrorHandler']);
+        /**
+         * @phpstan-ignore-next-line
+         */
+        set_error_handler($this->_connectionErrorHandler(...));
         $remoteSocketTarget = $scheme . $this->_config['host'];
         $port = (int)$this->_config['port'];
         if ($port > 0) {
@@ -161,7 +161,7 @@ class Socket
             $errStr,
             (int)$this->_config['timeout'],
             $connectAs,
-            $context
+            $context,
         );
         restore_error_handler();
 
@@ -177,7 +177,8 @@ class Socket
 
         $this->connected = is_resource($this->connection);
         if ($this->connected) {
-            /** @psalm-suppress PossiblyNullArgument */
+            assert($this->connection !== null);
+
             stream_set_timeout($this->connection, (int)$this->_config['timeout']);
         }
 
@@ -201,26 +202,32 @@ class Socket
      * @param int $errNum error number
      * @param string $errStr error string
      * @param int $timeout timeout
-     * @param int $connectAs flags
+     * @param int<0, 7> $connectAs flags
      * @param resource $context context
      * @return resource|null
      */
-    protected function _getStreamSocketClient($remoteSocketTarget, &$errNum, &$errStr, $timeout, $connectAs, $context)
-    {
+    protected function _getStreamSocketClient(
+        string $remoteSocketTarget,
+        int &$errNum,
+        string &$errStr,
+        int $timeout,
+        int $connectAs,
+        $context,
+    ) {
         $resource = stream_socket_client(
             $remoteSocketTarget,
             $errNum,
             $errStr,
             $timeout,
             $connectAs,
-            $context
+            $context,
         );
 
-        if ($resource) {
-            return $resource;
+        if (!$resource) {
+            return null;
         }
 
-        return null;
+        return $resource;
     }
 
     /**
@@ -232,7 +239,7 @@ class Socket
     protected function _setSslContext(string $host): void
     {
         foreach ($this->_config as $key => $value) {
-            if (substr($key, 0, 4) !== 'ssl_') {
+            if (!str_starts_with($key, 'ssl_')) {
                 continue;
             }
             $contextKey = substr($key, 4);
@@ -260,7 +267,7 @@ class Socket
      * socket_stream_client() does not populate errNum, or $errStr when there are
      * connection errors, as in the case of SSL verification failure.
      *
-     * Instead we need to handle those errors manually.
+     * Instead, we need to handle those errors manually.
      *
      * @param int $code Code number.
      * @param string $message Message.
@@ -274,7 +281,7 @@ class Socket
     /**
      * Get the connection context.
      *
-     * @return array|null Null when there is no connection, an array when there is.
+     * @return array<string, mixed>|null Null when there is no connection, an array when there is.
      */
     public function context(): ?array
     {
@@ -293,10 +300,10 @@ class Socket
     public function host(): string
     {
         if (Validation::ip($this->_config['host'])) {
-            return gethostbyaddr($this->_config['host']);
+            return (string)gethostbyaddr($this->_config['host']);
         }
 
-        return gethostbyaddr($this->address());
+        return (string)gethostbyaddr($this->address());
     }
 
     /**
@@ -316,7 +323,7 @@ class Socket
     /**
      * Get all IP addresses associated with the current connection.
      *
-     * @return array IP addresses
+     * @return array<string> IP addresses
      */
     public function addresses(): array
     {
@@ -324,7 +331,7 @@ class Socket
             return [$this->_config['host']];
         }
 
-        return gethostbynamel($this->_config['host']);
+        return gethostbynamel($this->_config['host']) ?: [];
     }
 
     /**
@@ -334,11 +341,11 @@ class Socket
      */
     public function lastError(): ?string
     {
-        if (!empty($this->lastError)) {
-            return $this->lastError['num'] . ': ' . $this->lastError['str'];
+        if (!$this->lastError) {
+            return null;
         }
 
-        return null;
+        return $this->lastError['num'] . ': ' . $this->lastError['str'];
     }
 
     /**
@@ -367,7 +374,8 @@ class Socket
         $totalBytes = strlen($data);
         $written = 0;
         while ($written < $totalBytes) {
-            /** @psalm-suppress PossiblyNullArgument */
+            assert($this->connection !== null);
+
             $rv = fwrite($this->connection, substr($data, $written));
             if ($rv === false || $rv === 0) {
                 return $written;
@@ -387,24 +395,28 @@ class Socket
      */
     public function read(int $length = 1024): ?string
     {
+        if ($length < 1) {
+            throw new InvalidArgumentException('Length must be greater than `0`');
+        }
+
         if (!$this->connected && !$this->connect()) {
             return null;
         }
 
-        /** @psalm-suppress PossiblyNullArgument */
-        if (!feof($this->connection)) {
-            $buffer = fread($this->connection, $length);
-            $info = stream_get_meta_data($this->connection);
-            if ($info['timed_out']) {
-                $this->setLastError(E_WARNING, 'Connection timed out');
-
-                return null;
-            }
-
-            return $buffer;
+        assert($this->connection !== null);
+        if (feof($this->connection)) {
+            return null;
         }
 
-        return null;
+        $buffer = fread($this->connection, $length);
+        $info = stream_get_meta_data($this->connection);
+        if ($info['timed_out']) {
+            $this->setLastError(E_WARNING, 'Connection timed out');
+
+            return null;
+        }
+
+        return $buffer === false ? null : $buffer;
     }
 
     /**
@@ -419,7 +431,6 @@ class Socket
 
             return true;
         }
-        /** @psalm-suppress InvalidPropertyAssignmentValue */
         $this->connected = !fclose($this->connection);
 
         if (!$this->connected) {
@@ -445,9 +456,9 @@ class Socket
      */
     public function reset(?array $state = null): void
     {
-        if (empty($state)) {
+        if (!$state) {
             static $initialState = [];
-            if (empty($initialState)) {
+            if (!$initialState) {
                 $initialState = get_class_vars(self::class);
             }
             $state = $initialState;
@@ -512,58 +523,5 @@ class Socket
     public function isEncrypted(): bool
     {
         return $this->encrypted;
-    }
-
-    /**
-     * Temporary magic method to allow accessing protected properties.
-     *
-     * Will be removed in 5.0.
-     *
-     * @param string $name Property name.
-     * @return mixed
-     */
-    public function __get($name)
-    {
-        switch ($name) {
-            case 'connected':
-                deprecationWarning('The property `$connected` is deprecated, use `isConnected()` instead.');
-
-                return $this->connected;
-
-            case 'encrypted':
-                deprecationWarning('The property `$encrypted` is deprecated, use `isEncrypted()` instead.');
-
-                return $this->encrypted;
-
-            case 'lastError':
-                deprecationWarning('The property `$lastError` is deprecated, use `lastError()` instead.');
-
-                return $this->lastError;
-
-            case 'connection':
-                deprecationWarning('The property `$connection` is deprecated.');
-
-                return $this->connection;
-
-            case 'description':
-                deprecationWarning('The CakePHP team would love to know your use case for this property.');
-
-                return 'Remote DataSource Network Socket Interface';
-        }
-
-        $trace = debug_backtrace();
-        $parts = explode('\\', static::class);
-        trigger_error(
-            sprintf(
-                'Undefined property: %s::$%s in %s on line %s',
-                array_pop($parts),
-                $name,
-                $trace[0]['file'],
-                $trace[0]['line']
-            ),
-            E_USER_NOTICE
-        );
-
-        return null;
     }
 }

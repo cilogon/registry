@@ -19,204 +19,51 @@ namespace Cake\Database\Query;
 use Cake\Database\Query;
 
 /**
- * Delete Query forward compatibility shim.
+ * This class is used to generate DELETE queries for the relational database.
  */
 class DeleteQuery extends Query
 {
     /**
-     * Type of this query (select, insert, update, delete).
+     * Type of this query.
      *
      * @var string
      */
-    protected $_type = 'delete';
+    protected string $_type = self::TYPE_DELETE;
 
     /**
-     * @inheritDoc
+     * List of SQL parts that will be used to build this query.
+     *
+     * @var array<string, mixed>
      */
-    public function select($fields = [], bool $overwrite = false)
-    {
-        $this->_deprecatedMethod('select()', 'Create your query with selectQuery() instead.');
-
-        return parent::select($fields, $overwrite);
-    }
+    protected array $_parts = [
+        'comment' => null,
+        'with' => [],
+        'delete' => true,
+        'modifier' => [],
+        'from' => [],
+        'join' => [],
+        'where' => null,
+        'order' => null,
+        'limit' => null,
+        'epilog' => null,
+    ];
 
     /**
-     * @inheritDoc
+     * Create a delete query.
+     *
+     * Can be combined with from(), where() and other methods to
+     * create delete queries with specific conditions.
+     *
+     * @param string|null $table The table to use when deleting.
+     * @return $this
      */
-    public function distinct($on = [], $overwrite = false)
+    public function delete(?string $table = null)
     {
-        $this->_deprecatedMethod('distint()');
+        $this->_dirty();
+        if ($table !== null) {
+            $this->from($table);
+        }
 
-        return parent::distinct($on, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function modifier($modifiers, $overwrite = false)
-    {
-        $this->_deprecatedMethod('modifier()');
-
-        return parent::modifier($modifiers, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function order($fields, $overwrite = false)
-    {
-        $this->_deprecatedMethod('order()');
-
-        return parent::order($fields, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function orderAsc($field, $overwrite = false)
-    {
-        $this->_deprecatedMethod('orderAsc()');
-
-        return parent::orderAsc($field, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function orderDesc($field, $overwrite = false)
-    {
-        $this->_deprecatedMethod('orderDesc()');
-
-        return parent::orderDesc($field, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function group($fields, $overwrite = false)
-    {
-        $this->_deprecatedMethod('group()');
-
-        return parent::group($fields, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function having($conditions = null, $types = [], $overwrite = false)
-    {
-        $this->_deprecatedMethod('having()');
-
-        return parent::having($conditions, $types, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function andHaving($conditions, $types = [])
-    {
-        $this->_deprecatedMethod('andHaving()');
-
-        return parent::andHaving($conditions, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function page(int $num, ?int $limit = null)
-    {
-        $this->_deprecatedMethod('page()');
-
-        return parent::page($num, $limit);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function limit($limit)
-    {
-        $this->_deprecatedMethod('limit()');
-
-        return parent::limit($limit);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offset($offset)
-    {
-        $this->_deprecatedMethod('offset()');
-
-        return parent::offset($offset);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function union($query, $overwrite = false)
-    {
-        $this->_deprecatedMethod('union()');
-
-        return parent::union($query, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function unionAll($query, $overwrite = false)
-    {
-        $this->_deprecatedMethod('unionAll()');
-
-        return parent::unionAll($query, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function insert(array $columns, array $types = [])
-    {
-        $this->_deprecatedMethod('insert()', 'Create your query with insertQuery() instead.');
-
-        return parent::insert($columns, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function into(string $table)
-    {
-        $this->_deprecatedMethod('into()');
-
-        return parent::into($table);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function values($data)
-    {
-        $this->_deprecatedMethod('values()');
-
-        return parent::values($data);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function update($table)
-    {
-        $this->_deprecatedMethod('update()', 'Create your query with updateQuery() instead.');
-
-        return parent::update($table);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function set($key, $value = null, $types = [])
-    {
-        $this->_deprecatedMethod('set()');
-
-        return parent::set($key, $value, $types);
+        return $this;
     }
 }

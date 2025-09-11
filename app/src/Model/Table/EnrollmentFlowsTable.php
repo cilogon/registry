@@ -196,12 +196,12 @@ class EnrollmentFlowsTable extends Table {
 
     // Pull the set of Petition Step Results for this Petition.
 
-    $results = $this->Petitions->PetitionStepResults->find('list', [
-                                   'keyField' => 'enrollment_flow_step_id',
-                                   'valueField' => 'status'
-                                 ])
+    $results = $this->Petitions->PetitionStepResults->find('list',
+                                   keyField: 'enrollment_flow_step_id',
+                                   valueField: 'status',
+                                 )
                                ->where(['petition_id' => $petition->id])
-                               ->order(['enrollment_flow_step_id' => 'ASC'])
+                               ->orderBy(['enrollment_flow_step_id' => 'ASC'])
                                ->toArray();
 
     // Pull the Enrollment Flow Steps for this Enrollment Flow, in order,
@@ -212,7 +212,7 @@ class EnrollmentFlowsTable extends Table {
                                         'enrollment_flow_id' => $petition->enrollment_flow_id,
                                         'status' => SuspendableStatusEnum::Active
                                        ])
-                                       ->order(['EnrollmentFlowSteps.ordr' => 'ASC'])
+                                       ->orderBy(['EnrollmentFlowSteps.ordr' => 'ASC'])
                                        ->contain($this->EnrollmentFlowSteps->getPluginRelations())
                                        ->all();
 

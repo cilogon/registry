@@ -1,6 +1,6 @@
 # CakePHP ruleset
 
-The CakePHP standard contains 135 sniffs
+The CakePHP standard contains 155 sniffs
 
 CakePHP (19 sniffs)
 -------------------
@@ -8,11 +8,11 @@ CakePHP (19 sniffs)
 - CakePHP.Commenting.DocBlockAlignment
 - CakePHP.Commenting.FunctionComment
 - CakePHP.Commenting.InheritDoc
+- CakePHP.Commenting.TypeHint
 - CakePHP.ControlStructures.ControlStructures
 - CakePHP.ControlStructures.ElseIfDeclaration
 - CakePHP.ControlStructures.WhileStructures
 - CakePHP.Formatting.BlankLineBeforeReturn
-- CakePHP.Functions.ClosureDeclaration
 - CakePHP.NamingConventions.ValidFunctionName
 - CakePHP.NamingConventions.ValidTraitName
 - CakePHP.PHP.DisallowShortOpenTag
@@ -24,7 +24,7 @@ CakePHP (19 sniffs)
 - CakePHP.WhiteSpace.FunctionSpacing
 - CakePHP.WhiteSpace.TabAndSpace
 
-Generic (25 sniffs)
+Generic (26 sniffs)
 -------------------
 - Generic.Arrays.DisallowLongArraySyntax
 - Generic.CodeAnalysis.ForLoopShouldBeWhileLoop
@@ -37,7 +37,7 @@ Generic (25 sniffs)
 - Generic.Files.LineEndings
 - Generic.Files.LineLength
 - Generic.Formatting.DisallowMultipleStatements
-- Generic.Formatting.NoSpaceAfterCast
+- Generic.Formatting.SpaceAfterCast
 - Generic.Functions.FunctionCallArgumentSpacing
 - Generic.NamingConventions.UpperCaseConstantName
 - Generic.PHP.DeprecatedFunctions
@@ -50,10 +50,11 @@ Generic (25 sniffs)
 - Generic.PHP.NoSilencedErrors
 - Generic.WhiteSpace.DisallowTabIndent
 - Generic.WhiteSpace.IncrementDecrementSpacing
+- Generic.WhiteSpace.LanguageConstructSpacing
 - Generic.WhiteSpace.ScopeIndent
 
 PEAR (1 sniff)
----------------
+--------------
 - PEAR.Functions.ValidDefaultValue
 
 PSR1 (3 sniffs)
@@ -61,6 +62,18 @@ PSR1 (3 sniffs)
 - PSR1.Classes.ClassDeclaration
 - PSR1.Files.SideEffects
 - PSR1.Methods.CamelCapsMethodName
+
+PSR2 (9 sniffs)
+---------------
+- PSR2.Classes.ClassDeclaration
+- PSR2.Classes.PropertyDeclaration
+- PSR2.ControlStructures.ElseIfDeclaration
+- PSR2.ControlStructures.SwitchDeclaration
+- PSR2.Files.ClosingTag
+- PSR2.Files.EndFileNewline
+- PSR2.Methods.FunctionCallSignature
+- PSR2.Methods.FunctionClosingBrace
+- PSR2.Methods.MethodDeclaration
 
 PSR12 (17 sniffs)
 -----------------
@@ -82,24 +95,16 @@ PSR12 (17 sniffs)
 - PSR12.Properties.ConstantVisibility
 - PSR12.Traits.UseDeclaration
 
-PSR2 (9 sniffs)
----------------
-- PSR2.Classes.ClassDeclaration
-- PSR2.Classes.PropertyDeclaration
-- PSR2.ControlStructures.ElseIfDeclaration
-- PSR2.ControlStructures.SwitchDeclaration
-- PSR2.Files.ClosingTag
-- PSR2.Files.EndFileNewline
-- PSR2.Methods.FunctionCallSignature
-- PSR2.Methods.FunctionClosingBrace
-- PSR2.Methods.MethodDeclaration
-
-SlevomatCodingStandard (32 sniffs)
+SlevomatCodingStandard (52 sniffs)
 ----------------------------------
 - SlevomatCodingStandard.Arrays.TrailingArrayComma
+- SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing
+- SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment
+- SlevomatCodingStandard.Classes.BackedEnumTypeSpacing
 - SlevomatCodingStandard.Classes.ClassConstantVisibility
 - SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces
 - SlevomatCodingStandard.Classes.ModernClassNameReference
+- SlevomatCodingStandard.Classes.PropertyDeclaration
 - SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment
 - SlevomatCodingStandard.Commenting.DocCommentSpacing
 - SlevomatCodingStandard.Commenting.EmptyComment
@@ -110,10 +115,21 @@ SlevomatCodingStandard (32 sniffs)
 - SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses
 - SlevomatCodingStandard.ControlStructures.NewWithParentheses
 - SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator
+- SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator
 - SlevomatCodingStandard.Exceptions.DeadCatch
+- SlevomatCodingStandard.Functions.ArrowFunctionDeclaration
+- SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall
+- SlevomatCodingStandard.Functions.DisallowTrailingCommaInClosureUse
+- SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration
+- SlevomatCodingStandard.Functions.NamedArgumentSpacing
+- SlevomatCodingStandard.Functions.RequireTrailingCommaInCall
+- SlevomatCodingStandard.Functions.RequireTrailingCommaInClosureUse
+- SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration
 - SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses
+- SlevomatCodingStandard.Namespaces.DisallowGroupUse
 - SlevomatCodingStandard.Namespaces.FullyQualifiedClassNameInAnnotation
 - SlevomatCodingStandard.Namespaces.NamespaceDeclaration
+- SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly
 - SlevomatCodingStandard.Namespaces.UnusedUses
 - SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash
 - SlevomatCodingStandard.Namespaces.UseFromSameNamespace
@@ -123,13 +139,18 @@ SlevomatCodingStandard (32 sniffs)
 - SlevomatCodingStandard.PHP.UselessParentheses
 - SlevomatCodingStandard.PHP.UselessSemicolon
 - SlevomatCodingStandard.TypeHints.DeclareStrictTypes
+- SlevomatCodingStandard.TypeHints.DNFTypeHintFormat
 - SlevomatCodingStandard.TypeHints.LongTypeHints
 - SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue
+- SlevomatCodingStandard.TypeHints.ParameterTypeHint
 - SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing
+- SlevomatCodingStandard.TypeHints.PropertyTypeHint
+- SlevomatCodingStandard.TypeHints.ReturnTypeHint
 - SlevomatCodingStandard.TypeHints.ReturnTypeHintSpacing
 - SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable
+- SlevomatCodingStandard.Variables.UnusedVariable
 
-Squiz (28 sniffs)
+Squiz (27 sniffs)
 -----------------
 - Squiz.Arrays.ArrayBracketSpacing
 - Squiz.Classes.ClassFileName
@@ -153,7 +174,6 @@ Squiz (28 sniffs)
 - Squiz.Scope.StaticThisUsage
 - Squiz.WhiteSpace.CastSpacing
 - Squiz.WhiteSpace.ControlStructureSpacing
-- Squiz.WhiteSpace.LanguageConstructSpacing
 - Squiz.WhiteSpace.LogicalOperatorSpacing
 - Squiz.WhiteSpace.ScopeClosingBrace
 - Squiz.WhiteSpace.ScopeKeywordSpacing
@@ -161,5 +181,5 @@ Squiz (28 sniffs)
 - Squiz.WhiteSpace.SuperfluousWhitespace
 
 Zend (1 sniff)
----------------
+--------------
 - Zend.NamingConventions.ValidVariableName

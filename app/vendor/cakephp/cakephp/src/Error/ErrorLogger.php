@@ -19,8 +19,11 @@ namespace Cake\Error;
 use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
 use Cake\Core\InstanceConfigTrait;
+use Cake\Http\ServerRequest;
 use Cake\Log\Log;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerTrait;
+use Stringable;
 use Throwable;
 
 /**
@@ -29,6 +32,7 @@ use Throwable;
 class ErrorLogger implements ErrorLoggerInterface
 {
     use InstanceConfigTrait;
+    use LoggerTrait;
 
     /**
      * Default configuration values.
@@ -37,7 +41,7 @@ class ErrorLogger implements ErrorLoggerInterface
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'trace' => false,
     ];
 
@@ -52,94 +56,73 @@ class ErrorLogger implements ErrorLoggerInterface
     }
 
     /**
-     * Log an error to Cake's Log subsystem
-     *
-     * @param \Cake\Error\PhpError $error The error to log
-     * @param ?\Psr\Http\Message\ServerRequestInterface $request The request if in an HTTP context.
-     * @param bool $includeTrace Should the log message include a stacktrace
-     * @return void
+     * @inheritDoc
      */
-    public function logError(PhpError $error, ?ServerRequestInterface $request = null, bool $includeTrace = false): void
+    public function log($level, Stringable|string $message, array $context = []): void
     {
-        $message = $error->getMessage();
-        if ($request) {
-            $message .= $this->getRequestContext($request);
-        }
-        if ($includeTrace) {
-            $message .= "\nTrace:\n" . $error->getTraceAsString() . "\n";
-        }
-        $logMap = [
-            'strict' => LOG_NOTICE,
-            'deprecated' => LOG_NOTICE,
-        ];
-        $level = $error->getLabel();
-        $level = $logMap[$level] ?? $level;
-
-        Log::write($level, $message);
+        Log::write($level, $message, $context);
     }
 
     /**
-     * Log an exception to Cake's Log subsystem
+     * @inheritDoc
+     */
+    public function logError(PhpError $error, ?ServerRequestInterface $request = null, bool $includeTrace = false): void
+    {
+        $message = $this->getErrorMessage($error, $includeTrace);
+
+        if ($request instanceof ServerRequestInterface) {
+            $message .= $this->getRequestContext($request);
+        }
+
+        $label = $error->getLabel();
+        $level = match ($label) {
+            'strict' => LOG_NOTICE,
+            'deprecated' => LOG_DEBUG,
+            default => $label,
+        };
+
+        $this->log($level, $message);
+    }
+
+    /**
+     * Generate the message for the error
      *
-     * @param \Throwable $exception The exception to log a message for.
-     * @param \Psr\Http\Message\ServerRequestInterface|null $request The current request if available.
-     * @param bool $includeTrace Whether or not a stack trace should be logged.
-     * @return void
+     * @param \Cake\Error\PhpError $error The exception to log a message for.
+     * @param bool $includeTrace Whether to include a stack trace.
+     * @return string Error message
+     */
+    protected function getErrorMessage(PhpError $error, bool $includeTrace = false): string
+    {
+        $message = sprintf(
+            '%s in %s on line %s',
+            $error->getMessage(),
+            $error->getFile(),
+            $error->getLine(),
+        );
+
+        if (!$includeTrace) {
+            return $message;
+        }
+
+        $message .= "\nTrace:\n" . $error->getTraceAsString() . "\n";
+
+        return $message;
+    }
+
+    /**
+     * @inheritDoc
      */
     public function logException(
         Throwable $exception,
         ?ServerRequestInterface $request = null,
-        bool $includeTrace = false
+        bool $includeTrace = false,
     ): void {
         $message = $this->getMessage($exception, false, $includeTrace);
 
         if ($request !== null) {
             $message .= $this->getRequestContext($request);
         }
-        Log::error($message);
-    }
-
-    /**
-     * @param string|int $level The logging level
-     * @param string $message The message to be logged.
-     * @param array $context Context.
-     * @return bool
-     * @deprecated 4.4.0 Use logError instead.
-     */
-    public function logMessage($level, string $message, array $context = []): bool
-    {
-        if (!empty($context['request'])) {
-            $message .= $this->getRequestContext($context['request']);
-        }
-        if (!empty($context['trace'])) {
-            $message .= "\nTrace:\n" . $context['trace'] . "\n";
-        }
-        $logMap = [
-            'strict' => LOG_NOTICE,
-            'deprecated' => LOG_NOTICE,
-        ];
-        $level = $logMap[$level] ?? $level;
-
-        return Log::write($level, $message);
-    }
-
-    /**
-     * @param \Throwable $exception The exception to log a message for.
-     * @param \Psr\Http\Message\ServerRequestInterface|null $request The current request if available.
-     * @return bool
-     * @deprecated 4.4.0 Use logException instead.
-     */
-    public function log(Throwable $exception, ?ServerRequestInterface $request = null): bool
-    {
-        $message = $this->getMessage($exception, false, $this->getConfig('trace'));
-
-        if ($request !== null) {
-            $message .= $this->getRequestContext($request);
-        }
-
-        $message .= "\n\n";
-
-        return Log::error($message);
+        $this->error($message);
     }
 
     /**
@@ -147,7 +130,7 @@ class ErrorLogger implements ErrorLoggerInterface
      *
      * @param \Throwable $exception The exception to log a message for.
      * @param bool $isPrevious False for original exception, true for previous
-     * @param bool $includeTrace Whether or not to include a stack trace.
+     * @param bool $includeTrace Whether to include a stack trace.
      * @return string Error message
      */
     protected function getMessage(Throwable $exception, bool $isPrevious = false, bool $includeTrace = false): string
@@ -155,10 +138,10 @@ class ErrorLogger implements ErrorLoggerInterface
         $message = sprintf(
             '%s[%s] %s in %s on line %s',
             $isPrevious ? "\nCaused by: " : '',
-            get_class($exception),
+            $exception::class,
             $exception->getMessage(),
             $exception->getFile(),
-            $exception->getLine()
+            $exception->getLine(),
         );
         $debug = Configure::read('debug');
 
@@ -170,8 +153,8 @@ class ErrorLogger implements ErrorLoggerInterface
         }
 
         if ($includeTrace) {
-            /** @var array $trace */
-            $trace = Debugger::formatTrace($exception, ['format' => 'points']);
+            $trace = Debugger::formatTrace($exception, ['format' => 'shortPoints']);
+            assert(is_array($trace));
             $message .= "\nStack Trace:\n";
             foreach ($trace as $line) {
                 if (is_string($line)) {
@@ -205,7 +188,7 @@ class ErrorLogger implements ErrorLoggerInterface
             $message .= "\nReferer URL: " . $referer;
         }
 
-        if (method_exists($request, 'clientIp')) {
+        if ($request instanceof ServerRequest) {
             $clientIp = $request->clientIp();
             if ($clientIp && $clientIp !== '::1') {
                 $message .= "\nClient IP: " . $clientIp;

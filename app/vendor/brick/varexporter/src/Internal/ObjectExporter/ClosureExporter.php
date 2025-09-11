@@ -7,6 +7,7 @@ namespace Brick\VarExporter\Internal\ObjectExporter;
 use Brick\VarExporter\ExportException;
 use Brick\VarExporter\Internal\ObjectExporter;
 use Closure;
+use Override;
 use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
@@ -14,6 +15,7 @@ use PhpParser\NodeVisitor\FindingVisitor;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
+use PhpParser\PhpVersion;
 use ReflectionFunction;
 
 /**
@@ -21,24 +23,17 @@ use ReflectionFunction;
  *
  * @internal This class is for internal use, and not part of the public API. It may change at any time without warning.
  */
-class ClosureExporter extends ObjectExporter
+final class ClosureExporter extends ObjectExporter
 {
-    /**
-     * @var Parser|null
-     */
-    private $parser;
+    private ?Parser $parser = null;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[Override]
     public function supports(\ReflectionObject $reflectionObject) : bool
     {
         return $reflectionObject->getName() === \Closure::class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[Override]
     public function export(object $object, \ReflectionObject $reflectionObject, array $path, array $parentIds) : array
     {
         assert($object instanceof Closure);
@@ -64,13 +59,10 @@ class ClosureExporter extends ObjectExporter
         return [$code];
     }
 
-    /**
-     * @return Parser
-     */
-    private function getParser()
+    private function getParser(): Parser
     {
         if ($this->parser === null) {
-            $this->parser = (new ParserFactory)->create(ParserFactory::ONLY_PHP7);
+            $this->parser = (new ParserFactory)->createForHostVersion();
         }
 
         return $this->parser;
@@ -88,7 +80,7 @@ class ClosureExporter extends ObjectExporter
      */
     private function parseFile(string $filename, array $path) : array
     {
-        if (substr($filename, -16) === " : eval()'d code") {
+        if (str_ends_with($filename, " : eval()'d code")) {
             throw new ExportException("Closure defined in eval()'d code cannot be exported.", $path);
         }
 
@@ -139,8 +131,6 @@ class ClosureExporter extends ObjectExporter
      * @param int                $line               The line number where the closure is located in the source file.
      * @param string[]           $path               The path to the closure in the array/object graph.
      *
-     * @return Node\Expr\Closure
-     *
      * @throws ExportException
      */
     private function getClosure(
@@ -150,10 +140,10 @@ class ClosureExporter extends ObjectExporter
         int $line,
         array $path
     ) : Node\Expr\Closure {
-        $finder = new FindingVisitor(function(Node $node) use ($line) : bool {
-            return ($node instanceof Node\Expr\Closure || $node instanceof Node\Expr\ArrowFunction)
-                && $node->getStartLine() === $line;
-        });
+        $finder = new FindingVisitor(
+            fn(Node $node): bool => ($node instanceof Node\Expr\Closure || $node instanceof Node\Expr\ArrowFunction)
+            && $node->getStartLine() === $line
+        );
 
         $traverser = new NodeTraverser();
         $traverser->addVisitor($finder);
@@ -190,8 +180,6 @@ class ClosureExporter extends ObjectExporter
      *
      * @param ReflectionFunction       $reflectionFunction  Reflection of the closure.
      * @param Node\Expr\ArrowFunction  $arrowFunction       Parsed arrow function.
-     *
-     * @return Node\Expr\Closure
      */
     private function convertArrowFunction(
         ReflectionFunction $reflectionFunction,

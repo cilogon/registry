@@ -35,7 +35,7 @@ use \App\Controller\StandardDetourController;
 use \App\Lib\Events\CoIdEventListener;
 
 class EnvSourceDetoursController extends StandardDetourController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EnvSourceDetours.id' => 'asc'
     ]

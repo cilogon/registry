@@ -34,7 +34,7 @@ use Cake\Event\EventInterface;
 use Cake\Http\Response;
 
 class EnvSourcesController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'EnvSources.id' => 'asc'
     ]

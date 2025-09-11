@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class HistoryRecordsController extends MVEAController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'HistoryRecords.id' => 'desc'
     ]

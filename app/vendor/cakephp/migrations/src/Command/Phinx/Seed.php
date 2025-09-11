@@ -20,12 +20,18 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @deprecated 4.5.0 This command is deprecated alongside phinx compatibility.
+ */
 class Seed extends SeedRun
 {
     use CommandTrait {
         execute as parentExecute;
     }
     use ConfigurationTrait;
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<\Migrations\Command\Phinx\Seed>
+     */
     use EventDispatcherTrait;
 
     /**
@@ -42,7 +48,7 @@ class Seed extends SeedRun
                 '--seed',
                 null,
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                'What is the name of the seeder?'
+                'What is the name of the seeder?',
             )
             ->addOption('--plugin', '-p', InputOption::VALUE_REQUIRED, 'The plugin containing the migrations')
             ->addOption('--connection', '-c', InputOption::VALUE_REQUIRED, 'The datasource connection to use')
@@ -65,8 +71,7 @@ class Seed extends SeedRun
         }
 
         $seed = $input->getOption('seed');
-        if (!empty($seed) && !is_array($seed)) {
-            /** @psalm-suppress InvalidScalarArgument */
+        if ($seed && !is_array($seed)) {
             $input->setOption('seed', [$seed]);
         }
 

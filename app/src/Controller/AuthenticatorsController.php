@@ -37,7 +37,7 @@ use App\Lib\Enum\AuthenticatorStatusEnum;
 use App\Lib\Util\StringUtilities;
 
 class AuthenticatorsController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Authenticators.description' => 'asc'
     ]

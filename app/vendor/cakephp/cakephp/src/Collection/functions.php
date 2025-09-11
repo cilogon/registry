@@ -1,7 +1,7 @@
 <?php
-// phpcs:ignoreFile
 declare(strict_types=1);
 
+// phpcs:disable PSR1.Files.SideEffects
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -26,11 +26,4 @@ namespace Cake\Collection;
 function collection(iterable $items): CollectionInterface
 {
     return new Collection($items);
-}
-
-/**
- * Include global functions.
- */
-if (!getenv('CAKE_DISABLE_GLOBAL_FUNCS')) {
-    include 'functions_global.php';
 }

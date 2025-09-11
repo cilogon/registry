@@ -32,7 +32,7 @@ namespace FileConnector\Controller;
 use App\Controller\StandardPluginController;
 
 class FileProvisionersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'FileProvisioners.id' => 'asc'
     ]

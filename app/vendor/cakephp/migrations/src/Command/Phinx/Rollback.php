@@ -20,12 +20,18 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @deprecated 4.5.0 This command is deprecated alongside phinx compatibility.
+ */
 class Rollback extends RollbackCommand
 {
     use CommandTrait {
         execute as parentExecute;
     }
     use ConfigurationTrait;
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<\Migrations\Command\Phinx\Rollback>
+     */
     use EventDispatcherTrait;
 
     /**
@@ -48,19 +54,19 @@ class Rollback extends RollbackCommand
                 '--dry-run',
                 '-x',
                 InputOption::VALUE_NONE,
-                'Dump queries to standard output instead of executing it'
+                'Dump queries to standard output instead of executing it',
             )
             ->addOption(
                 '--fake',
                 null,
                 InputOption::VALUE_NONE,
-                "Mark any rollbacks selected as run, but don't actually execute them"
+                "Mark any rollbacks selected as run, but don't actually execute them",
             )
             ->addOption(
                 '--no-lock',
                 null,
                 InputOption::VALUE_NONE,
-                'Whether a lock file should be generated after rolling back'
+                'Whether a lock file should be generated after rolling back',
             );
     }
 

@@ -50,7 +50,8 @@ class ChangelogBehavior extends Behavior
   public function beforeDelete(Event $event, $entity, \ArrayObject $options) {
     if(isset($options['useHardDelete']) && $options['useHardDelete']) {
       // Hard delete requested, so just return
-      return true;
+      $event->setResult(true);
+      return;
     }
 
     $subject = $event->getSubject();
@@ -69,13 +70,17 @@ class ChangelogBehavior extends Behavior
     // Update this record as deleted
 
     $entity->deleted = true;
-    $subject->saveOrFail($entity, new \ArrayObject(array_merge($options->getArrayCopy(), ['checkRules' => false, 'archive' => false])));
+    $subject->saveOrFail(
+      $entity,
+      array_merge($options->getArrayCopy(), ['checkRules' => false, 'archive' => false])
+    );
     
     // Stop the delete from actually happening
     $event->stopPropagation();
 
     // But return success
-    return true;
+    $event->setResult(true);
+    return;
   }
 
   /**
@@ -86,12 +91,14 @@ class ChangelogBehavior extends Behavior
    * @param  Query       $query   Query
    * @param  ArrayObject $options The options for the query
    * @param  boolean     $primary Whether or not this is the root query (vs an associated query)
+   * @return void
    */
   
-  public function beforeFind(Event $event, Query $query, \ArrayObject $options, bool $primary) {
+  public function beforeFind(Event $event, Query $query, \ArrayObject $options, bool $primary): void {
     if(isset($options['archived']) && $options['archived']) {
       // Archived records requested (including possiblf expunge), so just return
-      return true;
+      $event->setResult(true);
+      return;
     }
 
     $subject = $event->getSubject();
@@ -131,9 +138,10 @@ class ChangelogBehavior extends Behavior
    * @param  Event           $event   The beforeSave event
    * @param  EntityInterface $entity  Entity
    * @param  ArrayObject     $options Options
+   * @return void
    */
   
-  public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options) {
+  public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options): void {
     // XXX prevent updates to deleted and archived records
     //     Cake Book suggests doing this with Application Rules... can we define those in the Behavior?
     //     or perhaps in beforeMarshal? https://book.cakephp.org/3.0/en/orm/saving-data.html#modifying-request-data-before-building-entities

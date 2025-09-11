@@ -32,7 +32,7 @@ namespace SshKeyAuthenticator\Controller;
 use App\Controller\StandardPluginController;
 
 class SshKeyAuthenticatorsController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'SshKeyAuthenticators.id' => 'asc'
     ]

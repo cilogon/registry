@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Cake\Composer;
 
 use Composer\Composer;
@@ -7,6 +9,7 @@ use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
+use DirectoryIterator;
 use RuntimeException;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
@@ -39,7 +42,56 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         return [
             'post-autoload-dump' => 'postAutoloadDump',
+            'pre-autoload-dump' => 'preAutoloadDump',
         ];
+    }
+
+    /**
+     * Add PSR-4 autoload paths for app plugins.
+     *
+     * @param \Composer\Script\Event $event
+     * @return void
+     */
+    public function preAutoloadDump(Event $event): void
+    {
+        $package = $event->getComposer()->getPackage();
+        $autoload = $package->getAutoload();
+        $devAutoload = $package->getDevAutoload();
+
+        $extra = $package->getExtra();
+        if (empty($extra['plugin-paths'])) {
+            $extra['plugin-paths'] = ['plugins'];
+        }
+
+        $root = dirname(realpath($event->getComposer()->getConfig()->get('vendor-dir'))) . '/';
+        foreach ($extra['plugin-paths'] as $pluginsPath) {
+            if (!is_dir($root . $pluginsPath)) {
+                continue;
+            }
+            foreach (new DirectoryIterator($root . $pluginsPath) as $fileInfo) {
+                if (!$fileInfo->isDir() || $fileInfo->isDot()) {
+                    continue;
+                }
+
+                $folderName = $fileInfo->getFilename();
+                if ($folderName[0] === '.') {
+                    continue;
+                }
+
+                $pluginNamespace = $folderName . '\\';
+                $pluginTestNamespace = $folderName . '\\Test\\';
+                $path = $pluginsPath . '/' . $folderName . '/';
+                if (!isset($autoload['psr-4'][$pluginNamespace]) && is_dir($root . $path . '/src')) {
+                    $autoload['psr-4'][$pluginNamespace] = $path . 'src';
+                }
+                if (!isset($devAutoload['psr-4'][$pluginTestNamespace]) && is_dir($root . $path . '/tests')) {
+                    $devAutoload['psr-4'][$pluginTestNamespace] = $path . 'tests';
+                }
+            }
+        }
+
+        $package->setAutoload($autoload);
+        $package->setDevAutoload($devAutoload);
     }
 
     /**
@@ -51,7 +103,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param \Composer\Script\Event $event Composer's event object.
      * @return void
      */
-    public function postAutoloadDump(Event $event)
+    public function postAutoloadDump(Event $event): void
     {
         $composer = $event->getComposer();
         $config = $composer->getConfig();
@@ -78,16 +130,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Add all composer packages of type `cakephp-plugin`, and all plugins located
      * in the plugins directory to a plugin-name indexed array of paths.
      *
-     * @param \Composer\Package\PackageInterface[] $packages Array of \Composer\Package\PackageInterface objects.
-     * @param array $pluginDirs The path to the plugins dir.
+     * @param array<\Composer\Package\PackageInterface> $packages Array of \Composer\Package\PackageInterface objects.
+     * @param array<string> $pluginDirs The path to the plugins dir.
      * @param string $vendorDir The path to the vendor dir.
-     * @return array Plugin name indexed paths to plugins.
+     * @return array<string, string> Plugin name indexed paths to plugins.
      */
     public function findPlugins(
         array $packages,
         array $pluginDirs = ['plugins'],
-        $vendorDir = 'vendor'
-    ) {
+        string $vendorDir = 'vendor'
+    ): array {
         $plugins = [];
 
         foreach ($packages as $package) {
@@ -103,7 +155,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         foreach ($pluginDirs as $path) {
             $path = $this->getFullPath($path, $vendorDir);
             if (is_dir($path)) {
-                $dir = new \DirectoryIterator($path);
+                $dir = new DirectoryIterator($path);
                 foreach ($dir as $info) {
                     if (!$info->isDir() || $info->isDot()) {
                         continue;
@@ -131,7 +183,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param string $vendorDir The path to the vendor dir.
      * @return string
      */
-    public function getFullPath($path, $vendorDir)
+    public function getFullPath(string $path, string $vendorDir): string
     {
         if (preg_match('{^(?:/|[a-z]:|[a-z0-9.]+://)}i', $path)) {
             return rtrim($path, '/');
@@ -148,11 +200,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Rewrite the config file with a complete list of plugins.
      *
      * @param string $configFile The path to the config file.
-     * @param array $plugins Array of plugins.
+     * @param array<string, string> $plugins Array of plugins.
      * @param string|null $root The root directory. Defaults to a value generated from `$configFile`.
      * @return void
      */
-    public function writeConfigFile($configFile, array $plugins, $root = null)
+    public function writeConfigFile(string $configFile, array $plugins, ?string $root = null): void
     {
         $root = $root ?: dirname(dirname($configFile));
 
@@ -212,7 +264,7 @@ PHP;
      * @param string $vendorDir Path to composer-vendor dir.
      * @return string Absolute file path.
      */
-    public function getConfigFilePath($vendorDir)
+    public function getConfigFilePath(string $vendorDir): string
     {
         return $vendorDir . DIRECTORY_SEPARATOR . 'cakephp-plugins.php';
     }
@@ -224,10 +276,11 @@ PHP;
      * @return string The package's primary namespace.
      * @throws \RuntimeException When the package's primary namespace cannot be determined.
      */
-    public function getPrimaryNamespace(PackageInterface $package)
+    public function getPrimaryNamespace(PackageInterface $package): string
     {
         $primaryNs = null;
         $autoLoad = $package->getAutoload();
+        /** @var array<string, string> $pathMap */
         foreach ($autoLoad as $type => $pathMap) {
             if ($type !== 'psr-4') {
                 continue;

@@ -30,7 +30,7 @@ abstract class ResponseBase extends Constraint
     /**
      * @var \Psr\Http\Message\ResponseInterface
      */
-    protected $response;
+    protected ResponseInterface $response;
 
     /**
      * Constructor

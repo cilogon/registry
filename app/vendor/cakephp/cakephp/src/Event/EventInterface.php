@@ -21,7 +21,7 @@ namespace Cake\Event;
  * payload. The name can be any string that uniquely identifies the event across the application, while the subject
  * represents the object that the event applies to.
  *
- * @template TSubject
+ * @template TSubject of object
  */
 interface EventInterface
 {
@@ -36,9 +36,9 @@ interface EventInterface
      * Returns the subject of this event.
      *
      * @return object
-     * @psalm-return TSubject
+     * @phpstan-return TSubject
      */
-    public function getSubject();
+    public function getSubject(): object;
 
     /**
      * Stops the event from being used anymore.
@@ -59,7 +59,7 @@ interface EventInterface
      *
      * @return mixed
      */
-    public function getResult();
+    public function getResult(): mixed;
 
     /**
      * Listeners can attach a result value to the event.
@@ -67,16 +67,16 @@ interface EventInterface
      * @param mixed $value The value to set.
      * @return $this
      */
-    public function setResult($value = null);
+    public function setResult(mixed $value = null);
 
     /**
      * Accesses the event data/payload.
      *
      * @param string|null $key The data payload element to return, or null to return all data.
-     * @return mixed|array|null The data payload if $key is null, or the data value for the given $key.
+     * @return mixed The data payload if $key is null, or the data value for the given $key.
      *   If the $key does not exist a null value is returned.
      */
-    public function getData(?string $key = null);
+    public function getData(?string $key = null): mixed;
 
     /**
      * Assigns a value to the data/payload of this event.
@@ -85,5 +85,5 @@ interface EventInterface
      * @param mixed $value The value to set.
      * @return $this
      */
-    public function setData($key, $value = null);
+    public function setData(array|string $key, mixed $value = null);
 }

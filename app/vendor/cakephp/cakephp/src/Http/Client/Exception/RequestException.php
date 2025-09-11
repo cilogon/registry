@@ -33,12 +33,12 @@ class RequestException extends RuntimeException implements RequestExceptionInter
     /**
      * @var \Psr\Http\Message\RequestInterface
      */
-    protected $request;
+    protected RequestInterface $request;
 
     /**
      * Constructor.
      *
-     * @param string $message Exeception message.
+     * @param string $message Exception message.
      * @param \Psr\Http\Message\RequestInterface $request Request instance.
      * @param \Throwable|null $previous Previous Exception
      */

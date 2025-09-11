@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class MessageTemplatesController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'MessageTemplates.description' => 'asc'
     ]

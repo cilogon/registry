@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Http\Middleware;
 
 use ArrayAccess;
+use Cake\Core\Exception\CakeException;
 use Cake\Http\Exception\InvalidCsrfTokenException;
 use Cake\Http\ServerRequest;
 use Cake\Http\Session;
@@ -26,7 +27,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use RuntimeException;
 use function Cake\I18n\__d;
 
 /**
@@ -58,7 +58,7 @@ class SessionCsrfProtectionMiddleware implements MiddlewareInterface
      *
      * @var array<string, mixed>
      */
-    protected $_config = [
+    protected array $_config = [
         'key' => 'csrfToken',
         'field' => '_csrfToken',
     ];
@@ -111,8 +111,8 @@ class SessionCsrfProtectionMiddleware implements MiddlewareInterface
         }
 
         $session = $request->getAttribute('session');
-        if (!$session || !($session instanceof Session)) {
-            throw new RuntimeException('You must have a `session` attribute to use session based CSRF tokens');
+        if (!($session instanceof Session)) {
+            throw new CakeException('You must have a `session` attribute to use session based CSRF tokens');
         }
 
         $token = $session->read($this->_config['key']);
@@ -266,7 +266,7 @@ class SessionCsrfProtectionMiddleware implements MiddlewareInterface
 
         throw new InvalidCsrfTokenException(__d(
             'cake',
-            'CSRF token from either the request body or request headers did not match or is missing.'
+            'CSRF token from either the request body or request headers did not match or is missing.',
         ));
     }
 

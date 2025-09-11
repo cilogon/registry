@@ -29,13 +29,13 @@ declare(strict_types = 1);
 
 namespace App\Model\Entity;
 
-use Cake\Auth\DefaultPasswordHasher;
+use Authentication\PasswordHasher\DefaultPasswordHasher;
 use Cake\ORM\Entity;
 
 class ApiUser extends Entity {
   use \App\Lib\Traits\ReadOnlyEntityTrait;
   
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false,

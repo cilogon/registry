@@ -27,7 +27,7 @@ class HeaderEquals extends ResponseBase
     /**
      * @var string
      */
-    protected $headerName;
+    protected string $headerName;
 
     /**
      * Constructor.
@@ -47,6 +47,7 @@ class HeaderEquals extends ResponseBase
      *
      * @param mixed $other Expected content
      * @return bool
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
     public function matches($other): bool
     {
@@ -62,6 +63,6 @@ class HeaderEquals extends ResponseBase
     {
         $responseHeader = $this->response->getHeaderLine($this->headerName);
 
-        return sprintf('equals content in header \'%s\' (`%s`)', $this->headerName, $responseHeader);
+        return sprintf("equals content in header '%s' (`%s`)", $this->headerName, $responseHeader);
     }
 }

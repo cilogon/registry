@@ -16,10 +16,11 @@ declare(strict_types=1);
  */
 namespace Cake\ORM\Rule;
 
+use Cake\Database\Exception\DatabaseException;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Association;
 use Cake\ORM\Table;
-use function Cake\Core\getTypeName;
+use InvalidArgumentException;
 
 /**
  * Checks whether links to a given association exist / do not exist.
@@ -45,14 +46,14 @@ class LinkConstraint
      *
      * @var \Cake\ORM\Association|string
      */
-    protected $_association;
+    protected Association|string $_association;
 
     /**
      * The link status that is required to be present in order for the check to succeed.
      *
      * @var string
      */
-    protected $_requiredLinkState;
+    protected string $_requiredLinkState;
 
     /**
      * Constructor.
@@ -61,21 +62,11 @@ class LinkConstraint
      * @param string $requiredLinkStatus The link status that is required to be present in order for the check to
      *  succeed.
      */
-    public function __construct($association, string $requiredLinkStatus)
+    public function __construct(Association|string $association, string $requiredLinkStatus)
     {
-        if (
-            !is_string($association) &&
-            !($association instanceof Association)
-        ) {
-            throw new \InvalidArgumentException(sprintf(
-                'Argument 1 is expected to be of type `\Cake\ORM\Association|string`, `%s` given.',
-                getTypeName($association)
-            ));
-        }
-
         if (!in_array($requiredLinkStatus, [static::STATUS_LINKED, static::STATUS_NOT_LINKED], true)) {
-            throw new \InvalidArgumentException(
-                'Argument 2 is expected to match one of the `\Cake\ORM\Rule\LinkConstraint::STATUS_*` constants.'
+            throw new InvalidArgumentException(
+                'Argument 2 is expected to match one of the `\Cake\ORM\Rule\LinkConstraint::STATUS_*` constants.',
             );
         }
 
@@ -96,8 +87,8 @@ class LinkConstraint
     {
         $table = $options['repository'] ?? null;
         if (!($table instanceof Table)) {
-            throw new \InvalidArgumentException(
-                'Argument 2 is expected to have a `repository` key that holds an instance of `\Cake\ORM\Table`.'
+            throw new InvalidArgumentException(
+                'Argument 2 is expected to have a `repository` key that holds an instance of `\Cake\ORM\Table`.',
             );
         }
 
@@ -143,17 +134,17 @@ class LinkConstraint
     /**
      * Build conditions.
      *
-     * @param array $fields The condition fields.
+     * @param array<string> $fields The condition fields.
      * @param array $values The condition values.
-     * @return array A conditions array combined from the passed fields and values.
+     * @return array<string, string> A conditions array combined from the passed fields and values.
      */
     protected function _buildConditions(array $fields, array $values): array
     {
         if (count($fields) !== count($values)) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'The number of fields is expected to match the number of values, got %d field(s) and %d value(s).',
                 count($fields),
-                count($values)
+                count($values),
             ));
         }
 
@@ -171,21 +162,22 @@ class LinkConstraint
     {
         $source = $association->getSource();
 
+        /** @var array<string> $primaryKey */
         $primaryKey = (array)$source->getPrimaryKey();
         if (!$entity->has($primaryKey)) {
-            throw new \RuntimeException(sprintf(
+            throw new DatabaseException(sprintf(
                 'LinkConstraint rule on `%s` requires all primary key values for building the counting ' .
                 'conditions, expected values for `(%s)`, got `(%s)`.',
                 $source->getAlias(),
                 implode(', ', $primaryKey),
-                implode(', ', $entity->extract($primaryKey))
+                implode(', ', $entity->extract($primaryKey)),
             ));
         }
 
         $aliasedPrimaryKey = $this->_aliasFields($primaryKey, $source);
         $conditions = $this->_buildConditions(
             $aliasedPrimaryKey,
-            $entity->extract($primaryKey)
+            $entity->extract($primaryKey),
         );
 
         return $source

@@ -28,7 +28,7 @@ class MailContains extends MailConstraintBase
      *
      * @var string|null
      */
-    protected $type;
+    protected ?string $type = null;
 
     /**
      * Checks constraint
@@ -36,7 +36,7 @@ class MailContains extends MailConstraintBase
      * @param mixed $other Constraint check
      * @return bool
      */
-    public function matches($other): bool
+    public function matches(mixed $other): bool
     {
         $other = preg_quote($other, '/');
         $messages = $this->getMessages();
@@ -44,7 +44,7 @@ class MailContains extends MailConstraintBase
             $method = $this->getTypeMethod();
             $message = $message->$method();
 
-            if (preg_match("/$other/", $message) > 0) {
+            if (preg_match("/{$other}/", $message) > 0) {
                 return true;
             }
         }

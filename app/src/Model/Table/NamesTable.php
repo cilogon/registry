@@ -347,7 +347,7 @@ class NamesTable extends Table {
     $results = $this->find()
                     ->where($whereClause[1])
                     ->andWhere(['People.co_id' => $coId])
-                    ->order(['Names.family', 'Names.given', 'Names.middle'])
+                    ->orderBy(['Names.family', 'Names.given', 'Names.middle'])
                     ->limit($limit)
                     ->contain(['People' => 'PrimaryName'])
                     ->all();
@@ -356,7 +356,7 @@ class NamesTable extends Table {
       $results2 = $this->find()
                        ->where($whereClause[2])
                        ->andWhere(['People.co_id' => $coId])
-                       ->order(['Names.family', 'Names.given', 'Names.middle'])
+                       ->orderBy(['Names.family', 'Names.given', 'Names.middle'])
                        ->limit($limit - $results->count())
                        ->contain(['People' => 'PrimaryName'])
                        ->all();

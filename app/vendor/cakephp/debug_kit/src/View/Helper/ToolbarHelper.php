@@ -18,8 +18,8 @@ namespace DebugKit\View\Helper;
 use Cake\Error\Debug\ArrayItemNode;
 use Cake\Error\Debug\ArrayNode;
 use Cake\Error\Debug\HtmlFormatter;
+use Cake\Error\Debug\NodeInterface;
 use Cake\Error\Debug\ScalarNode;
-use Cake\Error\Debugger;
 use Cake\View\Helper;
 
 /**
@@ -37,14 +37,14 @@ class ToolbarHelper extends Helper
      *
      * @var array
      */
-    public $helpers = ['Html', 'Form', 'Url'];
+    public array $helpers = ['Html', 'Form', 'Url'];
 
     /**
      * Whether or not the top level keys should be sorted.
      *
      * @var bool
      */
-    protected $sort = false;
+    protected bool $sort = false;
 
     /**
      * set sorting of values
@@ -52,7 +52,7 @@ class ToolbarHelper extends Helper
      * @param bool $sort Whether or not sort values by key
      * @return void
      */
-    public function setSort($sort)
+    public function setSort(bool $sort): void
     {
         $this->sort = $sort;
     }
@@ -60,13 +60,12 @@ class ToolbarHelper extends Helper
     /**
      * Dump an array of nodes
      *
-     * @param \Cake\Error\Debug\NodeInterface[] $nodes An array of dumped variables.
+     * @param array<\Cake\Error\Debug\NodeInterface> $nodes An array of dumped variables.
      *   Variables should be keyed by the name they had in the view.
      * @return string Formatted HTML
      */
     public function dumpNodes(array $nodes): string
     {
-        /** @psalm-suppress InternalMethod */
         $formatter = new HtmlFormatter();
         if ($this->sort) {
             ksort($nodes);
@@ -78,41 +77,25 @@ class ToolbarHelper extends Helper
         $root = new ArrayNode($items);
 
         return implode([
-            '<div class="cake-debug-output cake-debug" style="direction:ltr">',
+            '<div class="cake-debug-output" style="direction:ltr">',
             $formatter->dump($root),
             '</div>',
         ]);
     }
 
     /**
-     * Dump the value in $value into an interactive HTML output.
+     * Dump an error node
      *
-     * @param mixed $value The value to output.
+     * @param \Cake\Error\Debug\NodeInterface $node A error node containing dumped variables.
      * @return string Formatted HTML
-     * @deprecated 4.4.0
      */
-    public function dump($value)
+    public function dumpNode(NodeInterface $node): string
     {
-        $debugger = Debugger::getInstance();
-        $exportFormatter = $debugger->getConfig('exportFormatter');
-        $restore = false;
-        if ($exportFormatter !== HtmlFormatter::class) {
-            $restore = true;
-            $debugger->setConfig('exportFormatter', HtmlFormatter::class);
-        }
-
-        if ($this->sort && is_array($value)) {
-            ksort($value);
-        }
-
-        $contents = Debugger::exportVar($value, 25);
-        if ($restore) {
-            $debugger->setConfig('exportFormatter', $exportFormatter);
-        }
+        $formatter = new HtmlFormatter();
 
         return implode([
-            '<div class="cake-debug-output cake-debug" style="direction:ltr">',
-            $contents,
+            '<div class="cake-debug-output" style="direction:ltr">',
+            $formatter->dump($node),
             '</div>',
         ]);
     }

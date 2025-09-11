@@ -30,7 +30,7 @@ declare(strict_types = 1);
 namespace App\Command;
 
 use Cake\Console\Arguments;
-use Cake\Console\Command;
+use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionInterface;
@@ -44,7 +44,7 @@ use \App\Lib\Util\TransmogrifyUtilities;
 
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 
-class TransmogrifyCommand extends Command {
+class TransmogrifyCommand extends BaseCommand {
   use \App\Lib\Traits\LabeledLogTrait;
 
   // Tables must be listed in order of primary key dependencies.

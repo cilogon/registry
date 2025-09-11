@@ -34,14 +34,14 @@ class BreadcrumbsHelper extends Helper
      *
      * @var array
      */
-    protected $helpers = ['Url'];
+    protected array $helpers = ['Url'];
 
     /**
      * Default config for the helper.
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'templates' => [
             'wrapper' => '<ul{{attrs}}>{{content}}</ul>',
             'item' => '<li{{attrs}}><a href="{{url}}"{{innerAttrs}}>{{title}}</a></li>{{separator}}',
@@ -55,7 +55,7 @@ class BreadcrumbsHelper extends Helper
      *
      * @var array
      */
-    protected $crumbs = [];
+    protected array $crumbs = [];
 
     /**
      * Add a crumb to the end of the trail.
@@ -78,7 +78,7 @@ class BreadcrumbsHelper extends Helper
      * - *templateVars*: Specific template vars in case you override the templates provided.
      * @return $this
      */
-    public function add($title, $url = null, array $options = [])
+    public function add(array|string $title, array|string|null $url = null, array $options = [])
     {
         if (is_array($title)) {
             foreach ($title as $crumb) {
@@ -114,7 +114,7 @@ class BreadcrumbsHelper extends Helper
      * - *templateVars*: Specific template vars in case you override the templates provided.
      * @return $this
      */
-    public function prepend($title, $url = null, array $options = [])
+    public function prepend(array|string $title, array|string|null $url = null, array $options = [])
     {
         if (is_array($title)) {
             $crumbs = [];
@@ -154,10 +154,10 @@ class BreadcrumbsHelper extends Helper
      * @return $this
      * @throws \LogicException In case the index is out of bound
      */
-    public function insertAt(int $index, string $title, $url = null, array $options = [])
+    public function insertAt(int $index, string $title, array|string|null $url = null, array $options = [])
     {
         if (!isset($this->crumbs[$index]) && $index !== count($this->crumbs)) {
-            throw new LogicException(sprintf("No crumb could be found at index '%s'", $index));
+            throw new LogicException(sprintf('No crumb could be found at index `%s`.', $index));
         }
 
         array_splice($this->crumbs, $index, 0, [compact('title', 'url', 'options')]);
@@ -184,12 +184,16 @@ class BreadcrumbsHelper extends Helper
      * @return $this
      * @throws \LogicException In case the matching crumb can not be found
      */
-    public function insertBefore(string $matchingTitle, string $title, $url = null, array $options = [])
-    {
+    public function insertBefore(
+        string $matchingTitle,
+        string $title,
+        array|string|null $url = null,
+        array $options = [],
+    ) {
         $key = $this->findCrumb($matchingTitle);
 
         if ($key === null) {
-            throw new LogicException(sprintf("No crumb matching '%s' could be found.", $matchingTitle));
+            throw new LogicException(sprintf('No crumb matching `%s` could be found.', $matchingTitle));
         }
 
         return $this->insertAt($key, $title, $url, $options);
@@ -214,12 +218,16 @@ class BreadcrumbsHelper extends Helper
      * @return $this
      * @throws \LogicException In case the matching crumb can not be found.
      */
-    public function insertAfter(string $matchingTitle, string $title, $url = null, array $options = [])
-    {
+    public function insertAfter(
+        string $matchingTitle,
+        string $title,
+        array|string|null $url = null,
+        array $options = [],
+    ) {
         $key = $this->findCrumb($matchingTitle);
 
         if ($key === null) {
-            throw new LogicException(sprintf("No crumb matching '%s' could be found.", $matchingTitle));
+            throw new LogicException(sprintf('No crumb matching `%s` could be found.', $matchingTitle));
         }
 
         return $this->insertAt($key + 1, $title, $url, $options);
@@ -281,7 +289,7 @@ class BreadcrumbsHelper extends Helper
 
             $separator['attrs'] = $templater->formatAttributes(
                 $separator,
-                ['innerAttrs', 'separator']
+                ['innerAttrs', 'separator'],
             );
 
             $separatorString = $this->formatTemplate('separator', $separator);

@@ -43,10 +43,10 @@ class SingleAuthenticatorController extends StandardPluginController {
 
   public function manage() {
     // $modelsName = Models (eg: Passwords)
-    $modelsName = $this->name;
+    $modelsName = $this->getName();
     // $authModelName = eg PasswordAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
-    // $table = the actual table object
+    /** var Cake\ORM\Table $table */
     $Table = $this->$modelsName;
     // $authFK = eg password_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);

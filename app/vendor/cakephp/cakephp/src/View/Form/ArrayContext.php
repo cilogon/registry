@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace Cake\View\Form;
 
 use Cake\Utility\Hash;
-use function Cake\Core\deprecationWarning;
 use function Cake\I18n\__d;
 
 /**
@@ -36,7 +35,7 @@ use function Cake\I18n\__d;
  *   flags to indicate a field is required. The value can also be a string to be used
  *   as the required error message
  * - `schema` An array of data that emulate the column structures that
- *   Cake\Database\Schema\Schema uses. This array allows you to control
+ *   {@link \Cake\Database\Schema\TableSchema} uses. This array allows you to control
  *   the inferred type for fields and allows auto generation of attributes
  *   like maxlength, step and other HTML attributes. If you want
  *   primary key/id detection to work. Make sure you have provided a `_constraints`
@@ -77,7 +76,7 @@ class ArrayContext implements ContextInterface
      *
      * @var array<string, mixed>
      */
-    protected $_context;
+    protected array $_context;
 
     /**
      * Constructor.
@@ -94,19 +93,6 @@ class ArrayContext implements ContextInterface
             'errors' => [],
         ];
         $this->_context = $context;
-    }
-
-    /**
-     * Get the fields used in the context as a primary key.
-     *
-     * @return array<string>
-     * @deprecated 4.0.0 Renamed to {@link getPrimaryKey()}.
-     */
-    public function primaryKey(): array
-    {
-        deprecationWarning('`ArrayContext::primaryKey()` is deprecated. Use `ArrayContext::getPrimaryKey()`.');
-
-        return $this->getPrimaryKey();
     }
 
     /**
@@ -177,7 +163,7 @@ class ArrayContext implements ContextInterface
      *     context's schema should be used if it's not explicitly provided.
      * @return mixed
      */
-    public function val(string $field, array $options = [])
+    public function val(string $field, array $options = []): mixed
     {
         $options += [
             'default' => null,
@@ -195,7 +181,7 @@ class ArrayContext implements ContextInterface
             return null;
         }
 
-        // Using Hash::check here incase the default value is actually null
+        // Using Hash::check here in case the default value is actually null
         if (Hash::check($this->_context['defaults'], $field)) {
             return Hash::get($this->_context['defaults'], $field);
         }
@@ -217,17 +203,14 @@ class ArrayContext implements ContextInterface
             return null;
         }
 
-        $required = Hash::get($this->_context['required'], $field);
+        $required = Hash::get($this->_context['required'], $field)
+            ?? Hash::get($this->_context['required'], $this->stripNesting($field));
 
-        if ($required === null) {
-            $required = Hash::get($this->_context['required'], $this->stripNesting($field));
-        }
-
-        if (!empty($required) || $required === '0') {
+        if ($required || $required === '0') {
             return true;
         }
 
-        return $required;
+        return $required !== null ? (bool)$required : null;
     }
 
     /**
@@ -238,17 +221,15 @@ class ArrayContext implements ContextInterface
         if (!is_array($this->_context['required'])) {
             return null;
         }
-        $required = Hash::get($this->_context['required'], $field);
-        if ($required === null) {
-            $required = Hash::get($this->_context['required'], $this->stripNesting($field));
-        }
+        $required = Hash::get($this->_context['required'], $field)
+            ?? Hash::get($this->_context['required'], $this->stripNesting($field));
 
         if ($required === false) {
             return null;
         }
 
         if ($required === true) {
-            $required = __d('cake', 'This field cannot be left empty');
+            return __d('cake', 'This field cannot be left empty');
         }
 
         return $required;
@@ -268,7 +249,7 @@ class ArrayContext implements ContextInterface
             return null;
         }
 
-        return Hash::get($this->_context['schema'], "$field.length");
+        return Hash::get($this->_context['schema'], "{$field}.length");
     }
 
     /**
@@ -279,6 +260,7 @@ class ArrayContext implements ContextInterface
         $schema = $this->_context['schema'];
         unset($schema['_constraints'], $schema['_indexes']);
 
+        /** @var array<string> */
         return array_keys($schema);
     }
 
@@ -295,10 +277,8 @@ class ArrayContext implements ContextInterface
             return null;
         }
 
-        $schema = Hash::get($this->_context['schema'], $field);
-        if ($schema === null) {
-            $schema = Hash::get($this->_context['schema'], $this->stripNesting($field));
-        }
+        $schema = Hash::get($this->_context['schema'], $field)
+            ?? Hash::get($this->_context['schema'], $this->stripNesting($field));
 
         return $schema['type'] ?? null;
     }
@@ -314,14 +294,12 @@ class ArrayContext implements ContextInterface
         if (!is_array($this->_context['schema'])) {
             return [];
         }
-        $schema = Hash::get($this->_context['schema'], $field);
-        if ($schema === null) {
-            $schema = Hash::get($this->_context['schema'], $this->stripNesting($field));
-        }
+        $schema = Hash::get($this->_context['schema'], $field)
+            ?? Hash::get($this->_context['schema'], $this->stripNesting($field));
 
         return array_intersect_key(
             (array)$schema,
-            array_flip(static::VALID_ATTRIBUTES)
+            array_flip(static::VALID_ATTRIBUTES),
         );
     }
 
@@ -366,6 +344,6 @@ class ArrayContext implements ContextInterface
      */
     protected function stripNesting(string $field): string
     {
-        return preg_replace('/\.\d*\./', '.', $field);
+        return (string)preg_replace('/\.\d*\./', '.', $field);
     }
 }

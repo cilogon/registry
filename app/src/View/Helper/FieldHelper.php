@@ -37,7 +37,7 @@ use Cake\View\Helper;
 use DOMDocument;
 
 class FieldHelper extends Helper {
-  public $helpers = ['Form', 'Html'];
+ public array $helpers = ['Form', 'Html'];
 
   /**
    * List of predefined editable form actions

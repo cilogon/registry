@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -31,42 +32,42 @@ class Manager
     /**
      * @var \Phinx\Config\ConfigInterface
      */
-    protected $config;
+    protected ConfigInterface $config;
 
     /**
      * @var \Symfony\Component\Console\Input\InputInterface
      */
-    protected $input;
+    protected InputInterface $input;
 
     /**
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
-    protected $output;
+    protected OutputInterface $output;
 
     /**
      * @var \Phinx\Migration\Manager\Environment[]
      */
-    protected $environments = [];
+    protected array $environments = [];
 
     /**
      * @var \Phinx\Migration\MigrationInterface[]|null
      */
-    protected $migrations;
+    protected ?array $migrations = null;
 
     /**
      * @var \Phinx\Seed\SeedInterface[]|null
      */
-    protected $seeds;
+    protected ?array $seeds = null;
 
     /**
      * @var \Psr\Container\ContainerInterface
      */
-    protected $container;
+    protected ContainerInterface $container;
 
     /**
      * @var int
      */
-    private $verbosityLevel = OutputInterface::OUTPUT_NORMAL | OutputInterface::VERBOSITY_NORMAL;
+    private int $verbosityLevel = OutputInterface::OUTPUT_NORMAL | OutputInterface::VERBOSITY_NORMAL;
 
     /**
      * @param \Phinx\Config\ConfigInterface $config Configuration Object
@@ -125,7 +126,7 @@ class Manager
             $versions = $env->getVersionLog();
 
             $maxNameLength = $versions ? max(array_map(function ($version) {
-                return strlen($version['migration_name']);
+                return strlen($version['migration_name'] ?? '');
             }, $versions)) : 0;
 
             $missingVersions = array_diff_key($versions, $migrations);
@@ -201,9 +202,9 @@ class Manager
                         $migration->getVersion(),
                         ($version ? $version['start_time'] : ''),
                         ($version ? $version['end_time'] : ''),
-                        $migration->getName()
+                        $migration->getName(),
                     ),
-                    $this->verbosityLevel
+                    $this->verbosityLevel,
                 );
 
                 if ($version && $version['breakpoint']) {
@@ -239,7 +240,7 @@ class Manager
                             'missing_count' => $missingCount,
                             'total_count' => $migrationCount + $missingCount,
                             'migrations' => $finalMigrations,
-                        ]
+                        ],
                     ));
                     break;
                 default:
@@ -267,7 +268,7 @@ class Manager
             $version['version'],
             $version['start_time'],
             $version['end_time'],
-            str_pad($version['migration_name'], $maxNameLength, ' ')
+            str_pad($version['migration_name'] ?? '', $maxNameLength, ' '),
         ));
 
         if ($version && $version['breakpoint']) {
@@ -301,6 +302,30 @@ class Manager
     }
 
     /**
+     * Migrate an environment to a specific number of migrations.
+     *
+     * @param string $environment Environment
+     * @param int $count Number of migrations to apply
+     * @param bool $fake flag that if true, we just record running the migration, but not actually do the migration
+     * @return void
+     */
+    public function migrateToCount(string $environment, int $count, bool $fake = false): void
+    {
+        $versions = array_keys($this->getMigrations($environment));
+        $env = $this->getEnvironment($environment);
+        $current = $env->getCurrentVersion();
+
+        if ($current === 0) {
+            $version = $versions[$count - 1];
+        } else {
+            $currentIdx = array_search($current, $versions, true);
+            $version = $versions[min($currentIdx + $count, count($versions) - 1)];
+        }
+
+        $this->migrate($environment, $version, $fake);
+    }
+
+    /**
      * Migrate an environment to the specified version.
      *
      * @param string $environment Environment
@@ -325,7 +350,7 @@ class Manager
             if ($version != 0 && !isset($migrations[$version])) {
                 $this->output->writeln(sprintf(
                     '<comment>warning</comment> %s is not a valid version',
-                    $version
+                    $version,
                 ));
 
                 return;
@@ -391,7 +416,7 @@ class Manager
         $this->printMigrationStatus(
             $migration,
             ($direction === MigrationInterface::UP ? 'migrated' : 'reverted'),
-            sprintf('%.4fs', $end - $start)
+            sprintf('%.4fs', $end - $start),
         );
     }
 
@@ -423,7 +448,7 @@ class Manager
         $this->printSeedStatus(
             $seed,
             'seeded',
-            sprintf('%.4fs', $end - $start)
+            sprintf('%.4fs', $end - $start),
         );
     }
 
@@ -440,7 +465,7 @@ class Manager
         $this->printStatusOutput(
             $migration->getVersion() . ' ' . $migration->getName(),
             $status,
-            $duration
+            $duration,
         );
     }
 
@@ -457,7 +482,7 @@ class Manager
         $this->printStatusOutput(
             $seed->getName(),
             $status,
-            $duration
+            $duration,
         );
     }
 
@@ -475,7 +500,7 @@ class Manager
             ' ==' .
             ' <info>' . $name . ':</info>' .
             ' <comment>' . $status . ' ' . $duration . '</comment>',
-            $this->verbosityLevel
+            $this->verbosityLevel,
         );
     }
 
@@ -489,7 +514,7 @@ class Manager
      * @param bool $fake Flag that if true, we just record running the migration, but not actually do the migration
      * @return void
      */
-    public function rollback(string $environment, $target = null, bool $force = false, bool $targetMustMatchVersion = true, bool $fake = false): void
+    public function rollback(string $environment, int|string|null $target = null, bool $force = false, bool $targetMustMatchVersion = true, bool $fake = false): void
     {
         // note that the migrations are indexed by name (aka creation time) in ascending order
         $migrations = $this->getMigrations($environment);
@@ -652,7 +677,7 @@ class Manager
         if (!$this->getConfig()->hasEnvironment($name)) {
             throw new InvalidArgumentException(sprintf(
                 'The environment "%s" does not exist',
-                $name
+                $name,
             ));
         }
 
@@ -761,8 +786,8 @@ class Manager
                         function ($phpFile) {
                             return "    <info>{$phpFile}</info>";
                         },
-                        $phpFiles
-                    )
+                        $phpFiles,
+                    ),
                 );
             }
 
@@ -793,7 +818,7 @@ class Manager
                         throw new InvalidArgumentException(sprintf(
                             'Migration "%s" has the same name as "%s"',
                             basename($filePath),
-                            $fileNames[$class]
+                            $fileNames[$class],
                         ));
                     }
 
@@ -813,7 +838,7 @@ class Manager
                         throw new InvalidArgumentException(sprintf(
                             'Could not find class "%s" in file "%s"',
                             $class,
-                            $filePath
+                            $filePath,
                         ));
                     }
 
@@ -828,7 +853,7 @@ class Manager
                         throw new InvalidArgumentException(sprintf(
                             'The class "%s" in file "%s" must extend \Phinx\Migration\AbstractMigration',
                             $class,
-                            $filePath
+                            $filePath,
                         ));
                     }
 
@@ -946,13 +971,13 @@ class Manager
                         throw new InvalidArgumentException(sprintf(
                             'Could not find class "%s" in file "%s"',
                             $class,
-                            $filePath
+                            $filePath,
                         ));
                     }
 
                     // instantiate it
                     /** @var \Phinx\Seed\AbstractSeed $seed */
-                    if ($this->container !== null) {
+                    if (isset($this->container)) {
                         $seed = $this->container->get($class);
                     } else {
                         $seed = new $class();
@@ -971,7 +996,7 @@ class Manager
                         throw new InvalidArgumentException(sprintf(
                             'The class "%s" in file "%s" must extend \Phinx\Seed\AbstractSeed',
                             $class,
-                            $filePath
+                            $filePath,
                         ));
                     }
 
@@ -1059,7 +1084,7 @@ class Manager
         if ($version != 0 && (!isset($versions[$version]) || !isset($migrations[$version]))) {
             $this->output->writeln(sprintf(
                 '<comment>warning</comment> %s is not a valid version',
-                $version
+                $version,
             ));
 
             return;
@@ -1086,7 +1111,7 @@ class Manager
         $this->getOutput()->writeln(
             ' Breakpoint ' . ($versions[$version]['breakpoint'] ? 'set' : 'cleared') .
             ' for <info>' . $version . '</info>' .
-            ' <comment>' . $migrations[$version]->getName() . '</comment>'
+            ' <comment>' . $migrations[$version]->getName() . '</comment>',
         );
     }
 
@@ -1100,7 +1125,7 @@ class Manager
     {
         $this->getOutput()->writeln(sprintf(
             ' %d breakpoints cleared.',
-            $this->getEnvironment($environment)->getAdapter()->resetAllBreakpoints()
+            $this->getEnvironment($environment)->getAdapter()->resetAllBreakpoints(),
         ));
     }
 

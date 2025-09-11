@@ -9,13 +9,14 @@
  */
 namespace SebastianBergmann\CodeCoverage\Report;
 
+use const PHP_EOL;
 use function dirname;
 use function file_put_contents;
 use function serialize;
-use function strpos;
+use function str_contains;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
-use SebastianBergmann\CodeCoverage\Driver\WriteOperationFailedException;
 use SebastianBergmann\CodeCoverage\Util\Filesystem;
+use SebastianBergmann\CodeCoverage\WriteOperationFailedException;
 
 final class PHP
 {
@@ -27,7 +28,7 @@ final class PHP
 return \unserialize(<<<'END_OF_COVERAGE_SERIALIZATION'" . PHP_EOL . serialize($coverage) . PHP_EOL . 'END_OF_COVERAGE_SERIALIZATION' . PHP_EOL . ');';
 
         if ($target !== null) {
-            if (!strpos($target, '://') !== false) {
+            if (!str_contains($target, '://')) {
                 Filesystem::createDirectory(dirname($target));
             }
 

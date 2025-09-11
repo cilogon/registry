@@ -19,13 +19,14 @@ namespace Cake\View;
 use Cake\Core\Configure;
 use Cake\Utility\Hash;
 use Cake\Utility\Xml;
+use Cake\View\Exception\SerializationFailureException;
 
 /**
  * A view class that is used for creating XML responses.
  *
  * By setting the 'serialize' option in view builder of your controller, you can specify
  * a view variable that should be serialized to XML and used as the response for the request.
- * This allows you to omit views + layouts, if your just need to emit a single view
+ * This allows you to omit views and layouts, if you just need to emit a single view
  * variable as the XML response.
  *
  * In your controller, you could do the following:
@@ -48,7 +49,7 @@ use Cake\Utility\Xml;
  * $this->viewBuilder()->setOption('serialize', true);
  * ```
  *
- * The above would generate a XML object that looks like:
+ * The above would generate an XML object that looks like:
  *
  * `<response><posts>...</posts><users>...</users></response>`
  *
@@ -65,14 +66,14 @@ class XmlView extends SerializedView
      *
      * @var string
      */
-    protected $layoutPath = 'xml';
+    protected string $layoutPath = 'xml';
 
     /**
      * XML views are located in the 'xml' subdirectory for controllers' views.
      *
      * @var string
      */
-    protected $subDir = 'xml';
+    protected string $subDir = 'xml';
 
     /**
      * Default config options.
@@ -81,7 +82,7 @@ class XmlView extends SerializedView
      *
      * - `serialize`: Option to convert a set of view variables into a serialized response.
      *   Its value can be a string for single variable name or array for multiple
-     *   names. If true all view variables will be serialized. If null or false
+     *   names. If true, all view variables will be serialized. If null or false,
      *   normal view template will be rendered.
      * - `xmlOptions`: Option to allow setting an array of custom options for Xml::fromArray().
      *   For e.g. 'format' as 'attributes' instead of 'tags'.
@@ -89,7 +90,7 @@ class XmlView extends SerializedView
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'serialize' => null,
         'xmlOptions' => null,
         'rootNode' => null,
@@ -108,12 +109,13 @@ class XmlView extends SerializedView
     /**
      * @inheritDoc
      */
-    protected function _serialize($serialize): string
+    protected function _serialize(array|string $serialize): string
     {
+        /** @var string $rootNode */
         $rootNode = $this->getConfig('rootNode', 'response');
 
         if (is_array($serialize)) {
-            if (empty($serialize)) {
+            if (!$serialize) {
                 $serialize = '';
             } elseif (count($serialize) === 1) {
                 $serialize = current($serialize);
@@ -131,9 +133,10 @@ class XmlView extends SerializedView
                 }
             }
         } else {
+            /** @var array<mixed>|string|int|bool|null $data */
             $data = $this->viewVars[$serialize] ?? [];
             if (
-                $data &&
+                $data !== null &&
                 (!is_array($data) || Hash::numeric(array_keys($data)))
             ) {
                 $data = [$rootNode => [$serialize => $data]];
@@ -145,6 +148,17 @@ class XmlView extends SerializedView
             $options['pretty'] = true;
         }
 
-        return Xml::fromArray($data, $options)->saveXML();
+        /**
+         * @var array<mixed> $data
+         * @var string|false $result
+         */
+        $result = Xml::fromArray($data, $options)->saveXML();
+        if ($result === false) {
+            throw new SerializationFailureException(
+                'XML serialization of View data failed.',
+            );
+        }
+
+        return $result;
     }
 }

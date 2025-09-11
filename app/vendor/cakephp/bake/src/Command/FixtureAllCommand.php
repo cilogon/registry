@@ -49,11 +49,11 @@ class FixtureAllCommand extends BakeCommand
         $parser = $this->_setCommonOptions($parser);
 
         $parser = $parser->setDescription(
-            'Generate all fixtures for use with the test suite.'
+            'Generate all fixtures for use with the test suite.',
         )->addOption('count', [
             'help' => 'When using generated data, the number of records to include in the fixture(s).',
             'short' => 'n',
-            'default' => 1,
+            'default' => '1',
         ])->addOption('schema', [
             'help' => 'Create a fixture that imports schema, instead of dumping a schema snapshot into the fixture.',
             'short' => 's',
@@ -86,7 +86,9 @@ class FixtureAllCommand extends BakeCommand
         $connection = ConnectionManager::get($args->getOption('connection') ?? 'default');
         $scanner = new TableScanner($connection);
         $fixture = new FixtureCommand();
-        foreach ($scanner->listUnskipped() as $table) {
+
+        $tables = $scanner->removeShadowTranslationTables($scanner->listUnskipped());
+        foreach ($tables as $table) {
             $fixtureArgs = new Arguments([$table], $args->getOptions(), ['name']);
             $fixture->execute($fixtureArgs, $io);
         }

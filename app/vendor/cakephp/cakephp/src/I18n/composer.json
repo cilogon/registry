@@ -28,13 +28,10 @@
         "source": "https://github.com/cakephp/i18n"
     },
     "require": {
-        "php": ">=7.4.0",
+        "php": ">=8.1",
         "ext-intl": "*",
-        "cakephp/core": "^4.0",
-        "cakephp/chronos": "^2.0.0"
-    },
-    "suggest": {
-        "cakephp/cache": "Require this if you want automatic caching of translators"
+        "cakephp/core": "5.2.*@dev",
+        "cakephp/chronos": "^3.1"
     },
     "autoload": {
         "psr-4": {
@@ -43,5 +40,14 @@
         "files": [
             "functions.php"
         ]
+    },
+    "suggest": {
+        "cakephp/cache": "Require this if you want automatic caching of translators"
+    },
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-5.x": "5.2.x-dev"
+        }
     }
 }

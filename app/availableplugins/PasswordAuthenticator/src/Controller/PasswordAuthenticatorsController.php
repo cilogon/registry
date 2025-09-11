@@ -32,7 +32,7 @@ namespace PasswordAuthenticator\Controller;
 use App\Controller\StandardPluginController;
 
 class PasswordAuthenticatorsController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'PasswordAuthenticators.id' => 'asc'
     ]

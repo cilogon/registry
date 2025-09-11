@@ -41,7 +41,7 @@ class Oauth2Server extends Entity {
    *
    * @var array<string, bool>
    */
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false,

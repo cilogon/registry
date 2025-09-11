@@ -33,7 +33,7 @@ use Cake\Routing\Router;
 use App\Controller\StandardPluginController;
 
 class ApiSourceEndpointsController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ApiSourceEndpoints.id' => 'asc'
     ]

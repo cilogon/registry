@@ -18,16 +18,21 @@ namespace Bake\Command;
 
 use Bake\Utility\TableScanner;
 use Brick\VarExporter\VarExporter;
+use Cake\Chronos\Chronos;
+use Cake\Chronos\ChronosDate;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
-use Cake\Database\Exception\DatabaseException;
+use Cake\Core\Exception\CakeException;
 use Cake\Database\Schema\TableSchemaInterface;
+use Cake\Database\Type\EnumType;
+use Cake\Database\TypeFactory;
 use Cake\Datasource\ConnectionManager;
 use Cake\Utility\Inflector;
 use Cake\Utility\Text;
 use DateTimeInterface;
+use ReflectionEnum;
 
 /**
  * Task class for creating and updating fixtures files.
@@ -62,7 +67,7 @@ class FixtureCommand extends BakeCommand
         $parser = $this->_setCommonOptions($parser);
 
         $parser = $parser->setDescription(
-            'Generate fixtures for use with the test suite. You can use `bake fixture all` to bake all fixtures.'
+            'Generate fixtures for use with the test suite. You can use `bake fixture all` to bake all fixtures.',
         )->addArgument('name', [
             'help' => 'Name of the fixture to bake (without the `Fixture` suffix). ' .
                 'You can use Plugin.name to bake plugin fixtures.',
@@ -71,10 +76,9 @@ class FixtureCommand extends BakeCommand
         ])->addOption('count', [
             'help' => 'When using generated data, the number of records to include in the fixture(s).',
             'short' => 'n',
-            'default' => 1,
+            'default' => '1',
         ])->addOption('fields', [
             'help' => 'Create a fixture that includes the deprecated $fields property.',
-            'short' => 'f',
             'boolean' => true,
         ])->addOption('schema', [
             'help' => 'Create a fixture that imports schema, instead of dumping a schema snapshot into the fixture.',
@@ -159,7 +163,7 @@ class FixtureCommand extends BakeCommand
 
         try {
             $data = $this->readSchema($model, $useTable);
-        } catch (DatabaseException $e) {
+        } catch (CakeException $e) {
             $this->getTableLocator()->remove($model);
             $useTable = Inflector::underscore($model);
             $table = $useTable;
@@ -223,7 +227,7 @@ class FixtureCommand extends BakeCommand
                 $io->abort(sprintf(
                     'Unable to bake model. Table column name must start with a letter or underscore and
                     cannot contain special characters. Found `%s`.',
-                    $column
+                    $column,
                 ));
             }
         }
@@ -318,7 +322,7 @@ class FixtureCommand extends BakeCommand
      * Formats Schema columns from Model Object
      *
      * @param array $values options keys(type, null, default, key, length, extra)
-     * @return string[] Formatted values
+     * @return array<string> Formatted values
      */
     protected function _values(array $values): array
     {
@@ -382,7 +386,7 @@ class FixtureCommand extends BakeCommand
                                     0,
                                     (int)$fieldInfo['length'] > 2
                                         ? (int)$fieldInfo['length'] - 2
-                                        : (int)$fieldInfo['length']
+                                        : (int)$fieldInfo['length'],
                                 );
                             }
                         }
@@ -417,6 +421,33 @@ class FixtureCommand extends BakeCommand
                         $insert = Text::uuid();
                         break;
                 }
+                if (str_starts_with($fieldInfo['type'], 'enum-')) {
+                    $insert = null;
+                    if ($fieldInfo['default'] || $fieldInfo['null'] === false) {
+                        $dbType = TypeFactory::build($fieldInfo['type']);
+                        if ($dbType instanceof EnumType) {
+                            $class = $dbType->getEnumClassName();
+                            $reflectionEnum = new ReflectionEnum($class);
+                            $backingType = (string)$reflectionEnum->getBackingType();
+
+                            if ($fieldInfo['default'] !== null) {
+                                $insert = $fieldInfo['default'];
+                                if ($backingType === 'int') {
+                                    $insert = (int)$insert;
+                                }
+                            } else {
+                                $cases = $reflectionEnum->getCases();
+                                if ($cases) {
+                                    $firstCase = array_shift($cases);
+                                    /** @var \BackedEnum $firstValue */
+                                    $firstValue = $firstCase->getValue();
+                                    $insert = $firstValue->value;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $record[$field] = $insert;
             }
             $records[] = $record;
@@ -435,9 +466,11 @@ class FixtureCommand extends BakeCommand
     protected function _makeRecordString(array $records): string
     {
         foreach ($records as &$record) {
-            array_walk($record, function (&$value) {
-                if ($value instanceof DateTimeInterface) {
+            array_walk($record, function (&$value): void {
+                if ($value instanceof DateTimeInterface || $value instanceof Chronos) {
                     $value = $value->format('Y-m-d H:i:s');
+                } elseif ($value instanceof ChronosDate) {
+                    $value = $value->format('Y-m-d');
                 }
             });
         }

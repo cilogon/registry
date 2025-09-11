@@ -4,8 +4,8 @@
 # CakePHP Http Library
 
 This library provides a PSR-15 Http middleware server, PSR-7 Request and
-Response objects, and a PSR-18 Http Client. Together these classes let you
-handle incoming server requests and send outgoing HTTP requests.
+Response objects, PSR-17 HTTP Factories, and PSR-18 Http Client. Together these
+classes let you handle incoming server requests and send outgoing HTTP requests.
 
 ## Using the Http Client
 
@@ -28,7 +28,7 @@ $response = $http->get('http://example.com/search', ['q' => 'widget'], [
 ]);
 ```
 
-To learn more read the [Http Client documentation](https://book.cakephp.org/4/en/core-libraries/httpclient.html).
+To learn more read the [Http Client documentation](https://book.cakephp.org/5/en/core-libraries/httpclient.html).
 
 ## Using the Http Server
 
@@ -109,4 +109,4 @@ php -S localhost:8765 -t ./webroot ./webroot/index.php
 ```
 
 For more information on middleware, [consult the
-documentation](https://book.cakephp.org/4/en/controllers/middleware.html)
+documentation](https://book.cakephp.org/5/en/controllers/middleware.html)

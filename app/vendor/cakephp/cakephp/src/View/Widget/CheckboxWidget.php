@@ -31,7 +31,7 @@ class CheckboxWidget extends BasicWidget
      *
      * @var array<string, mixed>
      */
-    protected $defaults = [
+    protected array $defaults = [
         'name' => '',
         'value' => 1,
         'val' => null,
@@ -67,7 +67,7 @@ class CheckboxWidget extends BasicWidget
 
         $attrs = $this->_templates->formatAttributes(
             $data,
-            ['name', 'value']
+            ['name', 'value'],
         );
 
         return $this->_templates->format('checkbox', [

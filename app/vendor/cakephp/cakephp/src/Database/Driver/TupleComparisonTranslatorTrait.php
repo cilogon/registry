@@ -20,7 +20,8 @@ use Cake\Database\Expression\IdentifierExpression;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Database\Expression\TupleComparison;
 use Cake\Database\Query;
-use RuntimeException;
+use Cake\Database\Query\SelectQuery;
+use InvalidArgumentException;
 
 /**
  * Provides a translator method for tuple comparisons
@@ -36,7 +37,7 @@ trait TupleComparisonTranslatorTrait
      * It transforms expressions looking like '(a, b) IN ((c, d), (e, f))' into an
      * equivalent expression of the form '((a = c) AND (b = d)) OR ((a = e) AND (b = f))'.
      *
-     * It can also transform transform expressions where the right hand side is a query
+     * It can also transform expressions where the right hand side is a query
      * selecting the same amount of columns as the elements in the left hand side of
      * the expression:
      *
@@ -58,18 +59,19 @@ trait TupleComparisonTranslatorTrait
 
         $operator = strtoupper($expression->getOperator());
         if (!in_array($operator, ['IN', '='])) {
-            throw new RuntimeException(
+            throw new InvalidArgumentException(
                 sprintf(
                     'Tuple comparison transform only supports the `IN` and `=` operators, `%s` given.',
-                    $operator
-                )
+                    $operator,
+                ),
             );
         }
 
         $value = $expression->getValue();
         $true = new QueryExpression('1');
 
-        if ($value instanceof Query) {
+        if ($value instanceof SelectQuery) {
+            /** @var array<string> $selected */
             $selected = array_values($value->clause('select'));
             foreach ($fields as $i => $field) {
                 $value->andWhere([$field => new IdentifierExpression($selected[$i])]);
@@ -90,7 +92,8 @@ trait TupleComparisonTranslatorTrait
         }
 
         $surrogate = $query->getConnection()
-            ->selectQuery($true);
+            ->selectQuery()
+            ->select($true);
 
         if (!is_array(current($value))) {
             $value = [$value];

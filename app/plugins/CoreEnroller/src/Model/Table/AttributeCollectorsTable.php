@@ -317,10 +317,10 @@ class AttributeCollectorsTable extends Table {
     // particular Attribute Collector; however we'll only look at the attributes
     // we need below.
     $currentAttributes = $this->EnrollmentAttributes
-                              ->PetitionAttributes->find('list', [
-                                                          'keyField' => 'enrollment_attribute_id',
-                                                          'valueField' => 'id'
-                                                        ])
+                              ->PetitionAttributes->find('list',
+                                                          keyField: 'enrollment_attribute_id',
+                                                          valueField: 'id',
+                                                        )
                                                   ->where(['petition_id' => $petitionId])
                                                   ->toArray();
 
@@ -434,15 +434,14 @@ class AttributeCollectorsTable extends Table {
   ): array {
     // First get the Enrollment Attributes for this petition
     $vv_enrollment_attributes = $this->EnrollmentAttributes->find('list',
-    [
-      'keyField' => 'id',
-      'valueField' => 'attribute_type'
-    ])->where([
+      keyField: 'id',
+      valueField: 'attribute_type',
+    )->where([
         'attribute_collector_id' => $config->id,
         'attribute' => 'emailAddress',
         'status' => StatusEnum::Active,
       ])
-      ->order(['ordr' => 'ASC'])
+      ->orderBy(['ordr' => 'ASC'])
       ->toArray();
 
     if (empty($vv_enrollment_attributes)) {

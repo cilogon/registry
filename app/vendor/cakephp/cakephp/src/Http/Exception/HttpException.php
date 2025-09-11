@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Cake\Http\Exception;
 
 use Cake\Core\Exception\CakeException;
+use Cake\Core\Exception\HttpErrorCodeInterface;
 
 /**
  * Parent class for all the HTTP related exceptions in CakePHP.
@@ -24,17 +25,17 @@ use Cake\Core\Exception\CakeException;
  * You may also use this as a meaningful bridge to {@link \Cake\Core\Exception\CakeException}, e.g.:
  * throw new \Cake\Network\Exception\HttpException('HTTP Version Not Supported', 505);
  */
-class HttpException extends CakeException
+class HttpException extends CakeException implements HttpErrorCodeInterface
 {
     /**
      * @inheritDoc
      */
-    protected $_defaultCode = 500;
+    protected int $_defaultCode = 500;
 
     /**
      * @var array<string, mixed>
      */
-    protected $headers = [];
+    protected array $headers = [];
 
     /**
      * Set a single HTTP response header.
@@ -43,7 +44,7 @@ class HttpException extends CakeException
      * @param array<string>|string|null $value Header value
      * @return void
      */
-    public function setHeader(string $header, $value = null): void
+    public function setHeader(string $header, array|string|null $value = null): void
     {
         $this->headers[$header] = $value;
     }

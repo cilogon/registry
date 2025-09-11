@@ -177,7 +177,7 @@ class GroupNestingsTable extends Table {
                             'Groups.group_type IS' => null
                           ]
                         ])
-                        ->order(['Groups.name' => 'ASC'])
+                        ->orderBy(['Groups.name' => 'ASC'])
                         ->toArray();
   }
   

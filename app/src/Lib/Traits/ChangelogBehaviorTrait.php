@@ -37,10 +37,15 @@ trait ChangelogBehaviorTrait {
    * @param  EventInterface  $event   Event
    * @param  EntityInterface $entity  Entity (ie: Co)
    * @param  ArrayObject     $options Save options
-   * @return bool                     True on success
+   * @return void
    */
     
-  public function afterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+  public function afterSave(
+    \Cake\Event\EventInterface $event,
+    \Cake\Datasource\EntityInterface $entity,
+    \ArrayObject $options
+  ): void
+  {
     // We don't want to trigger any callbacks when we're saving the archive copy.
     // In Cake 2, we could do this by disabling callbacks, but this feature was
     // removed in Cake 3 because it "was a common source of bugs in applications"
@@ -56,10 +61,12 @@ trait ChangelogBehaviorTrait {
       $table = $event->getSubject();
       
       if(method_exists($table, "localAfterSave")) {
-        return $table->localAfterSave($event, $entity, $options);
+        $result = $table->localAfterSave($event, $entity, $options);
+        $event->setResult($result);
+        return;
       }
     }
     
-    return true;
+    $event->setResult(true);
   }
 }

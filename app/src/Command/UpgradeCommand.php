@@ -30,12 +30,12 @@ declare(strict_types=1);
 namespace App\Command;
 
 use Cake\Console\Arguments;
-use Cake\Console\Command;
+use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionManager;
 
-class UpgradeCommand extends Command
+class UpgradeCommand extends BaseCommand
 {
   protected $io = null;
 

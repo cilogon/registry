@@ -64,7 +64,7 @@ if (
   && !empty($this->getPlugin())
   && $vv_subnavigation_tabs[0] !== StringUtilities::entityToClassName($vv_bc_parent_obj)
 ) {
-  $object = $vv_obj ?? $$objectName?->first();
+  $object = $vv_obj ?? $$objectName?->items()?->first();
   if ($object === null) {
     // This is a deep nested association that has not been initialized yet. The controller name
     // will become the supertitle

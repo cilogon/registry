@@ -33,7 +33,7 @@ use Cake\Event\EventInterface;
 use App\Controller\StandardPluginController;
 
 class MatchCallbacksController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'MatchCallbacks.server_id' => 'asc'
     ]

@@ -16,8 +16,6 @@ declare(strict_types=1);
  */
 namespace Cake\View\Form;
 
-use function Cake\Core\deprecationWarning;
-
 /**
  * Provides a context provider that does nothing.
  *
@@ -33,19 +31,6 @@ class NullContext implements ContextInterface
      */
     public function __construct(array $context)
     {
-    }
-
-    /**
-     * Get the fields used in the context as a primary key.
-     *
-     * @return array<string>
-     * @deprecated 4.0.0 Renamed to {@link getPrimaryKey()}.
-     */
-    public function primaryKey(): array
-    {
-        deprecationWarning('`NullContext::primaryKey()` is deprecated. Use `NullContext::getPrimaryKey()`.');
-
-        return [];
     }
 
     /**
@@ -75,7 +60,7 @@ class NullContext implements ContextInterface
     /**
      * @inheritDoc
      */
-    public function val(string $field, array $options = [])
+    public function val(string $field, array $options = []): mixed
     {
         return null;
     }

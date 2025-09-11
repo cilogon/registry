@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -27,12 +28,22 @@ class Create extends AbstractCommand
     /**
      * @var string|null
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
     protected static $defaultName = 'create';
 
     /**
      * The name of the interface that any external template creation class is required to implement.
      */
     public const CREATION_INTERFACE = 'Phinx\Migration\CreationInterface';
+
+    // PHP keywords from https://www.php.net/manual/en/reserved.keywords.php
+    private array $keywords = [
+        'abstract', 'and', 'array', 'as', 'break', 'callable', 'case', 'catch', 'class', 'clone', 'const',
+        'continue', 'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor',
+        'endforeach', 'endif', 'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'finally', 'for', 'foreach',
+        'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof', 'insteadof', 'interface',
+        'isset', 'list', 'namespace', 'new', 'or', 'parent', 'private', 'protected', 'public', 'return','static',
+    ];
 
     /**
      * {@inheritDoc}
@@ -48,7 +59,7 @@ class Create extends AbstractCommand
             ->setHelp(sprintf(
                 '%sCreates a new database migration%s',
                 PHP_EOL,
-                PHP_EOL
+                PHP_EOL,
             ));
 
         // An alternative template.
@@ -116,7 +127,7 @@ class Create extends AbstractCommand
             throw new Exception(
                 'You probably used curly braces to define migration path in your Phinx configuration file, ' .
                 'but no directories have been matched using this pattern. ' .
-                'You need to create a migration directory manually.'
+                'You need to create a migration directory manually.',
             );
         }
 
@@ -165,27 +176,38 @@ class Create extends AbstractCommand
 
         $path = realpath($path);
         $className = $input->getArgument('name');
+        if ($className !== null && in_array(strtolower($className), $this->keywords)) {
+            throw new InvalidArgumentException(sprintf(
+                'The migration class name "%s" is a reserved PHP keyword. Please choose a different class name.',
+                $className,
+            ));
+        }
+
+        $offset = 0;
+        do {
+            $timestamp = Util::getCurrentTimestamp($offset++);
+        } while (!Util::isUniqueTimestamp($path, $timestamp));
+
         if ($className === null) {
-            $currentTimestamp = Util::getCurrentTimestamp();
-            $className = 'V' . $currentTimestamp;
-            $fileName = $currentTimestamp . '.php';
+            $className = 'V' . $timestamp;
+            $fileName = '';
         } else {
             if (!Util::isValidPhinxClassName($className)) {
                 throw new InvalidArgumentException(sprintf(
                     'The migration class name "%s" is invalid. Please use CamelCase format.',
-                    $className
+                    $className,
                 ));
             }
 
-            // Compute the file path
-            $fileName = Util::mapClassNameToFileName($className);
+            $fileName = Util::toSnakeCase($className);
         }
+        $fileName = $timestamp . $fileName . '.php';
 
         if (!Util::isUniqueMigrationClassName($className, $path)) {
             throw new InvalidArgumentException(sprintf(
                 'The migration class name "%s%s" already exists',
                 $namespace ? $namespace . '\\' : '',
-                $className
+                $className,
             ));
         }
 
@@ -194,7 +216,7 @@ class Create extends AbstractCommand
         if (is_file($filePath)) {
             throw new InvalidArgumentException(sprintf(
                 'The file "%s" already exists',
-                $filePath
+                $filePath,
             ));
         }
 
@@ -231,7 +253,7 @@ class Create extends AbstractCommand
         if ($altTemplate && !is_file($altTemplate)) {
             throw new InvalidArgumentException(sprintf(
                 'The alternative template file "%s" does not exist',
-                $altTemplate
+                $altTemplate,
             ));
         }
 
@@ -245,12 +267,12 @@ class Create extends AbstractCommand
                     throw new InvalidArgumentException(sprintf(
                         'The class "%s" via the alias "%s" does not exist',
                         $aliasedClassName,
-                        $creationClassName
+                        $creationClassName,
                     ));
                 } elseif (!$aliasedClassName) {
                     throw new InvalidArgumentException(sprintf(
                         'The class "%s" does not exist',
-                        $creationClassName
+                        $creationClassName,
                     ));
                 }
             }
@@ -260,14 +282,14 @@ class Create extends AbstractCommand
                 throw new InvalidArgumentException(sprintf(
                     'The class "%s" does not implement the required interface "%s"',
                     $creationClassName,
-                    self::CREATION_INTERFACE
+                    self::CREATION_INTERFACE,
                 ));
             } elseif ($aliasedClassName && !is_subclass_of($aliasedClassName, self::CREATION_INTERFACE)) {
                 throw new InvalidArgumentException(sprintf(
                     'The class "%s" via the alias "%s" does not implement the required interface "%s"',
                     $aliasedClassName,
                     $creationClassName,
-                    self::CREATION_INTERFACE
+                    self::CREATION_INTERFACE,
                 ));
             }
         }
@@ -299,7 +321,7 @@ class Create extends AbstractCommand
         if (file_put_contents($filePath, $contents) === false) {
             throw new RuntimeException(sprintf(
                 'The file "%s" could not be written to',
-                $path
+                $path,
             ));
         }
 

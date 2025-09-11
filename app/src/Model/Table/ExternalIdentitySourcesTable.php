@@ -251,10 +251,10 @@ class ExternalIdentitySourcesTable extends Table {
     // source keys _should_ fit in memory (for a reasonably sized VM/etc).
 
     $records = $this->ExtIdentitySourceRecords
-                    ->find('list', [
-                            'keyField' => 'source_key',
-                            'valueField' => 'external_identity_id'
-                          ])
+                    ->find('list',
+                            keyField: 'source_key',
+                            valueField: 'external_identity_id',
+                          )
                     ->where(['external_identity_source_id' => $id])
                     ->toArray();
     

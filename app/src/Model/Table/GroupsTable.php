@@ -487,7 +487,7 @@ class GroupsTable extends Table {
     ]);
 
     // AR-Group-6 Groups of type Owners cannot be provisioned.
-    $this->saveOrFail($ownerGroup);
+    $this->saveOrFail($ownerGroup, ['archive' => false]);
 
     // Update the original Group with a pointer to this one
     $group->owners_group_id = $ownerGroup->id;
@@ -542,8 +542,8 @@ class GroupsTable extends Table {
    */
   
   public function getAdminGroupId(int $coId): int {
-    $g = $this->find('adminGroup', ['co_id' => $coId])->firstOrFail();
-    
+    $g = $this->find('adminGroup', co_id: $coId)->firstOrFail();
+
     return $g->id;
   }
   
@@ -1115,7 +1115,7 @@ class GroupsTable extends Table {
     return $this->find()
                 ->where($whereClause)
                 ->andWhere(['Groups.co_id' => $coId])
-                ->order(['Groups.name'])
+                ->orderBy(['Groups.name'])
                 ->limit($limit)
                 ->all();
   }

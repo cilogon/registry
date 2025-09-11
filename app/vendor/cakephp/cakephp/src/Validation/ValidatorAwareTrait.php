@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace Cake\Validation;
 
 use Cake\Event\EventDispatcherInterface;
-use RuntimeException;
+use InvalidArgumentException;
 
 /**
  * A trait that provides methods for building and
@@ -32,7 +32,7 @@ use RuntimeException;
  * - `DEFAULT_VALIDATOR` - The default validator name.
  * - `VALIDATOR_PROVIDER_NAME ` - The provider name the including class is assigned
  *   in validators.
- * - `BUILD_VALIDATOR_EVENT` - The name of the event to be triggred when validators
+ * - `BUILD_VALIDATOR_EVENT` - The name of the event to be triggered when validators
  *   are built.
  *
  * If the including class also implements events the `Model.buildValidator` event
@@ -45,21 +45,21 @@ trait ValidatorAwareTrait
      *
      * @var string
      */
-    protected $_validatorClass = Validator::class;
+    protected string $_validatorClass = Validator::class;
 
     /**
      * A list of validation objects indexed by name
      *
      * @var array<\Cake\Validation\Validator>
      */
-    protected $_validators = [];
+    protected array $_validators = [];
 
     /**
      * Returns the validation rules tagged with $name. It is possible to have
      * multiple different named validation sets, this is useful when you need
      * to use varying rules when saving from different routines in your system.
      *
-     * If a validator has not been set earlier, this method will build a valiator
+     * If a validator has not been set earlier, this method will build a validator
      * using a method inside your class.
      *
      * For example, if you wish to create a validation set called 'forSubscription',
@@ -107,14 +107,14 @@ trait ValidatorAwareTrait
      *
      * @param string $name The name of the validation set to create.
      * @return \Cake\Validation\Validator
-     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      */
     protected function createValidator(string $name): Validator
     {
         $method = 'validation' . ucfirst($name);
         if (!$this->validationMethodExists($method)) {
-            $message = sprintf('The %s::%s() validation method does not exists.', static::class, $method);
-            throw new RuntimeException($message);
+            $message = sprintf('The `%s::%s()` validation method does not exists.', static::class, $method);
+            throw new InvalidArgumentException($message);
         }
 
         $validator = new $this->_validatorClass();
@@ -126,14 +126,15 @@ trait ValidatorAwareTrait
             $this->dispatchEvent($event, compact('validator', 'name'));
         }
 
-        if (!$validator instanceof Validator) {
-            throw new RuntimeException(sprintf(
-                'The %s::%s() validation method must return an instance of %s.',
+        assert(
+            $validator instanceof Validator,
+            sprintf(
+                'The `%s::%s()` validation method must return an instance of `%s`.',
                 static::class,
                 $method,
-                Validator::class
-            ));
-        }
+                Validator::class,
+            ),
+        );
 
         return $validator;
     }

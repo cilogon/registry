@@ -109,7 +109,7 @@ class PersonRoleMappersTable extends Table {
     // We need our Mapping configuration, which won't be in $flange
     $mappings = $this->PersonRoleMappings->find()
                      ->where(['person_role_mapper_id' => $flange->person_role_mapper->id])
-                     ->order(['ordr' => 'ASC'])
+                     ->orderBy(['ordr' => 'ASC'])
                      ->all();
     
     foreach($mappings as $mapping) {

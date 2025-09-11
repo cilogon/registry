@@ -24,7 +24,7 @@ class UnauthorizedException extends HttpException
     /**
      * @inheritDoc
      */
-    protected $_defaultCode = 401;
+    protected int $_defaultCode = 401;
 
     /**
      * Constructor
@@ -35,7 +35,7 @@ class UnauthorizedException extends HttpException
      */
     public function __construct(?string $message = null, ?int $code = null, ?Throwable $previous = null)
     {
-        if (empty($message)) {
+        if (!$message) {
             $message = 'Unauthorized';
         }
         parent::__construct($message, $code, $previous);

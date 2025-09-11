@@ -30,11 +30,11 @@ declare(strict_types=1);
 namespace App\Command;
 
 use Cake\Console\Arguments;
-use Cake\Console\Command;
+use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 
-class NotificationCommand extends Command
+class NotificationCommand extends BaseCommand
 {
   /**
    * Register command specific options.

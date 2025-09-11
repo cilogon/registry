@@ -18,8 +18,8 @@ namespace Cake\Cache;
 
 use BadMethodCallException;
 use Cake\Core\App;
+use Cake\Core\Exception\CakeException;
 use Cake\Core\ObjectRegistry;
-use RuntimeException;
 
 /**
  * An object registry for cache engines.
@@ -36,11 +36,11 @@ class CacheRegistry extends ObjectRegistry
      * Part of the template method for Cake\Core\ObjectRegistry::load()
      *
      * @param string $class Partial classname to resolve.
-     * @return string|null Either the correct classname or null.
-     * @psalm-return class-string|null
+     * @return class-string<\Cake\Cache\CacheEngine>|null Either the correct classname or null.
      */
     protected function _resolveClassName(string $class): ?string
     {
+        /** @var class-string<\Cake\Cache\CacheEngine>|null */
         return App::className($class, 'Cache/Engine', 'Engine');
     }
 
@@ -56,7 +56,7 @@ class CacheRegistry extends ObjectRegistry
      */
     protected function _throwMissingClassError(string $class, ?string $plugin): void
     {
-        throw new BadMethodCallException(sprintf('Cache engine %s is not available.', $class));
+        throw new BadMethodCallException(sprintf('Cache engine `%s` is not available.', $class));
     }
 
     /**
@@ -64,13 +64,13 @@ class CacheRegistry extends ObjectRegistry
      *
      * Part of the template method for Cake\Core\ObjectRegistry::load()
      *
-     * @param \Cake\Cache\CacheEngine|string $class The classname or object to make.
+     * @param \Cake\Cache\CacheEngine|class-string<\Cake\Cache\CacheEngine> $class The classname or object to make.
      * @param string $alias The alias of the object.
      * @param array<string, mixed> $config An array of settings to use for the cache engine.
      * @return \Cake\Cache\CacheEngine The constructed CacheEngine class.
-     * @throws \RuntimeException when an object doesn't implement the correct interface.
+     * @throws \Cake\Core\Exception\CakeException When the cache engine cannot be initialized.
      */
-    protected function _create($class, string $alias, array $config): CacheEngine
+    protected function _create(object|string $class, string $alias, array $config): CacheEngine
     {
         if (is_object($class)) {
             $instance = $class;
@@ -79,18 +79,14 @@ class CacheRegistry extends ObjectRegistry
         }
         unset($config['className']);
 
-        if (!($instance instanceof CacheEngine)) {
-            throw new RuntimeException(
-                'Cache engines must use Cake\Cache\CacheEngine as a base class.'
-            );
-        }
+        assert($instance instanceof CacheEngine, 'Cache engines must extend `' . CacheEngine::class . '`.');
 
         if (!$instance->init($config)) {
-            throw new RuntimeException(
+            throw new CakeException(
                 sprintf(
-                    'Cache engine %s is not properly configured. Check error log for additional information.',
-                    get_class($instance)
-                )
+                    'Cache engine `%s` is not properly configured. Check error log for additional information.',
+                    $instance::class,
+                ),
             );
         }
 

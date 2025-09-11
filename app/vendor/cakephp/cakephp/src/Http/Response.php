@@ -29,7 +29,7 @@ use Laminas\Diactoros\Stream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use SplFileInfo;
-use function Cake\Core\deprecationWarning;
+use Stringable;
 use function Cake\Core\env;
 use function Cake\I18n\__d;
 
@@ -42,7 +42,7 @@ use function Cake\I18n\__d;
  * include status codes that are now allowed which will throw an
  * `\InvalidArgumentException`.
  */
-class Response implements ResponseInterface
+class Response implements ResponseInterface, Stringable
 {
     use MessageTrait;
 
@@ -61,7 +61,7 @@ class Response implements ResponseInterface
      *
      * @var array<int, string>
      */
-    protected $_statusCodes = [
+    protected array $_statusCodes = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -102,7 +102,7 @@ class Response implements ResponseInterface
         415 => 'Unsupported Media Type',
         416 => 'Requested range not satisfiable',
         417 => 'Expectation Failed',
-        418 => 'I\'m a teapot',
+        418 => "I'm a teapot",
         421 => 'Misdirected Request',
         422 => 'Unprocessable Entity',
         423 => 'Locked',
@@ -130,275 +130,32 @@ class Response implements ResponseInterface
     ];
 
     /**
-     * Holds type key to mime type mappings for known mime types.
-     *
-     * @var array<string, mixed>
-     */
-    protected $_mimeTypes = [
-        'html' => ['text/html', '*/*'],
-        'json' => 'application/json',
-        'xml' => ['application/xml', 'text/xml'],
-        'xhtml' => ['application/xhtml+xml', 'application/xhtml', 'text/xhtml'],
-        'webp' => 'image/webp',
-        'rss' => 'application/rss+xml',
-        'ai' => 'application/postscript',
-        'bcpio' => 'application/x-bcpio',
-        'bin' => 'application/octet-stream',
-        'ccad' => 'application/clariscad',
-        'cdf' => 'application/x-netcdf',
-        'class' => 'application/octet-stream',
-        'cpio' => 'application/x-cpio',
-        'cpt' => 'application/mac-compactpro',
-        'csh' => 'application/x-csh',
-        'csv' => ['text/csv', 'application/vnd.ms-excel'],
-        'dcr' => 'application/x-director',
-        'dir' => 'application/x-director',
-        'dms' => 'application/octet-stream',
-        'doc' => 'application/msword',
-        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'drw' => 'application/drafting',
-        'dvi' => 'application/x-dvi',
-        'dwg' => 'application/acad',
-        'dxf' => 'application/dxf',
-        'dxr' => 'application/x-director',
-        'eot' => 'application/vnd.ms-fontobject',
-        'eps' => 'application/postscript',
-        'exe' => 'application/octet-stream',
-        'ez' => 'application/andrew-inset',
-        'flv' => 'video/x-flv',
-        'gtar' => 'application/x-gtar',
-        'gz' => 'application/x-gzip',
-        'bz2' => 'application/x-bzip',
-        '7z' => 'application/x-7z-compressed',
-        'hal' => ['application/hal+xml', 'application/vnd.hal+xml'],
-        'haljson' => ['application/hal+json', 'application/vnd.hal+json'],
-        'halxml' => ['application/hal+xml', 'application/vnd.hal+xml'],
-        'hdf' => 'application/x-hdf',
-        'hqx' => 'application/mac-binhex40',
-        'ico' => 'image/x-icon',
-        'ips' => 'application/x-ipscript',
-        'ipx' => 'application/x-ipix',
-        'js' => 'application/javascript',
-        'jsonapi' => 'application/vnd.api+json',
-        'latex' => 'application/x-latex',
-        'jsonld' => 'application/ld+json',
-        'kml' => 'application/vnd.google-earth.kml+xml',
-        'kmz' => 'application/vnd.google-earth.kmz',
-        'lha' => 'application/octet-stream',
-        'lsp' => 'application/x-lisp',
-        'lzh' => 'application/octet-stream',
-        'man' => 'application/x-troff-man',
-        'me' => 'application/x-troff-me',
-        'mif' => 'application/vnd.mif',
-        'ms' => 'application/x-troff-ms',
-        'nc' => 'application/x-netcdf',
-        'oda' => 'application/oda',
-        'otf' => 'font/otf',
-        'pdf' => 'application/pdf',
-        'pgn' => 'application/x-chess-pgn',
-        'pot' => 'application/vnd.ms-powerpoint',
-        'pps' => 'application/vnd.ms-powerpoint',
-        'ppt' => 'application/vnd.ms-powerpoint',
-        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'ppz' => 'application/vnd.ms-powerpoint',
-        'pre' => 'application/x-freelance',
-        'prt' => 'application/pro_eng',
-        'ps' => 'application/postscript',
-        'roff' => 'application/x-troff',
-        'scm' => 'application/x-lotusscreencam',
-        'set' => 'application/set',
-        'sh' => 'application/x-sh',
-        'shar' => 'application/x-shar',
-        'sit' => 'application/x-stuffit',
-        'skd' => 'application/x-koan',
-        'skm' => 'application/x-koan',
-        'skp' => 'application/x-koan',
-        'skt' => 'application/x-koan',
-        'smi' => 'application/smil',
-        'smil' => 'application/smil',
-        'sol' => 'application/solids',
-        'spl' => 'application/x-futuresplash',
-        'src' => 'application/x-wais-source',
-        'step' => 'application/STEP',
-        'stl' => 'application/SLA',
-        'stp' => 'application/STEP',
-        'sv4cpio' => 'application/x-sv4cpio',
-        'sv4crc' => 'application/x-sv4crc',
-        'svg' => 'image/svg+xml',
-        'svgz' => 'image/svg+xml',
-        'swf' => 'application/x-shockwave-flash',
-        't' => 'application/x-troff',
-        'tar' => 'application/x-tar',
-        'tcl' => 'application/x-tcl',
-        'tex' => 'application/x-tex',
-        'texi' => 'application/x-texinfo',
-        'texinfo' => 'application/x-texinfo',
-        'tr' => 'application/x-troff',
-        'tsp' => 'application/dsptype',
-        'ttc' => 'font/ttf',
-        'ttf' => 'font/ttf',
-        'unv' => 'application/i-deas',
-        'ustar' => 'application/x-ustar',
-        'vcd' => 'application/x-cdlink',
-        'vda' => 'application/vda',
-        'xlc' => 'application/vnd.ms-excel',
-        'xll' => 'application/vnd.ms-excel',
-        'xlm' => 'application/vnd.ms-excel',
-        'xls' => 'application/vnd.ms-excel',
-        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'xlw' => 'application/vnd.ms-excel',
-        'zip' => 'application/zip',
-        'aif' => 'audio/x-aiff',
-        'aifc' => 'audio/x-aiff',
-        'aiff' => 'audio/x-aiff',
-        'au' => 'audio/basic',
-        'kar' => 'audio/midi',
-        'mid' => 'audio/midi',
-        'midi' => 'audio/midi',
-        'mp2' => 'audio/mpeg',
-        'mp3' => 'audio/mpeg',
-        'mpga' => 'audio/mpeg',
-        'ogg' => 'audio/ogg',
-        'oga' => 'audio/ogg',
-        'spx' => 'audio/ogg',
-        'ra' => 'audio/x-realaudio',
-        'ram' => 'audio/x-pn-realaudio',
-        'rm' => 'audio/x-pn-realaudio',
-        'rpm' => 'audio/x-pn-realaudio-plugin',
-        'snd' => 'audio/basic',
-        'tsi' => 'audio/TSP-audio',
-        'wav' => 'audio/x-wav',
-        'aac' => 'audio/aac',
-        'asc' => 'text/plain',
-        'c' => 'text/plain',
-        'cc' => 'text/plain',
-        'css' => 'text/css',
-        'etx' => 'text/x-setext',
-        'f' => 'text/plain',
-        'f90' => 'text/plain',
-        'h' => 'text/plain',
-        'hh' => 'text/plain',
-        'htm' => ['text/html', '*/*'],
-        'ics' => 'text/calendar',
-        'm' => 'text/plain',
-        'rtf' => 'text/rtf',
-        'rtx' => 'text/richtext',
-        'sgm' => 'text/sgml',
-        'sgml' => 'text/sgml',
-        'tsv' => 'text/tab-separated-values',
-        'tpl' => 'text/template',
-        'txt' => 'text/plain',
-        'text' => 'text/plain',
-        'avi' => 'video/x-msvideo',
-        'fli' => 'video/x-fli',
-        'mov' => 'video/quicktime',
-        'movie' => 'video/x-sgi-movie',
-        'mpe' => 'video/mpeg',
-        'mpeg' => 'video/mpeg',
-        'mpg' => 'video/mpeg',
-        'qt' => 'video/quicktime',
-        'viv' => 'video/vnd.vivo',
-        'vivo' => 'video/vnd.vivo',
-        'ogv' => 'video/ogg',
-        'webm' => 'video/webm',
-        'mp4' => 'video/mp4',
-        'm4v' => 'video/mp4',
-        'f4v' => 'video/mp4',
-        'f4p' => 'video/mp4',
-        'm4a' => 'audio/mp4',
-        'f4a' => 'audio/mp4',
-        'f4b' => 'audio/mp4',
-        'gif' => 'image/gif',
-        'ief' => 'image/ief',
-        'jpg' => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'jpe' => 'image/jpeg',
-        'pbm' => 'image/x-portable-bitmap',
-        'pgm' => 'image/x-portable-graymap',
-        'png' => 'image/png',
-        'pnm' => 'image/x-portable-anymap',
-        'ppm' => 'image/x-portable-pixmap',
-        'ras' => 'image/cmu-raster',
-        'rgb' => 'image/x-rgb',
-        'tif' => 'image/tiff',
-        'tiff' => 'image/tiff',
-        'xbm' => 'image/x-xbitmap',
-        'xpm' => 'image/x-xpixmap',
-        'xwd' => 'image/x-xwindowdump',
-        'psd' => [
-            'application/photoshop',
-            'application/psd',
-            'image/psd',
-            'image/x-photoshop',
-            'image/photoshop',
-            'zz-application/zz-winassoc-psd',
-        ],
-        'ice' => 'x-conference/x-cooltalk',
-        'iges' => 'model/iges',
-        'igs' => 'model/iges',
-        'mesh' => 'model/mesh',
-        'msh' => 'model/mesh',
-        'silo' => 'model/mesh',
-        'vrml' => 'model/vrml',
-        'wrl' => 'model/vrml',
-        'mime' => 'www/mime',
-        'pdb' => 'chemical/x-pdb',
-        'xyz' => 'chemical/x-pdb',
-        'javascript' => 'application/javascript',
-        'form' => 'application/x-www-form-urlencoded',
-        'file' => 'multipart/form-data',
-        'xhtml-mobile' => 'application/vnd.wap.xhtml+xml',
-        'atom' => 'application/atom+xml',
-        'amf' => 'application/x-amf',
-        'wap' => ['text/vnd.wap.wml', 'text/vnd.wap.wmlscript', 'image/vnd.wap.wbmp'],
-        'wml' => 'text/vnd.wap.wml',
-        'wmlscript' => 'text/vnd.wap.wmlscript',
-        'wbmp' => 'image/vnd.wap.wbmp',
-        'woff' => 'application/x-font-woff',
-        'appcache' => 'text/cache-manifest',
-        'manifest' => 'text/cache-manifest',
-        'htc' => 'text/x-component',
-        'rdf' => 'application/xml',
-        'crx' => 'application/x-chrome-extension',
-        'oex' => 'application/x-opera-extension',
-        'xpi' => 'application/x-xpinstall',
-        'safariextz' => 'application/octet-stream',
-        'webapp' => 'application/x-web-app-manifest+json',
-        'vcf' => 'text/x-vcard',
-        'vtt' => 'text/vtt',
-        'mkv' => 'video/x-matroska',
-        'pkpass' => 'application/vnd.apple.pkpass',
-        'ajax' => 'text/html',
-        'bmp' => 'image/bmp',
-    ];
-
-    /**
      * Status code to send to the client
      *
      * @var int
      */
-    protected $_status = 200;
+    protected int $_status = 200;
 
     /**
      * File object for file to be read out as response
      *
      * @var \SplFileInfo|null
      */
-    protected $_file;
+    protected ?SplFileInfo $_file = null;
 
     /**
      * File range. Used for requesting ranges of files.
      *
      * @var array<int>
      */
-    protected $_fileRange = [];
+    protected array $_fileRange = [];
 
     /**
      * The charset the response body is encoded with
      *
      * @var string
      */
-    protected $_charset = 'UTF-8';
+    protected string $_charset = 'UTF-8';
 
     /**
      * Holds all the cache directives that will be converted
@@ -406,28 +163,28 @@ class Response implements ResponseInterface
      *
      * @var array<string, mixed>
      */
-    protected $_cacheDirectives = [];
+    protected array $_cacheDirectives = [];
 
     /**
      * Collection of cookies to send to the client
      *
      * @var \Cake\Http\Cookie\CookieCollection
      */
-    protected $_cookies;
+    protected CookieCollection $_cookies;
 
     /**
      * Reason Phrase
      *
      * @var string
      */
-    protected $_reasonPhrase = 'OK';
+    protected string $_reasonPhrase = 'OK';
 
     /**
      * Stream mode options.
      *
      * @var string
      */
-    protected $_streamMode = 'wb+';
+    protected string $_streamMode = 'wb+';
 
     /**
      * Stream target or resource object.
@@ -509,14 +266,14 @@ class Response implements ResponseInterface
         if (
             $this->_charset &&
             (
-                strpos($type, 'text/') === 0 ||
+                str_starts_with($type, 'text/') ||
                 in_array($type, $allowed, true)
             )
         ) {
             $charset = true;
         }
 
-        if ($charset && strpos($type, ';') === false) {
+        if ($charset && !str_contains($type, ';')) {
             $this->_setHeader('Content-Type', "{$type}; charset={$this->_charset}");
         } else {
             $this->_setHeader('Content-Type', $type);
@@ -532,7 +289,7 @@ class Response implements ResponseInterface
      * @param string $url The location to redirect to.
      * @return static A new response with the Location header set.
      */
-    public function withLocation(string $url)
+    public function withLocation(string $url): static
     {
         $new = $this->withHeader('Location', $url);
         if ($new->_status === 200) {
@@ -616,7 +373,7 @@ class Response implements ResponseInterface
      * @return static
      * @throws \InvalidArgumentException For invalid status code arguments.
      */
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus(int $code, string $reasonPhrase = ''): static
     {
         $new = clone $this;
         $new->_setStatus($code, $reasonPhrase);
@@ -637,7 +394,7 @@ class Response implements ResponseInterface
         if ($code < static::STATUS_CODE_MIN || $code > static::STATUS_CODE_MAX) {
             throw new InvalidArgumentException(sprintf(
                 'Invalid status code: %s. Use a valid HTTP status code in range 1xx - 5xx.',
-                $code
+                $code,
             ));
         }
 
@@ -682,9 +439,9 @@ class Response implements ResponseInterface
      * @param array<string>|string $mimeType Definition of the mime type.
      * @return void
      */
-    public function setTypeMap(string $type, $mimeType): void
+    public function setTypeMap(string $type, array|string $mimeType): void
     {
-        $this->_mimeTypes[$type] = $mimeType;
+        MimeType::setMimeTypes($type, $mimeType);
     }
 
     /**
@@ -695,7 +452,7 @@ class Response implements ResponseInterface
     public function getType(): string
     {
         $header = $this->getHeaderLine('Content-Type');
-        if (strpos($header, ';') !== false) {
+        if (str_contains($header, ';')) {
             return explode(';', $header)[0];
         }
 
@@ -711,7 +468,7 @@ class Response implements ResponseInterface
      * @param string $contentType Either a file extension which will be mapped to a mime-type or a concrete mime-type.
      * @return static
      */
-    public function withType(string $contentType)
+    public function withType(string $contentType): static
     {
         $mappedType = $this->resolveType($contentType);
         $new = clone $this;
@@ -729,15 +486,16 @@ class Response implements ResponseInterface
      */
     protected function resolveType(string $contentType): string
     {
-        $mapped = $this->getMimeType($contentType);
-        if ($mapped) {
-            return is_array($mapped) ? current($mapped) : $mapped;
-        }
-        if (strpos($contentType, '/') === false) {
-            throw new InvalidArgumentException(sprintf('"%s" is an invalid content type.', $contentType));
+        if (str_contains($contentType, '/')) {
+            return $contentType;
         }
 
-        return $contentType;
+        $mimeType = MimeType::getMimeType($contentType);
+        if ($mimeType === null) {
+            throw new InvalidArgumentException(sprintf('`%s` is an invalid content type.', $contentType));
+        }
+
+        return $mimeType;
     }
 
     /**
@@ -748,9 +506,15 @@ class Response implements ResponseInterface
      * @param string $alias the content type alias to map
      * @return array|string|false String mapped mime type or false if $alias is not mapped
      */
-    public function getMimeType(string $alias)
+    public function getMimeType(string $alias): array|string|false
     {
-        return $this->_mimeTypes[$alias] ?? false;
+        $mimeTypes = MimeType::getMimeTypes($alias);
+
+        if ($mimeTypes === null) {
+            return false;
+        }
+
+        return count($mimeTypes) === 1 ? $mimeTypes[0] : $mimeTypes;
     }
 
     /**
@@ -761,19 +525,13 @@ class Response implements ResponseInterface
      * @param array|string $ctype Either a string content type to map, or an array of types.
      * @return array|string|null Aliases for the types provided.
      */
-    public function mapType($ctype)
+    public function mapType(array|string $ctype): array|string|null
     {
         if (is_array($ctype)) {
-            return array_map([$this, 'mapType'], $ctype);
+            return array_map($this->mapType(...), $ctype);
         }
 
-        foreach ($this->_mimeTypes as $alias => $types) {
-            if (in_array($ctype, (array)$types, true)) {
-                return $alias;
-            }
-        }
-
-        return null;
+        return MimeType::getExtension($ctype);
     }
 
     /**
@@ -792,7 +550,7 @@ class Response implements ResponseInterface
      * @param string $charset Character set string.
      * @return static
      */
-    public function withCharset(string $charset)
+    public function withCharset(string $charset): static
     {
         $new = clone $this;
         $new->_charset = $charset;
@@ -806,10 +564,10 @@ class Response implements ResponseInterface
      *
      * @return static
      */
-    public function withDisabledCache()
+    public function withDisabledCache(): static
     {
         return $this->withHeader('Expires', 'Mon, 26 Jul 1997 05:00:00 GMT')
-            ->withHeader('Last-Modified', gmdate(DATE_RFC7231))
+            ->withHeader('Last-Modified', gmdate(CAKE_DATE_RFC7231))
             ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     }
 
@@ -820,18 +578,18 @@ class Response implements ResponseInterface
      * @param string|int $time a valid time for cache expiry
      * @return static
      */
-    public function withCache($since, $time = '+1 day')
+    public function withCache(string|int $since, string|int $time = '+1 day'): static
     {
         if (!is_int($time)) {
             $time = strtotime($time);
             if ($time === false) {
                 throw new InvalidArgumentException(
-                    'Invalid time parameter. Ensure your time value can be parsed by strtotime'
+                    'Invalid time parameter. Ensure your time value can be parsed by strtotime',
                 );
             }
         }
 
-        return $this->withHeader('Date', gmdate(DATE_RFC7231, time()))
+        return $this->withHeader('Date', gmdate(CAKE_DATE_RFC7231, time()))
             ->withModified($since)
             ->withExpires($time)
             ->withSharable(true)
@@ -846,7 +604,7 @@ class Response implements ResponseInterface
      * @param int|null $time time in seconds after which the response should no longer be considered fresh.
      * @return static
      */
-    public function withSharable(bool $public, ?int $time = null)
+    public function withSharable(bool $public, ?int $time = null): static
     {
         $new = clone $this;
         unset($new->_cacheDirectives['private'], $new->_cacheDirectives['public']);
@@ -871,7 +629,7 @@ class Response implements ResponseInterface
      * @param int $seconds The number of seconds for shared max-age
      * @return static
      */
-    public function withSharedMaxAge(int $seconds)
+    public function withSharedMaxAge(int $seconds): static
     {
         $new = clone $this;
         $new->_cacheDirectives['s-maxage'] = $seconds;
@@ -889,7 +647,7 @@ class Response implements ResponseInterface
      * @param int $seconds The seconds a cached response can be considered valid
      * @return static
      */
-    public function withMaxAge(int $seconds)
+    public function withMaxAge(int $seconds): static
     {
         $new = clone $this;
         $new->_cacheDirectives['max-age'] = $seconds;
@@ -909,7 +667,7 @@ class Response implements ResponseInterface
      * @param bool $enable If boolean sets or unsets the directive.
      * @return static
      */
-    public function withMustRevalidate(bool $enable)
+    public function withMustRevalidate(bool $enable): static
     {
         $new = clone $this;
         if ($enable) {
@@ -955,11 +713,11 @@ class Response implements ResponseInterface
      * @param \DateTimeInterface|string|int|null $time Valid time string or \DateTime instance.
      * @return static
      */
-    public function withExpires($time)
+    public function withExpires(DateTimeInterface|string|int|null $time): static
     {
         $date = $this->_getUTCDate($time);
 
-        return $this->withHeader('Expires', $date->format(DATE_RFC7231));
+        return $this->withHeader('Expires', $date->format(CAKE_DATE_RFC7231));
     }
 
     /**
@@ -978,44 +736,11 @@ class Response implements ResponseInterface
      * @param \DateTimeInterface|string|int $time Valid time string or \DateTime instance.
      * @return static
      */
-    public function withModified($time)
+    public function withModified(DateTimeInterface|string|int $time): static
     {
         $date = $this->_getUTCDate($time);
 
-        return $this->withHeader('Last-Modified', $date->format(DATE_RFC7231));
-    }
-
-    /**
-     * Sets the response as Not Modified by removing any body contents
-     * setting the status code to "304 Not Modified" and removing all
-     * conflicting headers
-     *
-     * *Warning* This method mutates the response in-place and should be avoided.
-     *
-     * @deprecated 4.4.0 Use `withNotModified()` instead.
-     * @return void
-     */
-    public function notModified(): void
-    {
-        deprecationWarning(
-            'The `notModified()` method is deprecated. ' .
-            'Use `withNotModified() instead, and remember immutability of with* methods.'
-        );
-        $this->_createStream();
-        $this->_setStatus(304);
-
-        $remove = [
-            'Allow',
-            'Content-Encoding',
-            'Content-Language',
-            'Content-Length',
-            'Content-MD5',
-            'Content-Type',
-            'Last-Modified',
-        ];
-        foreach ($remove as $header) {
-            $this->_clearHeader($header);
-        }
+        return $this->withHeader('Last-Modified', $date->format(CAKE_DATE_RFC7231));
     }
 
     /**
@@ -1027,7 +752,7 @@ class Response implements ResponseInterface
      *
      * @return static
      */
-    public function withNotModified()
+    public function withNotModified(): static
     {
         $new = $this->withStatus(304);
         $new->_createStream();
@@ -1058,7 +783,7 @@ class Response implements ResponseInterface
      *   containing the list for variances.
      * @return static
      */
-    public function withVary($cacheVariances)
+    public function withVary(array|string $cacheVariances): static
     {
         return $this->withHeader('Vary', (array)$cacheVariances);
     }
@@ -1084,7 +809,7 @@ class Response implements ResponseInterface
      *   other with the same hash or not. Defaults to false
      * @return static
      */
-    public function withEtag(string $hash, bool $weak = false)
+    public function withEtag(string $hash, bool $weak = false): static
     {
         $hash = sprintf('%s"%s"', $weak ? 'W/' : '', $hash);
 
@@ -1098,7 +823,7 @@ class Response implements ResponseInterface
      * @param \DateTimeInterface|string|int|null $time Valid time string or \DateTimeInterface instance.
      * @return \DateTimeInterface
      */
-    protected function _getUTCDate($time = null): DateTimeInterface
+    protected function _getUTCDate(DateTimeInterface|string|int|null $time = null): DateTimeInterface
     {
         if ($time instanceof DateTimeInterface) {
             $result = clone $time;
@@ -1108,7 +833,9 @@ class Response implements ResponseInterface
             $result = new DateTime($time ?? 'now');
         }
 
-        /** @psalm-suppress UndefinedInterfaceMethod */
+        /**
+         * @phpstan-ignore-next-line
+         */
         return $result->setTimezone(new DateTimeZone('UTC'));
     }
 
@@ -1120,11 +847,10 @@ class Response implements ResponseInterface
      */
     public function compress(): bool
     {
-        $compressionEnabled = ini_get('zlib.output_compression') !== '1' &&
+        return ini_get('zlib.output_compression') !== '1' &&
             extension_loaded('zlib') &&
-            (strpos((string)env('HTTP_ACCEPT_ENCODING'), 'gzip') !== false);
-
-        return $compressionEnabled && ob_start('ob_gzhandler');
+            str_contains((string)env('HTTP_ACCEPT_ENCODING'), 'gzip') &&
+            ob_start('ob_gzhandler');
     }
 
     /**
@@ -1134,7 +860,7 @@ class Response implements ResponseInterface
      */
     public function outputCompressed(): bool
     {
-        return strpos((string)env('HTTP_ACCEPT_ENCODING'), 'gzip') !== false
+        return str_contains((string)env('HTTP_ACCEPT_ENCODING'), 'gzip')
             && (ini_get('zlib.output_compression') === '1' || in_array('ob_gzhandler', ob_list_handlers(), true));
     }
 
@@ -1144,7 +870,7 @@ class Response implements ResponseInterface
      * @param string $filename The name of the file as the browser will download the response
      * @return static
      */
-    public function withDownload(string $filename)
+    public function withDownload(string $filename): static
     {
         return $this->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
@@ -1155,7 +881,7 @@ class Response implements ResponseInterface
      * @param string|int $bytes Number of bytes
      * @return static
      */
-    public function withLength($bytes)
+    public function withLength(string|int $bytes): static
     {
         return $this->withHeader('Content-Length', (string)$bytes);
     }
@@ -1182,7 +908,7 @@ class Response implements ResponseInterface
      * @return static
      * @since 3.6.0
      */
-    public function withAddedLink(string $url, array $options = [])
+    public function withAddedLink(string $url, array $options = []): static
     {
         $params = [];
         foreach ($options as $key => $option) {
@@ -1211,7 +937,7 @@ class Response implements ResponseInterface
      */
     public function isNotModified(ServerRequest $request): bool
     {
-        $etags = preg_split('/\s*,\s*/', $request->getHeaderLine('If-None-Match'), 0, PREG_SPLIT_NO_EMPTY);
+        $etags = preg_split('/\s*,\s*/', $request->getHeaderLine('If-None-Match'), 0, PREG_SPLIT_NO_EMPTY) ?: [];
         $responseTag = $this->getHeaderLine('Etag');
         $etagMatches = null;
         if ($responseTag) {
@@ -1228,37 +954,6 @@ class Response implements ResponseInterface
         }
 
         return $etagMatches !== false && $timeMatches !== false;
-    }
-
-    /**
-     * Checks whether a response has not been modified according to the 'If-None-Match'
-     * (Etags) and 'If-Modified-Since' (last modification date) request
-     * headers. If the response is detected to be not modified, it
-     * is marked as so accordingly so the client can be informed of that.
-     *
-     * In order to mark a response as not modified, you need to set at least
-     * the Last-Modified etag response header before calling this method. Otherwise
-     * a comparison will not be possible.
-     *
-     * *Warning* This method mutates the response in-place and should be avoided.
-     *
-     * @param \Cake\Http\ServerRequest $request Request object
-     * @return bool Whether the response was marked as not modified or not.
-     * @deprecated 4.4.0 Use `isNotModified()` and `withNotModified()` instead.
-     */
-    public function checkNotModified(ServerRequest $request): bool
-    {
-        deprecationWarning(
-            'The `checkNotModified()` method is deprecated. ' .
-            'Use `isNotModified() instead and `withNoModified()` instead.'
-        );
-        if ($this->isNotModified($request)) {
-            $this->notModified();
-
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -1288,7 +983,7 @@ class Response implements ResponseInterface
      * @param \Cake\Http\Cookie\CookieInterface $cookie cookie object
      * @return static
      */
-    public function withCookie(CookieInterface $cookie)
+    public function withCookie(CookieInterface $cookie): static
     {
         $new = clone $this;
         $new->_cookies = $new->_cookies->add($cookie);
@@ -1309,7 +1004,7 @@ class Response implements ResponseInterface
      * @param \Cake\Http\Cookie\CookieInterface $cookie cookie object
      * @return static
      */
-    public function withExpiredCookie(CookieInterface $cookie)
+    public function withExpiredCookie(CookieInterface $cookie): static
     {
         $cookie = $cookie->withExpired();
 
@@ -1347,9 +1042,7 @@ class Response implements ResponseInterface
     public function getCookies(): array
     {
         $out = [];
-        /** @var array<\Cake\Http\Cookie\Cookie> $cookies */
-        $cookies = $this->_cookies;
-        foreach ($cookies as $cookie) {
+        foreach ($this->_cookies as $cookie) {
             $out[$cookie->getName()] = $cookie->toArray();
         }
 
@@ -1372,7 +1065,7 @@ class Response implements ResponseInterface
      * @param \Cake\Http\Cookie\CookieCollection $cookieCollection Cookie collection to set.
      * @return static
      */
-    public function withCookieCollection(CookieCollection $cookieCollection)
+    public function withCookieCollection(CookieCollection $cookieCollection): static
     {
         $new = clone $this;
         $new->_cookies = $cookieCollection;
@@ -1414,7 +1107,7 @@ class Response implements ResponseInterface
      * @return static
      * @throws \Cake\Http\Exception\NotFoundException
      */
-    public function withFile(string $path, array $options = [])
+    public function withFile(string $path, array $options = []): static
     {
         $file = $this->validateFile($path);
         $options += [
@@ -1422,30 +1115,19 @@ class Response implements ResponseInterface
             'download' => null,
         ];
 
-        $extension = strtolower($file->getExtension());
-        $mapped = $this->getMimeType($extension);
-        if ((!$extension || !$mapped) && $options['download'] === null) {
+        $extension = $file->getExtension();
+        $mapped = MimeType::getMimeTypeForFile($file->getRealPath());
+        if ($extension === '' && $options['download'] === null) {
             $options['download'] = true;
         }
 
         $new = clone $this;
         if ($mapped) {
-            $new = $new->withType($extension);
+            $new = $new->withType($mapped);
         }
 
         $fileSize = $file->getSize();
         if ($options['download']) {
-            $agent = (string)env('HTTP_USER_AGENT');
-
-            if ($agent && preg_match('%Opera([/ ])([0-9].[0-9]{1,2})%', $agent)) {
-                $contentType = 'application/octet-stream';
-            } elseif ($agent && preg_match('/MSIE ([0-9].[0-9]{1,2})/', $agent)) {
-                $contentType = 'application/force-download';
-            }
-
-            if (isset($contentType)) {
-                $new = $new->withType($contentType);
-            }
             $name = $options['name'] ?: $file->getFileName();
             $new = $new->withDownload($name)
                 ->withHeader('Content-Transfer-Encoding', 'binary');
@@ -1470,7 +1152,7 @@ class Response implements ResponseInterface
      * @param string|null $string The string to be sent
      * @return static
      */
-    public function withStringBody(?string $string)
+    public function withStringBody(?string $string): static
     {
         $new = clone $this;
         $new->_createStream();
@@ -1488,7 +1170,7 @@ class Response implements ResponseInterface
      */
     protected function validateFile(string $path): SplFileInfo
     {
-        if (strpos($path, '../') !== false || strpos($path, '..\\') !== false) {
+        if (str_contains($path, '../') || str_contains($path, '..\\')) {
             throw new NotFoundException(__d('cake', 'The requested file contains `..` and will not be read.'));
         }
 
@@ -1551,8 +1233,7 @@ class Response implements ResponseInterface
             return;
         }
 
-        /** @psalm-suppress PossiblyInvalidOperand */
-        $this->_setHeader('Content-Length', (string)($end - $start + 1));
+        $this->_setHeader('Content-Length', (string)((int)$end - (int)$start + 1));
         $this->_setHeader('Content-Range', 'bytes ' . $start . '-' . $end . '/' . $fileSize);
         $this->_setStatus(206);
         /**

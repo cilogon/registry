@@ -19,6 +19,7 @@ namespace Cake\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use Cake\Database\Connection;
 use Cake\Database\SchemaCache;
 use Cake\Datasource\ConnectionManager;
 use RuntimeException;
@@ -39,6 +40,14 @@ class SchemacacheClearCommand extends Command
     }
 
     /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'Clear all metadata caches for the connection.';
+    }
+
+    /**
      * Display all routes in an application
      *
      * @param \Cake\Console\Arguments $args The command arguments.
@@ -48,8 +57,8 @@ class SchemacacheClearCommand extends Command
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
         try {
-            /** @var \Cake\Database\Connection $connection */
             $connection = ConnectionManager::get((string)$args->getOption('connection'));
+            assert($connection instanceof Connection);
 
             $cache = new SchemaCache($connection);
         } catch (RuntimeException $e) {
@@ -60,7 +69,7 @@ class SchemacacheClearCommand extends Command
         $tables = $cache->clear($args->getArgument('name'));
 
         foreach ($tables as $table) {
-            $io->verbose(sprintf('Cleared "%s"', $table));
+            $io->verbose(sprintf('Cleared `%s`', $table));
         }
 
         $io->out('<success>Cache clear complete</success>');
@@ -76,10 +85,10 @@ class SchemacacheClearCommand extends Command
      */
     public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
-        $parser->setDescription(
-            'Clear all metadata caches for the connection. If a ' .
-            'table name is provided, only that table will be removed.'
-        )->addOption('connection', [
+        $parser->setDescription([
+            static::getDescription(),
+            'If a table name is provided, only that table will be removed.',
+        ])->addOption('connection', [
             'help' => 'The connection to build/clear metadata cache data for.',
             'short' => 'c',
             'default' => 'default',

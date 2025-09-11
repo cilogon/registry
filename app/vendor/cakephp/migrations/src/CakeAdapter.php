@@ -16,9 +16,11 @@ namespace Migrations;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Postgres;
 use Cake\Database\Query;
+use InvalidArgumentException;
 use PDO;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Adapter\AdapterWrapper;
+use ReflectionProperty;
 
 /**
  * Decorates an AdapterInterface in order to proxy some method to the actual
@@ -31,7 +33,7 @@ class CakeAdapter extends AdapterWrapper
      *
      * @var \Cake\Database\Connection
      */
-    protected $connection;
+    protected Connection $connection;
 
     /**
      * Constructor
@@ -42,7 +44,7 @@ class CakeAdapter extends AdapterWrapper
     public function __construct(AdapterInterface $adapter, ?Connection $connection = null)
     {
         if ($connection === null) {
-            throw new \InvalidArgumentException('The cake connection cannot be null');
+            throw new InvalidArgumentException('The cake connection cannot be null');
         }
 
         parent::__construct($adapter);
@@ -60,7 +62,10 @@ class CakeAdapter extends AdapterWrapper
             $schema = empty($config['schema']) ? 'public' : $config['schema'];
             $pdo->exec('SET search_path TO ' . $pdo->quote($schema));
         }
-        $connection->getDriver()->setConnection($pdo);
+
+        $driver = $connection->getDriver();
+        $prop = new ReflectionProperty($driver, 'pdo');
+        $prop->setValue($driver, $pdo);
     }
 
     /**
@@ -68,7 +73,7 @@ class CakeAdapter extends AdapterWrapper
      *
      * @return \Cake\Database\Connection
      */
-    public function getCakeConnection()
+    public function getCakeConnection(): Connection
     {
         return $this->connection;
     }
@@ -76,11 +81,21 @@ class CakeAdapter extends AdapterWrapper
     /**
      * Returns a new Query object
      *
+     * @param string $type The type of query to generate
+     *   (one of the `\Cake\Database\Query::TYPE_*` constants).
      * @return \Cake\Database\Query
      */
-    public function getQueryBuilder(): Query
+    public function getQueryBuilder(string $type): Query
     {
-        return $this->getCakeConnection()->newQuery();
+        return match ($type) {
+            Query::TYPE_SELECT => $this->getCakeConnection()->selectQuery(),
+            Query::TYPE_INSERT => $this->getCakeConnection()->insertQuery(),
+            Query::TYPE_UPDATE => $this->getCakeConnection()->updateQuery(),
+            Query::TYPE_DELETE => $this->getCakeConnection()->deleteQuery(),
+            default => throw new InvalidArgumentException(
+                'Query type must be one of: `select`, `insert`, `update`, `delete`.',
+            )
+        };
     }
 
     /**

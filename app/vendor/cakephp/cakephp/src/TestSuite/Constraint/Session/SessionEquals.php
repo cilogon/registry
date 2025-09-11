@@ -28,7 +28,7 @@ class SessionEquals extends Constraint
     /**
      * @var string
      */
-    protected $path;
+    protected string $path;
 
     /**
      * Constructor
@@ -46,12 +46,11 @@ class SessionEquals extends Constraint
      * @param mixed $other Value to compare with
      * @return bool
      */
-    public function matches($other): bool
+    public function matches(mixed $other): bool
     {
         // Server::run calls Session::close at the end of the request.
         // Which means, that we cannot use Session object here to access the session data.
         // Call to Session::read will start new session (and will erase the data).
-        /** @psalm-suppress InvalidScalarArgument */
         return Hash::get($_SESSION, $this->path) === $other;
     }
 
@@ -62,6 +61,6 @@ class SessionEquals extends Constraint
      */
     public function toString(): string
     {
-        return sprintf('is in session path \'%s\'', $this->path);
+        return sprintf("is in session path '%s'", $this->path);
     }
 }

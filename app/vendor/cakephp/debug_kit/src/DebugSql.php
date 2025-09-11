@@ -33,7 +33,7 @@ class DebugSql
      *
      * @var string
      */
-    private static $templateHtml = <<<HTML
+    private static string $templateHtml = <<<HTML
 <div class="cake-debug-output">
 %s
 <pre class="cake-debug">
@@ -47,7 +47,7 @@ HTML;
      *
      * @var string
      */
-    private static $templateText = <<<TEXT
+    private static string $templateText = <<<TEXT
 %s
 ########## DEBUG ##########
 %s
@@ -68,8 +68,12 @@ TEXT;
      * @param int $stackDepth Provides a hint as to which file in the call stack to reference.
      * @return \Cake\Database\Query
      */
-    public static function sql(Query $query, $showValues = true, $showHtml = null, $stackDepth = 0)
-    {
+    public static function sql(
+        Query $query,
+        bool $showValues = true,
+        ?bool $showHtml = null,
+        int $stackDepth = 0,
+    ): Query {
         if (!Configure::read('debug')) {
             return $query;
         }
@@ -80,7 +84,7 @@ TEXT;
         }
 
         /** @var array $trace */
-        $trace = Debugger::trace(['start' => 0, 'depth' => $stackDepth + 2, 'format' => 'array']);
+        $trace = Debugger::trace(['start' => 0, 'depth' => $stackDepth + 1, 'format' => 'array']);
         $file = isset($trace[$stackDepth]) ? $trace[$stackDepth]['file'] : 'n/a';
         $line = isset($trace[$stackDepth]) ? $trace[$stackDepth]['line'] : 0;
         $lineInfo = '';
@@ -92,6 +96,7 @@ TEXT;
             if (defined('CAKE_CORE_INCLUDE_PATH')) {
                 array_unshift($search, CAKE_CORE_INCLUDE_PATH);
             }
+            /** @var string $file */
             $file = str_replace($search, '', $file);
         }
 
@@ -121,7 +126,7 @@ TEXT;
                     HtmlHighlighter::HIGHLIGHT_WORD => 'style="color: #9c27b0;"',
                     HtmlHighlighter::HIGHLIGHT_PRE => 'style="color: #222; background-color: transparent;"',
                 ],
-                false
+                false,
             );
         } else {
             $highlighter = new NullHighlighter();
@@ -155,8 +160,12 @@ TEXT;
      * @param int $stackDepth Provides a hint as to which file in the call stack to reference.
      * @return void
      */
-    public static function sqld(Query $query, $showValues = true, $showHtml = null, $stackDepth = 1)
-    {
+    public static function sqld(
+        Query $query,
+        bool $showValues = true,
+        ?bool $showHtml = null,
+        int $stackDepth = 1,
+    ): void {
         static::sql($query, $showValues, $showHtml, $stackDepth);
         die(1);
     }
@@ -166,7 +175,7 @@ TEXT;
      *
      * @return bool
      */
-    protected static function isCli()
+    protected static function isCli(): bool
     {
         return PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg';
     }
@@ -179,7 +188,7 @@ TEXT;
      * @param array $bindings The Query bindings
      * @return string
      */
-    private static function interpolate($sql, array $bindings)
+    private static function interpolate(string $sql, array $bindings): string
     {
         $params = array_map(function ($binding) {
             $p = $binding['value'];
@@ -212,6 +221,6 @@ TEXT;
             $keys[] = is_string($key) ? "/$key\b/" : '/[?]/';
         }
 
-        return preg_replace($keys, $params, $sql, $limit);
+        return (string)preg_replace($keys, $params, $sql, $limit);
     }
 }

@@ -124,7 +124,7 @@ trait ValidationTrait {
    * @return mixed  True if $value validates, or an error string otherwise
    */
 
-  public function validateCO($value, array $context) {
+  public function validateCO(string $value, array $context) {
     // Verify that $value is a valid record in the current CO
     
     // We read the CO ID as set in Configure via AppController. Alternately, we
@@ -207,7 +207,7 @@ trait ValidationTrait {
    * @return mixed  True if $value validates, or an error string otherwise
    */
   
-  public function validateConditionalRequire($value, array $context) {
+  public function validateConditionalRequire(string $value, array $context) {
     if(!empty($value)
        && in_array($value, $context['providers']['conditionalRequire']['inArray'])
        && empty($context['data'][ $context['providers']['conditionalRequire']['require'] ])) {
@@ -243,7 +243,7 @@ trait ValidationTrait {
    * @return mixed  True if $value validates, or an error string otherwise
    */
   
-  public function validateInput($value, array $context) {
+  public function validateInput(string $value, array $context) {
     // By default, we'll accept anything except < and >. Arguably, we should accept
     // anything at all for input (and filter only on output), but this was agreed to
     // as an extra "line of defense" against unsanitized HTML output. Where user supplied
@@ -297,23 +297,24 @@ trait ValidationTrait {
    * Validate the maximum length of a field.
    *
    * @param   string  $value    Value to validate
+   * @param array $columnMetadata
    * @param array     $context  Validation context, which must include the schema definition
    *
    * @return bool|string True if $value validates, or an error string otherwise
    * @since  COmanage Registry v5.0.0
    */
   
-  public function validateMaxLength(string $value, array $context): bool|string {
+  public function validateMaxLength(string $value, array $columnMetadata, array $context): bool|string {
     // We use our own so we can introspect the field's max length from the
     // provided table schema object, and use our own error message (without
     // having to copy it to every table definition).
     
     // Text has no limit.
-    if ($context['column']['type'] === 'text') {
+    if ($columnMetadata['column']['type'] === 'text') {
       return true;
     }
 
-    $maxLength = $context['column']['length'];
+    $maxLength = $columnMetadata['column']['length'];
     
     if(!empty($value) && mb_strlen($value) > $maxLength) {
       return __d('error', 'input.length', [$maxLength]);
@@ -349,7 +350,7 @@ trait ValidationTrait {
    * @return mixed  True if $value validates, or an error string otherwise
    */
   
-  public function validateSqlIdentifier($value, array $context) {
+  public function validateSqlIdentifier(string $value, array $context) {
     // Valid (portable) SQL identifiers begin with a letter or underscore, and
     // subsequent characters can also include digits. We'll be a little stricter
     // than we need to be for now by only accepting A-Z, when in fact certain
@@ -372,7 +373,7 @@ trait ValidationTrait {
    * @return mixed  True if $value validates, or an error string otherwise
    */
   
-  public function validateTimeZone($value, array $context) {
+  public function validateTimeZone(string $value, array $context) {
     if(!in_array($value, array_values(timezone_identifiers_list()))) {
       return __d('error', 'input.invalid');
     }

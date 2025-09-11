@@ -18,5 +18,5 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 class CompositeKeyArticlesTagsFixture extends TestFixture
 {
-    public $records = [];
+    public array $records = [];
 }

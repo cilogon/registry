@@ -58,7 +58,7 @@ class ReturnTypeHintSniff implements Sniff
 
         // We skip for interface methods
         if (empty($tokens[$stackPtr]['scope_opener']) || empty($tokens[$stackPtr]['scope_closer'])) {
-            return [];
+            return;
         }
 
         $returnTokenCode = $tokens[$startIndex]['code'];
@@ -67,7 +67,7 @@ class ReturnTypeHintSniff implements Sniff
             $phpcsFile->addError(
                 'Chaining methods (@return $this) should not have any return-type-hint.',
                 $startIndex,
-                'InvalidSelf'
+                'InvalidSelf',
             );
 
             return;
@@ -76,7 +76,7 @@ class ReturnTypeHintSniff implements Sniff
         $fix = $phpcsFile->addFixableError(
             'Chaining methods (@return $this) should not have any return-type-hint (Remove "self").',
             $startIndex,
-            'InvalidSelf'
+            'InvalidSelf',
         );
         if (!$fix) {
             return;
@@ -175,7 +175,7 @@ class ReturnTypeHintSniff implements Sniff
             $phpCsFile->addError(
                 'Class name repeated, expected `self` or `$this`.',
                 $classNameIndex,
-                'InvalidClass'
+                'InvalidClass',
             );
         }
     }
@@ -228,9 +228,17 @@ class ReturnTypeHintSniff implements Sniff
             return null;
         }
 
+        $classPointer = $phpCsFile->findPrevious(
+            [T_CLASS, T_TRAIT, T_INTERFACE, T_ENUM],
+            $lastToken,
+        );
+        if (!$classPointer) {
+            return null;
+        }
+
         return ClassHelper::getFullyQualifiedName(
             $phpCsFile,
-            $phpCsFile->findPrevious([T_CLASS, T_TRAIT, T_INTERFACE, T_ENUM], $lastToken)
+            $classPointer,
         );
     }
 }

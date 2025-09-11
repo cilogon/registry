@@ -41,8 +41,8 @@ if($this->request->getQuery('co_id') !== null) {
 $this->set('vv_sub_nav_attributes', $subNavAttributes);
 extract($subNavAttributes, EXTR_PREFIX_ALL, 'vv_subnavigation');
 
-// $this->name = Models
-$modelsName = $this->name;
+/** var string $modelsName */
+$modelsName = $this->getName();
 $fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $modelsName : $modelsName;
 ?>
 

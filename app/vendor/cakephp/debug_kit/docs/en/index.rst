@@ -20,7 +20,7 @@ you've removed it and want to re-install it, you can do so by running the
 following from your application's ROOT directory (where composer.json file is
 located)::
 
-    php composer.phar require --dev cakephp/debug_kit "~4.0"
+    php composer.phar require --dev cakephp/debug_kit "~5.0"
 
 Then, you need to enable the plugin by executing the following line::
 
@@ -41,8 +41,8 @@ Configuration
 * ``DebugKit.safeTld`` - Set an array of whitelisted TLDs for local development.
   This can be used to make sure DebugKit displays on hosts it otherwise determines unsafe. ::
 
-    // Allow e.g. http://foo.bar.dev or http://my-shop.local domains locally
-    Configure::write('DebugKit.safeTld', ['dev', 'local', 'example']);
+    // Allow e.g. http://foo.bar.test or http://my-shop.local domains locally
+    Configure::write('DebugKit.safeTld', ['test', 'local', 'example']);
 
 * ``DebugKit.forceEnable`` - Force DebugKit to display. Careful with this, it is usually
   safer to simply whitelist your local TLDs. Example usage::
@@ -63,6 +63,12 @@ Configuration
     Configure::write('DebugKit.ignorePathsPattern', '/\.(jpg|png|gif)$/');
 
 * ``DebugKit.ignoreAuthorization`` - Set to true to ignore Cake Authorization plugin for DebugKit requests. Disabled by default.
+
+* ``DebugKit.maxDepth`` - Defines how many levels of nested data should be shown in general for debug output. Default is 5.
+  WARNING: Increasing the max depth level can lead to an out of memory error.::
+
+    // Show more levels
+    Configure::write('DebugKit.maxDepth', 8);
 
 * ``DebugKit.variablesPanelMaxDepth`` - Defines how many levels of nested data should be shown in the variables tab. Default is 5.
   WARNING: Increasing the max depth level can lead to an out of memory error.::
@@ -316,3 +322,20 @@ Helper Functions
 
 * ``sql()`` Dumps out the SQL from an ORM query.
 * ``sqld()`` Dumps out the SQL from an ORM query, and exits.
+
+Tracing query execution
+=======================
+
+Sometimes you need to know where specific queries are being executed in your app.
+To get this kind of information you can add the ``SqlTraceTrait`` to your Table class like so::
+
+    use DebugKit\Model\Table\SqlTraceTrait;
+
+    class CategoriesTable extends Table
+    {
+        use SqlTraceTrait;
+    }
+
+This will add the following information to the SQL log::
+
+    /* APP/Controller/CategoriesController.php (line 20) */

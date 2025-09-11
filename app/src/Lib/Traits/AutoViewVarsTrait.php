@@ -71,7 +71,7 @@ trait AutoViewVarsTrait {
    */
 
   public function calculateAutoViewVars(int|null $coId, Object $obj = null): \Generator {
-    // $table = the actual table object
+    /** var Cake\ORM\Table $table */
     $table = $this;
 
     foreach($table->getAutoViewVars() as $vvar => $avv) {
@@ -191,9 +191,9 @@ trait AutoViewVarsTrait {
 
           // Sort the list by display field
           if(!empty($avv['model']) && method_exists($AModel, "getDisplayField")) {
-            $query->order([$AModel->getDisplayField() => 'ASC']);
+            $query->orderBy([$AModel->getDisplayField() => 'ASC']);
           } elseif(method_exists($table, "getDisplayField")) {
-            $query->order([$table->getDisplayField() => 'ASC']);
+            $query->orderBy([$table->getDisplayField() => 'ASC']);
           }
 
           $generatedValue = $query->toArray();
@@ -231,10 +231,10 @@ trait AutoViewVarsTrait {
                 // we require all Pluggable Models to have a status field, and define "S" as the
                 // value that will remove values from this list. (The recommendation is to use "X"
                 // to disable but allow the value to still appear.) 
-                $generatedValue = $PluggableTable->find('list', [
-                                     'keyField' => 'id',
-                                     'valueField' => 'description'
-                                   ])
+                $generatedValue = $PluggableTable->find('list',
+                                     keyField: 'id',
+                                     valueField: 'description',
+                                   )
                                    // We assume Pluggable tables always FK to co_id which
                                    // is currently true but might not always be true
                                    ->where([

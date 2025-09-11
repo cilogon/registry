@@ -31,9 +31,11 @@ You can get the list of available bake command by running ``bin/cake bake --help
     - bake behavior
     - bake cell
     - bake command
+    - bake command_helper
     - bake component
     - bake controller
     - bake controller all
+    - bake enum
     - bake fixture
     - bake fixture all
     - bake form
@@ -50,6 +52,18 @@ You can get the list of available bake command by running ``bin/cake bake --help
     To run a command, type `cake command_name [args|options]`
     To get help on a specific command, type `cake command_name --help`
 
+Bake Models
+===========
+
+Models are generically baked from the existing DB tables.
+The conventions here apply, so it will detect relations based on ``thing_id`` foreign keys to ``things`` tables with their ``id`` primary keys.
+
+For non-conventional relations, you can use references in the constraints / foreign key definitions for Bake to detect the relations, e.g.::
+
+    ->addForeignKey('billing_country_id', 'countries') // defaults to `id`
+    ->addForeignKey('shipping_country_id', 'countries', 'cid')
+
+
 Bake Themes
 ===========
 
@@ -59,4 +73,4 @@ template files used when baking. To create your own templates, see the
 
 .. meta::
     :title lang=en: Code Generation with Bake
-    :keywords lang=en: command line interface,functional application,database,database configuration,bash script,basic ingredients,project,model,path path,code generation,scaffolding,windows users,configuration file,few minutes,config,iew,shell,models,running,mysql
+    :keywords lang=en: command line interface,functional application,database,database configuration,bash script,basic ingredients,project,model,path path,code generation,scaffolding,windows users,configuration file,few minutes,config,view,models,running,mysql

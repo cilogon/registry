@@ -33,7 +33,7 @@ class DashedRoute extends Route
      *
      * @var array|null
      */
-    protected $_inflectedDefaults;
+    protected ?array $_inflectedDefaults = null;
 
     /**
      * Camelizes the previously dashed plugin route taking into account plugin vendors
@@ -44,7 +44,7 @@ class DashedRoute extends Route
     protected function _camelizePlugin(string $plugin): string
     {
         $plugin = str_replace('-', '_', $plugin);
-        if (strpos($plugin, '/') === false) {
+        if (!str_contains($plugin, '/')) {
             return Inflector::camelize($plugin);
         }
         [$vendor, $plugin] = explode('/', $plugin, 2);
@@ -77,7 +77,7 @@ class DashedRoute extends Route
             $params['action'] = Inflector::variable(str_replace(
                 '-',
                 '_',
-                $params['action']
+                $params['action'],
             ));
         }
 

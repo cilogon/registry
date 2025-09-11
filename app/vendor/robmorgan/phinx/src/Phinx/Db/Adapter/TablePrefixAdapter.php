@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -30,8 +31,6 @@ use Phinx\Db\Table\Table;
  * Table prefix/suffix adapter.
  *
  * Used for inserting a prefix or suffix into table names.
- *
- * @author Samuel Fisher <sam@sfisher.co>
  */
 class TablePrefixAdapter extends AdapterWrapper implements DirectActionInterface
 {
@@ -60,7 +59,7 @@ class TablePrefixAdapter extends AdapterWrapper implements DirectActionInterface
     {
         $adapterTable = new Table(
             $this->getAdapterTableName($table->getName()),
-            $table->getOptions()
+            $table->getOptions(),
         );
         parent::createTable($adapterTable, $columns, $indexes);
     }
@@ -80,7 +79,7 @@ class TablePrefixAdapter extends AdapterWrapper implements DirectActionInterface
 
         $adapterTable = new Table(
             $this->getAdapterTableName($table->getName()),
-            $table->getOptions()
+            $table->getOptions(),
         );
         $adapter->changePrimaryKey($adapterTable, $newColumns);
     }
@@ -100,7 +99,7 @@ class TablePrefixAdapter extends AdapterWrapper implements DirectActionInterface
 
         $adapterTable = new Table(
             $this->getAdapterTableName($table->getName()),
-            $table->getOptions()
+            $table->getOptions(),
         );
         $adapter->changeComment($adapterTable, $newComment);
     }
@@ -236,7 +235,7 @@ class TablePrefixAdapter extends AdapterWrapper implements DirectActionInterface
     /**
      * @inheritDoc
      */
-    public function hasIndex(string $tableName, $columns): bool
+    public function hasIndex(string $tableName, string|array $columns): bool
     {
         $adapterTableName = $this->getAdapterTableName($tableName);
 
@@ -484,7 +483,7 @@ class TablePrefixAdapter extends AdapterWrapper implements DirectActionInterface
 
                 default:
                     throw new InvalidArgumentException(
-                        sprintf("Forgot to implement table prefixing for action: '%s'", get_class($action))
+                        sprintf("Forgot to implement table prefixing for action: '%s'", get_class($action)),
                     );
             }
         }

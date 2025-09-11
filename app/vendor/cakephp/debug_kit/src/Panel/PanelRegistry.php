@@ -19,23 +19,31 @@ use Cake\Core\ObjectRegistry;
 use Cake\Event\EventDispatcherInterface;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Event\EventManager;
+use DebugKit\DebugPanel;
+use RuntimeException;
 
 /**
  * Registry object for panels.
+ *
+ * @extends \Cake\Core\ObjectRegistry<\DebugKit\DebugPanel>
+ * @implements \Cake\Event\EventDispatcherInterface<object>
  */
 class PanelRegistry extends ObjectRegistry implements EventDispatcherInterface
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<object>
+     */
     use EventDispatcherTrait;
 
     /**
      * Constructor
      *
-     * @param \Cake\Event\EventManager $events Event Manager that panels should bind to.
+     * @param \Cake\Event\EventManager $eventManager Event Manager that panels should bind to.
      *   Typically this is the global manager.
      */
-    public function __construct(EventManager $events)
+    public function __construct(EventManager $eventManager)
     {
-        $this->setEventManager($events);
+        $this->setEventManager($eventManager);
     }
 
     /**
@@ -63,7 +71,7 @@ class PanelRegistry extends ObjectRegistry implements EventDispatcherInterface
      */
     protected function _throwMissingClassError(string $class, ?string $plugin): void
     {
-        throw new \RuntimeException(sprintf("Unable to find '%s' panel.", $class));
+        throw new RuntimeException(sprintf("Unable to find '%s' panel.", $class));
     }
 
     /**
@@ -71,15 +79,19 @@ class PanelRegistry extends ObjectRegistry implements EventDispatcherInterface
      *
      * Part of the template method for Cake\Utility\ObjectRegistry::load()
      *
-     * @param string $class The classname to create.
+     * @param \DebugKit\DebugPanel|class-string<\DebugKit\DebugPanel> $class The classname to create.
      * @param string $alias The alias of the panel.
      * @param array $config An array of config to use for the panel.
      * @return \DebugKit\DebugPanel The constructed panel class.
-     * @psalm-param class-string<\DebugKit\DebugPanel> $class
      */
-    protected function _create($class, string $alias, array $config)
+    protected function _create(object|string $class, string $alias, array $config): DebugPanel
     {
-        $instance = new $class($this, $config);
+        if (is_string($class)) {
+            $instance = new $class();
+        } else {
+            $instance = $class;
+        }
+
         $this->getEventManager()->on($instance);
 
         return $instance;

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -8,6 +9,10 @@
 namespace Phinx\Migration;
 
 use Cake\Database\Query;
+use Cake\Database\Query\DeleteQuery;
+use Cake\Database\Query\InsertQuery;
+use Cake\Database\Query\SelectQuery;
+use Cake\Database\Query\UpdateQuery;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
 use RuntimeException;
@@ -21,49 +26,47 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * This abstract class proxies the various database methods to your specified
  * adapter.
- *
- * @author Rob Morgan <robbym@gmail.com>
  */
 abstract class AbstractMigration implements MigrationInterface
 {
     /**
      * @var string
      */
-    protected $environment;
+    protected string $environment;
 
     /**
      * @var int
      */
-    protected $version;
+    protected int $version;
 
     /**
      * @var \Phinx\Db\Adapter\AdapterInterface|null
      */
-    protected $adapter;
+    protected ?AdapterInterface $adapter = null;
 
     /**
      * @var \Symfony\Component\Console\Output\OutputInterface|null
      */
-    protected $output;
+    protected ?OutputInterface $output = null;
 
     /**
      * @var \Symfony\Component\Console\Input\InputInterface|null
      */
-    protected $input;
+    protected ?InputInterface $input = null;
 
     /**
      * Whether this migration is being applied or reverted
      *
      * @var bool
      */
-    protected $isMigratingUp = true;
+    protected bool $isMigratingUp = true;
 
     /**
      * List of all the table objects created by this migration
      *
      * @var array<\Phinx\Db\Table>
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * @param string $environment Environment Detected
@@ -73,6 +76,8 @@ abstract class AbstractMigration implements MigrationInterface
      */
     final public function __construct(string $environment, int $version, ?InputInterface $input = null, ?OutputInterface $output = null)
     {
+        $this->validateVersion($version);
+
         $this->environment = $environment;
         $this->version = $version;
 
@@ -98,8 +103,12 @@ abstract class AbstractMigration implements MigrationInterface
     /**
      * @inheritDoc
      */
-    public function getAdapter(): ?AdapterInterface
+    public function getAdapter(): AdapterInterface
     {
+        if (!isset($this->adapter)) {
+            throw new RuntimeException('Cannot access `adapter` it has not been set');
+        }
+
         return $this->adapter;
     }
 
@@ -202,7 +211,7 @@ abstract class AbstractMigration implements MigrationInterface
     /**
      * @inheritDoc
      */
-    public function query(string $sql, array $params = [])
+    public function query(string $sql, array $params = []): mixed
     {
         return $this->getAdapter()->query($sql, $params);
     }
@@ -210,15 +219,47 @@ abstract class AbstractMigration implements MigrationInterface
     /**
      * @inheritDoc
      */
-    public function getQueryBuilder(): Query
+    public function getQueryBuilder(string $type): Query
     {
-        return $this->getAdapter()->getQueryBuilder();
+        return $this->getAdapter()->getQueryBuilder($type);
     }
 
     /**
      * @inheritDoc
      */
-    public function fetchRow(string $sql)
+    public function getSelectBuilder(): SelectQuery
+    {
+        return $this->getAdapter()->getSelectBuilder();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getInsertBuilder(): InsertQuery
+    {
+        return $this->getAdapter()->getInsertBuilder();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getUpdateBuilder(): UpdateQuery
+    {
+        return $this->getAdapter()->getUpdateBuilder();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDeleteBuilder(): DeleteQuery
+    {
+        return $this->getAdapter()->getDeleteBuilder();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function fetchRow(string $sql): array|false
     {
         return $this->getAdapter()->fetchRow($sql);
     }
@@ -299,7 +340,7 @@ abstract class AbstractMigration implements MigrationInterface
                 method_exists($this, MigrationInterface::DOWN)
             ) {
                 $this->output->writeln(sprintf(
-                    '<comment>warning</comment> Migration contains both change() and up()/down() methods.  <options=bold>Ignoring up() and down()</>.'
+                    '<comment>warning</comment> Migration contains both change() and up()/down() methods.  <options=bold>Ignoring up() and down()</>.',
                 ));
             }
         }
@@ -317,7 +358,7 @@ abstract class AbstractMigration implements MigrationInterface
     {
         foreach ($this->tables as $table) {
             if ($table->hasPendingActions()) {
-                throw new RuntimeException('Migration has pending actions after execution!');
+                throw new RuntimeException(sprintf('Migration %s_%s has pending actions after execution!', $this->getVersion(), $this->getName()));
             }
         }
     }
@@ -334,5 +375,22 @@ abstract class AbstractMigration implements MigrationInterface
     public function shouldExecute(): bool
     {
         return true;
+    }
+
+    /**
+     * Makes sure the version int is within range for valid datetime.
+     * This is required to have a meaningful order in the overview.
+     *
+     * @param int $version Version
+     * @return void
+     */
+    protected function validateVersion(int $version): void
+    {
+        $length = strlen((string)$version);
+        if ($length === 14) {
+            return;
+        }
+
+        throw new RuntimeException('Invalid version `' . $version . '`, should be in format `YYYYMMDDHHMMSS` (length of 14).');
     }
 }

@@ -35,7 +35,7 @@ use Cake\ORM\TableRegistry;
 use \App\Lib\Enum\StatusEnum;
 
 class ApprovalCollectorsController extends StandardEnrollerController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ApprovalCollectors.id' => 'asc'
     ]

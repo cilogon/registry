@@ -8,11 +8,16 @@ use Bake\Utility\Model\AssociationFilter;
 use Brick\VarExporter\VarExporter;
 use Cake\Core\Configure;
 use Cake\Core\ConventionsTrait;
+use Cake\Core\Plugin;
 use Cake\Database\Schema\TableSchema;
+use Cake\Database\Type\EnumType;
+use Cake\Database\TypeFactory;
 use Cake\Datasource\SchemaInterface;
 use Cake\ORM\Table;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
+use function Cake\Collection\collection;
+use function Cake\Core\pluginSplit;
 
 /**
  * Bake helper
@@ -26,14 +31,14 @@ class BakeHelper extends Helper
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     /**
      * AssociationFilter utility
      *
      * @var \Bake\Utility\Model\AssociationFilter|null
      */
-    protected $_associationFilter = null;
+    protected ?AssociationFilter $_associationFilter = null;
 
     /**
      * Used for generating formatted properties such as component and helper arrays
@@ -61,74 +66,6 @@ class BakeHelper extends Helper
     }
 
     /**
-     * Returns an array converted into a formatted multiline string
-     *
-     * @param array $list array of items to be stringified
-     * @param array<string, mixed> $options options to use
-     * @return string
-     * @deprecated 2.5.0 Use BakeHelper::exportVar() instead.
-     */
-    public function stringifyList(array $list, array $options = []): string
-    {
-        $defaults = [
-            'indent' => 2,
-            'tab' => '    ',
-            'trailingComma' => !isset($options['indent']) || $options['indent'] ? true : false,
-            'quotes' => true,
-        ];
-        $options += $defaults;
-
-        if (!$list) {
-            return '';
-        }
-
-        foreach ($list as $k => &$v) {
-            if ($options['quotes']) {
-                $v = "'$v'";
-            }
-            if (!is_numeric($k)) {
-                $nestedOptions = $options;
-                if ($nestedOptions['indent']) {
-                    $nestedOptions['indent'] += 1;
-                }
-                if (is_array($v)) {
-                    $v = sprintf(
-                        "'%s' => [%s]",
-                        $k,
-                        $this->stringifyList($v, $nestedOptions)
-                    );
-                } else {
-                    $v = "'$k' => $v";
-                }
-            } elseif (is_array($v)) {
-                $nestedOptions = $options;
-                if ($nestedOptions['indent']) {
-                    $nestedOptions['indent'] += 1;
-                }
-                $v = sprintf(
-                    '[%s]',
-                    $this->stringifyList($v, $nestedOptions)
-                );
-            }
-        }
-
-        $start = $end = '';
-        $join = ', ';
-        if ($options['indent']) {
-            $join = ',';
-            $start = "\n" . str_repeat($options['tab'], $options['indent']);
-            $join .= $start;
-            $end = "\n" . str_repeat($options['tab'], $options['indent'] - 1);
-        }
-
-        if ($options['trailingComma'] && $options['indent'] > 0) {
-            $end = ',' . $end;
-        }
-
-        return $start . implode($join, $list) . $end;
-    }
-
-    /**
      * Export variable to string representation.
      *
      * (Similar to `var_export()` but better).
@@ -140,7 +77,7 @@ class BakeHelper extends Helper
      * @throws \Brick\VarExporter\ExportException
      * @see https://github.com/brick/varexporter#options
      */
-    public function exportVar($var, int $indentLevel = 0, int $options = 0): string
+    public function exportVar(mixed $var, int $indentLevel = 0, int $options = 0): string
     {
         $options |= VarExporter::TRAILING_COMMA_IN_ARRAY;
 
@@ -161,7 +98,7 @@ class BakeHelper extends Helper
     {
         $options = 0;
         if ($inline) {
-            $options = VarExporter::INLINE_NUMERIC_SCALAR_ARRAY;
+            $options = VarExporter::INLINE_SCALAR_LIST;
         }
 
         return $this->exportVar($var, $indentLevel, $options);
@@ -173,7 +110,7 @@ class BakeHelper extends Helper
      *
      * @param \Cake\ORM\Table $table object to find associations on
      * @param string $assoc association to extract
-     * @return string[]
+     * @return array<string>
      */
     public function aliasExtractor(Table $table, string $assoc): array
     {
@@ -207,7 +144,7 @@ class BakeHelper extends Helper
      */
     public function classInfo(string $class, string $type, string $suffix): array
     {
-        [$plugin, $name] = \pluginSplit($class);
+        [$plugin, $name] = pluginSplit($class);
 
         $base = Configure::read('App.namespace');
         if ($plugin !== null) {
@@ -232,6 +169,16 @@ class BakeHelper extends Helper
     }
 
     /**
+     * Check if the current application has a plugin installed
+     *
+     * @param string $plugin The plugin name to check for.
+     */
+    public function hasPlugin(string $plugin): bool
+    {
+        return Plugin::isLoaded($plugin);
+    }
+
+    /**
      * Return list of fields to generate controls for.
      *
      * @param array $fields Fields list.
@@ -245,8 +192,8 @@ class BakeHelper extends Helper
         array $fields,
         SchemaInterface $schema,
         ?Table $modelObject = null,
-        $takeFields = 0,
-        array $filterTypes = ['binary']
+        string|int $takeFields = 0,
+        array $filterTypes = ['binary'],
     ): array {
         $fields = collection($fields)
             ->filter(function ($field) use ($schema, $filterTypes) {
@@ -279,7 +226,7 @@ class BakeHelper extends Helper
         $immediateAssociations = $associations['BelongsTo'];
         $associationFields = collection($fields)
             ->map(function ($field) use ($immediateAssociations) {
-                foreach ($immediateAssociations as $alias => $details) {
+                foreach ($immediateAssociations as $details) {
                     if ($field === $details['foreignKey']) {
                         return [$field => $details];
                     }
@@ -298,6 +245,9 @@ class BakeHelper extends Helper
                 $type = $schema->getColumnType($field);
                 if (isset($associationFields[$field])) {
                     return 'string';
+                }
+                if ($type && str_starts_with($type, 'enum-')) {
+                    return 'enum';
                 }
                 $numberTypes = ['decimal', 'biginteger', 'integer', 'float', 'smallinteger', 'tinyinteger'];
                 if (in_array($type, $numberTypes, true)) {
@@ -324,6 +274,7 @@ class BakeHelper extends Helper
             'number' => [],
             'string' => [],
             'boolean' => [],
+            'enum' => [],
             'date' => [],
             'text' => [],
         ];
@@ -341,6 +292,26 @@ class BakeHelper extends Helper
     public function columnData(string $field, TableSchema $schema): ?array
     {
         return $schema->getColumn($field);
+    }
+
+    /**
+     * Check if a column is both an enum, and the mapped enum implements `label()` as a method.
+     *
+     * @param string $field the field to check
+     * @param \Cake\Database\Schema\TableSchema $schema The table schema to read from.
+     * @return bool
+     */
+    public function enumSupportsLabel(string $field, TableSchema $schema): bool
+    {
+        $typeName = $schema->getColumnType($field);
+        if (!str_starts_with($typeName, 'enum-')) {
+            return false;
+        }
+        $type = TypeFactory::build($typeName);
+        assert($type instanceof EnumType);
+        $enumClass = $type->getEnumClassName();
+
+        return method_exists($enumClass, 'label');
     }
 
     /**
@@ -362,7 +333,7 @@ class BakeHelper extends Helper
      *
      * @param string $field Field name.
      * @param array $rules Validation rules list.
-     * @return string[]
+     * @return array<string>
      */
     public function getValidationMethods(string $field, array $rules): array
     {
@@ -380,7 +351,7 @@ class BakeHelper extends Helper
                     $field,
                     $ruleName,
                     $rule['rule'],
-                    $rule['provider']
+                    $rule['provider'],
                 );
                 continue;
             }
@@ -389,7 +360,7 @@ class BakeHelper extends Helper
                 $validationMethods[] = sprintf(
                     "->%s('%s')",
                     $rule['rule'],
-                    $field
+                    $field,
                 );
                 continue;
             }
@@ -398,14 +369,14 @@ class BakeHelper extends Helper
                 return $this->exportVar(
                     $item,
                     is_array($item) ? 3 : 0,
-                    VarExporter::INLINE_NUMERIC_SCALAR_ARRAY
+                    VarExporter::INLINE_SCALAR_LIST,
                 );
             }, $rule['args']);
             $validationMethods[] = sprintf(
                 "->%s('%s', %s)",
                 $rule['rule'],
                 $field,
-                implode(', ', $rule['args'])
+                implode(', ', $rule['args']),
             );
         }
 
@@ -415,11 +386,11 @@ class BakeHelper extends Helper
     /**
      * Get field accessibility data.
      *
-     * @param string[]|false|null $fields Fields list.
-     * @param string[]|null $primaryKey Primary key.
+     * @param array<string>|false|null $fields Fields list.
+     * @param array<string>|null $primaryKey Primary key.
      * @return array<string, bool>
      */
-    public function getFieldAccessibility($fields = null, $primaryKey = null): array
+    public function getFieldAccessibility(array|false|null $fields = null, ?array $primaryKey = null): array
     {
         $accessible = [];
 
@@ -543,7 +514,7 @@ class BakeHelper extends Helper
         string $delimiter,
         array $strings,
         string $prefix = '',
-        string $suffix = ''
+        string $suffix = '',
     ): string {
         $output = implode(
             $delimiter,
@@ -553,7 +524,7 @@ class BakeHelper extends Helper
                 }
 
                 return implode($delimiter, array_filter($string));
-            }, array_filter($strings))
+            }, array_filter($strings)),
         );
 
         if ($prefix && !empty($output)) {
@@ -570,8 +541,8 @@ class BakeHelper extends Helper
      * To be mocked elsewhere...
      *
      * @param \Cake\ORM\Table $table Table
-     * @param string[] $aliases array of aliases
-     * @return string[]
+     * @param array<string> $aliases array of aliases
+     * @return array<string>
      */
     protected function _filterHasManyAssociationsAliases(Table $table, array $aliases): array
     {

@@ -35,17 +35,20 @@ use App\Lib\Events\CoIdEventListener;
 use App\Lib\Events\RuleBuilderEventListener;
 use App\Lib\Util\StringUtilities;
 use Cake\Controller\Controller;
-use Cake\Core\Configure;
-use Cake\Datasource\Exception;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Http\Exception\UnauthorizedException;
-use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
-use InvalidArgumentException;
-use JsonSchema\Iterator\ObjectIterator;
 
+
+/**
+ * @property \App\Controller\Component\RegistryAuthComponent $RegistryAuth
+ * @property \App\Controller\Component\BreadcrumbComponent $Breadcrumb
+ * @property \Cake\Controller\Component\FlashComponent $Flash
+ * @property \Cake\Controller\Component\FormProtectionComponent $FormProtection
+ */
+#[\AllowDynamicProperties]
 class AppController extends Controller {
   use \App\Lib\Traits\LabeledLogTrait;
 
@@ -64,11 +67,7 @@ class AppController extends Controller {
   
   public function initialize(): void {
     parent::initialize();
-    
-    // Load Components used by most or all controllers
-    
-    $this->loadComponent('RequestHandler');
-    
+
     // Add a detector so we can tell restful from non-restful calls
     $request = $this->getRequest();
     
@@ -79,10 +78,10 @@ class AppController extends Controller {
     
     // COmanage specific component that handles authn/z processintg
     $this->loadComponent('RegistryAuth');
-    
+
     // Breadcrumb Manager
     $this->loadComponent('Breadcrumb');
-    
+
     $ActorEventListener = new ActorEventListener($this->RegistryAuth);
     EventManager::instance()->on($ActorEventListener);
     
@@ -92,7 +91,7 @@ class AppController extends Controller {
     if(!$this->request->is('restful')) {
       // Initialization for non-RESTful
       $this->loadComponent('Flash');
-      
+
       /*
        * Enable the following components for recommended CakePHP security settings.
        * see https://book.cakephp.org/3.0/en/controllers/components/security.html
@@ -100,7 +99,7 @@ class AppController extends Controller {
        * In general, we don't need these protections for transactional API calls.
        */
       $this->loadComponent('FormProtection');
-      
+
       // CSRF Protection is enabled via in Middleware via Application.php.
     }
   }
@@ -135,7 +134,7 @@ class AppController extends Controller {
       }
     }
     
-    if(isset($this->RegistryAuth)) {
+    if($this->components()->has('RegistryAuth')) {
       // Components might not be loaded on error, so check
       
       // We check for MFA Indicators here since we need to do this before
@@ -211,7 +210,7 @@ class AppController extends Controller {
 
     $this->getAppPrefs();
 
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
   
   /**
@@ -222,15 +221,15 @@ class AppController extends Controller {
    */
     
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     
     // Views can also inspect the request object to determine the current
     // controller and action, but it seems slightly easier to do it once here.
     $this->set('vv_controller', $this->request->getParam('controller'));
     $this->set('vv_action', $this->request->getParam('action'));
     
-    if(isset($this->RegistryAuth) && !$this->request->is('restful')) {
+    if($this->components()->has('RegistryAuth') && !$this->request->is('restful')) {
       // Components might not be loaded on error, so check
       $this->set('vv_menu_permissions', $this->RegistryAuth->getMenuPermissions($this->getCOID()));
   
@@ -279,8 +278,8 @@ class AppController extends Controller {
 
   protected function primaryLinkOnGet(string $potentialPrimaryLink): Object|bool
   {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
 
     // If this action allows unkeyed, asserted primary link IDs, check the query
     // string (e.g.: 'add' or 'index' allow matchgrid_id to be passed in)
@@ -313,8 +312,8 @@ class AppController extends Controller {
 
   protected function primaryLinkOnPost(string $potentialPrimaryLink): Object|bool
   {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
 
     // Post = add, where we can have a list of objects and nothing in /objects/{id}
     // We don't support different primary links across objects, so we throw an error
@@ -346,8 +345,8 @@ class AppController extends Controller {
 
   protected function primaryLinkOnPut(): Object|bool
   {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     $param = (int)$this->request->getParam('pass.0');
 
     // Put = edit, so we should look up the parent ID via the object itself
@@ -369,8 +368,8 @@ class AppController extends Controller {
    */
   protected function populatedPrimaryLink(string $potentialPrimaryLink): Object
   {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     // $potentialPrimaryLink will be something like 'attribute_collector_id'
     // $potentialPrimaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'
     $potentialPrimaryLinkTable = $this->$modelsName->getPrimaryLinkTableName($potentialPrimaryLink);
@@ -407,8 +406,8 @@ class AppController extends Controller {
 
   protected function primaryLinkLookup(): void
   {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     $availablePrimaryLinks = $this->$modelsName->getPrimaryLinks();
 
     // Iterate over all the potential primary links and pick the appropriate one
@@ -479,8 +478,8 @@ class AppController extends Controller {
       return $this->cur_pl;
     }
 
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
 
     $this->cur_pl = new \stdClass();
 
@@ -541,8 +540,8 @@ class AppController extends Controller {
    */
   
   protected function getRedirectGoal(string $action): ?string {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     
     // PrimaryLinkTrait
     if(method_exists($this->$modelsName, "getRedirectGoal")) {
@@ -664,8 +663,8 @@ class AppController extends Controller {
     }
     
     if(!$coid) {
-      // $this->name = Models, unless we're in an API call
-      $modelsName = $this->name;
+      /** var string $modelsName */
+      $modelsName = $this->getName();
       
       $attrs = $this->request->getAttributes();
       
@@ -714,11 +713,11 @@ class AppController extends Controller {
     }
     
     if($coid) {
-      $this->Cos = $this->fetchTable('Cos');
+      $Cos = $this->fetchTable('Cos');
       
       // This throws Cake\Datasource\Exception\RecordNotFoundException which
       // we just let pass up the stack.
-      $this->cur_co = $this->Cos->findById($coid)->firstOrFail();
+      $this->cur_co = $Cos->findById($coid)->firstOrFail();
       
       // While the COmanage CO cannot be suspended (AR-CO-2), this is enforced
       // at cos/edit, not here.
@@ -774,8 +773,8 @@ class AppController extends Controller {
    */
   
   protected function setTZ() {
-    // $this->name = Models
-    $modelsName = $this->name;
+    /** var string $modelsName */
+    $modelsName = $this->getName();
     
     // See if we've collected it from the browser in a previous page load. Otherwise,
     // use the system default. If the user set a preferred timezone, we'll catch that below.

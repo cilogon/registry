@@ -1,13 +1,13 @@
 # TwigView plugin for CakePHP
 
-![Build Status](https://github.com/cakephp/twig-view/actions/workflows/ci.yml/badge.svg?branch=master)
+[![CI](https://github.com/cakephp/twig-view/actions/workflows/ci.yml/badge.svg)](https://github.com/cakephp/twig-view/actions/workflows/ci.yml)
 [![Latest Stable Version](https://img.shields.io/github/v/release/cakephp/twig-view?sort=semver&style=flat-square)](https://packagist.org/packages/cakephp/twig-view)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/twig-view?style=flat-square)](https://packagist.org/packages/cakephp/twig-view/stats)
 [![Code Coverage](https://img.shields.io/coveralls/cakephp/twig-view/master.svg?style=flat-square)](https://coveralls.io/r/cakephp/twig-view?branch=master)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
 
-This plugin allows you to use the [Twig Templating Language](https://twig.symfony.com/doc) for your views.
+This plugin allows you to use the [Twig Templating Language](https://twig.symfony.com/doc/) for your views.
 
 It provides wrappers for common View opertions and many helpful extensions that expose CakePHP functions and `jasny/twig-extensions` helpers.
 
@@ -264,7 +264,7 @@ See `jasny/twig-extensions` for the filters they provide.
 * `__dn` maps to [`__dn`](https://book.cakephp.org/4/en/core-libraries/internationalization-and-localization.html)
 * `defaultCurrency` maps to [`Cake\I18n\Number::getDefaultCurrency`](https://book.cakephp.org/4/en/core-libraries/number.html#Cake\\I18n\\Number::getDefaultCurrency)
 * `uuid` maps to [`Cake\Utility\Text::uuid`](https://book.cakephp.org/4/en/core-libraries/text.html#generating-uuids)
-* `time` passed the first and optional second argument into [`new \Cake\I18n\FrozenTime()`](https://book.cakephp.org/4/en/core-libraries/time.html#creating-time-instances)
-* `timezones` maps to `Cake\I18n\FrozenTime::listTimezones`
+* `time` passed the first and optional second argument into [`new \Cake\I18n\DateTime()`](https://book.cakephp.org/4/en/core-libraries/time.html#creating-time-instances)
+* `timezones` maps to `Cake\I18n\DateTime::listTimezones()`
 
 See `jasny/twig-extensions` for the functions they provide.

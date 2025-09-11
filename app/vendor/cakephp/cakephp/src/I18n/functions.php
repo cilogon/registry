@@ -14,13 +14,11 @@ declare(strict_types=1);
  * @since         3.0.0
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
+// phpcs:disable PSR1.Files.SideEffects
 namespace Cake\I18n;
 
-// phpcs:disable PSR1.Files.SideEffects
-// Backwards compatibility alias for custom translation messages loaders which return a Package instance.
-if (!class_exists('Aura\Intl\Package')) {
-    class_alias('Cake\I18n\Package', 'Aura\Intl\Package');
-}
+use DateTimeInterface;
+use Throwable;
 
 /**
  * Returns a translated string if one is found; Otherwise, the submitted message.
@@ -28,9 +26,9 @@ if (!class_exists('Aura\Intl\Package')) {
  * @param string $singular Text to translate.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string The translated text.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__
  */
-function __(string $singular, ...$args): string
+function __(string $singular, mixed ...$args): string
 {
     if (!$singular) {
         return '';
@@ -51,9 +49,9 @@ function __(string $singular, ...$args): string
  * @param int $count Count.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Plural form of translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__n
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__n
  */
-function __n(string $singular, string $plural, int $count, ...$args): string
+function __n(string $singular, string $plural, int $count, mixed ...$args): string
 {
     if (!$singular) {
         return '';
@@ -64,7 +62,7 @@ function __n(string $singular, string $plural, int $count, ...$args): string
 
     return I18n::getTranslator()->translate(
         $plural,
-        ['_count' => $count, '_singular' => $singular] + $args
+        ['_count' => $count, '_singular' => $singular] + $args,
     );
 }
 
@@ -75,9 +73,9 @@ function __n(string $singular, string $plural, int $count, ...$args): string
  * @param string $msg String to translate.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__d
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__d
  */
-function __d(string $domain, string $msg, ...$args): string
+function __d(string $domain, string $msg, mixed ...$args): string
 {
     if (!$msg) {
         return '';
@@ -100,9 +98,9 @@ function __d(string $domain, string $msg, ...$args): string
  * @param int $count Count.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Plural form of translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__dn
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__dn
  */
-function __dn(string $domain, string $singular, string $plural, int $count, ...$args): string
+function __dn(string $domain, string $singular, string $plural, int $count, mixed ...$args): string
 {
     if (!$singular) {
         return '';
@@ -113,7 +111,7 @@ function __dn(string $domain, string $singular, string $plural, int $count, ...$
 
     return I18n::getTranslator($domain)->translate(
         $plural,
-        ['_count' => $count, '_singular' => $singular] + $args
+        ['_count' => $count, '_singular' => $singular] + $args,
     );
 }
 
@@ -126,9 +124,9 @@ function __dn(string $domain, string $singular, string $plural, int $count, ...$
  * @param string $singular Text to translate.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__x
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__x
  */
-function __x(string $context, string $singular, ...$args): string
+function __x(string $context, string $singular, mixed ...$args): string
 {
     if (!$singular) {
         return '';
@@ -152,9 +150,9 @@ function __x(string $context, string $singular, ...$args): string
  * @param int $count Count.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Plural form of translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__xn
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__xn
  */
-function __xn(string $context, string $singular, string $plural, int $count, ...$args): string
+function __xn(string $context, string $singular, string $plural, int $count, mixed ...$args): string
 {
     if (!$singular) {
         return '';
@@ -165,7 +163,7 @@ function __xn(string $context, string $singular, string $plural, int $count, ...
 
     return I18n::getTranslator()->translate(
         $plural,
-        ['_count' => $count, '_singular' => $singular, '_context' => $context] + $args
+        ['_count' => $count, '_singular' => $singular, '_context' => $context] + $args,
     );
 }
 
@@ -179,9 +177,9 @@ function __xn(string $context, string $singular, string $plural, int $count, ...
  * @param string $msg String to translate.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__dx
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__dx
  */
-function __dx(string $domain, string $context, string $msg, ...$args): string
+function __dx(string $domain, string $context, string $msg, mixed ...$args): string
 {
     if (!$msg) {
         return '';
@@ -192,7 +190,7 @@ function __dx(string $domain, string $context, string $msg, ...$args): string
 
     return I18n::getTranslator($domain)->translate(
         $msg,
-        ['_context' => $context] + $args
+        ['_context' => $context] + $args,
     );
 }
 
@@ -209,10 +207,16 @@ function __dx(string $domain, string $context, string $msg, ...$args): string
  * @param int $count Count.
  * @param mixed ...$args Array with arguments or multiple arguments in function.
  * @return string Plural form of translated string.
- * @link https://book.cakephp.org/4/en/core-libraries/global-constants-and-functions.html#__dxn
+ * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#__dxn
  */
-function __dxn(string $domain, string $context, string $singular, string $plural, int $count, ...$args): string
-{
+function __dxn(
+    string $domain,
+    string $context,
+    string $singular,
+    string $plural,
+    int $count,
+    mixed ...$args,
+): string {
     if (!$singular) {
         return '';
     }
@@ -222,13 +226,97 @@ function __dxn(string $domain, string $context, string $singular, string $plural
 
     return I18n::getTranslator($domain)->translate(
         $plural,
-        ['_count' => $count, '_singular' => $singular, '_context' => $context] + $args
+        ['_count' => $count, '_singular' => $singular, '_context' => $context] + $args,
     );
 }
 
 /**
- * Include global functions.
+ * Converts a value to a DateTime object.
+ *
+ *  integer - value is treated as a Unix timestamp
+ *  float - value is treated as a Unix timestamp with microseconds
+ *  string - value is treated as an Atom-formatted timestamp, unless otherwise specified
+ *  Other values returns as null.
+ *
+ * @param mixed $value The value to convert to DateTime.
+ * @param string $format The datetime format the value is in. Defaults to Atom (ex: 1970-01-01T12:00:00+00:00) format.
+ * @return \Cake\I18n\DateTime|null Returns a DateTime object if parsing is successful, or NULL otherwise.
+ * @since 5.1.0
  */
-if (!getenv('CAKE_DISABLE_GLOBAL_FUNCS')) {
-    include 'functions_global.php';
+function toDateTime(mixed $value, string $format = DateTimeInterface::ATOM): ?DateTime
+{
+    if ($value instanceof DateTime) {
+        return $value;
+    }
+
+    if (
+        $value instanceof DateTimeInterface ||
+        $value instanceof Date
+    ) {
+        return DateTime::parse($value);
+    }
+
+    if (is_numeric($value)) {
+        try {
+            return DateTime::createFromTimestamp((float)$value);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    if (is_string($value)) {
+        try {
+            return DateTime::createFromFormat($format, $value);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Converts a value to a Date object.
+ *
+ *  integer - value is treated as a Unix timestamp
+ *  float - value is treated as a Unix timestamp with microseconds
+ *  string - value is treated as a I18N short formatted date, unless otherwise specified
+ *  Other values returns as null.
+ *
+ * @param mixed $value The value to convert to Date.
+ * @param string $format The date format the value is in. Defaults to Short (ex: 1970-01-01) format.
+ * @return \Cake\I18n\Date|null Returns a Date object if parsing is successful, or NULL otherwise.
+ * @since 5.1.0
+ */
+function toDate(mixed $value, string $format = 'Y-m-d'): ?Date
+{
+    if ($value instanceof Date) {
+        return $value;
+    }
+
+    if ($value instanceof DateTimeInterface) {
+        return Date::parse($value);
+    }
+
+    if (is_numeric($value)) {
+        try {
+            $datetime = DateTime::createFromTimestamp((float)$value);
+
+            return Date::create($datetime->year, $datetime->month, $datetime->day);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    if (is_string($value)) {
+        try {
+            $datetime = DateTime::createFromFormat($format, $value);
+
+            return Date::parse($datetime);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    return null;
 }

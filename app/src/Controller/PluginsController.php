@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class PluginsController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Plugins.plugin' => 'asc'
     ]

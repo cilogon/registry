@@ -208,7 +208,7 @@ return [
             'body' => 'text',
             'rating' => ['type' => 'float', 'unsigned' => true, 'default' => 0.0, 'null' => false],
             'score' => ['type' => 'decimal', 'unsigned' => true, 'default' => 0.0, 'null' => false],
-            'published' => ['type' => 'boolean', 'length' => 1, 'default' => false, 'null' => false],
+            'published' => ['type' => 'boolean', 'length' => 1, 'default' => false],
             'created' => 'datetime',
             'updated' => 'datetime',
         ],
@@ -216,6 +216,19 @@ return [
     ],
     [
         'table' => 'car',
+        'columns' => [
+            'id' => ['type' => 'integer'],
+            'bake_user_id' => ['type' => 'integer', 'null' => false],
+            'title' => ['type' => 'string', 'null' => false],
+            'body' => 'text',
+            'published' => ['type' => 'boolean', 'length' => 1, 'default' => false],
+            'created' => 'datetime',
+            'updated' => 'datetime',
+        ],
+        'constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]],
+    ],
+    [
+        'table' => 'cars',
         'columns' => [
             'id' => ['type' => 'integer'],
             'bake_user_id' => ['type' => 'integer', 'null' => false],
@@ -357,6 +370,46 @@ return [
             'updated' => ['type' => 'timestamp', 'null' => true],
         ],
         'constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]],
+    ],
+    [
+        'table' => 'bake_users',
+        'columns' => [
+            'id' => ['type' => 'integer'],
+            'username' => ['type' => 'string', 'null' => true, 'length' => 255],
+            'password' => ['type' => 'string', 'null' => true, 'length' => 255],
+            'status' => ['type' => 'tinyinteger', 'length' => 2, 'default' => null, 'null' => true],
+            'created' => ['type' => 'timestamp', 'null' => true],
+            'updated' => ['type' => 'timestamp', 'null' => true],
+        ],
+        'constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]],
+    ],
+    [
+        'table' => 'relations',
+        'columns' => [
+            'id' => ['type' => 'integer'],
+            'user_id' => ['type' => 'integer', 'null' => false],
+            'other_id' => ['type' => 'integer', 'null' => false],
+            'body' => 'text',
+            'created' => 'datetime',
+            'updated' => 'datetime',
+        ],
+        'constraints' => [
+            'primary' => ['type' => 'primary', 'columns' => ['id']],
+            'user_idx' => [
+                'type' => 'foreign',
+                'columns' => ['user_id'],
+                'references' => ['users', 'id'],
+                'update' => 'noAction',
+                'delete' => 'noAction',
+            ],
+            'other_idx' => [
+                'type' => 'foreign',
+                'columns' => ['other_id'],
+                'references' => ['users', 'id'],
+                'update' => 'noAction',
+                'delete' => 'noAction',
+            ],
+        ],
     ],
     [
         'table' => 'invitations',

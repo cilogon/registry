@@ -32,7 +32,7 @@ namespace PipelineToolkit\Controller;
 use App\Controller\StandardPluginController;
 
 class LoginIdentifierTypesController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'LoginIdentifierTypes.id' => 'asc'
     ]

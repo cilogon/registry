@@ -30,7 +30,7 @@ class TemplateAllCommand extends BakeCommand
     /**
      * @var \Bake\Command\TemplateCommand
      */
-    protected $templateCommand;
+    protected TemplateCommand $templateCommand;
 
     /**
      * @inheritDoc
@@ -65,8 +65,15 @@ class TemplateAllCommand extends BakeCommand
         $connection = ConnectionManager::get($this->connection);
         $scanner = new TableScanner($connection);
 
-        foreach ($scanner->listUnskipped() as $table) {
-            $templateArgs = new Arguments([$table], $args->getOptions(), ['name']);
+        $tables = $scanner->removeShadowTranslationTables($scanner->listUnskipped());
+        foreach ($tables as $table) {
+            $parser = $this->templateCommand->getOptionParser();
+            $templateArgs = new Arguments(
+                [$table],
+                $args->getOptions(),
+                $parser->argumentNames(),
+            );
+
             $this->templateCommand->execute($templateArgs, $io);
         }
 
@@ -88,7 +95,7 @@ class TemplateAllCommand extends BakeCommand
                 'help' => 'The routing prefix to generate views for.',
             ])->addOption('index-columns', [
                 'help' => 'Limit for the number of index columns',
-                'default' => 0,
+                'default' => '0',
             ]);
 
         return $parser;

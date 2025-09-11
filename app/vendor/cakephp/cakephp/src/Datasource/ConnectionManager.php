@@ -23,6 +23,7 @@ use Cake\Database\Driver\Postgres;
 use Cake\Database\Driver\Sqlite;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Datasource\Exception\MissingDatasourceConfigException;
+use Closure;
 
 /**
  * Manages and loads instances of Connection
@@ -45,15 +46,15 @@ class ConnectionManager
      *
      * @var array<string, string>
      */
-    protected static $_aliasMap = [];
+    protected static array $_aliasMap = [];
 
     /**
      * An array mapping url schemes to fully qualified driver class names
      *
      * @var array<string, string>
-     * @psalm-var array<string, class-string>
+     * @phpstan-var array<string, class-string>
      */
-    protected static $_dsnClassMap = [
+    protected static array $_dsnClassMap = [
         'mysql' => Mysql::class,
         'postgres' => Postgres::class,
         'sqlite' => Sqlite::class,
@@ -63,9 +64,9 @@ class ConnectionManager
     /**
      * The ConnectionRegistry used by the manager.
      *
-     * @var \Cake\Datasource\ConnectionRegistry|null
+     * @var \Cake\Datasource\ConnectionRegistry
      */
-    protected static $_registry;
+    protected static ConnectionRegistry $_registry;
 
     /**
      * Configure a new connection object.
@@ -73,12 +74,12 @@ class ConnectionManager
      * The connection will not be constructed until it is first used.
      *
      * @param array<string, mixed>|string $key The name of the connection config, or an array of multiple configs.
-     * @param array<string, mixed>|null $config An array of name => config data for adapter.
+     * @param \Cake\Datasource\ConnectionInterface|\Closure|array<string, mixed>|null $config An array of name => config data for adapter.
      * @return void
      * @throws \Cake\Core\Exception\CakeException When trying to modify an existing config.
      * @see \Cake\Core\StaticConfigTrait::config()
      */
-    public static function setConfig($key, $config = null): void
+    public static function setConfig(array|string $key, ConnectionInterface|Closure|array|null $config = null): void
     {
         if (is_array($config)) {
             $config['name'] = $key;
@@ -109,19 +110,19 @@ class ConnectionManager
      *
      * Note that query-string arguments are also parsed and set as values in the returned configuration.
      *
-     * @param string $config The DSN string to convert to a configuration array
-     * @return array<string, mixed> The configuration array to be stored after parsing the DSN
+     * @param string $dsn The DSN string to convert to a configuration array
+     * @return array<int|string, array|bool|string|null> The configuration array to be stored after parsing the DSN
      */
-    public static function parseDsn(string $config): array
+    public static function parseDsn(string $dsn): array
     {
-        $config = static::_parseDsn($config);
+        $config = static::_parseDsn($dsn);
 
-        if (isset($config['path']) && empty($config['database'])) {
+        if (isset($config['path']) && empty($config['database']) && is_string($config['path'])) {
             $config['database'] = substr($config['path'], 1);
         }
 
         if (empty($config['driver'])) {
-            $config['driver'] = $config['className'];
+            $config['driver'] = $config['className'] ?? null;
             $config['className'] = Connection::class;
         }
 
@@ -197,7 +198,7 @@ class ConnectionManager
      * @throws \Cake\Datasource\Exception\MissingDatasourceConfigException When config
      * data is missing.
      */
-    public static function get(string $name, bool $useAliases = true)
+    public static function get(string $name, bool $useAliases = true): ConnectionInterface
     {
         if ($useAliases && isset(static::$_aliasMap[$name])) {
             $name = static::$_aliasMap[$name];
@@ -206,10 +207,7 @@ class ConnectionManager
         if (!isset(static::$_config[$name])) {
             throw new MissingDatasourceConfigException(['name' => $name]);
         }
-
-        if (!isset(static::$_registry)) {
-            static::$_registry = new ConnectionRegistry();
-        }
+        static::$_registry ??= new ConnectionRegistry();
 
         return static::$_registry->{$name} ?? static::$_registry->load($name, static::$_config[$name]);
     }

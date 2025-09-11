@@ -18,6 +18,7 @@ namespace Cake\Http\Client;
 use Countable;
 use finfo;
 use Psr\Http\Message\UploadedFileInterface;
+use Stringable;
 
 /**
  * Provides an interface for building
@@ -26,35 +27,35 @@ use Psr\Http\Message\UploadedFileInterface;
  * Used by Http\Client to upload POST/PUT data
  * and files.
  */
-class FormData implements Countable
+class FormData implements Countable, Stringable
 {
     /**
      * Boundary marker.
      *
      * @var string
      */
-    protected $_boundary;
+    protected string $_boundary = '';
 
     /**
      * Whether this formdata object has attached files.
      *
      * @var bool
      */
-    protected $_hasFile = false;
+    protected bool $_hasFile = false;
 
     /**
      * Whether this formdata object has a complex part.
      *
      * @var bool
      */
-    protected $_hasComplexPart = false;
+    protected bool $_hasComplexPart = false;
 
     /**
      * The parts in the form data.
      *
      * @var array<\Cake\Http\Client\FormDataPart>
      */
-    protected $_parts = [];
+    protected array $_parts = [];
 
     /**
      * Get the boundary marker
@@ -66,7 +67,7 @@ class FormData implements Countable
         if ($this->_boundary) {
             return $this->_boundary;
         }
-        $this->_boundary = md5(uniqid((string)time()));
+        $this->_boundary = hash('xxh128', uniqid((string)time()));
 
         return $this->_boundary;
     }
@@ -97,7 +98,7 @@ class FormData implements Countable
      * @param mixed $value The value for the part.
      * @return $this
      */
-    public function add($name, $value = null)
+    public function add(FormDataPart|string $name, mixed $value = null)
     {
         if (is_string($name)) {
             if (is_array($value)) {
@@ -137,11 +138,11 @@ class FormData implements Countable
      * or a file handle.
      *
      * @param string $name The name to use.
-     * @param string|resource|\Psr\Http\Message\UploadedFileInterface $value Either a string filename, or a filehandle,
+     * @param \Psr\Http\Message\UploadedFileInterface|resource|string $value Either a string filename, or a filehandle,
      *  or a UploadedFileInterface instance.
      * @return \Cake\Http\Client\FormDataPart
      */
-    public function addFile(string $name, $value): FormDataPart
+    public function addFile(string $name, mixed $value): FormDataPart
     {
         $this->_hasFile = true;
 
@@ -152,19 +153,29 @@ class FormData implements Countable
             $contentType = $value->getClientMediaType();
             $filename = $value->getClientFilename();
         } elseif (is_resource($value)) {
-            $content = stream_get_contents($value);
+            $content = (string)stream_get_contents($value);
             if (stream_is_local($value)) {
                 $finfo = new finfo(FILEINFO_MIME);
                 $metadata = stream_get_meta_data($value);
-                $contentType = $finfo->file($metadata['uri']);
-                $filename = basename($metadata['uri']);
+                $uri = $metadata['uri'] ?? '';
+                $contentType = (string)$finfo->file($uri);
+                $filename = basename($uri);
             }
         } else {
+            assert(
+                is_string($value),
+                sprintf(
+                    '`$value` must be a string, a resource or an instance of `Psr\Http\Message\UploadedFileInterface`.'
+                    . ' `%s` given.',
+                    get_debug_type($value),
+                ),
+            );
+
             $finfo = new finfo(FILEINFO_MIME);
             $value = substr($value, 1);
             $filename = basename($value);
-            $content = file_get_contents($value);
-            $contentType = $finfo->file($value);
+            $content = (string)file_get_contents($value);
+            $contentType = (string)$finfo->file($value);
         }
         $part = $this->newPart($name, $content);
         $part->type($contentType);
@@ -183,7 +194,7 @@ class FormData implements Countable
      * @param mixed $value The value to add.
      * @return void
      */
-    public function addRecursive(string $name, $value): void
+    public function addRecursive(string $name, mixed $value): void
     {
         foreach ($value as $key => $value) {
             $key = $name . '[' . $key . ']';
@@ -255,11 +266,11 @@ class FormData implements Countable
             $boundary = $this->boundary();
             $out = '';
             foreach ($this->_parts as $part) {
-                $out .= "--$boundary\r\n";
+                $out .= "--{$boundary}\r\n";
                 $out .= (string)$part;
                 $out .= "\r\n";
             }
-            $out .= "--$boundary--\r\n";
+            $out .= "--{$boundary}--\r\n";
 
             return $out;
         }

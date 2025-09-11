@@ -162,7 +162,7 @@ trait PrimaryLinkTrait {
     // Pull the object to examine the primary links. We might be asked to find the
     // CO for a deleted object (eg: to add a history record, or to show an older
     // value for an entity), so accept archived records.
-    return $this->calculateCoForRecord($this->get($id, ['archived' => true]));
+    return $this->calculateCoForRecord($this->get($id, archived: true));
   }
   
   /**
@@ -189,7 +189,7 @@ trait PrimaryLinkTrait {
    */
   
   public function findPrimaryLink(int $id, bool $archived=false): object {
-    $obj = $this->get($id, ['archived' => $archived]); //->firstOrFail();
+    $obj = $this->get($id, archived: $archived); //->firstOrFail();
     
     // We might have multiple primary link keys (eg for MVEAs), but only one
     // should be set. Return the first one we find.

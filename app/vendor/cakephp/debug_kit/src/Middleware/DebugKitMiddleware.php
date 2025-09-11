@@ -29,7 +29,7 @@ class DebugKitMiddleware implements MiddlewareInterface
     /**
      * @var \DebugKit\ToolbarService
      */
-    protected $service;
+    protected ToolbarService $service;
 
     /**
      * Constructor
@@ -63,7 +63,6 @@ class DebugKitMiddleware implements MiddlewareInterface
             return $response;
         }
 
-        /** @psalm-suppress ArgumentTypeCoercion */
         $row = $this->service->saveData($request, $response);
         if (!$row) {
             return $response;

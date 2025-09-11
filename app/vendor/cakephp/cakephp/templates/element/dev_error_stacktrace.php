@@ -31,7 +31,7 @@ foreach ($exceptions as $level => $exc):
         <div class="stack-exception-header">
             <span class="stack-exception-caused">Caused by</span>
             <span class="stack-exception-message"><?= Debugger::formatHtmlMessage($exc->getMessage()) ?></span>
-            <span class="stack-exception-type"><?= h(get_class($exc)); ?></span>
+            <span class="stack-exception-type"><?= h($exc::class); ?></span>
         </div>
     <?php endif; ?>
 
@@ -63,8 +63,8 @@ foreach ($exceptions as $level => $exc):
     <ul class="stack-frames">
     <?php
     foreach ($stackTrace as $i => $stack):
-        $excerpt = $params = [];
-
+        $excerpt = [];
+        $params = [];
         $line = null;
         if (isset($stack['file'], $stack['line']) && is_numeric($stack['line'])):
             $line = $stack['line'];
@@ -88,7 +88,8 @@ foreach ($exceptions as $level => $exc):
         endif;
 
         $frameId = "{$level}-{$i}";
-        $vendorFrame = isset($stack['file']) && strpos($stack['file'], APP) === false ? 'vendor-frame' : '';
+        $activeFrame = $i == 0;
+        $vendorFrame = isset($stack['file']) && str_starts_with($stack['file'], ROOT . DS . 'vendor') ? 'vendor-frame' : '';
     ?>
         <li id="stack-frame-<?= $frameId ?>" class="stack-frame <?= $vendorFrame ?>">
             <div class="stack-frame-header">

@@ -20,29 +20,45 @@ use Bake\Utility\TemplateRenderer;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use Cake\Core\Plugin;
 use Cake\Utility\Inflector;
-use Phinx\Util\Util;
+use Migrations\Util\Util;
 
 /**
  * Task class for generating migration snapshot files.
  */
 abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
 {
-    /**
-     * Console IO
-     *
-     * @var \Cake\Console\ConsoleIo
-     */
-    protected $io;
+    public const DEFAULT_MIGRATION_FOLDER = 'Migrations';
+
+    protected const RESERVED_KEYWORDS = [
+        'abstract', 'and', 'array', 'as', 'break', 'callable', 'case', 'catch', 'class', 'clone', 'const',
+        'continue', 'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor',
+        'endforeach', 'endif', 'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'finally', 'for', 'foreach',
+        'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof', 'insteadof', 'interface',
+        'isset', 'list', 'namespace', 'new', 'or', 'parent', 'private', 'protected', 'public', 'return','static',
+    ];
 
     /**
      * path to Migration directory
      *
      * @var string
      */
-    public $pathFragment = 'config';
+    public string $pathFragment = 'config';
 
-    public const DEFAULT_MIGRATION_FOLDER = 'Migrations';
+    /**
+     * Console IO
+     *
+     * @var \Cake\Console\ConsoleIo|null
+     */
+    protected ?ConsoleIo $io = null;
+
+    /**
+     * Arguments
+     *
+     * @var \Cake\Console\Arguments|null
+     */
+    protected ?Arguments $args = null;
 
     /**
      * @inheritDoc
@@ -58,8 +74,16 @@ abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
     public function fileName($name): string
     {
         $name = $this->getMigrationName($name);
+        $timestamp = Util::getCurrentTimestamp();
+        $suffix = '_' . Inflector::camelize($name) . '.php';
 
-        return Util::getCurrentTimestamp() . '_' . Inflector::camelize($name) . '.php';
+        $path = $this->getPath($this->args);
+        $offset = 0;
+        while (glob($path . $timestamp . '_*.php')) {
+            $timestamp = Util::getCurrentTimestamp(++$offset);
+        }
+
+        return $timestamp . $suffix;
     }
 
     /**
@@ -81,9 +105,13 @@ abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
      */
     public function execute(Arguments $args, ConsoleIo $io): ?int
     {
+        if (!Plugin::isLoaded('Bake')) {
+            $io->err('Bake plugin is not loaded. Please load it first to generate a migration.');
+            $this->abort();
+        }
         $this->extractCommonProperties($args);
         $name = $args->getArgumentAt(0);
-        if (empty($name)) {
+        if (!$name) {
             $io->err('You must provide a name to bake a ' . $this->name());
             $this->abort();
         }
@@ -100,15 +128,21 @@ abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
     public function bake(string $name, Arguments $args, ConsoleIo $io): void
     {
         $this->io = $io;
+        $this->args = $args;
+        if ($this->isReservedKeyword($name)) {
+            $prefix = $io->ask('Reserved keywords cannot be used for class names. What prefix would you like to use? Defaults to `Migration`.', 'Migration');
+            $name = $prefix . ucfirst($name);
+        }
+
         $migrationWithSameName = glob($this->getPath($args) . '*_' . $name . '.php');
-        if (!empty($migrationWithSameName)) {
+        if ($migrationWithSameName) {
             $force = $args->getOption('force');
             if (!$force) {
                 $io->abort(
                     sprintf(
                         'A migration with the name `%s` already exists. Please use a different name.',
-                        $name
-                    )
+                        $name,
+                    ),
                 );
             }
 
@@ -128,10 +162,11 @@ abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
         $renderer->set($this->templateData($args));
         $contents = $renderer->generate($this->template());
 
-        $filename = $this->getPath($args) . $this->fileName($name);
+        $path = $this->getPath($args);
+        $filename = $path . $this->fileName($name);
         $this->createFile($filename, $contents, $args, $io);
 
-        $emptyFile = $this->getPath($args) . '.gitkeep';
+        $emptyFile = $path . '.gitkeep';
         $this->deleteEmptyFile($emptyFile, $io);
     }
 
@@ -155,18 +190,17 @@ abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
      * @param string|null $name Name for the generated migration
      * @return string Name of the migration file
      */
-    protected function getMigrationName($name = null)
+    protected function getMigrationName(?string $name = null): string
     {
-        if (empty($name)) {
+        if (!$name) {
             $this->io->abort('Choose a migration name to bake in CamelCase format');
         }
 
-        /** @psalm-suppress PossiblyNullArgument */
         $name = $this->_getName($name);
         $name = Inflector::camelize($name);
 
         if (!preg_match('/^[A-Z]{1}[a-zA-Z0-9]+$/', $name)) {
-            $this->io->abort('The className is not correct. The className can only contain "A-Z" and "0-9".');
+            $this->io->abort('The className is not correct. The className can only contain "A-Z" and "0-9" and has to start with a letter.');
         }
 
         return $name;
@@ -183,20 +217,36 @@ abstract class BakeSimpleMigrationCommand extends SimpleBakeCommand
         $parser = $this->_setCommonOptions($parser);
 
         $parser->setDescription(
-            'Bake migration class.'
+            'Bake migration class.',
         )->addOption('no-test', [
             'boolean' => true,
             'help' => 'Do not generate a test skeleton.',
-        ])->addOption('force', [
-            'short' => 'f',
-            'boolean' => true,
-            'help' => 'Force overwriting existing file if a migration already exists with the same name.',
         ])->addOption('source', [
             'short' => 's',
             'default' => self::DEFAULT_MIGRATION_FOLDER,
             'help' => 'Name of the folder in which the migration should be saved.',
         ]);
 
+        $options = $parser->options();
+        if (!isset($options['force'])) {
+            $parser->addOption('force', [
+                'short' => 'f',
+                'boolean' => true,
+                'help' => 'Force overwriting existing file if a migration already exists with the same name.',
+            ]);
+        }
+
         return $parser;
+    }
+
+    /**
+     * If reserved PHP keyword.
+     *
+     * @param string $name
+     * @return bool
+     */
+    protected function isReservedKeyword(string $name): bool
+    {
+        return in_array(strtolower($name), static::RESERVED_KEYWORDS);
     }
 }

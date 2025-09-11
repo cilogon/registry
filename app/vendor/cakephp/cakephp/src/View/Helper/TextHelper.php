@@ -16,13 +16,9 @@ declare(strict_types=1);
  */
 namespace Cake\View\Helper;
 
-use Cake\Core\App;
-use Cake\Core\Exception\CakeException;
 use Cake\Utility\Security;
 use Cake\Utility\Text;
 use Cake\View\Helper;
-use Cake\View\View;
-use function Cake\Core\deprecationWarning;
 use function Cake\Core\h;
 
 /**
@@ -31,7 +27,13 @@ use function Cake\Core\h;
  * Text manipulations: Highlight, excerpt, truncate, strip of links, convert email addresses to mailto: links...
  *
  * @property \Cake\View\Helper\HtmlHelper $Html
- * @link https://book.cakephp.org/4/en/views/helpers/text.html
+ * @method string excerpt(string $text, string $phrase, int $radius = 100, string $ending = '…') See Text::excerpt()
+ * @method string highlight(string $text, array|string $phrase, array $options = []) See Text::highlight()
+ * @method string slug(string $string, array|string $options = []) See Text::slug()
+ * @method string tail(string $text, int $length = 100, array $options = []) See Text::tail()
+ * @method string toList(array $list, ?string $and = null, string $separator = ', ') See Text::toList()
+ * @method string truncate(string $text, int $length = 100, array $options = []) See Text::truncate()
+ * @link https://book.cakephp.org/5/en/views/helpers/text.html
  * @see \Cake\Utility\Text
  */
 class TextHelper extends Helper
@@ -41,16 +43,7 @@ class TextHelper extends Helper
      *
      * @var array
      */
-    protected $helpers = ['Html'];
-
-    /**
-     * Default config for this class
-     *
-     * @var array<string, mixed>
-     */
-    protected $_defaultConfig = [
-        'engine' => Text::class,
-    ];
+    protected array $helpers = ['Html'];
 
     /**
      * An array of hashes and their contents.
@@ -58,44 +51,7 @@ class TextHelper extends Helper
      *
      * @var array<string, array>
      */
-    protected $_placeholders = [];
-
-    /**
-     * Cake Utility Text instance
-     *
-     * @var \Cake\Utility\Text
-     */
-    protected $_engine;
-
-    /**
-     * Constructor
-     *
-     * ### Settings:
-     *
-     * - `engine` Class name to use to replace String functionality.
-     *            The class needs to be placed in the `Utility` directory.
-     *
-     * @param \Cake\View\View $view the view object the helper is attached to.
-     * @param array<string, mixed> $config Settings array Settings array
-     * @throws \Cake\Core\Exception\CakeException when the engine class could not be found.
-     */
-    public function __construct(View $view, array $config = [])
-    {
-        parent::__construct($view, $config);
-
-        $config = $this->_config;
-
-        /** @psalm-var class-string<\Cake\Utility\Text>|null $engineClass */
-        $engineClass = App::className($config['engine'], 'Utility');
-        if ($engineClass === null) {
-            throw new CakeException(sprintf('Class for `%s` could not be found', $config['engine']));
-        }
-        if ($engineClass != Text::class) {
-            deprecationWarning('4.5.0 - The `engine` option for TextHelper will be removed in 5.0');
-        }
-
-        $this->_engine = new $engineClass($config);
-    }
+    protected array $_placeholders = [];
 
     /**
      * Call methods from String utility class
@@ -104,9 +60,9 @@ class TextHelper extends Helper
      * @param array $params Array of params for the method.
      * @return mixed Whatever is returned by called method, or false on failure
      */
-    public function __call(string $method, array $params)
+    public function __call(string $method, array $params): mixed
     {
-        return $this->_engine->{$method}(...$params);
+        return Text::{$method}(...$params);
     }
 
     /**
@@ -116,11 +72,14 @@ class TextHelper extends Helper
      * ### Options
      *
      * - `escape` Control HTML escaping of input. Defaults to true.
+     * - `stripProtocol` Strips http:// and https:// from the beginning of the link. Default off.
+     * - `maxLength` The maximum length of the link label. Default off.
+     * - `ellipsis` The string to append to the end of the link label. Defaults to UTF8 version.
      *
      * @param string $text Text
      * @param array<string, mixed> $options Array of HTML options, and options listed above.
      * @return string The text with links
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#linking-urls
+     * @link https://book.cakephp.org/5/en/views/helpers/text.html#linking-urls
      */
     public function autoLinkUrls(string $text, array $options = []): string
     {
@@ -144,16 +103,16 @@ class TextHelper extends Helper
             )/ixu';
         // phpcs:enable Generic.Files.LineLength
 
-        $text = preg_replace_callback(
+        $text = (string)preg_replace_callback(
             $pattern,
             [&$this, '_insertPlaceHolder'],
-            $text
+            $text,
         );
         // phpcs:disable Generic.Files.LineLength
         $text = preg_replace_callback(
             '#(?<!href="|">)(?<!\b[[:punct:]])(?<!http://|https://|ftp://|nntp://)www\.[^\s\n\%\ <]+[^\s<\n\%\,\.\ ](?<!\))#i',
             [&$this, '_insertPlaceHolder'],
-            $text
+            $text,
         );
         // phpcs:enable Generic.Files.LineLength
         if ($options['escape']) {
@@ -201,15 +160,45 @@ class TextHelper extends Helper
     {
         $replace = [];
         foreach ($this->_placeholders as $hash => $content) {
-            $link = $url = $content['content'];
+            $link = $content['content'];
+            $url = $content['content'];
             $envelope = $content['envelope'];
             if (!preg_match('#^[a-z]+\://#i', $url)) {
                 $url = 'http://' . $url;
             }
+
+            $linkOptions = $htmlOptions;
+            unset($htmlOptions['maxLength'], $htmlOptions['stripProtocol'], $htmlOptions['ellipsis']);
+            $link = $this->_prepareLinkLabel($link, $linkOptions);
+
             $replace[$hash] = $envelope[0] . $this->Html->link($link, $url, $htmlOptions) . $envelope[1];
         }
 
         return strtr($text, $replace);
+    }
+
+    /**
+     * Prepares the link label.
+     *
+     * @param string $name Link label.
+     * @param array $options<string, mixed> $htmlOptions The options for the generated link label.
+     * @return string Modified link label.
+     */
+    protected function _prepareLinkLabel(string $name, array $options): string
+    {
+        if (isset($options['stripProtocol']) && $options['stripProtocol'] === true) {
+            $name = (string)preg_replace('(^https?://)', '', $name);
+        }
+        if (!empty($options['maxLength'])) {
+            $ellipsis = $options['ellipsis'] ?? '…';
+            $length = $options['maxLength'] - mb_strlen($ellipsis);
+            if (mb_strlen($name) > $length) {
+                $name = mb_substr($name, 0, $length);
+                $name .= $ellipsis;
+            }
+        }
+
+        return $name;
     }
 
     /**
@@ -242,7 +231,7 @@ class TextHelper extends Helper
      * @param string $text Text
      * @param array<string, mixed> $options Array of HTML options, and options listed above.
      * @return string The text with links
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#linking-email-addresses
+     * @link https://book.cakephp.org/5/en/views/helpers/text.html#linking-email-addresses
      */
     public function autoLinkEmails(string $text, array $options = []): string
     {
@@ -253,7 +242,7 @@ class TextHelper extends Helper
         $text = preg_replace_callback(
             '/(?<=\s|^|\(|\>|\;)(' . $atom . '*(?:\.' . $atom . '+)*@[\p{L}0-9-]+(?:\.[\p{L}0-9-]+)+)/ui',
             [&$this, '_insertPlaceholder'],
-            $text
+            $text,
         );
         if ($options['escape']) {
             $text = h($text);
@@ -272,7 +261,7 @@ class TextHelper extends Helper
      * @param string $text Text
      * @param array<string, mixed> $options Array of HTML options, and options listed above.
      * @return string The text with links
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#linking-both-urls-and-email-addresses
+     * @link https://book.cakephp.org/5/en/views/helpers/text.html#linking-both-urls-and-email-addresses
      */
     public function autoLink(string $text, array $options = []): string
     {
@@ -282,150 +271,29 @@ class TextHelper extends Helper
     }
 
     /**
-     * Highlights a given phrase in a text. You can specify any expression in highlighter that
-     * may include the \1 expression to include the $phrase found.
-     *
-     * @param string $text Text to search the phrase in
-     * @param string $phrase The phrase that will be searched
-     * @param array<string, mixed> $options An array of HTML attributes and options.
-     * @return string The highlighted text
-     * @see \Cake\Utility\Text::highlight()
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#highlighting-substrings
-     */
-    public function highlight(string $text, string $phrase, array $options = []): string
-    {
-        return $this->_engine->highlight($text, $phrase, $options);
-    }
-
-    /**
      * Formats paragraphs around given text for all line breaks
      *  <br> added for single line return
      *  <p> added for double line return
      *
      * @param string|null $text Text
      * @return string The text with proper <p> and <br> tags
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#converting-text-into-paragraphs
+     * @link https://book.cakephp.org/5/en/views/helpers/text.html#converting-text-into-paragraphs
      */
     public function autoParagraph(?string $text): string
     {
-        $text = $text ?? '';
+        $text ??= '';
         if (trim($text) !== '') {
-            $text = preg_replace('|<br[^>]*>\s*<br[^>]*>|i', "\n\n", $text . "\n");
-            $text = preg_replace("/\n\n+/", "\n\n", str_replace(["\r\n", "\r"], "\n", $text));
-            $texts = preg_split('/\n\s*\n/', $text, -1, PREG_SPLIT_NO_EMPTY);
+            $text = (string)preg_replace('|<br[^>]*>\s*<br[^>]*>|i', "\n\n", $text . "\n");
+            $text = (string)preg_replace("/\n\n+/", "\n\n", str_replace(["\r\n", "\r"], "\n", $text));
+            $texts = preg_split('/\n\s*\n/', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $text = '';
             foreach ($texts as $txt) {
                 $text .= '<p>' . nl2br(trim($txt, "\n")) . "</p>\n";
             }
-            $text = preg_replace('|<p>\s*</p>|', '', $text);
+            $text = (string)preg_replace('|<p>\s*</p>|', '', $text);
         }
 
         return $text;
-    }
-
-    /**
-     * Truncates text.
-     *
-     * Cuts a string to the length of $length and replaces the last characters
-     * with the ellipsis if the text is longer than length.
-     *
-     * ### Options:
-     *
-     * - `ellipsis` Will be used as Ending and appended to the trimmed string
-     * - `exact` If false, $text will not be cut mid-word
-     * - `html` If true, HTML tags would be handled correctly
-     *
-     * @param string $text String to truncate.
-     * @param int $length Length of returned string, including ellipsis.
-     * @param array<string, mixed> $options An array of HTML attributes and options.
-     * @return string Trimmed string.
-     * @see \Cake\Utility\Text::truncate()
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#truncating-text
-     */
-    public function truncate(string $text, int $length = 100, array $options = []): string
-    {
-        return $this->_engine->truncate($text, $length, $options);
-    }
-
-    /**
-     * Truncates text starting from the end.
-     *
-     * Cuts a string to the length of $length and replaces the first characters
-     * with the ellipsis if the text is longer than length.
-     *
-     * ### Options:
-     *
-     * - `ellipsis` Will be used as Beginning and prepended to the trimmed string
-     * - `exact` If false, $text will not be cut mid-word
-     *
-     * @param string $text String to truncate.
-     * @param int $length Length of returned string, including ellipsis.
-     * @param array<string, mixed> $options An array of HTML attributes and options.
-     * @return string Trimmed string.
-     * @see \Cake\Utility\Text::tail()
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#truncating-the-tail-of-a-string
-     */
-    public function tail(string $text, int $length = 100, array $options = []): string
-    {
-        return $this->_engine->tail($text, $length, $options);
-    }
-
-    /**
-     * Extracts an excerpt from the text surrounding the phrase with a number of characters on each side
-     * determined by radius.
-     *
-     * @param string $text String to search the phrase in
-     * @param string $phrase Phrase that will be searched for
-     * @param int $radius The amount of characters that will be returned on each side of the founded phrase
-     * @param string $ending Ending that will be appended
-     * @return string Modified string
-     * @see \Cake\Utility\Text::excerpt()
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#extracting-an-excerpt
-     */
-    public function excerpt(string $text, string $phrase, int $radius = 100, string $ending = '...'): string
-    {
-        return $this->_engine->excerpt($text, $phrase, $radius, $ending);
-    }
-
-    /**
-     * Creates a comma separated list where the last two items are joined with 'and', forming natural language.
-     *
-     * @param array<string> $list The list to be joined.
-     * @param string|null $and The word used to join the last and second last items together with. Defaults to 'and'.
-     * @param string $separator The separator used to join all the other items together. Defaults to ', '.
-     * @return string The glued together string.
-     * @see \Cake\Utility\Text::toList()
-     * @link https://book.cakephp.org/4/en/views/helpers/text.html#converting-an-array-to-sentence-form
-     */
-    public function toList(array $list, ?string $and = null, string $separator = ', '): string
-    {
-        return $this->_engine->toList($list, $and, $separator);
-    }
-
-    /**
-     * Returns a string with all spaces converted to dashes (by default),
-     * characters transliterated to ASCII characters, and non word characters removed.
-     *
-     * ### Options:
-     *
-     * - `replacement`: Replacement string. Default '-'.
-     * - `transliteratorId`: A valid transliterator id string.
-     *   If `null` (default) the transliterator (identifier) set via
-     *   `Text::setTransliteratorId()` or `Text::setTransliterator()` will be used.
-     *   If `false` no transliteration will be done, only non-words will be removed.
-     * - `preserve`: Specific non-word character to preserve. Default `null`.
-     *   For e.g. this option can be set to '.' to generate clean file names.
-     *
-     * @param string $string the string you want to slug
-     * @param array<string, mixed>|string $options If string it will be used as replacement character
-     *   or an array of options.
-     * @return string
-     * @see \Cake\Utility\Text::setTransliterator()
-     * @see \Cake\Utility\Text::setTransliteratorId()
-     */
-    public function slug(string $string, $options = []): string
-    {
-        return $this->_engine->slug($string, $options);
     }
 
     /**

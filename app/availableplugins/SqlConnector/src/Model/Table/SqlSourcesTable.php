@@ -185,10 +185,10 @@ class SqlSourcesTable extends Table {
     if($SourceTable->getSchema()->getColumnType('modified')) {
       $this->llog('trace', "Calculating changes via modified timestamp for " . $source->description);
 
-      $query = $SourceTable->find('list', [
-                             'keyField' => 'source_key',
-                             'valueField' => 'modified'
-                           ])
+      $query = $SourceTable->find('list',
+                             keyField: 'source_key',
+                             valueField: 'modified',
+                           )
                            ->where([
                              'modified >' => date('Y-m-d H:i:s', $lastStart),
                              'modified <=' => date('Y-m-d H:i:s', $curStart)
@@ -245,10 +245,10 @@ class SqlSourcesTable extends Table {
   ): int|array {
     $SourceTable = $this->getRecordTable($source->sql_source);
 
-    $query = $SourceTable->find('list', [
-                            'keyField' => 'source_key',
-                            'valueField' => 'modified'
-                          ]);
+    $query = $SourceTable->find('list',
+                            keyField: 'source_key',
+                            valueField: 'modified',
+                          );
     
     if($count) {
       return $query->count();

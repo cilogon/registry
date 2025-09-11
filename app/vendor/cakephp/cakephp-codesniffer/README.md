@@ -1,11 +1,11 @@
 # CakePHP Code Sniffer
 
-![Build Status](https://github.com/cakephp/cakephp-codesniffer/actions/workflows/ci.yml/badge.svg?branch=master)
+![Build Status](https://github.com/cakephp/cakephp-codesniffer/actions/workflows/ci.yml/badge.svg?branch=5.next)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/cakephp-codesniffer.svg?style=flat-square)](https://packagist.org/packages/cakephp/cakephp-codesniffer)
 [![Latest Stable Version](https://img.shields.io/packagist/v/cakephp/cakephp-codesniffer.svg?style=flat-square)](https://packagist.org/packages/cakephp/cakephp-codesniffer)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
-This code works with [squizlabs/php_codesniffer](https://github.com/squizlabs/PHP_CodeSniffer)
+This code works with [squizlabs/php_codesniffer](https://github.com/PHPCSStandards/PHP_CodeSniffer)
 and checks code against the coding standards used in CakePHP.
 
 This sniffer package follows [PSR-12](https://www.php-fig.org/psr/psr-12/) completely and ships with a lot of additional fixers on top.
@@ -62,13 +62,18 @@ additional configuration state in `phpcs` that is required.
 composer test
 ```
 
-Once this has been done once, you can use `phpunit --filter CakePHP` to run the
+Once this has been done once, you can use `composer phpunit` to run the
 tests for the rules in this repository.
+
+The tests are present inside the `CakePHP/Tests/` folder.
 
 ## Contributing
 
 If you'd like to contribute to the Code Sniffer, you can fork the project add
 features and send pull requests.
+
+> [!NOTE]
+> Please make sure to run `composer docs` if you change the ruleset.xml file.
 
 ## Releasing CakePHP Code Sniffer
 

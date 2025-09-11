@@ -24,19 +24,19 @@ class CacheClear extends BaseCommand
             ->setName('orm-cache-clear')
             ->setDescription(
                 'Clear all metadata caches for the connection. ' .
-                'If a table name is provided, only that table will be removed.'
+                'If a table name is provided, only that table will be removed.',
             )
             ->addOption(
                 'connection',
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'The connection to build/clear metadata cache data for.',
-                'default'
+                'default',
             )
             ->addArgument(
                 'name',
                 InputArgument::OPTIONAL,
-                'A specific table you want to clear/refresh cached data for.'
+                'A specific table you want to clear/refresh cached data for.',
             );
     }
 
@@ -52,14 +52,14 @@ class CacheClear extends BaseCommand
             return static::CODE_ERROR;
         }
         $tables = [$name];
-        if (empty($name)) {
+        if (!$name) {
             $tables = $schema->listTables();
         }
         $cacher = $schema->getCacher();
         foreach ($tables as $table) {
             $output->writeln(sprintf(
                 'Clearing metadata cache for %s',
-                $table
+                $table,
             ));
             $cacher->delete($table);
         }

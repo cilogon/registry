@@ -12,12 +12,13 @@ declare(strict_types=1);
  * @link          https://cakephp.org CakePHP(tm) Project
  * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace DebugKit\Model\Table;
 
 use Cake\Core\Configure;
 use Cake\Database\Driver\Sqlite;
 use Cake\Log\Log;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use PDOException;
 
@@ -25,7 +26,7 @@ use PDOException;
  * The requests table tracks basic information about each request.
  *
  * @property \DebugKit\Model\Table\PanelsTable $Panels
- * @method \DebugKit\Model\Entity\Request get($primaryKey, $options = [])
+ * @method \DebugKit\Model\Entity\Request get(mixed $primaryKey, array|string $finder = 'all', \Psr\SimpleCache\CacheInterface|string|null $cache = null, \Closure|string|null $cacheKey = null, ...$args)
  * @method \DebugKit\Model\Entity\Request newEntity($data = null, array $options = [])
  * @method \DebugKit\Model\Entity\Request[] newEntities(array $data, array $options = [])
  * @method \DebugKit\Model\Entity\Request save(\Cake\Datasource\EntityInterface $entity, $options = [])
@@ -36,6 +37,7 @@ use PDOException;
 class RequestsTable extends Table
 {
     use LazyTableTrait;
+    use SqlTraceTrait;
 
     /**
      * initialize method
@@ -53,7 +55,7 @@ class RequestsTable extends Table
                 'Model.beforeSave' => ['requested_at' => 'new'],
             ],
         ]);
-        $this->ensureTables(['DebugKit.Requests', 'DebugKit.Panels']);
+        $this->ensureTables(['requests', 'panels']);
     }
 
     /**
@@ -69,13 +71,12 @@ class RequestsTable extends Table
     /**
      * Finder method to get recent requests as a simple array
      *
-     * @param \Cake\ORM\Query $query The query
-     * @param array $options The options
-     * @return \Cake\ORM\Query The query.
+     * @param \Cake\ORM\Query\SelectQuery $query The query
+     * @return \Cake\ORM\Query\SelectQuery The query.
      */
-    public function findRecent(Query $query, array $options)
+    public function findRecent(SelectQuery $query): SelectQuery
     {
-        return $query->order(['Requests.requested_at' => 'DESC'])
+        return $query->orderBy(['Requests.requested_at' => 'DESC'])
             ->limit(10);
     }
 
@@ -84,9 +85,19 @@ class RequestsTable extends Table
      *
      * @return bool
      */
-    protected function shouldGc()
+    protected function shouldGc(): bool
     {
-        return rand(1, 100) === 100;
+        return rand(1, 10) === 10;
+    }
+
+    /**
+     * Check if garbage collection vacuum should be run
+     *
+     * @return bool
+     */
+    protected function shouldGcVacuum(): bool
+    {
+        return rand(1, 10) === 10;
     }
 
     /**
@@ -98,7 +109,7 @@ class RequestsTable extends Table
      *
      * @return void
      */
-    public function gc()
+    public function gc(): void
     {
         if (!$this->shouldGc()) {
             return;
@@ -108,7 +119,7 @@ class RequestsTable extends Table
             $noPurge = $this->find()
                 ->select(['id'])
                 ->enableHydration(false)
-                ->order(['requested_at' => 'desc'])
+                ->orderBy(['requested_at' => 'desc'])
                 ->limit(Configure::read('DebugKit.requestCount') ?: 20)
                 ->all()
                 ->extract('id')
@@ -131,7 +142,28 @@ class RequestsTable extends Table
 
             $conn = $this->getConnection();
             if ($conn->getDriver() instanceof Sqlite) {
-                $conn->execute('VACUUM;');
+                $conn->execute('
+                    PRAGMA auto_vacuum = FULL;
+                    PRAGMA journal_mode = OFF;
+                    PRAGMA synchronous = OFF;
+                    PRAGMA foreign_keys = OFF;
+                    PRAGMA temp_store = MEMORY;
+                    PRAGMA automatic_index = OFF;
+                ');
+
+                if (!$this->shouldGcVacuum()) {
+                    return;
+                }
+
+                try {
+                    $conn->execute('VACUUM;');
+                } catch (PDOException $e) {
+                    Log::warning(
+                        'Unable to run VACUUM on debug kit SQLite database. ' .
+                            'Please manually remove the database file',
+                    );
+                    Log::warning((string)$e);
+                }
             }
         } catch (PDOException $e) {
             Log::warning('Unable to garbage collect requests table. This is probably due to concurrent requests.');

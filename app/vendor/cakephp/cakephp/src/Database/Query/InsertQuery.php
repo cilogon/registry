@@ -16,307 +16,111 @@ declare(strict_types=1);
  */
 namespace Cake\Database\Query;
 
+use Cake\Database\Exception\DatabaseException;
+use Cake\Database\Expression\ValuesExpression;
 use Cake\Database\Query;
+use InvalidArgumentException;
 
 /**
- * Insert Query forward compatibility shim.
+ * This class is used to generate INSERT queries for the relational database.
  */
 class InsertQuery extends Query
 {
     /**
-     * Type of this query (select, insert, update, delete).
+     * Type of this query.
      *
      * @var string
      */
-    protected $_type = 'insert';
+    protected string $_type = self::TYPE_INSERT;
 
     /**
-     * @inheritDoc
+     * List of SQL parts that will be used to build this query.
+     *
+     * @var array<string, mixed>
      */
-    public function delete(?string $table = null)
-    {
-        $this->_deprecatedMethod('delete()', 'Create your query with deleteQuery() instead.');
+    protected array $_parts = [
+        'comment' => null,
+        'with' => [],
+        'insert' => [],
+        'modifier' => [],
+        'values' => [],
+        'epilog' => null,
+    ];
 
-        return parent::delete($table);
+    /**
+     * Create an insert query.
+     *
+     * Note calling this method will reset any data previously set
+     * with Query::values().
+     *
+     * @param array $columns The columns to insert into.
+     * @param array<int|string, string> $types A map between columns & their datatypes.
+     * @return $this
+     * @throws \InvalidArgumentException When there are 0 columns.
+     */
+    public function insert(array $columns, array $types = [])
+    {
+        if (!$columns) {
+            throw new InvalidArgumentException('At least 1 column is required to perform an insert.');
+        }
+        $this->_dirty();
+        $this->_parts['insert'][1] = $columns;
+        if (!$this->_parts['values']) {
+            $this->_parts['values'] = new ValuesExpression($columns, $this->getTypeMap()->setTypes($types));
+        } else {
+            /** @var \Cake\Database\Expression\ValuesExpression $valuesExpr */
+            $valuesExpr = $this->_parts['values'];
+            $valuesExpr->setColumns($columns);
+        }
+
+        return $this;
     }
 
     /**
-     * @inheritDoc
+     * Set the table name for insert queries.
+     *
+     * @param string $table The table name to insert into.
+     * @return $this
      */
-    public function select($fields = [], bool $overwrite = false)
+    public function into(string $table)
     {
-        $this->_deprecatedMethod('select()', 'Create your query with selectQuery() instead.');
+        $this->_dirty();
+        $this->_parts['insert'][0] = $table;
 
-        return parent::select($fields, $overwrite);
+        return $this;
     }
 
     /**
-     * @inheritDoc
+     * Set the values for an insert query.
+     *
+     * Multi inserts can be performed by calling values() more than one time,
+     * or by providing an array of value sets. Additionally $data can be a Query
+     * instance to insert data from another SELECT statement.
+     *
+     * @param \Cake\Database\Expression\ValuesExpression|\Cake\Database\Query|array $data The data to insert.
+     * @return $this
+     * @throws \Cake\Database\Exception\DatabaseException if you try to set values before declaring columns.
+     *   Or if you try to set values on non-insert queries.
      */
-    public function distinct($on = [], $overwrite = false)
+    public function values(ValuesExpression|Query|array $data)
     {
-        $this->_deprecatedMethod('distinct()');
+        if (empty($this->_parts['insert'])) {
+            throw new DatabaseException(
+                'You cannot add values before defining columns to use.',
+            );
+        }
 
-        return parent::distinct($on, $overwrite);
-    }
+        $this->_dirty();
+        if ($data instanceof ValuesExpression) {
+            $this->_parts['values'] = $data;
 
-    /**
-     * @inheritDoc
-     */
-    public function modifier($modifiers, $overwrite = false)
-    {
-        $this->_deprecatedMethod('modifier()');
+            return $this;
+        }
 
-        return parent::modifier($modifiers, $overwrite);
-    }
+        /** @var \Cake\Database\Expression\ValuesExpression $valuesExpr */
+        $valuesExpr = $this->_parts['values'];
+        $valuesExpr->add($data);
 
-    /**
-     * @inheritDoc
-     */
-    public function join($tables, $types = [], $overwrite = false)
-    {
-        $this->_deprecatedMethod('join()');
-
-        return parent::join($tables, $types, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function removeJoin(string $name)
-    {
-        $this->_deprecatedMethod('removeJoin()');
-
-        return parent::removeJoin($name);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function leftJoin($table, $conditions = [], $types = [])
-    {
-        $this->_deprecatedMethod('leftJoin()');
-
-        return parent::leftJoin($table, $conditions, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function rightJoin($table, $conditions = [], $types = [])
-    {
-        $this->_deprecatedMethod('rightJoin()');
-
-        return parent::rightJoin($table, $conditions, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function innerJoin($table, $conditions = [], $types = [])
-    {
-        $this->_deprecatedMethod('innerJoin()');
-
-        return parent::innerJoin($table, $conditions, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function group($fields, $overwrite = false)
-    {
-        $this->_deprecatedMethod('group()');
-
-        return parent::group($fields, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function having($conditions = null, $types = [], $overwrite = false)
-    {
-        $this->_deprecatedMethod('having()');
-
-        return parent::having($conditions, $types, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function andHaving($conditions, $types = [])
-    {
-        $this->_deprecatedMethod('andHaving()');
-
-        return parent::andHaving($conditions, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function page(int $num, ?int $limit = null)
-    {
-        $this->_deprecatedMethod('page()');
-
-        return parent::page($num, $limit);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offset($offset)
-    {
-        $this->_deprecatedMethod('offset()');
-
-        return parent::offset($offset);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function union($query, $overwrite = false)
-    {
-        $this->_deprecatedMethod('union()');
-
-        return parent::union($query, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function unionAll($query, $overwrite = false)
-    {
-        $this->_deprecatedMethod('union()');
-
-        return parent::unionAll($query, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function from($tables = [], $overwrite = false)
-    {
-        $this->_deprecatedMethod('from()', 'Use into() instead.');
-
-        return parent::from($tables, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function update($table)
-    {
-        $this->_deprecatedMethod('update()', 'Create your query with updateQuery() instead.');
-
-        return parent::update($table);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function set($key, $value = null, $types = [])
-    {
-        $this->_deprecatedMethod('set()');
-
-        return parent::set($key, $value, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function where($conditions = null, array $types = [], bool $overwrite = false)
-    {
-        $this->_deprecatedMethod('where()');
-
-        return parent::where($conditions, $types, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function whereNotNull($fields)
-    {
-        $this->_deprecatedMethod('whereNotNull()');
-
-        return parent::whereNotNull($fields);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function whereNull($fields)
-    {
-        $this->_deprecatedMethod('whereNull()');
-
-        return parent::whereNull($fields);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function whereInList(string $field, array $values, array $options = [])
-    {
-        $this->_deprecatedMethod('whereInList()');
-
-        return parent::whereInList($field, $values, $options);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function whereNotInList(string $field, array $values, array $options = [])
-    {
-        $this->_deprecatedMethod('whereNotInList()');
-
-        return parent::whereNotInList($field, $values, $options);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function whereNotInListOrNull(string $field, array $values, array $options = [])
-    {
-        $this->_deprecatedMethod('whereNotInListOrNull()');
-
-        return parent::whereNotInListOrNull($field, $values, $options);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function andWhere($conditions, array $types = [])
-    {
-        $this->_deprecatedMethod('andWhere()');
-
-        return parent::andWhere($conditions, $types);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function order($fields, $overwrite = false)
-    {
-        $this->_deprecatedMethod('order()');
-
-        return parent::order($fields, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function orderAsc($field, $overwrite = false)
-    {
-        $this->_deprecatedMethod('orderAsc()');
-
-        return parent::orderAsc($field, $overwrite);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function orderDesc($field, $overwrite = false)
-    {
-        $this->_deprecatedMethod('orderDesc()');
-
-        return parent::orderDesc($field, $overwrite);
+        return $this;
     }
 }

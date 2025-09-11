@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -9,6 +10,7 @@ namespace Phinx\Seed;
 
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
+use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -19,30 +21,28 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * This abstract class proxies the various database methods to your specified
  * adapter.
- *
- * @author Rob Morgan <robbym@gmail.com>
  */
 abstract class AbstractSeed implements SeedInterface
 {
     /**
      * @var string
      */
-    protected $environment;
+    protected string $environment;
 
     /**
      * @var \Phinx\Db\Adapter\AdapterInterface
      */
-    protected $adapter;
+    protected AdapterInterface $adapter;
 
     /**
      * @var \Symfony\Component\Console\Input\InputInterface
      */
-    protected $input;
+    protected InputInterface $input;
 
     /**
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
-    protected $output;
+    protected OutputInterface $output;
 
     /**
      * Override to specify dependencies for dependency injection from the configured PSR-11 container
@@ -99,6 +99,10 @@ abstract class AbstractSeed implements SeedInterface
      */
     public function getAdapter(): AdapterInterface
     {
+        if (!isset($this->adapter)) {
+            throw new RuntimeException('Cannot access `adapter` it has not been set');
+        }
+
         return $this->adapter;
     }
 
@@ -149,7 +153,7 @@ abstract class AbstractSeed implements SeedInterface
     /**
      * @inheritDoc
      */
-    public function execute(string $sql, array $params = [])
+    public function execute(string $sql, array $params = []): int
     {
         return $this->getAdapter()->execute($sql, $params);
     }
@@ -157,7 +161,7 @@ abstract class AbstractSeed implements SeedInterface
     /**
      * @inheritDoc
      */
-    public function query(string $sql, array $params = [])
+    public function query(string $sql, array $params = []): mixed
     {
         return $this->getAdapter()->query($sql, $params);
     }
@@ -165,7 +169,7 @@ abstract class AbstractSeed implements SeedInterface
     /**
      * @inheritDoc
      */
-    public function fetchRow(string $sql)
+    public function fetchRow(string $sql): array|false
     {
         return $this->getAdapter()->fetchRow($sql);
     }

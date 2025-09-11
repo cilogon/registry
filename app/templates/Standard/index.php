@@ -35,8 +35,8 @@ declare(strict_types = 1);
 //use \App\Lib\Enum\StatusEnum;
 use \Cake\Utility\Inflector;
 
-// $this->name = Models
-$modelsName = $this->name;
+/** var string $modelsName */
+$modelsName = $this->getName();
 // $tablename = models
 // XXX backport to match?
 $tableName = Inflector::tableize(Inflector::singularize($this->name));
@@ -517,7 +517,9 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
               case 'echo':
               default:
                 // By default our label is the column value, but it might be overridden
-                $label = $prefix . $entity->$col . $suffix;
+                if(!is_object($entity->$col)) {
+                  $label = $prefix . $entity->$col . $suffix;
+                }
                 
                 // If there is no calculated default value but a default is configured,
                 // use that instead

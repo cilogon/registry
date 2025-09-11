@@ -26,23 +26,23 @@ class DebugInclude
     /**
      * The list of plugins within the application
      *
-     * @var string[]
+     * @var array<string>
      */
-    protected $_pluginPaths = [];
+    protected array $_pluginPaths = [];
 
     /**
      * The list of Composer packages
      *
-     * @var string[]
+     * @var array<string>
      */
-    protected $_composerPaths = [];
+    protected array $_composerPaths = [];
 
     /**
      * File Types
      *
      * @var array
      */
-    protected $_fileTypes = [
+    protected array $_fileTypes = [
         'Auth', 'Cache', 'Collection', 'Config', 'Configure', 'Console', 'Component', 'Controller',
         'Behavior', 'Database', 'Datasource', 'Model', 'Template', 'View', 'Utility',
         'Network', 'Routing', 'I18n', 'Log', 'Error', 'Event', 'Form', 'Filesystem',
@@ -66,8 +66,10 @@ class DebugInclude
             $packages = array_merge($lockContent['packages'], $lockContent['packages-dev']);
 
             foreach ($packages as $package) {
-                $this->_composerPaths[$package['name']] = $vendorDir
-                    . str_replace('/', DIRECTORY_SEPARATOR, $package['name'])
+                /** @var string $name */
+                $name = $package['name'];
+                $this->_composerPaths[$name] = $vendorDir
+                    . str_replace('/', DIRECTORY_SEPARATOR, $name)
                     . DIRECTORY_SEPARATOR;
             }
         }
@@ -78,9 +80,9 @@ class DebugInclude
      *
      * @return array
      */
-    public function includePaths()
+    public function includePaths(): array
     {
-        $paths = explode(PATH_SEPARATOR, get_include_path());
+        $paths = explode(PATH_SEPARATOR, (string)get_include_path());
         $paths = array_filter($paths, function ($path) {
             if ($path === '.' || strlen($path) === 0) {
                 return false;
@@ -98,7 +100,7 @@ class DebugInclude
      * @param string $file File to check
      * @return bool
      */
-    public function isCakeFile($file)
+    public function isCakeFile(string $file): bool
     {
         return strpos($file, CAKE) === 0;
     }
@@ -109,7 +111,7 @@ class DebugInclude
      * @param string $file File to check
      * @return bool
      */
-    public function isAppFile($file)
+    public function isAppFile(string $file): bool
     {
         return strpos($file, APP) === 0;
     }
@@ -120,7 +122,7 @@ class DebugInclude
      * @param string $file File to check
      * @return string|bool plugin name, or false if not plugin
      */
-    public function getPluginName($file)
+    public function getPluginName(string $file): string|bool
     {
         foreach ($this->_pluginPaths as $plugin => $path) {
             if (strpos($file, $path) === 0) {
@@ -137,7 +139,7 @@ class DebugInclude
      * @param string $file File to check
      * @return string|bool package name, or false if not Composer package
      */
-    public function getComposerPackageName($file)
+    public function getComposerPackageName(string $file): string|bool
     {
         foreach ($this->_composerPaths as $package => $path) {
             if (strpos($file, $path) === 0) {
@@ -156,7 +158,7 @@ class DebugInclude
      * @param string|null $name plugin name or composer package
      * @return string Path with replaced prefix
      */
-    public function niceFileName($file, $type, $name = null)
+    public function niceFileName(string $file, string $type, ?string $name = null): string
     {
         switch ($type) {
             case 'app':
@@ -184,7 +186,7 @@ class DebugInclude
      * @param string $file File to check.
      * @return string
      */
-    public function getFileType($file)
+    public function getFileType(string $file): string
     {
         foreach ($this->_fileTypes as $type) {
             if (stripos($file, DIRECTORY_SEPARATOR . $type . DIRECTORY_SEPARATOR) !== false) {

@@ -32,7 +32,7 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class ApplicationState extends Entity {
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 

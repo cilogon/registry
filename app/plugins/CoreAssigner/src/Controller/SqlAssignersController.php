@@ -32,7 +32,7 @@ namespace CoreAssigner\Controller;
 use App\Controller\StandardPluginController;
 
 class SqlAssignersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'SqlAssigners.server_id' => 'asc'
     ]

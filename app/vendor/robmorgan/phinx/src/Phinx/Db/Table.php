@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -8,6 +9,7 @@
 namespace Phinx\Db;
 
 use InvalidArgumentException;
+use Phinx\Config\FeatureFlags;
 use Phinx\Db\Action\AddColumn;
 use Phinx\Db\Action\AddForeignKey;
 use Phinx\Db\Action\AddIndex;
@@ -25,6 +27,7 @@ use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Plan\Intent;
 use Phinx\Db\Plan\Plan;
 use Phinx\Db\Table\Column;
+use Phinx\Db\Table\Index;
 use Phinx\Db\Table\Table as TableValue;
 use Phinx\Util\Literal;
 use RuntimeException;
@@ -37,22 +40,22 @@ class Table
     /**
      * @var \Phinx\Db\Table\Table
      */
-    protected $table;
+    protected TableValue $table;
 
     /**
      * @var \Phinx\Db\Adapter\AdapterInterface|null
      */
-    protected $adapter;
+    protected ?AdapterInterface $adapter = null;
 
     /**
      * @var \Phinx\Db\Plan\Intent
      */
-    protected $actions;
+    protected Intent $actions;
 
     /**
      * @var array
      */
-    protected $data = [];
+    protected array $data = [];
 
     /**
      * @param string $name Table Name
@@ -178,7 +181,7 @@ class Table
      * @param string|string[]|null $columns Column name(s) to belong to the primary key, or null to drop the key
      * @return $this
      */
-    public function changePrimaryKey($columns)
+    public function changePrimaryKey(string|array|null $columns)
     {
         $this->actions->addAction(new ChangePrimaryKey($this->table, $columns));
 
@@ -192,7 +195,7 @@ class Table
      * @param string|null $constraint Constraint names
      * @return bool
      */
-    public function hasPrimaryKey($columns, ?string $constraint = null): bool
+    public function hasPrimaryKey(string|array $columns, ?string $constraint = null): bool
     {
         return $this->getAdapter()->hasPrimaryKey($this->getName(), $columns, $constraint);
     }
@@ -232,7 +235,7 @@ class Table
             $this->getColumns(),
             function ($column) use ($name) {
                 return $column->getName() === $name;
-            }
+            },
         );
 
         return array_pop($columns);
@@ -296,8 +299,9 @@ class Table
      * @throws \InvalidArgumentException
      * @return $this
      */
-    public function addColumn($columnName, $type = null, array $options = [])
+    public function addColumn(string|Column $columnName, string|Literal|null $type = null, array $options = [])
     {
+        assert($columnName instanceof Column || $type !== null);
         if ($columnName instanceof Column) {
             $action = new AddColumn($this->table, $columnName);
         } elseif ($type instanceof Literal) {
@@ -310,8 +314,8 @@ class Table
         if (!$this->getAdapter()->isValidColumnType($action->getColumn())) {
             throw new InvalidArgumentException(sprintf(
                 'An invalid column type "%s" was specified for column "%s".',
-                $type,
-                $action->getColumn()->getName()
+                $action->getColumn()->getType(),
+                $action->getColumn()->getName(),
             ));
         }
 
@@ -357,7 +361,7 @@ class Table
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function changeColumn(string $columnName, $newColumnType, array $options = [])
+    public function changeColumn(string $columnName, string|Column|Literal $newColumnType, array $options = [])
     {
         if ($newColumnType instanceof Column) {
             $action = new ChangeColumn($this->table, $columnName, $newColumnType);
@@ -389,7 +393,7 @@ class Table
      * @param array<string, mixed> $options Index Options
      * @return $this
      */
-    public function addIndex($columns, array $options = [])
+    public function addIndex(string|array|Index $columns, array $options = [])
     {
         $action = AddIndex::build($this->table, $columns, $options);
         $this->actions->addAction($action);
@@ -403,7 +407,7 @@ class Table
      * @param string|string[] $columns Columns
      * @return $this
      */
-    public function removeIndex($columns)
+    public function removeIndex(string|array $columns)
     {
         $action = DropIndex::build($this->table, is_string($columns) ? [$columns] : $columns);
         $this->actions->addAction($action);
@@ -431,7 +435,7 @@ class Table
      * @param string|string[] $columns Columns
      * @return bool
      */
-    public function hasIndex($columns): bool
+    public function hasIndex(string|array $columns): bool
     {
         return $this->getAdapter()->hasIndex($this->getName(), $columns);
     }
@@ -442,7 +446,7 @@ class Table
      * @param string $indexName Index name
      * @return bool
      */
-    public function hasIndexByName($indexName): bool
+    public function hasIndexByName(string $indexName): bool
     {
         return $this->getAdapter()->hasIndexByName($this->getName(), $indexName);
     }
@@ -459,7 +463,7 @@ class Table
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function addForeignKey($columns, $referencedTable, $referencedColumns = ['id'], array $options = [])
+    public function addForeignKey(string|array $columns, string|TableValue $referencedTable, string|array $referencedColumns = ['id'], array $options = [])
     {
         $action = AddForeignKey::build($this->table, $columns, $referencedTable, $referencedColumns, $options);
         $this->actions->addAction($action);
@@ -480,7 +484,7 @@ class Table
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function addForeignKeyWithName(string $name, $columns, $referencedTable, $referencedColumns = ['id'], array $options = [])
+    public function addForeignKeyWithName(string $name, string|array $columns, string|TableValue $referencedTable, string|array $referencedColumns = ['id'], array $options = [])
     {
         $action = AddForeignKey::build(
             $this->table,
@@ -488,7 +492,7 @@ class Table
             $referencedTable,
             $referencedColumns,
             $options,
-            $name
+            $name,
         );
         $this->actions->addAction($action);
 
@@ -502,7 +506,7 @@ class Table
      * @param string|null $constraint Constraint names
      * @return $this
      */
-    public function dropForeignKey($columns, ?string $constraint = null)
+    public function dropForeignKey(string|array $columns, ?string $constraint = null)
     {
         $action = DropForeignKey::build($this->table, $columns, $constraint);
         $this->actions->addAction($action);
@@ -517,7 +521,7 @@ class Table
      * @param string|null $constraint Constraint names
      * @return bool
      */
-    public function hasForeignKey($columns, ?string $constraint = null): bool
+    public function hasForeignKey(string|array $columns, ?string $constraint = null): bool
     {
         return $this->getAdapter()->hasForeignKey($this->getName(), $columns, $constraint);
     }
@@ -530,17 +534,19 @@ class Table
      * @param bool $withTimezone Whether to set the timezone option on the added columns
      * @return $this
      */
-    public function addTimestamps($createdAt = 'created_at', $updatedAt = 'updated_at', bool $withTimezone = false)
+    public function addTimestamps(string|false|null $createdAt = 'created_at', string|false|null $updatedAt = 'updated_at', bool $withTimezone = false)
     {
         $createdAt = $createdAt ?? 'created_at';
         $updatedAt = $updatedAt ?? 'updated_at';
 
         if (!$createdAt && !$updatedAt) {
-            throw new \RuntimeException('Cannot set both created_at and updated_at columns to false');
+            throw new RuntimeException('Cannot set both created_at and updated_at columns to false');
         }
 
+        $columnType = FeatureFlags::$addTimestampsUseDateTime ? 'datetime' : 'timestamp';
+
         if ($createdAt) {
-            $this->addColumn($createdAt, 'timestamp', [
+            $this->addColumn($createdAt, $columnType, [
                 'null' => false,
                 'default' => 'CURRENT_TIMESTAMP',
                 'update' => '',
@@ -548,7 +554,7 @@ class Table
             ]);
         }
         if ($updatedAt) {
-            $this->addColumn($updatedAt, 'timestamp', [
+            $this->addColumn($updatedAt, $columnType, [
                 'null' => true,
                 'default' => null,
                 'update' => 'CURRENT_TIMESTAMP',
@@ -567,7 +573,7 @@ class Table
      * @param string|false|null $updatedAt Alternate name for the updated_at column
      * @return $this
      */
-    public function addTimestampsWithTimezone($createdAt = null, $updatedAt = null)
+    public function addTimestampsWithTimezone(string|false|null $createdAt = null, string|false|null $updatedAt = null)
     {
         $this->addTimestamps($createdAt, $updatedAt, true);
 

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -21,37 +22,37 @@ class Environment
     /**
      * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @var array<string, mixed>
      */
-    protected $options;
+    protected array $options;
 
     /**
      * @var \Symfony\Component\Console\Input\InputInterface|null
      */
-    protected $input;
+    protected ?InputInterface $input = null;
 
     /**
      * @var \Symfony\Component\Console\Output\OutputInterface|null
      */
-    protected $output;
+    protected ?OutputInterface $output = null;
 
     /**
      * @var int
      */
-    protected $currentVersion;
+    protected int $currentVersion;
 
     /**
      * @var string
      */
-    protected $schemaTableName = 'phinxlog';
+    protected string $schemaTableName = 'phinxlog';
 
     /**
      * @var \Phinx\Db\Adapter\AdapterInterface
      */
-    protected $adapter;
+    protected AdapterInterface $adapter;
 
     /**
      * @param string $name Environment Name
@@ -85,12 +86,12 @@ class Environment
             $migration->{MigrationInterface::INIT}();
         }
 
-        if (!$fake) {
-            // begin the transaction if the adapter supports it
-            if ($this->getAdapter()->hasTransactions()) {
-                $this->getAdapter()->beginTransaction();
-            }
+        // begin the transaction if the adapter supports it
+        if ($this->getAdapter()->hasTransactions()) {
+            $this->getAdapter()->beginTransaction();
+        }
 
+        if (!$fake) {
             // Run the migration
             if (method_exists($migration, MigrationInterface::CHANGE)) {
                 if ($direction === MigrationInterface::DOWN) {
@@ -110,17 +111,17 @@ class Environment
             } else {
                 $migration->{$direction}();
             }
-
-            // commit the transaction if the adapter supports it
-            if ($this->getAdapter()->hasTransactions()) {
-                $this->getAdapter()->commitTransaction();
-            }
         }
-
-        $migration->postFlightCheck();
 
         // Record it in the database
         $this->getAdapter()->migrated($migration, $direction, date('Y-m-d H:i:s', $startTime), date('Y-m-d H:i:s', time()));
+
+        $migration->postFlightCheck();
+
+        // commit the transaction if the adapter supports it
+        if ($this->getAdapter()->hasTransactions()) {
+            $this->getAdapter()->commitTransaction();
+        }
     }
 
     /**
@@ -379,7 +380,7 @@ class Environment
      * @param string $schemaTableName Schema Table Name
      * @return $this
      */
-    public function setSchemaTableName($schemaTableName)
+    public function setSchemaTableName(string $schemaTableName)
     {
         $this->schemaTableName = $schemaTableName;
 

@@ -21,6 +21,10 @@
  * @var array $other
  */
 
+use function Cake\Core\h;
+
+$hasAny = count($app) + count($plugins) + count($cake) + count($vendor);
+
 $printer = function ($section, $data) {
 ?>
     <h3><?= h(ucfirst($section)) ?> </h3>
@@ -37,7 +41,11 @@ $printer = function ($section, $data) {
 }
 ?>
 <div class="c-deprecations-panel">
-    <?php
+    <?php if ($hasAny) : ?>
+        <p class="c-flash c-flash--info">No deprecations</p>
+        <?php
+    endif;
+
     if (count($app)) :
         $printer('app', $app);
     endif;

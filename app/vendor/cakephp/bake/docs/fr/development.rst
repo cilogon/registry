@@ -137,7 +137,7 @@ ressemble à ceci::
         /**
         * Méthode hook pour définir le parseur d'option de cette commande.
         *
-        * @see https://book.cakephp.org/4/fr/console-commands/commands.html#defining-arguments-and-options
+        * @see https://book.cakephp.org/5/fr/console-commands/commands.html#defining-arguments-and-options
         * @param \Cake\Console\ConsoleOptionParser $parser Le parseur à définir
         * @return \Cake\Console\ConsoleOptionParser Le parseur construit.
         */
@@ -153,7 +153,7 @@ ressemble à ceci::
         *
         * @param \Cake\Console\Arguments $args Les arguments de la commande.
         * @param \Cake\Console\ConsoleIo $io La console il
-        * @return null|void|int Le code de sortie ou null pour un succès
+        * @return int|null|void Le code de sortie ou null pour un succès
         */
         public function execute(Arguments $args, ConsoleIo $io)
         {
@@ -181,7 +181,7 @@ ressemble à ceci::
         /**
         * Méthode hook pour définir le parseur d'option de cette commande.
         *
-        * @see https://book.cakephp.org/4/fr/console-commands/commands.html#defining-arguments-and-options
+        * @see https://book.cakephp.org/5/fr/console-commands/commands.html#defining-arguments-and-options
         * @param \Cake\Console\ConsoleOptionParser $parser Le parseur à définir
         * @return \Cake\Console\ConsoleOptionParser Le parseur construit.
         */
@@ -197,7 +197,7 @@ ressemble à ceci::
         *
         * @param \Cake\Console\Arguments $args Les arguments de la commande.
         * @param \Cake\Console\ConsoleIo $io La console io
-        * @return null|void|int Le code de sortie ou null pour un succès
+        * @return int|null|void Le code de sortie ou null pour un succès
         */
         public function execute(Arguments $args, ConsoleIo $io)
         {

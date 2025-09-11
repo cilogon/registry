@@ -16,10 +16,8 @@ declare(strict_types=1);
  */
 namespace Cake\View\Form;
 
-use Cake\Core\Exception\CakeException;
 use Cake\Form\Form;
 use Cake\Utility\Hash;
-use function Cake\Core\deprecationWarning;
 
 /**
  * Provides a context provider for {@link \Cake\Form\Form} instances.
@@ -34,14 +32,14 @@ class FormContext implements ContextInterface
      *
      * @var \Cake\Form\Form
      */
-    protected $_form;
+    protected Form $_form;
 
     /**
      * Validator name.
      *
      * @var string|null
      */
-    protected $_validator = null;
+    protected ?string $_validator = null;
 
     /**
      * Constructor.
@@ -55,25 +53,13 @@ class FormContext implements ContextInterface
      */
     public function __construct(array $context)
     {
-        if (!isset($context['entity']) || !$context['entity'] instanceof Form) {
-            throw new CakeException('`$context[\'entity\']` must be an instance of Cake\Form\Form');
-        }
+        assert(
+            isset($context['entity']) && $context['entity'] instanceof Form,
+            "`\$context['entity']` must be an instance of " . Form::class,
+        );
 
         $this->_form = $context['entity'];
         $this->_validator = $context['validator'] ?? null;
-    }
-
-    /**
-     * Get the fields used in the context as a primary key.
-     *
-     * @return array<string>
-     * @deprecated 4.0.0 Renamed to {@link getPrimaryKey()}.
-     */
-    public function primaryKey(): array
-    {
-        deprecationWarning('`FormContext::primaryKey()` is deprecated. Use `FormContext::getPrimaryKey()`.');
-
-        return [];
     }
 
     /**
@@ -103,7 +89,7 @@ class FormContext implements ContextInterface
     /**
      * @inheritDoc
      */
-    public function val(string $field, array $options = [])
+    public function val(string $field, array $options = []): mixed
     {
         $options += [
             'default' => null,
@@ -128,14 +114,14 @@ class FormContext implements ContextInterface
      * @param string $field Field name.
      * @return mixed
      */
-    protected function _schemaDefault(string $field)
+    protected function _schemaDefault(string $field): mixed
     {
         $field = $this->_form->getSchema()->field($field);
-        if ($field) {
-            return $field['default'];
+        if (!$field) {
+            return null;
         }
 
-        return null;
+        return $field['default'];
     }
 
     /**
@@ -191,11 +177,11 @@ class FormContext implements ContextInterface
         }
 
         $attributes = $this->attributes($field);
-        if (!empty($attributes['length'])) {
-            return $attributes['length'];
+        if (empty($attributes['length'])) {
+            return null;
         }
 
-        return null;
+        return $attributes['length'];
     }
 
     /**
@@ -221,7 +207,7 @@ class FormContext implements ContextInterface
     {
         return array_intersect_key(
             (array)$this->_form->getSchema()->field($field),
-            array_flip(static::VALID_ATTRIBUTES)
+            array_flip(static::VALID_ATTRIBUTES),
         );
     }
 
@@ -232,7 +218,7 @@ class FormContext implements ContextInterface
     {
         $errors = $this->error($field);
 
-        return count($errors) > 0;
+        return $errors !== [];
     }
 
     /**

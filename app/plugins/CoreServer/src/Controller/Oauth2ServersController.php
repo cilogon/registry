@@ -35,7 +35,7 @@ use CoreServer\Lib\Enum\GrantTypesEnum;
 
 class Oauth2ServersController extends StandardPluginController
 {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'OauthServers.url' => 'asc'
     ]

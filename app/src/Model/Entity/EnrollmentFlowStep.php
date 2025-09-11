@@ -35,7 +35,7 @@ class EnrollmentFlowStep extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
   use \App\Lib\Traits\ReadOnlyEntityTrait;
   
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 

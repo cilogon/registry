@@ -32,7 +32,7 @@ namespace CoreServer\Controller;
 use App\Controller\StandardPluginController;
 
 class MatchServersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'MatchServers.url' => 'asc'
     ]

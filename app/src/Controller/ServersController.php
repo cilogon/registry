@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class ServersController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Servers.description' => 'asc'
     ]

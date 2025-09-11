@@ -27,7 +27,7 @@ abstract class AbstractFormatter
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
     ];
 
     /**
@@ -43,8 +43,8 @@ abstract class AbstractFormatter
      *
      * @param mixed $level Logging level
      * @param string $message Message string
-     * @param array $context Mesage context
+     * @param array $context Message context
      * @return string Formatted message
      */
-    abstract public function format($level, string $message, array $context = []): string;
+    abstract public function format(mixed $level, string $message, array $context = []): string;
 }

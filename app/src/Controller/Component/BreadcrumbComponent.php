@@ -226,7 +226,6 @@ class BreadcrumbComponent extends Component {
         ->contain($contain)
         ->firstOrFail();
 
-
       if($index) {
         // We need to determine the primary link of the parent, which might or might
         // not be co_id

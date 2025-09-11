@@ -36,14 +36,14 @@ class Name extends Entity {
   use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
   
   // Make full name available to the API v2 JSON response
-  protected $_virtual = [
+  protected array $_virtual = [
     'full_name'
   ];
 

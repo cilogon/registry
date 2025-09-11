@@ -32,7 +32,7 @@ class TextareaWidget extends BasicWidget
      *
      * @var array<string, mixed>
      */
-    protected $defaults = [
+    protected array $defaults = [
         'val' => '',
         'name' => '',
         'escape' => true,
@@ -72,7 +72,7 @@ class TextareaWidget extends BasicWidget
             'templateVars' => $data['templateVars'],
             'attrs' => $this->_templates->formatAttributes(
                 $data,
-                ['name', 'val']
+                ['name', 'val'],
             ),
         ]);
     }

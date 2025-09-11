@@ -33,7 +33,7 @@ namespace App\Controller;
 use Cake\Log\Log;
 
 class PipelinesController extends StandardController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'Pipelines.description' => 'asc'
     ]

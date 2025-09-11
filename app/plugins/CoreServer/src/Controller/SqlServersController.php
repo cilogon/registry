@@ -32,7 +32,7 @@ namespace CoreServer\Controller;
 use App\Controller\StandardPluginController;
 
 class SqlServersController extends StandardPluginController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'SqlServers.hostname' => 'asc'
     ]

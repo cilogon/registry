@@ -21,6 +21,7 @@ use Cake\Event\EventInterface;
 use Cake\Form\Form;
 use Cake\Utility\Hash;
 use DebugKit\DebugPanel;
+use Exception;
 
 /**
  * Provides debug information on the View variables.
@@ -33,7 +34,7 @@ class VariablesPanel extends DebugPanel
      * @param \Cake\Datasource\EntityInterface $entity Entity to extract
      * @return array
      */
-    protected function _getErrors(EntityInterface $entity)
+    protected function _getErrors(EntityInterface $entity): array
     {
         $errors = $entity->getErrors();
 
@@ -61,17 +62,18 @@ class VariablesPanel extends DebugPanel
      * @param object $item The item whose debug info to retrieve.
      * @return array|string
      */
-    protected function _walkDebugInfo(callable $walker, $item)
+    protected function _walkDebugInfo(callable $walker, object $item): array|string
     {
         try {
+            /** @phpstan-ignore method.notFound */
             $info = $item->__debugInfo();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return sprintf(
                 'Could not retrieve debug info - %s. Error: %s in %s, line %d',
                 get_class($item),
                 $exception->getMessage(),
                 $exception->getFile(),
-                $exception->getLine()
+                $exception->getLine(),
             );
         }
 
@@ -84,7 +86,7 @@ class VariablesPanel extends DebugPanel
      * @param \Cake\Event\EventInterface $event The event
      * @return void
      */
-    public function shutdown(EventInterface $event)
+    public function shutdown(EventInterface $event): void
     {
         /** @var \Cake\Controller\Controller $controller */
         $controller = $event->getSubject();
@@ -96,11 +98,11 @@ class VariablesPanel extends DebugPanel
         foreach ($vars as $k => $v) {
             // Get the validation errors for Entity
             if ($v instanceof EntityInterface) {
-                $errors[$k] = $this->_getErrors($v);
+                $errors[$k] = Debugger::exportVarAsNodes($this->_getErrors($v), $varsMaxDepth);
             } elseif ($v instanceof Form) {
                 $formErrors = $v->getErrors();
                 if ($formErrors) {
-                    $errors[$k] = $formErrors;
+                    $errors[$k] = Debugger::exportVarAsNodes($formErrors, $varsMaxDepth);
                 }
             }
             $content[$k] = Debugger::exportVarAsNodes($v, $varsMaxDepth);
@@ -118,7 +120,7 @@ class VariablesPanel extends DebugPanel
      *
      * @return string
      */
-    public function summary()
+    public function summary(): string
     {
         if (!isset($this->_data['variables'])) {
             return '0';

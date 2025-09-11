@@ -57,6 +57,7 @@ use \Cake\Event\EventInterface;
 use \Cake\Http\Exception\ForbiddenException;
 use \Cake\Http\Exception\UnauthorizedException;
 use \Cake\ORM\ResultSet;
+use \Cake\Datasource\Paging\PaginatedResultSet;
 use \Cake\ORM\TableRegistry;
 use \Cake\Utility\Inflector;
 use \App\Lib\Enum\AuthenticationEventEnum;
@@ -151,7 +152,8 @@ class RegistryAuthComponent extends Component
           break;
         case 'open':
           // The current request is open/public, no auth required
-          return true;
+          $event->setResult(true);
+          return;
           break;
         case 'no':
           // The controller will not do either authn or authz, so apply
@@ -161,7 +163,8 @@ class RegistryAuthComponent extends Component
           // The controller will handle both authn and authz, simply return
           // (The expectation is that the controller already performed the appropriate
           // checks before returning 'yes', on failure 'notauth' should be returned.)
-          return true;
+          $event->setResult(true);
+          return;
           break;
         case 'notauth':
           // The controller has rejected this request as unauthenticated or unauthorized
@@ -228,7 +231,8 @@ class RegistryAuthComponent extends Component
                                             remoteIp: $_SERVER['REMOTE_ADDR']);
             }
             
-            return true;
+            $event->setResult(true);
+            return;
           }
         }
         
@@ -268,11 +272,13 @@ class RegistryAuthComponent extends Component
           // to the controller to determine if authz was met, and if not redirect
           // appropriately. We _don't_ want to call our own calculatePermission().
           if($controller->calculatePermission()) {
-            return true;
+            $event->setResult(true);
+            return;
           }
         } elseif($this->calculatePermission($request->getParam('action'), $id)) {
           // Authorization successful
-          return true;
+          $event->setResult(true);
+          return;
         }
         
         if(Configure::read('debug')) {
@@ -283,7 +289,8 @@ class RegistryAuthComponent extends Component
             throw new ForbiddenException(__d('error', 'perm'));
           }
           $controller->Flash->error("Authorization Failed (RegistryAuthComponent)");
-          return $controller->redirect("/");
+          $event->setResult($controller->redirect("/"));
+          return;
         }
       }
 
@@ -297,7 +304,7 @@ class RegistryAuthComponent extends Component
       // We want to come back to where we started
       $session->write('Auth.target', $request->getRequestTarget());
       
-      return $controller->redirect("/traffic/prepare-login");
+      $event->setResult($controller->redirect("/traffic/prepare-login"));
     }
   }
   
@@ -306,7 +313,7 @@ class RegistryAuthComponent extends Component
    * 
    * @since  COmanage Registry v5.0.0
    * @param  string $action Action requested
-   * @param  int    $id     Subject id, if applicable
+   * @param  int|null  $id     Subject id, if applicable
    * @return bool           true if the action is permitted, false otherwise
    * @throws UnauthorizedException
    */
@@ -340,9 +347,9 @@ class RegistryAuthComponent extends Component
     // This will need to be prefixed to the model, if set
     $pluginName = $controller->getPlugin();
     
-    // $this->name = Models (ie: from ModelsTable)
+    /** var string $modelsName */
     $modelsName = ($pluginName ? "$pluginName." : "") . $controller->getName();
-    // $table = the actual table object
+    /** var Cake\ORM\Table $table */
     $table = $controller->getTableLocator()->get($modelsName);
     
     // Do we have an authenticated user?
@@ -399,7 +406,7 @@ class RegistryAuthComponent extends Component
 
       // QueryModificationTrait
       $getActionMethod = "get{$reqAction}Contains";
-      if(method_exists($table, $getActionMethod)) {
+      if(method_exists($table, $getActionMethod) && $table->$getActionMethod()) {
         $query = $query->contain($table->$getActionMethod());
       }
 
@@ -561,24 +568,24 @@ class RegistryAuthComponent extends Component
    * Calculate permissions for a Result Set.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  ResultSet $rs Result Set
+   * @param  ResultSet|PaginatedResultSet $rs Result Set
    * @return array         Array of permissions keyed on record ID
    */
   
-  public function calculatePermissionsForResultSet(ResultSet $rs): array {
+  public function calculatePermissionsForResultSet(ResultSet|PaginatedResultSet $rs): array {
     // We return an array since this is intended to be passed to a view
     $ret = [];
     
     // Note these are Cake ORM functions (rewind, current, etc), and not array
     // functions that PHP deprecated in 8.1.0.
-    $rs->rewind();
+    $rs->items()->rewind();
     
-    while($rs->valid()) {
-      $o = $rs->current();
+    while($rs->items()->valid()) {
+      $o = $rs->items()->current();
       
       $ret[ $o->id ] = $this->calculatePermissions($o->id);
       
-      $rs->next();
+      $rs->items()->next();
     }
     
     return $ret;
@@ -818,7 +825,7 @@ class RegistryAuthComponent extends Component
         $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
 
         // Pull the Petition to find its CO
-        $petition = $Petitions->get($petitionId, ['contain' => 'EnrollmentFlows']);
+        $petition = $Petitions->get($petitionId, contain: ['EnrollmentFlows']);
 
         try {
           // Map the authenticated user to a Person ID
@@ -973,8 +980,10 @@ class RegistryAuthComponent extends Component
          && $i->person->co->id == $coId) {
         // We found a Person in this CO, now see if it's an admin
         // (for which we'll need the admin group)
-        
-        $adminGroup = $Cos->Groups->find('adminGroup', ['co_id' => $i->person->co_id])->firstOrFail();
+        $adminGroup = $Cos->Groups->find(
+          type: 'adminGroup',
+          co_id: $i->person->co_id
+        )->firstOrFail();
         
         return $Cos->Groups->GroupMembers->isMember(groupId: $adminGroup->id, personId: $i->person->id);
       }

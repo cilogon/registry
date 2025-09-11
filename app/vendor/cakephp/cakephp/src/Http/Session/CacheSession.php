@@ -34,7 +34,7 @@ class CacheSession implements SessionHandlerInterface
      *
      * @var array<string, mixed>
      */
-    protected $_options = [];
+    protected array $_options = [];
 
     /**
      * Constructor.
@@ -59,7 +59,7 @@ class CacheSession implements SessionHandlerInterface
      * @param string $name The session name.
      * @return bool Success
      */
-    public function open($path, $name): bool
+    public function open(string $path, string $name): bool
     {
         return true;
     }
@@ -80,16 +80,9 @@ class CacheSession implements SessionHandlerInterface
      * @param string $id ID that uniquely identifies session in cache.
      * @return string|false Session data or false if it does not exist.
      */
-    #[\ReturnTypeWillChange]
-    public function read($id)
+    public function read(string $id): string|false
     {
-        $value = Cache::read($id, $this->_options['config']);
-
-        if ($value === null) {
-            return '';
-        }
-
-        return $value;
+        return Cache::read($id, $this->_options['config']) ?? '';
     }
 
     /**
@@ -99,7 +92,7 @@ class CacheSession implements SessionHandlerInterface
      * @param string $data The data to be saved.
      * @return bool True for successful write, false otherwise.
      */
-    public function write($id, $data): bool
+    public function write(string $id, string $data): bool
     {
         if (!$id) {
             return false;
@@ -114,7 +107,7 @@ class CacheSession implements SessionHandlerInterface
      * @param string $id ID that uniquely identifies session in cache.
      * @return bool Always true.
      */
-    public function destroy($id): bool
+    public function destroy(string $id): bool
     {
         Cache::delete($id, $this->_options['config']);
 
@@ -124,11 +117,10 @@ class CacheSession implements SessionHandlerInterface
     /**
      * No-op method. Always returns 0 since cache engine don't have garbage collection.
      *
-     * @param int $maxlifetime Sessions that have not updated for the last maxlifetime seconds will be removed.
+     * @param int $max_lifetime Sessions that have not updated for the last maxlifetime seconds will be removed.
      * @return int|false
      */
-    #[\ReturnTypeWillChange]
-    public function gc($maxlifetime)
+    public function gc(int $max_lifetime): int|false
     {
         return 0;
     }

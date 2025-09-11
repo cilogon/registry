@@ -32,7 +32,7 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class AuthenticationEvent extends Entity {
-  protected $_accessible = [
+  protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false

@@ -36,7 +36,7 @@ use Cake\ORM\TableRegistry;
 
 class ExternalIdentitySourcesController extends StandardPluggableController {
 
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ExternalIdentitySources.description' => 'asc'
     ]
@@ -95,7 +95,7 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
       }
     }
 
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
 
   /**

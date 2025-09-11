@@ -43,8 +43,8 @@ declare(strict_types = 1);
 use App\Lib\Enum\BulkActionEnum;
 use \Cake\Utility\Inflector;
 
-// $this->name = Models
-$modelsName = $this->name;
+/** var string $modelsName */
+$modelsName = $this->getName();
 // $tablename = models
 // XXX backport to match?
 $tableName = Inflector::tableize($this->name);

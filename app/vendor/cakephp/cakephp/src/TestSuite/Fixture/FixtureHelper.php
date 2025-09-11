@@ -19,7 +19,7 @@ namespace Cake\TestSuite\Fixture;
 use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
 use Cake\Database\Connection;
-use Cake\Database\DriverInterface;
+use Cake\Database\DriverFeatureEnum;
 use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\ConnectionInterface;
 use Cake\Datasource\ConnectionManager;
@@ -46,7 +46,7 @@ class FixtureHelper
 
         $fixtures = [];
         foreach ($fixtureNames as $fixtureName) {
-            if (strpos($fixtureName, '.')) {
+            if (str_contains($fixtureName, '.')) {
                 [$type, $pathName] = explode('.', $fixtureName, 2);
                 $path = explode('/', $pathName);
                 $name = array_pop($path);
@@ -75,19 +75,19 @@ class FixtureHelper
                     $additionalPath,
                     $name . 'Fixture',
                 ];
-                /** @psalm-var class-string<\Cake\Datasource\FixtureInterface> */
+                /** @var class-string<\Cake\Datasource\FixtureInterface> $className */
                 $className = implode('\\', array_filter($nameSegments));
             } else {
-                /** @psalm-var class-string<\Cake\Datasource\FixtureInterface> */
+                /** @var class-string<\Cake\Datasource\FixtureInterface> $className */
                 $className = $fixtureName;
             }
 
             if (isset($fixtures[$className])) {
-                throw new UnexpectedValueException("Found duplicate fixture `$fixtureName`.");
+                throw new UnexpectedValueException(sprintf('Found duplicate fixture `%s`.', $fixtureName));
             }
 
             if (!class_exists($className)) {
-                throw new UnexpectedValueException("Could not find fixture `$fixtureName`.");
+                throw new UnexpectedValueException(sprintf('Could not find fixture `%s`.', $fixtureName));
             }
 
             if (!isset($cachedFixtures[$className])) {
@@ -139,12 +139,9 @@ class FixtureHelper
                 if ($sortedFixtures) {
                     $this->insertConnection($connection, $sortedFixtures);
                 } else {
-                    $helper = new ConnectionHelper();
-                    $helper->runWithoutConstraints(
+                    ConnectionHelper::runWithoutConstraints(
                         $connection,
-                        function (Connection $connection) use ($groupFixtures): void {
-                            $this->insertConnection($connection, $groupFixtures);
-                        }
+                        fn(Connection $connection) => $this->insertConnection($connection, $groupFixtures),
                     );
                 }
             } else {
@@ -170,7 +167,7 @@ class FixtureHelper
                     'Unable to insert rows for table `%s`.'
                         . " Fixture records might have invalid data or unknown constraints.\n%s",
                     $fixture->sourceName(),
-                    $exception->getMessage()
+                    $exception->getMessage(),
                 );
                 throw new CakeException($message);
             }
@@ -189,7 +186,7 @@ class FixtureHelper
         $this->runPerConnection(function (ConnectionInterface $connection, array $groupFixtures): void {
             if ($connection instanceof Connection) {
                 $sortedFixtures = null;
-                if ($connection->getDriver()->supports(DriverInterface::FEATURE_TRUNCATE_WITH_CONSTRAINTS)) {
+                if ($connection->getDriver()->supports(DriverFeatureEnum::TRUNCATE_WITH_CONSTRAINTS)) {
                     $sortedFixtures = $this->sortByConstraint($connection, $groupFixtures);
                 }
 
@@ -199,9 +196,7 @@ class FixtureHelper
                     $helper = new ConnectionHelper();
                     $helper->runWithoutConstraints(
                         $connection,
-                        function (Connection $connection) use ($groupFixtures): void {
-                            $this->truncateConnection($connection, $groupFixtures);
-                        }
+                        fn(Connection $connection) => $this->truncateConnection($connection, $groupFixtures),
                     );
                 }
             } else {
@@ -225,9 +220,9 @@ class FixtureHelper
             } catch (PDOException $exception) {
                 $message = sprintf(
                     'Unable to truncate table `%s`.'
-                        . " Fixture records might have invalid data or unknown contraints.\n%s",
+                        . " Fixture records might have invalid data or unknown constraints.\n%s",
                     $fixture->sourceName(),
-                    $exception->getMessage()
+                    $exception->getMessage(),
                 );
                 throw new CakeException($message);
             }
@@ -254,7 +249,7 @@ class FixtureHelper
             }
         }
 
-        // Check if any fixtures reference another fixture with constrants
+        // Check if any fixtures reference another fixture with constraints
         // If they do, then there might be cross-dependencies which we don't support sorting
         foreach ($constrained as ['references' => $references]) {
             foreach ($references as $reference) {
@@ -276,6 +271,7 @@ class FixtureHelper
      */
     protected function getForeignReferences(Connection $connection, FixtureInterface $fixture): array
     {
+        /** @var array<string, \Cake\Database\Schema\TableSchemaInterface> $schemas */
         static $schemas = [];
 
         // Get and cache off the schema since TestFixture generates a fake schema based on $fields

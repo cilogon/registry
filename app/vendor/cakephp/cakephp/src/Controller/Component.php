@@ -19,7 +19,6 @@ namespace Cake\Controller;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Event\EventListenerInterface;
 use Cake\Log\LogTrait;
-use function Cake\Core\deprecationWarning;
 
 /**
  * Base class for an individual Component. Components provide reusable bits of
@@ -56,10 +55,9 @@ use function Cake\Core\deprecationWarning;
  * While the controller is not an explicit argument for the callback methods it
  * is the subject of each event and can be fetched using EventInterface::getSubject().
  *
- * @link https://book.cakephp.org/4/en/controllers/components.html
+ * @link https://book.cakephp.org/5/en/controllers/components.html
  * @see \Cake\Controller\Controller::$components
  */
-#[\AllowDynamicProperties]
 class Component implements EventListenerInterface
 {
     use InstanceConfigTrait;
@@ -70,14 +68,14 @@ class Component implements EventListenerInterface
      *
      * @var \Cake\Controller\ComponentRegistry
      */
-    protected $_registry;
+    protected ComponentRegistry $_registry;
 
     /**
      * Other Components this component uses.
      *
      * @var array
      */
-    protected $components = [];
+    protected array $components = [];
 
     /**
      * Default config
@@ -86,14 +84,14 @@ class Component implements EventListenerInterface
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     /**
-     * A component lookup table used to lazy load component objects.
+     * Loaded component instances.
      *
-     * @var array<string, array>
+     * @var array<string, \Cake\Controller\Component>
      */
-    protected $_componentMap = [];
+    protected array $componentInstances = [];
 
     /**
      * Constructor
@@ -109,7 +107,7 @@ class Component implements EventListenerInterface
         $this->setConfig($config);
 
         if ($this->components) {
-            $this->_componentMap = $registry->normalizeArray($this->components);
+            $this->components = $registry->normalizeArray($this->components);
         }
         $this->initialize($config);
     }
@@ -143,14 +141,22 @@ class Component implements EventListenerInterface
      * @param string $name Name of component to get.
      * @return \Cake\Controller\Component|null A Component object or null.
      */
-    public function __get(string $name)
+    public function __get(string $name): ?Component
     {
-        if (isset($this->_componentMap[$name]) && !isset($this->{$name})) {
-            $config = (array)$this->_componentMap[$name]['config'] + ['enabled' => false];
-            $this->{$name} = $this->_registry->load($this->_componentMap[$name]['class'], $config);
+        if (isset($this->componentInstances[$name])) {
+            return $this->componentInstances[$name];
         }
 
-        return $this->{$name} ?? null;
+        if (isset($this->components[$name])) {
+            $config = $this->components[$name] + ['enabled' => false];
+
+            return $this->componentInstances[$name] = $this->_registry->load(
+                $name,
+                $config,
+            );
+        }
+
+        return null;
     }
 
     /**
@@ -179,14 +185,6 @@ class Component implements EventListenerInterface
             if (method_exists($this, $method)) {
                 $events[$event] = $method;
             }
-        }
-
-        if (!isset($events['Controller.shutdown']) && method_exists($this, 'shutdown')) {
-            deprecationWarning(
-                '`Controller.shutdown` event callback is now `afterFilter()` instead of `shutdown()`.',
-                0
-            );
-            $events[$event] = 'shutdown';
         }
 
         return $events;

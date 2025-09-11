@@ -36,7 +36,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class ProvisioningTargetsController extends StandardPluggableController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'ProvisioningTargets.description' => 'asc'
     ]
@@ -74,7 +74,7 @@ class ProvisioningTargetsController extends StandardPluggableController {
       }
     }
 
-    return parent::beforeFilter($event);
+    parent::beforeFilter($event);
   }
 
   /**

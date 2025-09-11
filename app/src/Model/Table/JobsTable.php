@@ -182,7 +182,7 @@ class JobsTable extends Table {
                   ]
                 ])
                 // We sort by id to pull the oldest job first
-                ->order(['id' => 'ASC'])
+                ->orderBy(['id' => 'ASC'])
                 ->epilog('FOR UPDATE')
                 ->first();
     

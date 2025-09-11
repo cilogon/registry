@@ -16,13 +16,15 @@ declare(strict_types=1);
  */
 namespace Cake\Command;
 
+use Cake\Command\Helper\ProgressHelper;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\App;
 use Cake\Core\Configure;
+use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
-use Cake\Filesystem\Filesystem;
+use Cake\Utility\Filesystem;
 use Cake\Utility\Inflector;
 
 /**
@@ -30,6 +32,90 @@ use Cake\Utility\Inflector;
  */
 class I18nExtractCommand extends Command
 {
+    /**
+     * Paths to use when looking for strings
+     *
+     * @var array<string>
+     */
+    protected array $_paths = [];
+
+    /**
+     * Files from where to extract
+     *
+     * @var array<string>
+     */
+    protected array $_files = [];
+
+    /**
+     * Merge all domain strings into the default.pot file
+     *
+     * @var bool
+     */
+    protected bool $_merge = false;
+
+    /**
+     * Current file being processed
+     *
+     * @var string
+     */
+    protected string $_file = '';
+
+    /**
+     * Contains all content waiting to be written
+     *
+     * @var array<string, mixed>
+     */
+    protected array $_storage = [];
+
+    /**
+     * Extracted tokens
+     *
+     * @var array
+     */
+    protected array $_tokens = [];
+
+    /**
+     * Extracted strings indexed by domain.
+     *
+     * @var array<string, mixed>
+     */
+    protected array $_translations = [];
+
+    /**
+     * Destination path
+     *
+     * @var string
+     */
+    protected string $_output = '';
+
+    /**
+     * An array of directories to exclude.
+     *
+     * @var array<string>
+     */
+    protected array $_exclude = [];
+
+    /**
+     * Holds whether this call should extract the CakePHP Lib messages
+     *
+     * @var bool
+     */
+    protected bool $_extractCore = false;
+
+    /**
+     * Displays marker error(s) if true
+     *
+     * @var bool
+     */
+    protected bool $_markerError = false;
+
+    /**
+     * Count number of marker errors found
+     *
+     * @var int
+     */
+    protected int $_countMarkerError = 0;
+
     /**
      * @inheritDoc
      */
@@ -39,88 +125,12 @@ class I18nExtractCommand extends Command
     }
 
     /**
-     * Paths to use when looking for strings
-     *
-     * @var array<string>
+     * @inheritDoc
      */
-    protected $_paths = [];
-
-    /**
-     * Files from where to extract
-     *
-     * @var array<string>
-     */
-    protected $_files = [];
-
-    /**
-     * Merge all domain strings into the default.pot file
-     *
-     * @var bool
-     */
-    protected $_merge = false;
-
-    /**
-     * Current file being processed
-     *
-     * @var string
-     */
-    protected $_file = '';
-
-    /**
-     * Contains all content waiting to be written
-     *
-     * @var array<string, mixed>
-     */
-    protected $_storage = [];
-
-    /**
-     * Extracted tokens
-     *
-     * @var array
-     */
-    protected $_tokens = [];
-
-    /**
-     * Extracted strings indexed by domain.
-     *
-     * @var array<string, mixed>
-     */
-    protected $_translations = [];
-
-    /**
-     * Destination path
-     *
-     * @var string
-     */
-    protected $_output = '';
-
-    /**
-     * An array of directories to exclude.
-     *
-     * @var array<string>
-     */
-    protected $_exclude = [];
-
-    /**
-     * Holds whether this call should extract the CakePHP Lib messages
-     *
-     * @var bool
-     */
-    protected $_extractCore = false;
-
-    /**
-     * Displays marker error(s) if true
-     *
-     * @var bool
-     */
-    protected $_markerError = false;
-
-    /**
-     * Count number of marker errors found
-     *
-     * @var int
-     */
-    protected $_countMarkerError = 0;
+    public static function getDescription(): string
+    {
+        return 'Extract i18n POT files from application source files.';
+    }
 
     /**
      * Method to interact with the user and get path selections.
@@ -130,18 +140,17 @@ class I18nExtractCommand extends Command
      */
     protected function _getPaths(ConsoleIo $io): void
     {
-        /** @psalm-suppress UndefinedConstant */
         $defaultPaths = array_merge(
             [APP],
             array_values(App::path('templates')),
-            ['D'] // This is required to break the loop below
+            ['D'], // This is required to break the loop below
         );
         $defaultPathIndex = 0;
         while (true) {
-            $currentPaths = count($this->_paths) > 0 ? $this->_paths : ['None'];
+            $currentPaths = $this->_paths !== [] ? $this->_paths : ['None'];
             $message = sprintf(
                 "Current paths: %s\nWhat is the path you would like to extract?\n[Q]uit [D]one",
-                implode(', ', $currentPaths)
+                implode(', ', $currentPaths),
             );
             $response = $io->ask($message, $defaultPaths[$defaultPathIndex] ?? 'D');
             if (strtoupper($response) === 'Q') {
@@ -183,26 +192,29 @@ class I18nExtractCommand extends Command
         }
         if ($args->getOption('paths')) {
             $this->_paths = explode(',', (string)$args->getOption('paths'));
-        } elseif ($args->getOption('plugin')) {
+        }
+        if ($args->getOption('plugin')) {
             $plugin = Inflector::camelize((string)$args->getOption('plugin'));
-            $this->_paths = [Plugin::classPath($plugin), Plugin::templatePath($plugin)];
-        } else {
+            if ($this->_paths === []) {
+                $this->_paths = [Plugin::classPath($plugin), Plugin::templatePath($plugin)];
+            }
+        } elseif (!$args->getOption('paths')) {
             $this->_getPaths($io);
         }
 
         if ($args->hasOption('extract-core')) {
-            $this->_extractCore = !(strtolower((string)$args->getOption('extract-core')) === 'no');
+            $this->_extractCore = strtolower((string)$args->getOption('extract-core')) !== 'no';
         } else {
             $response = $io->askChoice(
                 'Would you like to extract the messages from the CakePHP core?',
                 ['y', 'n'],
-                'n'
+                'n',
             );
             $this->_extractCore = strtolower($response) === 'y';
         }
 
         if ($args->hasOption('exclude-plugins') && $this->_isExtractingApp()) {
-            $this->_exclude = array_merge($this->_exclude, App::path('plugins'));
+            $this->_exclude = array_merge($this->_exclude, array_values(App::path('plugins')));
         }
 
         if ($this->_extractCore) {
@@ -219,12 +231,14 @@ class I18nExtractCommand extends Command
             $message = "What is the path you would like to output?\n[Q]uit";
             $localePaths = array_values(App::path('locales'));
             if (!$localePaths) {
-                $localePaths[] = ROOT . 'resources' . DIRECTORY_SEPARATOR . 'locales';
+                $localePaths[] = ROOT . DIRECTORY_SEPARATOR
+                    . 'resources' . DIRECTORY_SEPARATOR
+                    . 'locales' . DIRECTORY_SEPARATOR;
             }
             while (true) {
                 $response = $io->ask(
                     $message,
-                    $localePaths[0]
+                    $localePaths[0],
                 );
                 if (strtoupper($response) === 'Q') {
                     $io->err('Extract Aborted');
@@ -239,33 +253,33 @@ class I18nExtractCommand extends Command
                 $io->err('');
                 $io->err(
                     '<error>The directory path you supplied was ' .
-                    'not found. Please try again.</error>'
+                    'not found. Please try again.</error>',
                 );
                 $io->err('');
             }
         }
 
         if ($args->hasOption('merge')) {
-            $this->_merge = !(strtolower((string)$args->getOption('merge')) === 'no');
+            $this->_merge = strtolower((string)$args->getOption('merge')) !== 'no';
         } else {
             $io->out();
             $response = $io->askChoice(
                 'Would you like to merge all domain strings into the default.pot file?',
                 ['y', 'n'],
-                'n'
+                'n',
             );
             $this->_merge = strtolower($response) === 'y';
         }
 
         $this->_markerError = (bool)$args->getOption('marker-error');
 
-        if (empty($this->_files)) {
+        if (!$this->_files) {
             $this->_searchFiles();
         }
 
         $this->_output = rtrim($this->_output, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         if (!$this->_isPathUsable($this->_output)) {
-            $io->err(sprintf('The output directory %s was not found or writable.', $this->_output));
+            $io->err(sprintf('The output directory `%s` was not found or writable.', $this->_output));
 
             return static::CODE_ERROR;
         }
@@ -282,7 +296,7 @@ class I18nExtractCommand extends Command
      *
      * @param string $domain The domain
      * @param string $msgid The message string
-     * @param array $details Context and plural form if any, file and line references
+     * @param array<string, mixed> $details Context and plural form if any, file and line references
      * @return void
      */
     protected function _addTranslation(string $domain, string $msgid, array $details = []): void
@@ -327,8 +341,11 @@ class I18nExtractCommand extends Command
         $this->_extractTokens($args, $io);
         $this->_buildFiles($args);
         $this->_writeFiles($args, $io);
-        $this->_paths = $this->_files = $this->_storage = [];
-        $this->_translations = $this->_tokens = [];
+        $this->_paths = [];
+        $this->_files = [];
+        $this->_storage = [];
+        $this->_translations = [];
+        $this->_tokens = [];
         $io->out();
         if ($this->_countMarkerError) {
             $io->err("{$this->_countMarkerError} marker error(s) detected.");
@@ -346,11 +363,11 @@ class I18nExtractCommand extends Command
      */
     public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
-        $parser->setDescription(
-            'Extract i18n POT files from application source files. ' .
+        $parser->setDescription([
+            static::getDescription(),
             'Source files are parsed and string literal format strings ' .
-            'provided to the <info>__</info> family of functions are extracted.'
-        )->addOption('app', [
+            'provided to the <info>__</info> family of functions are extracted.',
+        ])->addOption('app', [
             'help' => 'Directory where your application is located.',
         ])->addOption('paths', [
             'help' => 'Comma separated list of paths that are searched for source files.',
@@ -368,7 +385,7 @@ class I18nExtractCommand extends Command
             'help' => 'Ignores all files in plugins if this command is run inside from the same app directory.',
         ])->addOption('plugin', [
             'help' => 'Extracts tokens only from the plugin specified and '
-                . 'puts the result in the plugin\'s `locales` directory.',
+                . "puts the result in the plugin's `locales` directory.",
             'short' => 'p',
         ])->addOption('exclude', [
             'help' => 'Comma separated list of directories to exclude.' .
@@ -402,8 +419,8 @@ class I18nExtractCommand extends Command
      */
     protected function _extractTokens(Arguments $args, ConsoleIo $io): void
     {
-        /** @var \Cake\Shell\Helper\ProgressHelper $progress */
         $progress = $io->helper('progress');
+        assert($progress instanceof ProgressHelper);
         $progress->init(['total' => count($this->_files)]);
         $isVerbose = $args->getOption('verbose');
 
@@ -425,7 +442,7 @@ class I18nExtractCommand extends Command
                 $io->verbose(sprintf('Processing %s...', $file));
             }
 
-            $code = file_get_contents($file);
+            $code = (string)file_get_contents($file);
 
             if (preg_match($pattern, $code) === 1) {
                 $allTokens = token_get_all($code);
@@ -490,19 +507,18 @@ class I18nExtractCommand extends Command
 
                 if ($mapCount === count($strings)) {
                     $singular = '';
-                    $plural = $context = null;
                     $vars = array_combine($map, $strings);
                     extract($vars);
-                    $domain = $domain ?? 'default';
+                    $domain ??= 'default';
                     $details = [
                         'file' => $this->_file,
                         'line' => $line,
                     ];
                     $details['file'] = '.' . str_replace(ROOT, '', $details['file']);
-                    if ($plural !== null) {
+                    if (isset($plural)) {
                         $details['msgid_plural'] = $plural;
                     }
-                    if ($context !== null) {
+                    if (isset($context)) {
                         $details['msgctxt'] = $context;
                     }
                     $this->_addTranslation($domain, $singular, $details);
@@ -523,7 +539,6 @@ class I18nExtractCommand extends Command
     protected function _buildFiles(Arguments $args): void
     {
         $paths = $this->_paths;
-        /** @psalm-suppress UndefinedConstant */
         $paths[] = realpath(APP) . DIRECTORY_SEPARATOR;
 
         usort($paths, function (string $a, string $b) {
@@ -586,7 +601,7 @@ class I18nExtractCommand extends Command
      */
     protected function _store(string $domain, string $header, string $sentence): void
     {
-        $this->_storage[$domain] = $this->_storage[$domain] ?? [];
+        $this->_storage[$domain] ??= [];
 
         if (!isset($this->_storage[$domain][$sentence])) {
             $this->_storage[$domain][$sentence] = $header;
@@ -616,16 +631,10 @@ class I18nExtractCommand extends Command
                 $output .= $header . $sentence;
             }
 
-            // Remove vendor prefix if present.
-            $slashPosition = strpos($domain, '/');
-            if ($slashPosition !== false) {
-                $domain = substr($domain, $slashPosition + 1);
-            }
-
             $filename = str_replace('/', '_', $domain) . '.pot';
             $outputPath = $this->_output . $filename;
 
-            if ($this->checkUnchanged($outputPath, $headerLength, $output) === true) {
+            if ($this->checkUnchanged($outputPath, $headerLength, $output)) {
                 $io->out($filename . ' is unchanged. Skipping.');
                 continue;
             }
@@ -636,7 +645,7 @@ class I18nExtractCommand extends Command
                 $response = $io->askChoice(
                     sprintf('Error: %s already exists in this location. Overwrite? [Y]es, [N]o, [A]ll', $filename),
                     ['y', 'n', 'a'],
-                    'y'
+                    'y',
                 );
                 if (strtoupper($response) === 'N') {
                     $response = '';
@@ -698,9 +707,12 @@ class I18nExtractCommand extends Command
             return false;
         }
         $oldFileContent = file_get_contents($oldFile);
+        if ($oldFileContent === false) {
+            throw new CakeException(sprintf('Cannot read file content of `%s`', $oldFile));
+        }
 
-        $oldChecksum = sha1((string)substr($oldFileContent, $headerLength));
-        $newChecksum = sha1((string)substr($newFileContent, $headerLength));
+        $oldChecksum = sha1(substr($oldFileContent, $headerLength));
+        $newChecksum = sha1(substr($newFileContent, $headerLength));
 
         return $oldChecksum === $newChecksum;
     }
@@ -777,9 +789,9 @@ class I18nExtractCommand extends Command
      * @param int $count Count
      * @return void
      */
-    protected function _markerError($io, string $file, int $line, string $marker, int $count): void
+    protected function _markerError(ConsoleIo $io, string $file, int $line, string $marker, int $count): void
     {
-        if (strpos($this->_file, CAKE_CORE_INCLUDE_PATH) === false) {
+        if (!str_contains($this->_file, CAKE_CORE_INCLUDE_PATH)) {
             $this->_countMarkerError++;
         }
 
@@ -818,10 +830,10 @@ class I18nExtractCommand extends Command
     protected function _searchFiles(): void
     {
         $pattern = false;
-        if (!empty($this->_exclude)) {
+        if ($this->_exclude) {
             $exclude = [];
             foreach ($this->_exclude as $e) {
-                if (DIRECTORY_SEPARATOR !== '\\' && $e[0] !== DIRECTORY_SEPARATOR) {
+                if (DIRECTORY_SEPARATOR !== '\\' && !str_starts_with($e, DIRECTORY_SEPARATOR)) {
                     $e = DIRECTORY_SEPARATOR . $e;
                 }
                 $exclude[] = preg_quote($e, '/');
@@ -839,8 +851,8 @@ class I18nExtractCommand extends Command
             $files = $fs->findRecursive($path, '/\.php$/');
             $files = array_keys(iterator_to_array($files));
             sort($files);
-            if (!empty($pattern)) {
-                $files = preg_grep($pattern, $files, PREG_GREP_INVERT);
+            if ($pattern) {
+                $files = preg_grep($pattern, $files, PREG_GREP_INVERT) ?: [];
                 $files = array_values($files);
             }
             $this->_files = array_merge($this->_files, $files);
@@ -856,7 +868,6 @@ class I18nExtractCommand extends Command
      */
     protected function _isExtractingApp(): bool
     {
-        /** @psalm-suppress UndefinedConstant */
         return $this->_paths === [APP];
     }
 
@@ -866,10 +877,10 @@ class I18nExtractCommand extends Command
      * @param string $path Path to folder
      * @return bool true if it exists and is writable, false otherwise
      */
-    protected function _isPathUsable($path): bool
+    protected function _isPathUsable(string $path): bool
     {
         if (!is_dir($path)) {
-            mkdir($path, 0770, true);
+            mkdir($path, 0755, true);
         }
 
         return is_dir($path) && is_writable($path);

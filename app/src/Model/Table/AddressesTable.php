@@ -181,7 +181,7 @@ class AddressesTable extends Table {
     return $this->find()
                 ->where($whereClause)
                 ->andWhere(['People.co_id' => $coId])
-                ->order(['Addresses.street'])
+                ->orderBy(['Addresses.street'])
                 ->limit($limit)
                 ->contain([
                   'People' => 'PrimaryName',

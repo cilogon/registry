@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * MIT License
@@ -8,6 +9,10 @@
 namespace Phinx\Migration;
 
 use Cake\Database\Query;
+use Cake\Database\Query\DeleteQuery;
+use Cake\Database\Query\InsertQuery;
+use Cake\Database\Query\SelectQuery;
+use Cake\Database\Query\UpdateQuery;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,8 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Migration interface
- *
- * @author Rob Morgan <robbym@gmail.com>
  */
 interface MigrationInterface
 {
@@ -151,7 +154,7 @@ interface MigrationInterface
      * @param array $params parameters to use for prepared query
      * @return mixed
      */
-    public function query(string $sql, array $params = []);
+    public function query(string $sql, array $params = []): mixed;
 
     /**
      * Returns a new Query object that can be used to build complex SELECT, UPDATE, INSERT or DELETE
@@ -161,9 +164,54 @@ interface MigrationInterface
      * the dry-run settings.
      *
      * @see https://api.cakephp.org/3.6/class-Cake.Database.Query.html
+     * @param string $type Query
      * @return \Cake\Database\Query
      */
-    public function getQueryBuilder(): Query;
+    public function getQueryBuilder(string $type): Query;
+
+    /**
+     * Returns a new SelectQuery object that can be used to build complex
+     * SELECT queries and execute them against the current database.
+     *
+     * Queries executed through the query builder are always sent to the database, regardless of the
+     * the dry-run settings.
+     *
+     * @return \Cake\Database\Query\SelectQuery
+     */
+    public function getSelectBuilder(): SelectQuery;
+
+    /**
+     * Returns a new InsertQuery object that can be used to build complex
+     * INSERT queries and execute them against the current database.
+     *
+     * Queries executed through the query builder are always sent to the database, regardless of the
+     * the dry-run settings.
+     *
+     * @return \Cake\Database\Query\InsertQuery
+     */
+    public function getInsertBuilder(): InsertQuery;
+
+    /**
+     * Returns a new UpdateQuery object that can be used to build complex
+     * UPDATE queries and execute them against the current database.
+     *
+     * Queries executed through the query builder are always sent to the database, regardless of the
+     * the dry-run settings.
+     *
+     * @return \Cake\Database\Query\UpdateQuery
+     */
+    public function getUpdateBuilder(): UpdateQuery;
+
+    /**
+     * Returns a new DeleteQuery object that can be used to build complex
+     * DELETE queries and execute them against the current database.
+     *
+     * Queries executed through the query builder are always sent to the database, regardless of the
+     * the dry-run settings.
+     *
+     * @return \Cake\Database\Query\DeleteQuery
+     */
+    public function getDeleteBuilder(): DeleteQuery;
 
     /**
      * Executes a query and returns only one row as an array.
@@ -171,7 +219,7 @@ interface MigrationInterface
      * @param string $sql SQL
      * @return array|false
      */
-    public function fetchRow(string $sql);
+    public function fetchRow(string $sql): array|false;
 
     /**
      * Executes a query and returns an array of rows.

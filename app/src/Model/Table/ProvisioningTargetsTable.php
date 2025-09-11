@@ -153,7 +153,7 @@ class ProvisioningTargetsTable extends Table {
       $query = $query->where(['ProvisioningTargets.id' => $id]);
     }
 
-    $targets = $query->order(['ProvisioningTargets.ordr' => 'ASC'])
+    $targets = $query->orderBy(['ProvisioningTargets.ordr' => 'ASC'])
                      ->contain($this->getPluginRelations())
                      ->all();
     
@@ -277,7 +277,7 @@ class ProvisioningTargetsTable extends Table {
                                                     'provisioning_target_id' => $t->id,
                                                     $subjectFK => $subjectID
                                                   ])
-                                                  ->order(['id' => 'DESC'])
+                                                  ->orderBy(['id' => 'DESC'])
                                                   ->first();
           
           if(!empty($rec)) {

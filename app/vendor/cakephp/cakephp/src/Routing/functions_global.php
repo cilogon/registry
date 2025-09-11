@@ -14,7 +14,9 @@ declare(strict_types=1);
  * @since         4.1.0
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
+// phpcs:disable PSR1.Files.SideEffects
 
+use Psr\Http\Message\UriInterface;
 use function Cake\Routing\url as cakeUrl;
 use function Cake\Routing\urlArray as cakeUrlArray;
 
@@ -33,7 +35,7 @@ if (!function_exists('url')) {
      * @see \Cake\Routing\Router::url()
      * @since 4.5.0
      */
-    function url($url = null, bool $full = false): string
+    function url(UriInterface|array|string|null $url = null, bool $full = false): string
     {
         return cakeUrl($url, $full);
     }

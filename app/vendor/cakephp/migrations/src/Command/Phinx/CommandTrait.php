@@ -45,7 +45,7 @@ trait CommandTrait
      * @param \Symfony\Component\Console\Output\OutputInterface $output the output object
      * @return void
      */
-    protected function beforeExecute(InputInterface $input, OutputInterface $output)
+    protected function beforeExecute(InputInterface $input, OutputInterface $output): void
     {
         $this->setInput($input);
         $this->addOption('--environment', '-e', InputArgument::OPTIONAL);
@@ -75,8 +75,6 @@ trait CommandTrait
         if (!$manager instanceof CakeManager) {
             $this->setManager(new CakeManager($this->getConfig(), $input, $output));
         }
-        /** @var \Phinx\Migration\Manager\Environment $env */
-        /** @psalm-suppress PossiblyNullReference */
         $env = $this->getManager()->getEnvironment('default');
         $adapter = $env->getAdapter();
         if (!$adapter instanceof CakeAdapter) {

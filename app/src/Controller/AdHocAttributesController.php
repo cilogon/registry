@@ -34,7 +34,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class AdHocAttributesController extends MVEAController {
-  public $paginate = [
+  protected array $paginate = [
     'order' => [
       'AdHocAttributes.tag' => 'asc'
     ]

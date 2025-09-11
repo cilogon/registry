@@ -41,7 +41,7 @@ class OrcidSourceCollectorsController extends StandardEnrollerController {
     protected $OrcidSources;
     protected $PetitionOrcids;
 
-    public $paginate = [
+    protected array $paginate = [
         'order' => [
             'OrcidSourceCollectors.id' => 'asc'
         ]
@@ -58,7 +58,7 @@ class OrcidSourceCollectorsController extends StandardEnrollerController {
         $this->OrcidSources = TableRegistry::getTableLocator()->get('OrcidSource.OrcidSources');
         $this->PetitionOrcids = TableRegistry::getTableLocator()->get('OrcidSource.PetitionOrcids');
 
-        return parent::beforeFilter($event);
+        parent::beforeFilter($event);
     }
 
     /**

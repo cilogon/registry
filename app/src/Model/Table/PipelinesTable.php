@@ -565,7 +565,7 @@ class PipelinesTable extends Table {
     // pass around.
     $pipeline->flanges = $this->Flanges->find()
                               ->where(['pipeline_id' => $id])
-                              ->order(['Flanges.ordr' => 'ASC'])
+                              ->orderBy(['Flanges.ordr' => 'ASC'])
                               ->contain($this->Flanges->getPluginRelations())
                               ->all();
 

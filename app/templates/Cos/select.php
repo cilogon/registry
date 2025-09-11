@@ -36,7 +36,7 @@
 
 <?= $this->element('flash') // Flash messages ?>
 
-<?php if(count($vv_available_cos) == 0): ?>
+<?php if(count($vv_available_cos ?? []) == 0): ?>
   <?= $this->element('notify/alert', ['message' => __d('information','cos.none')]) ?>
 <?php else: // vv_available_cos ?>
   <p><?= __d('information', 'cos.select'); ?></p>

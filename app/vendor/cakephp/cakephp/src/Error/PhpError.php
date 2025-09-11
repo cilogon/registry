@@ -24,34 +24,34 @@ class PhpError
     /**
      * @var int
      */
-    private $code;
+    private int $code;
 
     /**
      * @var string
      */
-    private $message;
+    private string $message;
 
     /**
      * @var string|null
      */
-    private $file;
+    private ?string $file;
 
     /**
      * @var int|null
      */
-    private $line;
+    private ?int $line;
 
     /**
      * Stack trace data. Each item should have a `reference`, `file` and `line` keys.
      *
      * @var array<array<string, int>>
      */
-    private $trace;
+    private array $trace;
 
     /**
      * @var array<int, string>
      */
-    private $levelMap = [
+    private array $levelMap = [
         E_PARSE => 'error',
         E_ERROR => 'error',
         E_CORE_ERROR => 'error',
@@ -63,7 +63,6 @@ class PhpError
         E_RECOVERABLE_ERROR => 'warning',
         E_NOTICE => 'notice',
         E_USER_NOTICE => 'notice',
-        E_STRICT => 'strict',
         E_DEPRECATED => 'deprecated',
         E_USER_DEPRECATED => 'deprecated',
     ];
@@ -71,7 +70,7 @@ class PhpError
     /**
      * @var array<string, int>
      */
-    private $logMap = [
+    private array $logMap = [
         'error' => LOG_ERR,
         'warning' => LOG_WARNING,
         'notice' => LOG_NOTICE,
@@ -93,8 +92,12 @@ class PhpError
         string $message,
         ?string $file = null,
         ?int $line = null,
-        array $trace = []
+        array $trace = [],
     ) {
+        if (version_compare(PHP_VERSION, '8.4.0-dev', '<')) {
+            $this->levelMap[E_STRICT] = 'strict';
+        }
+
         $this->code = $code;
         $this->message = $message;
         $this->file = $file;
