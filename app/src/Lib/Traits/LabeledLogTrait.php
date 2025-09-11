@@ -70,7 +70,7 @@ trait LabeledLogTrait {
    * @param  string $msg   Log message
    */
   
-  public function llog(string $level, string $msg, int|string $id=null) {
+  public function llog(string $level, string $msg, mixed $id=null) {
     self::slog($level, $msg, $id);
   }
 
@@ -80,7 +80,7 @@ trait LabeledLogTrait {
    * @since  COmanage Registry v5.0.0
    */
 
-  public static function slog(string $level, string $msg, int|string $id=null) {
+  public static function slog(string $level, string $msg, mixed $id=null) {
     $bt = debug_backtrace(0, 2);
 
     $m = getmypid() . " " . $bt[1]['class'] . "::" . $bt[1]['function'] 

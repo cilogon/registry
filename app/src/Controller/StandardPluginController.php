@@ -82,7 +82,7 @@ class StandardPluginController extends StandardController {
    */
 
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    /** var string $modelsName */ (ie: from ModelsTable, eg FileProvisionersTable)
+    /** var string $modelsName  (ie: from ModelsTable, eg FileProvisionersTable) */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
     $table = $this->fetchTable($modelsName);

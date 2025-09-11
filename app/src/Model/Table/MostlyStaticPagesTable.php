@@ -324,7 +324,7 @@ class MostlyStaticPagesTable extends Table {
     // AR-MostlyStaticPage-2 A Mostly Static Page name may consist only of lowercase alphanumeric
     // characters and dashes
     $validator->add('name', [
-      'filter' => [
+      'slugfilter' => [
         'rule' => ['custom', '/^[a-z0-9-]+$/'],
         'message' => __d('error', 'MostlyStaticPages.slug.invalid')
       ]
