@@ -288,7 +288,7 @@ class SqlAssignerJob {
 
     $this->ia = $this->IdentifierAssignments->get(
       $parameters['identifier_assignment_id'],
-      ['contain' => ['SqlAssigners', 'IdentifierTypes']]
+      contain: ['SqlAssigners', 'IdentifierTypes']
     );
 
     if($this->ia->plugin != 'CoreAssigner.SqlAssigners') {

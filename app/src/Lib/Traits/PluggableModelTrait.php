@@ -197,15 +197,28 @@ trait PluggableModelTrait {
         continue;
       }
 
+      // Derive association alias from "Plugin.Model"
+      [$pluginName, $modelAlias] = explode('.', $m->plugin, 2);
+
+      if ($this->associations()->has($modelAlias)) {
+        // Association already defined elsewhere; don't rebind
+        $this->llog('debug', "Association '{$modelAlias}' already exists, skipping plugin relation '{$m->plugin}'");
+        continue;
+      }
+
       // In general, a model with a "plugin" field has a 1-1 relation
       // with the instantiated plugin configuration. eg: One instance
       // of a Server has exactly one SqlServer associated with it.
-      $this->hasOne($m->plugin)
-           ->setDependent(true)
-           ->setCascadeCallbacks(true);
-      
-      // Cache the list of entry points that we found
-      $this->_pluginModels[] = $m->plugin;
+      // Bind by alias and explicitly set the className.
+      $this->hasOne($modelAlias)
+        ->setClassName($m->plugin)
+        ->setDependent(true)
+        ->setCascadeCallbacks(true);
+
+      // Cache the list of entry points that we found (avoid duplicates)
+      if (!in_array($m->plugin, $this->_pluginModels, true)) {
+        $this->_pluginModels[] = $m->plugin;
+      }
     }
 
     // isArtifactTable() might not be the exact right test here...

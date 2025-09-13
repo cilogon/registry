@@ -556,7 +556,7 @@ class SqlProvisionersTable extends Table {
    */
   
   public function syncReferenceData(int $id, string $dataSource='targetdb') {
-    $spcfg = $this->get($id, ['contain' => ['ProvisioningTargets']]);
+    $spcfg = $this->get($id, contain: ['ProvisioningTargets']);
 
     $this->Servers->SqlServers->connect($spcfg->server_id, $dataSource);
 

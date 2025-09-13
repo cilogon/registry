@@ -135,5 +135,5 @@ class ExternalIdentitiesController extends MVEAController {
 
     $this->set('vv_title', __d('operation', 'relink.a', [__d('controller', 'ExternalIdentities', [1])]));
 
-    $this->set('vv_external_identity', $this->ExternalIdentities->get((int)$id, ['contain' => 'Names']));
+    $this->set('vv_external_identity', $this->ExternalIdentities->get((int)$id, contain: 'Names'));
   }}

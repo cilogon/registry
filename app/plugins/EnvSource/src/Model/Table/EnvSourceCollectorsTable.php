@@ -232,7 +232,7 @@ class EnvSourceCollectorsTable extends Table {
 
           $eis = $ExtIdentitySources->get(
             $cfg->external_identity_source_id,
-            ['contain' => 'EnvSources']
+            contain: 'EnvSources'
           );
 
           $eisrecord = $EnvSources->retrieve($eis, $pei->env_source_identity->source_key);
@@ -514,7 +514,7 @@ class EnvSourceCollectorsTable extends Table {
     
     $eis = $this->ExternalIdentitySources->get(
       $config->external_identity_source_id,
-      ['contain' => 'Pipelines']
+      contain: 'Pipelines'
     );
 
     $defaultVerified = isset($eis->pipeline->sync_verify_email_addresses)

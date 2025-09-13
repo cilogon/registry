@@ -78,7 +78,7 @@ class EnvSourceCollectorsController extends StandardEnrollerController {
 
     // Pull our configuration
 
-    $envSource = $this->EnvSourceCollectors->get((int)$id, ['contain' => ['ExternalIdentitySources' => 'EnvSources']]);
+    $envSource = $this->EnvSourceCollectors->get((int)$id, contain: ['ExternalIdentitySources' => 'EnvSources']);
 
     try {
       $vars = $this->EnvSourceCollectors->parse($envSource->external_identity_source->env_source);

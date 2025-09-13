@@ -1248,15 +1248,15 @@ class PipelinesTable extends Table {
 
       $eis = $this->ExternalIdentitySources->get(
         $eisRecord->external_identity_source_id,
-        ['contain' => 'Pipelines']
+        contain: 'Pipelines'
       );
 
       $ei = $this->Cos->People->ExternalIdentities->get(
         $eisRecord->external_identity_id,
-        ['contain' => [
+        contain: [
           'ExternalIdentityRoles' => 'PersonRoles',
           'People'
-        ]]
+        ]
       );
 
       // To start the relinking, tell syncPerson to update the source Person with a
@@ -1527,7 +1527,7 @@ class PipelinesTable extends Table {
       // syncExternalIdentity will pull whatever Person attributes it actually needs.
 
       // AR-Pipeline-2 Pipeline Person Matching ignores the existing Person status.
-      $person = $SearchTable->People->get($personId, ['contain' => ['Names']]);
+      $person = $SearchTable->People->get($personId, contain: ['Names']);
 
       // We can't record history yet since we don't have an External Identity
       // (we'll do that in execute()), but we can at least log
@@ -1647,7 +1647,7 @@ class PipelinesTable extends Table {
 
       $externalIdentity = $this->Cos->People->ExternalIdentities->get(
         $eisRecord->external_identity_id,
-        ['contain' => [
+        contain: [
           'Addresses',
           'AdHocAttributes',
           'EmailAddresses',
@@ -1661,7 +1661,7 @@ class PipelinesTable extends Table {
             'Addresses', 
             'TelephoneNumbers'
           ]
-        ]]
+        ]
       );
 
       // Map the current backend record...
@@ -1941,7 +1941,7 @@ class PipelinesTable extends Table {
     if($externalIdentityId) {
       $externalIdentity = $this->Cos->People->ExternalIdentities->get(
         $externalIdentityId,
-        ['contain' => [
+        contain: [
           'Addresses',
           'AdHocAttributes',
           'EmailAddresses',
@@ -1955,7 +1955,7 @@ class PipelinesTable extends Table {
             'Addresses', 
             'TelephoneNumbers'
           ]
-        ]]
+        ]
       );
     } else {
       $externalIdentity = null;

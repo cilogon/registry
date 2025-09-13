@@ -260,7 +260,7 @@ class CousTable extends Table {
     $query = null;
     
     if($hierarchy) {
-      $query = $this->find('treeList', ['spacer' => '-']);
+      $query = $this->find('treeList', spacer: '-');
     } else {
       $query = $this->find('list');
     }

@@ -358,7 +358,7 @@ class PeopleTable extends Table {
       }
     }
 
-    return true;
+    $event->setResult(true);
   }
 
   /**
@@ -469,10 +469,10 @@ class PeopleTable extends Table {
   public function marshalProvisioningData(int $id): array {
     $ret = [];
 
-    $ret['data'] = $this->get($id, [
+    $ret['data'] = $this->get($id,
       // We need archives for handling deleted records
-      'archived' => 'true',
-      'contain' => [
+      archived: 'true',
+      contain: [
         'PrimaryName' => [ 'Types' ],
         'Addresses' => [ 'Types' ],
         'AdHocAttributes',
@@ -510,7 +510,7 @@ class PeopleTable extends Table {
         'TelephoneNumbers' => [ 'Types' ],
         'Urls' => [ 'Types' ]
       ]
-    ]);
+    );
 
     // Provisioning Eligibility is
     // - Deleted if the changelog deleted flag is true OR status is Archived
@@ -620,7 +620,7 @@ class PeopleTable extends Table {
 
     // Start by pulling the roles for this person, along with the Person record
 
-    $person = $this->get($id, ['contain' => 'PersonRoles']);
+    $person = $this->get($id, contain: 'PersonRoles');
 
     if(!empty($person->person_roles)) {
       foreach($person->person_roles as $role) {

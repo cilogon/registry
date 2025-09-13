@@ -209,7 +209,7 @@ class PetitionsController extends StandardController {
         // We only use the Redirect on Finalize URL (if specified) on success,
         // since otherwise the Flash error won't render
 
-        $petition = $this->Petitions->get((int)$id, ['contain' => ['EnrollmentFlows']]);
+        $petition = $this->Petitions->get((int)$id, contain: ['EnrollmentFlows']);
 
         if(!empty($petition->enrollment_flow->redirect_on_finalize)) {
           return $this->redirect($petition->enrollment_flow->redirect_on_finalize);
@@ -225,7 +225,7 @@ class PetitionsController extends StandardController {
       // configuration (eg: EnvSource's duplicate redirect URL) since in theory any plugin
       // can trigger this.
 
-      $petition = $this->Petitions->get((int)$id, ['contain' => ['EnrollmentFlows']]);
+      $petition = $this->Petitions->get((int)$id, contain: ['EnrollmentFlows']);
 
       // Redirect to configured URL or default location
       if(!empty($petition->enrollment_flow->redirect_on_duplicate)) {

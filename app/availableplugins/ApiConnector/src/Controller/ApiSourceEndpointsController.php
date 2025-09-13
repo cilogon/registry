@@ -53,7 +53,7 @@ class ApiSourceEndpointsController extends StandardPluginController {
     if(!empty($vv_obj->api_source_id)) {
       $apiSource = $this->ApiSourceEndpoints->ApiSources->get(
         $vv_obj->api_source_id,
-        ['contain' => 'ExternalIdentitySources']
+        contain: 'ExternalIdentitySources'
       );
       
       $this->set(

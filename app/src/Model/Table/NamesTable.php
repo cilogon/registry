@@ -242,7 +242,7 @@ class NamesTable extends Table {
    */
   
   public function primaryName(int $id, string $recordType='person', array $options = []) {
-    $query = empty($options) ? $this->find() : $this->find('all', $options);
+    $query = empty($options) ? $this->find() : $this->find('all', ...$options);
     if($recordType == 'person') {
       // Return the Primary Name
 

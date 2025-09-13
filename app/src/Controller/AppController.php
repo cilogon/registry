@@ -48,7 +48,6 @@ use Cake\Utility\Hash;
  * @property \Cake\Controller\Component\FlashComponent $Flash
  * @property \Cake\Controller\Component\FormProtectionComponent $FormProtection
  */
-#[\AllowDynamicProperties]
 class AppController extends Controller {
   use \App\Lib\Traits\LabeledLogTrait;
 
@@ -221,9 +220,6 @@ class AppController extends Controller {
    */
     
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-    
     // Views can also inspect the request object to determine the current
     // controller and action, but it seems slightly easier to do it once here.
     $this->set('vv_controller', $this->request->getParam('controller'));
@@ -270,6 +266,25 @@ class AppController extends Controller {
   }
 
   /**
+   * Get the current Table instance for this controller, respecting plugin context.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @return \Cake\ORM\Table
+   */
+  protected function getCurrentTable(): \Cake\ORM\Table
+  {
+    /** @var string $modelsName */
+    $modelsName = $this->getName();
+
+    $alias = $this->getPlugin() !== null
+      ? $this->getPlugin() . '.' . $modelsName
+      : $modelsName;
+
+    return $this->fetchTable($alias);
+  }
+
+
+  /**
    * @param   string  $potentialPrimaryLink
    *
    * @return Object|bool
@@ -278,14 +293,11 @@ class AppController extends Controller {
 
   protected function primaryLinkOnGet(string $potentialPrimaryLink): Object|bool
   {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-
     // If this action allows unkeyed, asserted primary link IDs, check the query
     // string (e.g.: 'add' or 'index' allow matchgrid_id to be passed in)
     $actionParam = $this->request->getParam('action');
-    $allowsUnkeyed = $this->$modelsName->allowUnkeyedPrimaryLink($actionParam);
-    $allowsLookup = $this->$modelsName->allowLookupPrimaryLink($actionParam);
+    $allowsUnkeyed = $this->getCurrentTable()->allowUnkeyedPrimaryLink($actionParam);
+    $allowsLookup = $this->getCurrentTable()->allowLookupPrimaryLink($actionParam);
     $param = (int)$this->request->getParam('pass.0');
 
     if($allowsUnkeyed) {
@@ -299,7 +311,7 @@ class AppController extends Controller {
       return false;
     }
 
-    return $this->$modelsName->findPrimaryLink($param);
+    return $this->getCurrentTable()->findPrimaryLink($param);
   }
 
   /**
@@ -345,20 +357,18 @@ class AppController extends Controller {
 
   protected function primaryLinkOnPut(): Object|bool
   {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     $param = (int)$this->request->getParam('pass.0');
 
     // Put = edit, so we should look up the parent ID via the object itself
     if (
       empty($param)
       ||
-      !$this->$modelsName->allowLookupPrimaryLink($this->request->getParam('action'))
+      !$this->getCurrentTable()->allowLookupPrimaryLink($this->request->getParam('action'))
     ) {
       return false;
     }
 
-    return $this->$modelsName->findPrimaryLink($param);
+    return $this->getCurrentTable()->findPrimaryLink($param);
   }
 
   /**
@@ -368,11 +378,9 @@ class AppController extends Controller {
    */
   protected function populatedPrimaryLink(string $potentialPrimaryLink): Object
   {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     // $potentialPrimaryLink will be something like 'attribute_collector_id'
     // $potentialPrimaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'
-    $potentialPrimaryLinkTable = $this->$modelsName->getPrimaryLinkTableName($potentialPrimaryLink);
+    $potentialPrimaryLinkTable = $this->getCurrentTable()->getPrimaryLinkTableName($potentialPrimaryLink);
 
     // For looking up values in records here, we want only the attribute
     // itself and not the plugin name (used for hacky notation by
@@ -406,9 +414,8 @@ class AppController extends Controller {
 
   protected function primaryLinkLookup(): void
   {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-    $availablePrimaryLinks = $this->$modelsName->getPrimaryLinks();
+    $table = $this->getCurrentTable();
+    $availablePrimaryLinks = $table->getPrimaryLinks();
 
     // Iterate over all the potential primary links and pick the appropriate one
     foreach($availablePrimaryLinks as $potentialPrimaryLink) {
@@ -429,7 +436,7 @@ class AppController extends Controller {
 
     // At the end we need to have a Primary Link
     if(empty($this->cur_pl->value)
-      && !$this->$modelsName->allowEmptyPrimaryLink($this->request->getParam('action'))
+      && !$table->allowEmptyPrimaryLink($this->request->getParam('action'))
       && $this->request->getParam('action') != 'deleted') {
       throw new \RuntimeException(__d('error', 'primary_link'));
     }
@@ -478,13 +485,10 @@ class AppController extends Controller {
       return $this->cur_pl;
     }
 
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-
     $this->cur_pl = new \stdClass();
 
-    if(!(method_exists($this->$modelsName, 'getPrimaryLinks')
-         && $this->$modelsName->getPrimaryLinks())
+    if(!(method_exists($this->getCurrentTable(), 'getPrimaryLinks')
+         && $this->getCurrentTable()->getPrimaryLinks())
     ) {
       return $this->cur_pl;
     }
@@ -504,7 +508,7 @@ class AppController extends Controller {
 
     // Look up the link value to find the related entity
 
-    $linkTableName = $this->$modelsName->getPrimaryLinkTableName($this->cur_pl->attr);
+    $linkTableName = $this->getCurrentTable()->getPrimaryLinkTableName($this->cur_pl->attr);
     $linkTable = $this->getTableLocator()->get($linkTableName);
 
     $this->set('vv_primary_link_model', $linkTableName);
@@ -540,12 +544,9 @@ class AppController extends Controller {
    */
   
   protected function getRedirectGoal(string $action): ?string {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-    
     // PrimaryLinkTrait
-    if(method_exists($this->$modelsName, "getRedirectGoal")) {
-      return $this->$modelsName->getRedirectGoal($this->request->getParam('action'));
+    if(method_exists($this->getCurrentTable(), "getRedirectGoal")) {
+      return $this->getCurrentTable()->getRedirectGoal($this->request->getParam('action'));
     }
     
     return 'index';
@@ -674,11 +675,10 @@ class AppController extends Controller {
       if($this->request->is('restful') 
         && !empty($attrs['params']['model'])) {
         $modelsName = \Cake\Utility\Inflector::camelize($attrs['params']['model']);
-        $this->$modelsName = TableRegistry::getTableLocator()->get($modelsName);
       }
       
-      if(!method_exists($this->$modelsName, "requiresCO")
-        || !$this->$modelsName->requiresCO()) {
+      if(!method_exists($this->getCurrentTable(), "requiresCO")
+        || !$this->getCurrentTable()->requiresCO()) {
         // Nothing to do, CO not required by this model/controller
         return;
       }
@@ -700,13 +700,13 @@ class AppController extends Controller {
     }
 
     if(!$coid 
-       && $this->$modelsName->allowUnkeyedCO($this->request->getParam('action'))
+       && $this->getCurrentTable()->allowUnkeyedCO($this->request->getParam('action'))
        && !empty($this->request->getQuery('co_id'))) {
       $coid = $this->request->getQuery('co_id');
     }
     
     if(!$coid 
-       && !$this->$modelsName->allowEmptyCO()
+       && !$this->getCurrentTable()->allowEmptyCO()
        && !$this->request->is('restful')) {
       // If we get this far without a CO ID, something went wrong.
       throw new \RuntimeException(__d('error', 'coid'));
@@ -728,7 +728,7 @@ class AppController extends Controller {
         throw new \InvalidArgumentException(__d('error', 'inactive', [__d('controller', 'Cos', [1]), $coid]));
       }
       
-      if(!empty($modelsName) && !empty($this->$modelsName)) {
+      if(!empty($modelsName) && !empty($this->getCurrentTable())) {
         // We store the CO ID in Configuration to facilitate its access from
         // model contexts such as validation where passing the value via the
         // Controller is not particularly feasible. Note that for API calls
@@ -737,9 +737,9 @@ class AppController extends Controller {
 
         // This only works for the current model, not related models. For 
         // relatedmodels, we use the event listener approach below.
-        if(method_exists($this->$modelsName, "acceptsCoId") 
-          && $this->$modelsName->acceptsCoId()) {
-          $this->$modelsName->setCurCoId((int)$coid);
+        if(method_exists($this->getCurrentTable(), "acceptsCoId")
+          && $this->getCurrentTable()->acceptsCoId()) {
+          $this->getCurrentTable()->setCurCoId((int)$coid);
         }
         
         // This doesn't work for the current model since it has already been
@@ -753,7 +753,7 @@ class AppController extends Controller {
         // a use case to do so, though note it's possible a child associations
         // wants the CO ID even though the parent doesn't.
         
-        foreach($this->$modelsName->associations()->getIterator() as $a) {
+        foreach($this->getCurrentTable()->associations()->getIterator() as $a) {
           $aTable = $a->getTarget();
           
           if(method_exists($aTable, "acceptsCoId") 
@@ -773,9 +773,6 @@ class AppController extends Controller {
    */
   
   protected function setTZ() {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-    
     // See if we've collected it from the browser in a previous page load. Otherwise,
     // use the system default. If the user set a preferred timezone, we'll catch that below.
     
@@ -802,9 +799,9 @@ class AppController extends Controller {
     
     $this->set('vv_tz', $tz);
     
-    if($this->$modelsName->behaviors()->has('Timezone')) {
+    if($this->getCurrentTable()->behaviors()->has('Timezone')) {
       // Tell TimezoneBehavior what the current timezone is
-      $this->$modelsName->setTimeZone($tz);
+      $this->getCurrentTable()->setTimeZone($tz);
     }
   }
 }

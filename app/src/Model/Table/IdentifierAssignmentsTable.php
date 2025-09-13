@@ -219,7 +219,7 @@ class IdentifierAssignmentsTable extends Table {
       // this should be less brittle if we add support for another model
       // alongside Identifiers and EmailAddresses.)
 
-      $entity = $EntityTable->get($entityId, ['contain' => $contains]);
+      $entity = $EntityTable->get($entityId, contain: $contains);
 
       // Check if there is already an identifier of this type
 

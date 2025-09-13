@@ -55,7 +55,7 @@ class Oauth2ServersTable extends HttpServersTable {
 
     // Define associations
     // XXX this is defined in HttpServersTable
-//    $this->belongsTo('Servers');
+    // $this->belongsTo('Servers');
 
     $this->setDisplayField('hostname');
 

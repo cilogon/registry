@@ -179,7 +179,7 @@ class AuthenticatorsTable extends Table {
    */
 
   protected function processLock(int $id, int $personId, string $action) {
-    $cfg = $this->get($id, ['contain' => $this->getPluginRelations()]);
+    $cfg = $this->get($id, contain: $this->getPluginRelations());
 
     // Make sure our configuration is active
     if($cfg->status != SuspendableStatusEnum::Active) {
@@ -241,7 +241,7 @@ class AuthenticatorsTable extends Table {
    */
 
   public function reset(int $id, int $personId) {
-    $cfg = $this->get($id, ['contain' => $this->getPluginRelations()]);
+    $cfg = $this->get($id, contain: $this->getPluginRelations());
 
     // Make sure our configuration is active
     if($cfg->status != SuspendableStatusEnum::Active) {

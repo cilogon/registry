@@ -52,7 +52,7 @@ class MultipleAuthenticatorController extends StandardPluginController {
     // $authModelName = eg SshKeyAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
     /** var Cake\ORM\Table $table */
-    $Table = $this->$modelsName;
+    $Table = $this->getCurrentTable();
     // $authFK = eg ssh_key_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
 
@@ -102,7 +102,7 @@ class MultipleAuthenticatorController extends StandardPluginController {
     // $authModelName = eg SshKeyAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
     /** var Cake\ORM\Table $table */
-    $Table = $this->$modelsName;
+    $Table = $this->getCurrentTable();
     // $authFK = eg ssh_key_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
 
@@ -135,7 +135,7 @@ class MultipleAuthenticatorController extends StandardPluginController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
     // Construct the Query
@@ -185,7 +185,7 @@ class MultipleAuthenticatorController extends StandardPluginController {
     // $authModelName = eg SshKeyAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
     /** var Cake\ORM\Table $table */
-    $Table = $this->$modelsName;
+    $Table = $this->getCurrentTable();
     // $authFK = eg ssh_key_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
     

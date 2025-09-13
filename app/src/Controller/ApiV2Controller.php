@@ -44,6 +44,8 @@ class ApiV2Controller extends AppController {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\IndexQueryTrait;
 
+  protected string $tableName = '';
+
   /**
    * Perform Cake Controller initialization.
    *
@@ -63,10 +65,8 @@ class ApiV2Controller extends AppController {
     $this->setName($modelsName);
     // Make this the default table for fetchTable()
     $this->defaultTable = $modelsName;
-    // If you need a reusable handle for this request, keep it in a declared property
-    $this->table = $this->fetchTable();
-    // If you still need the table name as a property, assign it to a declared one
-    $this->tableName = $this->table->getTable();
+    $table = $this->fetchTable();
+    $this->tableName = $table->getTable();
     
     // We want API auth, not Web Auth
     $this->RegistryAuth->setConfig('apiUser', true);
@@ -82,9 +82,7 @@ class ApiV2Controller extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
-    // $tableName = models
-    $tableName = $this->tableName;
+    $table = $this->getCurrentTable();
     
     $json = $this->request->getData(); // Parsed by BodyParserMiddleware
     
@@ -97,13 +95,13 @@ class ApiV2Controller extends AppController {
     
     foreach($json[$modelsName] as $rec) {
       try {
-        $obj = $this->$modelsName->newEntity($rec);
+        $obj = $table->newEntity($rec);
         
-        if($this->$modelsName->saveOrFail($obj)) {
+        if($table->saveOrFail($obj)) {
           $results[] = ['id' => $obj->id];
 
           // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-          if(method_exists($this->$modelsName, "requestProvisioning")) {
+          if(method_exists($table, "requestProvisioning")) {
             $this->llog('rule', "AR-GMR-5 Requesting provisioning for $modelsName " . $obj->id);
             $table->requestProvisioning(id: $obj->id, context: ProvisioningContextEnum::Automatic);
           }
@@ -186,7 +184,7 @@ class ApiV2Controller extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
 
@@ -234,10 +232,8 @@ class ApiV2Controller extends AppController {
       throw new UnauthorizedException(__d('error', 'perm'));
     }
 
-    // $modelsName = Models
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
 
     $reqParameters = [...$this->request->getQuery()];
     $pickerMode = ($mode === 'picker');
@@ -271,7 +267,7 @@ class ApiV2Controller extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
 
@@ -390,10 +386,8 @@ class ApiV2Controller extends AppController {
    */
 
   public function view($id = null) {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
     

@@ -37,6 +37,8 @@ use Cake\Datasource\ConnectionManager;
 
 class UpgradeCommand extends BaseCommand
 {
+  use Cake\ORM\Locator\LocatorAwareTrait;
+
   protected $io = null;
 
   // A list of known versions, must be semantic versioning compliant. The value

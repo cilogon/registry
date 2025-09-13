@@ -44,16 +44,14 @@ trait IndexQueryTrait {
    * @since  COmanage Registry v5.0.0
    */
   public function constructGetIndexContains(Query $query): object {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // Initialize the containClause
     $containClause = [];
 
     // Get whatever the table configuration has
     if(method_exists($table, 'getIndexContains')
-      && $table->getIndexContains()) {
+      && !empty($table->getIndexContains())) {
       $containClause = $table->getIndexContains();
     }
 
@@ -73,10 +71,8 @@ trait IndexQueryTrait {
    * @since  COmanage Registry v5.0.0
    */
   public function constructGetPickerContains(Query $query): object {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // Initialize the containClause
     $containClause = [];
 
@@ -104,10 +100,8 @@ trait IndexQueryTrait {
    */
   public function containClauseFromQueryParams(): array
   {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
 
     // Restfull and ajax do not include the IndexContains by default.
     $containClause = [];
@@ -156,7 +150,7 @@ trait IndexQueryTrait {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // PrimaryLinkTrait
     $link = $this->getPrimaryLink(true);
     // Initialize the Query Object

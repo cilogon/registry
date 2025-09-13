@@ -47,6 +47,7 @@ class MVEAController extends StandardController {
   public function beforeFilter(\Cake\Event\EventInterface $event) {
     /** var string $modelsName */
     $modelsName = $this->getName();
+    $table = $this->getCurrentTable();
 
     if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // Provide additional hints to BreadcrumbsComponent. This needs to be here
@@ -62,7 +63,7 @@ class MVEAController extends StandardController {
       } else {
         $parentModel = StringUtilities::foreignKeyToClassName($primaryLink->attr);
 
-        $parentPrimaryLink = $this->$modelsName->$parentModel->findPrimaryLink((int)$primaryLink->value);
+        $parentPrimaryLink = $table->$parentModel->findPrimaryLink((int)$primaryLink->value);
 
         $this->Breadcrumb->injectPrimaryLink($parentPrimaryLink);
         $this->Breadcrumb->injectPrimaryLink($primaryLink);
@@ -140,12 +141,13 @@ class MVEAController extends StandardController {
   public function beforeRender(\Cake\Event\EventInterface $event) {
     /** var string $modelsName */
     $modelsName = $this->getName();
+    $table = $this->getCurrentTable();
     // field = model (or model_name)
     $fieldName = Inflector::underscore(Inflector::singularize($modelsName));
     
     if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // If there is a default type setting for this model, pass it to the view
-      if($this->$modelsName->getSchema()->hasColumn('type_id')) {
+      if($table->getSchema()->hasColumn('type_id')) {
         $defaultTypeField = "default_" . $fieldName . "_type_id";
         
         $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');

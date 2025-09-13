@@ -46,10 +46,8 @@ class StandardPluggableController extends StandardController {
     // (We only need to map into the plugin on actual link click, instead of
     // potentially many times on an index view for links that may not be used.)
 
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
 
     $parentId = $this->request->getParam('pass')[0];
     $parentObj = $table->findById($parentId)

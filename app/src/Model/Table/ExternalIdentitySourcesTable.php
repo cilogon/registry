@@ -231,7 +231,7 @@ class ExternalIdentitySourcesTable extends Table {
     // the query simpler we contain all possible relations, which will
     // usually only be a small number.
     if(empty($this->eisCache[$id])) {
-      $this->eisCache[$id] = $this->get($id, ['contain' => $this->getPluginRelations()]);
+      $this->eisCache[$id] = $this->get($id, contain: $this->getPluginRelations());
     }
     
     return $this->eisCache[$id];

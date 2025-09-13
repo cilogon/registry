@@ -38,6 +38,8 @@ use \App\Lib\Util\DeliveryUtilities;
 
 class TestCommand extends BaseCommand
 {
+  use Cake\ORM\Locator\LocatorAwareTrait;
+
   protected $io = null;
 
   /**

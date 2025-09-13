@@ -41,6 +41,8 @@ use App\Lib\Events\CoIdEventListener;
 
 class JobCommand extends BaseCommand
 {
+  use Cake\ORM\Locator\LocatorAwareTrait;
+
   /**
    * Register command specific options.
    *

@@ -112,10 +112,10 @@ class BreadcrumbComponent extends Component {
 
     // Do we have a target model, and if so is it a configuration
     // model (eg: ApiUsers) or an object model (eg: CoPeople)?
-    if(\is_object($controller->$modelsName)
-       && method_exists($controller->$modelsName, "isConfigurationTable")
+    if(\is_object($controller->fetchTable($modelsName))
+       && method_exists($controller->fetchTable($modelsName), "isConfigurationTable")
     ) {
-      $controller->set('vv_bc_configuration_link', $controller->$modelsName->isConfigurationTable());
+      $controller->set('vv_bc_configuration_link', $controller->fetchTable($modelsName)->isConfigurationTable());
     } else {
       $controller->set('vv_bc_configuration_link', false);
     }

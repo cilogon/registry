@@ -329,7 +329,7 @@ class GroupsTable extends Table {
         'status'      => SuspendableStatusEnum::Active,
         'cou_id'      => null
       ];
-    };
+    }
     
     foreach($defaultGroups as $suffix => $attrs) {
       // Construct the full group name
@@ -389,7 +389,7 @@ class GroupsTable extends Table {
       // to look at the archived data.
     }
 
-    return true;
+    $event->setResult(true);
   }
 
   /**
@@ -492,7 +492,7 @@ class GroupsTable extends Table {
     // Update the original Group with a pointer to this one
     $group->owners_group_id = $ownerGroup->id;
 
-    $this->saveOrFail($group);
+    $this->saveOrFail($group, ['archive' => false]);
 
     return $ownerGroup->id;
   }

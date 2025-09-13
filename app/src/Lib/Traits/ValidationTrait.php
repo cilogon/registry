@@ -237,13 +237,14 @@ trait ValidationTrait {
   /**
    * Determine if a string submitted from a form is valid input.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  string $value   Value to validate
-   * @param  array  $context Optional validation context; accepts 'type' of 'html' (may be extended to include 'email', 'url' etc.
+   * @param string $value   Value to validate
+   * @param array  $options
+   * @param array  $context Optional validation context; accepts 'type' of 'html'
    * @return mixed  True if $value validates, or an error string otherwise
+   *@since  COmanage Registry v5.0.0
    */
   
-  public function validateInput(string $value, array $context) {
+  public function validateInput(string $value, array $options = [], array $context = []): bool|string {
     // By default, we'll accept anything except < and >. Arguably, we should accept
     // anything at all for input (and filter only on output), but this was agreed to
     // as an extra "line of defense" against unsanitized HTML output. Where user supplied
@@ -252,8 +253,8 @@ trait ValidationTrait {
 // XXX we previously supported 'flags' and 'invalidchars' as arguments, do we still need to?
 // CFM-152 review the logic here
 
-    if(!empty($context['type'])) {
-      switch($context['type']) {
+    if(!empty($options['type'])) {
+      switch($options['type']) {
         case 'html':
           // We are accepting HTML input. We will mostly pass it all through and ensure
           // properly sanitized output. However, we can do some very rudimentary checking for script tags.
@@ -284,7 +285,7 @@ trait ValidationTrait {
       }
       
       // We require at least one non-whitespace character (CO-1551)
-      $notBlankValidation = $this->validateNotBlank($value, $context); 
+      $notBlankValidation = $this->validateNotBlank($value, $options);
       if ($notBlankValidation !== true) {
         return $notBlankValidation;
       }
@@ -296,25 +297,25 @@ trait ValidationTrait {
   /**
    * Validate the maximum length of a field.
    *
-   * @param   string  $value    Value to validate
-   * @param array $columnMetadata
-   * @param array     $context  Validation context, which must include the schema definition
+   * @param string  $value    Value to validate
+   * @param array   $options
+   * @param array   $context  Validation context, which must include the schema definition
    *
    * @return bool|string True if $value validates, or an error string otherwise
    * @since  COmanage Registry v5.0.0
    */
   
-  public function validateMaxLength(string $value, array $columnMetadata, array $context): bool|string {
+  public function validateMaxLength(string $value, array $options = [], array $context = []): bool|string {
     // We use our own so we can introspect the field's max length from the
     // provided table schema object, and use our own error message (without
     // having to copy it to every table definition).
     
     // Text has no limit.
-    if ($columnMetadata['column']['type'] === 'text') {
+    if ($options['column']['type'] === 'text') {
       return true;
     }
 
-    $maxLength = $columnMetadata['column']['length'];
+    $maxLength = $options['column']['length'];
     
     if(!empty($value) && mb_strlen($value) > $maxLength) {
       return __d('error', 'input.length', [$maxLength]);

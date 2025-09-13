@@ -35,25 +35,25 @@ use Cake\Utility\Inflector;
 
 trait QueryModificationTrait {
   // Array of associated models to copy during a duplicate
-  private $duplicateContains = false;
+  private array $duplicateContains = [];
   
   // Array of associated models to pull during an edit
-  private $editContains = false;
+  private array $editContains = [];
   
   // Containable models for index actions
-  private $indexContains = null;
+  private array $indexContains = [];
   
   // Filter (where clause) for index actions
-  private $indexFilter = null;
+  private array $indexFilter = [];
   
   // Array of associated models to save during a patch
-  private $patchAssociated = [];
+  private array $patchAssociated = [];
   
   // Array of associated models to pull during a view
-  private $viewContains = false;
+  private array $viewContains = [];
 
   // Array of associated models to pull during a pick action
-  private $pickerContains = false;
+  private array $pickerContains = [];
 
 
   /**
@@ -88,7 +88,7 @@ trait QueryModificationTrait {
    * @return array Array of associated models
    */
   
-  public function getDuplicateContains() {
+  public function getDuplicateContains(): array {
     return $this->duplicateContains;
   }
   
@@ -99,7 +99,7 @@ trait QueryModificationTrait {
    * @return array Array of associated models
    */
   
-  public function getEditContains() {
+  public function getEditContains(): array {
     return $this->editContains;
   }
   
@@ -110,7 +110,7 @@ trait QueryModificationTrait {
    * @param boolean $allowEmpty true if the primary link is permitted to be empty
    */
   
-  public function getIndexContains() {
+  public function getIndexContains(): array {
     return $this->indexContains;
   }
   
@@ -132,7 +132,7 @@ trait QueryModificationTrait {
    * @return array Array of associated models
    */
 
-  public function getPickerContains() {
+  public function getPickerContains(): array {
     return $this->pickerContains;
   }
 
@@ -143,7 +143,7 @@ trait QueryModificationTrait {
    * @return array Array of associated models
    */
   
-  public function getViewContains() {
+  public function getViewContains(): array {
     return $this->viewContains;
   }
   

@@ -331,13 +331,13 @@ class PetitionsTable extends Table {
    */
 
   public function derive(int $id) {
-    $petition = $this->get($id, ['contain' => [
+    $petition = $this->get($id, contain: [
                                   'EnrollmentFlows' => [
                                     'EnrollmentFlowSteps' => array_merge(
                                       $this->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations(),
                                       ['sort' => ['EnrollmentFlowSteps.ordr' => 'ASC']]
                                     )
-                                ]]]);
+                                ]]);
 
     if($petition->isComplete()) {
       throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
@@ -380,7 +380,7 @@ class PetitionsTable extends Table {
    */
 
   public function finalize(int $id) {
-    $petition = $this->get($id, ['contain' => 'EnrollmentFlows']);
+    $petition = $this->get($id, contain: 'EnrollmentFlows');
 
     if($petition->isComplete()) {
       throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));
@@ -421,7 +421,7 @@ class PetitionsTable extends Table {
         $template->generateMessage();
 
         if(!DeliveryUtilities::sendEmailToAddress(
-          coId:       $coId,
+          coId:       $petition->enrollment_flow->co_id,
           recipient:  $petition->enrollee_email,
           subject:    $template->getMessagePart('subject'),
           body_text:  $template->getMessagePart('body_text'),
@@ -528,12 +528,12 @@ class PetitionsTable extends Table {
     // First see if there is an Enrollee Person associated with the Petition, which would
     // be the case for (eg) account linking. If so, use their Primary Name.
 
-    $petition = $this->get($id, ['contain' => [
+    $petition = $this->get($id, contain: [
       'EnrolleePeople' => 'PrimaryName',
       'PetitionStepResults' => [
         'EnrollmentFlowSteps' => $this->PetitionStepResults->EnrollmentFlowSteps->getPluginRelations()
       ]
-    ]]);
+    ]);
 
     if(!empty($petition->enrollee_person->primary_name)) {
       return $petition->enrollee_person->primary_name->full_name;
@@ -574,13 +574,13 @@ class PetitionsTable extends Table {
     // This is intended to be the first part of finalization, so we set the Petition status
     // to Finalizing.
 
-    $petition = $this->get($id, ['contain' => [
+    $petition = $this->get($id, contain: [
                                   'EnrollmentFlows' => [
                                     'EnrollmentFlowSteps' => array_merge(
                                       $this->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations(),
                                       ['sort' => ['EnrollmentFlowSteps.ordr' => 'ASC']]
                                     )
-                                ]]]);
+                                ]]);
 
     if($petition->isComplete()) {
       throw new \InvalidArgumentException(__d('error', 'Petitions.completed', [$id]));

@@ -186,11 +186,8 @@ class ApiSourcesTable extends Table {
    */
 
   public function remove(int $id, string $sorLabel, string $sorId): bool {
-    // We call this remove() so as not to interfere with the default table::delete().
-    $apiSource = $this->get($id, ['contain' => ['ExternalIdentitySources']]);
-
     // Pull our configuration
-    $apiSource = $this->get($id, ['contain' => ['ExternalIdentitySources']]);
+    $apiSource = $this->get($id, contain: ['ExternalIdentitySources']);
 
     // Like upsert(), we don't really need $sorLabel, but we check it for
     // consistency with upsert() (which also doesn't really need it).
@@ -413,7 +410,7 @@ class ApiSourcesTable extends Table {
     $ret = [];
 
     // Pull our configuration
-    $apiSource = $this->get($id, ['contain' => ['ExternalIdentitySources']]);
+    $apiSource = $this->get($id, contain: ['ExternalIdentitySources']);
 
     // Strictly speaking we don't need $sorLabel since we know which configuration
     // to use from the ApiSource ID, and $sorLabel might not be unique across COs

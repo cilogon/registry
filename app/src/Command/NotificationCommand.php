@@ -33,9 +33,12 @@ use Cake\Console\Arguments;
 use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use Cake\ORM\TableRegistry;
 
 class NotificationCommand extends BaseCommand
 {
+  use Cake\ORM\Locator\LocatorAwareTrait;
+
   /**
    * Register command specific options.
    *
@@ -202,6 +205,10 @@ class NotificationCommand extends BaseCommand
     $io->out("- Recipient Person ID: " . $recipientPersonId);
     $io->out("- Recipient Group ID: " . $recipientGroupId);
 
+    $MessageTemplates = TableRegistry::getTableLocator()->get('MessageTemplates');
+    $template = $MessageTemplates->get($args->getOption('messageTemplateId'));
+
+
     $notificationIds = $Notifications->register(
       subjectPersonId:    $subjectPersonId,
       subjectGroupId:     $subjectGroupId,
@@ -210,7 +217,7 @@ class NotificationCommand extends BaseCommand
       recipientGroupId:   $recipientGroupId,
       action:             $args->getOption('action'),
       comment:            $args->getOption('comment'),
-      messageTemplateId:  (int)$args->getOption('messageTemplateId'),
+      messageTemplate:    $template,
       source:             $args->getOption('source'),
       mustResolve:        $args->getOption('mustResolve')
     );

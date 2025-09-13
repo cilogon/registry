@@ -425,7 +425,7 @@ class NotificationsTable extends Table {
     if($subjectPersonId) {
       // Retrieve and attach the Subject Person
       $messageTemplate->setContextSubjectPerson(
-        $this->SubjectPeople->get($subjectPersonId, ['contain' => 'PrimaryName'])
+        $this->SubjectPeople->get($subjectPersonId, contain: 'PrimaryName')
       );
     }
 

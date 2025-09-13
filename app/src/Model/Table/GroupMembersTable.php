@@ -244,7 +244,7 @@ class GroupMembersTable extends Table {
     
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
     // Pull the related entities for HistoryRecord comment creation.
-    $person = $this->People->get($entity->person_id, ['contain' => ['PrimaryName']]);
+    $person = $this->People->get($entity->person_id, contain: ['PrimaryName']);
     $group = $this->Groups->get($entity->group_id);
     
     $action = null;
@@ -259,8 +259,8 @@ class GroupMembersTable extends Table {
       // We need to allow retrieval of archived records since we might be called
       // after the GroupNesting was deleted
       $nesting = $this->GroupNestings->get($entity->group_nesting_id, 
-                                           ['contain' => ['Groups'],
-                                            'archived' => true]);
+                                           contain: ['Groups'],
+                                           archived: true);
       
       $langKeySuffix = '.nesting';
       $commentParams[] = $nesting->group->name;
@@ -314,7 +314,7 @@ class GroupMembersTable extends Table {
     
     if($this->isMember($entity->group_id, $entity->person_id, true, false)) {
       // Pull the Person and Group name for the error message.
-      $person = $this->People->get($entity->person_id, ['contain' => ['PrimaryName']]);
+      $person = $this->People->get($entity->person_id, contain: ['PrimaryName']);
       $group = $this->Groups->get($entity->group_id);
       
       return __d('error', 'exists.GroupMember', [$person->primary_name->full_name, $group->name]);

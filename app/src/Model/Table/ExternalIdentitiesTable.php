@@ -269,7 +269,7 @@ class ExternalIdentitiesTable extends Table {
         ]
       ];
 
-      $externalIdentity = $this->get($id, ['contain' => $related]);
+      $externalIdentity = $this->get($id, contain: $related);
 
       // For each of the top level related models, walk to the Pipelined record on the Person
       // and unset the source_ key.
@@ -453,7 +453,7 @@ class ExternalIdentitiesTable extends Table {
       $this->Names->delete($n, ['checkRules' => false]);
     }
 
-    return true;
+    $event->setResult(true);
   }
 
   /**
@@ -515,7 +515,7 @@ class ExternalIdentitiesTable extends Table {
 
     // Start by pulling the roles for this External Identity, along with the EI record
 
-    $externalIdentity = $this->get($id, ['contain' => 'ExternalIdentityRoles']);
+    $externalIdentity = $this->get($id, contain: 'ExternalIdentityRoles');
 
     if(!empty($externalIdentity->external_identity_roles)) {
       foreach($externalIdentity->external_identity_roles as $role) {

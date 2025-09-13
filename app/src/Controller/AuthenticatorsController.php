@@ -96,7 +96,7 @@ class AuthenticatorsController extends StandardPluggableController {
 
     $cfg = $this->Authenticators->get(
             (int)$this->getRequest()->getQuery('authenticator_id'),
-            ['contain' => $this->Authenticators->getPluginRelations()]
+            contain: $this->Authenticators->getPluginRelations()
            );
 
     // We need to know what type of Authenticator we're managing to construct the redirect.

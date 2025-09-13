@@ -72,10 +72,7 @@ class ServersTable extends Table {
     $this->hasMany('Pipelines')
          ->setForeignKey('match_server_id');
 
-// XXX Note this will bind to (eg) CoreServer but not (eg) SqlProvisioner
-// As of Cake 5 this is causing errors with the Servers alias already being set,
-// it's not clear that we need this anymore?
-    // $this->setPluginRelations();
+     $this->setPluginRelations();
     
     $this->setDisplayField('description');
     

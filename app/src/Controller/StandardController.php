@@ -55,7 +55,7 @@ class StandardController extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
     // Schema
@@ -174,7 +174,7 @@ class StandardController extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     
     // Provide some hints to the views
     if($this->request->getParam('action') != 'deleted') {
@@ -239,7 +239,7 @@ class StandardController extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     
     // Allow a delete via a POST or DELETE
     $this->request->allowMethod(['post', 'delete']);
@@ -376,17 +376,15 @@ class StandardController extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
-    // $tableName = models
-    $tableName = $table->getTable();
+    $table = $this->getCurrentTable();
     
     // We use findById() rather than get() so we can apply subsequent
     // query modifications via traits
     $query = $table->findById($id);
     
     // QueryModificationTrait
-    if(method_exists($this->$modelsName, "getEditContains")) {
-      $query = $query->contain($this->$modelsName->getEditContains());
+    if(method_exists($table, "getEditContains")) {
+      $query = $query->contain($table->getEditContains());
     }
     
     try {
@@ -586,10 +584,8 @@ class StandardController extends AppController {
    */
 
   protected function getFieldTypes() {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
 
     $schema = $table->getSchema();
 
@@ -609,10 +605,8 @@ class StandardController extends AppController {
    */
   
   protected function getRequiredFields() {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     
     // Build a list of required fields for FieldHelper
     $reqFields = [];
@@ -639,7 +633,7 @@ class StandardController extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
     // Construct the Query
@@ -688,10 +682,8 @@ class StandardController extends AppController {
    */
 
   protected function populateAutoViewVars(object $obj=null) {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
 
     // AutoViewVarsTrait
     if(method_exists($table, 'getAutoViewVars') && $table->getAutoViewVars()) {
@@ -709,10 +701,8 @@ class StandardController extends AppController {
    */
 
   public function provision($id) {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
 
@@ -754,10 +744,8 @@ class StandardController extends AppController {
    */
 
   public function unfreeze($id) {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
 
     try {
       // Pull the current record
@@ -788,7 +776,7 @@ class StandardController extends AppController {
     /** var string $modelsName */
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
-    $table = $this->fetchTable($modelsName);
+    $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
     

@@ -47,7 +47,7 @@ class SingleAuthenticatorController extends StandardPluginController {
     // $authModelName = eg PasswordAuthenticators
     $authModelsName = Inflector::singularize($modelsName) . "Authenticators";
     /** var Cake\ORM\Table $table */
-    $Table = $this->$modelsName;
+    $Table = $this->getCurrentTable();
     // $authFK = eg password_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
 
@@ -70,7 +70,7 @@ class SingleAuthenticatorController extends StandardPluginController {
 
     $Authenticators = TableRegistry::getTableLocator()->get('Authenticators');
 
-    $authcfg = $Authenticators->get($cfg->authenticator_id, ['contain' => $authModelsName]);
+    $authcfg = $Authenticators->get($cfg->authenticator_id, contain: $authModelsName);
 
     $status = $Authenticators->AuthenticatorStatuses->getForPerson(
       $authcfg,

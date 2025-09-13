@@ -238,8 +238,8 @@ class ExternalIdentityRolesTable extends Table {
     }
 
     $this->recordHistory(entity: $entity, action: ActionEnum::MVEADeleted);
-    
-    return true;
+
+    $event->setResult(true);
   }
 
   /**

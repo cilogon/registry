@@ -127,7 +127,7 @@ class SqlServersTable extends Table {
     // which is basically what the SQL Provisioner does.
 
     // Pull our configuration via the parent Server object.
-    $server = $this->Servers->get($serverId, ['contain' => ['SqlServers']]);
+    $server = $this->Servers->get($serverId, contain: ['SqlServers']);
 
     $dbmap = [
       RdbmsTypeEnum::MariaDB    => 'Mysql',

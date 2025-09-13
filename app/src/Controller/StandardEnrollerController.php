@@ -104,7 +104,8 @@ class StandardEnrollerController extends StandardPluginController {
       return false;
     }
     
-    $stepConfig = $this->$modelsName->get($modelId, ['contain' => ['EnrollmentFlowSteps' => ['EnrollmentFlows']]]);
+    $stepConfig = $this->getCurrentTable()
+      ->get($modelId, contain: ['EnrollmentFlowSteps' => ['EnrollmentFlows']]);
     $this->set('vv_step_config', $stepConfig);
     $this->set('vv_title', $stepConfig['enrollment_flow_step']['enrollment_flow']['name']);
 
@@ -229,7 +230,7 @@ class StandardEnrollerController extends StandardPluginController {
         return 'notauth';
       }
 
-      $stepConfig = $this->$modelsName->get($modelId, ['contain' => 'EnrollmentFlowSteps']);
+      $stepConfig = $this->getCurrentTable()->get($modelId, contain: 'EnrollmentFlowSteps');
 
       // Determine if the requested step is past the current/next step.
       // We don't allow steps that haven't run yet to be run out of order.
