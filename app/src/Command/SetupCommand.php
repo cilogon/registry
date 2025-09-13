@@ -39,7 +39,7 @@ use App\Lib\Enum\SuspendableStatusEnum;
 
 class SetupCommand extends BaseCommand
 {
-  use Cake\ORM\Locator\LocatorAwareTrait;
+  use \Cake\ORM\Locator\LocatorAwareTrait;
 
   /**
    * Register command specific options.

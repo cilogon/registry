@@ -37,7 +37,7 @@ use Cake\ORM\TableRegistry;
 
 class NotificationCommand extends BaseCommand
 {
-  use Cake\ORM\Locator\LocatorAwareTrait;
+  use \Cake\ORM\Locator\LocatorAwareTrait;
 
   /**
    * Register command specific options.

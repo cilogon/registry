@@ -37,7 +37,7 @@ use Cake\Datasource\ConnectionManager;
 
 class UpgradeCommand extends BaseCommand
 {
-  use Cake\ORM\Locator\LocatorAwareTrait;
+  use \Cake\ORM\Locator\LocatorAwareTrait;
 
   protected $io = null;
 
