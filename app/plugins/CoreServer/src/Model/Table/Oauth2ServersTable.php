@@ -54,7 +54,7 @@ class Oauth2ServersTable extends HttpServersTable {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
 
     // Define associations
-    // XXX this is defined in HttpServersTable
+    // this is defined in HttpServersTable
     // $this->belongsTo('Servers');
 
     $this->setDisplayField('hostname');

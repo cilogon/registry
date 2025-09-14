@@ -59,7 +59,7 @@ class MatchServersTable extends HttpServersTable {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
 
     // Define associations
-    // XXX this is defined in HttpServersTable
+    // this is defined in HttpServersTable
     // $this->belongsTo('Servers');
     $this->hasMany('CoreServer.MatchServerAttributes')
          ->setDependent(true)

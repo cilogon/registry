@@ -112,7 +112,7 @@ class JobsTable extends Table {
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
+        'add' =>      false,  // generic add of jobs via the UI is not yet supported
         'index' =>    ['platformAdmin', 'coAdmin']
       ],
       'readOnly' => ['cancel'],
