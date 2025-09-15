@@ -29,14 +29,14 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
-use Cake\Controller\Controller;
-use InvalidArgumentException;
 use Cake\Chronos\Chronos;
+use Cake\Controller\Controller;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
-
+use InvalidArgumentException;
+use \App\Lib\Enum\EnrollmentAuthzEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
@@ -412,5 +412,58 @@ class ApiV2Controller extends AppController {
 
   public function pick() {
     $this->dispatchIndex(mode: 'picker');
+  }
+
+  /**
+   * Indicate whether this Controller will handle some or all authnz.
+   *
+   * @param EventInterface $event Cake event, ie: from beforeFilter
+   * @return string               "no", "open", "authz", "yes", or "notauth"
+   * @since  COmanage Registry v5.2.0
+   */
+  public function willHandleAuth(\Cake\Event\EventInterface $event): string
+  {
+    $request = $this->getRequest();
+    $reqAction = $request->getParam('action');
+    $session = $request->getSession();
+    $mode = 'no';
+
+    $auth = $session->read('Auth');
+
+    // Calculate people picker permissions on the fly for an enrollment flow/petition
+    if(
+      $this->name == 'People'
+      && $reqAction == 'pick'
+      && !empty($request->getQuery('petition_id'))
+    ) {
+      $petitionId = (int)$request->getQuery('petition_id');
+      // We need to check if this is part of an Enrollment Flow
+      $Petitions = $this->fetchTable('Petitions');
+
+      // Pull the Petition to find its CO
+      $petition = $Petitions->get(
+        $petitionId,
+        contain: ['EnrollmentFlows' => ['EnrollmentFlowSteps']]
+      );
+
+      // We need to check the Petitioner Authorization.
+      $hasAuthorizedUser = $petition->enrollment_flow->authz_type == EnrollmentAuthzEnum::AuthUser
+        ? !empty($auth['external']['user']) : true;
+
+      foreach ($petition->enrollment_flow->enrollment_flow_steps as $step) {
+        if ($step->plugin == 'CoreEnroller.AttributeCollectors') {
+          $AttributeCollectors = $this->fetchTable('CoreEnroller.AttributeCollectors');
+          $attributeCollectorsRecord =  $AttributeCollectors->find()
+            ->where(['enrollment_flow_step_id' => $step->id])
+            ->contain(['EnrollmentAttributes'])
+            ->first();
+
+          $mode = $hasAuthorizedUser && $attributeCollectorsRecord->enable_person_find ? 'yes' : 'no';
+        }
+      }
+    }
+
+    // Apply standard behavior
+    return $mode;
   }
 }

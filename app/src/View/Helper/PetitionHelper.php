@@ -76,7 +76,7 @@ class PetitionHelper extends Helper
   {
     // XXX Find the co id
     foreach (
-      $this->enrollmentAttributesTable->calculateAutoViewVars($this->petition?->enrollment_flow?->co_id,$this->entity) as $vvar => $value
+      $this->enrollmentAttributesTable->calculateAutoViewVars($this->petition?->enrollment_flow?->co_id, $this->entity) as $vvar => $value
     ) {
       $this->getView()->set($vvar, $value);
     }

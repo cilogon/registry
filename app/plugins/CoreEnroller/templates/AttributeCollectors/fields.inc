@@ -27,15 +27,13 @@
 
 declare(strict_types = 1);
 
-// Currently this Configuration View has no fields
+// This view only supports edit
+if($vv_action !== 'edit') {
+  return;
+}
 
-$this->Field->disableFormEditMode();
 
-?>
-
-<li>
-  <div class="field">
-    <?= __d('information', 'plugin.config.none'); ?>
-  </div>
-</li>
-
+print $this->element('form/listItem', [
+  'arguments' => [
+    'fieldName' => 'enable_person_find',
+  ]]);
