@@ -32,6 +32,10 @@ class ErrorController extends AppController
      */
     public function initialize(): void
     {
+        // Tell cake to automatically negotiate JSON, which will have the
+        // most visible side effect of causing stack traces to render as
+        // JSON instead of HTML
+        $this->addViewClasses([\Cake\View\JsonView::class]);
     }
 
     /**

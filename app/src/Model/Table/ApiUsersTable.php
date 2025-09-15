@@ -30,7 +30,7 @@ declare(strict_types = 1);
 namespace App\Model\Table;
 
 use ArrayObject;
-use Cake\Auth\FallbackPasswordHasher;
+use Authentication\PasswordHasher\FallbackPasswordHasher;
 use Cake\Chronos\Chronos;
 use Cake\Event\EventInterface;
 use Cake\ORM\RulesChecker;
@@ -225,8 +225,8 @@ class ApiUsersTable extends Table {
     
     $Hasher = new FallbackPasswordHasher([
       'hashers' => [
-        'Default' => [],
-        'Weak' => ['hashType' => 'sha1']
+        'Authentication.Default' => [],
+        'Authentication.Legacy' => ['hashType' => 'sha1']
       ]
     ]);
     
