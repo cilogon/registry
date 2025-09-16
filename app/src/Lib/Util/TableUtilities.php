@@ -62,16 +62,17 @@ class TableUtilities {
   }
 
   /**
-   * We calculate the model name from the primary link, the primary link value is the id
-   * of the record. We use these to traverse backwards to all the records associations
-   * Then we return a list where the keys are the model names and the values are the ids
+   * Traverse backwards through model associations starting from a primary link.
    *
-   * @param   string  $primaryLinkKey
-   * @param   int     $primaryLinkValue
-   * @param   array   $results
+   * Calculates model name from primary link and traverses backwards through all record
+   * associations. Returns list where keys are model names and values are record IDs.
    *
-   * @return void
-   * @since  COmanage Registry v5.0.0
+   * @param string $primaryLinkKey Primary link key name
+   * @param int $primaryLinkValue ID value of the primary link record
+   * @param array $results Reference to array to store results
+   * @param string|null $primaryLinkClassName Optional override for model class name
+   * @return void Results stored in $results parameter
+   * @since COmanage Registry v5.0.0
    */
   public static function treeTraversalFromPrimaryLink(
     string $primaryLinkKey,
@@ -139,15 +140,16 @@ class TableUtilities {
   }
 
   /**
-   * With a model name and the id know we return a list where the
-   * keys are the model names and the values are the ids
+   * Traverse backwards through model associations starting from model name and ID.
    *
-   * @param   string  $modelName
-   * @param   int     $id
-   * @param   array   $results
+   * Returns list where keys are model names and values are record IDs by traversing
+   * through all associated records.
    *
-   * @return void
-   * @since  COmanage Registry v5.0.0
+   * @param string $modelName Name of the model to start from
+   * @param int $id ID of the record to start from
+   * @param array $results Reference to array to store results
+   * @return void Results stored in $results parameter
+   * @since COmanage Registry v5.0.0
    */
   public static function treeTraversalFromId(string $modelName, int $id, array &$results): void
   {

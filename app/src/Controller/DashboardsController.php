@@ -69,8 +69,8 @@ class DashboardsController extends StandardController {
     $cur_co = $this->getCO();
 
     [$title, , ] = StringUtilities::entityAndActionToTitle(null,
-                                                           'co.features',
-                                                           'all',
+                                                           null,
+                                                           'co.features.all',
                                                            'menu');
     $this->set('vv_title', $title);
 
@@ -467,8 +467,8 @@ class DashboardsController extends StandardController {
     // XXX The action is search and the result is not a modelPath. In this use the pattern is reversed. We should
     //     probably reconsider the po naming for the result domain
     [$title, , ] = StringUtilities::entityAndActionToTitle(null,
-                                                           'search',
-                                                           'results',
+                                                           null,
+                                                           'search.results',
                                                            'result');
     $this->set('vv_title', $title);
   }

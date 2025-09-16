@@ -358,7 +358,7 @@ msgid "ApiUsers.privileged.desc"
 msgstr "A privileged API user has full access to the CO. Unprivileged API users may be granted specific permissions where supported."
 
 msgid "ApiUsers.remote_ip.desc"
-msgstr "If specified, a <a href="https://www.php.net/manual/en/reference.pcre.pattern.syntax.php">regular expression</a> describing the IP address(es) from which this API User may connect. Be sure to escape dots (eg: "/10\\.0\\.1\\.150/")."
+msgstr "If specified, a <a href=\"https://www.php.net/manual/en/reference.pcre.pattern.syntax.php\">regular expression</a> describing the IP address(es) from which this API User may connect. Be sure to escape dots (eg: \"/10\\.0\\.1\\.150/\")."
 
 msgid "ApiUsers.username.desc"
 msgstr "The API User Name must be prefixed with the string \"co_#.\""
@@ -929,7 +929,7 @@ msgstr "If ticked, uniqueness checks for this Identifier Type will be case insen
 
 msgid "Types.edupersonaffiliation.desc"
 # XXX update link to PE wiki?
-msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href="https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations">eduPersonAffiliation and Extended Affiliations</a>"
+msgstr "Map the extended affiliation to this eduPersonAffiliation, see <a href=\"https://spaces.at.internet2.edu/display/COmanage/Extending+the+Registry+Data+Model#ExtendingtheRegistryDataModel-%7B%7BeduPersonAffiliation%7D%7DandExtendedAffiliations\">eduPersonAffiliation and Extended Affiliations</a>"
 
 msgid "Types.status.desc"
 msgstr "Suspending a Type will prevent it from being assigned to new attributes, but will not remove it from existing attributes"

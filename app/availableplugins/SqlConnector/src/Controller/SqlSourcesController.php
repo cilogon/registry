@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace SqlConnector\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
+use Cake\Http\Response;
 
 class SqlSourcesController extends StandardPluginController {
   protected array $paginate = [
@@ -37,4 +39,25 @@ class SqlSourcesController extends StandardPluginController {
       'SqlSources.id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.2.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->SqlSources->ExternalIdentitySources->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->SqlSources->ExternalIdentitySources->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->SqlSources->ExternalIdentitySources->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

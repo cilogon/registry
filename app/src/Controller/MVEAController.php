@@ -36,6 +36,8 @@ use Cake\Utility\Inflector;
 use \App\Lib\Util\StringUtilities;
 
 class MVEAController extends StandardController {
+  use \App\Lib\Traits\BreadcrumbsTrait;
+
   /**
    * Callback run prior to the request action.
    *
@@ -58,16 +60,7 @@ class MVEAController extends StandardController {
       // or external_identity_role_id) we need to look up the further links.
       $primaryLink = $this->getPrimaryLink(true);
 
-      if($primaryLink->attr == 'person_id' || $primaryLink->attr == 'group_id') {
-        $this->Breadcrumb->injectPrimaryLink($primaryLink);
-      } else {
-        $parentModel = StringUtilities::foreignKeyToClassName($primaryLink->attr);
-
-        $parentPrimaryLink = $table->$parentModel->findPrimaryLink((int)$primaryLink->value);
-
-        $this->Breadcrumb->injectPrimaryLink($parentPrimaryLink);
-        $this->Breadcrumb->injectPrimaryLink($primaryLink);
-      }
+      $this->Breadcrumb->injectPrimaryLink($primaryLink);
       
       // Set up the supertitle and links for subnavigation
       if(!empty($primaryLink->value)) {
@@ -137,27 +130,72 @@ class MVEAController extends StandardController {
    * @since  COmanage Registry v5.0.0
    * @param  EventInterface $event Cake Event
    */
-  
+
   public function beforeRender(\Cake\Event\EventInterface $event) {
     /** var string $modelsName */
     $modelsName = $this->getName();
     $table = $this->getCurrentTable();
     // field = model (or model_name)
     $fieldName = Inflector::underscore(Inflector::singularize($modelsName));
-    
-    if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
-      // If there is a default type setting for this model, pass it to the view
-      if($table->getSchema()->hasColumn('type_id')) {
-        $defaultTypeField = "default_" . $fieldName . "_type_id";
-        
-        $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
-        
-        $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
-        
-        $this->set('vv_default_type', $settings->$defaultTypeField);
-      }
+
+    if($this->request->is('restful') || $this->request->getParam('action') === 'deleted') {
+      return parent::beforeRender($event);
     }
-    
+
+    // If there is a default type setting for this model, pass it to the view
+    if($table->getSchema()->hasColumn('type_id')) {
+      $defaultTypeField = "default_" . $fieldName . "_type_id";
+
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+      $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
+
+      $this->set('vv_default_type', $settings->$defaultTypeField);
+    }
+
+
+    // Person Breadcrumb link
+    // Get current breadcrumb parents
+    $vv_bc_parents = (array)$this->viewBuilder()->getVar('vv_bc_parents');
+
+    // Fetch the linked entity resolved by getPrimaryLink(true)
+    $plObj = $this->viewBuilder()->getVar('vv_primary_link_obj') ?? null;
+    if ($plObj === null) {
+      // No primary link object available; nothing to add
+      throw new \Exception('No primary link object available');
+    }
+
+    // Build additional parents for MVEA context
+    if ($plObj->person_id !== null) {
+      $mveaBreadcrumb = $this->buildMveaBreadcrumbs($plObj);
+    }
+
+    if (!empty($mveaBreadcrumb)) {
+      $this->set('vv_bc_parents', [...$mveaBreadcrumb, ...$vv_bc_parents]);
+    }
+
     return parent::beforeRender($event);
+  }
+
+  /**
+   * Build breadcrumb parents for MVEA pages based on the current primary link.
+   *
+   * Returns only the extra parents to prepend (eg: People index and the specific person),
+   * avoiding duplicates by checking existing vv_bc_parents.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @return array<string,array{label:string,target:array}>
+   */
+  protected function buildMveaBreadcrumbs($plObj): array
+  {
+    $table = $this->getCurrentTable();
+
+    // Resolve person_id via PrimaryLinkTrait helper on the table
+    $personId = (int)$table->lookupPersonId($plObj);
+    if (!$personId) {
+      return [];
+    }
+
+    return $this->buildPersonBreadcrumbs($personId, true);
   }
 }

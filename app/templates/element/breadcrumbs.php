@@ -81,8 +81,8 @@ if(!empty($vv_bc_parents)) {
 if(!empty($vv_bc_title_links)) {
   foreach($vv_bc_title_links as $tbc) {
     $this->Breadcrumbs->add(
-      $tbc['label'],
-      $tbc['target']
+      \App\Lib\Util\StringUtilities::stripActionPrefix($tbc['label']),
+      $tbc['target'],
     );
   }
 }
@@ -90,7 +90,7 @@ if(!empty($vv_bc_title_links)) {
 // Insert the page title
 if(!empty($vv_title)) {
   $this->Breadcrumbs->add(
-    $vv_title
+    \App\Lib\Util\StringUtilities::stripActionPrefix($vv_title),
   );
 }
 

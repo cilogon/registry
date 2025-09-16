@@ -82,8 +82,6 @@ class BreadcrumbComponent extends Component {
       return;
     }
 
-    $modelsName = $controller->getName();
-
     // Determine the request target, but strip off query params
     $requestTarget = $request->getRequestTarget(false);
 
@@ -110,12 +108,13 @@ class BreadcrumbComponent extends Component {
 
     $controller->set('vv_bc_skip_config', $skipConfig);
 
+    $table = $controller->getCurrentTable();
+
     // Do we have a target model, and if so is it a configuration
     // model (eg: ApiUsers) or an object model (eg: CoPeople)?
-    if(\is_object($controller->fetchTable($modelsName))
-       && method_exists($controller->fetchTable($modelsName), "isConfigurationTable")
+    if(method_exists($table, "isConfigurationTable")
     ) {
-      $controller->set('vv_bc_configuration_link', $controller->fetchTable($modelsName)->isConfigurationTable());
+      $controller->set('vv_bc_configuration_link', $table->isConfigurationTable());
     } else {
       $controller->set('vv_bc_configuration_link', false);
     }
@@ -141,7 +140,7 @@ class BreadcrumbComponent extends Component {
       if($action != 'index') {
         $target = [
           'plugin'     => $primaryLink->plugin ?? null,
-          'controller' => $modelsName,
+          'controller' => $controller->getName(),
           'action'     => 'index'
         ];
 
@@ -149,9 +148,11 @@ class BreadcrumbComponent extends Component {
           $target['?'] = [$primaryLink->attr => $primaryLink->value];
         }
 
-        $label = (!empty($primaryLink->plugin)
-          ? __d(Inflector::underscore($primaryLink->plugin), 'controller.'.$modelsName, [99])
-          : __d('controller', $modelsName, [99]));
+        $label = StringUtilities::localizeController(
+          $controller->getName(),
+          $primaryLink->plugin ?? null,
+          true
+        );
 
         $parents[] = [
           'label'   => $label,
@@ -175,114 +176,128 @@ class BreadcrumbComponent extends Component {
    *@since  COmanage Registry v5.0.0
    */
 
-  public function injectPrimaryLink(object $link, bool $index=true, string $linkLabel=null): void
+  public function injectPrimaryLink(object $link, bool $index = true, string $linkLabel = null): void
   {
+    $controller = $this->getController();
+    $request    = $controller->getRequest();
+
+    // Ensure null stays null; don’t coerce to 0
+    $idParam = $request->getParam('pass.0');
+    $id      = $idParam !== null ? (int)$idParam : null;
+
+    // Determine link model name, optionally overridden by the view
+    $linkModelName = $controller->viewBuilder()->getVar('vv_primary_link_model')
+      ?? StringUtilities::foreignKeyToClassName($link->attr);
+
+    // Fully-qualify with plugin if not already qualified
+    $linkModelFqn = StringUtilities::qualifyModelPath($linkModelName, $link->plugin ?? null);
+
+    // Permissions for current page and linked entity
+    $pagePermissions   = $controller->RegistryAuth->calculatePermissionsForView(id: $id);
+    $linkedPermissions = $controller->RegistryAuth->getTablePermissions(
+      table: $controller->fetchTable($linkModelFqn),
+      id:    (int)$link->value
+    );
+
     try {
-      // eg: "People"
-      $modelsName = StringUtilities::foreignKeyToClassName($link->attr);
-      if(!empty($this->getController()->viewBuilder()->getVar('vv_primary_link_model'))) {
-        // $link doesn't seem to handle table aliases (eg "Groups" instead of "RecipientGroups" for
-        // Notifications)). This may also return a plugin qualified path (eg SshKeyAuthenticator.SshKeyAuthenticators).
-        $modelsName = $this->getController()->viewBuilder()->getVar('vv_primary_link_model');
-      }
-      $modelPath = $modelsName;
+      // Map the current action to a canonical one for breadcrumbs/contains
+      $mappedAction = $this->mapActionForBreadcrumb(
+        requestAction: $request->getParam('action'),
+        currentId:     $id,
+        pagePermissions: $pagePermissions,
+        peopleActionOverride: function () use ($controller, $link, $linkedPermissions, $linkModelFqn): string {
+          // For People, derive edit/view based on roles and granted permissions
+          $alias = \Cake\ORM\TableRegistry::getTableLocator()->get($linkModelFqn)->getAlias();
+          if ($alias !== 'People') {
+            return '';
+          }
 
-      if(!empty($link->plugin) && !str_starts_with($modelsName, $link->plugin . '.')) {
-        // eg: "CoreEnroller.AttributeCollectors", however check first since we may have the
-        // path from vv_primary_link_model.
-        $modelPath = $link->plugin . '.' . $modelsName;
-      }
+          $roles = $controller->RegistryAuth->getApplicationUserRoles($link->co_id);
 
-      // Construct the get<Request Action>Contains function name
-      $requestAction = $this->getController()->getRequest()->getParam('action');
-      $mappedRequestAction = $requestAction;
-      // In the case we are dealing with non-standard actions we need to fallback to a standard one
-      // in order to get access to the contain array. We will use the permissions to decide which
-      // action to fall back to
-      if(!\in_array($requestAction, [
-        'index', 'view', 'delete', 'add', 'edit'
-      ])) {
-        $permissionsArray = $this->getController()->RegistryAuth->calculatePermissionsForView($requestAction);
-        $id               = $this->getController()->getRequest()->getParam('pass')[0] ?? null;
-        if (isset($id)) {
-          $mappedRequestAction = ( isset($permissionsArray['edit']) && $permissionsArray['edit'] ) ? 'edit' : 'view';
-        } else {
-          $mappedRequestAction = 'index';
+          $canEdit = (
+              in_array('platformAdmin', $linkedPermissions['entity']['edit'] ?? [], true) && !empty($roles['platform'])
+            ) || (
+              in_array('coAdmin', $linkedPermissions['entity']['edit'] ?? [], true) && !empty($roles['co'])
+            );
+
+          $canView = (
+              in_array('platformAdmin', $linkedPermissions['entity']['view'] ?? [], true) && !empty($roles['platform'])
+            ) || (
+              in_array('coAdmin', $linkedPermissions['entity']['view'] ?? [], true) && !empty($roles['co'])
+            );
+
+          return $canEdit ? 'edit' : ($canView ? 'view' : '');
         }
-      }
-      $containsList = 'get' . ucfirst($mappedRequestAction) . 'Contains';
+      );
 
-      $linkTable = TableRegistry::getTableLocator()->get($modelPath);
-      $contain = method_exists($linkTable, $containsList) ? $linkTable->$containsList() : [];
+      $linkTable = \Cake\ORM\TableRegistry::getTableLocator()->get($linkModelFqn);
+      $contain   = $this->resolveContainList($linkTable, $mappedAction);
 
-      // Use the table alias for query building (avoid plugin-qualified names in SQL)
+      // Normalize attr (people_id → id when the attr matches the model’s own foreign key)
       $modelAlias = $linkTable->getAlias();
+      $foreignKey = StringUtilities::classNameToForeignKey($modelAlias);
+      $linkAttr   = ($link->attr === $foreignKey) ? 'id' : $link->attr;
 
-      $modelNameForeignKey = StringUtilities::classNameToForeignKey($modelAlias);
-      $linkAttr = $link->attr == $modelNameForeignKey ? 'id' : $link->attr;
-      $linkObj = $linkTable
+      // Fetch the linked entity; if not found, handle gracefully
+      $linkedEntity = $linkTable
         ->find()
         ->where(["$modelAlias.$linkAttr" => $link->value])
         ->contain($contain)
         ->firstOrFail();
 
-      if($index) {
-        // We need to determine the primary link of the parent, which might or might
-        // not be co_id
+      // Optional parent index breadcrumb
+      if ($index && method_exists($linkTable, 'findPrimaryLink')) {
+        $parentLink = $linkTable->findPrimaryLink($linkedEntity->id);
 
-        if(method_exists($linkTable, "findPrimaryLink")) {
-          // If findPrimaryLink doesn't exist, we're probably working with CosTable
-
-          $parentLink = $linkTable->findPrimaryLink($linkObj->id);
-
-          $this->injectParents[ $modelPath . $parentLink->value] = [
-            'target' => [
-              'plugin'      => $parentLink->plugin ?? null,
-              'controller'  => $modelsName,
-              'action'      => 'index',
-              '?'           => [
-                $parentLink->attr => $parentLink->value
-              ]
-            ],
-            'label' => StringUtilities::localizeController(
-              controllerName: $modelsName,
-              pluginName:     $link->plugin ?? null,
-              plural:         true
-            )
-          ];
-        }
+        // https://comanage-ioi-dev.workbench.incommon.org/registry-pe/authenticators?co_id=2
+        $this->injectParents[strtolower($linkModelFqn) . ':index'] = [
+          'target' => [
+            'plugin'      => $parentLink->plugin ?? null,
+            'controller'  => $linkModelFqn,
+            'action'      => 'index',
+            '?'           => [
+              $parentLink->attr => $parentLink->value
+            ]
+          ],
+          'label' => StringUtilities::localizeController(
+            controllerName: $linkModelFqn,
+            pluginName:     $link->plugin ?? null,
+            plural:         true
+          )
+        ];
       }
 
-      // Find the allowed action
-      $breadcrumbAction = method_exists($linkObj, 'isReadOnly') ?
-                          ($linkObj->isReadOnly() ? 'view' : 'edit') :
-                          $mappedRequestAction;
+      // Determine target action for entity link
+      $breadcrumbAction = $this->determineEntityAction($linkedEntity, $mappedAction);
 
-      // We specifically need to check for the add action
-      if($mappedRequestAction == 'add' || $mappedRequestAction == 'delete') {
-        $breadcrumbAction = $mappedRequestAction;
-      }
+      // Build a human-friendly label
+      [$title] = StringUtilities::entityAndActionToTitle(
+        entity:    $linkedEntity,
+        modelPath: $linkModelFqn,
+        action:    $breadcrumbAction,
+        domain:    StringUtilities::pluginToTextDomain($link->plugin ?? null)
+      );
 
+      $title = StringUtilities::stripActionPrefix($title);
 
-      // The action in the following injectParents dictates the action here
-      [$title,,] = StringUtilities::entityAndActionToTitle($linkObj, $modelPath, $breadcrumbAction);
-
-      $this->injectParents[ $linkTable->getTable() . $linkObj->id ] = [
+      // Inject the entity breadcrumb (unique per table:id)
+      $this->injectParents[$this->composeEntityKey($linkTable->getTable(), (int)$linkedEntity->id)] = [
         'target' => [
-          'plugin'      => $link->plugin ?? null,
-          'controller'  => $modelsName,
-          'action'      => $breadcrumbAction,
-          $linkObj->id
+          'plugin'     => $link->plugin ?? null,
+          'controller' => $linkModelFqn,
+          'action'     => $breadcrumbAction,
+          (int)$linkedEntity->id
         ],
-        'label' => $linkLabel ?? $title
+        'label'  => $linkLabel ?? $title,
       ];
     }
-    catch(\Exception $e) {
-      // If anything goes wrong we don't want to crash the entire page
-      $this->llog('error', "Breadcrumbs failed: " . $e->getMessage());
-      $this->llog(
-        'error',
-        "Breadcrumbs failed: " . json_encode($e->getTrace(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
+      $this->llog('error', "Breadcrumbs: linked entity not found for $linkModelFqn {$link->attr}={$link->value}");
+    }
+    catch (\Throwable $e) {
+      // Never block rendering due to breadcrumbs
+      $this->llog('error', 'Breadcrumbs failed: ' . $e->getMessage());
+      $this->llog('error', json_encode($e->getTrace(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
   }
 
@@ -353,5 +368,86 @@ class BreadcrumbComponent extends Component {
   public function skipParents(array $skipPaths): void
   {
     $this->skipParentPaths = $skipPaths;
+  }
+
+  /**
+   * Resolves the contain list for a given table and mapped action
+   *
+   * @param \Cake\ORM\Table $table Table instance
+   * @param string $mappedAction Mapped action name
+   * @return array List of associations to contain
+   * @since  COmanage Registry v5.2.0
+ */
+  private function resolveContainList($table, string $mappedAction): array
+  {
+    $method = 'get' . ucfirst($mappedAction) . 'Contains';
+    return method_exists($table, $method) ? $table->$method() : [];
+  }
+
+  /**
+   * Maps the request action to a canonical action for breadcrumb purposes
+   *
+   * @param string $requestAction Current request action
+   * @param int|null $currentId Current entity ID
+   * @param array $pagePermissions Permissions for the current page
+   * @param callable $peopleActionOverride Override callback for People actions
+   * @return string Mapped action name
+   * @since  COmanage Registry v5.2.0
+   */
+  private function mapActionForBreadcrumb(
+    string $requestAction,
+    ?int $currentId,
+    array $pagePermissions,
+    callable $peopleActionOverride
+  ): string {
+    // Custom override for People if provided
+    $override = $peopleActionOverride();
+    if ($override !== '') {
+      return $override;
+    }
+
+    if (in_array($requestAction, ['index', 'view', 'delete', 'add', 'edit'], true)) {
+      return $requestAction;
+    }
+
+    if ($currentId !== null) {
+      return (!empty($pagePermissions['edit'])) ? 'edit' : 'view';
+    }
+
+    return 'index';
+  }
+
+  /**
+   * Determines the appropriate action for an entity in breadcrumbs
+   *
+   * @param \Cake\ORM\Entity $entity Entity instance
+   * @param string $mappedAction Mapped action name
+   * @return string Determined action name
+   * @since  COmanage Registry v5.2.0
+   */
+  private function determineEntityAction($entity, string $mappedAction): string
+  {
+    if ($mappedAction === 'add' || $mappedAction === 'delete') {
+      return $mappedAction;
+    }
+
+    if (method_exists($entity, 'isReadOnly')) {
+      return $entity->isReadOnly() ? 'view' : 'edit';
+    }
+
+    return $mappedAction;
+  }
+
+  /**
+   * Composes a unique key for entity breadcrumb entries
+   *
+   * @param string $tableName Table name
+   * @param int $id Entity ID
+   * @return string Composed key
+   * @since  COmanage Registry v5.2.0
+   */
+  private function composeEntityKey(string $tableName, int $id): string
+  {
+    return strtolower($tableName) . ':' . $id;
   }
 }

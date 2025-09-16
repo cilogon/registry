@@ -77,7 +77,12 @@ class SshKeysController extends MultipleAuthenticatorController {
     $this->set('vv_obj', $obj);
 
     // Default title is add new object
-    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, 'SshKeys', 'add');
+    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle(
+      $obj,
+      'SshKeys',
+      'add',
+      'ssh_key_authenticator'
+    );
     $this->set('vv_title', $title);
     $this->set('vv_supertitle', $supertitle);
     $this->set('vv_subtitle', $subtitle);

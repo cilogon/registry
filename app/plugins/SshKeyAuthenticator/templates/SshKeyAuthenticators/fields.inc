@@ -25,5 +25,9 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+declare(strict_types = 1);
+
+$this->Field->disableFormEditMode();
+
 // There are currently no configurable options for the SSH Key Authenticator
 print $this->element('notify/banner', ['info' => __d('information', 'plugin.config.none')]);

@@ -271,7 +271,7 @@ class AppController extends Controller {
    * @since  COmanage Registry v5.2.0
    * @return \Cake\ORM\Table
    */
-  protected function getCurrentTable(): \Cake\ORM\Table
+  public function getCurrentTable(): \Cake\ORM\Table
   {
     /** @var string $modelsName */
     $modelsName = $this->getName();

@@ -35,6 +35,8 @@ use App\Lib\Util\StringUtilities;
 
 // This isn't "StandardMultipleAuthenticatorController" to avoid name length issues
 class MultipleAuthenticatorController extends StandardPluginController {
+  use \App\Lib\Traits\BreadcrumbsTrait;
+
   // Cached info for redirect after delete
   private $redirectInfo = [];
   
@@ -83,7 +85,22 @@ class MultipleAuthenticatorController extends StandardPluginController {
    */
 
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    $this->set('vv_person_id', $this->requestParam('person_id'));
+    // Build and set breadcrumb parents via the new helper
+    $customParents = $this->buildAuthenticatorBreadcrumbs();
+
+    if (!empty($customParents)) {
+      // Get current breadcrumb parents
+      $vv_bc_parents = (array)$this->viewBuilder()->getVar('vv_bc_parents');
+      $vv_bc_parents = [...$customParents, ...$vv_bc_parents];
+      $this->set('vv_bc_parents', $vv_bc_parents);
+    }
+
+    $personId            = (int)($this->requestParam('person_id') ?? 0);
+    $authenticatorId     = (int)($this->requestParam('authenticator_id') ?? 0);
+    $authenticatorStatId = (int)($this->requestParam('authenticator_status_id') ?? 0);
+    $this->set('vv_person_id', $personId);
+    $this->set('vv_authenticator_id', $authenticatorId);
+    $this->set('vv_authenticator_status_id', $authenticatorStatId);
 
     return parent::beforeRender($event);
   }
@@ -164,7 +181,7 @@ class MultipleAuthenticatorController extends StandardPluginController {
     $this->populateAutoViewVars();
 
     // Default index view title is model name
-    [$title, , ] = StringUtilities::entityAndActionToTitle($resultSet, $modelsName, 'index');
+    $title = StringUtilities::localizeController($table->getAlias(), $this->plugin, true);
     $this->set('vv_title', $title);
     
     // Let the view render
@@ -238,5 +255,66 @@ class MultipleAuthenticatorController extends StandardPluginController {
     }
 
     return 'no';
-  }  
+  }
+
+  /**
+   * Build breadcrumb parents for multiple-authenticator pages based on query params.
+   *
+   * Order (when all IDs are present):
+   * - People → edit person
+   * - Authenticators → AuthenticatorStatuses index filtered by person
+   * - Current authenticator (eg: SSH Key) → Authenticators/manage with full query
+   *
+   * Keys are unique and stable to prevent duplicates when merged by other code.
+   *
+   * @since COmanage Registry v5.2.0
+   * @return array<string,array{label:string,target:array}> Breadcrumb parents
+   */
+  protected function buildAuthenticatorBreadcrumbs(): array
+  {
+    $personId            = (int)($this->requestParam('person_id') ?? 0);
+    $authenticatorId     = (int)($this->requestParam('authenticator_id') ?? 0);
+    $authenticatorStatId = (int)($this->requestParam('authenticator_status_id') ?? 0);
+
+    // Start with shared person-based crumbs
+    $parents = $this->buildPersonBreadcrumbs($personId, true);
+
+    // 2) AuthenticatorStatuses index filtered by person
+    if ($personId > 0) {
+      $parents['authenticatorstatuses:' . $personId] = [
+        'label'  => \App\Lib\Util\StringUtilities::localizeController('AuthenticatorStatuses', null, true),
+        'target' => [
+          'plugin'     => null,
+          'controller' => 'AuthenticatorStatuses',
+          'action'     => 'index',
+          '?'          => [ 'person_id' => $personId ],
+        ],
+      ];
+    }
+
+    // 3) The current authenticator (singular) → Authenticators/manage
+    if ($personId > 0 && $authenticatorId > 0 && $authenticatorStatId > 0) {
+      $label = \App\Lib\Util\StringUtilities::localizeController(
+        $this->getName(),             // current controller (e.g. SshKeys)
+        $this->getPlugin() ?: null,
+        false                         // singular
+      );
+
+      $parents['authenticators:manage:' . $authenticatorStatId . ':' . $authenticatorId . ':' . $personId] = [
+        'label'  => $label,
+        'target' => [
+          'plugin'     => null,
+          'controller' => 'Authenticators',
+          'action'     => 'manage',
+          '?'          => [
+            'authenticator_status_id' => $authenticatorStatId,
+            'authenticator_id'        => $authenticatorId,
+            'person_id'               => $personId,
+          ],
+        ],
+      ];
+    }
+
+    return $parents;
+  }
 }

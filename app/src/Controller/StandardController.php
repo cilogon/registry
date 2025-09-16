@@ -152,7 +152,11 @@ class StandardController extends AppController {
 
       $primaryLink = $this->getPrimaryLink(true);
 
-      if(!empty($primaryLink->attr) && $primaryLink->attr != 'co_id') {
+      if(
+        !is_subclass_of($event->getSubject(), \App\Controller\StandardPluginController::class)
+        && !empty($primaryLink->attr)
+        && $primaryLink->attr != 'co_id'
+      ) {
         // eg: EnrollmentFlowSteps -> EnrollmentFlow, JobHistoryRecords -> Job, etc
         $this->Breadcrumb->injectPrimaryLink($primaryLink);
       }
@@ -201,9 +205,9 @@ class StandardController extends AppController {
         $id = (int)$params[0];
       }
     }
-    
-    $this->set('vv_permissions', $this->RegistryAuth->calculatePermissionsForView($this->request->getParam('action'), $id));
-    
+
+    $this->set('vv_permissions', $this->RegistryAuth->calculatePermissionsForView($this->request->getParam('action'), (int)$id));
+
     // The template path may vary if we're in a plugin context
     $vv_template_path = ROOT . DS . "templates" . DS . $modelsName;
 
@@ -420,8 +424,8 @@ class StandardController extends AppController {
 
         try{
           // Attempt the update the record
-          $table->patchEntity($saveObj, $this->request->getData(), $opts); 
-          
+          $table->patchEntity($saveObj, $this->request->getData(), $opts);
+
           // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
           // in afterSave
           if($table->save($saveObj)) {
@@ -447,8 +451,8 @@ class StandardController extends AppController {
         }
         
         if(!empty($errors)) {
-          $this->Flash->error(__d('error', 'fields', [ implode(',', 
-                                                                 array_map(function($v) use ($errors) { 
+          $this->Flash->error(__d('error', 'fields', [ implode(',',
+                                                                 array_map(function($v) use ($errors) {
                                                                              return __d('error', 'flash', [$v, implode(',', array_values($errors[$v]))]);
                                                                            },
                                                                            array_keys($errors))) ]));
@@ -464,7 +468,7 @@ class StandardController extends AppController {
     }
     
     $this->set('vv_obj', $obj);
-    $this->set('vv_permission_view', $this->RegistryAuth->calculatePermissionsForView('edit', $obj->id));
+    $this->set('vv_permission_view', $this->RegistryAuth->calculatePermissionsForView('edit', (int)$obj->id));
     // XXX should we also set '$model'? cake seems to autopopulate edit fields just fine without it
     //     note index() uses $tableName, not 'vv_objs' or event 'vv_table_name'
     
@@ -475,7 +479,7 @@ class StandardController extends AppController {
     $this->populateAutoViewVars($obj);
 
     // Calculate and set title, supertitle and subtitle
-    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, $modelsName, 'edit');
+    [$title, $supertitle, $subtitle] = StringUtilities::entityAndActionToTitle($obj, $table->getRegistryAlias(), 'edit');
 
     // We might have calculated the following values earlier. For example, MVEAController runs before the StandarController
     // and makes similar calculations. We will keep the ones calculated before we get here
@@ -694,8 +698,8 @@ class StandardController extends AppController {
   }
 
   /**
-   * Handle a provisioning request for a Standard object.  
-   * 
+   * Handle a provisioning request for a Standard object.
+   *
    * @since  COmanage Registry v5.0.0
    * @param  string $id Object ID
    */
@@ -703,8 +707,6 @@ class StandardController extends AppController {
   public function provision($id) {
     /** var Cake\ORM\Table $table */
     $table = $this->getCurrentTable();
-    // $tableName = models
-    $tableName = $table->getTable();
 
     // Note that only Primary Models support provisioning, but those that
     // don't won't have permission to execute this function.
@@ -738,7 +740,7 @@ class StandardController extends AppController {
 
   /**
    * Unfreeze a frozen record.
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  string $id Entity ID
    */
@@ -777,8 +779,6 @@ class StandardController extends AppController {
     $modelsName = $this->getName();
     /** var Cake\ORM\Table $table */
     $table = $this->getCurrentTable();
-    // $tableName = models
-    $tableName = $table->getTable();
     
     // We use findById() rather than get() so we can apply subsequent
     // query modifications via traits
@@ -800,7 +800,7 @@ class StandardController extends AppController {
     }
     
     $this->set('vv_obj', $obj);
-    $this->set('vv_permission_view', $this->RegistryAuth->calculatePermissionsForView('view', $obj->id));
+    $this->set('vv_permission_view', $this->RegistryAuth->calculatePermissionsForView('view', (int)$obj->id));
 
     // PrimaryLinkTrait
     $this->getPrimaryLink();

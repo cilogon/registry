@@ -49,20 +49,21 @@ declare(strict_types = 1);
 
 namespace App\Controller\Component;
 
+use App\Model\Entity;
+use \App\Lib\Enum\AuthenticationEventEnum;
+use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Enum\TemplateableStatusEnum;
+use \Cake\Chronos\Chronos;
 use \Cake\Controller\Component;
 use \Cake\Core\Configure;
-use \Cake\Chronos\Chronos;
 use \Cake\Datasource\Exception\RecordNotFoundException;
+use \Cake\Datasource\Paging\PaginatedResultSet;
 use \Cake\Event\EventInterface;
 use \Cake\Http\Exception\ForbiddenException;
 use \Cake\Http\Exception\UnauthorizedException;
 use \Cake\ORM\ResultSet;
-use \Cake\Datasource\Paging\PaginatedResultSet;
 use \Cake\ORM\TableRegistry;
 use \Cake\Utility\Inflector;
-use \App\Lib\Enum\AuthenticationEventEnum;
-use \App\Lib\Enum\SuspendableStatusEnum;
-use \App\Lib\Enum\TemplateableStatusEnum;
 
 class RegistryAuthComponent extends Component
 {
@@ -594,13 +595,13 @@ class RegistryAuthComponent extends Component
   /**
    * Calculate permissions for use in a view.
    *
-   * @param string $action Action requested
+   * @param string|null $action Action requested
    * @param int|null $id Subject id, if applicable
    * @return array          Array of permissions, suitable for the view
    * @since  COmanage Registry v5.0.0
    */
   
-  public function calculatePermissionsForView(string $action, ?int $id=null): array {
+  public function calculatePermissionsForView(?string $action = null, ?int $id=null): array {
     return $this->calculatePermissions($id);
   }
 
@@ -731,7 +732,7 @@ class RegistryAuthComponent extends Component
    * @return array          Table permissions
    */
   
-  protected function getTablePermissions($table, ?int $id): array {
+  public function getTablePermissions($table, ?int $id): array {
     $p = $table->getPermissions();
     
     if(is_callable($p)) {

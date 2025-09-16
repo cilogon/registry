@@ -133,6 +133,21 @@ class StringUtilities {
   }
 
   /**
+   * Determines the translation domain for a plugin
+   *
+   * @param string|null $plugin Plugin name
+   * @return string Translation domain
+   * @since  COmanage Registry v5.2.0
+   */
+  public static function pluginToTextDomain(?string $plugin): string
+  {
+    if (empty($plugin)) {
+      return 'operation';
+    }
+    return \Cake\Utility\Inflector::singularize(\Cake\Utility\Inflector::tableize($plugin));
+  }
+
+  /**
    * Determine the class basename of a Cake Entity.
    * 
    * @since  COmanage Registry v5.0.0
@@ -172,82 +187,135 @@ class StringUtilities {
    * - in all other cases the message id is constructed by the displayField. Either it is defined or dynamically
    *   constructed
    *
-   * @param   Entity|null  $entity     Entity object
-   * @param   string       $modelPath  The path of the Model, from core Models it is the Model Name. For plugins it is the Plugin.ModelName
-   * @param   string|null  $action     Request Action
-   * @param   string       $domain     The po file the message ID is located in
+   * @param   Entity|null  $entity         Entity object
+   * @param   string|null  $modelPath      The path of the Model, from core Models it is the Model Name. For plugins it is the Plugin.ModelName
+   * @param   string|null  $action         Request Action
+   * @param   string       $domain         The po file the message ID is located in
    *
    * @return array                 List of title, supertitle, subtitle
    */
   public static function entityAndActionToTitle($entity,
-                                                string $modelPath,
+                                                ?string $modelPath,
                                                 ?string $action,
-                                                string $domain='operation'): array {
+                                                string $domain = 'operation'): array {
+
+    if($entity === null && $modelPath === null) {
+      return [__d($domain, "$action", [99]), '', ''];
+    }
+
+    // Initialize return slots
     $supertitle = '';
     $subtitle   = '';
     $title      = '';
 
-    if($entity === null) {
-      return [__d($domain, "{$modelPath}.{$action}"), '', ''];
-    }
-
+    // Extract plugin and model names: "Plugin.Model" → ["Plugin", "Model"]
     $plugin = '';
     $modelsName = $modelPath;
     if(str_contains($modelPath, '.')) {
       [$plugin, $modelsName] = explode('.', $modelPath, 2);
     }
 
-    $linkTable  = TableRegistry::getTableLocator()->get($modelPath);
-    $msgId = "{$action}.a";
-    $msgIdOverride = "{$action}.{$modelsName}.a";
+    if($entity == null && !empty($plugin)) {
+      $count = $action == 'index' ? 99 : 1;
+      return [__d($domain, "controller.$modelsName", [$count]), '', ''];
+    } elseif($entity === null) {
+      $count = $action == 'index' ? 99 : 1;
+      return [__d($domain, "{$modelPath}.{$action}", [$count]), '', ''];
+    }
+     // Base table and default message IDs for translation
+    $linkTable      = TableRegistry::getTableLocator()->get($modelPath);
+    $msgId          = "{$action}.a";               // eg: "edit.a"
+    $msgIdOverride  = "{$action}.{$modelsName}.a"; // eg: "edit.People.a"
+    // If the model is a configuration table and a plugin, we render Configure instead of Edit
+    if (method_exists($linkTable, 'isConfigurationTable')
+      && $linkTable->isConfigurationTable()
+      && str_contains($linkTable->getRegistryAlias(), '.')
+    ) {
+      $msgId          = "configure.a";               // eg: "edit.a"
+      $msgIdOverride  = "configure.{$modelsName}.a"; // eg: "edit.People.a"
+    }
 
+    // If the entity actually belongs to a different model than the provided $modelsName,
+    // switch to that table and adjust the default message id pattern accordingly.
+    // This is necessary for TAB oriented views
     if(Inflector::singularize(self::entityToClassName($entity)) !== Inflector::singularize($modelsName)) {
       $linkTable  = TableRegistry::getTableLocator()->get(self::entityToClassName($entity));
-      // if the modelPath and the action are equal then we skip the concatenation
+      // If modelPath and action are equal, don’t concatenate (preserve legacy behavior)
       $msgId = $modelPath === $action ? $modelPath : "{$modelPath}.{$action}";
     }
 
+    // 2) No action → default to the controller label for the model (singular)
     if($action === null) {
       return [__d('controller', $modelsName), '', ''];
     }
 
-    // Index view
+    // 3) Index view → use the controller plural form (token 99 convention)
     if($action === 'index') {
-      // 99 is the default for plural
+      if(!empty($plugin)) {
+        return [__d($domain, "controller.$modelsName", [99]), '', ''];
+      }
       return [__d('controller', $modelsName, [99]), '', ''];
     }
 
     // Add/Edit/View
-    // The MVEA Models have a entityId. The one from the parent model.
+    // The MVEA Models have an entityId. The one from the parent model.
     // We need to have a condition for this and exclude it.
-    if($entity->id !== null
-       && $action !== 'add'
-       && $action !== 'delete'
-       && method_exists($linkTable, 'generateDisplayField')) {
-      // We don't use a trait for this since each table will implement different logic
-
-      $title = __d($domain, $msgIdOverride, $linkTable->generateDisplayField($entity));
-      if ($msgIdOverride === $title) {
-        $title = __d($domain, $msgId, $linkTable->generateDisplayField($entity));
-      }
-      $supertitle = $linkTable->generateDisplayField($entity);
-      // Pass the display field also into subtitle for dealing with External IDs
-      $subtitle = $linkTable->generateDisplayField($entity);
+    $display = null;
+    if (method_exists($linkTable, 'generateDisplayField')) {
+      $display = $linkTable->generateDisplayField($entity);
     } else {
-      // Default view title is edit object display field
       $field = $linkTable->getDisplayField();
-
-      if(!empty($entity->$field)) {
-        $title = __d($domain, $msgIdOverride, $entity->$field);
-        if($msgIdOverride === $title) {
-          $title = __d($domain, $msgId, $entity->$field);
-        }
-      } else {
-        $title = __d($domain, $msgId, __d('controller', $modelsName, [1]));
-      }
+      $display = $entity->$field ?? null;
     }
 
+    // 6) Edit/View-like case for an existing entity with a usable display
+    // Title: translate with override key first; if not found, fall back to default key.
+    // Super/Sub titles: set to the display (needed for External IDs in UI).
+    if (
+      $entity->id !== null &&
+      $action !== 'add' &&
+      $action !== 'delete' &&
+      $display !== null
+    ) {
+      $title = self::translateWithOverride($domain, $msgIdOverride, $msgId, $display);
+      $supertitle = $display;
+      $subtitle   = $display;
+
+      return [$title, $supertitle, $subtitle];
+    }
+
+    // 7) Fallbacks:
+    // - New entities (no id),
+    // - Add/Delete actions,
+    // - Or we simply lack a display.
+    // Use the display if we have it; otherwise singular controller label for the model.
+    $displayOrDefault = $display ?? __d('controller', $modelsName, [1]);
+    $title = self::translateWithOverride($domain, $msgIdOverride, $msgId, $displayOrDefault);
+
     return [$title, $supertitle, $subtitle];
+  }
+
+
+  /**
+   * Attempts to translate a message using an override key first, falling back to a default key if not found.
+   *
+   * @param string $domain Translation domain to use
+   * @param string $overrideKey Primary translation key to try first
+   * @param string $fallbackKey Fallback translation key if override not found
+   * @param string $value Value to substitute in translation
+   * @return string            Translated string using either override or fallback key
+   * @since  COmanage Registry v5.2.0
+   */
+  private static function translateWithOverride(
+    string $domain,
+    string $overrideKey,
+    string $fallbackKey,
+    string|int $value
+  ): string {
+    $translated = __d($domain, $overrideKey, $value);
+    return ($translated === $overrideKey)
+      ? __d($domain, $fallbackKey, $value)
+      : $translated;
   }
 
   /**
@@ -300,6 +368,22 @@ class StringUtilities {
   }
 
   /**
+   * Qualifies a model path with its plugin name if not already qualified
+   *
+   * @param string $modelPath Model path to qualify
+   * @param string|null $plugin Plugin name
+   * @since  COmanage Registry v5.2.0
+   * @return string Fully qualified model path
+   */
+  public static function qualifyModelPath(string $modelPath, ?string $plugin): string
+  {
+    if (empty($plugin) || str_starts_with($modelPath, $plugin . '.')) {
+      return $modelPath;
+    }
+    return $plugin . '.' . $modelPath;
+  }
+
+  /**
    * Determine the model component of a Plugin path.
    * 
    * @since  COmanage Registry v5.0.0
@@ -338,6 +422,18 @@ class StringUtilities {
 
   public static function pluginToEntityField(string $plugin): string {
     return Inflector::singularize(Inflector::underscore(self::pluginModel($plugin)));
+  }
+
+  /**
+   * Strips action prefix (Edit|Delete|View) from a title
+   *
+   * @param string $title Title to process
+   * @return string Title without action prefix
+   * @since  COmanage Registry v5.2.0
+   */
+  public static function stripActionPrefix(string $title): string
+  {
+    return preg_replace('/^(Edit|Delete|View)\s+/u', '', $title) ?? $title;
   }
 
   /**
