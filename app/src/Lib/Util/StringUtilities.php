@@ -132,6 +132,33 @@ class StringUtilities {
     return ($cfield !== $c) ? $cfield : \Cake\Utility\Inflector::humanize($c);
   }
 
+    /**
+   * Convert a database column name to an auto view variable name
+   *
+   * @param string $column Database column name to convert
+   * @return string Converted view variable name
+   * @since  COmanage Registry v5.2.0
+   */
+  public static function columnToAutoViewVar(string $column): string {
+    // strip trailing _type_id if present, else _id
+    $base = preg_replace('/_type_id$/', '', $column);
+    $base = preg_replace('/_id$/', '', $base);
+
+    // if it originally was *_type_id, we want “...Types”
+    $isType = str_ends_with($column, '_type_id');
+
+    // convert snake_case to camelCase
+    $camel = Inflector::variable($base); // eg email_address -> emailAddress
+
+    if ($isType) {
+      // ensure a plural sense by appending “Types” (matches repo usage)
+      return $camel . 'Types';
+    }
+
+    // default pluralization
+    return Inflector::variable(Inflector::pluralize($base));
+  }
+
   /**
    * Determines the translation domain for a plugin
    *

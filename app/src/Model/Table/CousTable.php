@@ -49,7 +49,7 @@ class CousTable extends Table {
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  
+
   /**
    * Perform Cake Model initialization.
    *
@@ -116,12 +116,6 @@ class CousTable extends Table {
     ]);
 
     $this->setFilterConfig([
-     'identifier' => [
-       'type' => 'string',
-       'model' => 'Identifiers',
-       'active' => true,
-       'order' => 4
-     ],
      'parent_id' => [
        // We want to keep the default column configuration and add extra functionality.
        // Here the extra functionality is additional to select options since the parent_id

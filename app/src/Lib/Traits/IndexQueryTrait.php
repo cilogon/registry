@@ -174,9 +174,7 @@ trait IndexQueryTrait {
 
     // Attributes to search for
     if(method_exists($table, 'getSearchableAttributes')) {
-      $searchableAttributes = $table->getSearchableAttributes($this->name,
-                                                              $this->viewBuilder()
-                                                                   ->getVar('vv_tz'));
+      $searchableAttributes = $table->getSearchableAttributes($this->name, $this->viewBuilder());
 
       // Extra View Variables
       foreach ($table->getViewVars() as $key => $variable) {

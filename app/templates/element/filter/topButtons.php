@@ -27,6 +27,7 @@
 
 declare(strict_types = 1);
 
+use App\Lib\Util\StringUtilities;
 use Cake\Utility\{Inflector, Hash};
 
 // Construct aria-controls string
@@ -41,7 +42,7 @@ if ($data_identifier === 'person_id') {
 
 // The populated variables are in plural while the column names are singular
 // Convention: It is a prerequisite that the vvar should be the plural of the column name
-$populated_vvar = lcfirst(Inflector::pluralize(Inflector::camelize($key)));
+$populated_vvar = StringUtilities::columnToAutoViewVar($key);
 $button_label = 'Range';
 if(isset($$populated_vvar) && isset($$populated_vvar[$params])) {
   // Get label name from AutoViewPopulated vars

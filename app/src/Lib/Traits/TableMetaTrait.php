@@ -199,6 +199,7 @@ trait TableMetaTrait {
       'lft',  // XXX For now i skip lft.rght column for tree structures
       'rght',
       'api_key',
+      'adopted_person_id',
       // XXX maybe replace this with a regex, source_*_id?
       'source_ad_hoc_attribute_id',
       'source_address_id',

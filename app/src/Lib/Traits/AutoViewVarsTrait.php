@@ -33,7 +33,6 @@ use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\FunctionUtilities;
 use App\Lib\Util\StringUtilities;
 use Cake\ORM\TableRegistry;
-use Cake\Utility\Hash;
 
 trait AutoViewVarsTrait {
   // Array (and configuration) of view variables to automatically populate

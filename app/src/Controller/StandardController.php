@@ -640,6 +640,8 @@ class StandardController extends AppController {
     $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
+    // AutoViewVarsTrait
+    $this->populateAutoViewVars();
     // Construct the Query
     $query = $this->getIndexQuery();
 
@@ -667,8 +669,6 @@ class StandardController extends AppController {
     // Pass vars to the View
     $this->set($tableName, $resultSet);
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));
-    // AutoViewVarsTrait
-    $this->populateAutoViewVars();
 
     // Default index view title is model name
     [$title, , ] = StringUtilities::entityAndActionToTitle($resultSet, $modelsName, 'index');

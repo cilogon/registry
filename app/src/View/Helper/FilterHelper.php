@@ -29,9 +29,10 @@ declare(strict_types = 1);
 
 namespace App\View\Helper;
 
+use App\Lib\Util\StringUtilities;
 use Cake\Collection\Collection;
 use Cake\ORM\TableRegistry;
-use Cake\Utility\{Inflector, Hash};
+use Cake\Utility\Hash;
 use Cake\View\Helper;
 
 class FilterHelper extends Helper
@@ -50,7 +51,7 @@ class FilterHelper extends Helper
     $populatedVarData = $this->getView()->get(
     // The populated variables are in plural while the column names are singular
     // Convention: It is a prerequisite that the vvar should be the plural of the column name
-      lcfirst(Inflector::pluralize(Inflector::camelize($columnName)))
+      StringUtilities::columnToAutoViewVar($columnName)
     );
 
     // Field options

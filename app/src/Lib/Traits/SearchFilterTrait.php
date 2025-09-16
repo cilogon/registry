@@ -33,9 +33,10 @@ use App\Lib\Util\StringUtilities;
 use Bake\Utility\Model\AssociationFilter;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Http\ServerRequest;
+use Cake\I18n\FrozenTime;
 use Cake\ORM\Query;
 use Cake\Utility\Inflector;
-use Cake\I18n\FrozenTime;
+use Cake\View\ViewBuilder;
 
 trait SearchFilterTrait {
   /**
@@ -233,11 +234,12 @@ trait SearchFilterTrait {
    *
    * @since  COmanage Registry v5.0.0
    * @param  string       $controller Controller name
-   * @param  DateTimeZone $vv_tz      Current time zone, if known
+   * @param  ViewBuilder  $viewBuilder View Builder Object
    * @return array Array of permitted search attributes and configuration elements needed for display
    */
 
-  public function getSearchableAttributes(string $controller, \DateTimeZone $vv_tz=null): array {
+  public function getSearchableAttributes(string $controller, ViewBuilder $viewBuilder): array {
+    $vv_tz = $viewBuilder->getVar('vv_tz') ?? null;
     $modelname = Inflector::classify(Inflector::underscore($controller));
     $filterConfig = $this->getFilterConfig();
 
