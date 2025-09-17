@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace SshKeyAuthenticator\Controller;
 
+use Cake\Event\EventInterface;
 use Cake\ORM\TableRegistry;
 use App\Controller\MultipleAuthenticatorController;
 use App\Lib\Util\StringUtilities;

@@ -227,7 +227,8 @@ class BreadcrumbComponent extends Component {
             );
 
           return $canEdit ? 'edit' : ($canView ? 'view' : '');
-        }
+        },
+        forChainItem: true
       );
 
       $linkTable = \Cake\ORM\TableRegistry::getTableLocator()->get($linkModelFqn);
@@ -249,11 +250,10 @@ class BreadcrumbComponent extends Component {
       if ($index && method_exists($linkTable, 'findPrimaryLink')) {
         $parentLink = $linkTable->findPrimaryLink($linkedEntity->id);
 
-        // https://comanage-ioi-dev.workbench.incommon.org/registry-pe/authenticators?co_id=2
         $this->injectParents[strtolower($linkModelFqn) . ':index'] = [
           'target' => [
-            'plugin'      => $parentLink->plugin ?? null,
-            'controller'  => $linkModelFqn,
+            'plugin'      => $parentLink->plugin ?? StringUtilities::blankToNull(StringUtilities::pluginPlugin($linkModelFqn)) ?? null,
+            'controller'  => StringUtilities::pluginModel($linkModelFqn),
             'action'      => 'index',
             '?'           => [
               $parentLink->attr => $parentLink->value
@@ -283,9 +283,9 @@ class BreadcrumbComponent extends Component {
       // Inject the entity breadcrumb (unique per table:id)
       $this->injectParents[$this->composeEntityKey($linkTable->getTable(), (int)$linkedEntity->id)] = [
         'target' => [
-          'plugin'     => $link->plugin ?? null,
-          'controller' => $linkModelFqn,
-          'action'     => $breadcrumbAction,
+          'plugin'      => $parentLink->plugin ?? StringUtilities::blankToNull(StringUtilities::pluginPlugin($linkModelFqn)) ?? null,
+          'controller'  => StringUtilities::pluginModel($linkModelFqn),
+          'action'      => $breadcrumbAction,
           (int)$linkedEntity->id
         ],
         'label'  => $linkLabel ?? $title,
@@ -391,6 +391,7 @@ class BreadcrumbComponent extends Component {
    * @param int|null $currentId Current entity ID
    * @param array $pagePermissions Permissions for the current page
    * @param callable $peopleActionOverride Override callback for People actions
+   * @param bool $forChainItem Explicit call for a chain item (e.g. add)
    * @return string Mapped action name
    * @since  COmanage Registry v5.2.0
    */
@@ -398,23 +399,30 @@ class BreadcrumbComponent extends Component {
     string $requestAction,
     ?int $currentId,
     array $pagePermissions,
-    callable $peopleActionOverride
+    callable $peopleActionOverride,
+    bool $forChainItem
   ): string {
-    // Custom override for People if provided
     $override = $peopleActionOverride();
     if ($override !== '') {
       return $override;
     }
 
-    if (in_array($requestAction, ['index', 'view', 'delete', 'add', 'edit'], true)) {
-      return $requestAction;
+    if ($forChainItem) {
+      // Never render 'add' for chain items
+      if ($requestAction === 'add') {
+        return 'index';
+      }
+      // If the current page is edit/view/delete (and thus has an entity), prefer edit/view
+      if (in_array($requestAction, ['edit', 'view', 'delete'], true) && $currentId !== null) {
+        return (!empty($pagePermissions['edit'])) ? 'edit' : 'view';
+      }
+      return in_array($requestAction, ['index', 'view', 'delete', 'edit'], true)
+        ? $requestAction
+        : 'index';
     }
 
-    if ($currentId !== null) {
-      return (!empty($pagePermissions['edit'])) ? 'edit' : 'view';
-    }
-
-    return 'index';
+    // If you ever reuse this for non-chain items, decide appropriate behavior here
+    return $requestAction;
   }
 
   /**
@@ -427,15 +435,17 @@ class BreadcrumbComponent extends Component {
    */
   private function determineEntityAction($entity, string $mappedAction): string
   {
-    if ($mappedAction === 'add' || $mappedAction === 'delete') {
-      return $mappedAction;
+    // Only allow 'delete' to pass through; never return 'add' for existing entities
+    if ($mappedAction === 'delete') {
+      return 'delete';
     }
 
     if (method_exists($entity, 'isReadOnly')) {
       return $entity->isReadOnly() ? 'view' : 'edit';
     }
 
-    return $mappedAction;
+    // Fall back to mapped action when not 'add'/'delete'
+    return $mappedAction === 'add' ? 'view' : $mappedAction;
   }
 
   /**

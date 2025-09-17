@@ -39,6 +39,7 @@ class SshKeyAuthenticatorsTable extends Table {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
@@ -74,6 +75,14 @@ class SshKeyAuthenticatorsTable extends Table {
     $this->setPrimaryLink('authenticator_id');
     $this->setRequiresCO(true);
 
+    $this->setEditContains([
+      'Authenticators',
+    ]);
+
+    $this->setViewContains([
+      'Authenticators',
+    ]);
+
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
@@ -87,6 +96,17 @@ class SshKeyAuthenticatorsTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+  }
+
+  /**
+   * Table specific logic to generate a display field.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param \SshKeyAuthenticator\Model\Entity\SshKeyAuthenticator $entity Entity to generate display field for
+   * @return string         Display field
+   */
+  public function generateDisplayField(\SshKeyAuthenticator\Model\Entity\SshKeyAuthenticator $entity): string {
+    return $entity->authenticator->description;
   }
 
   /**

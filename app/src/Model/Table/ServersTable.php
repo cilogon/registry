@@ -58,7 +58,9 @@ class ServersTable extends Table {
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
-    
+
+    // XXX This is set to be a primary table. Nevertheless we access it via the configuration view
+    // and when clicked we do not get the configuration breadcrumb.???
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Primary);
     
     // Define associations

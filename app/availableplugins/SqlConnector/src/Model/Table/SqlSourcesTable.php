@@ -45,6 +45,7 @@ class SqlSourcesTable extends Table {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -106,6 +107,16 @@ class SqlSourcesTable extends Table {
     
     $this->setPrimaryLink(['external_identity_source_id']);
     $this->setRequiresCO(true);
+
+    $this->setEditContains([
+      'Servers' => ['SqlServers'],
+      'ExternalIdentitySources',
+    ]);
+
+    $this->setViewContains([
+      'Servers' => ['SqlServers'],
+      'ExternalIdentitySources',
+    ]);
     
     $this->setAutoViewVars([
       'addressTypes' => [
@@ -229,6 +240,18 @@ class SqlSourcesTable extends Table {
 
     return false;
   }
+
+  /**
+   * Table specific logic to generate a display field.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  \SqlConnector\Model\Entity\SqlSource $entity Entity to generate display field for
+   * @return string         Display field
+   */
+  public function generateDisplayField(\SqlConnector\Model\Entity\SqlSource $entity): string {
+    return __d('sql_connector', 'display.SqlSource', [$entity->external_identity_source->description]);
+  }
+
 
   /**
    * Obtain the set of changed records from the source database.

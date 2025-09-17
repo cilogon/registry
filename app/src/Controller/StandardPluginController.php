@@ -67,9 +67,14 @@ class StandardPluginController extends StandardController {
           $this->Breadcrumb->skipConfig(['/^\//']);
         }
 
-        // The authenticator routes have a unique patern. We will not inject the Breadcrumb here but
+        // The authenticator routes have a unique pattern. We will not inject the Breadcrumb here, but
         // we will construct it in the MultipleAuthtenticatorController.
-        if(!str_ends_with($primaryLink->attr, '_authenticator_id')) {
+        // For very deep breadcrumbs we need to skip the generic rule
+        // and allow the controller to handle it.
+        if(
+          !str_ends_with($primaryLink->attr, '_authenticator_id')
+          && !str_ends_with($primaryLink->attr, '_server_id')
+        ) {
           $this->Breadcrumb->injectPrimaryLink($primaryLink);
         }
       }

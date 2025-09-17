@@ -30,12 +30,44 @@ declare(strict_types=1);
 namespace CoreServer\Controller;
 
 use App\Controller\StandardPluginController;
+use App\Lib\Util\StringUtilities;
 use Cake\Event\EventInterface;
 
 class MatchServerAttributesController extends StandardPluginController {
+  use \App\Lib\Traits\BreadcrumbsTrait;
+
   protected array $paginate = [
     'order' => [
       'MatchServerAttributes.attribute' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
+   */
+
+  public function beforeRender(\Cake\Event\EventInterface $event)
+  {
+    // Build standard server breadcrumbs from *_server_id
+    $customParents = $this->buildServerParamBreadcrumbs();
+
+    if (!empty($customParents)) {
+      $vv_bc_parents = (array)$this->viewBuilder()->getVar('vv_bc_parents');
+      $vv_bc_parents = [...$customParents, ...$vv_bc_parents];
+      $this->set('vv_bc_parents', $vv_bc_parents);
+    }
+
+    $title = __d('core_server', 'controller.MatchServerAttributes', [99]);
+    if(in_array($this->request->getParam('action'), ['add', 'edit'])) {
+      $title = __d('operation', strtolower($this->request->getParam('action')) . '.a', [$title]);
+    }
+
+    $this->set('vv_title', $title);
+
+    return parent::beforeRender($event);
+  }
 }

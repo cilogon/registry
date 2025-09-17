@@ -40,6 +40,7 @@ class EnvSourcesTable extends Table {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -96,6 +97,14 @@ class EnvSourcesTable extends Table {
     
     $this->setPrimaryLink(['external_identity_source_id']);
     $this->setRequiresCO(true);
+
+    $this->setEditContains([
+      'ExternalIdentitySources',
+    ]);
+
+    $this->setViewContains([
+      'ExternalIdentitySources',
+    ]);
 
     // All the tabs share the same configuration in the ModelTable file
     $this->setTabsConfig(
@@ -154,6 +163,17 @@ class EnvSourcesTable extends Table {
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
     ]);
+  }
+
+  /**
+   * Table specific logic to generate a display field.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param \EnvSource\Model\Entity\EnvSource $entity Entity to generate display field for
+   * @return string         Display field
+   */
+  public function generateDisplayField(\EnvSource\Model\Entity\EnvSource $entity): string {
+    return __d('env_source', 'display.EnvSource', [$entity->external_identity_source->description]);
   }
 
   /**

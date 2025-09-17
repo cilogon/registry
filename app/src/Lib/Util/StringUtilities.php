@@ -58,6 +58,23 @@ class StringUtilities {
     return $dtoken;
   }
 
+
+  /**
+   * Convert empty or whitespace-only strings to null.
+   * Trims the input string and returns null if empty after trimming.
+   *
+   * @param string|null $s String to process
+   * @return string|null    Trimmed string or null if empty
+   * @since  COmanage Registry v5.2.0
+   */
+  public static function blankToNull(?string $s): ?string {
+    if ($s === null) {
+      return null;
+    }
+    $t = trim($s);
+    return $t === '' ? null : $t;
+  }
+
   /**
    * Determine the foreign key name to point to a Cake Class Name (eg: foo_id for Foo).
    * 
@@ -382,16 +399,18 @@ class StringUtilities {
    * @return string                 Localized text string
    * @since  COmanage Registry v5.0.0
    */
-  
-  public static function localizeController(string $controllerName, ?string $pluginName, bool $plural=false): string {
-    if($pluginName) {
-      // Localize via plugin
-      return __d(Inflector::underscore($pluginName), 'controller.'.$controllerName, [$plural ? 99 : 1]);
-    } else {
-      // Standard localization
-
-      return __d('controller', $controllerName, [$plural ? 99 : 1]);
+  public static function localizeController(string $controllerName, ?string $pluginName, bool $plural = false): string {
+    // If "Plugin.Model" was passed, reduce to just "Model"
+    if (str_contains($controllerName, '.')) {
+      $controllerName = self::pluginModel($controllerName); // returns the part after the dot
     }
+
+    if ($pluginName) {
+      // Localize via plugin
+      return __d(\Cake\Utility\Inflector::underscore($pluginName), 'controller.' . $controllerName, [$plural ? 99 : 1]);
+    }
+    // Standard Localization
+    return __d('controller', $controllerName, [$plural ? 99 : 1]);
   }
 
   /**
@@ -417,11 +436,13 @@ class StringUtilities {
    * @param  string $s Plugin path, in Plugin.Model format.
    * @return string    Model name
    */
-  
-  public static function pluginModel(string $s): string {
-    $bits = explode('.', $s, 2);
 
-    return $bits[1];
+  public static function pluginModel(string $s): string {
+    if (str_contains($s, '.')) {
+      [, $model] = explode('.', $s, 2);
+      return $model;
+    }
+    return $s;
   }
 
   /**
@@ -431,11 +452,17 @@ class StringUtilities {
    * @param  string $s Plugin path, in Plugin.Model format.
    * @return string    Plugin name
    */
-  
-  public static function pluginPlugin(string $s): string {
-    $bits = explode('.', $s, 2);
 
-    return $bits[0];
+  /**
+   * Determine the plugin component of a Plugin path.
+   * Returns "" (empty string) if no plugin is present.
+   */
+  public static function pluginPlugin(string $s): string {
+    if (str_contains($s, '.')) {
+      [$plugin] = explode('.', $s, 2);
+      return $plugin;
+    }
+    return '';
   }
 
   /**

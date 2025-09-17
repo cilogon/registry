@@ -25,6 +25,9 @@
 msgid "controller.SqlProvisioners"
 msgstr "{0,plural,=1{SQL Provisioner} other{SQL Provisioners}}"
 
+msgid "display.SqlSource"
+msgstr "{0} Source"
+
 msgid "enumeration.SqlSourceTableModeEnum.FL"
 msgstr "Flat"
 
