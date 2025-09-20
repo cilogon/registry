@@ -146,10 +146,10 @@ class PasswordAuthenticatorsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->add('min_length', [
-      'content' => ['rule' => ['comparison', '>', 7]]
+      'contentgt' => ['rule' => ['comparison', '>', 7]]
     ]);
     $validator->add('min_length', [
-      'content' => ['rule' => ['comparison', '<', 65]]
+      'contentlt' => ['rule' => ['comparison', '<', 65]]
     ]);
     $validator->allowEmptyString('min_length');
 
@@ -157,10 +157,10 @@ class PasswordAuthenticatorsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->add('max_length', [
-      'content' => ['rule' => ['comparison', '>', 7]]
+      'contentgt' => ['rule' => ['comparison', '>', 7]]
     ]);
     $validator->add('max_length', [
-      'content' => ['rule' => ['comparison', '<', 65]]
+      'contentlt' => ['rule' => ['comparison', '<', 65]]
     ]);
     $validator->allowEmptyString('max_length');
 
