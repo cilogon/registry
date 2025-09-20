@@ -1036,73 +1036,80 @@ class RegistryAuthComponent extends Component
    */
 
   public function isSelf(?int $coId, ?int $id): bool {
-    // We might get called in some contexts without a coId, in which case there
-    // are no members.
+    try {
+      // We might get called in some contexts without a coId, in which case there
+      // are no members.
 
-    if(!$coId
-      || empty($this->cache['isCoMember'][$coId])
-      // API Users can't be self and getPersonID() will throw errors if called by one
-      || $this->isApiUser()
-    ) {
-      return false;
-    }
+      if(!$coId
+        || empty($this->cache['isCoMember'][$coId])
+        // API Users can't be self and getPersonID() will throw errors if called by one
+        || $this->isApiUser()
+      ) {
+        return false;
+      }
 
-    if(isset($this->cache['isSelf'][$coId])) {
-      return $this->cache['isSelf'][$coId];
-    }
-
-    $this->cache['isSelf'][$coId] = false;
-
-    $controller = $this->getController();
-    $request = $controller->getRequest();
-    $controllerName = $controller->getName();
-    $personId = $this->getPersonID($coId);
-
-    /* EDIT/VIEW */
-
-    if ($request->getParam('action') == 'view' && $id !== null) {
-      $modelTable = TableRegistry::getTableLocator()->get($controllerName);
-      // We need to allow archived gets for viewing archived records
-      $modelEntity = $modelTable->get($id, ['archived' => true]);
-      // Associated Models, e.g. MVEAs
-      $primaryLinks = $modelTable->getPrimaryLinks();
-
-      if (in_array('person_id', $primaryLinks) && $modelEntity->person_id !== null) {
-        $this->cache['isSelf'][$coId] = $personId == $modelEntity->person_id;
+      if(isset($this->cache['isSelf'][$coId])) {
         return $this->cache['isSelf'][$coId];
-      } elseif (in_array('external_identity_id', $primaryLinks) && $modelEntity->external_identity_id !== null) {
-        $externalIdentityId = $modelEntity->external_identity_id;
+      }
+
+      $this->cache['isSelf'][$coId] = false;
+
+      $controller = $this->getController();
+      $request = $controller->getRequest();
+      $controllerName = $controller->getName();
+      $personId = $this->getPersonID($coId);
+
+      /* EDIT/VIEW */
+
+      if ($request->getParam('action') == 'view' && $id !== null) {
+        $modelTable = TableRegistry::getTableLocator()->get($controllerName);
+        // We need to allow archived gets for viewing archived records
+        $modelEntity = $modelTable->get($id, ['archived' => true]);
+        // Associated Models, e.g. MVEAs
+        $primaryLinks = $modelTable->getPrimaryLinks();
+
+        if (in_array('person_id', $primaryLinks) && $modelEntity->person_id !== null) {
+          $this->cache['isSelf'][$coId] = $personId == $modelEntity->person_id;
+          return $this->cache['isSelf'][$coId];
+        } elseif (in_array('external_identity_id', $primaryLinks) && $modelEntity->external_identity_id !== null) {
+          $externalIdentityId = $modelEntity->external_identity_id;
+          $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
+          $extIdentEntity = $extIdentTable->get($externalIdentityId);
+          $extIdentityPersonId = $extIdentEntity->person_id;
+          $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
+          return $this->cache['isSelf'][$coId];
+        }
+      }
+
+      /*    INDEX VIEWS     */
+      // View self or filter by the person_id
+      $queryPersonIdParam = $request->getQuery('person_id');
+      // Associated Model for External Identity Link to Person
+      $externalIdentityIdParam = $request->getQuery('external_identity_id');
+
+      if (!empty($externalIdentityIdParam)) {
         $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
-        $extIdentEntity = $extIdentTable->get($externalIdentityId);
+        $extIdentEntity = $extIdentTable->get($externalIdentityIdParam);
         $extIdentityPersonId = $extIdentEntity->person_id;
         $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
         return $this->cache['isSelf'][$coId];
       }
-    }
 
-    /*    INDEX VIEWS     */
-    // View self or filter by the person_id
-    $queryPersonIdParam = $request->getQuery('person_id');
-    // Associated Model for External Identity Link to Person
-    $externalIdentityIdParam = $request->getQuery('external_identity_id');
+      if (
+        // Canvas page
+        ($controllerName == 'People' && $id == $personId)
+        // Any page that we query with the person_id
+        || (isset($queryPersonIdParam) && $queryPersonIdParam == $personId)
+        ) {
+        $this->cache['isSelf'][$coId] = true;
+      }
 
-    if (!empty($externalIdentityIdParam)) {
-      $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
-      $extIdentEntity = $extIdentTable->get($externalIdentityIdParam);
-      $extIdentityPersonId = $extIdentEntity->person_id;
-      $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
       return $this->cache['isSelf'][$coId];
     }
-
-    if (
-      // Canvas page
-      ($controllerName == 'People' && $id == $personId)
-      // Any page that we query with the person_id
-      || (isset($queryPersonIdParam) && $queryPersonIdParam == $personId)
-      ) {
-      $this->cache['isSelf'][$coId] = true;
+    catch(\Exception $e) {
+      // Generic catchall since, eg, $modelTable doesn't know how to handle plugins
+      
+      return false;
     }
-
-    return $this->cache['isSelf'][$coId];
   }
 }
