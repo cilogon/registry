@@ -34,7 +34,7 @@ use \App\Lib\Enum\EnrollmentActorEnum;
 use \App\Lib\Enum\PetitionStatusEnum;
 
 class Petition extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait {
+  use \App\Lib\Traits\EntityMetaTrait {
     isReadOnly as traitIsReadOnly;
   }
   

@@ -57,7 +57,7 @@ class ResetMfaCommand extends BaseCommand {
   }*/
   
   /**
-   * Execute the Database Command.
+   * Execute the Reset MFA Command.
    *
    * @since  COmanage Registry v5.2.0
    * @param  Arguments $args Command Arguments

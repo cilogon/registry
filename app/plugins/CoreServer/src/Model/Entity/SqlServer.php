@@ -32,6 +32,8 @@ namespace CoreServer\Model\Entity;
 use Cake\ORM\Entity;
 
 class SqlServer extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+
   /**
    * Fields that can be mass assigned using newEntity() or patchEntity().
    *

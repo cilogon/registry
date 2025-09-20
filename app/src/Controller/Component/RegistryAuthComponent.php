@@ -400,10 +400,12 @@ class RegistryAuthComponent extends Component
       
       // Pull the record so we can interrogate it
 
-      // XXX Get the record along with the contains
+      // Get the record along with the contains
       // We use findById() rather than get() so we can apply subsequent
-      // query modifications via traits
-      $query = $table->findById($id);
+      // query modifications via traits. We set archived to true so we can
+      // retrieve archived records via ChangelogBehavior.
+      $query = $table->findById($id)
+                     ->applyOptions(['archived' => true]);
 
       // QueryModificationTrait
       $getActionMethod = "get{$reqAction}Contains";
@@ -1060,7 +1062,8 @@ class RegistryAuthComponent extends Component
 
     if ($request->getParam('action') == 'view' && $id !== null) {
       $modelTable = TableRegistry::getTableLocator()->get($controllerName);
-      $modelEntity = $modelTable->get($id);
+      // We need to allow archived gets for viewing archived records
+      $modelEntity = $modelTable->get($id, ['archived' => true]);
       // Associated Models, e.g. MVEAs
       $primaryLinks = $modelTable->getPrimaryLinks();
 

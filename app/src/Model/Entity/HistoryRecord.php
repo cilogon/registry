@@ -32,11 +32,25 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class HistoryRecord extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\EntityMetaTrait;
   
   protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
+
+  /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity Cake Entity
+   * @return boolean         true if the entity is read only, false otherwise
+   */
+
+  public function isReadOnly(): bool {
+    // History records can't be altered once created
+
+    return true;
+  }
 }

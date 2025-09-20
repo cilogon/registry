@@ -35,7 +35,6 @@ use Cake\ORM\Entity;
 // exceeds Cake's 61 character limit
 class ExtIdentitySourceRecord extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
 
   protected array $_accessible = [
     '*' => true,

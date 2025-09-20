@@ -33,7 +33,7 @@ use Cake\ORM\Entity;
 use \App\Lib\Enum\StatusEnum;
 
 class PersonRole extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\EntityMetaTrait;
   
   protected array $_accessible = [
     '*' => true,
@@ -68,5 +68,17 @@ class PersonRole extends Entity {
     return $this->isActive()
            && (!$this->valid_from || $this->valid_from->isPast())
            && (!$this->valid_through || $this->valid_through->isFuture());
+  }
+
+  /**
+   * Determine the source attribute foreign key (eg: source_name_id) for this entity.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return string   Source Attribute column name
+   */
+
+  public function sourceAttributeName(): string {
+    // PersonRoles doesn't follow the standard pattern
+    return "source_external_identity_role_id";
   }
 }

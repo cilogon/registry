@@ -35,7 +35,7 @@ use Cake\ORM\Entity;
 // collection of settings for a given CO, but it's easier not to fight
 // Cake's inflection.
 class CoSetting extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\EntityMetaTrait;
   
   protected array $_accessible = [
     '*' => true,

@@ -53,6 +53,18 @@ msgstr "Area Code"
 msgid "attribute"
 msgstr "Attribute"
 
+msgid "changelog.actor_identifier"
+msgstr "Actor Identifier"
+
+msgid "changelog.deleted"
+msgstr "Deleted"
+
+msgid "changelog.parent"
+msgstr "Parent Record ID"
+
+msgid "changelog.revision"
+msgstr "Revision"
+
 msgid "code"
 msgstr "Code"
 

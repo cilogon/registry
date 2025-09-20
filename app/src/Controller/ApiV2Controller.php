@@ -390,12 +390,18 @@ class ApiV2Controller extends AppController {
     $table = $this->getCurrentTable();
     // $tableName = models
     $tableName = $table->getTable();
+    $request = $this->getRequest();
     
     if(empty($id)) {
       throw new InvalidArgumentException(__d('error', 'notprov', ['id']));
     }
     
-    $obj = $table->findById($id)->firstOrFail();
+    // We allow archived records to be retrieved via the API, but only if
+    // explicitly requested
+
+    $archived = $request->getQuery('archived') === 'yes';
+
+    $obj = $table->findById($id)->applyOptions(['archived' => $archived])->firstOrFail();
     
     $this->set($tableName, [$obj]);
     

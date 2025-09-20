@@ -34,6 +34,8 @@ use Cake\ORM\Entity;
 // use \App\Model\Entity\ExternalIdentityRole;
 
 class LoginIdentifierType extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
   /**
    * Fields that can be mass assigned using newEntity() or patchEntity().
    *

@@ -55,7 +55,15 @@ class ChangelogBehavior extends Behavior
     }
 
     $subject = $event->getSubject();
+    $table = $subject->getTable();
     $alias = $subject->getAlias();
+    $parentfk = Inflector::singularize($table) . "_id";
+    
+    // Before we do anything else, make sure we're not trying to update an archive record
+    if($entity->deleted || !empty($entity->$parentfk)) {
+      LogBehavior::serror($alias, 'Attempt to delete archived record ' . $entity->id . ' has been declined');
+      throw new \RuntimeException(__d('error', 'edit.readonly'));
+    }
     
     LogBehavior::strace($alias, 'Changelog converting delete to update');
     
@@ -96,7 +104,7 @@ class ChangelogBehavior extends Behavior
   
   public function beforeFind(Event $event, Query $query, \ArrayObject $options, bool $primary): void {
     if(isset($options['archived']) && $options['archived']) {
-      // Archived records requested (including possiblf expunge), so just return
+      // Archived records requested (including possibly expunge), so just return
       $event->setResult(true);
       return;
     }
@@ -108,9 +116,6 @@ class ChangelogBehavior extends Behavior
     
     LogBehavior::strace($alias, 'Changelog altering find conditions');
     
-    // XXX add support for archived, revision, etc
-    // XXX if specific id is requested, do not modify query
-
     // Take into account all joined associations
     if(!empty($query->clause('join'))) {
       foreach($query->clause('join') as $mdl => $opts) {
@@ -142,10 +147,6 @@ class ChangelogBehavior extends Behavior
    */
   
   public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options): void {
-    // XXX prevent updates to deleted and archived records
-    //     Cake Book suggests doing this with Application Rules... can we define those in the Behavior?
-    //     or perhaps in beforeMarshal? https://book.cakephp.org/3.0/en/orm/saving-data.html#modifying-request-data-before-building-entities
-    
     if(isset($options['archive']) && !$options['archive']) {
       // Archiving disabled for this request, don't do anything
       return;
@@ -155,6 +156,12 @@ class ChangelogBehavior extends Behavior
     $table = $subject->getTable();
     $alias = $subject->getAlias();
     $parentfk = Inflector::singularize($table) . "_id";
+
+    // Before we do anything else, make sure we're not trying to update an archive record
+    if($entity->deleted || !empty($entity->$parentfk)) {
+      LogBehavior::serror($alias, 'Attempt to edit archived record ' . $entity->id . ' has been declined');
+      throw new \RuntimeException(__d('error', 'edit.readonly'));
+    }
     
     $actor = '';
     
@@ -206,13 +213,26 @@ class ChangelogBehavior extends Behavior
       // Cake 3+ doesn't have callbacks=false, so we use the archive flag so we
       // don't recurse indefinitely. We also skip validation in case (eg) validation
       // rules changed since the original record was created.
-      $subject->saveOrFail($archive, [
-                            'checkRules' => false,
-                            'archive' => false,
-                            // We don't want to save associated models by default since
-                            // it will rekey them to the new archive copy.
-                            'associated' => false
-                           ]);
+
+      $archiveOptions = [
+        'checkRules' => false,
+        'archive' => false
+      ];
+
+      // Are we relinking associated models to the archive copy?
+
+      $relinkToArchive = isset($options['relinkToArchive']) && $options['relinkToArchive'];
+
+      if(!$relinkToArchive) {
+        // We don't want to save associated models by default since
+        // it will rekey them to the new archive copy.
+
+        $archiveOptions['associated'] = false;
+      } else {
+        // This means relink to archive is simple to implement
+      }
+
+      $subject->saveOrFail($archive, $archiveOptions);
       
       return;
     }

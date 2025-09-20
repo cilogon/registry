@@ -33,7 +33,6 @@ use Cake\ORM\Entity;
 
 class EnrollmentFlow extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
   
   protected array $_accessible = [
     '*' => true,

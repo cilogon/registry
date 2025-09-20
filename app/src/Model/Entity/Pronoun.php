@@ -34,7 +34,6 @@ use Cake\ORM\Entity;
 // Strictly speaking, this should probably be "Pronouns", but it's easier not to fight inflection
 class Pronoun extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   
   protected array $_accessible = [

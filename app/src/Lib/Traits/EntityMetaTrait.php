@@ -90,6 +90,37 @@ trait EntityMetaTrait {
   }
 
   /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @return boolean  True if the entity is read only, false otherwise
+   */
+
+  public function isReadOnly(): bool {
+    // This function implements common logic for determining if an entity is read only.
+    // To implement entity specific tests, see the documentation at
+    // XXX insert link to wiki
+
+    // If we're incorporated into an MVEA entity, isMVEReadOnly will check for
+    // pipelined attributes (which are read only).
+    
+    if(method_exists($this, 'isMVEReadOnly') && $this->isMVEReadOnly()) {
+      return true;
+    }
+    
+    // Frozen attributes are treated as read snly
+    if($this->frozen) {
+      return true;
+    }
+    
+    // Records flagged as deleted or with a non-null changelog attribute are read only
+    $parentfk = $this->changelogAttributeName();
+    
+    return (isset($this->deleted) && $this->deleted)
+            || !empty($this->$parentfk);
+  }
+
+  /**
    * Determine the source attribute foreign key (eg: source_name_id) for this entity.
    * 
    * @since  COmanage Registry v5.0.0
@@ -97,6 +128,9 @@ trait EntityMetaTrait {
    */
 
   public function sourceAttributeName() {
+    // There is a similar function in EntityMetaTrait because sometimes we have a Table
+    // context and sometimes we have an Entity context.
+    
     // The class name is something like `\App\Model\Entity\TelephoneNumber', but we
     // want telephone_number (lowercased).
     $entityName = Inflector::underscore(substr(strrchr(get_class($this), '\\'),1));

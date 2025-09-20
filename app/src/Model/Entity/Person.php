@@ -33,7 +33,7 @@ use Cake\ORM\Entity;
 use \App\Lib\Enum\StatusEnum;
 
 class Person extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\EntityMetaTrait;
   
   protected array $_accessible = [
     '*' => true,

@@ -34,7 +34,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 
 class MessageTemplate extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\EntityMetaTrait;
   
   protected array $_accessible = [
     '*' => true,

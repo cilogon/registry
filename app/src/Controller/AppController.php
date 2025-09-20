@@ -293,6 +293,9 @@ class AppController extends Controller {
 
   protected function primaryLinkOnGet(string $potentialPrimaryLink): Object|bool
   {
+    /** @var string $modelsName */
+    $modelsName = $this->getName();
+    
     // If this action allows unkeyed, asserted primary link IDs, check the query
     // string (e.g.: 'add' or 'index' allow matchgrid_id to be passed in)
     $actionParam = $this->request->getParam('action');
@@ -311,7 +314,10 @@ class AppController extends Controller {
       return false;
     }
 
-    return $this->getCurrentTable()->findPrimaryLink($param);
+    // For a GET with a param (ie: a record id) we allow archived records to be
+    // retrieved via ChangelogBehavior. Note because $param must be an integer
+    // we don't need to check it further.
+    return $this->$modelsName->findPrimaryLink(id: $param, archived: true);
   }
 
   /**

@@ -34,6 +34,8 @@ use \App\Lib\Enum\ComparisonEnum;
 use \App\Model\Entity\ExternalIdentityRole;
 
 class PersonRoleMapping extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
   /**
    * Fields that can be mass assigned using newEntity() or patchEntity().
    *

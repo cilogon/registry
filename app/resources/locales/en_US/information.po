@@ -30,6 +30,15 @@ msgstr "API Users created in the COmanage CO are given full privileges to all Re
 msgid "api.key"
 msgstr "This newly generated API Key cannot be recovered. If it is lost a new key must be generated."
 
+msgid "changelog"
+msgstr "Change Log"
+
+msgid "changelog.archived"
+msgstr "This is an archive record"
+
+msgid "changelog.deleted"
+msgstr "This record has been deleted"
+
 msgid "cos.none"
 msgstr "You are not an active member in any collaboration. If your request for enrollment is still being processed, you will not be able to login until it is approved. Please contact an administrator for assistance."
 

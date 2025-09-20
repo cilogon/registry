@@ -287,6 +287,9 @@ trait TableMetaTrait {
    */
 
   public function sourceForeignKey(): string {
+    // There is a similar function in EntityMetaTrait because sometimes we have a Table
+    // context and sometimes we have an Entity context.
+
     return "source_" . Inflector::underscore(StringUtilities::tableToEntityName($this)) . "_id";
   }
 }

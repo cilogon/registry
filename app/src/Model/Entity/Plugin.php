@@ -33,6 +33,8 @@ use \Cake\ORM\Entity;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
 class Plugin extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
   protected array $_accessible = [
     '*' => true,
     'id' => false,

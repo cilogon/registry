@@ -32,6 +32,8 @@ namespace ApiConnector\Model\Entity;
 use Cake\ORM\Entity;
 
 class ApiSource extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
   /**
    * Fields that can be mass assigned using newEntity() or patchEntity().
    *

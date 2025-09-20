@@ -60,6 +60,12 @@ class LogBehavior extends Behavior
     
   }
   
+  public static function serror(string $name, string $msg) {
+    $label = getmypid() . "/" . $name . ": ";
+    
+    Log::error($label . $msg);
+  }
+
   public static function strace(string $name, string $msg) {
     $label = getmypid() . "/" . $name . ": ";
     

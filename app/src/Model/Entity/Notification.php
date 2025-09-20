@@ -33,6 +33,8 @@ use Cake\ORM\Entity;
 use \App\Lib\Enum\NotificationStatusEnum;
 
 class Notification extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
   protected array $_accessible = [
     '*' => true,
     'id' => false,

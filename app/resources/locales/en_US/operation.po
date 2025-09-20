@@ -123,6 +123,9 @@ msgstr "Bulk add"
 msgid "cancel"
 msgstr "Cancel"
 
+msgid "changelog.view"
+msgstr "View Change Log"
+
 msgid "clear"
 msgstr "Clear"
 

@@ -33,6 +33,10 @@ use Cake\ORM\Entity;
 use \App\Lib\Enum\GroupTypeEnum;
 
 class Group extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait {
+    isReadOnly as traitIsReadOnly;
+  }
+
   protected array $_accessible = [
     '*' => true,
     'id' => false,
@@ -84,6 +88,20 @@ class Group extends Entity {
   }
   
   /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity Cake Entity
+   * @return boolean         true if the entity is read only, false otherwise
+   */
+  
+  public function isReadOnly(): bool {
+    // Automatic groups are read-only
+    
+    return $this->isAutomatic() || $this->traitIsReadOnly();
+  }
+
+  /**
    * Determine if this entity is a system group.
    *
    * @since  COmanage Registry v5.0.0
@@ -101,20 +119,6 @@ class Group extends Entity {
                     ]);
   }
   
-  /**
-   * Determine if this entity is Read Only.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  Entity  $entity Cake Entity
-   * @return boolean         true if the entity is read only, false otherwise
-   */
-  
-  public function isReadOnly(): bool {
-    // Automatic groups are read-only
-    
-    return $this->isAutomatic();
-  }
-
   /**
    * Determine if this is not an automatic group.
    *

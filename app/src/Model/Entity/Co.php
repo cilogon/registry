@@ -34,6 +34,10 @@ use Cake\ORM\Entity;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
 class Co extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait {
+    isReadOnly as traitIsReadOnly;
+  }
+
   protected array $_accessible = [
     '*' => true,
     'id' => false,
@@ -73,6 +77,6 @@ class Co extends Entity {
   public function isReadOnly(): bool {
     // The COmanage CO is read only
     
-    return $this->isCOmanageCO();
+    return $this->isCOmanageCO() || $this->traitIsReadOnly();
   }
 }

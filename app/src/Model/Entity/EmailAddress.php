@@ -33,7 +33,6 @@ use Cake\ORM\Entity;
 
 class EmailAddress extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
   use \App\Lib\Traits\MVETrait;
   
   protected array $_accessible = [

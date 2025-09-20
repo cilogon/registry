@@ -91,6 +91,16 @@ if (
       <h2><?= $title ?></h2>
     <?php endif; ?>
   </div>
+  <?php 
+// XXX temporary for CFM-24
+    $clfield = $vv_obj->changelogAttributeName();
+
+    if($vv_obj->deleted) {
+      print __d('information', 'changelog.deleted');
+    } elseif(!empty($vv_obj->$clfield)) {
+      print __d('information', 'changelog.archived');
+    }
+  ?>
   <?php
     // Action list for top menu dropdown / button listing
     $action_args = array();
@@ -216,7 +226,6 @@ if(!empty($linkId)
 // Close the Form
 print $this->Form->end();
 
-
 /** MVEA Canvas output **/
 if($vv_action != 'add' && !empty($mveas)) {
   // Pass along the $mveas and any $addMenuLinks defined in templates/.../fields-nav.inc config. 
@@ -228,4 +237,7 @@ if($vv_action != 'add' && !empty($mveas)) {
     ]);
 }  
 
-// XXX insert changelog metadata (+nav? or maybe we should have a dedicate index view that shows all records in revision order?)
+if($vv_action != 'add') {
+  // Insert changelog
+  print $this->element('changelog');
+}

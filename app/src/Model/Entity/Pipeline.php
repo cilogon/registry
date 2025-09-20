@@ -32,7 +32,7 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class Pipeline extends Entity {
-  use \App\Lib\Traits\ReadOnlyEntityTrait;
+  use \App\Lib\Traits\EntityMetaTrait;
   
   protected array $_accessible = [
     '*' => true,
