@@ -32,6 +32,8 @@ namespace OrcidSource\Model\Entity;
 use Cake\ORM\Entity;
 
 class PetitionOrcid extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
   /**
    * Fields that can be mass assigned using newEntity() or patchEntity().
    *
