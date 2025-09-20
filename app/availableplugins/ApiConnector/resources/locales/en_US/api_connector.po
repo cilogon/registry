@@ -29,6 +29,9 @@ msgid "controller.ApiSources"
 msgid "field.api_source_id"
 msgstr "API Source"
 
+msgid "field.ApiSourceEndpoints.external_identity_source_id"
+msgstr "API Source"
+
 msgid "field.ApiSources.push_mode"
 msgstr "Push Mode"
 
