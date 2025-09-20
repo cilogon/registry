@@ -35,7 +35,7 @@ if($vv_action == 'edit') {
 
   print $this->element('form/listItem', [
     'arguments' => [
-      'fieldName' => 'api_source_id',
+      'fieldName' => 'external_identity_source_id',
     ]
   ]);
 }

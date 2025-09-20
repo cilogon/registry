@@ -50,16 +50,17 @@ class ApiSourceEndpointsController extends StandardPluginController {
   public function beforeRender(\Cake\Event\EventInterface $event) {
     $vv_obj = $this->viewBuilder()->getVar('vv_obj');
 
-    if(!empty($vv_obj->api_source_id)) {
-      $apiSource = $this->ApiSourceEndpoints->ApiSources->get(
-        $vv_obj->api_source_id,
-        contain: 'ExternalIdentitySources'
-      );
+    if(!empty($vv_obj->external_identity_source->api_source->id)) {
+      // For consistency with other plugins, the data model points to the External Identity Source
+      // but the API points to Api Source.
       
       $this->set(
         'vv_push_endpoint',
         Router::url(
-          url: '/api/apisource/' . $apiSource->id . '/v2/sorPeople/' . $apiSource->external_identity_source->sor_label,
+          url: '/api/apisource/' 
+                . $vv_obj->external_identity_source->api_source->id
+                . '/v2/sorPeople/' 
+                . $vv_obj->external_identity_source->sor_label,
           full: true
         )
       );

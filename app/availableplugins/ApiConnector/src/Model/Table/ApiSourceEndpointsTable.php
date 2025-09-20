@@ -39,6 +39,7 @@ class ApiSourceEndpointsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -58,8 +59,7 @@ class ApiSourceEndpointsTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
     
     // Define associations
-    $this->belongsTo('ApiConnector.ApiSources');
-    // $this->belongsTo('ApiUsers');
+    $this->belongsTo('ExternalIdentitySources');
     $this->belongsTo('Apis');
     
     $this->setDisplayField('api_id');
@@ -68,8 +68,13 @@ class ApiSourceEndpointsTable extends Table {
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
 
+    $this->setEditContains([
+      'ExternalIdentitySources' => ['ApiSources']
+    ]);
+
+
     $this->setAutoViewVars([
-      'apiSources' => [
+      'externalIdentitySources' => [
         'type' => 'plugin',
         'model' => 'ApiConnector.ApiSources'
       ]
@@ -108,10 +113,10 @@ class ApiSourceEndpointsTable extends Table {
     ]);
     $validator->notEmptyString('api_id');
 
-    $validator->add('api_source_id', [
+    $validator->add('external_identity_source_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('api_source_id');
+    $validator->notEmptyString('external_identity_source_id');
     
     return $validator; 
   }
