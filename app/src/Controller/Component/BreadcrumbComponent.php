@@ -274,8 +274,7 @@ class BreadcrumbComponent extends Component {
       [$title] = StringUtilities::entityAndActionToTitle(
         entity:    $linkedEntity,
         modelPath: $linkModelFqn,
-        action:    $breadcrumbAction,
-        domain:    StringUtilities::pluginToTextDomain($link->plugin ?? null)
+        action:    $breadcrumbAction
       );
 
       $title = StringUtilities::stripActionPrefix($title);

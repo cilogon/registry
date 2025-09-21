@@ -104,9 +104,7 @@ class FieldHelper extends Helper {
     $label = null;
 
     // First, try to autogenerate the field label (if we weren't given one).
-    $pluginDomain = (!empty($this->getPluginName())
-      ? Inflector::underscore($this->getPluginName())
-      : null);
+    $pluginDomain = StringUtilities::pluginToTextDomain($this->getPluginName());
 
     $modelName = $this->getModelName();
     // We try to automagically determine if a description for the field exists by

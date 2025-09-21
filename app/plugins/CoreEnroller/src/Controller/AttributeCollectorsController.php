@@ -42,27 +42,6 @@ class AttributeCollectorsController extends StandardEnrollerController {
   ];
 
   /**
-   * Callback run prior to the request render.
-   *
-   * @param   EventInterface  $event  Cake Event
-   *
-   * @return Response|void
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function beforeRender(EventInterface $event) {
-    $link = $this->getPrimaryLink(true);
-
-    if(!empty($link->value)) {
-      $this->set('vv_bc_parent_obj', $this->AttributeCollectors->EnrollmentFlowSteps->get($link->value));
-      $this->set('vv_bc_parent_displayfield', $this->AttributeCollectors->EnrollmentFlowSteps->getDisplayField());
-      $this->set('vv_bc_parent_primarykey', $this->AttributeCollectors->EnrollmentFlowSteps->getPrimaryKey());
-    }
-
-    return parent::beforeRender($event);
-  }
-
-  /**
    * Dispatch an Enrollment Flow Step.
    * 
    * @since  COmanage Registry v5.0.0

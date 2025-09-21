@@ -146,7 +146,7 @@ class StringUtilities {
 
     // Otherwise look for the general key
     $cfield = __d('field', $c);
-    return ($cfield !== $c) ? $cfield : \Cake\Utility\Inflector::humanize($c);
+    return ($cfield !== $c) ? $cfield : Inflector::humanize($c);
   }
 
     /**
@@ -180,15 +180,15 @@ class StringUtilities {
    * Determines the translation domain for a plugin
    *
    * @param string|null $plugin Plugin name
-   * @return string Translation domain
+   * @return string|null Translation domain
    * @since  COmanage Registry v5.2.0
    */
-  public static function pluginToTextDomain(?string $plugin): string
+  public static function pluginToTextDomain(?string $plugin): ?string
   {
     if (empty($plugin)) {
-      return 'operation';
+      return null;
     }
-    return \Cake\Utility\Inflector::singularize(\Cake\Utility\Inflector::tableize($plugin));
+    return Inflector::underscore($plugin);
   }
 
   /**
@@ -407,7 +407,7 @@ class StringUtilities {
 
     if ($pluginName) {
       // Localize via plugin
-      return __d(\Cake\Utility\Inflector::underscore($pluginName), 'controller.' . $controllerName, [$plural ? 99 : 1]);
+      return __d(Inflector::underscore($pluginName), 'controller.' . $controllerName, [$plural ? 99 : 1]);
     }
     // Standard Localization
     return __d('controller', $controllerName, [$plural ? 99 : 1]);

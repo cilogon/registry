@@ -49,7 +49,6 @@ declare(strict_types = 1);
 
 namespace App\Controller\Component;
 
-use App\Model\Entity;
 use \App\Lib\Enum\AuthenticationEventEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Enum\TemplateableStatusEnum;

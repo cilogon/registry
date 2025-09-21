@@ -70,6 +70,17 @@ class StandardEnrollerController extends StandardPluginController {
       $this->set('vv_petition', null);
     }
 
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $currentTable = $this->getCurrentTable();
+      $efsTable = $currentTable->getAssociation('EnrollmentFlowSteps')->getTarget();
+
+      $this->set('vv_bc_parent_obj', $efsTable->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $efsTable->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $efsTable->getPrimaryKey());
+    }
+
     return parent::beforeRender($event);
   }
 

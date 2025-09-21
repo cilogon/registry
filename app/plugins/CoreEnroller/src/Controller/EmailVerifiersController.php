@@ -58,14 +58,6 @@ class EmailVerifiersController extends StandardEnrollerController {
    */
   
   public function beforeRender(\Cake\Event\EventInterface $event) {
-    $link = $this->getPrimaryLink(true);
-    
-    if(!empty($link->value)) {
-      $this->set('vv_bc_parent_obj', $this->EmailVerifiers->EnrollmentFlowSteps->get($link->value));
-      $this->set('vv_bc_parent_displayfield', $this->EmailVerifiers->EnrollmentFlowSteps->getDisplayField());
-      $this->set('vv_bc_parent_primarykey', $this->EmailVerifiers->EnrollmentFlowSteps->getPrimaryKey());
-    }
-    
     // We use the viewvar to determine the op since 'index' isn't always present
     $op = $this->viewBuilder()->getVar('vv_op');
 

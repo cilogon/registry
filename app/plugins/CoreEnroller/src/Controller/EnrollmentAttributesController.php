@@ -51,14 +51,6 @@ class EnrollmentAttributesController extends StandardEnrollerController {
   public function beforeRender(\Cake\Event\EventInterface $event) {
     $this->set('vv_supported_attributes', $this->EnrollmentAttributes->supportedAttributes());
 
-    $link = $this->getPrimaryLink(true);
-
-    if(!empty($link->value)) {
-      $this->set('vv_bc_parent_obj', $this->EnrollmentAttributes->AttributeCollectors->get($link->value));
-      $this->set('vv_bc_parent_displayfield', $this->EnrollmentAttributes->AttributeCollectors->getDisplayField());
-      $this->set('vv_bc_parent_primarykey', $this->EnrollmentAttributes->AttributeCollectors->getPrimaryKey());
-    }
-
     $ret = parent::beforeRender($event);
 
     $attributes = $this->viewBuilder()->getVar('attributes');

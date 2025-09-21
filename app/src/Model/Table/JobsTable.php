@@ -30,7 +30,6 @@ declare(strict_types = 1);
 namespace App\Model\Table;
 
 use Cake\Datasource\ConnectionManager;
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -123,6 +122,24 @@ class JobsTable extends Table {
         ]
       ]
     ]);
+  }
+
+  /**
+   * Table specific logic to generate a display field.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Job $entity Entity to generate display field for
+   * @return string         Display field
+   */
+
+  public function generateDisplayField(Job $entity): string {
+    // Try to find something renderable
+
+    if(!empty($entity->plugin)) {
+      return $entity->plugin . " (" . $entity->id . ")";
+    }
+
+    return (string)$entity->id;
   }
   
   /**
