@@ -188,10 +188,17 @@ class GroupMembersTable extends Table {
    * @return string         Display field
    */
 
-  public function generateDisplayField(GroupMember $entity): string {
-    // Pull the group and person information to build a more useful display string
+  public function generateDisplayField(GroupMember $entity): ?string {
+    // Pull the group and person information to build a more useful display string.
+    // Note because there is no setAddContains() (this is probably the only place
+    // where it would be useful if it were even conceptually a thing) we can't assume
+    // we have any entity information here.
     
-    return __d('field', 'group_membership', [$entity->person->primary_name->full_name, $entity->group->name]);
+    if(!empty($entity->person->primary_name)) {
+      return __d('field', 'group_membership', [$entity->person->primary_name->full_name, $entity->group->name]);
+    }
+
+    return null;
   }
   
   /**
@@ -573,6 +580,10 @@ class GroupMembersTable extends Table {
 
     foreach($fields as $fld) {
       $member[$fld->enrollment_attribute->attribute] = $fld->value;
+    }
+
+    if(!isset($member['group_id'])) {
+      return null;
     }
 
     return $this->saveOrFail($this->newEntity($member));
