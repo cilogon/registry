@@ -149,10 +149,10 @@ html.dark-mode {
 
   /* Highlights: Alerts, Notices, and Badges */
   --cmg-color-highlight-001: #bc6262; /* forms: required and error icons (red) */
-  --cmg-color-highlight-002: #242400;    /* forms: focused input (yellow) */
+  --cmg-color-highlight-002: #242400; /* forms: focused input (yellow) */
 
   --cmg-color-highlight-003: #0B3556; /* alert: info text color (blue) */
-  --cmg-color-highlight-004: #d4ecff; /* search bar active (blue) */
+  --cmg-color-highlight-004: #22222a; /* search bar active (blue) */
   --cmg-color-highlight-005: #ccc;    /* badge light (light gray) */
 
   --cmg-color-highlight-006: #97BF97; /* alert: success (green) */

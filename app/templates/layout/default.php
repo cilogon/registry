@@ -118,7 +118,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
     
     // add hints that we're in the platform-level (COmanage) CO
     $isPlatformCO = false;
-    if(!empty($vv_cur_co) && ($vv_cur_co->id == 1) && !($vv_controller == 'Cos' && $vv_action == 'select')) {
+    if(!empty($vv_cur_co) && ($vv_cur_co->isCOmanageCO()) && !($vv_controller == 'Cos' && $vv_action == 'select')) {
       $isPlatformCO = true;
       $bodyClasses .= ' platform-co';
     }

@@ -93,6 +93,9 @@ msgstr "Groups"
 msgid "co.operations"
 msgstr "Operations"
 
+msgid "co.operations.authentication.events.desc"
+msgstr "Review login attempts"
+
 msgid "co.operations.panel.title"
 msgstr "Operations"
 
@@ -101,6 +104,9 @@ msgstr "Operational activities"
 
 msgid "co.operations.jobs.desc"
 msgstr "Manage this CO's asynchronous process queue"
+
+msgid "co.operations.notifications.desc"
+msgstr "View CO notifications"
 
 msgid "co.operations.reports.desc"
 msgstr "Create, view, and export reports"
@@ -224,6 +230,9 @@ msgstr "my canvas"
 
 msgid "registries"
 msgstr "Available {0} Registries"
+
+msgid "related.artifacts"
+msgstr "Related Artifacts"
 
 msgid "related.configurations"
 msgstr "Related Configurations"

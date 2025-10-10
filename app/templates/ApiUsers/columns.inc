@@ -26,7 +26,7 @@
  */
 
 // Output advisory banner when co=1
-if($vv_cur_co->id == 1) {
+if($vv_cur_co->isCOmanageCO()) {
   $banners = [
     __d('information','api.cmp')
   ];

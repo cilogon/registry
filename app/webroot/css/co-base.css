@@ -600,14 +600,18 @@ ul.form-list li.alert-banner .co-alert {
   padding: 0;
   font-weight: 500;
 }
+#main-menu .menu-panel-links > li {
+  border: 1px solid var(--cmg-color-body-bg);
+}
+#main-menu .menu-panel-links > li:hover {
+  border: 1px solid var(--cmg-color-bg-006);
+}
 #main-menu a.menu-panel-primary-link {
   display: flex;
   align-items: center;
-  border: 1px solid var(--cmg-color-body-bg);
 }
 #main-menu .menu-panel-links a.menu-panel-primary-link:hover {
   background-color: transparent;
-  border: 1px solid var(--cmg-color-bg-006);
 }
 #main-menu .menu-panel-links a.menu-panel-primary-link:hover h3 {
   text-decoration: underline;
@@ -647,16 +651,39 @@ ul.form-list li.alert-banner .co-alert {
 .menu-panel-link-desc {
   color: var(--cmg-color-body-txt);
 }
+#main-menu ul.menu-panel-links li:has(.menu-panel-submenu) a.menu-panel-primary-link {
+  padding: 0.5em 1em 0 1em;
+}
+#main-menu ul.menu-panel-submenu {
+  padding: 0;
+  margin: 0 0 0 4.65em;
+}
+#main-menu ul.menu-panel-links ul.menu-panel-submenu li a {
+  gap: 0.25em;
+  padding: 0.5em;
+  width: fit-content;
+}
+#main-menu .menu-panel-submenu .material-symbols,
+#main-menu .menu-panel-submenu .material-symbols-outlined {
+  margin: 0;
+  font-size: 1em;
+}
 .menu-panel-sidepanel {
   padding: 0 1em 2em 1.25em;
 }
 #main-menu .menu-panel-sidepanel h3 {
   margin-bottom: 0.5em;
 }
-#main-menu a.menu-panel-secondary-link {
+#main-menu #menu-panel-config li,
+#main-menu #menu-panel-config li:hover,
+#main-menu .menu-panel-sidepanel li,
+#main-menu .menu-panel-sidepanel li:hover {
+  border: none;
+}
+#main-menu .menu-panel-sidepanel a {
   display: flex !important;
   align-items: center;
-  padding: 0;
+  padding: 0 !important;
 }
 #main-menu .menu-panel-common-items {
   margin-top: 1rem;
