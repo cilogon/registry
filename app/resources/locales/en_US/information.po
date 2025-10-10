@@ -186,6 +186,12 @@ msgstr "Current version: {0}"
 msgid "ug.version.target"
 msgstr "Target version: {0}"
 
+msgid "ug.tasks.buildGroupTree"
+msgstr "Recovering Group tree"
+
+msgid "ug.tasks.checkGroupNames"
+msgstr "Verifying Group names"
+
 msgid "ug.tasks.createDefaultGroups.co"
 msgstr "Creating new Default Groups for CO {0}"
 

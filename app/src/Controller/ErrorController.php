@@ -35,6 +35,7 @@ class ErrorController extends AppController
         // Tell cake to automatically negotiate JSON, which will have the
         // most visible side effect of causing stack traces to render as
         // JSON instead of HTML
+        // https://discourse.cakephp.org/t/rest-api-exceptions-in-html-instead-of-json/11668
         $this->addViewClasses([\Cake\View\JsonView::class]);
     }
 

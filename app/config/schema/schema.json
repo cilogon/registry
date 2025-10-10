@@ -203,17 +203,14 @@
         "id": {},
         "co_id": {},
         "name": {},
-        "description": {},
-        "parent_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
-        "lft": { "type": "integer" },
-        "rght": { "type": "integer" }
+        "description": {}
       },
       "indexes": {
         "cous_i1": { "columns": [ "co_id" ] },
         "cous_i2": { "columns": [ "name" ] },
-        "cous_i3": { "columns": [ "co_id", "name" ] },
-        "cous_i4": { "needed": false, "columns": [ "parent_id" ] }
-      }
+        "cous_i3": { "columns": [ "co_id", "name" ] }
+      },
+      "tree": true
     },
     
     "dashboards": {
@@ -325,7 +322,8 @@
         "groups_i4": { "columns": [ "cou_id", "group_type" ] },
         "groups_i5": { "needed": false, "columns": [ "cou_id" ]},
         "groups_i6": { "needed": false, "columns": [ "owners_group_id" ]}
-      }
+      },
+      "tree": true
     },
     
     "group_nestings": {

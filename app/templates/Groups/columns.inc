@@ -36,6 +36,10 @@ $indexColumns = [
     'class' => 'SuspendableStatusEnum',
     'sortable' => true
   ],
+  'parent_id' => [
+    'type' => 'fk',
+    'label' => __d('field', 'parent_id')
+  ],
   'description' => [
     'type' => 'echo'
   ]

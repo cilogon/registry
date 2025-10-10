@@ -34,6 +34,7 @@ use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionManager;
+use \App\Lib\Enum\GroupTypeEnum;
 
 class UpgradeCommand extends BaseCommand
 {
@@ -72,7 +73,14 @@ class UpgradeCommand extends BaseCommand
     ],
     "5.2.0" => [
       'block' => false,
-      'post' => ['createDefaultGroups', 'installMostlyStaticPages']
+      'pre' => [
+        'checkGroupNames'
+      ],
+      'post' => [
+        'buildGroupTree',
+        'createDefaultGroups', 
+        'installMostlyStaticPages'
+      ]
     ]
   ];
   
@@ -80,6 +88,8 @@ class UpgradeCommand extends BaseCommand
   // to make them easier to use regardless of context (pre/post/manual).
 
   protected $taskParams = [
+    'buildGroupTree' => ['global' => true],
+    'checkGroupNames' => ['global' => true],
     'createDefaultGroups' => ['perCO' => true, 'perCOU' => true],
     'installMostlyStaticPages' => ['perCO' => true]
   ];
@@ -323,6 +333,54 @@ class UpgradeCommand extends BaseCommand
       $this->io->out(__d('result', 'ug.task.done', [$task]));
     } else {
       $this->io->err(__d('error', 'ug.task.unknown', [$task]));
+    }
+  }
+
+  /**
+   * Establish tree metadata for Groups.
+   * 
+   * @since  COmanage Registry v5.2.0
+   */
+
+  protected function buildGroupTree() {
+    // Although we partition Groups by CO, tree metadata applies to the table
+    // as a whole, so we only need to run this once.
+
+    $GroupsTable = $this->getTableLocator()->get('Groups');
+    $GroupsTable->recover();
+  }
+
+  /**
+   * Check that no Standard Groups have colons in their names.
+   * 
+   * @since  COmanage Registry v5.2.0
+   */
+  
+  protected function checkGroupNames() {
+    // Because it's not clear how to resolve conflicting Group names, we simply throw
+    // an error and require the administrator to figure out what to do.
+
+    $GroupsTable = $this->getTableLocator()->get('Groups');
+
+    // AR-Group-9 Standard Group names may not use colons (:) and Standard Groups may not be named CO.
+    $problemGroups = $GroupsTable->find()
+                                 ->where([
+                                  'OR' => [
+                                    'name LIKE' => '%:%',
+                                    'name' => 'CO'
+                                  ],
+                                  'group_type' => GroupTypeEnum::Standard
+                                 ])
+                                 ->all();
+    
+    if($problemGroups->count() > 0) {
+      $this->io->err(__d('error', 'ug.task.checkGroupNames.invalid', [$problemGroups->count()]));
+
+      foreach($problemGroups as $pg) {
+        $this->io->err($pg->id . " = " . $pg->name);
+      }
+
+      throw new \RuntimeException(__d('error', 'ug.task.checkGroupNames.invalid', [$problemGroups->count()]));
     }
   }
 

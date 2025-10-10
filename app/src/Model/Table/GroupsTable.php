@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
@@ -55,6 +56,9 @@ class GroupsTable extends Table {
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TreeTrait {
+    potentialParents as traitPotentialParents;
+  }
   use \App\Lib\Traits\ValidationTrait;
 
   /**
@@ -69,13 +73,19 @@ class GroupsTable extends Table {
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
+    $this->addBehavior('Tree');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Primary);
     
     // Define associations
     $this->belongsTo('Cos');
     $this->belongsTo('Cous');
-
+    $this->belongsTo('Groups')
+         ->setForeignKey('parent_id')
+         // Property is set so ruleValidateCO can find it. We don't use the
+         // _id suffix to match Cake's default pattern.
+         ->setProperty('parent');
+    
     // Most Groups (except other Owners groups) have an Owner Group,
     // which we should define with a hasOne relation (and a foreign key
     // like owners_for_group_id). However, this doesn't intuitively define
@@ -95,6 +105,9 @@ class GroupsTable extends Table {
          ->setClassName('Groups')
          ->setForeignKey('owners_group_id');
 
+    $this->hasMany('ChildGroups')
+         ->setClassName('Groups')
+         ->setForeignKey('parent_id');
     $this->hasMany('EnrollmentFlowSteps')
          ->setForeignKey('notification_group_id');
     $this->hasMany('GroupMembers')
@@ -122,6 +135,7 @@ class GroupsTable extends Table {
     $this->setRequiresCO(true);
     
     $this->setEditContains([
+      'ChildGroups',
       'Identifiers',
       // For an Owners Group, the group it manages owners for
       'OwnersForGroup',
@@ -131,12 +145,13 @@ class GroupsTable extends Table {
     ]);
 
     $this->setViewContains([
-       'Identifiers',
-       // For an Owners Group, the group it manages owners for
-       'OwnersForGroup',
-       // For a regular group, the Owners Group
-       'OwnersGroup',
-       'GroupMembers'
+      'ChildGroups',
+      'Identifiers',
+      // For an Owners Group, the group it manages owners for
+      'OwnersForGroup',
+      // For a regular group, the Owners Group
+      'OwnersGroup',
+      'GroupMembers'
      ]);
 
     // XXX Also used by SearchBlocks
@@ -158,6 +173,9 @@ class GroupsTable extends Table {
       'types' => [
         'type' => 'auxiliary',
         'model' => 'Types'
+      ],
+      'parents' => [
+        'type'  => 'parent'
       ]
     ]);
 
@@ -335,8 +353,10 @@ class GroupsTable extends Table {
       // Construct the full group name
       $gname = "CO" . ($couName ? ":COU:".$couName : "") . $suffix;
 
-      // See if there is already a group with this type for this CO
-      
+      // See if there is already a group with this type for this CO. Note this implies
+      // two COUs can't have the same name either (since we'll construct automatic Groups
+      // for each COU based on its name), but that's covered by AR-COU-3.
+
       $grp = $this->find()
                   ->where([
                     'Groups.co_id'      => $coId,
@@ -368,7 +388,33 @@ class GroupsTable extends Table {
 
     return true;
   }
-  
+
+  /**
+   * Callback after data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  EventInterface  $event   afterMarshal event
+   * @param  EntityInterface $entity  Entity
+   * @param  ArrayObject     $data    Original request data
+   * @param  ArrayObject     $options Callback options
+   */
+
+  public function afterMarshal(
+    EventInterface $event, 
+    EntityInterface $entity, 
+    \ArrayObject $data, 
+    \ArrayObject $options
+  ) {
+    // The inbound $data will in general not include the Group Type because it's not
+    // provided in the form data, and isn't supposed to change anyway. 
+
+    if(empty($data['group_type']) && empty($entity->group_type)) {
+      // If no group_type was set, this is a Standard Group, so fill in the field.
+      $data['group_type'] = GroupTypeEnum::Standard;
+      $entity->group_type = GroupTypeEnum::Standard;
+    }
+  }
+
   /**
    * Callback before model delete.
    *
@@ -393,22 +439,6 @@ class GroupsTable extends Table {
   }
 
   /**
-   * Callback before data is marshaled into an entity.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface  $event   beforeMarshal event
-   * @param  ArrayObject     $data    Entity data
-   * @param  ArrayObject     $options Callback options
-   */
-
-  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options) {
-    // If no group_type was set, this is a Standard Group, so fill in the field.
-    if(empty($data['group_type'])) {
-      $data['group_type'] = GroupTypeEnum::Standard;
-    }
-  }
-
-  /**
    * Define business rules.
    *
    * @since  COmanage Registry v5.0.0
@@ -417,8 +447,11 @@ class GroupsTable extends Table {
    */
   
   public function buildRules(RulesChecker $rules): RulesChecker {
-    // AR-Group-1 Two Groups within the same CO cannot share the same name
-    $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Groups', [1])])));
+    // AR-Group-1 Two Groups within the same CO and with the same Parent (if set) 
+    // cannot share the same name.
+    $rules->addUpdate([$this, 'ruleFQNameUnique'],
+                      'checkFQNameUnique',
+                      ['errorField' => 'name']);
     
     // AR-Group-2 A Group cannot be set to Suspended if it is nested into a
     // Target Group or is a Target Group for a nesting. This and AR-Group-3
@@ -451,11 +484,28 @@ class GroupsTable extends Table {
                       'typeModified',
                       ['errorField' => 'group_type']);
     
-    // AR-Group-9 Standard Groups may not be named starting with the prefix CO:,
-    // which is reserved for System Groups.
-    $rules->add([$this, 'ruleCheckNamePrefix'],
-                'checkNamePrefix',
-                ['errorField' => 'name']);
+    // AR-Group-9 Standard Group names may not use colons (:).
+    // AR-Group-10 Standard Groups may not be named CO.
+    $rules->addUpdate([$this, 'ruleNameSyntax'],
+                      'checkNameSyntax',
+                      ['errorField' => 'name']);
+
+    // AR-Group-11 Only Standard Groups may have parents.
+    // AR-Group-12 Only Standard Groups may be parents.
+    $rules->addUpdate([$this, 'ruleAreStandard'],
+                      'checkParentsStandard',
+                      ['errorField' => 'parent_id']);
+
+    // AR-Group-13 A Group may not be deleted if it has any children.
+    $rules->addDelete([$this, 'ruleHasChildren'],
+                      'hasChildrenDelete',
+                      ['errorField' => 'parent_id']);
+
+    // This is not an Application Rule per se, but the parent_id must be a valid
+    // potential parent
+    $rules->add([$this, 'rulePotentialParent'],
+                'potentialParent',
+                ['errorField' => 'parent_id']);
 
     return $rules;
   }
@@ -545,6 +595,27 @@ class GroupsTable extends Table {
     $g = $this->find('adminGroup', co_id: $coId)->firstOrFail();
 
     return $g->id;
+  }
+  
+  /**
+   * Obtain the fully qualified name for the Group, which will include all
+   * parent names, separated by colons.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Group  $group  Owners Group entity
+   * @return string         Fully qualified Group name
+   */
+
+  public function getFullyQualifiedName($group): string {
+    // We solve this with recursion, yay!
+
+    if(!empty($group->parent_id)) {
+      $parent = $this->get($group->parent_id);
+
+      return $this->getFullyQualifiedName($parent) . ":" . $group->name;
+    } else {
+      return $group->name;
+    }
   }
   
   /**
@@ -713,7 +784,7 @@ class GroupsTable extends Table {
    * @return bool                     True on success
    */
     
-  public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
+  public function localAfterSave(EventInterface $event, EntityInterface $entity, \ArrayObject $options): bool {
     if($entity->isNew()) {
       $action = ActionEnum::GroupAdded;
       $comment = __d('result', 'Groups.added', [$entity->name]);
@@ -828,6 +899,41 @@ class GroupsTable extends Table {
   }
 
   /**
+   * Assemble the set of potential parent Groups.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  int    $coId      CO ID
+   * @param  int    $id        Group ID to determine potential parents of, or null for any (or a new) Group
+   * @param  bool   $hierarchy Render the hierarchy in the name
+   * @param  array  $where     Additional conditions for filtering potential parents
+   * @return array           Array of Group IDs and Group Names
+   * @todo Make a TreeTrait and move the function there
+   */
+  
+  public function potentialParents(
+    int $coId,
+    int $id=null,
+    bool $hierarchy=false,
+    array $where=[]
+  ): array {
+    // We generally want the same functionality as TreeTrait::potentialParents, but
+    // only Standard Groups may have parents, so if $id is provided check it first.
+
+    if($id) {
+      $entity = $this->get($id);
+
+      if($entity->group_type != GroupTypeEnum::Standard) {
+        return [];
+      }
+    }
+
+    // Additionally, we filter out non-Standard Groups to reduce noise in the UI
+    // (even though normally we'd want to include ineligible entities to avoid UX issues).
+
+    return $this->traitPotentialParents($coId, $id, $hierarchy, ['group_type' => GroupTypeEnum::Standard]);
+  }
+
+  /**
    * Reconcile the members of an automatic or nested Group.
    *
    * @since  COmanage Registry v5.0.0
@@ -851,7 +957,7 @@ class GroupsTable extends Table {
    * @param  EntityInterface $entity  Group
    */
   
-  protected function reconcileAutomaticGroup(\Cake\Datasource\EntityInterface $entity) {
+  protected function reconcileAutomaticGroup(EntityInterface $entity) {
     // In order to handle very large groups, we can't pull the full set of
     // members into memory. Instead, we use the paginated iterator. This
     // involves two passes.
@@ -951,7 +1057,7 @@ class GroupsTable extends Table {
    * @param  EntityInterface $entity  Group
    */
   
-  protected function reconcileNestedMemberships(\Cake\Datasource\EntityInterface $entity) {
+  protected function reconcileNestedMemberships(EntityInterface $entity) {
     // When a new GroupNesting is saved, we're called on the _target_.
 
     // Start by pulling the Group Nestings for this Group. We'll only go one level deep.
@@ -993,7 +1099,77 @@ class GroupsTable extends Table {
   }
 
   /**
-   * Application Rule to determine if the Group name has an invalid prefix.
+   * Application Rule to determine if both the Parent and Child are Standard Groups.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleAreStandard($entity, $options) {
+    // We check that both child and parent are Standard Groups.
+
+    if(!empty($entity->parent_id)) {
+      if($entity->group_type != GroupTypeEnum::Standard) {
+        return __d('error', 'Groups.child.standard');
+      }
+
+      $parentEntity = $this->get($entity->parent_id);
+
+      if($parentEntity->group_type != GroupTypeEnum::Standard) {
+        return __d('error', 'Groups.parent.standard');
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the Fully Qualified Group name is unique.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+
+  public function ruleFQNameUnique($entity, $options) {
+    // Check that the proposed fully qualified name is not already in use.
+    // This basically just means checking other Groups with the same parent_id,
+    // or if there is no parent_id the same co_id.
+
+    // name is indexed with co_id, so we'll always include co_id in the query
+    // even though it's redundant when parent_id is also specified. Annoying, nulls
+    // are specified differently.
+
+    // Only Standard Groups are namespaced
+    if($entity->group_type == GroupTypeEnum::Standard) {
+      $whereClause = [
+        'co_id' => $entity->co_id,
+        'name' => $entity->name
+      ];
+
+      if($entity->parent_id) {
+        $whereClause['parent_id'] = $entity->parent_id;
+      } else {
+        $whereClause['parent_id IS'] = null;
+      }
+
+      $group = $this->find()
+                    ->where($whereClause)
+                    ->first();
+      
+      if(!empty($group)) {
+        return __d('error', 'Groups.name.inuse', [$group->id, $group->parent_id]);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the Group name has an invalid syntax.
    *
    * @since  COmanage Registry v5.0.0
    * @param  Entity  $entity  Entity to be validated
@@ -1001,10 +1177,41 @@ class GroupsTable extends Table {
    * @return boolean          true if the Rule check passes, false otherwise
    */
 
-  public function ruleCheckNamePrefix($entity, $options) {
-    if($entity->group_type == GroupTypeEnum::Standard
-       && strncmp($entity->name, "CO:", 3)==0) {
-      return __d('error', 'Groups.name.prefix');
+  public function ruleNameSyntax($entity, $options) {
+    // We don't allow (1) colons anywhere in the name, because this can create conflicts
+    // with fully qualified names (as used in Owners Group name construction) or (2) a
+    // name consisting of exactly "CO" (since that prefix is reserved for special Groups,
+    // and it would be possible to create a CO:foo fully qualified name.).
+
+    if($entity->group_type == GroupTypeEnum::Standard) {
+      if(str_contains($entity->name, ":")) {
+        return __d('error', 'Groups.name.colon');
+      }
+
+      if($entity->name == "CO") {
+        return __d('error', 'Groups.name.co');
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the group has children.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleHasChildren($entity, $options) {
+    $count = $this->find('all')
+                  ->where(['parent_id' => $entity->id])
+                  ->count();
+    
+    if($count > 0) {
+      return __d('error', 'Groups.children', [$count]);
     }
 
     return true;
@@ -1137,8 +1344,10 @@ class GroupsTable extends Table {
 
     $ownerGroup = $this->get($group->owners_group_id);
 
-    // We synchronize name, description, and status
-    $ownerGroup->name = 'CO:owners:' . $group->name;
+    // We synchronize name, description, and status. Because special Groups
+    // (including Owners Groups) exist in a flat structure, the name must be
+    // fully qualified.
+    $ownerGroup->name = 'CO:owners:' . $this->getFullyQualifiedName($group);
     $ownerGroup->description = $group->name . " Owners";
     $ownerGroup->status = $group->status;
 

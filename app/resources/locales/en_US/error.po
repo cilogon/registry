@@ -163,14 +163,29 @@ msgstr "Target group is already nested into this Group"
 msgid "GroupNestings.same"
 msgstr "Group cannot be nested into itself"
 
-msgid "Groups.name.prefix"
-msgstr "Standard Groups may not have names starting with \"CO:\""
+msgid "Groups.child.standard"
+msgstr "Only Standard Groups may have parents"
+
+msgid "Groups.children"
+msgstr "Group has {0} child(ren) and cannot be deleted"
+
+msgid "Groups.name.co"
+msgstr "Standard Groups may not be named \"CO\""
+
+msgid "Groups.name.colon"
+msgstr "Standard Groups may not have names with a colon (\":\")"
+
+msgid "Groups.name.inuse"
+msgstr "A Group ({0}) with the same parent ({1}) is already using the requested name"
 
 msgid "Groups.nested"
 msgstr "Group is nested or has nestings, and cannot be suspended or deleted"
 
 msgid "Groups.owners.update"
 msgstr "Update called on Owners Group"
+
+msgid "Groups.parent.standard"
+msgstr "Only Standard Groups may be parents"
 
 msgid "IdentifierAssignments.exists"
 msgstr "The identifier \"{0}\" is already in use"
@@ -403,6 +418,12 @@ msgstr "Ooops... Something went wrong."
 msgid "setup.co.comanage"
 msgstr "Failed to setup COmanage CO"
 
+msgid "tree.parent.invalid"
+msgstr "The selected {0} is not a valid parent for the current record"
+
+msgid "tree.parent.same"
+msgstr "The current {0} cannot be its own parent"
+
 msgid "Types.inuse"
 msgstr "Type {0} is in use and cannot be deleted"
 
@@ -414,6 +435,9 @@ msgstr "Unknown value \"{0}\""
 
 msgid "unknown.identifier"
 msgstr "Unknown Identifier \"{0}\""
+
+msgid "ug.task.checkGroupNames.invalid"
+msgstr "Found {0} Group(s) with colons in their names or named 'CO', these Groups must be renamed before continuing"
 
 msgid "ug.task.unknown"
 msgstr "Task {0} is not defined"

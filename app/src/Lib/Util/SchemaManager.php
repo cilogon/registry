@@ -305,6 +305,27 @@ class SchemaManager {
         $table->addIndex([$sColumn], $tablePrefix.$tName . "_im" . $i++);
       }
       
+      // If this table uses TreeBehavior, emit the appropriate columnsand indexes.
+      if(isset($tCfg->tree) && $tCfg->tree) {
+        // Cake's TreeBehavior uses three columns: parent_id (which fks back to the
+        // same table, similar to source_foo), lft, and rght. The recommendation is
+        // to index parent_id (which we would do anyway since DBAL wants to put indexes
+        // on all fks) and lft.
+
+        $foreignTableName = $this->conn->qualifyTableName($tablePrefix.$tName);
+        
+        // Insert a foreign key to this model and index it
+        $table->addColumn("parent_id", "integer", ['notnull' => false]);
+        $table->addForeignKeyConstraint($foreignTableName, ["parent_id"], ['id'], [], $tablePrefix.$tName . "_parent_id_fkey");
+        $table->addIndex(["parent_id"], $tablePrefix.$tName."_it1");
+
+        // Add the other columns
+        $table->addColumn("lft", "integer", ['notnull' => false]);
+        $table->addIndex(["lft"], $tablePrefix.$tName."_it2");
+
+        $table->addColumn("rght", "integer", ['notnull' => false]);
+      }
+      
       // Default is to insert timestamp and changelog fields, unless disabled
       
       if(!isset($tCfg->timestamps) || $tCfg->timestamps) {

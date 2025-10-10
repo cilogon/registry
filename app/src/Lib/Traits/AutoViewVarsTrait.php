@@ -65,11 +65,16 @@ trait AutoViewVarsTrait {
    *
    * @since  COmanage Registry v5.1.0
    * @param  int|null     $coId
-   * @param  Object|null  $obj  Current object (eg: from edit), if set
+   * @param  Object|null  $obj    Current object (eg: from edit), if set
+   * @param  string       $action Controller action
    * @return \Generator
    */
 
-  public function calculateAutoViewVars(int|null $coId, Object $obj = null): \Generator {
+  public function calculateAutoViewVars(
+    int|null $coId,
+    Object $obj = null,
+    string $action = null
+  ): \Generator {
     /** var Cake\ORM\Table $table */
     $table = $this;
 
@@ -198,7 +203,13 @@ trait AutoViewVarsTrait {
           $generatedValue = $query->toArray();
           break;
         case 'parent':
-          $generatedValue = $table->getParents($coId);
+          // Supported models must use TreeTrait
+          $generatedValue = $table->potentialParents(
+            coId: $coId, 
+            // We only want the hierarchical prefixes ("-") for add and edit
+            id: $obj ? $obj->id : null,
+            hierarchy: in_array($action, ['add', 'edit'])
+          );
           break;
         case 'plugin':
           if(!empty($avv['pluginType'])) {

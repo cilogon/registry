@@ -31,45 +31,11 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
-//use \App\Lib\Enum\PermissionEnum;
 
 class CousController extends StandardController {
-
-
   protected array $paginate = [
     'order' => [
       'Cous.name' => 'asc'
     ]
   ];
-  
-  /**
-   * Callback run prior to the request render.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface $event Cake Event
-   */
-  
-  public function beforeRender(\Cake\Event\EventInterface $event) {
-    if(!$this->request->is('restful')) {
-      // Pull the set of potential Parent COUs
-      
-      switch($this->request->getParam('action')) {
-        case 'add':
-          $this->set('parents', $this->Cous->potentialParents($this->getCOID(), null, true));
-          break;
-        case 'edit':
-          $p = $this->request->getParam('pass');
-          $couId = (int)$p[0];
-          $this->set('parents', $this->Cous->potentialParents($this->getCOID(), $couId, true));
-          break;
-        case 'index':
-          $this->set('parents', $this->Cous->potentialParents($this->getCOID()));
-          break;
-        default:
-          break;
-      }
-    }
-    
-    return parent::beforeRender($event);
-  }
 }

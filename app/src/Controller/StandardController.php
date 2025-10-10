@@ -691,7 +691,7 @@ class StandardController extends AppController {
 
     // AutoViewVarsTrait
     if(method_exists($table, 'getAutoViewVars') && $table->getAutoViewVars()) {
-      foreach ($table->calculateAutoViewVars($this->getCOID(), $obj) as $vvar => $value) {
+      foreach ($table->calculateAutoViewVars($this->getCOID(), $obj, $this->request->getParam('action')) as $vvar => $value) {
         $this->set($vvar, $value);
       }
     }

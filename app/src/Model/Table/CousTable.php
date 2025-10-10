@@ -48,6 +48,7 @@ class CousTable extends Table {
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\TreeTrait;
   use \App\Lib\Traits\ValidationTrait;
 
   /**
@@ -95,9 +96,8 @@ class CousTable extends Table {
     $this->setRequiresCO(true);
 
     $this->setAutoViewVars([
-      'parentIds' => [
-        'type'  => 'parent'  // Even though the type is parent we refer to the parent_id
-                             // which is an integer
+      'parents' => [
+        'type'  => 'parent'
       ]
     ]);
     
@@ -152,30 +152,6 @@ class CousTable extends Table {
                 ['errorField' => 'parent_id']);
     
     return $rules;
-  }
-
-  /**
-   * Get the Parent COU list(Suitable for dropdown)
-   *
-   * @param   int  $coId   CO ID
-   *
-   * @return array    List of [id, name] Parent COUs
-   * @since  COmanage Registry v5.0.0
-   */
-  public function getParents(int $coId): array
-  {
-    $subquery = $this->find();
-    $subquery = $subquery->where(['co_id' => $coId])
-                   ->where(fn(QueryExpression $exp, Query $subquery) => $exp->isNotNull('parent_id'))
-                   ->select(['parent_id'])
-                   ->distinct();
-
-    $query = $this->find('list')
-                  ->where(fn(QueryExpression $exp, Query $query) => $exp->in('id', $subquery))
-                  ->distinct()
-                  ->select(['id', 'name']);
-    $results = $query->toArray();
-    return $results;
   }
   
   /**
@@ -234,66 +210,6 @@ class CousTable extends Table {
     }
 
     return $ret;
-  }
-
-  /**
-   * Assemble the set of potential parent COUs.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  int  $coId      CO ID
-   * @param  int  $id        COU ID to determine potential parents of, or null for any (or a new) COU
-   * @param  bool $hierarchy Render the hierarchy in the name
-   * @return Array     Array of COU IDs and COU Names
-   * @todo Make a TreeTrait and move the function there
-   */
-  
-  public function potentialParents(int $coId, int $id=null, bool $hierarchy=false) {
-    // Note prior to v5 we filtered child COUs, meaning a COU couldn't be reassigned
-    // to be a child of a current child. It's not clear why we imposed that restriction.
-    
-    $query = null;
-    
-    if($hierarchy) {
-      $query = $this->find('treeList', spacer: '-');
-    } else {
-      $query = $this->find('list');
-    }
-    
-    $query = $query->where(['co_id' => $coId])
-                  // true overrides the default Cake order for treeList so we get
-                  // our items sorted alphabetically instead of by tree ID
-                   ->orderBy(['name' => 'ASC'], true);
-    
-    if($id) {
-      $query = $query->where(['id <>' => $id]);
-    }
-    
-    return $query->toArray();
-  }
-  
-  /**
-   * Application Rule to determine if the parent ID is a potential parent.
-   *
-   * @since  COmanage Registyr v5.0.0
-   * @param  Entity  $entity  Entity to be validated
-   * @param  array   $options Application rule options
-   * @return boolean          true if the Rule check passes, false otherwise
-   */
-  
-  public function rulePotentialParent($entity, $options) {
-    // We want negative logic since we want to fail if we're editing the COmanage CO
-    if(!empty($entity->parent_id)) {
-      $potentialParents = $this->potentialParents(
-        coId: $entity->co_id,
-        id: (!empty($entity->id) ? $entity->id : null)
-      );
-      
-      if(!isset($potentialParents[$entity->parent_id])) {
-        return __d('error', 'cou.parent');
-      }
-    }
-    
-    return true;
   }
   
   /**

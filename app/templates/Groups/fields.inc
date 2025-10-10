@@ -45,6 +45,15 @@ foreach(['name',
   ]);
 }
 
+if(!empty($parents)) {
+  print $this->element('form/listItem', [
+    'arguments' => [
+      'fieldName' => 'parent_id',
+      'fieldLabel' => __d('field', 'parent_id'),
+    ]
+  ]);
+}
+
 if($vv_action != 'add') {
   print $this->element('form/listItem', [
     'arguments' => [
@@ -61,6 +70,7 @@ if($vv_action != 'add') {
       print $this->element('form/listItem', [
         'arguments' => [
           'fieldName' => 'owners_group_id',
+          'fieldLabel' => __d('field', 'Groups.owners.for'),
           'status' => $vv_obj->owners_for_group->name,
           'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]],
           'labelIsTextOnly' => true

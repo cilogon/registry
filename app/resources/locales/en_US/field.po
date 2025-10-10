@@ -65,6 +65,9 @@ msgstr "Parent Record ID"
 msgid "changelog.revision"
 msgstr "Revision"
 
+msgid "children"
+msgstr "Children"
+
 msgid "code"
 msgstr "Code"
 
@@ -611,6 +614,9 @@ msgstr "Open groups may be self-joined by any Person in the CO"
 
 msgid "Groups.owners.desc.affix"
 msgstr "{0} Owners"
+
+msgid "Groups.owners.for"
+msgstr "Owners for Group"
 
 msgid "Groups.owners_group_id"
 msgstr "Owners Group"

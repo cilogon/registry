@@ -188,7 +188,7 @@ class RuleBuilderEventListener Implements EventListenerInterface {
     $haveCO = $table->calculateCoForRecord($entity, true);
     
     if($wantCO != $haveCO) {
-      $this->llog('error', "GMR-1 Attempt to move " . $table->getAlias() . " record " . $entity->id . " from CO " . $have . " to CO " . $want . " is not allowed");
+      $this->llog('error', "GMR-1 Attempt to move " . $table->getAlias() . " record " . $entity->id . " from CO " . $haveCO . " to CO " . $wantCO . " is not allowed");
       return __d('error', 'coid.frozen');
     }
     
