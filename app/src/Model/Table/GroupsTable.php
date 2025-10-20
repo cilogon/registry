@@ -1160,7 +1160,7 @@ class GroupsTable extends Table {
                     ->where($whereClause)
                     ->first();
       
-      if(!empty($group)) {
+      if(!empty($group) && $group->id != $entity->id) {
         return __d('error', 'Groups.name.inuse', [$group->id, $group->parent_id]);
       }
     }
