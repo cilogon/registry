@@ -133,7 +133,8 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
           <tr class="linked-row">
             <td>
               <?= $this->Html->link(
-                    $source_key,
+                    // Cast to string in case we have a numeric source key
+                    (string)$source_key,
                     [
                       'action' => 'retrieve',
                       $this->request->getParam('pass')[0],
