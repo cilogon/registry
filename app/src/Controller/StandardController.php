@@ -493,6 +493,19 @@ class StandardController extends AppController {
       $this->set('vv_subtitle', $subtitle);
     }
 
+    // Inject the changelog archive information so the view can render it, similar to view
+    $clAttr = $obj->changelogAttributeName();
+
+    // As a first pass, we only pull the object itself (no related models)
+    
+    $archives = $table->find()
+                      ->applyOptions(['archived' => true])
+                      ->where([$clAttr => $id])
+                      ->order(['revision' => 'DESC'])
+                      ->all();
+
+    $this->set('vv_archives', $archives);
+
     // Let the view render
     $this->render('/Standard/add-edit-view');
   }
@@ -781,8 +794,10 @@ class StandardController extends AppController {
     $table = $this->getCurrentTable();
     
     // We use findById() rather than get() so we can apply subsequent
-    // query modifications via traits
-    $query = $table->findById($id);
+    // query modifications via traits. We allow ChangelogBehavior to return
+    // archived copies when directly queried.
+    $query = $table->findById($id)
+                   ->applyOptions(['archived' => true]);
     
     // QueryModificationTrait
     if(method_exists($table, "getViewContains")) {
@@ -815,6 +830,18 @@ class StandardController extends AppController {
     $this->set('vv_title', $title);
     $this->set('vv_supertitle', $supertitle);
     $this->set('vv_subtitle', $subtitle);
+
+    // Inject the changelog archive information so the view can render it, similar to edit
+    $clAttr = $obj->changelogAttributeName();
+
+    // As a first pass, we only pull the object itself (no related models)
+    $archives = $table->find()
+                      ->applyOptions(['archived' => true])
+                      ->where([$clAttr => $id])
+                      ->order(['revision' => 'DESC'])
+                      ->all();
+
+    $this->set('vv_archives', $archives);
 
     // Let the view render
     $this->render('/Standard/add-edit-view');
