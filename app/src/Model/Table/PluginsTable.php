@@ -211,7 +211,8 @@ class PluginsTable extends Table {
    */
 
   public function findActive(Query $query): Query {
-    return $query->where(['Plugins.status' => SuspendableStatusEnum::Active])
+    // We might be called (eg) RemotePlugins via CloneCommand
+    return $query->where([$this->getAlias().'.status' => SuspendableStatusEnum::Active])
                  ->orderBy(['plugin' => 'ASC']);
   }
 

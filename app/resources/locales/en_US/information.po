@@ -186,6 +186,12 @@ msgstr "Current version: {0}"
 msgid "ug.version.target"
 msgstr "Target version: {0}"
 
+msgid "ug.tasks.assignUuids"
+msgstr "Assigning UUIDs (this may take a while for larger deployments)"
+
+msgid "ug.tasks.assignUuids.count"
+msgstr "{0} records for {1}..."
+
 msgid "ug.tasks.buildGroupTree"
 msgstr "Recovering Group tree"
 

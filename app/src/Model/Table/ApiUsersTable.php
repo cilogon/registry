@@ -32,6 +32,7 @@ namespace App\Model\Table;
 use ArrayObject;
 use Authentication\PasswordHasher\FallbackPasswordHasher;
 use Cake\Chronos\Chronos;
+use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -43,6 +44,7 @@ use App\Lib\Random\RandomString;
 class ApiUsersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -57,8 +59,8 @@ class ApiUsersTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Timestamp');
     $this->addBehavior('Timezone');
     
@@ -114,6 +116,9 @@ class ApiUsersTable extends Table {
 
   public function beforeMarshal(EventInterface $event, ArrayObject $data, ArrayObject $options)
   {
+    // AR-APIUser-3 For namespacing purposes, API Users are named with a prefix consisting
+    // of the string co_#.
+
     if (isset($data['username'])) {
       $data['username'] = "co_" . $data['co_id'] . "." . $data['username'];
     }
@@ -128,19 +133,18 @@ class ApiUsersTable extends Table {
    */
   
   public function buildRules(RulesChecker $rules): RulesChecker {
-    // We don't want to perform the uniqueness check until after then namespacing
-    // check in order to avoid information leakage. This requires more complicated
-    // rule building.
-    
-    $rules->add(function($entity, $options) use($rules) {
-      
-      // AR-ApiUser-3 API usernames must be unique across the entire platform.
-      $rule = $rules->isUnique(['username'], __d('error', 'exists', [__d('controller', 'ApiUsers', [1])]));
-      
-      return $rule($entity, $options);
-    },
-    'isUsernameValid',
-    ['errorField' => 'username']);
+    // AR-ApiUser-3 API usernames must be unique across the entire platform.
+    $rules->add(
+      $rules->isUnique(['username']),
+      'usernameUnique',
+      ['errorField' => 'username',
+       'message' => __d('error', 'exists', [__d('controller', 'ApiUsers', [1])])]
+    );
+
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
     
     return $rules;
   }
@@ -175,8 +179,6 @@ class ApiUsersTable extends Table {
    * @throws InvalidArgumentException
    */
   
-// public function getUserPrivilege(string $username): mixed {
-// mixed requires PHP 8
   public function getUserPrivilege(string $username) {
     $apiUser = $this->find()->where(['username' => $username])->contain('Cos')->first();
     
@@ -191,6 +193,40 @@ class ApiUsersTable extends Table {
     }
     
     return false;
+  }
+
+  /**
+   * Prepare an entity for cloning.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $original   Original entity
+   * @param  EntityInterface  $clone      Clone (not yet saved)
+   * @param  string           $dataSource DataSource connection name
+   * @return EntityInterface              Clone, updated as necessary
+   */
+
+  public function prepareClone(
+    EntityInterface $original,
+    EntityInterface $clone,
+    string $dataSource
+  ): EntityInterface {
+    // beforeMarshal will inject the co_id prefix, but it will prefix the old CO prefix,
+    // and we'll end up with something like co_x.co_y.username. We'll fix that here,
+    // because beforeMarshal shouldn't have to deal with the otherwise unsupported
+    // concept of moving an entity across a CO.
+
+    // We can simply throw away the middle bit
+    $bits = explode('.', $clone->username, 3);
+
+    $clone->username = $bits[0] . '.' . $bits[2];
+
+    // Because we don't ordinarily allow API Keys to be set on entity creation
+    // (see ApiUser.php) we manually copy the key. Because ApiUser defines a setter
+    // to hash the key, we need to use set() to disable setters.
+
+    $clone->set('api_key', $original->api_key, ['setter' => false]);
+
+    return $clone;
   }
   
   /**
@@ -320,6 +356,8 @@ class ApiUsersTable extends Table {
                    'provider' => 'table'],
     ]);
     $validator->allowEmptyString('remote_ip');
+    
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

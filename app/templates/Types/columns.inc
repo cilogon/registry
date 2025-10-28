@@ -30,6 +30,10 @@ $indexColumns = [
     'type' => 'link',
     'sortable' => true
   ],
+  'value' => [
+    'type' => 'echo',
+    'sortable' => true
+  ],
   'attribute' => [
     'type' => 'echo',
     'sortable' => true

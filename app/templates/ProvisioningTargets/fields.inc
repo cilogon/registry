@@ -86,4 +86,6 @@ if($vv_action == 'add' || $vv_action == 'edit') {
     'arguments' => [
       'fieldName' => 'ordr'
     ]]);
+  
+  print $this->element('clonable');
 }

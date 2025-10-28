@@ -29,19 +29,23 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
-use App\Lib\Enum\StatusEnum;
 use Cake\Database\Expression\QueryExpression;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
+use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
+use \App\Lib\Util\StringUtilities;
+use \App\Lib\Util\TableUtilities;
 
 class CousTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
@@ -61,6 +65,7 @@ class CousTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     $this->addBehavior('Tree');
@@ -142,7 +147,7 @@ class CousTable extends Table {
    */
   
   public function buildRules(RulesChecker $rules): RulesChecker {
-    // AR-CO-3 Two COUs within the same CO cannot share the same name
+    // AR-COU-3 Two COUs within the same CO cannot share the same name
     $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Cous', [1])])));
     
     // This is not an Application Rule per se, but the parent_id must be a valid
@@ -150,6 +155,11 @@ class CousTable extends Table {
     $rules->add([$this, 'rulePotentialParent'],
                 'potentialParent',
                 ['errorField' => 'parent_id']);
+    
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
     
     return $rules;
   }
@@ -262,6 +272,8 @@ class CousTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('rght');
+
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

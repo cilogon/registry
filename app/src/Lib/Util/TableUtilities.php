@@ -36,6 +36,52 @@ use Cake\Utility\Inflector;
 
 class TableUtilities {
   /**
+   * Dynamically obtain a Table model from the Table Registry based on the requested
+   * datasource connection name. If the requested connection is 'default' the Table alias
+   * will be the requested Table name (eg "People" for "People"). For any other connection,
+   * the connection name will be CamelCased and prefixed to create the Table alias
+   * (eg "RemotePeople" for "People"). For Plugins, the Plugin name will be removed and
+   * the Plugin model used as described (eg "RemoteWidgets" for "MyPlugin.Widgehs").
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  string $tableName      Table name, in the usual format (including Plugin.Models)
+   * @param  string $connectionName Name of database connection to use
+   * @param  array  $options        Additional options to pass to TableLocator
+   * @return Table
+   */
+
+  public static function getTableWithDataSource(
+    string $tableName,
+    string $connectionName,
+    array  $options=[]
+  ): Table {
+    if($connectionName == 'default') {
+      // We can simply pass through the request
+
+      return self::getTableFromRegistry($tableName, $options);
+    }
+
+    // Start with the prefix (eg: "Remote")
+    $modelName = Inflector::camelize($connectionName);
+
+    if(str_contains($tableName, '.')) {
+      // now (eg) SqlServers
+      $modelName .= StringUtilities::PluginModel($tableName);
+    } else {
+      // eg, "People" or "CoreServer.SqlServers"
+      $modelName .= $tableName;
+    }
+
+    $mergedOptions = $options;
+
+    $mergedOptions['alias'] = $modelName;
+    $mergedOptions['className'] = $tableName;
+    $mergedOptions['connectionName'] = $connectionName;
+
+    return self::getTableFromRegistry($modelName, $mergedOptions);
+  }
+
+  /**
    * Dynamically create a Table model via the Table Registry.
    * 
    * @since  COmanage Registry v5.0.0
@@ -59,6 +105,32 @@ class TableUtilities {
     } else {
       return $Locator->get($alias, $options);
     }
+  }
+  
+  /**
+   * Take an array of associations (as used for contains()) and normalize them
+   * for easier handling. Specifically, all relations will always have a child array,
+   * though it may be an empty array.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  array  $related  Array of associations in contain() format
+   * @return array            Array in normalized format.
+   */
+
+  public static function normalizeAssociationArray(array $related): array {
+    $ret = [];
+
+    foreach($related as $k => $v) {
+      if(is_int($k)) {
+        // Simple relation, give it an empty set of related children
+        $ret[$v] = [];
+      } elseif(is_array($v)) {
+        // Pass through the array, but we need to recurse over its elements
+        $ret[$k] = self::normalizeAssociationArray($v);
+      }
+    }
+
+    return $ret;
   }
 
   /**

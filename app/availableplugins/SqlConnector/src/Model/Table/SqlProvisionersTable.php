@@ -337,7 +337,9 @@ class SqlProvisionersTable extends Table {
 
     // Also, When the SQL Provisioner is deleted, neither the
     // database schema nor reference data is touched (PAR-SqlProvisioner-4).
-    if(!empty($entity->server_id) && !$entity->deleted) {
+    // Similarly, we skip this when cloning.
+    if(!empty($entity->server_id) && !$entity->deleted
+       && (!isset($options['clone']) || !$options['clone'])) {
       // Apply the database schema (PAR-SqlProvisioner-1)
       $this->llog('rule', "PAR-SqlProvisioner-1 Applying database schema for SqlProvisioner " . $entity->id);
       $this->applySchema($entity->id);
@@ -572,7 +574,7 @@ class SqlProvisionersTable extends Table {
 
       $options = [
         'table'       => $spcfg->table_prefix . $m['table'],
-        'alias'       => $m['name'] . $SqlProvisioner->id,
+        'alias'       => $m['name'] . $id,
         'connection'  => ConnectionManager::get($dataSource)
       ];
 

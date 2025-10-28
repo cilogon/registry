@@ -41,6 +41,7 @@ use App\Lib\Util\StringUtilities;
 class ExternalIdentitySourcesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -63,6 +64,7 @@ class ExternalIdentitySourcesTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
@@ -187,6 +189,23 @@ class ExternalIdentitySourcesTable extends Table {
       sourceKey:  $sourceKey,
       personId:   $targetPersonId
     );
+  }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
+
+    return $rules;
   }
 
   /**
@@ -422,6 +441,8 @@ class ExternalIdentitySourcesTable extends Table {
       'content' => ['rule' => ['boolean']]
     ]);
     $validator->allowEmptyString('suppress_noop_logs');
+    
+    $this->registerClonableValidation($validator, $schema);
 
     return $validator; 
   }

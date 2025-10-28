@@ -29,10 +29,12 @@ declare(strict_types = 1);
 
 namespace App\Lib\Traits;
 
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use App\Lib\Enum\TableTypeEnum;
 use App\Lib\Util\StringUtilities;
+use App\Lib\Util\TableUtilities;
 
 trait TableMetaTrait {
   // What type of Table is this?
@@ -48,7 +50,7 @@ trait TableMetaTrait {
    * @return array                      Array of filtered attributes
    */
 
-  protected function filterMetadataForCopy(
+  public function filterMetadataForCopy(
     \Cake\ORM\Table $table,
     \Cake\Datasource\EntityInterface $entity,
     array $related=[]
@@ -56,7 +58,7 @@ trait TableMetaTrait {
 // XXX There is overlap with Petitions::duplicateFilterEntityData and
 // TableMetaTrait::filterMetadataFields (used mostly for UI stuff),
 // should maybe refactor these. filterMetadata() is more based on the Petitions one
-// See also CFM-442
+// See also CFM-442 and CFM-480
 
     $ret = [];
 
@@ -117,7 +119,13 @@ trait TableMetaTrait {
           // For pluggable models, get the plugin table from the entity configuration
           $t = TableRegistry::getTableLocator()->get($entity->plugin);
         } else {
-          $t = TableRegistry::getTableLocator()->get($v);
+          if(!empty($entity->$m[0])) {
+            // hasMany Relation with at least one entity populated. Use the entity to get
+            // the appropriate table to make sure we handle plugins correctly.
+            $t = TableRegistry::getTableLocator()->get($entity->$m[0]->getSource());
+          } else {
+            $t = TableRegistry::getTableLocator()->get($v);
+          }
         }
 
         if(is_array($entity->$m)) {
@@ -138,7 +146,7 @@ trait TableMetaTrait {
         // $m1 is the singular version (enrollment_flow_step)
         $m1 = Inflector::singularize($m);
         // $t is the Table for $k
-        if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $v) {
+        if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $k) {
           // For pluggable models, get the plugin table from the entity configuration
           $t = TableRegistry::getTableLocator()->get($entity->plugin);
         } else {
@@ -246,6 +254,127 @@ trait TableMetaTrait {
   }
   
   /**
+   * Update the foreign keys in $clone to point to the correct entities in the target CO.
+   * This function is here and not in ClonableTrait in order to be available for
+   * related models that are not themselves directly Clonable.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $original   Original entity
+   * @param  EntityInterface  $clone      Clone (not yet saved)
+   * @param  int              $targetCoId CO ID for target
+   * @param  string           $dataSource Target DataSource connection name
+   * @return EntityInterface              Clone, updated as necessary
+   */
+
+  public function fixCloneForeignKeys(
+    EntityInterface $original,
+    EntityInterface $clone,
+    int $targetCoId,
+    string $dataSource
+  ): EntityInterface {
+    // To figure out the set of foreign keys for a table we start by getting its
+    // belongsTo assocations. (We're only interested in assocations where the foreign
+    // key is defined in this table.)
+
+    // The Tables for $original and $clone should already be in the TableRegistry,
+    // so we don't need to specially query for them (via TableUtilities)
+    $OriginalTable = TableRegistry::getTableLocator()->get($original->getSource());
+    
+    foreach($OriginalTable->associations()->getByType('BelongsTo') as $assn) {
+      if(in_array($assn->getForeignKey(), $OriginalTable->getPrimaryLinks())) {
+        // Skip the primary key for this table
+        continue; 
+      }
+
+      $aForeignKey = $assn->getForeignKey();
+
+      if(!empty($original->$aForeignKey)) {
+        // We have a non-empty value for this foreign key. We need to map the _source_
+        // FK to its UUID, then find the same UUID on the target, then replace the FK.
+
+        $clone->$aForeignKey = $OriginalTable->mapForeignKey(
+          $assn, 
+          $original->$aForeignKey, 
+          $targetCoId,
+          $dataSource
+        );
+      }
+    }
+
+    // Now handle any related models that might be riding along. Not all related models
+    // are necessarily populated in $original, so we'll need to check for that.
+
+    foreach($OriginalTable->associations()->getByType(['hasOne', 'hasMany']) as $rassn) {
+      // We use the property name to find the sub-entity
+      $property = $rassn->getProperty();
+
+      if(!empty($original->$property)) {
+        // We have a non-empty related entity, eg $server->match_sever
+
+        if(is_array($original->$property)) {
+          // hasMany - This is annoying because we can't directly correlate each original
+          // entity to each cloned entity. This is a similar problem to Pipeline processing,
+          // so we use the same solution, which is isProbablyThisArray().
+
+          $fixed = [];
+
+          foreach($original->$property as $rorig) {
+            // Walk the clones until we find a match
+            foreach($clone->$property as $rclone) {
+              // $rclone might be an array or it might be an entity. When Cake marshals
+              // an array into an entity, it sometimes leaves subrelations as arrays
+              // apparently at least in some cases those provided by plugins since it
+              // can't resolve the entity to a table. We actually need both formats here
+              // since isProbablyThisArray() expects an array, while fixCloneForeignKeys
+              // expects an entity.
+
+              if(is_array($rclone)) {
+                // Use the original table to find the source name, but use the target
+                // datasource to get the table handle.
+                $TargetTable = TableUtilities::getTableWithDataSource(
+                  tableName: $rorig->getSource(),
+                  connectionName: $dataSource
+                );
+
+                $rarray = $rclone;
+                $rentity = $TargetTable->newEntity($rclone);
+              } else {
+                $rarray = $rclone->toArray();
+                $rentity = $rclone;
+              }
+
+              // The reason this will work is because we haven't fixed the foreign keys yet.
+              // If we did, this mismatch would cause isProbablyThisArray to always return
+              // false.
+              if($rorig->isProbablyThisArray($rclone)) {
+                $fixed[] = $this->fixCloneForeignKeys(
+                  $rorig,
+                  $rentity,
+                  $targetCoId,
+                  $dataSource
+                );
+              }
+            }
+          }
+
+          $clone->$property = $fixed;
+        } else {
+          // hasOne
+
+          $clone->$property = $this->fixCloneForeignKeys(
+            $original->$property,
+            $clone->$property,
+            $targetCoId,
+            $dataSource
+          );
+        }
+      }
+    }
+
+    return $clone;
+  }
+  
+  /**
    * Determine if this Table represents Registry artifacts.
    *
    * @since  COmanage Registry v5.0.0
@@ -265,6 +394,43 @@ trait TableMetaTrait {
   
   public function isConfigurationTable() {
     return $this->tableType === TableTypeEnum::Configuration;
+  }
+
+  /**
+   * Map a foreign key based on UUID lookup.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Association  $assn             Association being examined
+   * @param  int          $originalFK       Foreign key value of original associated entity
+   * @param  int          $targetCoId       CO ID for target
+   * @param  string       $targetDataSource Data source to use for target lookup
+   * @return int                            ID of corresponding target entity
+   */
+
+  public function mapForeignKey(
+    \Cake\ORM\Association $assn,
+    int $originalFK,
+    int $targetCoId,
+    string $targetDataSource
+  ): int {
+    $SourceTable = TableUtilities::getTableWithDataSource(
+      tableName: $assn->getClassName(),
+      connectionName: 'default'
+    );
+
+    $originalForeignEntity = $SourceTable->get($originalFK);
+
+    // Query the Target Table using the UUID we just found.
+    // This will throw an Exception if the UUID is not found, which is fine
+    // because it means we can't resolve the link and so we can't clone.
+    $TargetTable = TableUtilities::getTableWithDataSource(
+      tableName: $assn->getClassName(),
+      connectionName: $targetDataSource
+    );
+
+    $cloneForeignEntity = $TargetTable->getByUuid($originalForeignEntity->uuid, $targetCoId);
+        
+    return $cloneForeignEntity->id;
   }
   
   /**

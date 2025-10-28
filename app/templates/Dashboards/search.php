@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+  use Cake\Utility\Hash;
+
   $options = [
     'type' => 'post',
     'url' => [
@@ -37,9 +39,22 @@
 
   $resultsCount = 0;
   // Count only People and Groups for now. Other models can come later.
-  foreach(['People', 'Groups'] as $pm) {
+  foreach(['People', 'Groups', 'Cos'] as $pm) {
     $resultsCount += count($vv_results[$pm]);
-  }  
+  }
+
+  if($vv_results['uuid']) {
+    // It's unlikely we'll get here with a uuid in the search results since uuids will
+    // generally result in an exact match, which will cause a redirect to the result
+
+    $resultsCount++;
+  }
+
+  if(!empty($vv_results['cri'])) {
+    foreach($vv_results['cri'] as $m => $rs) {
+      $resultsCount += $rs->count();
+    }
+  }
 ?>
 
 <div class="page-title-container">
@@ -85,7 +100,7 @@
     </nav>
     <div  id="search-results-tab-content ?>" class="search-results-group-container tab-content">
     <?php $isFirstTab = true; ?>
-    <?php foreach(['People', 'Groups'] as $i=>$pm): ?>
+    <?php foreach(['People', 'Groups', 'Cos'] as $i=>$pm): ?>
       <?php if(!empty($vv_results[$pm])): ?>
         <div id="search-results-<?= strtolower($pm) ?>" 
              class="tab-pane fade<?= $isFirstTab ? ' show active' : '' ?>" 
@@ -140,6 +155,42 @@
         <?php $isFirstTab = false; ?>
       <?php endif; ?> 
     <?php endforeach; ?>
+    <?php if(!empty($vv_results['cri'])): ?>
+      <div id="search-results-cri" 
+             class="tab-pane fade<?= $isFirstTab ? ' show active' : '' ?>" 
+             role="tabpanel" 
+             aria-labelledby="search-results-cri-tab">
+        <ul class="search-results-group">
+          <?php foreach(array_keys($vv_results['cri']) as $model): ?>
+            <?php foreach($vv_results['cri'][$model] as $match): ?>
+              <?php
+                $url = [
+                  'controller'  => \Cake\Utility\Inflector::dasherize($model),
+                  'action'      => 'edit',
+                  $match->id
+                ];
+
+// XXX meh...
+                $displayString = $model . " " . $match->id;
+                $matchInfo = $match->modified;
+              ?>
+
+              <li class="search-result">
+                <a href="<?= $this->Url->build($url) ?>">
+                  <div class="search-result-name">
+                    <?= $displayString ?>
+                  </div>
+                  <div class="search-result-match-info">
+                    <?= filter_var($matchInfo, FILTER_SANITIZE_SPECIAL_CHARS) ?>
+                  </div>
+                </a>
+              </li>
+            <?php endforeach; // $match ?>
+          <?php endforeach; // $model ?>
+        </ul>
+      </div>
+      <?php $isFirstTab = false; ?>
+    <?php endif; // cri ?>
     </div>
   <?php else: ?>
     <p>

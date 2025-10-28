@@ -46,6 +46,7 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 class GroupsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\HistoryTrait;
   use \App\Lib\Traits\LabeledLogTrait;
@@ -71,6 +72,7 @@ class GroupsTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     $this->addBehavior('Tree');
@@ -428,8 +430,16 @@ class GroupsTable extends Table {
   public function beforeDelete(EventInterface $event, $entity, \ArrayObject $options) {
     // AR-Group-8 When a Group is deleted, its corresponding Owners Group is also deleted.
     if(!empty($entity->owners_group_id)) {
-      $ownersGroup = $this->get($entity->owners_group_id);
-      $this->delete($ownersGroup);
+      // When we're deleting via cascade (eg: deleting a COU, which cascades to the COU
+      // specific Groups) we can't control the order we're called in, and the Owners Group
+      // might be deleted before main Group. We'll simply ignore the error if we can't
+      // find the owners' group.
+
+      $ownersGroup = $this->find()->where(['id' => $entity->owners_group_id])->first();
+
+      if($ownersGroup) {
+        $this->delete($ownersGroup);
+      }
 
       // We leave the foreign key in place on $entity in case someone decides
       // to look at the archived data.
@@ -506,6 +516,11 @@ class GroupsTable extends Table {
     $rules->add([$this, 'rulePotentialParent'],
                 'potentialParent',
                 ['errorField' => 'parent_id']);
+    
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
 
     return $rules;
   }
@@ -595,6 +610,27 @@ class GroupsTable extends Table {
     $g = $this->find('adminGroup', co_id: $coId)->firstOrFail();
 
     return $g->id;
+  }
+  
+  /**
+   * Check for any dependencies that must be in place before cloning begins.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $original         Original entity
+   * @param  string           $targetDataSource Target DataSource connection name
+   */
+
+  public function checkCloneDependencies(
+    EntityInterface $original,
+    string $targetDataSource='default'
+  ) {
+    // As a first pass, we only sync Standard Groups.
+
+    if($original->isSystem()) {
+      // This string isn't internationalized because it is intended to render
+      // in CloneCommand output
+      throw new \InvalidArgumentException("Group " . $original->id . " is a system group, skipping...");
+    }
   }
   
   /**

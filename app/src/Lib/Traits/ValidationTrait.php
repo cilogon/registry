@@ -36,6 +36,34 @@ use Cake\Validation\Validator;
 
 trait ValidationTrait {
   /**
+   * Register validation rules for tables implementing ClonableBehavior.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Validator            $validator  Cake Validator
+   * @param  TableSchemaInterface $schema     Cake Schema
+   * @return Validator                        Cake Validator
+   */
+  
+  public function registerClonableValidation(
+    Validator             $validator,
+    TableSchemaInterface  $schema,
+  ): Validator {
+    $this->registerStringValidation($validator, $schema, 'cri', false, '', false);
+
+    $validator->add('do_not_clone', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('do_not_clone');
+
+    $validator->add('uuid', [
+      'content' => ['rule' => 'uuid']
+    ]);
+    $validator->allowEmptyString('uuid');
+    
+    return $validator;
+  }
+
+  /**
    * Register validation rules for the primary link key(s) associated with this table.
    * 
    * @since  COmanage Registry v5.0.0

@@ -34,6 +34,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
 use App\Lib\Util\StringUtilities;
+use App\Lib\Util\TableUtilities;
 
 trait PluggableModelTrait {
   // The set of plugin entry point models used in configurations for this model
@@ -78,6 +79,71 @@ trait PluggableModelTrait {
 // XXX CFM-127, CFM-31 when plugins want to do more complex operations on duplicate, add it here
       }
     }
+  }
+
+  /**
+   * Check for any dependencies that must be in place before cloning begins.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $original         Original entity
+   * @param  string           $targetDataSource Target DataSource connection name
+   */
+
+  public function checkCloneDependencies(
+    EntityInterface $original,
+    string $targetDataSource='default'
+  ) {
+    // Verify the plugin in use is active in the target database. If we're on the same
+    // datasource (ie: on the same platform) then the Plugin set is by definition the same,
+    // so we only need to perform this check when the target datasource is different.
+
+    if(!empty($original->plugin) && $targetDataSource != 'default') {
+      $TargetPlugins = TableUtilities::getTableWithDataSource(
+        tableName: "Plugins",
+        connectionName: $targetDataSource
+      );
+
+      // $TargetPlugins = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
+
+      // We need the physical plugin name
+      $pluginName = StringUtilities::pluginPlugin($original->plugin);
+
+      // Just running find() will be sufficient for now, though the error may not be obvious
+      $TargetPlugins->find()
+                    ->where([
+                      'plugin'  => $pluginName,
+                      'status'  => SuspendableStatusEnum::Active
+                    ])
+                    ->firstOrFail();
+    }
+  }
+
+  /**
+   * Get the set of related models that are to be cloned along with this one.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return array    Array of models, in contain() format
+   */
+
+  public function getCloneRelations(): array {
+    $ret = [];
+
+    foreach($this->_pluginModels as $entryPoint) {
+      $PluginTable = TableRegistry::getTableLocator()->get($entryPoint);
+
+// XXX hasOne?
+      $hasMany = $PluginTable->associations()->getByType('hasMany');
+
+      if(!empty($hasMany)) {
+        foreach($hasMany as $h) {
+          $ret[StringUtilities::pluginModel($entryPoint)][] = $h->getName();
+        }
+      } else {
+        $ret[] = StringUtilities::pluginModel($entryPoint);
+      }
+    }
+
+    return $ret;
   }
 
   /**
@@ -179,30 +245,37 @@ trait PluggableModelTrait {
    */
 
   protected function setPluginRelations() {
-    // To determine which plugin models are instantiated, we'll query the configuration
-    // for this pluggable model. We only need to do this once per plugin model, not
-    // once per instantiation.
+    // We originally queried the configurations for the pluggable model to see which
+    // plugins were in use, but that doesn't work when cloning, when the Target CO
+    // is empty and has no active plugins. The alternate approach is to look at each
+    // Plugin and query it for available plugins, and it turns out we already have
+    // utility functions that will do that for us...
 
-    $models = $this->find()
-                   ->select(['id', 'plugin'])
-                   ->distinct(['plugin'])
-                   ->all();
-    
-    foreach($models as $m) {
-      if(empty($m->plugin) || !strstr($m->plugin, '.')) {
-        // This plugin is not valid. We could filter this in the find() using a
-        // where() clause, but checking here allows us to emit a warning.
+    // Under certain circumstances (eg: CloneCommand) we may not be using the
+    // default datasource
+    $datasource = $this->getConnection()->configName();
 
-        $this->llog('error', "Ignoring invalid plugin '" . $m->plugin . "' found in " . $this->getTable() . " record " . $m->id);
-        continue;
-      }
+    $Plugins = TableUtilities::getTableWithDataSource(
+      tableName: "Plugins",
+      connectionName: $datasource
+    );
 
+
+    $models = $Plugins->getActivePluginModels($this->getPluggableModelType());
+
+    foreach($models as $plugin) {
       // Derive association alias from "Plugin.Model"
-      [$pluginName, $modelAlias] = explode('.', $m->plugin, 2);
+      [$pluginName, $modelAlias] = explode('.', $plugin, 2);
+
+      if($datasource != 'default') {
+        // Add the aliasPrefix
+
+        $modelAlias = Inflector::camelize($datasource) . $modelAlias;
+      }
 
       if ($this->associations()->has($modelAlias)) {
         // Association already defined elsewhere; don't rebind
-        $this->llog('debug', "Association '{$modelAlias}' already exists, skipping plugin relation '{$m->plugin}'");
+        $this->llog('debug', "Association '{$modelAlias}' already exists, skipping plugin relation '{$plugin}'");
         continue;
       }
 
@@ -210,14 +283,35 @@ trait PluggableModelTrait {
       // with the instantiated plugin configuration. eg: One instance
       // of a Server has exactly one SqlServer associated with it.
       // Bind by alias and explicitly set the className.
-      $this->hasOne($modelAlias)
-        ->setClassName($m->plugin)
+
+      // We also explicitly set the foreign key because creating a table alias (as for example
+      // done by CloneCommand) will create a default foreign key of the alias (eg: target_server_id)
+      // instead of the physical table name.
+
+      $assn = $this->hasOne($modelAlias)
+        ->setClassName($plugin)
         ->setDependent(true)
+        ->setForeignKey(StringUtilities::tableToForeignKey($this))
         ->setCascadeCallbacks(true);
+      
+      if($datasource != 'default') {
+        // We can't just set the connection on getTarget or we'll clobber the datasource.
+        // We have to create a new Table attached to the alternate datasource.
+        // (Strictly speaking we don't need to test for default, in which case we'd just
+        // re-set the same target table that hasOne would have used by default.)
+
+        $targetTable = TableUtilities::getTableWithDataSource(
+          // aliasPrefix: Inflector::camelize($datasource),  // XXX was Remote?`
+          tableName: $plugin,
+          connectionName: $datasource
+        );
+
+        $assn->setTarget($targetTable);
+      }
 
       // Cache the list of entry points that we found (avoid duplicates)
-      if (!in_array($m->plugin, $this->_pluginModels, true)) {
-        $this->_pluginModels[] = $m->plugin;
+      if (!in_array($plugin, $this->_pluginModels, true)) {
+        $this->_pluginModels[] = $plugin;
       }
     }
 

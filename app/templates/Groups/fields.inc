@@ -89,3 +89,5 @@ if($vv_action != 'add') {
     ]);
   }
 }
+
+print $this->element('clonable');

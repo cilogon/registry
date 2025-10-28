@@ -29,16 +29,22 @@ declare(strict_types = 1);
 
 namespace App\Model\Table;
 
+use Cake\Datasource\ConnectionManager;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
+
 use App\Lib\Enum\SuspendableStatusEnum;
+use App\Lib\Util\StringUtilities;
+use App\Lib\Util\TableUtilities;
 
 class ServersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PluggableModelTrait;
@@ -56,6 +62,7 @@ class ServersTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
 
@@ -74,7 +81,7 @@ class ServersTable extends Table {
     $this->hasMany('Pipelines')
          ->setForeignKey('match_server_id');
 
-     $this->setPluginRelations();
+    $this->setPluginRelations();
     
     $this->setDisplayField('description');
     
@@ -124,6 +131,11 @@ class ServersTable extends Table {
                               'serverInUse',
                               ['errorField' => 'status']);
     
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
+    
     return $rules;
   }
 
@@ -166,6 +178,8 @@ class ServersTable extends Table {
     $validator->notEmptyString('status');
 
     $this->registerStringValidation($validator, $schema, 'plugin', true);
+
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

@@ -54,6 +54,7 @@ use \App\Lib\Util\StringUtilities;
 class PipelinesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -72,6 +73,7 @@ class PipelinesTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
@@ -181,6 +183,23 @@ class PipelinesTable extends Table {
         ]
       ]
     ]);
+  }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
+
+    return $rules;
   }
   
   /**
@@ -2564,6 +2583,8 @@ class PipelinesTable extends Table {
       'content' => ['rule' => ['boolean']]
     ]);
     $validator->allowEmptyString('sync_verify_email_addresses');
+    
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

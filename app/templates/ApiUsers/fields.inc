@@ -93,4 +93,6 @@ if($vv_action == 'add' || $vv_action == 'edit') {
       'fieldName' => 'privileged', // boolean
     ]
   ]);
+  
+  print $this->element('clonable');
 }

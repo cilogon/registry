@@ -40,7 +40,21 @@ if(in_array($this->request->getParam('action'), ['index', 'pick'])) {
   $responseMeta['pageCount'] = $this->Paginator->total();
 }
 
-$metaAttrs = ['created', 'modified', 'revision', 'deleted', 'actor_identifier'];
+$metaAttrs = [
+  // Timestamp
+  'created', 
+  'modified',
+  // Changelog
+  'revision', 
+  'deleted', 
+  'actor_identifier',
+  // Tree It's unclear we should even return these
+  'lft',
+  'rght',
+  // CFM-127 Duplicatable
+  'uuid',
+  'crn'
+];
 
 // Inflect the table name to get the changelog parent record key
 $pkey = \Cake\Utility\Inflector::singularize($vv_table_name) . "_id";

@@ -108,6 +108,8 @@ if($vv_action == 'add' || $vv_action == 'edit') {
     ]);
   }
 
+  print $this->element('clonable');
+  
   // Connections
 //XXX
 }

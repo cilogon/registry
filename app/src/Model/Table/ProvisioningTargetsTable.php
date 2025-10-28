@@ -43,6 +43,7 @@ use App\Lib\Util\StringUtilities;
 class ProvisioningTargetsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -61,6 +62,7 @@ class ProvisioningTargetsTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Orderable');
     $this->addBehavior('Timestamp');
@@ -120,6 +122,23 @@ class ProvisioningTargetsTable extends Table {
         'status' =>   ['platformAdmin', 'coAdmin']
       ]
     ]);
+  }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
+
+    return $rules;
   }
 
   /**
@@ -342,6 +361,8 @@ class ProvisioningTargetsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('ordr');
+    
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

@@ -213,6 +213,7 @@ class StringUtilities {
    * @since  COmanage Registry v5.0.0
    * @param  Entity $entity Entity
    * @return string         Foreign key name
+   * @todo   Merge with entityToPluginClassName
    */
 
   public static function entityToForeignKey($entity): string {
@@ -220,6 +221,31 @@ class StringUtilities {
     $classPath = get_class($entity);
 
     return Inflector::underscore(Inflector::singularize(substr($classPath, strrpos($classPath, '\\')+1))) . "_id";
+  }
+
+  /**
+   * Determine the class basename of a Cake Entity.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity $entity Entity
+   * @return string         Entity Class Basename, potentially in Plugin notation (Plugin.Model)
+   * @todo   Merge with entityToClassName (some code that calls that function can't handle plugin notation)
+   */
+
+  public static function entityToPluginClassName($entity): string {
+    // $classPath will be something like App\Model\Entity\Name, but we want to return "Names".
+    // We also support plugins, if the first component is _not_ App, we'll prefix it.
+
+    $bits = explode("\\", get_class($entity));
+
+    $model = Inflector::pluralize($bits[3]);
+
+    if($bits[0] == 'App') {
+      return $model;
+    } else {
+      // Plugin
+      return $bits[0] . "." . $model;
+    }
   }
 
   /**

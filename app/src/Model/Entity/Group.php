@@ -105,18 +105,12 @@ class Group extends Entity {
    * Determine if this entity is a system group.
    *
    * @since  COmanage Registry v5.0.0
-   * @return bool true if this entity is automatically managed, false otherwise
+   * @return bool true if this entity is a system group, false otherwise
    */
   
   public function isSystem(): bool {
-    return in_array($this->group_type,
-                    [
-                      GroupTypeEnum::ActiveMembers,
-                      GroupTypeEnum::Admins,
-                      GroupTypeEnum::AllMembers,
-                      GroupTypeEnum::Approvers,
-                      GroupTypeEnum::Owners
-                    ]);
+    // For all intents and purposes, System groups are those that aren't Standard Groups.
+    return $this->group_type != GroupTypeEnum::Standard;
   }
   
   /**

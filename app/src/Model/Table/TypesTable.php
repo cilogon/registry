@@ -42,11 +42,13 @@ use \App\Lib\Enum\ProvisioningEligibilityEnum;
 class TypesTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
   
 // XXX note not all models are implemented yet...
@@ -79,6 +81,7 @@ class TypesTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
@@ -235,6 +238,16 @@ class TypesTable extends Table {
                       'typeInUse',
                       ['errorField' => 'type_id']);
     
+    // AR-Type-4 The Database Values for a given Attribute Type must be unique within the CO
+    $rules->add([$this, 'ruleTypeUnique'],
+                 'typeUnique',
+                 ['errorField' => 'type_id']);
+    
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
+        
     return $rules;
   }
   
@@ -365,6 +378,36 @@ class TypesTable extends Table {
     if($this->typeIsDefault($entity)) {
       return __d('error', 'Types.isdefault', [$entity->value]);
     }
+
+    return true;
+  }
+  
+  /**
+   * Determine if the provided Type is unique within the CO.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Type $entity Type
+   * @return bool         true if the Type is unique, false otherwise
+   */
+
+  public function ruleTypeUnique($entity, $options) {
+    // We require the database value to be unique for the given attribute within the CO
+    // in order for type lookups (eg getTypeId()) to deterministically map to the same record.
+    // Note we don't specifically enforce case insensitive checks, so it's possible to
+    // have two different types called "foo" and "Foo", which may or may not be desirable.
+
+    try {
+      $match = $this->getTypeId($entity->co_id, $entity->attribute, $entity->value);
+
+      if(isset($entity->id) && $match == $entity->id) {
+        // We found our own record
+      } else {
+        return __d('error', 'Types.unique', [$entity->value, $match]);
+      }
+    }
+    catch(\Exception $e) {
+      // We want the reverse logic, ie if we don't find a record we're good
+    }
     
     return true;
   }
@@ -414,6 +457,8 @@ class TypesTable extends Table {
       'content' => ['rule' => ['inList', SuspendableStatusEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('status');
+    
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

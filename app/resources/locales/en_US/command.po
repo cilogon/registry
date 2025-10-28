@@ -81,6 +81,27 @@ msgstr "Given Name of initial platform administrator"
 msgid "opt.admin-username"
 msgstr "Username of initial platform administrator"
 
+msgid "opt.clone.all"
+msgstr "Clone all available objects"
+
+msgid "opt.clone.co_id"
+msgstr "Source CO ID"
+
+msgid "opt.clone.cri"
+msgstr "Clone all available objects with the specified CRI"
+
+msgid "opt.clone.model"
+msgstr "Clone all available objects of the specified Model"
+
+msgid "opt.clone.target_co_id"
+msgstr "Target CO ID"
+
+msgid "opt.clone.target_server_id"
+msgstr "Target Server ID"
+
+msgid "opt.clone.uuid"
+msgstr "Clone the object with the specified UUID"
+
 msgid "opt.co_id"
 msgstr "CO ID"
 

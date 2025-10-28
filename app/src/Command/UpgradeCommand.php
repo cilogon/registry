@@ -35,6 +35,8 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Datasource\ConnectionManager;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Util\PaginatedSqlIterator;
+use \App\Lib\Util\SearchUtilities;
 
 class UpgradeCommand extends BaseCommand
 {
@@ -77,6 +79,7 @@ class UpgradeCommand extends BaseCommand
         'checkGroupNames'
       ],
       'post' => [
+        'asssignUuids',
         'buildGroupTree',
         'createDefaultGroups', 
         'installMostlyStaticPages'
@@ -88,6 +91,7 @@ class UpgradeCommand extends BaseCommand
   // to make them easier to use regardless of context (pre/post/manual).
 
   protected $taskParams = [
+    'assignUuids' => ['global' => true],
     'buildGroupTree' => ['global' => true],
     'checkGroupNames' => ['global' => true],
     'createDefaultGroups' => ['perCO' => true, 'perCOU' => true],
@@ -333,6 +337,44 @@ class UpgradeCommand extends BaseCommand
       $this->io->out(__d('result', 'ug.task.done', [$task]));
     } else {
       $this->io->err(__d('error', 'ug.task.unknown', [$task]));
+    }
+  }
+
+  /**
+   * Assign UUIDs for existing duplicatable objects.
+   * 
+   * @since  COmanage Registry v5.2.0
+   */
+  
+  protected function assignUuids() {
+    // Because UUIDs are globally unique, we don't have to assign them on a per CO basis.
+    
+    foreach(SearchUtilities::getClonableModels() as $m) {
+      // We basically have to walk all records of each model. We use PaginatedSqlIterator
+      // for all queries for consistency, although only a small number (People, mostly)
+      // will really need it. This will also guarantee all records get a UUID, even those
+      // that might be created while this task is running.
+
+      $Table = $this->getTableLocator()->get($m);
+
+      $iterator = new PaginatedSqlIterator($Table);
+
+      $this->io->out(__d('information', 'ug.tasks.assignUuids.count', [$iterator->count(), $m]));
+
+      foreach($iterator as $entity) {
+        if(!$entity->uuid) {
+          $entity->uuid = \Cake\Utility\Text::uuid();
+
+         try {
+            $Table->saveOrFail($entity);
+          }
+          catch(\Exception $e) {
+            $this->io->err($m . " " . $entity->id  . ": " . $e->getMessage());
+          }
+
+          // No need to provision
+        }
+      }
     }
   }
 

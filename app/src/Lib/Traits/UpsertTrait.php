@@ -37,6 +37,7 @@ trait UpsertTrait {
    * @param  array                            $data         Data to persist
    * @param  array                            $whereClause  Conditions to search for current entity
    * @param  bool                             $orFail       If true, use saveOrFail() instead of save()
+   * @param  array                            $options      Options for save
    * @return Cake\Datasource\EntityInterface|false          Persisted entity, or false on failure
    * @throws Cake\ORM\Exception\PersistenceFailedException
    * @throws Cake\ORM\Exception\RolledbackTransactionException
@@ -45,7 +46,8 @@ trait UpsertTrait {
   public function upsert(
     array $data,
     array $whereClause,
-    bool  $orFail=false
+    bool  $orFail=false,
+    array $options=[]
   ): \Cake\Datasource\EntityInterface|false {
     // First check if we have an entity matching $whereClause
     $entity = $this->find()
@@ -70,7 +72,7 @@ trait UpsertTrait {
     // isNew() or getOriginal() can't be used to determine what happened.
     $entity->setHidden(['_upsertStatus']);
 
-    return $orFail ? $this->saveOrFail($entity) : $this->save($entity);
+    return $orFail ? $this->saveOrFail($entity, $options) : $this->save($entity, $options);
   }
 
   /**
@@ -79,14 +81,16 @@ trait UpsertTrait {
    * @since  COmanage Registry v5.1.0
    * @param  array                            $data         Data to persist
    * @param  array                            $whereClause  Conditions to search for current entity
+   * @param  array                            $options      Options for save
    * @return Cake\Datasource\EntityInterface|false          Persisted entity, or false on failure
    * @throws Cake\ORM\Exception\PersistenceFailedException
    */
 
   public function upsertOrFail(
     array $data,
-    array $whereClause
+    array $whereClause,
+    array $options
   ): \Cake\Datasource\EntityInterface {
-    return $this->upsert($data, $whereClause, true);
+    return $this->upsert($data, $whereClause, true, $options);
   }
 }

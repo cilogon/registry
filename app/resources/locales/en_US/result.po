@@ -54,6 +54,9 @@ msgstr "Authenticator Unlocked"
 msgid "Authenticators.unlocked-a"
 msgstr "Authenticator {0} Unlocked"
 
+msgid "clone.actor"
+msgstr "Cloned from CO {0}"
+
 msgid "copied"
 msgstr "Copied"
 
@@ -266,7 +269,7 @@ msgid "search.none"
 msgstr "No results found"
 
 msgid "search.result.found"
-msgstr "Found {0} results"
+msgstr "{0,plural,=0{No matches found} =1{Found 1 match} other{Found # matches}}"
 
 msgid "search.result.found.modelCount"
 msgstr "{0} {1}"

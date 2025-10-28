@@ -249,6 +249,25 @@ class SchemaManager {
         }
       }
       
+      if(isset($tCfg->clonable) && $tCfg->clonable) {
+        // Duplicatable objects get uuid and cri fields
+
+        // The DBAL "guid" type will map to the Postgres "uuid" type, and Postgres
+        // will automatically create an optimal index for it. The column must allow
+        // nulls because historical records (including changelog archives) will not
+        // have UUIDs, and there may be cases where skeletal records are created
+        // before an object is fully active.
+        $table->addColumn("uuid", "guid", ['notnull' => false]);
+        $table->addIndex(["uuid"], $tablePrefix.$tName."_id1");
+
+        // While cri consists of deployer specific values, we want it searchable
+        $table->addColumn("cri", "string", ['notnull' => false]);
+        $table->addIndex(["cri"], $tablePrefix.$tName."_id2");
+
+        // Flag indicating 
+        $table->addColumn("do_not_clone", "boolean", ['notnull' => false]);
+      }
+      
       // (For Registry) If MVEA models are specified, emit the appropriate
       // columns and indexes. MVEA attributes must be added before indexes, in
       // case the table has composite indexes referencing MVEA columns.

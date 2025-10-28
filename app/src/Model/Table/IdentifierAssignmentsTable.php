@@ -43,6 +43,7 @@ use App\Lib\Util\StringUtilities;
 class IdentifierAssignmentsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
@@ -66,6 +67,7 @@ class IdentifierAssignmentsTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Orderable');
     $this->addBehavior('Timestamp');
@@ -390,6 +392,11 @@ class IdentifierAssignmentsTable extends Table {
     $rules->add([$this, 'ruleWhichType'],
                 'targetType',
                 ['errorField' => 'identifier_type_id']);
+    
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
 
     return $rules;
   }
@@ -541,6 +548,8 @@ class IdentifierAssignmentsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('ordr');
+    
+    $this->registerClonableValidation($validator, $schema);
 
     return $validator; 
   }
