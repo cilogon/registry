@@ -120,7 +120,7 @@ class ApiV2Controller extends AppController {
     $this->set('vv_results', $results);
 
     // Let the view render
-    $this->viewBuilder()->setLayout(null);
+    $this->viewBuilder()->setLayout('rest');
     $this->render('/Standard/api/v2/json/add-edit');
   }
 

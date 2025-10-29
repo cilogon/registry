@@ -285,10 +285,12 @@ class AppController extends Controller {
 
 
   /**
-   * @param   string  $potentialPrimaryLink
-   *
-   * @return Object|bool
+   * Validate a potential Primary Link from a GET operation (via the UI or API).
+   * 
    * @since  COmanage Registry v5.0.0
+   * @param  string $potentialPrimaryLink Candidate primary link, eg "co_id"
+   * @return Object|\stdClass             Primary Link information
+   * @throws InvalidArgumentException
    */
 
   protected function primaryLinkOnGet(string $potentialPrimaryLink): Object|bool
@@ -303,11 +305,11 @@ class AppController extends Controller {
     $allowsLookup = $this->getCurrentTable()->allowLookupPrimaryLink($actionParam);
     $param = (int)$this->request->getParam('pass.0');
 
-    if($allowsUnkeyed) {
-      $query = $this->request->getQuery();
-      if($query) {
-        return $this->populatedPrimaryLink($potentialPrimaryLink);
-      }
+    if($allowsUnkeyed && is_numeric($this->request->getQuery($potentialPrimaryLink))) {
+      return $this->populatedPrimaryLink(
+        $potentialPrimaryLink,
+        (int)$this->request->getQuery($potentialPrimaryLink)
+      );
     }
 
     if(!$allowsLookup || empty($param)) {
@@ -321,36 +323,70 @@ class AppController extends Controller {
   }
 
   /**
-   * @param   string  $potentialPrimaryLink
-   *
-   * @return Object|bool
+   * Validate a potential Primary Link from a POST operation (via the UI or API).
+   * 
    * @since  COmanage Registry v5.0.0
-   *
+   * @param  string $potentialPrimaryLink Candidate primary link, eg "co_id"
+   * @return Object|\stdClass             Primary Link information
+   * @throws InvalidArgumentException
    */
 
   protected function primaryLinkOnPost(string $potentialPrimaryLink): Object|bool
   {
-    /** var string $modelsName */
+    // This function gets called for both API POST and UI Form POST. The former allows
+    // multiple objects (unique even within the API), but the latter doesn't.
+
     $modelsName = $this->getName();
 
-    // Post = add, where we can have a list of objects and nothing in /objects/{id}
-    // We don't support different primary links across objects, so we throw an error
-    // if different parent keys are provided.
-    // Data in API format | Data in POST format
-    $reqData = $this->request->getData($modelsName) ?? $this->request->getData() ?? [];
-    $potentialPrimaryLinkRecords = collection($reqData)->filter(fn($value, $key) => $key === $potentialPrimaryLink);
-    if($potentialPrimaryLinkRecords->count() > 1) {
-      // We don't support multiple records with different parents
-      throw new \InvalidArgumentException(__d('error', 'primary_link.mismatch'));
-    }
-    if($potentialPrimaryLinkRecords->count() === 1) {
-      return $this->populatedPrimaryLink($potentialPrimaryLink);
+    $reqData = $this->request->getData($modelsName);
+
+    if(!empty($reqData)) {
+      // API POST
+
+      // Unlike the other operations, POST accepts more than one entity.
+      // We'll look for $potentialPrimaryLink in the first entity.
+      // If we find it, then all subsequent entities must have the exact same link.
+
+      if(empty($reqData[0][$potentialPrimaryLink])) {
+        // It can't be this one
+        return false;
+      }
+
+      $potentialLinkValue = $reqData[0][$potentialPrimaryLink];
+
+      if(count($reqData) > 1) {
+        // If more than one record is provided, they must all have the same primary link
+
+        for($i = 1;$i < count($reqData);$i++) {
+          if(empty($reqData[$i][$potentialPrimaryLink])
+             || ($reqData[$i][$potentialPrimaryLink] !== $potentialLinkValue)) {
+            // We don't support multiple records with different parents
+            throw new \InvalidArgumentException(__d('error', 'primary_link.mismatch'));
+          }
+        }
+      }
+
+      // If we make it here, we have a valid potential link
+      return $this->populatedPrimaryLink($potentialPrimaryLink, $potentialLinkValue);
+    } else {
+      // Form POST
+
+      $reqData = $this->request->getData();
+
+      if(empty($reqData[$potentialPrimaryLink])) {
+        // It can't be this one
+        return false;
+      }
+
+      return $this->populatedPrimaryLink($potentialPrimaryLink, (int)$reqData[$potentialPrimaryLink]);
     }
 
     // If we didn't find the primary link in the submitted form or API
     // request, it might be available via the URL.
-
-    return $this->primaryLinkOnPut();
+    // XXX It's not clear what the use case is for this, and the (rewritten) code above
+    //     won't get here anyway, so we'll comment this out for now and eventually remove
+    //     it if nothing comes up.
+    // return $this->primaryLinkOnPut();
   }
 
   /**
@@ -378,15 +414,19 @@ class AppController extends Controller {
   }
 
   /**
-   * @param   string  $potentialPrimaryLink
-   *
-   * @return Object|\stdClass
+   * Populate a Standard Object with Primary Link information.
+   * 
+   * @since  COmanage Registry v5.0.0
+   * @param  string  $linkAttr  Link Attribute, eg "co_id"
+   * @param  int     $linkValue Link Value, eg 2
+   * @return Object|\stdClass   Primary Link information
    */
-  protected function populatedPrimaryLink(string $potentialPrimaryLink): Object
-  {
-    // $potentialPrimaryLink will be something like 'attribute_collector_id'
-    // $potentialPrimaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'
-    $potentialPrimaryLinkTable = $this->getCurrentTable()->getPrimaryLinkTableName($potentialPrimaryLink);
+
+  protected function populatedPrimaryLink(string $linkAttr, int $linkValue): Object {
+    // For plugins, $primaryLink will be something like 'attribute_collector_id' and
+    // $primaryLinkTable will be something like 'CoreEnroller.AttributeCollectors'.
+    // Each table maps its primary links via PrimaryLinkTrait.
+    $primaryLinkTable = $this->getCurrentTable()->getPrimaryLinkTableName($linkAttr);
 
     // For looking up values in records here, we want only the attribute
     // itself and not the plugin name (used for hacky notation by
@@ -394,17 +434,16 @@ class AppController extends Controller {
     // a model, but pluginModel() gets us the bit we need.
 
     // Store the plugin for possible later reference.
-    $potentialPlugin = str_contains($potentialPrimaryLinkTable, '.')
-      ? StringUtilities::pluginPlugin($potentialPrimaryLinkTable)
+    $linkPlugin = str_contains($primaryLinkTable, '.')
+      ? StringUtilities::pluginPlugin($primaryLinkTable)
       : null;
 
     $cur = new \stdClass();
-    // Check both the query parameters(GET request) and the body(POST request).
-    $cur->value = $this->request->getQuery($potentialPrimaryLink) ?? $this->request->getData($potentialPrimaryLink);
-    // We found a populated primary link. Store the attribute and break the loop.
-    $cur->attr = $potentialPrimaryLink;
-    if($potentialPlugin) {
-      $cur->plugin = $potentialPlugin;
+    $cur->attr = $linkAttr;
+    $cur->value = $linkValue;
+
+    if($linkPlugin) {
+      $cur->plugin = $linkPlugin;
     }
 
     return $cur;
