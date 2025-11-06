@@ -785,7 +785,7 @@
       "columns": {
         "id": {},
         "job_id": { "type": "integer", "foreignkey": { "table": "jobs", "column": "id" }},
-        "record_key": { "type": "string", "size": 64 },
+        "record_key": { "type": "string", "size": 512 },
         "person_id": {},
         "external_identity_id": {},
         "comment": {},

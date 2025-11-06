@@ -150,7 +150,7 @@ class PetitionsTable extends Table {
         'type'  => 'enum',
         'class' => 'PetitionStatusEnum'
       ],
-      'couIds' => [
+      'cous' => [
         'type'  => 'select',
         'model' => 'Cous'
       ]

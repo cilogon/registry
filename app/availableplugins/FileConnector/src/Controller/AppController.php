@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace FileProvisioner\Controller;
+namespace FileConnector\Controller;
 
 use App\Controller\AppController as BaseController;
 

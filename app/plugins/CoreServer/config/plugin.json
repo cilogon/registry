@@ -62,7 +62,7 @@
           "refresh_token": { "type": "text" },
           "access_token": { "type": "text" },
           "token_response": { "type": "text" },
-          "access_token_exp": { "type": "boolean" }
+          "access_token_exp": { "type": "bigint"}
         },
         "indexes": {
           "oauth2_servers_i1": { "columns": [ "server_id" ] }
