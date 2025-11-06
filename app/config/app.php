@@ -29,6 +29,8 @@ use Cake\Cache\Engine\FileEngine;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Mysql;
 use Cake\Log\Engine\FileLog;
+use Cake\Log\Engine\ConsoleLog;
+use Cake\Console\ConsoleOutput;
 use Cake\Mailer\Transport\MailTransport;
 use function Cake\Core\env;
 
@@ -401,29 +403,29 @@ return [
         // Configuration for container deployments
         ? [
             'debug' => [
-                'className' => FileLog::class,
+                'className' => ConsoleLog::class,
                 'stream' => 'php://stdout',
-                'outputAs' => 0,
+                'outputAs' => ConsoleOutput::PLAIN,
                 'scopes' => null,
                 'levels' => ['notice', 'info', 'debug'],
             ],
             'error' => [
-                'className' => FileLog::class,
+                'className' => ConsoleLog::class,
                 'stream' => 'php://stderr',
-                'outputAs' => 0,
+                'outputAs' => ConsoleOutput::PLAIN,
                 'scopes' => null,
                 'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
             ],
             'queries' => [
-                'className' => FileLog::class,
+                'className' => ConsoleLog::class,
                 'stream' => 'php://stdout',
-                'outputAs' => 0,
+                'outputAs' => ConsoleOutput::PLAIN,
                 'scopes' => ['queriesLog']
             ],
             'trace' => [
-                'className' => FileLog::class,
+                'className' => ConsoleLog::class,
                 'stream' => 'php://stdout',
-                'outputAs' => 0,
+                'outputAs' => ConsoleOutput::PLAIN,
                 'scopes' => ['trace'],
             ]
         ]
