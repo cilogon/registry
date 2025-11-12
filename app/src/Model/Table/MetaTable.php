@@ -72,7 +72,7 @@ class MetaTable extends Table {
    * @return bool               true on success
    */
   
-  public function setUpgradeVersion(string $version=null): bool {
+  public function setUpgradeVersion(?string $version=null): bool {
     $sql = null;
 
     $currentVersion = $this->getUpgradeVersion();

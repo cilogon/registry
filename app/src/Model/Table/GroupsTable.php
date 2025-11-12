@@ -274,7 +274,7 @@ class GroupsTable extends Table {
    * @throws PersistenceFailedException
    */
 
-  public function addDefaults(int $coId, int $couId=null, bool $rename=false): bool {
+  public function addDefaults(int $coId, ?int $couId=null, bool $rename=false): bool {
     // Pull the name of the CO/COU
     
     $Cos = TableRegistry::getTableLocator()->get('Cos');
@@ -715,7 +715,7 @@ class GroupsTable extends Table {
   
   public function getMembers(
     int   $id,
-    int   $groupNestingId=null,
+    ?int  $groupNestingId=null,
     bool  $valid=true,
     bool  $active=true,
     bool  $activeGroup=true
@@ -948,7 +948,7 @@ class GroupsTable extends Table {
   
   public function potentialParents(
     int $coId,
-    int $id=null,
+    ?int $id=null,
     bool $hierarchy=false,
     array $where=[]
   ): array {

@@ -434,7 +434,7 @@ class UpgradeCommand extends BaseCommand
    * @param  int  $couId  COU ID
    */
 
-  protected function createDefaultGroups(int $coId, int $couId=null) {
+  protected function createDefaultGroups(int $coId, ?int $couId=null) {
     $GroupsTable = $this->getTableLocator()->get('Groups');
 
     // Technically this will try to add all the default Groups, which is fine since

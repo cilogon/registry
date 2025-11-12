@@ -254,7 +254,7 @@ class ProvisioningTargetsTable extends Table {
    * @param  int  $personId Person ID
    */
 
-  public function status(int $coId, int $groupId=null, int $personId=null): array {
+  public function status(int $coId, ?int $groupId=null, ?int $personId=null): array {
     $ret = [];
 
     // Start by pulling the set of active provisioning targets

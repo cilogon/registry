@@ -655,7 +655,7 @@ class RegistryAuthComponent extends Component
    * Obtain the identifier of the currently authenticated user.
    *
    * @since  COmanage Registry v5.0.0
-   * @return string The authenticated user identifier or false if no authenticated user
+   * @return string The authenticated user identifier or null if no authenticated user
    */
   
   public function getAuthenticatedUser(): ?string {

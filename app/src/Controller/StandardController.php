@@ -252,9 +252,11 @@ class StandardController extends AppController {
     try {
       $obj = $table->findById($id)->firstOrFail();
       
-      // By default, a delete is a soft delete. The exceptions are when
-      // deleting a CO (AR-CO-1) or when an expunge flag is passed and
-      // expunge is enabled within the CO (XXX not yet implemented).
+      // By default, a delete is a soft delete. The exceptions is when
+      // deleting a CO (AR-CO-1). In v4, we permitted a controller level
+      // flag to be set, but the only controller this really applies to
+      // is CO right now, so we'll skip implementing a flag until we have
+      // another use case.
 
       $useHardDelete = ($modelsName == "Cos");
 

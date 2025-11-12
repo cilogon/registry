@@ -71,9 +71,9 @@ trait AutoViewVarsTrait {
    */
 
   public function calculateAutoViewVars(
-    int|null $coId,
-    Object $obj = null,
-    string $action = null
+    ?int $coId,
+    ?Object $obj = null,
+    ?string $action = null
   ): \Generator {
     /** var Cake\ORM\Table $table */
     $table = $this;

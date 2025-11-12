@@ -150,7 +150,7 @@ class TableUtilities {
     string $primaryLinkKey,
     int $primaryLinkValue,
     array &$results,
-    string $primaryLinkClassName = null
+    ?string $primaryLinkClassName = null
   ): void
   {
     $db = ConnectionManager::get('default');

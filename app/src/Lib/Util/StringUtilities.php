@@ -102,7 +102,7 @@ class StringUtilities {
   public static function columnKey(
     string $modelsName, 
     string $c,
-    \DateTimeZone $tz=null,
+    ?\DateTimeZone $tz=null,
     bool $useCustomClMdlLabel=false
   ): string {
     if(strpos($c, '_id', strlen($c)-3)) {

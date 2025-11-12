@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace CoreApi\Controller;
 
-use \Cake\ORM\TableRegistry;
+use Cake\ORM\TableRegistry;
 use \App\Controller\StandardApiController;
 use \App\Lib\Enum\SyncModeEnum;
 
