@@ -365,6 +365,28 @@
 
     });
 
+    // CHANGELOG ACCORDION BEHAVIOR
+    $('#changelog-container .accordion-button').click(function(){
+      const changelogAriaLabelExpanded = '<?= __d('information','changelog.aria.expanded') ?>';
+      const changelogAriaLabelCollapsed = '<?= __d('information','changelog.aria.collapsed') ?>';
+      if (!$(this).hasClass("collapsed")) {
+        $(this).attr('aria-label', changelogAriaLabelExpanded);
+        setApplicationState(
+          "show",
+          $("#changelog-container .accordion-button"),
+          false
+        );
+      } else {
+        $(this).attr('aria-label', changelogAriaLabelCollapsed);
+        setApplicationState(
+          "hide",
+          $("#changelog-container .accordion-button"),
+          false
+        );
+      }
+      $('#changelog accordion-button').toggle();
+    });
+
     // SETTINGS (from User Menu)
     // Dark Mode toggles (auto is default)
     $("#setting-darkmode-dark").click(function(e) {

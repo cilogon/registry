@@ -363,6 +363,15 @@
     right: 0.75em;
     z-index: 1;
   }
+  /* ENTITY METADATA under each Edit/View Form/List */
+  #entity-metadata {
+    display: flex;
+    justify-content: flex-end;
+    gap: 2rem;
+    align-items: center;
+    text-align: left;
+    margin: 1rem 0 0.5rem;
+  }
   /* GENERAL */
   .table-container {
     overflow: unset;
@@ -571,6 +580,18 @@
   }
   .petition-attrs-subset-label {
     font-size: 0.8em;
+  }
+  /* CHANGELOG */
+  #changelog .accordion-body li {
+    grid-template-columns: 1fr 3fr;
+  }
+  #changelog .changelog-parent-link {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  #changelog .accordion-body {
+    overflow-x: unset;
   }
   /* FOOTER */
   #co-footer {

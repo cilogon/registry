@@ -1966,14 +1966,11 @@ li[data-pc-section="emptymessage"] {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap; /* Prevent text wrapping */
 }
-/* ENTITY ID under each Edit/View Form/List */
-#cm-entity-id {
-  position: absolute;
-  border: none;
-  right: 2.5em;
-  padding-top: 1em;
+/* ENTITY METADATA under each Edit/View Form/List */
+#entity-metadata {
+  text-align: right;
+  margin: 0 0 0.5rem;
   color: var(--cmg-color-txt-soft);
-  background-color: unset;
 }
 /* ENROLLMENT FLOWS */
 .upper-buttons {
@@ -2805,6 +2802,34 @@ html.density-large ul.form-list li .field {
 }
 html.density-large .field-data {
   padding: 0.75em 1em;
+}
+/* CHANGELOG */
+#changelog-container .accordion-button {
+  padding: 0.5rem 1rem;
+}
+#changelog-container .accordion-item {
+  border-radius: 0;
+  border: 1px solid var(--cmg-color-bg-005)
+}
+#changelog .accordion-body, 
+#changelog .accordion-body ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#changelog .accordion-body {
+  overflow-x: scroll;
+}
+#changelog .accordion-body li {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--cmg-color-bg-003);
+  align-items: center;
+}
+#changelog .accordion-body li:first-child {
+  border-top: none;
 }
 /* FOOTER */
 footer {

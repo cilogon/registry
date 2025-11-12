@@ -89,6 +89,9 @@ msgstr "Country Code"
 msgid "created"
 msgstr "Created"
 
+msgid "created.value"
+msgstr "Created: {0}"
+
 msgid "cri"
 msgstr "Change Request Identifier"
 
@@ -155,6 +158,9 @@ msgstr "Frozen"
 msgid "id"
 msgstr "ID"
 
+msgid "id.value"
+msgstr "ID: {0}"
+
 msgid "item"
 msgstr "Item"
 
@@ -220,6 +226,9 @@ msgstr "Modifiable"
 
 msgid "modified"
 msgstr "Modified"
+
+msgid "modified.value"
+msgstr "Modified: {0}"
 
 msgid "name"
 msgstr "Name"

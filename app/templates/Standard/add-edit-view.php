@@ -91,16 +91,6 @@ if (
       <h2><?= $title ?></h2>
     <?php endif; ?>
   </div>
-  <?php 
-// XXX temporary for CFM-24
-    $clfield = $vv_obj->changelogAttributeName();
-
-    if($vv_obj->deleted) {
-      print __d('information', 'changelog.deleted');
-    } elseif(!empty($vv_obj->$clfield)) {
-      print __d('information', 'changelog.archived');
-    }
-  ?>
   <?php
     // Action list for top menu dropdown / button listing
     $action_args = array();
@@ -191,6 +181,26 @@ if (
 <?php endif; ?>
 
 <?php
+// XXX temporary for CFM-24
+// XXX after merge of PR-342 pass these banners in as configuration above    
+  $clfield = $vv_obj->changelogAttributeName();
+
+  if($vv_obj->deleted) {
+    print $this->element('notify/alert',
+      ['type' => 'information',
+       'message' => __d('information', 'changelog.deleted'),
+       'dismissible ' => false]
+    );
+  } elseif(!empty($vv_obj->$clfield)) {
+    print $this->element('notify/alert',
+      ['type' => 'information',
+       'message' => __d('information', 'changelog.archived'),
+       'dismissible ' => false]
+    );
+  }
+?>
+
+<?php
 $linkId = null;
 
 if(!empty($vv_primary_link)) {
@@ -238,6 +248,7 @@ if($vv_action != 'add' && !empty($mveas)) {
 }  
 
 if($vv_action != 'add') {
-  // Insert changelog
+  // Insert object metadata and changelog
+  print $this->element('entityMetadata');
   print $this->element('changelog');
 }

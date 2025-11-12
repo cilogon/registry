@@ -45,7 +45,7 @@ declare(strict_types = 1);
   );?>
 </span>
 <span class="group-member-id">
-  (<?= __d('information', 'entity.id', [$vv_selected_person['id']]) ?>)
+  (<?= __d('field', 'id.value', [$vv_selected_person['id']]) ?>)
 </span>
 
 <?php endif; ?>

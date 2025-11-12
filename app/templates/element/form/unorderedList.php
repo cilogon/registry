@@ -48,8 +48,6 @@ declare(strict_types = 1);
   // in one of several paths if we are in a plugin context.
   // The include files will contain the listItem elements
   include($vv_template_path . DS . $fieldsFile);
-  // Element ID
-  print $this->element('form/entityID');
   
   if(!isset($suppress_submit) || !$suppress_submit) {
     // The Submit element will be printed only if we are adding or updating, and if not

@@ -31,10 +31,16 @@ msgid "api.key"
 msgstr "This newly generated API Key cannot be recovered. If it is lost a new key must be generated."
 
 msgid "changelog"
-msgstr "Change Log"
+msgstr "Changelog"
 
 msgid "changelog.archived"
 msgstr "This is an archive record"
+
+msgid "changelog.aria.collapsed"
+msgstr "Changelog, collapsed, button, click to expand"
+
+msgid "changelog.aria.expanded"
+msgstr "Changelog, expanded, button, click to collapse"
 
 msgid "changelog.deleted"
 msgstr "This record has been deleted"
@@ -50,9 +56,6 @@ msgstr "<a href="{0}">Platform-wide configurations</a> are available in the <a h
 
 msgid "cmp.co.notice"
 msgstr "This is the COmanage CO, which is used for platform wide <a href="{0}">configurations</a>."
-
-msgid "entity.id"
-msgstr "ID: {0}"
 
 msgid "noattrs"
 msgstr "No attributes"

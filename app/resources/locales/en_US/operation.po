@@ -124,7 +124,10 @@ msgid "cancel"
 msgstr "Cancel"
 
 msgid "changelog.view"
-msgstr "View Change Log"
+msgstr "View Changelog"
+
+msgid "changelog.return"
+msgstr "Return to active record"
 
 msgid "clear"
 msgstr "Clear"

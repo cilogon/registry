@@ -30,10 +30,11 @@ declare(strict_types = 1);
 namespace App\Lib\Enum;
 
 class ApplicationStateEnum extends StandardEnum {
-  const UiDrawerState      = 'UD';
-  const SearchBlockOptions = 'SO';
+  const ChangeLogState     = 'CL';
   const PaginationLimit    = 'PL';
   const ProfileDarkMode    = 'PM';
   const ProfileDensity     = 'PD';
+  const SearchBlockOptions = 'SO';
   const VerifyEmailBlocked = 'VE';
+  const UiDrawerState      = 'UD';
 }
