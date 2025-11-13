@@ -90,7 +90,7 @@ trait PluggableModelTrait {
    */
 
   public function checkCloneDependencies(
-    EntityInterface $original,
+    \Cake\Datasource\EntityInterface $original,
     string $targetDataSource='default'
   ) {
     // Verify the plugin in use is active in the target database. If we're on the same

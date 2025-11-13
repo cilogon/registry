@@ -1444,6 +1444,7 @@ class GroupsTable extends Table {
     ]);
     $validator->allowEmptyString('owner_group_id');
 
+    $this->registerClonableValidation($validator, $schema);
     
     return $validator; 
   }

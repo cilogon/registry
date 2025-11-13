@@ -264,9 +264,9 @@ class TypesTable extends Table {
   public function getTypeId(int $coId, string $attribute, string $value): int {
     $t = $this->find()
               ->where([
-                'Types.co_id'     => $coId,
-                'Types.attribute' => $attribute,
-                'Types.value'     => $value
+                $this->getAlias().'.co_id'     => $coId,
+                $this->getAlias().'.attribute' => $attribute,
+                $this->getAlias().'.value'     => $value
               ])
               ->firstOrFail();
     

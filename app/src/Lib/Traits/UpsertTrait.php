@@ -89,7 +89,7 @@ trait UpsertTrait {
   public function upsertOrFail(
     array $data,
     array $whereClause,
-    array $options
+    array $options=[]
   ): \Cake\Datasource\EntityInterface {
     return $this->upsert($data, $whereClause, true, $options);
   }

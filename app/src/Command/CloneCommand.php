@@ -419,7 +419,10 @@ class CloneCommand extends BaseCommand {
       // doing an upsert, but spread out over multiple steps in order to allow table specific
       // callbocks to manipulate the prepared entity.
 
-      $query = $TargetTable->find()->where(['co_id' => $targetCoId, 'uuid' => $original->uuid]);
+      $query = $TargetTable->find()->where([
+        $TargetTable->getAlias().'.co_id' => $targetCoId, 
+        $TargetTable->getAlias().'.uuid' => $original->uuid
+      ]);
 
       $targetRelated = $related;
 

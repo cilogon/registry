@@ -36,6 +36,7 @@ use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use CoreServer\Lib\Enum\RdbmsTypeEnum;
+use \App\Lib\Enum\SuspendableStatusEnum;
 
 class SqlServersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -129,6 +130,10 @@ class SqlServersTable extends Table {
     // Pull our configuration via the parent Server object.
     $server = $this->Servers->get($serverId, contain: ['SqlServers']);
 
+    if($server->status != SuspendableStatusEnum::Active) {
+      throw new \InvalidArgumentException(__d('error', 'inactive', [__d('controller', 'Servers', [1]), $serverId]));
+    }
+    
     $dbmap = [
       RdbmsTypeEnum::MariaDB    => 'Mysql',
       RdbmsTypeEnum::MySQL      => 'Mysql',
