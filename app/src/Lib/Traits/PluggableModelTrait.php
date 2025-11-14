@@ -33,6 +33,7 @@ use Cake\ORM\ResultSet;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
+use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\StringUtilities;
 use App\Lib\Util\TableUtilities;
 
