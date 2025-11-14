@@ -299,7 +299,7 @@ class AppController extends Controller {
     $modelsName = $this->getName();
     
     // If this action allows unkeyed, asserted primary link IDs, check the query
-    // string (e.g.: 'add' or 'index' allow matchgrid_id to be passed in)
+    // string (e.g.: 'add' or 'index' allow co_id to be passed in)
     $actionParam = $this->request->getParam('action');
     $allowsUnkeyed = $this->getCurrentTable()->allowUnkeyedPrimaryLink($actionParam);
     $allowsLookup = $this->getCurrentTable()->allowLookupPrimaryLink($actionParam);
@@ -380,13 +380,6 @@ class AppController extends Controller {
 
       return $this->populatedPrimaryLink($potentialPrimaryLink, (int)$reqData[$potentialPrimaryLink]);
     }
-
-    // If we didn't find the primary link in the submitted form or API
-    // request, it might be available via the URL.
-    // XXX It's not clear what the use case is for this, and the (rewritten) code above
-    //     won't get here anyway, so we'll comment this out for now and eventually remove
-    //     it if nothing comes up.
-    // return $this->primaryLinkOnPut();
   }
 
   /**
@@ -478,6 +471,21 @@ class AppController extends Controller {
         break;
       }
     } // foreach
+
+    // If we make it here and we are in a POST, check to see if we allow looking up
+    // the primary link for this action. We want to exhaustively try to find the
+    // primary link in the POST body first, so we have to do this after we walk the
+    // set of available primary links.
+
+    if(empty($this->cur_pl->value)
+       && $this->request->is('post') 
+       && $this->request->getParam('action') != 'delete'
+       && !empty($this->request->getParam('pass.0'))
+       && $table->allowLookupPrimaryLink($this->request->getParam('action'))
+    ) {
+      $this->cur_pl = $table->findPrimaryLink((int)$this->request->getParam('pass.0'));
+      $this->set('vv_primary_link', $this->cur_pl->attr);
+    }
 
     // At the end we need to have a Primary Link
     if(empty($this->cur_pl->value)
