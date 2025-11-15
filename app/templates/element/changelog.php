@@ -92,11 +92,12 @@
               <td><?= $vv_obj->actor_identifier ?></td>
             </tr>
             <?php foreach($vv_archives as $archive): ?>
-              <tr>
+              <tr class="linked-row">
                 <td><?=
                     $this->Html->link(
                       $archive->id,
-                      ['action' => 'view', $archive->id]
+                      ['action' => 'view', $archive->id],
+                      ['class' => 'row-link']
                     )
                   ?></td>
                 <td><?= $archive->revision ?></td>
@@ -119,16 +120,16 @@
               <div class="fieldname"><?= __d('field', 'changelog.actor_identifier') ?></div>
               <div class="fieldval"><?= $vv_obj->actor_identifier ?></div>
             </li>
-            <li>
-              <div class="fieldname"><?= __d('field', 'changelog.parent') ?></div>
-              <div class="fieldval">
+            <li class="linked-row">
+              <div class="fieldname"><?= __d('field', 'changelog.active') ?></div>
+              <div class="fieldval changelog-active-link-container">
                 <?php if(!empty($vv_obj->$clAttr)): ?>
-                  <a class="changelog-parent-link" href="<?= $parentUrl ?>">
+                  <a class="changelog-active-link row-link" href="<?= $parentUrl ?>">
                     <div class="changelog-parent-id"><?= $vv_obj->$clAttr ?></div>
-                    <div class="changelog-parent-link-button btn btn-sm btn-primary">
-                      <?= __d('operation','changelog.return') ?>
-                    </div>
                   </a>
+                  <button class="changelog-active-link-button btn btn-sm btn-primary">
+                    <?= __d('operation','changelog.return') ?>
+                  </button>
                 <?php endif; ?>
               </div>
             </li>

@@ -386,6 +386,12 @@
       }
       $('#changelog accordion-button').toggle();
     });
+    
+    $('button.changelog-active-link-button').click(function(e) {
+      // Get the anchor from active link 
+      const activeLinkUrl = $('a.changelog-active-link').attr('href');
+      window.location.href = activeLinkUrl;
+    });
 
     // SETTINGS (from User Menu)
     // Dark Mode toggles (auto is default)

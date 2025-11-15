@@ -2831,6 +2831,12 @@ html.density-large .field-data {
 #changelog .accordion-body li:first-child {
   border-top: none;
 }
+.changelog-active-link-container {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+}
 /* FOOTER */
 footer {
   text-align: center;

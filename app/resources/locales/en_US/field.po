@@ -59,8 +59,8 @@ msgstr "Actor Identifier"
 msgid "changelog.deleted"
 msgstr "Deleted"
 
-msgid "changelog.parent"
-msgstr "Parent Record ID"
+msgid "changelog.active"
+msgstr "Active Record ID"
 
 msgid "changelog.revision"
 msgstr "Revision"
