@@ -42,7 +42,8 @@ export default {
   },
   computed: {
     mveaLink: function() {
-      return this.core.webroot + this.core.mveaController + (this.core.action == 'edit' ? '/edit/' : '/view/') + this.mvea.id;
+      const mveaAction = this.core.action == 'edit' && !this.mvea.frozen ? '/edit/' : '/view/';
+      return this.core.webroot + this.core.mveaController + mveaAction + this.mvea.id;
     },
     mveaAddress: function() {
       return this.mvea.room + ' ' + this.mvea.street + ' ' + this.mvea.locality + ' ' + this.mvea.state + ' ' + this.mvea.postal_code + ' ' + this.mvea.country;
