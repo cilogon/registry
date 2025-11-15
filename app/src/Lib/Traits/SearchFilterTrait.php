@@ -85,7 +85,7 @@ trait SearchFilterTrait {
       return $query;
     }
 
-    $parentTable = $this->_alias;
+    $parentTable = $this->getAlias();
     $joinAssociations = [];
     // Iterate over the dot notation and add the joins in the correct order
     // People.Names
@@ -183,13 +183,25 @@ trait SearchFilterTrait {
     }
 
     // Prepend the Model name to the attribute
-    $modelPrefix = $this->_alias;
+    $modelPrefix = $this->getAlias();
     if(isset($this->searchFilters[$attribute]['model'])) {
       $associationNamesPath = explode('.', $this->searchFilters[$attribute]['model']);
       $modelPrefix = Inflector::pluralize(end($associationNamesPath));
     }
 
-    $attributeWithModelPrefix = $modelPrefix . '.' . $attribute;
+    /**
+     * Build a qualified attribute name. This is required for queries/associations that are beyond the
+     * first level. e.g. People.PersonRoles.Cous
+     * If the attribute matches the model's foreign-key pattern (eg, cou_id for Cous),
+     * return "<ModelPrefix>.id"; otherwise "<ModelPrefix>.<attribute>".
+     */
+    $expectedFk = StringUtilities::classNameToForeignKey($modelPrefix);
+    if (strcasecmp($attribute, $expectedFk) === 0) {
+      // Attribute is the FK to this model -> target the model's primary key
+      $attributeWithModelPrefix = $modelPrefix . '.id';
+    } else {
+      $attributeWithModelPrefix = $modelPrefix . '.' . $attribute;
+    }
 
     $search = $q;
 

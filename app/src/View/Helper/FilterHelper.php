@@ -33,6 +33,7 @@ use App\Lib\Util\StringUtilities;
 use Cake\Collection\Collection;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
+use Cake\Utility\Inflector;
 use Cake\View\Helper;
 
 class FilterHelper extends Helper
@@ -175,5 +176,38 @@ class FilterHelper extends Helper
     $ModelTable = TableRegistry::getTableLocator()->get('Names');
     $person = $ModelTable->primaryName($personId);
     return "{$person->given} {$person->family}";
+  }
+
+  /**
+   * Normalize the filter button title for display.
+   * 1) Build initial title via humanize(underscore(label-source))
+   * 2) If the title is a sequence of capital letters separated by single spaces (e.g., "C O U"),
+   *    remove all spaces -> "COU"
+   * 3) If the title is CamelCase with no spaces (e.g., "ThisIsAName"),
+   *    insert a space before each capital and trim.
+   *
+   * @param string $rawLabel
+   * @return string
+   */
+  public function buildFilterButtonTitle(string $rawLabel): string
+  {
+    // Humanize
+    $filterTitle = Inflector::humanize(
+      Inflector::underscore($rawLabel)
+    );
+
+    // If like "C O U" (series of capital letters separated by spaces), collapse spaces -> "COU"
+    if (preg_match('/^[A-Z](?:\s[A-Z])+$/', $filterTitle) === 1) {
+      return str_replace(' ', '', $filterTitle);
+    }
+
+    // If CamelCase with no spaces, insert spaces before capitals and trim
+    if (!str_contains($filterTitle, ' ') && preg_match('/[A-Z]/', $filterTitle) === 1) {
+      // Insert a space before every capital letter except the first character
+      $filterTitle = preg_replace('/(?<!^)(?=[A-Z])/', ' ', $filterTitle);
+      return trim((string)$filterTitle);
+    }
+
+    return $filterTitle;
   }
 }

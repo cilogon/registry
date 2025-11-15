@@ -65,12 +65,9 @@ if(isset($$populated_vvar) && isset($$populated_vvar[$params])) {
   }
 }
 
-$filter_title =
-  Inflector::humanize(
-    Inflector::underscore(
-      $vv_searchable_attributes[$key]['label'] ?? $columns[$key]['label']
-    )
-  );
+$filter_title = $this->Filter->buildFilterButtonTitle(
+        $vv_searchable_attributes[$key]['label'] ?? $columns[$key]['label']
+);
 
 ?>
 

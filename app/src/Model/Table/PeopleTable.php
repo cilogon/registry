@@ -204,7 +204,11 @@ class PeopleTable extends Table {
       'types' => [
         'type' => 'type',
         'attribute' => 'Names.type'
-      ]
+      ],
+      'cous' => [
+        'type' => 'select',
+        'model' => 'Cous'
+      ],
     ]);
     
     // XXX expand/revise this as needed to work best with looking up the related models
@@ -244,7 +248,13 @@ class PeopleTable extends Table {
         'model' => 'People',
         'active' => false,
         'order' => 99
-      ]      
+      ],
+      'cou_id' => [
+        'type' => 'select',
+        'model' => 'PersonRoles.Cous',
+        'active' => true,
+        'order' => 7
+      ],
     ]);
 
     $this->setTabsConfig(
