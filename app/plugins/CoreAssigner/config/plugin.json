@@ -51,7 +51,9 @@
           }
         },
         "indexes": {
-          "sql_assigners": { "columns": [ "identifier_assignment_id" ] }
+          "sql_assigners_i1": { "columns": [ "identifier_assignment_id" ] },
+          "sql_assigners_i2": { "columns": [ "type_id" ] },
+          "sql_assigners_i3": { "needed": false, "columns": [ "server_id" ] }
         }
       }
     }
