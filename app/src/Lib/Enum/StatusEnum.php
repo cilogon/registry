@@ -31,22 +31,15 @@ namespace App\Lib\Enum;
 
 class StatusEnum extends StandardEnum {
   const Active              = 'A';
-  const Approved            = 'Y';
   // Archived was Deleted in v4, so we reuse "D" to simplify upgrading
   const Archived            = 'D';
-  const Confirmed           = 'C';
-  const Denied              = 'N';
   const Duplicate           = 'D2';
   const Expired             = 'XP';
   const GracePeriod         = 'GP';
-  const Invited             = 'I';
   const Locked              = 'LK';
   const Pending             = 'P';
   const PendingActivation   = 'PS';
-  const PendingApproval     = 'PA';
-  const PendingConfirmation = 'PC';
   const Suspended           = 'S';
-  const Declined            = 'X';
 
   /**
    * Map a status value to its "preference" or "rank" for status recalculation.
@@ -75,18 +68,11 @@ class StatusEnum extends StandardEnum {
       self::Suspended             => 13,
       self::Expired               => 12,
 
-      // Then invitation statuses
-      self::Approved              => 11,
-      self::PendingApproval       => 10,
-      self::Confirmed             => 9,
-      self::PendingConfirmation   => 8,
-      self::Invited               => 7,
+      // Then pending statuses
       self::PendingActivation     => 6,
       self::Pending               => 5,  // It's not clear this is used for anything
 
       // Denied and Declined are below expired since other roles are more likely to have been used
-      self::Denied                => 4,
-      self::Declined              => 3,
 
       // Finally, we generally don't want Archived or Duplicate unless all roles are deleted or duplicates
       self::Archived              => 2,

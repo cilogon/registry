@@ -633,9 +633,6 @@ msgstr "Set"
 msgid "StatusEnum.A"
 msgstr "Active"
 
-msgid "StatusEnum.C"
-msgstr "Confirmed"
-
 msgid "StatusEnum.D"
 msgstr "Archived"
 
@@ -644,9 +641,6 @@ msgstr "Duplicate"
 
 msgid "StatusEnum.GP"
 msgstr "Grace Period"
-
-msgid "StatusEnum.I"
-msgstr "Invited"
 
 msgid "StatusEnum.LK"
 msgstr "Locked"
@@ -657,26 +651,14 @@ msgstr "Denied"
 msgid "StatusEnum.P"
 msgstr "Pending"
 
-msgid "StatusEnum.PA"
-msgstr "Pending Approval"
-
-msgid "StatusEnum.PC"
-msgstr "Pending Confirmation"
-
 msgid "StatusEnum.PS"
 msgstr "Pending Activation"
 
 msgid "StatusEnum.S"
 msgstr "Suspended"
 
-msgid "StatusEnum.X"
-msgstr "Declined"
-
 msgid "StatusEnum.XP"
 msgstr "Expired"
-
-msgid "StatusEnum.Y"
-msgstr "Approved"
 
 msgid "SuspendableStatusEnum.A"
 msgstr "Active"
