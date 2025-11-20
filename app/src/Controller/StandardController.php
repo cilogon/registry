@@ -503,7 +503,7 @@ class StandardController extends AppController {
     $archives = $table->find()
                       ->applyOptions(['archived' => true])
                       ->where([$clAttr => $id])
-                      ->order(['revision' => 'DESC'])
+                      ->orderBy(['revision' => 'DESC'])
                       ->all();
 
     $this->set('vv_archives', $archives);
@@ -840,7 +840,7 @@ class StandardController extends AppController {
     $archives = $table->find()
                       ->applyOptions(['archived' => true])
                       ->where([$clAttr => $id])
-                      ->order(['revision' => 'DESC'])
+                      ->orderBy(['revision' => 'DESC'])
                       ->all();
 
     $this->set('vv_archives', $archives);
