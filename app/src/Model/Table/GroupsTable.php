@@ -467,13 +467,13 @@ class GroupsTable extends Table {
     // Target Group or is a Target Group for a nesting. This and AR-Group-3
     // are to avoid unexpected consequences from implicitly undoing a nesting...
     // the administrator must do that first.
-    $rules->addUpdate([$this, 'ruleIsNested'],
+    $rules->addUpdate([$this, 'ruleIsNestedUpdate'],
                       'isNestedUpdate',
                       ['errorField' => 'status']);
     
     // AR-Group-3 A Group cannot be deleted if it is nested into a Target Group
     // or is a Target Group for a nesting
-    $rules->addDelete([$this, 'ruleIsNested'],
+    $rules->addDelete([$this, 'ruleIsNestedDelete'],
                       'isNestedDelete',
                       ['errorField' => 'status']);
     
@@ -1262,23 +1262,41 @@ class GroupsTable extends Table {
    * @return boolean          true if the Rule check passes, false otherwise
    */
   
-  public function ruleIsNested($entity, $options) {
-    // We check that the subject group is either a source or a target, but
-    // only if the $entity status is Suspended.
+  public function ruleIsNestedDelete($entity, $options) {
+    // We check that the subject group is either a source or a target.
+    
+    $count = $this->GroupNestings->find('all')
+                                  ->where([
+                                    'OR' => [
+                                      'GroupNestings.group_id' => $entity->id,
+                                      'GroupNestings.target_group_id' => $entity->id
+                                    ]
+                                  ])
+                                  ->count();
+    
+    if($count > 0) {
+      return __d('error', 'Groups.nested');
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Application Rule to determine if the group is nested.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleIsNestedUpdate($entity, $options) {
+    // This is the same check as ruleIsNestedDelete, except we only want it to
+    // run if the user is trying to suspend the Group. (Other update operations
+    // shouldn't matter.)
     
     if($entity->status == SuspendableStatusEnum::Suspended) {
-      $count = $this->GroupNestings->find('all')
-                                   ->where([
-                                     'OR' => [
-                                       'GroupNestings.group_id' => $entity->id,
-                                       'GroupNestings.target_group_id' => $entity->id
-                                     ]
-                                   ])
-                                   ->count();
-      
-      if($count > 0) {
-        return __d('error', 'Groups.nested');
-      }
+      return $this->ruleIsNestedDelete($entity, $options);
     }
     
     return true;
