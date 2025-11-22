@@ -24,14 +24,46 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<script type="text/javascript">
-  // JS specific to these fields
 
+$fields = [
+  'description',
+  'status',
+  'match_strategy',
+  'match_email_address_type_id',
+  'match_identifier_type_id',
+  'match_server_id',
+  // 'sync_on_update',
+  // 'sync_on_delete',
+  'sync_status_on_delete',
+  'sync_cou_id',
+  'sync_replace_cou_id',
+  'sync_affiliation_type_id',
+  'sync_identifier_type_id',
+  'sync_verify_email_addresses'
+  // XXX Connections
+];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
+
+// Top Links
+$topLinks[] = [
+  'icon'  => 'nest_thermostat_gen_3',
+  'order' => 'Default',
+  'label' => __d('controller', 'Flanges', [99]),
+  'link'  => [
+    'controller'  => 'flanges',
+    'action'      => 'index',
+    'pipeline_id'      => $vv_obj->id
+  ],
+  'class' => ''
+];
+?>
+
+<script>
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
     var strategy = document.getElementById('match-strategy').value;
-    
+
     if(strategy == '<?= \App\Lib\Enum\MatchStrategyEnum::EmailAddress ?>') {
       hideFields([
         'match-identifier-type-id',
@@ -59,57 +91,14 @@
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#match-strategy').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'description'
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status'
-    ]
-  ]);
-
-  // Match Strategy
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'match_strategy',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]
-  ]);
-
-  foreach([
-            'match_email_address_type_id',
-            'match_identifier_type_id',
-            'match_server_id',
-//            'sync_on_update',
-//            'sync_on_delete',
-            'sync_status_on_delete',
-            'sync_cou_id',
-            'sync_replace_cou_id',
-            'sync_affiliation_type_id',
-            'sync_identifier_type_id',
-            'sync_verify_email_addresses'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
-
-  print $this->element('clonable');
-  
-  // Connections
-//XXX
-}

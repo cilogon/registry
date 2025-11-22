@@ -32,62 +32,170 @@ if($vv_obj->isOwners()) {
   $options['readonly'] = true;
 }
 
-foreach(['name',
-          'description',
-          'status',
-          'open',
-          'nesting_mode_all'] as $field) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => $field,
-      'fieldOptions' => $options
-    ]
-  ]);
-}
+$fields = [
+  'name' => $options,
+  'description' => $options,
+  'status' => $options,
+  'open' => $options,
+  'nesting_mode_all' => $options
+];
 
 if(!empty($parents)) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'parent_id',
-      'fieldLabel' => __d('field', 'parent_id'),
-    ]
-  ]);
+  $fields['parent_id'] = [
+    'fieldLabel' => __d('field', 'parent_id'),
+  ];
 }
 
 if($vv_action != 'add') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'group_type',
-      'fieldOptions' => [
-        'readonly' => true
-      ]
-    ]
-  ]);
+  $fields['group_type'] = [
+    'readonly' => true
+  ];
 
   if($vv_obj->isOwners()) {
     // Link to the main group
     if(!empty($vv_obj->owners_for_group)) {
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'owners_group_id',
-          'fieldLabel' => __d('field', 'Groups.owners.for'),
-          'status' => $vv_obj->owners_for_group->name,
-          'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]],
-          'labelIsTextOnly' => true
-        ]
-      ]);
+      $fields['owners_group_id'] = [
+        'fieldName' => 'owners_group_id',
+        'fieldLabel' => __d('field', 'Groups.owners.for'),
+        'status' => $vv_obj->owners_for_group->name,
+        'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_for_group->id]],
+        'labelIsTextOnly' => true
+      ];
     }
   } else {
     // Link to the owners group
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'owners_group_id',
-        'status' => $vv_obj->owners_group->name ?? '',
-        'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]],
-        'labelIsTextOnly' => true
-      ]
-    ]);
+    $fields['owners_group_id'] = [
+      'status' => $vv_obj->owners_group->name ?? '',
+      'link' => ['url' => ['controller' => 'groups', 'action' => 'edit', $vv_obj->owners_group_id]],
+      'labelIsTextOnly' => true
+    ];
   }
 }
 
-print $this->element('clonable');
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
+
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'identifiers'
+];
+
+// Name the MVEAs Entity Type
+$mveasEntityType = "group";
+
+// Top Links
+$topLinks = [
+  [
+    'icon' => 'history',
+    'order' => 'Default',
+    'label' => __d('controller', 'HistoryRecords', [99]),
+    'link' => [
+      'controller' => 'history_records',
+      'action' => 'index',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'cloud_sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'provisioning.status'),
+    'link' => [
+      'controller' => 'provisioning_targets',
+      'action' => 'status',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'badge',
+    'order' => 'Default',
+    'label' => __d('operation', 'identifiers.assign'),
+    'link' => [
+      'controller' => 'identifier_assignments',
+      'action' => 'assign',
+      '?' => [
+        'group_id' => $vv_obj->id
+      ]
+    ],
+    'if' => 'notAutomatic',
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'identifiers.assign.confirm',[$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'assign')
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'reconcile'),
+    'link' => [
+      'action' => 'reconcile',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'reconcile.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'reconcile')
+    ],
+    'class' => ''
+  ]
+];
+
+if(!$vv_obj->isOwners()) {
+  // Most actions aren't available for Owners Groups
+  $topLinks += [
+    [
+      'icon' => 'cloud_sync',
+      'order' => 'Default',
+      'label' => __d('operation', 'provisioning.status'),
+      'link' => [
+        'controller' => 'provisioning_targets',
+        'action' => 'status',
+        '?' => [
+          'group_id' => $vv_obj->id
+        ]
+      ],
+      'class' => ''
+    ],
+    [
+      'icon' => 'badge',
+      'order' => 'Default',
+      'label' => __d('operation', 'identifiers.assign'),
+      'link' => [
+        'controller' => 'identifier_assignments',
+        'action' => 'assign',
+        '?' => [
+          'group_id' => $vv_obj->id
+        ]
+      ],
+      'class' => ''
+    ],
+    [
+      'icon' => 'sync',
+      'order' => 'Default',
+      'label' => __d('operation', 'reconcile'),
+      'link' => [
+        'action' => 'reconcile',
+        $vv_obj->id
+      ],
+      'class' => ''
+    ]
+  ];
+}
+
+// $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
+
+if(!$vv_obj->isOwners()) {
+  $addMenuLinks = [
+    [
+      'controller' => 'identifiers',
+      'action' => 'add',
+      'icon' => 'fingerprint'
+    ]
+  ];
+}

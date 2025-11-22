@@ -25,12 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view only supports edit
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'external_identity_source_id',
-      'fieldLabel' => __d('orcid_source', 'controller.OrcidSources', [1])
-    ]
-  ]);
-}
+$fields = [
+  'external_identity_source_id' => [
+    'fieldLabel' => __d('orcid_source', 'controller.OrcidSources', [1])
+  ]
+];

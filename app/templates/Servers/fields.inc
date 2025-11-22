@@ -24,25 +24,13 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach (['description',
-             'status'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'plugin',
-      'labelIsTextOnly' => true
-    ]
-  ]);
 
-  print $this->element('clonable');
-}
+$fields = [
+  'description',
+  'status',
+  'plugin' => [
+    'labelIsTextOnly' => true
+  ]
+];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));

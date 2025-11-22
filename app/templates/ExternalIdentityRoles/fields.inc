@@ -25,56 +25,63 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'affiliation_type_id',
-      'fieldLabel' => __d('field', 'affiliation')
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status'
-    ]
-  ]);
-
-  foreach([
-            'ordr',
-            'title',
-            'organization',
-            'department'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
+$fields = [
+  'affiliation_type_id' => [
+    'fieldLabel' => __d('field', 'affiliation')
+  ],
+  'status',
+  'ordr',
+  'title',
+  'organization',
+  'department',
   
-// XXX need to clarify this is an _identifier_ not an actual Person FK
+  // XXX need to clarify this is an _identifier_ not an actual Person FK
+  'sponsor_identifier' => [
+    'fieldLabel' => __d('field', 'sponsor')
+  ],
+  'manager_identifier' => [
+    'fieldLabel' => __d('field', 'manager')
+  ],
+  
+  'valid_from',
+  'valid_through'
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'sponsor_identifier',
-      'fieldLabel' => __d('field', 'sponsor')
-    ]
-  ]);
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'manager_identifier',
-      'fieldLabel' => __d('field', 'manager')
-    ]
-  ]);
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'ad_hoc_attributes',
+  'addresses',
+  'telephone_numbers'
+];
 
-  foreach([
-            'valid_from',
-            'valid_through'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
-}
+// Name the MVEAs Entity Type
+$mveasEntityType = 'external_identity_role';
+
+// $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
+$addMenuLinks = [
+  [
+    'controller' => 'ad_hoc_attributes',
+    'action' => 'add',
+    'icon' => 'user_attributes',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'addresses',
+    'action' => 'add',
+    'icon' => 'contact_mail',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'telephone_numbers',
+    'action' => 'add',
+    'icon' => 'phone'
+  ]
+];
+
+$subnav = [
+  'name' => 'person',
+  'active' => 'external_identities',
+  'subActive' => 'external_identity_roles'
+];

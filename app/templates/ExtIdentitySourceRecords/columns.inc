@@ -29,7 +29,11 @@ $indexColumns = [
   // We start with id to ensure there is a clickable field in the row
   'id' => [
     'type' => 'link',
-    'sortable' => true
+    'sortable' => true,
+    'class' => 'cm-modal-link nospin', // launch this in a modal 
+    'dataAttrs' => [
+      ['data-cm-modal-title', __d('controller', 'ExtIdentitySourceRecords', 1)]
+    ]
   ],
   'source_key' => [
     'type' => 'echo',

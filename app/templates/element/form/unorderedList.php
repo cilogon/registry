@@ -25,10 +25,10 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-
 declare(strict_types = 1);
 
 // View vars
+// $vv_fields  
 // $vv_obj
 // $vv_required_fields
 // $vv_action
@@ -38,16 +38,35 @@ declare(strict_types = 1);
 // $vv_submit_button_label
 
 ?>
-<ul id="<?= $vv_action . '_' . $this->name ?>" class="fields form-list">
+<ul id="<?= $vv_action . '_' . $this->name ?>" class="<?= $vv_action . '_' . $this->name ?> fields form-list">
   <?php
-  // We allow the fields.inc file to be specified for Controllers that have more
-  // complicated/non-default actions.
-  // XXX Each fields.inc file will calculate and provide the hidden controls.
-  $fieldsFile = $vv_fields_inc ?? 'fields.inc';
-  // The controller will calculate the template path for us, since it could be
-  // in one of several paths if we are in a plugin context.
-  // The include files will contain the listItem elements
-  include($vv_template_path . DS . $fieldsFile);
+  if(!empty($vv_fields)) {
+    // Output the visible fields from the fields.inc configuration
+    foreach($vv_fields as $key => $field) {
+      if($key === 'SUBTITLE' || $key === 'HTML') {
+        if($key === 'SUBTITLE') {
+          // We have a subtitle 
+          $content = $field['subtitle'];
+          $type = 'subtitle';
+        } else {
+          // We have HTML to insert.
+          $content = $field['html'];
+          $type = 'html';  
+        }
+        print $this->element('form/htmlInject', compact('content', 'type'));
+      } else {
+        // We have a normal field. Parse the configuration for strings or associative arrays.
+        if (is_int($key)) {
+          // We have numeric keys, therefore the value is the field name (a string).
+          $fieldArgs = ['fieldName' => $field];
+        } else {
+          // Otherwise, the key is the field name. Pass along the other arguments (in $field).
+          $fieldArgs = ['fieldName' => $key] + $field;
+        }
+        print $this->element('form/listItem', ['arguments' => $fieldArgs]);
+      }
+    }
+  }
   
   if(!isset($suppress_submit) || !$suppress_submit) {
     // The Submit element will be printed only if we are adding or updating, and if not
@@ -57,12 +76,3 @@ declare(strict_types = 1);
   }
   ?>
 </ul>
-
-<?php
-// Import all the hidden fields in the Form
-if(!empty($hidden)) {
-// Inject any hidden variables set by the included file
-  foreach($hidden as $attr => $v) {
-    print $this->Form->hidden($attr, ['value' => $v]);
-  }
-}

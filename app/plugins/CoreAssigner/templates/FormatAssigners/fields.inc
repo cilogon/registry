@@ -24,14 +24,25 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'format',
+  'collision_mode',
+  'permitted_characters',
+  'minimum_length',
+  'minimum',
+  'maximum',
+  'enable_transliteration'
+];
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
     var mode = document.getElementById('collision-mode').value;
-    
+
     if(mode == '<?= \CoreAssigner\Lib\Enum\CollisionModeEnum::Sequential ?>') {
       hideFields(['maximum'], isPageLoad);
     } else {
@@ -39,40 +50,13 @@
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    $('#collision-mode').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-  
-<?php
-// This view does currently not support read-only, and add is not used
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'format'
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'collision_mode',
-      'fieldOptions'   => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]
-  ]);
-
-  foreach([
-            'permitted_characters',
-            'minimum_length',
-            'minimum',
-            'maximum',
-            'enable_transliteration'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
-}

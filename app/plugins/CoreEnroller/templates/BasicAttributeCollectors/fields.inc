@@ -25,21 +25,9 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view only supports edit
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'name_type_id']
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'email_address_type_id']
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'affiliation_type_id']
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'cou_id']
-  ]);
-}
+$fields = [
+  'name_type_id',
+  'email_address_type_id',
+  'affiliation_type_id',
+  'cou_id'
+];

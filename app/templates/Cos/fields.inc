@@ -25,20 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view supports read-only only for the COmanage CO
-if($vv_action == 'add' || $vv_action == 'edit' || ($vv_action == 'view' && $vv_obj->name == 'COmanage')) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'name'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'description'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status'
-    ]]);
-}
+$fields = [
+  'name',
+  'description',
+  'status'
+];

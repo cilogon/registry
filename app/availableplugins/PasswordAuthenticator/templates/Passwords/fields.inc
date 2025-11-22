@@ -27,22 +27,37 @@
 
 // We provide the current password status in a banner message since that's all the
 // information we really want to display about a password.
+$alerts = [
+  [
+    'type' => 'information',
+    'message' => $vv_status->comment
+  ]
+];
 
-print $this->element('notify/banner', ['info' => $vv_status->comment]);
+$fields = [];
 
 if(!$vv_status->locked) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'password',
+  $fields = [
+    'password',
+    'password2' => [
+      'type' => 'password'
     ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'password2',
-      'fieldOptions' => [
-        'type' => 'password'
-      ]
-    ]
-  ]);
+  ];
+  // Inject the parent keys
+  $hidden = [
+    'password_authenticator_id' => $vv_authenticator->password_authenticator->id,
+    'person_id' => $vv_status->person_id
+  ];
+} else {
+  $suppress_submit = true;
 }
+
+$topLinks[] = [
+  'icon' => 'history',
+  'order' => 'Default',
+  'label' => __d('operation', 'reset'),
+  'link' => [
+    'controller' => 'authenticators',
+    'action' => 'reset',
+  ]
+];

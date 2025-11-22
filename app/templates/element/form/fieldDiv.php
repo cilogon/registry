@@ -39,14 +39,27 @@ declare(strict_types = 1);
     unset($vv_field_arguments['fieldDescription']);
     $this->set('vv_field_arguments', $vv_field_arguments);
   }
+  
+  // Extract the before and after field supplements:
+  $beforeField = $vv_field_arguments['beforeField'] ?? '';
+  $afterField = $vv_field_arguments['afterField'] ?? '';
+  // and remove them from the array (they are not used by FieldHelper):
+  unset($vv_field_arguments['beforeField']); 
+  unset($vv_field_arguments['afterField']);
+
+  // Restructure the field arguments to include the options array used by CakePHP.
+  $vv_field_arguments = $this->Field->restructureFieldArguments($vv_field_arguments);
+  
+  // Reset the $vv_field_arguments with the restructured version
+  $this->set('vv_field_arguments', $vv_field_arguments);
 
   // Info Div
   ?>
   <div class="field-info">
     <?php
       // Insert the beforeField supplement:
-      if(!empty($vv_before_field)) {
-        print $vv_before_field;
+      if(!empty($beforeField)) {
+        print $beforeField;
       }
       
       // Include the correct sub-element based on the field configuration
@@ -67,8 +80,8 @@ declare(strict_types = 1);
       }
 
       // Insert the afterField supplement:
-      if(!empty($vv_after_field)) {
-        print $vv_after_field;
+      if(!empty($afterField)) {
+        print $afterField;
       }
     ?>
   </div>

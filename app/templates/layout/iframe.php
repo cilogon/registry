@@ -154,22 +154,24 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
   
     <!-- COmanage iframe-specific JavaScript -->
     <script>
-      $(document).keyup(function(e) {
-        if (e.key === "Escape") {
-          // If we're in a modal, dismiss it when the escape key is pressed
-          if(window.parent === top) {
-            // Test for the MVEA modal window
-            if(typeof window.parent.cmMveaModal !== 'undefined'
-              && typeof window.parent.cmMveaModal.hide === 'function') {
-              window.parent.cmMveaModal.hide();
-            } 
-            // Test for the generic modal window
-            if(typeof window.parent.cmModal !== 'undefined'
-              && typeof window.parent.cmModal.hide === 'function') {
-              window.parent.cmModal.hide();
+      $(function() {
+        $(document).keyup(function(e) {
+          if (e.key === "Escape") {
+            // If we're in a modal, dismiss it when the escape key is pressed
+            if (window.parent === top) {
+              // Test for the MVEA modal window
+              if (typeof window.parent.cmMveaModal !== 'undefined'
+                && typeof window.parent.cmMveaModal.hide === 'function') {
+                window.parent.cmMveaModal.hide();
+              }
+              // Test for the generic modal window
+              if (typeof window.parent.cmModal !== 'undefined'
+                && typeof window.parent.cmModal.hide === 'function') {
+                window.parent.cmModal.hide();
+              }
             }
           }
-        }
+        });
       });
     </script>
 

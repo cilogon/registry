@@ -25,51 +25,22 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view only supports edit
-if($vv_action !== 'edit') {
-  return;
-}
-
+// Used for placeholders
 $defaultValues = array_combine(
   array_values($defaults),
   array_keys($defaults)
 );
 
-foreach(['mode',
-          'message_template_id'
-        ] as $field) {
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => $field]
-  ]);
-}
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'request_validity',
-    'fieldOptions' => [
-      'placeholder' => $defaultValues['DefaultVerificationValidity']
-    ]]
-]);
-
-// Textbox for "Other"
-$otherField = $this->Form->control('verification_code_charset', [
-  'type' => 'text',
-  'label' => false,
-  'id' => 'verification-code-charset',
-  'style' => !empty($vv_obj?->verification_code_charset) ? '' : 'display: none;',
-  'required' => false,
-]);
-
+// Establish the before and after field-supplements for the 'verification_code_regex'
 $checked = !empty($vv_obj?->verification_code_charset) ? 'checked' : '';
-$otherLabel = __d('field','other.value');
+$otherLabel = __d('core_enroller','field.EmailVerifiers.verification_code_charset.other_value');
 $beforeField = <<<OTHER
-<div class="field-suppliment">
+<div class="field-supplement">
   <div class="form-check">
     <input class="form-check-input" type="checkbox" value="" id="other-toggle" $checked/>
     <label class="form-check-label" for="other-toggle">$otherLabel</label>
   </div>
 </div>
-$otherField
 OTHER;
 
 $afterField = <<<'JS'
@@ -107,37 +78,42 @@ document.addEventListener('DOMContentLoaded', function() {
 JS;
 
 $regexDisplayFirstTime = empty($vv_obj?->verification_code_charset) && empty($vv_obj?->verification_code_regex);
-print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'verification_code_regex',
-      'fieldLabel' => __d('core_enroller','field.EmailVerifiers.verification_code_charset'),
-      'fieldOptions' => [
+
+// List the fields
+$fields = [
+  'mode',
+  'message_template_id',
+  'request_validity' => [
+    'placeholder' => $defaultValues['DefaultVerificationValidity']
+  ],
+  'verification_code_regex' => [
+    'fieldLabel' => __d('core_enroller','field.EmailVerifiers.verification_code_charset'),
+    'groupedControls' =>  [
+      'verification_code_regex' => [
         'id' => 'verification-code-regex',
         'required' => false,
         'empty' => true,
         'style' => $regexDisplayFirstTime || !empty($vv_obj?->verification_code_regex) ? '' : 'display: none;',
+        'type' => 'select',
+        'options' => $permittedCharacters
       ],
-      'fieldType' => 'select',
-      'fieldSelectOptions' => $permittedCharacters,
+      'verification_code_charset' => [
+        'type' => 'text',
+        'label' => false,
+        'id' => 'verification-code-charset',
+        'style' => !empty($vv_obj?->verification_code_charset) ? '' : 'display: none;',
+        'required' => false,
+        'checked' => !empty($vv_obj?->verification_code_charset) ? 'checked' : ''
+      ]
     ],
     'beforeField' => $beforeField,
-    'afterField' => $afterField,
+    'afterField' => $afterField
+  ],
+  'verification_code_length' => [
+    'required' => false,
+    'placeholder' => $defaultValues['DefaultCodeLength']
+  ],
+  'enable_blockonfailure' => [
+    'default' => true
   ]
-);
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'verification_code_length',
-    'fieldOptions' => [
-      'required' => false,
-      'placeholder' => $defaultValues['DefaultCodeLength']
-    ]]
-]);
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'enable_blockonfailure',
-    'fieldOptions' => [
-      'default' => true,
-    ]]
-]);
+];

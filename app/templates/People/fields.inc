@@ -25,7 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not currently support read-only
+$fields = [];
+
 if($vv_action == 'add') {
   // Adding a new CO Person is a bit non-standard vs most views. We need a
   // Primary Name (which we'll collect here) along with possibly collecting
@@ -33,26 +34,18 @@ if($vv_action == 'add') {
   
   foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
     if(in_array($f, $vv_permitted_name_fields)) {
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'names.0.'.$f,
-          'fieldOptions' => [
-            'required' => in_array($f, $vv_required_name_fields)
-          ],
-          'fieldType' => 'string'
-        ]]);
+      $fields['names.0.'.$f] = [
+        'required' => in_array($f, $vv_required_name_fields),
+        'fieldType' => 'string'
+      ];
     }
   }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'names.0.type_id',
-      'fieldOptions' => [
-        'default' => $vv_default_name_type,
-        'required' => true
-      ],
-      'fieldType' => 'string'
-    ]]);
+  
+  $fields['names.0.type_id'] = [
+    'default' => $vv_default_name_type,
+    'required' => true,
+    'fieldType' => 'string'
+  ];
   
   // AR-Name-1 Since this is the first name for this Person, it must be
   // designated primary
@@ -64,14 +57,156 @@ if($vv_action == 'add') {
   $a = $vv_obj->extract(['person_role_id', 'person_id']);
 }
 
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status'
-    ]]);
+$fields = array_merge($fields, [
+  'status',
+  'date_of_birth'
+]);
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'date_of_birth'
-    ]]);
-}
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'names',
+  'email_addresses',
+  'identifiers',
+  'ad_hoc_attributes',
+  'addresses',
+  'telephone_numbers',
+  'urls',
+  'pronouns'
+];
+
+// Name the MVEAs Entity Type
+$mveasEntityType = "person";
+
+// Output for $topLinks from this specific configuration is presented in the mveaCanvas.php "Actions" menu.   
+$topLinks = [
+  [
+    'icon' => 'history',
+    'order' => 'Default',
+    'label' => __d('controller', 'HistoryRecords', [99]),
+    'link' => [
+      'controller' => 'history_records',
+      'action' => 'index',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'cloud_sync',
+    'order' => 'Default',
+    'label' => __d('operation', 'provisioning.status'),
+    'link' => [
+      'controller' => 'provisioning_targets',
+      'action' => 'status',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'lock',
+    'order' => 'Default',
+    // We use "Authenticators" as the label because it's less confusiong
+    'label' => __d('controller', 'Authenticators', [99]),
+    'link' => [
+      'controller' => 'authenticator_statuses',
+      'action' => 'index',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'notifications',
+    'iconClass' => 'material-symbols-outlined',
+    'order' => 'Default',
+    'label' => __d('controller', 'Notifications', [99]),
+    'link' => [
+      'controller' => 'notifications',
+      'action' => 'index',
+      '?' => [
+        'subject_person_id' => $vv_obj->id
+        // XXX person_id is auto-inserted but isn't needed
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'badge',
+    'iconClass' => 'material-symbols-outlined',
+    'order' => 'Default',
+    'label' => __d('operation', 'identifiers.assign'),
+    'link' => [
+      'controller' => 'identifier_assignments',
+      'action' => 'assign',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'identifiers.assign.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'assign')
+    ],
+    'class' => ''
+  ]
+];
+
+// $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
+$addMenuLinks = [
+  [
+    'controller' => 'names',
+    'action' => 'add',
+    'icon' => 'account_box',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'email_addresses',
+    'action' => 'add',
+    'icon' => 'email',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'identifiers',
+    'action' => 'add',
+    'icon' => 'fingerprint'
+  ],
+  [
+    'controller' => 'ad_hoc_attributes',
+    'action' => 'add',
+    'icon' => 'user_attributes',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'addresses',
+    'action' => 'add',
+    'icon' => 'contact_mail',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'pronouns',
+    'action' => 'add',
+    'icon' => '3p',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'telephone_numbers',
+    'action' => 'add',
+    'icon' => 'phone'
+  ],
+  [
+    'controller' => 'urls',
+    'action' => 'add',
+    'icon' => 'link'
+  ]
+];
+
+$subnav = [
+  'name' => 'person',
+  'active' => 'person',
+  'subActive' => 'properties'
+];

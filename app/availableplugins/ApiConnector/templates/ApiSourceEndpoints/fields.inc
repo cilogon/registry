@@ -25,17 +25,16 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only
-if($vv_action == 'edit') {
-  if(!empty($vv_push_endpoint)) {
-    print $this->element('notify/banner', [
-      'info' => __d('api_connector', 'information.endpoint.push', [$vv_push_endpoint])
-    ]);
-  }
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'external_identity_source_id',
+if(!empty($vv_push_endpoint)) {
+  $alerts = [
+    [
+      'type' => 'information',
+      'message' => __d('api_connector', 'information.endpoint.push', [$vv_push_endpoint])
     ]
-  ]);
+  ];
 }
+
+$fields = [
+  'external_identity_source_id'
+];

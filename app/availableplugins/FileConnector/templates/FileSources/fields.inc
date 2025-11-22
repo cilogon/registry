@@ -25,19 +25,10 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach([
-            'filename',
-            'format',
-            'archivedir',
-            'threshold_check',
-            'threshold_override',
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
-}
+$fields = [
+  'filename',
+  'format',
+  'archivedir',
+  'threshold_check',
+  'threshold_override',
+];

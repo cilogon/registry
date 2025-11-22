@@ -25,11 +25,16 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only
-if($vv_action == 'edit') {
-  print '<li class="info-title"><h3>' . __d('api_connector', 'field.ApiSources.push_mode') . '</h3></li>';
+$alerts = [
+  [
+    'type' => 'information',
+    'message' => __d('information', 'plugin.config.none')
+  ]
+];
 
-  print $this->element('notify/banner', [
-    'info' => __d('information', 'plugin.config.none',)
-  ]);
-}
+// XXX Revisit this - what's the "Push Mode" text attempting to convey here (with no other information)?
+$fields = [
+  'SUBTITLE' => [
+    'subtitle' => __d('api_connector', 'field.ApiSources.push_mode')
+  ]
+];

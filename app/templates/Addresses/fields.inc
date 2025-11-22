@@ -25,45 +25,25 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  // Dynamic required fields is automatically handled by FormHelper via the
-  // validation rules
-  foreach (['street',
-             'room',
-             'locality',
-             'state',
-             'postal_code',
-             'country',
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'type_id',
-      'fieldOptions' => [
-        'default' => $vv_default_type
-      ]
-    ]]);
-
-  foreach (['language',
-             'description',
-             'frozen',
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}
+// Dynamic required fields are automatically handled by FormHelper via the
+// validation rules
+$fields = [
+  'street',
+  'room',
+  'locality',
+  'state',
+  'postal_code',
+  'country',
+  'type_id' => [
+    'default' => $vv_default_type
+  ],
+  'language',
+  'description',
+  'frozen'
+];
 
 if($vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'source',
-      'entity' => $vv_obj
-    ]]);
+  $fields['source'] = [
+    'entity' => $vv_obj
+  ];
 }

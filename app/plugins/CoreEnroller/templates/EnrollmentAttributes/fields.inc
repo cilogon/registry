@@ -62,24 +62,15 @@ $this->set('vv_include_cancel', true);
  * - order
  * - required
  */
-foreach ( ['label',
-           'description',
-           'status',
-           'ordr'
-          ] as $field) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => $field
-    ]]);
-}
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'required',
-    'fieldOptions' => [
-      'default' => true
-    ]
-  ]]);
+$fields = [
+  'label',
+  'description',
+  'status',
+  'ordr',
+  'required' => [
+    'default' => true
+  ]
+]; 
 
 
 /*
@@ -96,20 +87,14 @@ if (
   !empty($vv_supported_attributes[$attribute_type]['mveaParents'])
   && count($vv_supported_attributes[$attribute_type]['mveaParents']) > 0
 ) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'attribute_mvea_parent',
-      'fieldOptions' => [
-        'empty' => false
-      ],
-      'fieldType' => 'select',
-      'fieldSelectOptions' => array_combine(
-        $vv_supported_attributes[$attribute_type]['mveaParents'],
-        $vv_supported_attributes[$attribute_type]['mveaParents']
-      )
-    ]
-  ]);
-
+  $fields['attribute_mvea_parent'] = [
+    'empty' => false,
+    'type' => 'select',
+    'options' => array_combine(
+      $vv_supported_attributes[$attribute_type]['mveaParents'],
+      $vv_supported_attributes[$attribute_type]['mveaParents']
+    )
+  ];
 
   // This field is called attribute_type and not attribute_type_id because we want this
   // to behave as a hidden value populated by the appropriate select, and we don't want
@@ -118,17 +103,12 @@ if (
   // Check if this mvea model supports types, if it does then render the attribute type
   // dropdown list
   if ($this->get($mveaAutoPopulatedVariable) !== null) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'attribute_type',
-        'fieldLabel' => $attributes[$attribute_type] . ' Type',
-        'fieldOptions' => [
-          'empty' => false
-        ],
-        'fieldType' => 'select',
-        'fieldSelectOptions' => $this->get($mveaAutoPopulatedVariable)
-      ]
-    ]);
+    $fields['attribute_type'] = [
+      'fieldLabel' => $attributes[$attribute_type] . ' Type',
+      'empty' => false,
+      'type' => 'select',
+      'options' => $this->get($mveaAutoPopulatedVariable)
+    ];
   }
 }
 
@@ -141,16 +121,11 @@ if(str_ends_with($attribute_type, '_id')) {
   $suffix = Inflector::pluralize(Inflector::camelize($suffix)) ;
   $defaultValuesPopulated = 'defaultValue' . $suffix;
   if ($this->get($defaultValuesPopulated) !== null) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName'          => 'default_value',
-        'fieldOptions'       => [
-          'empty' => true
-        ],
-        'fieldType'          => 'select',
-        'fieldSelectOptions' => $this->get($defaultValuesPopulated)
-      ]
-    ]);
+    $fields['default_value'] = [
+      'empty' => true,
+      'type'          => 'select',
+      'options' => $this->get($defaultValuesPopulated)
+    ];
   }
 }
 
@@ -160,23 +135,16 @@ if(str_ends_with($attribute_type, '_id')) {
  * Supported for attributes: adHocAttribute
  */
 if (\in_array($attribute_type, ['adHocAttribute'], true)) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'attribute_tag',
-      'fieldOptions' => [
-        'required' => true
-      ]
-    ]]);
+  $fields['attribute_tag'] = [
+    'required' => true
+  ];
 }
 
 /*
  * Attribute Language field
  */
 if(\in_array($attribute_type, ['name', 'address', 'pronoun'], true)) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'attribute_language',
-    ]]);
+  $fields[] = 'attribute_language';
 }
 
 
@@ -197,10 +165,7 @@ if (
     && !\in_array($attribute_type, $personRoleExclude, true)
     )
 ) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_value_env_name',
-    ]]);
+  $fields[] = 'default_value_env_name';
 }
 
 /*
@@ -208,25 +173,19 @@ if (
  *
  */
 if($attribute_type === 'valid_from') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_value_datetime',
-      'fieldType' => 'datetime'
-    ]]);
+  $fields['default_value_datetime'] = [
+    'type' => 'datetime'
+  ];
 }
 
 /*
  * The valid through attribute is a textbox/number field
  */
 if($attribute_type === 'valid_through') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_value',
-      'fieldDescription' => __d('core_enroller', 'field.AttributeCollectors.valid_through.default.after.desc'),
-      'fieldOptions' => [
-        'type' => 'number'
-      ]
-    ]]);
+  $fields['default_value'] = [
+    'fieldDescription' => __d('core_enroller', 'field.AttributeCollectors.valid_through.default.after.desc'),
+    'type' => 'number'
+  ];
 }
 
 /*
@@ -237,17 +196,9 @@ if (
   isset($vv_supported_attributes[$attribute_type]['model'])
   && \in_array($vv_supported_attributes[$attribute_type]['model'], ['PersonRole', 'Person', 'Group'], true)
 ) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName'    => 'modifiable',
-      'fieldOptions' => [
-        'default' => true
-      ]
-    ]
-  ]);
+  $fields['modifiable'] = [
+    'default' => true
+  ];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'hidden'
-    ]]);
+  $fields[] = 'hidden';
 }

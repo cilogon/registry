@@ -27,10 +27,10 @@
 
 // This view does not support edit
 if($vv_action == 'add' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'comment',
-    ]]);
+  
+  $fields = [
+    'comment'
+  ];
   
   if($vv_action == 'add') {
     // On manual add insert action
@@ -42,10 +42,8 @@ if($vv_action == 'add' || $vv_action == 'view') {
   }
   
   if($vv_action == 'view') {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'action',
-      ]]);
+    
+    $fields[] = 'action';
     
     if(!empty($vv_obj->person->primary_name)) {
       $viewLink = [
@@ -56,13 +54,10 @@ if($vv_action == 'add' || $vv_action == 'view') {
         ],
       ];
 
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'person_id',
-          'status' => $vv_obj->person->primary_name->full_name,
-          'link' => $viewLink
-        ]
-      ]);
+      $fields['person_id'] = [
+        'status' => $vv_obj->person->primary_name->full_name,
+        'link' => $viewLink
+      ];
     }
     
     if(!empty($vv_obj->person_role_id)) {
@@ -74,13 +69,10 @@ if($vv_action == 'add' || $vv_action == 'view') {
         ],
       ];
 
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'person_role_id',
-          'status' => $vv_obj->person_role_id,
-          'link' => $viewLink
-        ]
-      ]);
+      $fields['person_role_id'] = [
+        'status' => $vv_obj->person_role_id,
+        'link' => $viewLink
+      ];
     }
     
     if(!empty($vv_obj->external_identity)) {
@@ -92,13 +84,10 @@ if($vv_action == 'add' || $vv_action == 'view') {
         ],
       ];
 
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'external_identity_id',
-          'status' => !empty($vv_obj->external_identity->names[0]) ? $vv_obj->external_identity->names[0]->full_name : $vv_obj->external_identity->id,
-          'link' => $viewLink
-        ]
-      ]);
+      $fields['external_identity_id'] = [
+        'status' => !empty($vv_obj->external_identity->names[0]) ? $vv_obj->external_identity->names[0]->full_name : $vv_obj->external_identity->id,
+        'link' => $viewLink
+      ];
     }
     
     if(!empty($vv_obj->external_identity_role_id)) {
@@ -110,13 +99,10 @@ if($vv_action == 'add' || $vv_action == 'view') {
         ],
       ];
 
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'external_identity_role_id',
-          'status' => $vv_obj->external_identity_role_id,
-          'link' => $viewLink
-        ]
-      ]);
+      $fields['external_identity_role_id'] = [
+        'status' => $vv_obj->external_identity_role_id,
+        'link' => $viewLink
+      ];
     }
     
     if(!empty($vv_obj->group_id)) {
@@ -128,13 +114,10 @@ if($vv_action == 'add' || $vv_action == 'view') {
         ],
       ];
 
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'group_id',
-          'status' => $vv_obj->group->name,
-          'link' => $viewLink
-        ]
-      ]);
+      $fields['group_id'] = [
+        'status' => $vv_obj->group->name,
+        'link' => $viewLink
+      ];
     }
     
     if(!empty($vv_obj->actor_person->names)) {
@@ -146,19 +129,13 @@ if($vv_action == 'add' || $vv_action == 'view') {
         ],
       ];
 
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => 'actor_person_id',
-          'status' => $vv_obj->actor_person->names[0]->full_name,
-          'link' => $viewLink,
-          'fieldLabel' => __d('field', 'actor')
-        ]
-      ]);
+      $fields['actor_person_id'] = [
+        'status' => $vv_obj->actor_person->names[0]->full_name,
+        'link' => $viewLink,
+        'fieldLabel' => __d('field', 'actor')
+      ];
     }
 
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'created',
-      ]]);
+    $fields[] = 'created';
   }
 }

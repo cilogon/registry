@@ -25,12 +25,12 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$fields = [];
+
 if($vv_action == 'add') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'target_group_id',
-    ]
-  ]);
+  $fields = [
+    'target_group_id'
+  ];
 } elseif($vv_action == 'edit') {
   $link = [
     'url' => [
@@ -41,36 +41,25 @@ if($vv_action == 'add') {
     'target' => '_top'
   ];
   // The target group can't be changed after adding
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'target_group_id',
+  $fields = [
+    'target_group_id' => [
       'status' => $vv_obj->target_group->name,
       'link' => $link
     ]
-  ]);
-}
-  
-if($vv_action == 'add' || $vv_action == 'edit') {
-  $link = [
-    'url' => [
-      'controller' => 'groups',
-      'action'     => 'edit',
-      $vv_bc_parent_obj->id,
-    ],
-    'target' => '_top'
   ];
-  // The target group can't be changed after adding
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'group_id',
-      'status' => $vv_bc_parent_obj->name,
-      'link' => $link
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'negate',
-    ]
-  ]);
 }
+
+$link = [
+  'url' => [
+    'controller' => 'groups',
+    'action'     => 'edit',
+    $vv_bc_parent_obj->id,
+  ],
+  'target' => '_top'
+];
+// The target group can't be changed after adding
+$fields['group_id'] = [
+  'status' => $vv_bc_parent_obj->name,
+  'link' => $link
+];
+$fields[] = 'negate';

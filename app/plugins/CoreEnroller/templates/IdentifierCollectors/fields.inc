@@ -25,9 +25,6 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view only supports edit
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'type_id']
-  ]);
-}
+$fields = [
+  'type_id'
+];

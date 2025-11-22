@@ -24,15 +24,36 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'description',
+  'status',
+  'context',
+  'format',
+  'subject',
+  'body_text' => [
+    'class' => 'big-textarea'
+  ],
+  'body_html' => [
+    'afterField' => 
+      '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
+      '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .  
+      '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
+      '</div>',
+    'class' => 'big-textarea'
+  ],
+  'cc',
+  'bcc',
+  'reply_to'
+];
 ?>
-  
+
 <script>
   // JS specific to these fields
-  
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
     var format = document.getElementById('format').value;
-    
+
     if(format == '<?= \App\Lib\Enum\MessageFormatEnum::HTML ?>') {
       hideFields(['body-text'], isPageLoad);
       showFields(['body-html'], isPageLoad);
@@ -43,74 +64,15 @@
       showFields(['body-html','body-text'], isPageLoad);
     }
   }
-  
-  function jsLocalOnLoad() {
+
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#format').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-  
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach ([
-             'description',
-             'status',
-             'context',
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'format',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'subject'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'body_text',
-      'fieldOptions' => [
-        'class' => 'big-textarea'
-      ]
-    ]
-  ]);
-
-  $afterField = 
-    '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
-    '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .  
-    '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
-    '</div>';
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'body_html',
-      'fieldOptions' => [
-        'class' => 'big-textarea'
-      ]
-    ],
-    'afterField' => $afterField
-  ]);
-
-  foreach ([
-             'cc',
-             'bcc',
-             'reply_to',
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}

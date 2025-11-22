@@ -25,17 +25,15 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only, and add is not used
-if($vv_action == 'edit') {
-  if(!empty($vv_api_endpoint)) {
-    print $this->element('notify/banner', [
-      'info' => __d('core_api', 'information.endpoint.match.callback', [$vv_api_endpoint])
-    ]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'server_id',
+if(!empty($vv_api_endpoint)) {
+  $alerts = [
+    [
+      'type' => 'information',
+      'message' => __d('core_api', 'information.endpoint.match.callback', [$vv_api_endpoint])
     ]
-  ]);
+  ];
 }
+
+$fields = [
+  'server_id'
+];

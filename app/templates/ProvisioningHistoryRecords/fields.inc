@@ -25,18 +25,15 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$fields = [];
+
 // This view does not support add or edit
 if($vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'comment'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status'
-    ]]);
-
+  $fields = [
+    'comment',
+    'status'
+  ];
+  
   // Currently these records only apply to People and Groups, but that will probably change
   if(!empty($vv_obj->person->primary_name)) {
     $viewLink = [
@@ -47,13 +44,10 @@ if($vv_action == 'view') {
       ],
     ];
 
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'person_id',
-        'status' => $vv_obj->person->primary_name->full_name,
-        'link' => $viewLink,
-      ]
-    ]);
+    $fields['person_id'] = [
+      'status' => $vv_obj->person->primary_name->full_name,
+      'link' => $viewLink,
+    ];
   } else {
     $viewLink = [
       'url' => [
@@ -63,24 +57,15 @@ if($vv_action == 'view') {
       ]
     ];
 
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'group_id',
-        'status' => $vv_obj->group->name,
-        'link' => $viewLink,
-      ]
-    ]);
+    $fields['group_id'] = [
+      'status' => $vv_obj->group->name,
+      'link' => $viewLink,
+    ];
   }
 
-  foreach([
-            'subject_model',
-            'subjectid',
-            'created',
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]
-    ]);
-  }
+  $fields = array_merge($fields, [
+    'subject_model',
+    'subjectid',
+    'created'
+  ]);
 }

@@ -31,6 +31,7 @@ namespace App\Controller;
 
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use App\Lib\Enum\ProvisioningContextEnum;
 use App\Lib\Util\StringUtilities;
 
 // This isn't "StandardSingleAuthenticatorController" to avoid name length issues
@@ -50,6 +51,8 @@ class SingleAuthenticatorController extends StandardPluginController {
     $Table = $this->getCurrentTable();
     // $authFK = eg password_authenticator_id
     $authFK = StringUtilities::classNameToForeignKey($authModelsName);
+    // Create an empty entity for FormHelper - this is needed for Standard/add-edit-view form creation
+    $obj = $Table->newEmptyEntity();
 
     // We will be passed person_id and foo_authenticator_id. AR-GMR-2 should ensure
     // they're in the same CO when we try to save an entity that references both.
@@ -102,6 +105,7 @@ class SingleAuthenticatorController extends StandardPluginController {
 
     $this->set('vv_authenticator', $authcfg);
     $this->set('vv_status', $status);
+    $this->set('vv_obj', $obj);
 
     // Pull the Person name for use in the page title
     $Names = TableRegistry::getTableLocator()->get('Names');
@@ -111,6 +115,6 @@ class SingleAuthenticatorController extends StandardPluginController {
     $this->set('vv_title', __d('password_authenticator', 'operation.set', [$name->full_name]));
 
     // Let the view render
-    $this->render('/Standard/manage');
+    $this->render('/Standard/add-edit-view');
   }
 }

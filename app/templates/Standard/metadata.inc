@@ -1,6 +1,6 @@
 <?php
-/**
- * COmanage Registry Email Address Edit Navigation
+/*
+ * COmanage Registry Duplicatable Element
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,23 +21,28 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of this file into fields.inc
-  if($vv_action != 'add') {
-    $topLinks = [
-      [
-        'icon' => 'verified_user',
-        'order' => 'Default',
-        'label' => __d('operation', 'EmailAddresses.verify.force'),
-        'if' => 'notVerified',
-        'link' => [
-          'action' => 'forceVerify',
-          $vv_obj->id
-        ],
-        'class' => ''
+return [
+  'metadata' => [
+    'fieldLabel' => __d('field','metadata'),
+    'labelIsTextOnly' => true, 
+    'groupedControls' =>  [
+      'uuid' => [
+        'singleRowItem' => true,
+        'label' => __d('field','uuid'),
+        'type' => 'text'
       ],
-    ];
-  }
+      'cri' => [
+        'singleRowItem' => true,
+        'label' => __d('field','cri')
+      ],
+      'do_not_clone' => [
+        'singleRowItem' => true,
+        'label' => __d('field','do_not_clone')
+      ]
+    ]
+  ]
+];

@@ -27,13 +27,20 @@
 
 declare(strict_types = 1);
 
-// This view only supports edit
-if($vv_action !== 'edit') {
-  return;
-}
+$fields = [
+  'enable_person_find',
+];
 
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'enable_person_find',
-  ]]);
+// Top Links
+$topLinks[] = [
+  'icon'  => 'edit_attributes',
+  'order' => 'Default',
+  'label' => __d('core_enroller', 'controller.EnrollmentAttributes', [99]),
+  'link'  => [
+    'plugin'                  => 'CoreEnroller',
+    'controller'              => 'enrollment_attributes',
+    'action'                  => 'index',
+    'attribute_collector_id'  => $vv_obj->id
+  ],
+  'class' => ''
+];

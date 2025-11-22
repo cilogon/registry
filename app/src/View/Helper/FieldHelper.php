@@ -43,7 +43,7 @@ class FieldHelper extends Helper {
    * List of predefined editable form actions
    */
   public const EDITABLE_ACTIONS = [
-    'add', 'edit', // CRUD actions
+    'add', 'edit', 'manage' // CRUD actions
   ];
 
   // Is this read-only or read-write?
@@ -691,5 +691,81 @@ class FieldHelper extends Helper {
 
     // Print the original element
     print $orginalElement;
+  }
+
+  /**
+   * Determine if we have a file field to render. If we do, the form must be created 
+   * with multipart/form-data encoding. This is used by the add-edit-view.php file
+   * when generating the form.
+   *
+   * @param array $fields The array of form fields.
+   * @return bool
+   * @since  COmanage Registry v5.2.0
+   */
+  public function includesFileField(array $array): bool {
+    foreach ($array as $subarray) {
+      if (is_array($subarray)
+        && isset($subarray['type'])
+        && $subarray['type'] === 'file') {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /**
+   * Reconstruct the array of field arguments with specific top-level items becoming 
+   * part of the fieldOptions subarray that is passed to CakePHP. We do this
+   * to keep the top-level array flat and abstracted away from the CakePHP
+   * specifics.
+   * 
+   * This function will look for these top-level fields:
+   * 'empty', 'required', 'default', 'readonly', 'value', 'type', 'options', 'placeholder', 
+   * 'class', 'id', 'style', 'checked', and 'label'
+   * 
+   * These fields will be restructured into the subarray named "fieldOptions" that
+   * make up the CakePHP options array when the field is processed. The rest of the $fields[]
+   * array is returned as-is.
+   * 
+   * @param array $fieldArgs The array of field arguments.
+   * @return array The reconstructed array of field arguments.
+   * @since  COmanage Registry v5.2.0
+   */
+  public function restructureFieldArguments(array $fieldArgs) {
+    $fieldOptions = [];
+    
+    // The options to restructure
+    $topLevelOptions = [
+      'empty',
+      'required',
+      'default',
+      'readonly',
+      'value',
+      'type',
+      'options',
+      'placeholder',
+      'class',
+      'id',
+      'style',
+      'checked',
+      'label'
+    ];
+    
+    // Remove the top-level field options that are intended for Cake, and
+    // insert them into the $fieldOptions array.
+    foreach($topLevelOptions as $option) {
+      if(array_key_exists($option, $fieldArgs)) {
+        $fieldOptions[$option] = $fieldArgs[$option];
+        unset($fieldArgs[$option]);
+      }
+    }
+
+    // Insert the fieldOptions into the arguments array.
+    if(!empty($fieldOptions)) {
+      $fieldArgs['fieldOptions'] = $fieldOptions;
+    }
+    
+    // Return the restructured array
+    return $fieldArgs;
   }
 }

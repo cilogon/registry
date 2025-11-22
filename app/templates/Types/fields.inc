@@ -24,8 +24,22 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'attribute' => [
+    'readonly' => $vv_action == 'edit'
+  ],
+  'display_name',
+  'value',
+  'status',
+  'case_insensitive',
+  'edupersonaffiliation'
+];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {
@@ -44,34 +58,14 @@
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
-</script>
-  
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'attribute',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()',
-        'readonly' => $vv_action == 'edit'
-      ]
-    ]]);
 
-  foreach (['display_name',
-             'value',
-             'status',
-             'case_insensitive',
-             'edupersonaffiliation'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-  
-  print $this->element('clonable');
-}
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#attribute').change(function() {
+      updateGadgets();
+    });
+  });
+</script>

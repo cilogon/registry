@@ -27,58 +27,50 @@
 
 use \App\Lib\Enum\VerificationMethodEnum;
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'mail'
-    ]]);
+$fields = [
+  'mail',
+  'type_id' => [
+    'default' => $vv_default_type
+  ],
+  'description'
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'type_id',
-      'fieldOptions' => [
-        'default' => $vv_default_type
-      ]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'description'
-    ]]);
-
-  if($vv_obj->verified && !empty($vv_obj->verification)) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'verified',
-        'fieldOptions' => [
-          'readonly' => true
-        ],
-        'status' => __d('result', 'Verifications.status', [ VerificationMethodEnum::getLocalization($vv_obj->verification->method),
-                                                            $this->Time->nice($vv_obj->verification->verification_time, $vv_tz)
-                                                          ])
-      ]]);
-  } else {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'verified',
-        'fieldOptions' => [
-          'readonly' => true
-        ],
-        'status' => __d('enumeration', 'YesBooleanEnum.0')
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'frozen'
-    ]]);
-
+if($vv_obj->verified && !empty($vv_obj->verification)) {
+  $fields['verified'] = [
+    'readonly' => true,
+    'status' => __d('result', 'Verifications.status', [ 
+      VerificationMethodEnum::getLocalization($vv_obj->verification->method),
+      $this->Time->nice($vv_obj->verification->verification_time, $vv_tz)
+    ])
+  ];
+} else {
+  $fields['verified'] = [
+    'readonly' => true,
+    'status' => __d('enumeration', 'YesBooleanEnum.0')
+  ];
 }
 
+$fields[] = 'frozen';
+
 if($vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'source',
-      'entity' => $vv_obj
-    ]]);
+  $fields['source'] = [
+    'entity' => $vv_obj
+  ];
+}
+
+// Top Links
+if($vv_action != 'add') {
+  $topLinks = [
+    [
+      'icon' => 'verified_user',
+      'order' => 'Default',
+      'label' => __d('operation', 'EmailAddresses.verify.force'),
+      'if' => 'notVerified',
+      'link' => [
+        'action' => 'forceVerify',
+        $vv_obj->id
+      ],
+      'class' => ''
+    ],
+  ];
 }

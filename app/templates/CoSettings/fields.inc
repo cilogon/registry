@@ -25,135 +25,57 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not support add or read-only
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'required_fields_address',
-      'fieldOptions' => ['empty' => false]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_address_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_email_address_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_identifier_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_name_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'permitted_fields_name',
-      'fieldOptions' => ['empty' => false]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'required_fields_name',
-      'fieldOptions' => ['empty' => false]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_pronoun_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_telephone_number_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'permitted_fields_telephone_number',
-      'fieldOptions' => ['empty' => false]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'default_url_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'search_global_limit'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'search_global_limited_models'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'person_picker_display_fields',
-      'labelIsTextOnly' => true,
-      'groupedControls' =>  [
-        // each key is the fieldName of the control we are going to create
-        'person_picker_email_address_type_id' => [
-          'fieldOptions' => [
-            'label' => __d('field', 'mail'),
-            'empty' => '(' . __d('operation', 'all') . ')',
-//            'all' => '(' . __d('operation', 'all') . ')'
-          ],
-        ],
-        'person_picker_identifier_type_id' => [
-          'fieldOptions' => [
-            'label' => __d('field', 'identifier'),
-            'empty' => '(' . __d('operation', 'all') . ')',
-//            'all' => '(' . __d('operation', 'all') . ')',
-          ],
-        ],
-        'person_picker_display_types' => [
-          'singleRowItem' => true,
-          'fieldLabel' => __d('field', 'CoSettings.person_picker_display_types')
-        ]
+$fields = [
+  'required_fields_address' => [
+    'empty' => false
+  ],
+  'default_address_type_id',
+  'default_email_address_type_id',
+  'default_identifier_type_id',
+  'default_name_type_id',
+  'permitted_fields_name' => [
+    'empty' => false
+  ],
+  'required_fields_name' => [
+    'empty' => false
+  ],
+  'default_pronoun_type_id',
+  'default_telephone_number_type_id',
+  'permitted_fields_telephone_number' => [
+    'empty' => false
+  ],
+  'default_url_type_id',
+  'search_global_limit',
+  'search_global_limited_models',
+  'person_picker_display_fields' => [
+    'labelIsTextOnly' => true,
+    'groupedControls' =>  [
+      'person_picker_email_address_type_id' => [
+        'label' => __d('field', 'mail'),
+        'empty' => '(' . __d('operation', 'all') . ')',
+//      'all' => '(' . __d('operation', 'all') . ')'
       ],
-    ]]);
+      'person_picker_identifier_type_id' => [
+        'label' => __d('field', 'identifier'),
+        'empty' => '(' . __d('operation', 'all') . ')',
+//      'all' => '(' . __d('operation', 'all') . ')',
+      ],
+      'person_picker_display_types' => [
+        'singleRowItem' => true,
+        'label' => __d('field', 'CoSettings.person_picker_display_types')
+      ]
+    ],
+  ],
+  'email_smtp_server_id',
+  'email_delivery_address_type_id',
+  'authn_events_api_disable'
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'email_smtp_server_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'email_delivery_address_type_id'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'authn_events_api_disable'
-    ]]);
-  
-  if($vv_obj->co->isCOmanageCO()) {
-    // Fields prefixed platform_ are only available within the COmanage CO
-
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'platform_env_mfa'
-      ]]);
-
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'platform_env_mfa_value'
-      ]]);
-    
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'platform_env_mfa_enable_eg'
-      ]]);
-  }
+if($vv_obj->co->isCOmanageCO()) {
+  // Fields prefixed platform_ are only available within the COmanage CO
+  $fields = array_merge($fields, [
+    'platform_env_mfa',
+    'platform_env_mfa_value',
+    'platform_env_mfa_enable_eg'
+  ]);
 }

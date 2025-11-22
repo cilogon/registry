@@ -42,16 +42,18 @@ $noticeText = __d(
   ]
 );
 
-print $this->element('notify/alert', [
-  'message'     => $noticeText,
-  'type'        => 'information'
-]);
+$alerts = [
+  [
+    'type' => 'information',
+    'message' => $noticeText
+  ]
+];
 
 // This view does not support add or edit
 if($vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'external_identity_source_id',
+  
+  $fields = [
+    'external_identity_source_id' => [
       'status'    => $vv_obj->external_identity_source->description,
       'link'      => [
         'url' => [
@@ -61,38 +63,32 @@ if($vv_action == 'view') {
         ]
       ]
     ]
-  ]);
+  ];
 
   if(!empty($vv_obj->adopted_person_id)) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'adopted_person_id',
-        'status'    => $vv_obj->adopted_person->primary_name->full_name,
-        'link'      => [
-          'url' => [
-            'controller' => 'people',
-            'action'     => 'edit',
-            $vv_obj->adopted_person->id
-          ]
+    $fields['adopted_person_id'] = [
+      'status'    => $vv_obj->adopted_person->primary_name->full_name,
+      'link'      => [
+        'url' => [
+          'controller' => 'people',
+          'action'     => 'edit',
+          $vv_obj->adopted_person->id
         ]
       ]
-    ]);
+    ];
   }
 
   if(!empty($vv_obj->external_identity_id)) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'external_identity_id',
-        'status'    => $vv_obj->external_identity->names[0]->full_name,
-        'link'      => [
-          'url' => [
-            'controller' => 'external_identities',
-            'action'     => 'edit',
-            $vv_obj->external_identity->id
-          ]
+    $fields['external_identity_id'] = [
+      'status'    => $vv_obj->external_identity->names[0]->full_name,
+      'link'      => [
+        'url' => [
+          'controller' => 'external_identities',
+          'action'     => 'edit',
+          $vv_obj->external_identity->id
         ]
       ]
-    ]);
+    ];
   }
 
   foreach([
@@ -101,9 +97,46 @@ if($vv_action == 'view') {
             'reference_identifier',
             'source_record'
           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]]);
+    $fields[] = $field;
   }
+}
+
+
+$topLinks = [];
+if(!empty($vv_obj->external_identity_id)) {
+  $topLinks[] = [
+    'icon' => 'visibility',
+    'order' => 'Default',
+    'label' => __d('operation', 'view.a', [__d('controller', 'ExternalIdentities', [1])]),
+    'link' => [
+      'controller'  => 'external_identities',
+      'action'      => 'view',
+      $vv_obj->external_identity_id
+    ]
+  ];
+  $topLinks[] = [
+    'icon' => 'visibility',
+    'order' => 'Default',
+    'label' => __d('operation', 'ExternalIdentitySourceRecords.retrieve'),
+    'link' => [
+      'controller' => 'external_identity_sources',
+      'action' => 'retrieve',
+      $vv_obj->external_identity_source_id,
+      '?' => [
+        'source_key' => $vv_obj->source_key
+      ]
+    ]
+  ];
+
+  // primary name: $vv_obj->external_identity->person->primary_name->full_name
+  $subnav = [
+    'name' => 'person',
+    'active' => 'external_identities',
+    'subActive' => 'external_identity_roles',
+    'tabsId' => $vv_obj->external_identity->person->id,
+    'tabsController' => 'people',
+    'subTabsId' => $vv_obj->external_identity->id,
+    'subTabsController' => 'external_identities',
+    'tabsSupertitle' =>  $vv_obj->external_identity->description
+  ];
 }

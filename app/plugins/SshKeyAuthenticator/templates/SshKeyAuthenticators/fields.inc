@@ -30,4 +30,9 @@ declare(strict_types = 1);
 $this->Field->disableFormEditMode();
 
 // There are currently no configurable options for the SSH Key Authenticator
-print $this->element('notify/banner', ['info' => __d('information', 'plugin.config.none')]);
+$alerts = [
+  [
+    'type' => 'information',
+    'message' => __d('information', 'plugin.config.none')
+  ]
+];

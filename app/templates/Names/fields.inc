@@ -25,60 +25,33 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  // Dynamic required fields is automatically handled by FormHelper via the
-  // validation rules, but we need to manually check permitted fields.
+$fields = [];
 
-  foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
-    if(in_array($f, $vv_permitted_fields)) {
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => $f
-        ]]);
-    }
+// Dynamic required fields are automatically handled by FormHelper via the
+// validation rules, but we need to manually check permitted fields.
+foreach(['honorific', 'given', 'middle', 'family', 'suffix'] as $f) {
+  if(in_array($f, $vv_permitted_fields)) {
+    $fields[] = $f;
   }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'type_id',
-      'fieldOptions' => [
-        'default' => $vv_default_type
-      ]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'language'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'display_name'
-    ]]);
-
-  
-  // We don't allow unsetting of primary_name here because we need to know what
-  // the new primary_name is, but we do allow this name to become primary
-  // because afterSave will unset the old one.
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'description',
-      'fieldOptions' => [
-        'readonly' => $vv_obj->primary_name
-      ]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'frozen'
-    ]]);
-
 }
 
+$fields = array_merge($fields, [
+  'type_id' => [
+    'default' => $vv_default_type
+  ],
+  'language',
+  'display_name',
+  'primary_name' => [
+    // We don't allow unsetting of primary_name here because we need to know what
+    // the new primary_name is, but we do allow this name to become primary
+    // because afterSave will unset the old one.
+    'readonly' => $vv_obj->primary_name
+  ],
+  'frozen'
+]);
+
 if($vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'source',
-      'entity' => $vv_obj
-    ]]);
+  $fields['source'] = [
+    'entity' => $vv_obj
+  ];
 }

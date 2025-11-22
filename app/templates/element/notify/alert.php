@@ -36,7 +36,6 @@ declare(strict_types = 1);
  */
 
 $type ??= 'warning';
-
 $alertClass = "alert-{$type}";
 $showButton = false;
 
@@ -47,7 +46,7 @@ if(isset($dismissible) && $dismissible) {
 ?>
 
 <div class="alert <?= $alertClass ?> co-alert" role="alert">
-  <div class="alert-body d-flex align-items-center">
+  <div class="alert-body d-flex align-items-center gap-1">
     <span class="alert-title d-flex align-items-center">
       <span class="material-symbols-outlined alert-icon"><?= $this->Alert->getAlertIcon($type) ?></span>
       <?php if(isset($title)): ?>

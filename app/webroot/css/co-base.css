@@ -434,7 +434,7 @@ body.cos.select #top-bar {
 }
 /* ALERT MESSAGES */
 #flash-messages {
-  margin: 0;
+  margin: 0.5em 0 0;
 }
 .co-alert {
   margin: 0 auto 1em;
@@ -1529,6 +1529,10 @@ ul.form-list li fieldset:hover {
 ul.form-list li .field.field-with-toggle:hover {
   background-color: unset;
 }
+ul.form-list li.fields-subsection {
+  border-left: none;
+  border-right: none;
+}
 ul.form-list li.fields-submit {
   background-color: unset;
   border: none;
@@ -1579,6 +1583,12 @@ ul.form-list .subfield-title {
 }
 ul.form-list .subfield-cols {
   display: inline-flex;
+}
+ul.form-list .subfield-cols.d-block {
+  margin-top: 0.5rem;
+}
+ul.form-list .subfield-cols.d-block:first-child {
+  margin-top: 0;
 }
 ul.form-list .field-col .subfield-title {
   display: block;

@@ -25,74 +25,43 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  if($vv_cur_co->id == 1) {
-    print $this->element('notify/banner', ['info' => __d('information', 'api.cmp')]);
-  }
-
-  // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'username',  // string
-      'fieldPrefix' => 'co_' . $vv_cur_co->id . '.'
-    ]
-  ]);
-
-  // We link to the "Generate" button on edit only
-  $generateLink = [];
-
-  if(!empty($vv_obj->id)) {
-    $generateLink = [
-      'url' => [
-        'controller' => 'api_users',
-        'action'     => 'generate',
-        $vv_obj->id
-      ],
-     'label' => __d('operation', 'api.key.generate'),
-     'class' => 'provisionbutton nospin btn btn-primary btn-sm',
-     'confirm' => __d('operation', 'api.key.generate.confirm')
-    ];
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'api_key',
-      'status' => !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
-      'link' => $generateLink,
-      'labelIsTextOnly' => true
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status', // select
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'valid_from', // timestamp
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'valid_through', // timestamp
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'remote_ip', // string
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'privileged', // boolean
-    ]
-  ]);
-  
-  print $this->element('clonable');
+if($vv_cur_co->isCOmanageCO()) {
+  $alerts = [
+    ['message' => __d('information', 'api.cmp')]
+  ];
 }
+
+// We link to the "Generate" button on edit only
+$generateLink = [];
+
+if(!empty($vv_obj->id)) {
+  $generateLink = [
+    'url' => [
+      'controller' => 'api_users',
+      'action'     => 'generate',
+      $vv_obj->id
+    ],
+    'label' => __d('operation', 'api.key.generate'),
+    'class' => 'provisionbutton nospin btn btn-primary btn-sm',
+    'confirm' => __d('operation', 'api.key.generate.confirm')
+  ];
+}
+
+$fields = [
+  'username' => [
+    // AR-ApiUser-3 For namespacing purposes, API Users are named with a prefix consisting of the string "co_#.".
+    'fieldPrefix' => 'co_' . $vv_cur_co->id . '.'
+  ],
+  'api_key' => [
+    'status' => !empty($vv_obj->api_key) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
+    'link' => $generateLink,
+    'labelIsTextOnly' => true
+  ],
+  'status',
+  'valid_from', // timestamp
+  'valid_through', // timestamp
+  'remote_ip', // string
+  'privileged', // boolean
+];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));

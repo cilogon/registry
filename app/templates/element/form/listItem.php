@@ -38,10 +38,6 @@ $this->set('fieldName', $arguments['fieldName']);
 $fieldName = $arguments['fieldName'];
 $this->set('vv_field_arguments', $arguments);
 
-// Pass along the field supplements if they are configured.
-$this->set('vv_before_field', $beforeField ?? '');
-$this->set('vv_after_field', $afterField ?? '');
-
 // If an attribute is frozen, inject a special link to unfreeze it, since
 // the attribute is read-only and the admin can't simply uncheck the setting
 if($fieldName == 'frozen' && $this->Field->getEntity()->frozen) {

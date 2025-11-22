@@ -75,6 +75,8 @@ class PetitionsController extends StandardController {
       if($id) {
         $this->set('vv_enrollee_name', $this->Petitions->getEnrolleeName((int)$id));
       }
+      
+      $this->set('vv_alternate_template', 'petition.inc');
     }
 
     return parent::beforeRender($event);

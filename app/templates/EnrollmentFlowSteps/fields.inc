@@ -26,8 +26,22 @@
  */
 
 use \App\Lib\Enum\EnrollmentActorEnum;
+
+$fields = [
+  'description',
+  'status',
+  'plugin',
+  'ordr',
+  'actor_type',
+  'approver_group_id',
+  'message_template_id',
+  'redirect_on_handoff',
+  'notification_group_id',
+  'notification_message_template_id'
+];
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {
@@ -50,56 +64,14 @@ use \App\Lib\Enum\EnrollmentActorEnum;
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#actor_type, #notification-group-id').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach (['description',
-            'status',
-            'plugin',
-            'ordr'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'actor_type',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]]);
-
-  foreach (['approver_group_id',
-            'message_template_id',
-            'redirect_on_handoff'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'notification_group_id',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]]);
-
-  foreach (['notification_message_template_id'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}

@@ -25,43 +25,26 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  // Dynamic required fields is automatically handled by FormHelper via the
-  // validation rules, but we need to manually check permitted fields.
-  
-  foreach(['country_code', 'area_code', 'number', 'extension'] as $f) {
-    if(in_array($f, $vv_permitted_fields)) {
-      print $this->element('form/listItem', [
-        'arguments' => [
-          'fieldName' => $f
-        ]]);
-    }
+$fields = [];
+
+// Dynamic required fields is automatically handled by FormHelper via the
+// validation rules, but we need to manually check permitted fields.
+foreach(['country_code', 'area_code', 'number', 'extension'] as $f) {
+  if(in_array($f, $vv_permitted_fields)) {
+    $fields[] = $f;
   }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'type_id',
-      'fieldOptions' => [
-        'default' => $vv_default_type
-      ]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'description'
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'frozen'
-    ]]);
-
 }
 
+$fields = array_merge($fields, [
+  'type_id' => [
+    'default' => $vv_default_type
+  ],
+  'description',
+  'frozen'
+]);
+
 if($vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'source',
-      'entity' => $vv_obj
-    ]]);
+  $fields['source'] = [
+    'entity' => $vv_obj
+  ];
 }

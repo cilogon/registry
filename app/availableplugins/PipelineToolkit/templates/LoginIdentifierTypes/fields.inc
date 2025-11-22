@@ -25,14 +25,7 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach (['type_id',
-            'login'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}
+$fields = [
+  'type_id',
+  'login'
+];

@@ -29,8 +29,8 @@
 
 // $flashArgs pass banner messages to the flash element container
 $flashArgs = [];
-if(!empty($banners)) {
-  $flashArgs['vv_banners'] = $banners;
+if(!empty($alerts)) {
+  $flashArgs['vv_alerts'] = $alerts;
 }
 
 ?>

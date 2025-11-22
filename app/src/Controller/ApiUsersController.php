@@ -56,14 +56,14 @@ class ApiUsersController extends StandardController {
       $this->Flash->error($e->getMessage());
     }
     
-    // Let the view render, but tell it to use a different fields file
-    $this->set('vv_fields_inc', 'fields-generate.inc');
     [$title, , ] = StringUtilities::entityAndActionToTitle(null,
                                                            'api.key',
                                                            $this->request->getParam('action'));
     $this->set('vv_title', $title);
 
-    // Let the view render
+    // Render the view.
+    // The /Standard/add-edit-view template will try to include fields from
+    // fields-ACTION.inc if it exists - in this case fields-generate.inc.
     $this->render('/Standard/add-edit-view');
   }
 }

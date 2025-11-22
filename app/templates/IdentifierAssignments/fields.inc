@@ -24,8 +24,24 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'description',
+  'status',
+  'plugin',
+  'context',
+  'identifier_type_id',
+  'login',
+  'email_address_type_id',
+  'group_id',
+  'allow_empty',
+  'ordr'
+];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {
@@ -63,67 +79,20 @@
     updateGadgets();
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#context').change(function() {
+      updateGadgets();
+    });
+    $('#identifier-type-id').change(function() {
+      resetType("email-address-type-id");
+    });
+    $('#email-address-type-id').change(function() {
+      resetType("identifier_type_id");
+    });
+  });
 </script>
-  
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach([
-            'description',
-            'status',
-            'plugin'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'context',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'identifier_type_id',
-      'fieldOptions' => [
-        'onChange' => 'resetType("email-address-type-id")'
-      ]
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'login'
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'email_address_type_id',
-      'fieldOptions' => [
-        'onChange' => 'resetType("identifier-type-id")'
-      ]
-    ]
-  ]);
-
-  foreach(['group_id',
-           'allow_empty',
-           'ordr'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]]);
-  }
-  
-  print $this->element('clonable');
-}

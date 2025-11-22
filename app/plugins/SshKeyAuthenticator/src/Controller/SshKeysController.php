@@ -88,7 +88,7 @@ class SshKeysController extends MultipleAuthenticatorController {
     $this->set('vv_supertitle', $supertitle);
     $this->set('vv_subtitle', $subtitle);
 
-    // Let the view render - see add.php for why we don't currently use the standard view
-    // $this->render('/Standard/add-edit-view');
+    // Let the view render
+    $this->render('/Standard/add-edit-view');
   }
 }

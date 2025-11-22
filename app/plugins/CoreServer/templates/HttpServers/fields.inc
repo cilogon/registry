@@ -25,18 +25,10 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only, and add is not used
-if($vv_action == 'edit') {
-  foreach ([
-             'url',
-             'username',
-             'password',
-             'auth_type',
-             'skip_ssl_verification'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}
+$fields = [
+  'url',
+  'username',
+  'password',
+  'auth_type',
+  'skip_ssl_verification'
+];

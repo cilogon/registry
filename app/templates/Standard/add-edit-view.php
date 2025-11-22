@@ -37,17 +37,45 @@ $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singular
 // $vv_template_path will be set for plugins
 $templatePath = $vv_template_path ?? ROOT . DS . "templates" . DS . $modelsName;
 
+// Include fields configuration for the form. This will typically include the $fields array.
+$fields = []; // Backstop the fields array: some configs have no fields.
+$fieldsFile = "fields.inc"; // This is the default.
+if(file_exists($templatePath . DS . 'fields-' . $vv_action . '.inc')) {
+  // We have an action file override in the form of "fields-ACTION.inc". Use it.
+  $fieldsFile = 'fields-' . $vv_action . '.inc';
+}
+include($templatePath . DS . $fieldsFile);
+
+// $flashArgs pass alert messages to the flash element container.
+// $alertMessages will hold the messages to pass to $flashArgs.  
+$flashArgs = [];
+$alertMessages = [];
+
+// Check for changelog archive view. These alerts come first.
+$clfield = $vv_obj->changelogAttributeName();
+
+if($vv_obj->deleted) {
+  $alertMessages[] = [
+    'type' => 'information',
+    'message' => __d('information', 'changelog.deleted')
+  ];
+} elseif(!empty($vv_obj->$clfield)) {
+  $alertMessages[] = [
+    'type' => 'information',
+    'message' => __d('information', 'changelog.archived')
+  ];
+}
+
+// Include any configured messages from the $alerts array in the fields file
+$alertMessages = array_merge($alertMessages, $alerts ?? []);
+
+if(!empty($alertMessages)) {
+  // We have alerts. Assign them to $flashArgs for later rendering.
+  $flashArgs['vv_alerts'] = $alertMessages;
+}
+
 // If you're looking to set a custom $vv_title, you might be able to use
 // generateDisplayField() on the Table instead
-
-// Include subnavigation structures on add/edit/view pages
-// XXX: if CFM-218 (Make fields.inc configuration only) is accepted, move the contents of fields-nav.inc into fields.inc
-// When subnav exists, include on all Edit/View views and on Add views for items with a parent.
-if($vv_action == 'edit' || $vv_action == 'view' || !empty($vv_bc_parent_obj) || !empty($vv_primary_link_id)) {
-  if(file_exists($templatePath . DS . "fields-nav.inc")) {
-    include($templatePath . DS . "fields-nav.inc");
-  }  
-}
 
 // $linkFilter is used for models that belong to a specific parent model (eg: co_id)
 $linkFilter = [];
@@ -58,7 +86,7 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
 
 // Subnavigation
 $hasSubnav = false;
-if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
+if($vv_action !== 'add' && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');
   $hasSubnav = $this->get('hasSupertitle');
 }
@@ -92,113 +120,95 @@ if (
     <?php endif; ?>
   </div>
   <?php
-    // Action list for top menu dropdown / button listing
-    $action_args = array();
-    $action_args['vv_attr_id'] =  $vv_obj->id;
-    
-    foreach(($topLinks ?? []) as $t) {
-      $perm = false;
+    if($vv_action !== 'add') {
+      // Action list for top menu dropdown / button listing
+      $action_args = array();
+      $action_args['vv_attr_id'] = $vv_obj->id;
 
-      if(!empty($t['url'])) {
-        // We are passing in a plain URL. Pass it along directly.
-        // For the moment (v5.1+), this is only used to create a toplink to a Mostly Static Page.
-        $perm = true;
-        $t['link'] = $t['url'];
-      } elseif(!empty($t['link']['controller'])) {
-        // We're linking into a related model, which may or may not be in a plugin
+      foreach(($topLinks ?? []) as $t) {
+        $perm = false;
 
-        $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
+        if(!empty($t['url'])) {
+          // We are passing in a plain URL. Pass it along directly.
+          // For the moment (v5.1+), this is only used to create a toplink to a Mostly Static Page.
+          $perm = true;
+          $t['link'] = $t['url'];
+        } elseif(!empty($t['link']['controller'])) {
+          // We're linking into a related model, which may or may not be in a plugin
 
-        if(!empty($t['link']['plugin'])) {
-          $linkModel = \Cake\Utility\Inflector::camelize($t['link']['plugin'])
-                       . "." . $linkModel;
-        }
-        
-        if(isset($vv_permissions[$linkModel][ $t['link']['action'] ])) {
-          $perm = $vv_permissions[$linkModel][ $t['link']['action'] ];
-        }
+          $linkModel = \Cake\Utility\Inflector::camelize($t['link']['controller']);
 
-        // Inject a link to the current object ID
-        $t['link']['?'][\App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj)] = $vv_obj->id;
-      } else {
-        $perm = $vv_permissions[ $t['link']['action'] ];
+          if(!empty($t['link']['plugin'])) {
+            $linkModel = \Cake\Utility\Inflector::camelize($t['link']['plugin'])
+              . "." . $linkModel;
+          }
 
-        // We need to inject $linkFilter, but not overwrite any existing query params
-        if(!empty($t['link']['?'])) {
-          $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+          if(isset($vv_permissions[$linkModel][$t['link']['action']])) {
+            $perm = $vv_permissions[$linkModel][$t['link']['action']];
+          }
+
+          // Inject a link to the current object ID
+          $t['link']['?'][\App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj)] = $vv_obj->id;
         } else {
-          $t['link']['?'] = $linkFilter;
+          $perm = $vv_permissions[$t['link']['action']];
+
+          // We need to inject $linkFilter, but not overwrite any existing query params
+          if(!empty($t['link']['?'])) {
+            $t['link']['?'] = array_merge($t['link']['?'], $linkFilter);
+          } else {
+            $t['link']['?'] = $linkFilter;
+          }
+        }
+
+        if($perm && !empty($t['if'])) {
+          // If there's a conditional on the field, test the entity
+          $f = $t['if'];
+
+          $perm = $vv_obj->$f();
+        }
+
+        if($perm) {
+          $action_args['vv_actions'][] = $t;
+          $key = array_key_last($action_args['vv_actions']);
+          $action_args['vv_actions'][$key]['order'] = $this->Menu->getMenuOrder($t['order']);
+          $action_args['vv_actions'][$key]['icon'] = $this->Menu->getMenuIcon($t['icon']);
+          $action_args['vv_actions'][$key]['url'] = $t['link'] ?? '';
+          $action_args['vv_actions'][$key]['class'] = $t['class'] ?? '';
+          $action_args['vv_actions'][$key]['confirm'] = $t['confirm'] ?? '';
         }
       }
-      
-      if($perm && !empty($t['if'])) {
-        // If there's a conditional on the field, test the entity
-        $f = $t['if'];
 
-        $perm = $vv_obj->$f();
+      // Delete
+      if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
+        $action_args['vv_actions'][] = [
+          'order' => $this->Menu->getMenuOrder('Delete'),
+          'icon' => $this->Menu->getMenuIcon('Delete'),
+          'iconClass' => 'material-symbols-outlined',
+          'url' => ['action' => 'delete', $vv_obj->id],
+          'label' => __d('operation', 'delete'),
+          'class' => 'deletebutton',
+          'confirm' => [
+            'method' => 'post',
+            'dg_title' => __d('operation', 'delete'),
+            'dg_body_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
+            'dg_confirm_btn' => __d('operation', 'delete')
+          ]
+        ];
       }
-      
-      if($perm) {
-        $action_args['vv_actions'][] = $t;
-        $key = array_key_last($action_args['vv_actions']);
-        $action_args['vv_actions'][$key]['order'] = $this->Menu->getMenuOrder($t['order']);
-        $action_args['vv_actions'][$key]['icon'] = $this->Menu->getMenuIcon($t['icon']);
-        $action_args['vv_actions'][$key]['url'] = $t['link'] ?? '';
-        $action_args['vv_actions'][$key]['class'] = $t['class'] ?? '';
-        $action_args['vv_actions'][$key]['confirm'] = $t['confirm'] ?? '';
+
+      if(!empty($action_args['vv_actions'])) {
+        print '<div class="field-actions top-links">';
+        print $this->element('menuAction', $action_args);
+        print '</div>';
       }
-    }
-  
-    // Delete
-    if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
-      $action_args['vv_actions'][] = [
-        'order' => $this->Menu->getMenuOrder('Delete'),
-        'icon' =>  $this->Menu->getMenuIcon('Delete'),
-        'iconClass' => 'material-symbols-outlined',
-        'url' => ['action' => 'delete', $vv_obj->id],
-        'label' => __d('operation', 'delete'),
-        'class' => 'deletebutton',
-        'confirm' => [
-          'method' => 'post',
-          'dg_title' => __d('operation', 'delete'),
-          'dg_body_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
-          'dg_confirm_btn' => __d('operation', 'delete')
-        ]
-      ];
-    }
-  
-    if(!empty($action_args['vv_actions'])) {
-      print '<div class="field-actions top-links">';
-      print $this->element('menuAction', $action_args);
-      print '</div>';
     }
   ?>
 </div>
   
 <?php if(!$hasSubnav): ?>
   <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
-  <?= $this->element('flash') ?>
+  <?= $this->element('flash', $flashArgs) ?>
 <?php endif; ?>
-
-<?php
-// XXX temporary for CFM-24
-// XXX after merge of PR-342 pass these banners in as configuration above    
-  $clfield = $vv_obj->changelogAttributeName();
-
-  if($vv_obj->deleted) {
-    print $this->element('notify/alert',
-      ['type' => 'information',
-       'message' => __d('information', 'changelog.deleted'),
-       'dismissible ' => false]
-    );
-  } elseif(!empty($vv_obj->$clfield)) {
-    print $this->element('notify/alert',
-      ['type' => 'information',
-       'message' => __d('information', 'changelog.archived'),
-       'dismissible ' => false]
-    );
-  }
-?>
 
 <?php
 $linkId = null;
@@ -219,22 +229,46 @@ if(!empty($vv_primary_link)) {
  * that will be rendered later.
  */
 
-// By default, the form will POST to the current controller
-// Note we need to open the form for view so Cake will autopopulate values
-print $this->Form->create($vv_obj);
+if(!empty($vv_alternate_template)) {
+  // We have a special template. Include the template directly here. It does not include the standard form.
+  // For the moment, this is used to provide a special view for Petitions. Note that the fields.inc
+  // file may still include other configuration (e.g. for navigation).
+  include($templatePath . DS . $vv_alternate_template);
+} else {
+  // We will output the standard Form (for add, edit, and view).
+  // By default, the form will POST to the current controller.
+  // Note we need to open the form for view so Cake will autopopulate values.
+  if($this->Field->includesFileField($fields)) {
+    // A file upload field is in the fields.inc configuration.
+    // We will change the form encoding type to multipart/form-data.
+    print $this->Form->create($vv_obj, ['type' => 'file']);
+  } else {
+    // We are using the standard form.
+    print $this->Form->create($vv_obj);
+  }
+  
+  // Output the visible form fields (or values, in the case of view):
+  if(!empty($fields)) {
+    print $this->element('form/unorderedList', ['vv_fields' => $fields]);
+  }
 
-// List of records to collect
-// Form body
-print $this->element('form/unorderedList');
+  // Inject hidden fields set by the fields.inc file.
+  // We don't need to output hidden fields for view actions.
+  if($vv_action !== 'view') {
+    if(!empty($hidden)) {
+      foreach($hidden as $attr => $v) {
+        print $this->Form->hidden($attr, ['value' => $v]);
+      }
+    }
+    // Include the $linkId if present
+    if(!empty($linkId)) {
+      print $this->Form->hidden($vv_primary_link, ['value' => $linkId]);
+    }
+  }
 
-if(!empty($linkId)
-   && ($vv_action == 'add' || $vv_action == 'edit')) {
-  // We don't want/need to output these for view actions
-  print $this->Form->hidden($vv_primary_link, ['value' => $linkId]);
+  // Close the Form
+  print $this->Form->end();
 }
-
-// Close the Form
-print $this->Form->end();
 
 /** MVEA Canvas output **/
 if($vv_action != 'add' && !empty($mveas)) {

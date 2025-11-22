@@ -24,16 +24,40 @@
  * @since         COmanage Registry v5.2.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'attribute',
+  'type_id' => [  // type_id is a hidden field used to persist the type
+    'type' => 'integer'
+  ]
+];
+
+// These are display widgets that are filtered to the correct available types
+foreach ([
+  'address_type_id',
+  'email_address_type_id',
+  'identifier_type_id',
+  'name_type_id',
+  'telephone_number_type_id'
+] as $field) {
+  $fields[$field] = [
+    'fieldLabel' => __d('field', 'type')
+  ];
+}
+
+$fields[] = 'required';
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function copyType(field) {
     // Copy the selected type ID to our storage field
-    var curtypeid = document.getElementsByName(field);
+    var curtypeid = document.getElementById(field);
     var typeid = document.getElementById('type-id');
 
-    typeid.value = curtypeid[0].value;
+    alert(field + ": " + curtypeid.value);
+    typeid.value = curtypeid.value;
   }
 
   function resetType() {
@@ -83,8 +107,28 @@
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
+
+    // register onchange events
+    $('#attribute').change(function() {
+      resetType();
+    });
+    
+    <?php
+      foreach ([
+        'address-type-id',
+        'email-address-type-id',
+        'identifier-type-id',
+        'name-type-id',
+        'telephone-number-type-id'
+      ] as $field) {
+        print "$('#" . $field . "').change(function() {";
+        print "copyType('" . $field . "');";
+        print "});";
+      }
+    ?>
 
     // On page load, set the appropriate widget to the current type (if set)
     var curattr = "<?= \Cake\Utility\Inflector::Singularize(\Cake\Utility\Inflector::dasherize($vv_obj->attribute ?? '')) ?>";
@@ -92,52 +136,7 @@
 
     if(curattr != "") {
       curattr = curattr + "-type-id";
-
       document.getElementById(curattr).value = curtype;
     }
-  }
+  });
 </script>
-<?php
-// This view does currently not support read-only, and add is not used
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'attribute',
-      'fieldOptions' => [
-        'onChange' => 'resetType()'
-      ]
-    ]]);
-
-  // type_id is a hidden field used to persist the type
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'type_id',
-      'fieldOptions' => [
-        'type' => 'integer'
-      ]
-    ]]);
-
-  // These are display widgets that are filtered to the correct available types
-  foreach ([
-             'address_type_id',
-             'email_address_type_id',
-             'identifier_type_id',
-             'name_type_id',
-             'telephone_number_type_id'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-        'fieldLabel' => __d('field', 'type'),
-        'fieldOptions' => [
-          'onChange' => 'copyType("' . $field . '")'
-        ]
-      ]
-    ]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'required'
-    ]]);
-}

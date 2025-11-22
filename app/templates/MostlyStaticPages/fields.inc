@@ -25,8 +25,38 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$fields = [
+  'title',
+  'name',
+  'pageUrl' => [
+    'readonly' => true
+  ],
+  'description',
+  'status',
+  'context',
+  'body' => [
+    'class' => 'big-textarea',
+    'afterField' => 
+      '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
+      '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .
+      '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
+      '</div>'
+  ]
+];
+
+// Top Links
+if($vv_action == 'edit') {
+  $topLinks[] = [
+    'icon'  => 'arrow_outward',
+    'order' => 'Default',
+    'label' => __d('operation', 'view'),
+    'url'  => $vv_base_url . '/' . $vv_obj->name,
+    'class' => ''
+  ];
+}
 ?>
-<script type="text/javascript">
+
+<script>
   function setPageUrl() {
     var baseurl = "<?= $vv_base_url ?>";
     var slug = document.getElementById('name').value;
@@ -36,63 +66,18 @@
     if(slug) {
       fullurl = baseurl + "/" + slug;
     }
-    
+
     document.getElementById('pageurl').value = fullurl;
   }
 
-  function jsLocalOnLoad() {
-    setPageUrl(true);
-  }
+  $(function() {
+    // run on first load
+    setPageUrl();
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#name').change(function() {
+      setPageUrl();
+    });
+  });
 </script>
-
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'title'
-      ]]);
-
-  print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'name',
-        'fieldOptions' => [
-          'onChange' => 'jsLocalOnLoad()'
-        ]
-      ]]);
-
-  print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'pageUrl',
-        'fieldOptions' => [
-          'readOnly' => true
-        ]
-      ]]);
-
-  foreach ([
-             'description',
-             'status',
-             'context'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  $afterField =
-    '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
-    '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .
-    '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
-    '</div>';
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'body',
-      'fieldOptions' => [
-        'class' => 'big-textarea'
-      ]
-    ],
-    'afterField' => $afterField
-  ]);
-}

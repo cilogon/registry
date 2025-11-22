@@ -25,23 +25,24 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-
 declare(strict_types = 1);
 
-$classes = '';
-
+$blockClass = '';
 
 ?>
 
 <?php foreach ($vv_field_arguments['groupedControls'] as $fieldName => $fieldArguments): ?>
   <?php
+  // Restructure the field to include the fieldOptions array used by CakePHP.
+  $fieldArguments = $this->Field->restructureFieldArguments($fieldArguments);
+
   if(isset($fieldArguments['singleRowItem']) && $fieldArguments['singleRowItem']) {
-    $classes .= 'd-block ';
+    $blockClass = ' d-block';
     // This configuration is not needed for the control construction
     unset($fieldArguments['singleRowItem']);
   }
   ?>
-  <div class="subfield subfield-cols <?= $classes ?>">
+  <div class="subfield subfield-cols<?= $blockClass ?>">
     <div class="field-col">
     <?= $this->Field->formField($fieldName, ...$fieldArguments) ?>
     </div>

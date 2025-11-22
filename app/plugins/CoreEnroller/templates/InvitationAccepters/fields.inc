@@ -25,18 +25,9 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view only supports edit
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'invitation_validity',
-      'fieldOptions' => [
-        'default'   => 1440
-      ]
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'welcome_message']
-  ]);
-}
+$fields = [
+  'invitation_validity' => [
+    'default'   => 1440
+  ],
+  'welcome_message'
+];

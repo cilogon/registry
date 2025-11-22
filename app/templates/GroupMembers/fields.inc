@@ -25,40 +25,36 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$fields = [];
+
 if($vv_action == 'add') {
   if(!empty($vv_selected_person)) {
     // The person has been preselected. Created a hidden field, and present information about the person.
     $hidden = [
       'person_id' => $vv_selected_person['id']
     ];
-    
-    // Present the person name in the view
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => '',
-        'fieldLabel' => __d('field','name'),
-        'groupmember' => $vv_selected_person
-      ]
-    ]);
+    // Present the person name in the view. Note that 'person_name' is not a real field. 
+    // Because 'groupmember' is set in this field definition, this field information will be
+    // passed to the element/form/infoDiv/groupMember to display the Person name rather than
+    // generate a field. 'person_name' will be used only to set the class of the container <li> element.
+    $fields['person_name'] = [
+      'fieldLabel' => __d('field','name'),
+      'groupmember' => $vv_selected_person
+    ];
   } else {
     // Produce the autocomplete people selector on 'add'
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'person_id',
-        'fieldOptions' => [
-          'class' => 'form-control people-autocomplete',
-          'placeholder' => __d('operation','autocomplete.people.placeholder'),
-          'id' => 'person_id',
-        ],
-        'autocomplete' => [
-          'configuration' => [
-            'for' => 'GroupMembers',
-            'action' => $vv_action,
-            'groupId' => $this->getRequest()?->getQuery('group_id')
-          ]
+    $fields['person_id'] = [
+      'class' => 'form-control people-autocomplete',
+      'placeholder' => __d('operation','autocomplete.people.placeholder'),
+      'id' => 'person_id',
+      'autocomplete' => [
+        'configuration' => [
+          'for' => 'GroupMembers',
+          'action' => $vv_action,
+          'groupId' => $this->getRequest()?->getQuery('group_id')
         ]
       ]
-    ]);
+    ];
   }
 } else {
   $hidden = [
@@ -72,25 +68,17 @@ if($vv_action == 'add') {
     'name' => $vv_obj->person->primary_name->full_name
   ];
   $this->set('vv_selected_person', $selectedPerson);
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => '',
-      'fieldLabel' => __d('field','name'),
-      'groupmember' =>  $selectedPerson
-    ]
-  ]);
+  // See note in the 'add' section above regarding how 'person_name' is used.
+  // It is not a real field name.
+  $fields['person_name'] = [
+    'fieldLabel' => __d('field','name'),
+    'groupmember' =>  $selectedPerson
+  ];
 }
 
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'valid_from',
-  ]
-]);
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'valid_through',
-  ]
+$fields = array_merge($fields, [
+  'valid_from',
+  'valid_through'
 ]);
 
 // XXX RFE: Add links to EIS or Nesting info

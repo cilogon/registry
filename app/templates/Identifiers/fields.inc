@@ -25,46 +25,49 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'identifier',
-    ]]);
+$fields = [
+  'identifier',
+  'type_id' => [
+    'default' => $vv_default_type
+  ]
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'type_id',
-      'fieldOptions' => [
-        'default' => $vv_default_type
-      ]
-    ]]);
 
-  if($vv_primary_link_attr == 'person_id') {
-    // AR-Identifier-1 Only Persons can have a login flag
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'login',
-      ]]);
-  } else {
-    // Will be used by add-edit-view.php to append the hidden fields in the form
-    $hidden['login'] = false;
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status',
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'frozen'
-    ]]);
+if($vv_primary_link_attr == 'person_id') {
+  // AR-Identifier-1 Only Persons can have a login flag
+  $fields[] = 'login';
+} else {
+  // Will be used by add-edit-view.php to append the hidden fields in the form
+  $hidden['login'] = false;
 }
 
+$fields = array_merge($fields, [
+  'status',
+  'frozen'
+]);
+
 if($vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'source',
-      'entity' => $vv_obj
-    ]]);
+  $fields['source'] = [
+    'entity' => $vv_obj
+  ];
+}
+
+// Top Links
+if(!empty($vv_obj->identifier) && $vv_obj->isLogin()) {
+  $topLinks = [
+    [
+      'icon'      => 'lock',
+      'order'     => 'Default',
+      'label'     => __d('controller', 'AuthenticationEvents', [99]),
+      'link' => [
+        'controller' => 'authentication_events',
+        'action'     => 'index',
+        '?' => [
+          'authenticated_identifier' =>
+            \App\Lib\Util\StringUtilities::urlbase64encode($vv_obj->identifier)
+        ]
+      ],
+      'class' => ''
+    ]
+  ];
 }

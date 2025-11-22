@@ -116,7 +116,7 @@ $resendLink = $this->Html->link(
   'vv_config' => $vv_config,
 ]) ?>
 
-<script type="text/javascript">
+<script>
   $(document).ready(function() {
     // See https://stackoverflow.com/a/25665232 , 'Update' version
     history.pushState(null, null, document.URL);

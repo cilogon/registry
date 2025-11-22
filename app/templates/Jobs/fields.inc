@@ -25,151 +25,78 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$fields = [];
+
 // This view does not support edit
 if($vv_action == 'add') {
   // We are registering a Job, so the fields we accept are somewhat limited/different
   // from view
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'plugin',
+  $fields = [
+    'plugin' => [
       'fieldLabel' => __d('controller', 'Jobs', [1])
     ]
-  ]);
+  ];
 } elseif($vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'plugin',
+  $fields = [
+    'plugin' => [
       'fieldLabel' => __d('controller', 'Jobs', [1]),
-      'fieldOptions' => [
-        'type' => 'text'
-      ]
+      'type' => 'text'
     ]
-  ]);
+  ];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'status'
-    ]
-  ]);
+  $fields[] = 'status';
 
   if($vv_obj->status == \App\Lib\Enum\JobStatusEnum::InProgress) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'percent_complete',
-        'status' => (string)$vv_obj->percent_complete
-      ]
-    ]);
+    $fields['percent_complete'] = [
+      'status' => (string)$vv_obj->percent_complete
+    ];
   }
-  
-  // Establish the supplemental field wrappers for the parameters field
-  $beforeField = 
-    '<div class="field-suppliment">
-       <div class="form-check">
-         <input class="form-check-input" type="checkbox" value="" id="format-toggle">
-         <label class="form-check-label" for="format-toggle">' . __d('field','format') . '</label>
-       </div>
-     </div>';
-  
-  $afterField = 
-    '<script>
-       parametersValue = $("#parameters").val();
-       parametersJSON = JSON.parse(parametersValue);
-        $("#format-toggle").click(function() {
-          if($(this).is(":checked")) {
-            $("#parameters").val(JSON.stringify(parametersJSON, null, 4));
-            paramsHeight = Object.keys(parametersJSON).length + 6 + "em";
-            $("#parameters").css("height",paramsHeight);
-          } else {
-            $("#parameters").val(parametersValue);
-            $("#parameters").css("height","4em");
-          }
-       });
-     </script>';
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'parameters',
+  $fields = array_merge($fields, [
+    'parameters' => [
+      // Establish the supplemental field wrappers for the parameters field
+      'beforeField' => 
+        '<div class="field-supplement">
+           <div class="form-check">
+             <input class="form-check-input" type="checkbox" value="" id="format-toggle">
+             <label class="form-check-label" for="format-toggle">' . __d('field','format') . '</label>
+           </div>
+         </div>',
+      'afterField' =>
+        '<script>
+           parametersValue = $("#parameters").val();
+           parametersJSON = JSON.parse(parametersValue);
+            $("#format-toggle").click(function() {
+              if($(this).is(":checked")) {
+                $("#parameters").val(JSON.stringify(parametersJSON, null, 4));
+                paramsHeight = Object.keys(parametersJSON).length + 6 + "em";
+                $("#parameters").css("height",paramsHeight);
+              } else {
+                $("#parameters").val(parametersValue);
+                $("#parameters").css("height","4em");
+              }
+           });
+         </script>'
     ],
-    'beforeField' => $beforeField,
-    'afterField' => $afterField
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'register_time',
+    'register_time' => [
       'labelIsTextOnly' => true
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'register_summary'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'register_time',
+    ],
+    'register_summary',
+    'assigned_host',
+    'assigned_pid',
+    'start_after_time' => [
       'labelIsTextOnly' => true
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'assigned_host'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'assigned_pid'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'start_after_time',
+    ],
+    'start_time' => [
       'labelIsTextOnly' => true
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'start_time',
+    ],
+    'start_summary',
+    'finish_time' => [
       'labelIsTextOnly' => true
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'start_summary'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'finish_time',
-      'labelIsTextOnly' => true
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'finish_summary'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'requeue_interval'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'retry_interval'
-    ]
+    ],
+    'finish_summary',
+    'requeue_interval',
+    'retry_interval'
   ]);
 
   if(!empty($vv_obj->requeued_from_job->id)) {
@@ -180,12 +107,40 @@ if($vv_action == 'add') {
         $vv_obj->requeued_from_job->id
       ]
     ];
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'requeued_from_job_id',
-        'status' => (string)$vv_obj->requeued_from_job->id,
-        'link' => $link,
-      ]
-    ]);
+    $fields['requeued_from_job_id'] = [
+      'status' => (string)$vv_obj->requeued_from_job->id,
+      'link' => $link,
+    ];
   }
+}
+
+// Top Links
+$topLinks[] = [
+  'icon'  => 'history',
+  'order' => 'Default',
+  'label' => __d('controller', 'JobHistoryRecords', [99]),
+  'link'  => [
+    'controller'  => 'job_history_records',
+    'action'      => 'index',
+    'job_id'      => $vv_obj->id
+  ],
+  'class' => ''
+];
+
+if(!empty($vv_obj) && $vv_obj->canCancel()) {
+  $topLinks[] = [
+    'icon'  => 'cancel',
+    'order' => 'Default',
+    'label' => __d('operation', 'cancel'),
+    'link'  => [
+      'action' => 'cancel',
+      $vv_obj->id
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'Jobs.cancel.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'confirm.yes'),
+      'dg_cancel_btn' => __d('operation', 'confirm.no')
+    ],
+    'class' => ''
+  ];
 }

@@ -24,8 +24,37 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'server_id',
+  'table_mode' => [
+    'type' => 'select'
+  ]
+];
+    
+foreach([
+    'source_table',
+    'address_type_id',
+    'email_address_type_id',
+    'identifier_type_id',
+    'name_type_id',
+    'pronouns_type_id',
+    'telephone_number_type_id',
+    'url_type_id'
+  ] as $field) {
+  $fields[$field] = [
+    'required' => false
+  ];
+}
+
+$fields = array_merge($fields, [
+  'threshold_check',
+  'threshold_override'
+]);
+
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {
@@ -48,59 +77,15 @@
       showFields(flatTypes, isPageLoad);
     }
   }
-
-  function jsLocalOnLoad() {
+  
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#table-mode').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-<?php
-// This view does not currently support read-only
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'server_id'
-    ]
-  ]);
-  
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'table_mode',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ],
-      'fieldType' => 'select'
-    ]
-  ]);
-  
-  foreach([
-            'source_table',
-            'address_type_id',
-            'email_address_type_id',
-            'identifier_type_id',
-            'name_type_id',
-            'pronouns_type_id',
-            'telephone_number_type_id',
-            'url_type_id'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-        'fieldOptions' => [
-          'required' => false
-        ]
-      ]
-    ]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'threshold_check'
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'threshold_override'
-    ]
-  ]);
-}

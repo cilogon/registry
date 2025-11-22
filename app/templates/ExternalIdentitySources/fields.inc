@@ -24,31 +24,31 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
-?>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  foreach([
-            'description',
-            'status',
-            'plugin',
-            'pipeline_id',
-            'sor_label',
-            'hash_source_record',
-            'suppress_noop_logs'
-          ] as $field) {
-    $params =  [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ];
-    if($field == 'status') {
-      $params['arguments']['fieldOptions'] = [
-        'default'  => \App\Lib\Enum\SyncModeEnum::Disabled
-      ];
-    }
-    print $this->element('form/listItem', $params);
-  }
-  
-  print $this->element('clonable');
-}
+
+$fields = [
+  'description',
+  'status' => [
+    'default'  => \App\Lib\Enum\SyncModeEnum::Disabled
+  ],
+  'plugin',
+  'pipeline_id',
+  'sor_label',
+  'hash_source_record',
+  'suppress_noop_logs'
+];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));      
+      
+// Top Links
+$topLinks = [
+  [
+    'icon' => 'search',
+    'order' => 'Default',
+    'label' => __d('operation', 'ExternalIdentitySources.search'),
+    'link' => [
+      'action' => 'search',
+      $vv_obj->id
+    ],
+    'class' => ''
+  ]
+];

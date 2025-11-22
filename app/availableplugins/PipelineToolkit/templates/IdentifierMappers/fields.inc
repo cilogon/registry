@@ -27,4 +27,18 @@
 
 // There are currently no directly configurable fields for this model.)
 $suppress_submit = true;
+
+// Top Links
+$topLinks[] = [
+  'icon'  => 'transform',
+  'order' => 'Default',
+  'label' => __d('pipeline_toolkit', 'controller.LoginIdentifierTypes', [99]),
+  'link'  => [
+    'plugin'                => 'PipelineToolkit',
+    'controller'            => 'LoginIdentifierTypes',
+    'action'                => 'index',
+    'identifier_mapper_id'  => $vv_obj->id
+  ],
+  'class' => ''
+];
 ?>

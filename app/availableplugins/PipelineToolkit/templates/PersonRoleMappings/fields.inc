@@ -24,9 +24,24 @@
  * @since         COmanage Registry v5.0.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
+
+$fields = [
+  'attribute' => [
+    'type' => 'select'
+  ],
+  'ad_hoc_tag',
+  'affiliation_type_id',
+  'comparison',
+  'pattern',
+  'target_cou_id',
+  'target_affiliation_type_id',
+  'ordr'
+];
+
 ?>
-<script type="text/javascript">
-  // JS specific to these fields
+
+<script>
+// JS specific to these fields
 
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
@@ -44,34 +59,14 @@
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+  
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#attribute').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'attribute',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ],
-      'fieldType' => 'select'
-    ]
-  ]);
-
-  foreach (['ad_hoc_tag',
-            'affiliation_type_id',
-            'comparison',
-            'pattern',
-            'target_cou_id',
-            'target_affiliation_type_id',
-            'ordr'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}

@@ -25,20 +25,18 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+$fields = [];
+
 // This view does not support add or edit
 if($vv_action == 'view') {
-  foreach(['record_key',
-           'comment',
-           'status'
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
 
-// Rewrite these to always emit the column even if the field is blank
+  $fields = [
+    'record_key',
+    'comment',
+    'status'
+  ];
+
+  // Rewrite these to always emit the column even if the field is blank
   if(!empty($vv_obj->person->primary_name)) {
     $viewLink = [
       'url' => [
@@ -48,13 +46,10 @@ if($vv_action == 'view') {
       ],
     ];
 
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'person_id',
-        'status' => $vv_obj->person->primary_name->full_name,
-        'link' => $viewLink,
-      ]
-    ]);
+    $fields['person_id'] = [
+      'status' => $vv_obj->person->primary_name->full_name,
+      'link' => $viewLink,
+    ];
   }
   
   if(!empty($vv_obj->external_identity->primary_name)) {
@@ -66,18 +61,11 @@ if($vv_action == 'view') {
       ],
     ];
 
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'external_identity_id',
-        'status' => $vv_obj->external_identity->primary_name->full_name,
-        'link' => $viewLink,
-      ]
-    ]);
+    $fields['external_identity_id'] = [
+      'status' => $vv_obj->external_identity->primary_name->full_name,
+      'link' => $viewLink,
+    ];
   }
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'created'
-    ]
-  ]);
+  $fields[] = 'created';
 }

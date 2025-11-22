@@ -25,20 +25,33 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'server_id',
-    ]
-  ]);
+$fields = [
+  'server_id',
+  'table_prefix' => [
+    'default' => 'sp_'
+  ]
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'table_prefix',
-      'fieldOptions' => [
-        'default' => 'sp_'
-      ]
-    ]
-  ]);
-}
+// Top Links
+$topLinks = [
+  [
+    'icon'  => 'history',
+    'order' => 'Default',
+    'label' => __d('sql_connector', 'operation.reapply'),
+    'link'  => [
+      'action'      => 'reapply',
+      $vv_obj->id
+    ],
+    'class' => ''
+  ],
+  [
+    'icon'  => 'history',
+    'order' => 'Default',
+    'label' => __d('sql_connector', 'operation.resync'),
+    'link'  => [
+      'action'      => 'resync',
+      $vv_obj->id
+    ],
+    'class' => ''
+  ]
+];

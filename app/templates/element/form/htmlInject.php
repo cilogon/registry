@@ -1,6 +1,7 @@
 <?php
-/*
- * COmanage Registry Duplicatable Element
+
+/**
+ * COmanage Registry Inject H3 Element to a list
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,12 +26,24 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-foreach(['uuid',
-         'cri',
-         'do_not_clone'] as $field) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => $field
-    ]
-  ]);
+
+declare(strict_types=1);
+
+// View vars
+// $content - the text or markup to be rendered
+// $type    - accepts "subtitle" or "html"
+// $vv_action
+
+if (empty($content)) {
+  return;
 }
+
+?>
+
+<li class="fields-subsection fields-subsection-<?= $type ?>">
+  <?php if($type === 'subtitle'): ?>
+    <h3><?= $content ?></h3>
+  <?php else: // we have arbitrary HTML ?>
+    <?= $content ?>
+  <?php endif; ?>
+</li>

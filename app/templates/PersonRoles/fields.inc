@@ -25,84 +25,86 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-if($vv_action == 'add' || $vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'cou_id',
-    ]
-  ]);
+$fields = [
+  'cou_id',
+  'affiliation_type_id' => [
+    'fieldLabel' => __d('field', 'affiliation')
+  ],
+  'status',
+  'ordr',
+  'title',
+  'organization',
+  'department'
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' =>'affiliation_type_id',
-      'fieldLabel' => __d('field', 'affiliation')
-    ]
-  ]);
+// Provide people-picker for sponsor and manager
+foreach(['sponsor', 'manager'] as $f) {
+  $fp = $f . '_person';
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' =>'status'
-    ]
-  ]);
-
-  foreach(['ordr',
-           'title',
-           'organization',
-           'department'] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
+  $vv_autocomplete_arguments = [
+    'fieldLabel' => __d('field', $f),
+    'autocomplete' => [
+      'configuration' => [
+        'action' => 'GET',
+        'for' => 'co'
       ]
-    ]);
-  }
+    ]
+  ];
   
-  // For now, we render sponsor and manager as read only.
-  // XXX Need People Picker (CFM-150)
-  foreach(['sponsor', 'manager'] as $f) {
-    $fp = $f . '_person';
-
-    $vv_autocomplete_arguments = [
-      'fieldName' => $f.'_person_id',
-      'fieldLabel' => __d('field', $f),
-      'autocomplete' => [
-        'configuration' => [
-          'action' => 'GET',
-          'for' => 'co'
-        ]
-      ]
-    ];
-    
-    if(!empty($vv_obj->$fp->names[0])) {
-      $vv_autocomplete_arguments['fieldOptions'] = [
-        'default' => $vv_obj->$fp->id
-      ];
-    }
-
-    print $this->element('form/listItem', ['arguments' => $vv_autocomplete_arguments]);
+  if(!empty($vv_obj->$fp->names[0])) {
+    $vv_autocomplete_arguments['default'] =  $vv_obj->$fp->id;
   }
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'valid_from', // timestamp
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'valid_through', // timestamp
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'frozen'
-    ]]);
+  $fields[$f.'_person_id'] = $vv_autocomplete_arguments;
 }
+
+$fields = array_merge($fields, [
+  'valid_from',
+  'valid_through',
+  'frozen'
+]);
 
 if($vv_action == 'edit' || $vv_action == 'view') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'source',
-      'entity' => $vv_obj
-    ]]);
+  $fields['source'] = [
+    'entity' => $vv_obj
+  ];
 }
+
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'ad_hoc_attributes',
+  'addresses',
+  'telephone_numbers'
+];
+
+// Name the MVEAs Entity Type
+$mveasEntityType = "person_role";
+
+// $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
+$addMenuLinks = [
+  [
+    'controller' => 'ad_hoc_attributes',
+    'action' => 'add',
+    'icon' => 'user_attributes',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'addresses',
+    'action' => 'add',
+    'icon' => 'contact_mail',
+    'iconClass' => 'material-symbols-outlined'
+  ],
+  [
+    'controller' => 'telephone_numbers',
+    'action' => 'add',
+    'icon' => 'phone'
+  ]
+];
+
+$subnav = [
+  'name' => 'person',
+  'active' => 'person_roles',
+  'subActive' => 'properties'
+];

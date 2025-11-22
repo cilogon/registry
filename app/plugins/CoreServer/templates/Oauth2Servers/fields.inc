@@ -25,53 +25,24 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only, and add is not used
-if($vv_action !== 'edit') {
-  return;
-}
-
 // Render the Redirect URI
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'redirect_uri',
-    'fieldOptions' => [
-      'readOnly' => true,
-      'default' => $vv_redirect_uri
-    ]
-  ]]);
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'url'
-  ]]);
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'access_grant_type',
-    'fieldSelectOptions' => $types,
-    'fieldType' => 'select',
-    'fieldOptions' => [
-      'empty' => false,
-    ],
-  ]]);
-
-foreach ([
-           "clientid",
-           "client_secret",
-         ] as $field) {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => $field
-    ]]);
-}
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'scope',
-    'fieldOptions' => [
-      'placeholder' => '/authenticate',
-    ],
-  ]]);
+$fields = [
+  'redirect_uri' => [
+    'readonly' => true,
+    'default' => $vv_redirect_uri
+  ],
+  'url',
+  'access_grant_type' => [
+    'options' => $types,
+    'type' => 'select',
+    'empty' => false
+  ],
+  'clientid',
+  'client_secret',
+  'scope' => [
+    'placeholder' => '/authenticate',
+  ]
+];
 
 $generateLink = [];
 if(!empty($vv_obj->id)) {
@@ -87,11 +58,8 @@ if(!empty($vv_obj->id)) {
   ];
 }
 
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'access_token',
-    'status' => !empty($vv_obj->access_token) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
-    'link' => $generateLink,
-    'labelIsTextOnly' => true
-  ]
-]);
+$fields['access_token'] = [
+  'status' => !empty($vv_obj->access_token) ? __d('enumeration', 'SetBooleanEnum.1') : __d('enumeration', 'SetBooleanEnum.0'),
+  'link' => $generateLink,
+  'labelIsTextOnly' => true
+];

@@ -27,7 +27,7 @@
   
   use App\Lib\Enum\ApplicationStateEnum;
   
-  if(empty($vv_obj)) {
+  if(empty($vv_obj) || empty($vv_archives)) {
     return;
   }
 

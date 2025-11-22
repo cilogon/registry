@@ -27,4 +27,19 @@
 
 // There are currently no directly configurable fields for this model.)
 $suppress_submit = true;
+
+// Top Links
+$topLinks[] = [
+  'icon'  => 'transform',
+  'order' => 'Default',
+  'label' => __d('pipeline_toolkit', 'controller.PersonRoleMappings', [99]),
+  'link'  => [
+    'plugin'                => 'PipelineToolkit',
+    'controller'            => 'PersonRoleMappings',
+    'action'                => 'index',
+    'person_role_mapper_id' => $vv_obj->id
+  ],
+  'class' => ''
+];
+
 ?>

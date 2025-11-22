@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Attribute Collectors Fields
+ * COmanage Registry Approval Collectors Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -25,16 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view only supports edit
-if($vv_action !== 'edit') {
-  return;
-}
-
-foreach(['require_comment',
-         'denial_message_template_id',
-         'redirect_on_denial'
-        ] as $field) {
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => $field]
-  ]);
-}
+$fields = [
+  'require_comment',
+  'denial_message_template_id',
+  'redirect_on_denial'
+];

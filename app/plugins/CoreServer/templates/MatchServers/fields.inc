@@ -27,3 +27,21 @@
 
 // At least initially we use only the HttpServer fields
 include ROOT . DS . "plugins" . DS . "CoreServer" . DS . "templates" . DS . "HttpServers" . DS . "fields.inc";
+
+// If the Match Server URL is empty, then we're in the initial configuration, so we hide the
+// Match Server Attributes link so the admin doesn't try to visit that link without finishing
+// the main configuration
+if(!empty($vv_obj->url)) {
+  $topLinks[] = [
+    'icon'  => 'list',
+    'order' => 'Default',
+    'label' => __d('core_server', 'controller.MatchServerAttributes', [99]),
+    'link'  => [
+      'plugin'          => 'CoreServer',
+      'controller'      => 'match_server_attributes',
+      'action'          => 'index',
+      'match_server_id' => $vv_obj->id
+    ],
+    'class' => ''
+  ];
+}

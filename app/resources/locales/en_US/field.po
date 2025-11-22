@@ -218,6 +218,9 @@ msgstr "Manager"
 msgid "manager_identifier"
 msgstr "Manager Identifier"
 
+msgid "metadata"
+msgstr "Metadata"
+
 msgid "middle"
 msgstr "Middle"
 

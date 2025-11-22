@@ -29,7 +29,7 @@ declare(strict_types = 1);
 
 ?>
 
-<script type="text/javascript">
+<script>
   $(function() {
     // Remove the friendly representation of the person_id input element before submiting
     const filterForm = document.getElementById("top-filters-form");

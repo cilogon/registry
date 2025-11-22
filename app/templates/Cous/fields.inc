@@ -25,23 +25,15 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'name']
-  ]);
-  print $this->element('form/listItem', [
-    'arguments' => ['fieldName' => 'description']
-  ]);
+$fields = [
+  'name',
+  'description'
+];
 
-  if(!empty($parents)) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => 'parent_id',
-        'fieldLabel' => __d('field', 'parent_id')
-      ]
-    ]);
-  }
-
-  print $this->element('clonable');
+if(!empty($parents)) {
+  $fields['parent_id'] = [
+    'fieldLabel' => __d('field', 'parent_id')
+  ];
 }
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));

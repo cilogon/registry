@@ -27,6 +27,8 @@
 
 use App\Lib\Util\StringUtilities;
 
+$fields = [];
+
 if($vv_action == 'add') {
   // Note for add this file is called by our local add.php file, not add-edit-view.php
   $vv_submit_button_label = __d('operation', 'upload');
@@ -39,22 +41,15 @@ if($vv_action == 'add') {
   ];
 
   // As of v3.2.0, we only allow uploading of SSH Keys, not manually adding or editing
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'keyFile',
-      'fieldOptions' => ['type' => 'file']
+  $fields = [
+    'keyFile' => [
+      'type' => 'file'
     ]
-  ]);
+  ];
 } elseif($vv_action == 'view') {
-  foreach([ 'type',
-            'comment',
-            'skey',
-          ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field,
-      ]
-    ]);
-  }
+  $fields = [ 
+    'type',
+    'comment',
+    'skey'
+  ];
 }

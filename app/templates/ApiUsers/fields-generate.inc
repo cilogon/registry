@@ -25,20 +25,17 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-print $this->element('notify/banner', [ 'info' => __d('information', 'api.key')]);
+$alerts = [
+  ['message' => __d('information', 'api.key')]
+];
 
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'username',
+$fields = [
+  'username' => [
     'status' => $vv_obj->username,
     'labelIsTextOnly' => true
-  ]
-]);
-
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'api_key',
+  ],
+  'api_key' => [
     'status' => $vv_api_key,
     'labelIsTextOnly' => true
   ]
-]);
+];

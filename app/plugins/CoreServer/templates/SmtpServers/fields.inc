@@ -25,50 +25,18 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-// This view does currently not support read-only, and add is not used
-if($vv_action == 'edit') {
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'hostname',
-    ]
-  ]);
+$fields = [
+  'hostname',
+  'port' => [
+    'default' => 587
+  ],
+  'username',
+  'password',
+  'use_tls' => [
+    'default' => true
+  ],
+  'default_from',
+  'default_reply_to',
+  'override_to'
+];
 
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'port',
-      'fieldOptions' => [
-        'default' => 587
-      ]
-    ]]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'username',
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'password',
-    ]
-  ]);
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'use_tls',
-      'fieldOptions' => [
-        'default' => true
-      ]
-    ]]);
-
-  foreach ([
-             'default_from',
-             'default_reply_to',
-             'override_to',
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}

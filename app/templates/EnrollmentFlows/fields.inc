@@ -27,8 +27,24 @@
 
 declare(strict_types = 1);
 
+$fields = [
+  'name',
+  'description',
+  'status',
+  'authz_type',
+  'authz_cou_id',
+  'authz_group_id',
+  'collect_enrollee_email',
+  'redirect_on_duplicate',
+  'redirect_on_finalize',
+  'finalization_message_template_id',
+  'notification_group_id',
+  'notification_message_template_id'
+];
+
 ?>
-<script type="text/javascript">
+
+<script>
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {
@@ -36,8 +52,8 @@ declare(strict_types = 1);
     //var authz = document.getElementById('authz-type').value;
 
     // Handle page interaction
-/* CFM-31 not yet implemented
-    if(authz == '<?php // \App\Lib\Enum\EnrollmentAuthzEnum::CouAdmin ?>'
+    /* CFM-31 not yet implemented
+        if(authz == '<?php // \App\Lib\Enum\EnrollmentAuthzEnum::CouAdmin ?>'
        || authz == '<?php // \App\Lib\Enum\EnrollmentAuthzEnum::CouPerson ?>') {
       hideFields(['authz-group-id'], isPageLoad);
       showFields(['authz-cou-id'], isPageLoad);
@@ -59,61 +75,14 @@ declare(strict_types = 1);
     }
   }
 
-  function jsLocalOnLoad() {
+  $(function() {
+    // run on first load
     updateGadgets(true);
-  }
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#authz_type, #notification-group-id').change(function() {
+      updateGadgets();
+    });
+  });
 </script>
-<?php
-// This view does not support read-only
-if($vv_action == 'add' || $vv_action == 'edit') {
-
-  foreach ( ['name',
-             'description',
-             'status',
-//             'sor_label',
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'authz_type',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]
-  ]);
-
-  foreach (['authz_cou_id',
-            'authz_group_id',
-            'collect_enrollee_email',
-            'redirect_on_duplicate',
-            'redirect_on_finalize',
-            'finalization_message_template_id'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'notification_group_id',
-      'fieldOptions' => [
-        'onChange' => 'updateGadgets()'
-      ]
-    ]
-  ]);
-
-  foreach (['notification_message_template_id'
-           ] as $field) {
-    print $this->element('form/listItem', [
-      'arguments' => [
-        'fieldName' => $field
-      ]]);
-  }
-}

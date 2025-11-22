@@ -211,6 +211,9 @@ msgstr "Duration, in minutes, of the verification request before it expires"
 msgid "field.EmailVerifiers.verification_code_charset"
 msgstr "Verification Code Character Set"
 
+msgid "field.EmailVerifiers.verification_code_charset.other_value"
+msgstr "Other value"
+
 msgid "field.EmailVerifiers.verification_code_charset.desc"
 msgstr "Set of characters for generating the verification code. Numbers and uppercase letters only."
 
@@ -225,7 +228,6 @@ msgstr "Enable Attempt Blocker"
 
 msgid "field.EmailVerifiers.enable_blockonfailure.desc"
 msgstr "Enables blocking after consecutive failed attempts. Blocking duration increases exponentially based on the number of failed attempts."
-
 
 msgid "field.EnrollmentAttributes.address_required_fields"
 msgstr "Required Address Fields"
