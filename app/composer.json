@@ -1,9 +1,9 @@
 {
     "name": "cakephp/app",
-    "description": "CakePHP skeleton app",
-    "homepage": "https://cakephp.org",
+    "description": "COmanage Registry PE",
+    "homepage": "https://incommon.org/software/comanage/",
     "type": "project",
-    "license": "MIT",
+    "license": "Apache 2",
     "require": {
         "php": ">=8.1",
         "ext-intl": "*",

@@ -139,6 +139,22 @@ class CloneCommand extends BaseCommand {
       // Note the command line flag is "target" but we use the connection name
       // "remote" to clarify that it's a different datasource.
 
+      // In order for the remote datasource to work correctly, all the stars must be
+      // correctly aligned. In particular, the related model assocations will be rekeyed
+      // below from (eg) ["FooWidgets" => ["FooWidgetRecords"]] to
+      // ["RemoteFooWidgets" => ["RemoteFooWidgetRecords"]]. This then implies that the
+      // entity values must also be rekeyed ($entity->foo_widgets becomes
+      // $entity->remote_foo_widgets) and (importantly) that the TableLocator can resolve
+      // "RemoteFooWidgets" to a Table with alias "RemoteFooWidgets" but class
+      // "FooWidgetPlugin.FooWidgets". Most of this is handled below, but the plugin
+      // resolution is handled in PluggableModelTrait.
+
+      // When debugging this, keep in mind Cake will autocreate tables that it can't find
+      // Table files for ($TableLocator->allowFallbackClass). (As of Registry v5.2.0 we
+      // can't simply turn that off since a bunch of other stuff breaks; CFM-405.) Telltale
+      // signs include entities whose path is \Cake\ORM\Entity rather than
+      // \FooWidget\Model\Entity\FooWidget (and Tables with similarly generic classpaths.)
+
       $targetDS = 'remote';
       
       $SqlServer = TableRegistry::getTableLocator()->get('CoreServer.SqlServers');
@@ -427,39 +443,81 @@ class CloneCommand extends BaseCommand {
       $targetRelated = $related;
 
       if(!empty($targetRelated)) {
-        // We need to convert $related to use the same prefix that getTableWithDataSource uses.
-        // While we're here, rekey $copy as well.
-
         if($targetDataSource != 'default') {
+          // We need to convert $related to use the same prefix that getTableWithDataSource uses.
+          // We create our own anonymous function here rather than use array_map to prefix
+          // the array entries because array_may doesn't quite work correctly with Cake's
+          // complicated relations notation. (We don't use normalizeAssocationArray because we
+          // want to keep $related in the same form as it was originally specified.)
+
           $prefix = \Cake\Utility\Inflector::camelize($targetDataSource);
 
-          $fn = function(string $s) use ($prefix): string {
-            return $prefix . $s;
+          $fn = function($related, $prefix) use (&$fn) {
+            $ret = [];
+
+            foreach($related as $k => $v) {
+              if(is_int($k)) {
+                // [0 = 'Foo']
+
+                $ret[] = $prefix.$v;
+              } elseif(is_array($v)) {
+                // ['Foo' => ['Bar']]
+
+                $ret[$prefix.$k] = $fn($v, $prefix);
+              } else {
+                // ['Foo' => 'Bar]
+
+                $ret[$prefix.$k] = [$prefix.$v];
+              }
+            }
+
+            return $ret;
           };
 
-          $targetRelated = array_map($fn, $related);
+          $targetRelated = $fn($related, $prefix);
 
-          // This is similar to what we do for related models, below
+          // While we're here, rekey $copy as well. This is similar to what we do
+          // for related models, below, but here we operate on an array and below
+          // we operate on an entity.
+          
+          $fn2 = function($copy, $related, $targetDataSource) use (&$fn2) {
+            // Because $related is passed in normalized, we can expect it to always
+            // be in $model => [ $associated ] notation.
 
-          foreach($related as $r) {
-            // eg: http_servers
-            $pluralSource = Inflector::underscore($r);
-            // eg: remote_http_servers
-            $pluralTarget = $targetDataSource . "_" . $pluralSource;
+            foreach($related as $rm => $ra) {
+              // We need to check both singular (hasOne) and plural (hasMany)
 
-            if(!empty($copy[$pluralSource])) {
-              $copy[$pluralTarget] = $copy[$pluralSource];
-              unset($copy[$pluralSource]);
+              // eg: http_servers
+              $pluralSource = Inflector::underscore($rm);
+              // eg: remote_http_servers
+              $pluralTarget = $targetDataSource . "_" . $pluralSource;
+
+              if(!empty($copy[$pluralSource])) {
+                $copy[$pluralTarget] = $copy[$pluralSource];
+                unset($copy[$pluralSource]);
+
+                if(!empty($ra)) {
+                  $copy[$pluralTarget] = $fn2($copy[$pluralTarget], $ra, $targetDataSource);
+                }
+              }
+
+              $singularSource = Inflector::singularize($pluralSource);
+              $singularTarget = Inflector::singularize($pluralTarget);
+
+              if(!empty($copy[$singularSource])) {
+                $copy[$singularTarget] = $copy[$singularSource];
+                unset($copy[$singularSource]);
+
+                if(!empty($ra)) {
+                  $copy[$singularTarget] = $fn2($copy[$singularTarget], $ra, $targetDataSource);
+                }
+              }
             }
 
-            $singularSource = Inflector::singularize($pluralSource);
-            $singularTarget = Inflector::singularize($pluralTarget);
+            return $copy;
+          };
 
-            if(!empty($copy[$singularSource])) {
-              $copy[$singularTarget] = $copy[$singularSource];
-              unset($copy[$singularSource]);
-            }
-          }
+          $copy = $fn2($copy, TableUtilities::normalizeAssociationArray($related), $targetDataSource);
         }
 
         $query = $query->contain($targetRelated);
@@ -510,27 +568,45 @@ class CloneCommand extends BaseCommand {
 
       if($targetDataSource != 'default' && !empty($related)) {
         // We need to rekey the related models, and we need to check both singular (hasOne)
-        // and plural (hasMany).
+        // and plural (hasMany). This is similar to $fn2 above, but we operate on an entity
+        // rather than an array here.
 
-        foreach($related as $r) {
-          // eg: http_servers
-          $pluralSource = Inflector::underscore($r);
-          // eg: remote_http_servers
-          $pluralTarget = $targetDataSource . "_" . $pluralSource;
+        $fn3 = function($clone, $related, $targetDataSource) use(&$fn2) {
+          // Because $related is passed in normalized, we can expect it to always
+          // be in $model => [ $associated ] notation.
 
-          if(!empty($clone->$pluralSource)) {
-            $clone->$pluralTarget = $clone->$pluralSource;
-            unset($clone->$pluralSource);
+          foreach($related as $rm => $ra) {
+            // eg: http_servers
+            $pluralSource = Inflector::underscore($rm);
+            // eg: remote_http_servers
+            $pluralTarget = $targetDataSource . "_" . $pluralSource;
+
+            if(!empty($clone->$pluralSource)) {
+              $clone->$pluralTarget = $clone->$pluralSource;
+              unset($clone->$pluralSource);
+
+              if(!empty($ra)) {
+                $clone->$pluralTarget = $fn3($clone->pluralTarget, $ra, $targetDataSource);
+              }
+            }
+
+            $singularSource = Inflector::singularize($pluralSource);
+            $singularTarget = Inflector::singularize($pluralTarget);
+
+            if(!empty($clone->$singularSource)) {
+              $clone->$singularTarget = $clone->$singularSource;
+              unset($clone->$singularSource);
+
+              if(!empty($ra)) {
+                $clone->$singularTarget = $fn3($clone->singularTarget, $ra, $targetDataSource);
+              }
+            }
           }
 
-          $singularSource = Inflector::singularize($pluralSource);
-          $singularTarget = Inflector::singularize($pluralTarget);
+          return $clone;
+        };
 
-          if(!empty($clone->$singularSource)) {
-            $clone->$singularTarget = $clone->$singularSource;
-            unset($clone->$singularSource);
-          }
-        }
+        $clone = $fn3($clone, TableUtilities::normalizeAssociationArray($related), $targetDataSource);
       }
       
       // Since we're managing the entity, we can skip the UUID duplication check

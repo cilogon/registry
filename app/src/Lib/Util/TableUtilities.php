@@ -62,14 +62,24 @@ class TableUtilities {
     }
 
     // Start with the prefix (eg: "Remote")
-    $modelName = Inflector::camelize($connectionName);
+    $prefix = Inflector::camelize($connectionName);
+    $modelName = $prefix;
+    $pluginName = null;
 
     if(str_contains($tableName, '.')) {
-      // now (eg) SqlServers
+      // (eg) SqlServers
       $modelName .= StringUtilities::PluginModel($tableName);
+      $pluginName = StringUtilities::PluginPlugin($tableName);
     } else {
-      // eg, "People" or "CoreServer.SqlServers"
+      // eg, "People"
       $modelName .= $tableName;
+    }
+
+    // In order to prevent infinite recursion, first see if we have the requested table already
+    $Locator = TableRegistry::getTableLocator();
+    
+    if($Locator->exists($modelName)) {
+      return $Locator->get($modelName);
     }
 
     $mergedOptions = $options;
@@ -78,7 +88,63 @@ class TableUtilities {
     $mergedOptions['className'] = $tableName;
     $mergedOptions['connectionName'] = $connectionName;
 
-    return self::getTableFromRegistry($modelName, $mergedOptions);
+    $m = self::getTableFromRegistry($modelName, $mergedOptions);
+
+    // Relabel associations with $prefix. Some will already be correctly set up, in particular
+    // dynamic plugin assocations created via PluggableModelTrait::setPluginRelations, so we
+    // check for and skip those. (We're actually doing something similar to that code, here.)
+
+    $assns = $m->associations();
+
+    foreach($assns as $a) {
+      // Each association will have the requested table ($tableName) as its source side,
+      // so we just need to check that the target is also using $connectionName.
+
+      $target = $a->getTarget();
+
+      if($target->getConnection()->configName() != $connectionName) {
+        // Association type: BelongsTo, HasMany, HasOne; we lowercase the initial letter
+        // to match the Table function name.
+        $r = new \ReflectionClass($a);
+        $aType = Inflector::variable($r->getShortName());
+
+        // The (new) prefixed alias (eg: RemoteIdentifiers)
+        $targetAlias = $prefix . $target->getAlias();
+
+        // The class name we are trying to create. We need to handle plugins here.
+        // If $pluginName is set, we'll assume HasMany and HasOne relations are within
+        // the same plugin.
+        $className = $target->getAlias();
+
+        if($pluginName && ($aType == 'hasMany' || $aType == 'hasOne')) {
+          $className = $pluginName . "." . $className;
+        }
+
+        // We create a new association for the requested connection name.
+        // Cake doesn't provide a mechanism to drop the old association, so we just ignore it.
+
+        // Don't recurse here!
+        $aTargetTable = self::getTableFromRegistry(
+          alias: $targetAlias,
+          options: [ 
+            'alias' => $targetAlias,
+            'className' => $className,
+            'connectionName' => $connectionName
+          ]
+        );
+
+        if(!$aTargetTable->hasAssociation($targetAlias)) {
+          $m->$aType($targetAlias)
+            ->setClassName($target->getAlias())
+            ->setForeignKey(StringUtilities::tableToForeignKey($target))
+            ->setCascadeCallbacks(true)
+            ->setTarget($aTargetTable);
+            // Unlike PluggableTrait we don't setDependent(), it's not clear if we need to...
+        }
+      }
+    }
+
+    return $m;
   }
 
   /**

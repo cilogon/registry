@@ -307,6 +307,13 @@ trait TableMetaTrait {
     foreach($OriginalTable->associations()->getByType(['hasOne', 'hasMany']) as $rassn) {
       // We use the property name to find the sub-entity
       $property = $rassn->getProperty();
+      $tproperty = $property;
+
+      if($dataSource != 'default') {
+        // The target property is prefixed with the datasource name
+
+        $tproperty = $dataSource . "_" . $property;
+      }
 
       if(!empty($original->$property)) {
         // We have a non-empty related entity, eg $server->match_sever
@@ -320,7 +327,7 @@ trait TableMetaTrait {
 
           foreach($original->$property as $rorig) {
             // Walk the clones until we find a match
-            foreach($clone->$property as $rclone) {
+            foreach($clone->$tproperty as $rclone) {
               // $rclone might be an array or it might be an entity. When Cake marshals
               // an array into an entity, it sometimes leaves subrelations as arrays
               // apparently at least in some cases those provided by plugins since it
@@ -357,13 +364,13 @@ trait TableMetaTrait {
             }
           }
 
-          $clone->$property = $fixed;
+          $clone->$tproperty = $fixed;
         } else {
           // hasOne
 
-          $clone->$property = $this->fixCloneForeignKeys(
+          $clone->$tproperty = $this->fixCloneForeignKeys(
             $original->$property,
-            $clone->$property,
+            $clone->$tproperty,
             $targetCoId,
             $dataSource
           );

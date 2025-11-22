@@ -116,6 +116,27 @@ trait PluggableModelTrait {
                       'status'  => SuspendableStatusEnum::Active
                     ])
                     ->firstOrFail();
+      
+      // While we're here, we instantiate RemoteModel aliases for each of the plugin
+      // relations (recursively) so Cake's TableLocator can find the correctly instantiated
+      // model (attached to the remote data source) at save(). (For further discussion, see
+      // the comments in CloneCommand::execute().) We don't actually need the Table
+      // objects here, we just want to make sure the TableRegistry is correctly set up.
+      
+      $related = TableUtilities::normalizeAssociationArray($this->getCloneRelations());
+
+      $fn = function($related, $targetDataSource, $pluginName) use (&$fn) {
+        foreach($related as $rm => $ra) {
+          TableUtilities::getTableWithDataSource(
+            tableName: $pluginName.".".$rm,
+            connectionName: $targetDataSource
+          );
+
+          $fn($ra, $targetDataSource, $pluginName);
+        }
+      };
+
+      $fn($related, $targetDataSource, $pluginName);
     }
   }
 
@@ -260,7 +281,6 @@ trait PluggableModelTrait {
       tableName: "Plugins",
       connectionName: $datasource
     );
-
 
     $models = $Plugins->getActivePluginModels($this->getPluggableModelType());
 
