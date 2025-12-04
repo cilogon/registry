@@ -157,7 +157,7 @@ class PasswordsTable extends Table {
       // Enabling SSHA requires PHP 7 for random_bytes.
 
       // We could use something like https://multiformats.io/multihash, but the
-      // password_type column basically accomplishes the same thing.
+      // type column basically accomplishes the same thing.
 
       $pdata = null;
 
@@ -169,7 +169,7 @@ class PasswordsTable extends Table {
           'password_authenticator_id' => $data['password_authenticator_id'],
           'person_id'                 => $personId,
           'password'                  => password_hash($data['password'], PASSWORD_DEFAULT),
-          'password_type'             => PasswordEncodingEnum::Crypt
+          'type'                      => PasswordEncodingEnum::Crypt
         ]);
         
         $this->saveOrFail($pdata);
@@ -187,7 +187,7 @@ class PasswordsTable extends Table {
           'password_authenticator_id' => $data['password_authenticator_id'],
           'person_id'                 => $personId,
           'password'                  => $shapwd,
-          'password_type'             => PasswordEncodingEnum::SSHA
+          'type'                      => PasswordEncodingEnum::SSHA
         ]);
         
         $this->saveOrFail($pdata);
@@ -201,7 +201,7 @@ class PasswordsTable extends Table {
           'password_authenticator_id' => $data['password_authenticator_id'],
           'person_id'                 => $personId,
           'password'                  => $data['password'],
-          'password_type'             => PasswordEncodingEnum::Plain
+          'type'                      => PasswordEncodingEnum::Plain
         ]);
         
         $this->saveOrFail($pdata);
@@ -288,7 +288,7 @@ class PasswordsTable extends Table {
                 ])
                 ->first();
 
-    // We don't know which password_type we have, but they should all have the
+    // We don't know which password type we have, but they should all have the
     // same mod time
 
     if(!empty($pwd->modified)) {

@@ -387,6 +387,68 @@ class SqlProvisionersTable extends Table {
   }
   
   /**
+   * Obtain status information for the requested provisioned subject.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  ProvisioningTarget $cfg      Provisioning Target configuration
+   * @param  int                $groupId  Group ID to retrieve status for
+   * @param  int                $personId Person ID to retrieve status for
+   * @return array                        Array of status information: status, comment, timestamp
+   */
+
+  public function status(
+    \App\Model\Entity\ProvisioningTarget $cfg,
+    ?int $groupId,
+    ?int $personId
+  ): array {
+    $ret = [
+      'status'    => ProvisioningStatusEnum::NotProvisioned,
+      'comment'   => __d('enumeration', 'ProvisioningStatusEnum.N'),
+      'timestamp' => null
+    ];
+
+    // We just look for the primary in the appropriate table.
+
+    if($personId) {
+      $mconfig = $this->primaryModels['People'];
+      $id = $personId;
+    } else {
+      $mconfig = $this->primaryModels['Groups'];
+      $id = $groupId;
+    }
+
+    // We use the same cxnLabel logic as provision().
+    $cxnLabel = "targetdb" . $cfg->sql_provisioner->id;
+
+    $this->Servers->SqlServers->connect($cfg->sql_provisioner->server_id, $cxnLabel);
+
+    $options = [
+      'table'       => $cfg->sql_provisioner->table_prefix . $mconfig['table'],
+      'alias'       => $mconfig['name'] . $cfg->sql_provisioner->id,
+      'connection'  => ConnectionManager::get($cxnLabel)
+    ];
+
+    $SpTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
+
+    try {
+      $curEntity = $SpTable->get($id);
+
+      $ret['status'] = ProvisioningStatusEnum::Provisioned;
+      $ret['comment'] = __d('enumeration', 'ProvisioningStatusEnum.P');
+      $ret['timestamp'] = $curEntity->modified;
+    }
+    catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
+      // Record not found, the default $ret will suffice
+    }
+    catch(\Exception $e) {
+      $ret['status'] = ProvisioningStatusEnum::Unknown;
+      $ret['comment'] = $e->getMessage();
+    }
+
+    return $ret;
+  }
+
+  /**
    * Sync an entity to the target database schema.
    * 
    * @since  COmanage Registry v5.0.0

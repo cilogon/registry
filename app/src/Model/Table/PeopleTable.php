@@ -33,13 +33,17 @@ use App\Model\Entity\Person;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
+use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
+use \App\Lib\Enum\AuthenticatorStatusEnum;
 use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Util\PaginatedSqlIterator;
+use \App\Lib\Util\StringUtilities;
 
 class PeopleTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -584,6 +588,57 @@ class PeopleTable extends Table {
       }
 
       $ret['data']->identifiers = $identifiers;
+
+      // Pull the set of available Authenticator Plugins and query them
+      // for additional attributes to add to the provisioning data.
+
+      $Authenticators = TableRegistry::getTableLocator()->get('Authenticators');
+
+      $authenticators = $Authenticators->find()
+                                       ->where([
+                                        'co_id' => $ret['data']->co_id,
+                                        'status' => SuspendableStatusEnum::Active
+                                       ])
+                                       // Plugins expect their configuration as part of
+                                       // the status call
+                                       ->contain($Authenticators->getPluginRelations())
+                                       ->all();
+
+      foreach($authenticators as $authenticator) {
+        // Start with the Authenticator Status for this Authenticator for this Person.
+        // Only Authenticators in Active status are eligible for provisioning.
+
+        $status = $Authenticators->AuthenticatorStatuses->getForPerson($authenticator, $id);
+
+        if($status->status == AuthenticatorStatusEnum::Active) {
+          // Now ask the Plugin for the Provisioning data. Note a given Plugin may be
+          // instantiated more than once, in which case we'll call marshallProvisioningData
+          // more than once (with different configuration information). We'll need to
+          // merge the results together.
+
+          $APlugin = TableRegistry::getTableLocator()->get($authenticator->plugin);
+
+          // We expect an array of entities rather than a ResultSet (which would be
+          // easily obtainable by a find()) in order to give Plugins more flexibility
+          // in how they assemble the records.
+
+          $entityData = $APlugin->marshalProvisioningData($authenticator, $id);
+
+          // Determine the entity name in order to populate the provisiosing data.
+          // We can calculate this because (unlike other Plugin types) there are
+          // naming conventions for Authenticators.
+
+          $entityKey = Inflector::tableize(StringUtilities::PluginModel($Authenticators->authenticatorEntityName($authenticator->plugin)));
+
+          if(!empty($ret['data']->$entityKey)) {
+            // We already have data from a previous instantiation of the same plugin,
+            // merge the results together
+            $ret['data']->$entityKey = arary_merge($ret['data']->$entityKey, $entityData);
+          } else {
+            $ret['data']->$entityKey = $entityData;
+          }
+        }
+      }
     } else {
       $ret['eligibility'] = ProvisioningEligibilityEnum::Ineligible;
       // For Ineligible records, we remove the items that may be used for eligibilities,

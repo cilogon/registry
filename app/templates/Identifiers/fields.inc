@@ -50,6 +50,8 @@ if($vv_action == 'edit' || $vv_action == 'view') {
   $fields['source'] = [
     'entity' => $vv_obj
   ];
+
+  $fields[] = 'provisioning_target_id';
 }
 
 // Top Links

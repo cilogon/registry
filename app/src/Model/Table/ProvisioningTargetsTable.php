@@ -38,6 +38,7 @@ use Cake\Validation\Validator;
 use App\Lib\Enum\ProvisionerModeEnum;
 use App\Lib\Enum\ProvisioningContextEnum;
 use App\Lib\Enum\ProvisioningStatusEnum;
+use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\StringUtilities;
 
 class ProvisioningTargetsTable extends Table {
@@ -230,6 +231,43 @@ class ProvisioningTargetsTable extends Table {
           subjectModel: $provisionedModel,
           subjectId: $data->id
         );
+
+        if(!empty($result['identifier']) && in_array($provisionedModel, ['People', 'Groups'])) {
+          $this->llog('trace', "Obtained Provisioning Key " . $result['identifier'] . " for $pluginModel", $t->id);
+
+          // Upsert the identifier
+          $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+          $typeId = $Identifiers->Types->getTypeId(
+            coId: $data->co_id,
+            attribute: 'Identifiers.type',
+            // Although we now call these "Provisioning Keys", we reuse the database value from v4
+            value: 'provisioningtarget'
+          );
+
+          $pkey = [
+            'type_id' => $typeId,
+            'identifier' => $result['identifier'],
+            'status' => SuspendableStatusEnum::Active,
+            'provisioning_target_id' => $t->id,
+            'login' => false,
+            'frozen' => false
+          ];
+
+          $whereClause = [
+            'type_id' => $typeId
+          ];
+
+          if($provisionedModel == 'Group') {
+            $pkey['group_id'] = $data->id;
+            $whereClause['group_id'] = $data->id;
+          } else {
+            $pkey['person_id'] = $data->id;
+            $whereClause['person_id'] = $data->id;
+          }
+
+          $Identifiers->upsertOrFail($pkey, $whereClause);
+        }
       }
       catch(\Exception $e) {
         $this->llog('error', "Provisioning failure: " . $e->getMessage());
@@ -264,19 +302,59 @@ class ProvisioningTargetsTable extends Table {
                       'ProvisioningTargets.co_id'      => $coId,
                       'ProvisioningTargets.status <>'  => ProvisionerModeEnum::Disabled
                     ])
+                    ->contain($this->getPluginRelations())
                     ->all();
 
     if(!empty($targets)) {
       foreach($targets as $t) {
         // For each target, get the status of the target for the requested subject.
+        // We'll also look for a Provisioning Key for the target.
+
+        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+        $typeId = $Identifiers->Types->getTypeId(
+          coId: $coId,
+          attribute: 'Identifiers.type',
+          // Although we now call these "Provisioning Keys", we reuse the database value from v4
+          value: 'provisioningtarget'
+        );
+
+        $targetField = $groupId ? 'group_id' : 'person_id';
+        $targetId = $groupId ?? $personId;
+
+        $pkey = $Identifiers->find()
+                            ->where([
+                              'type_id' => $typeId,
+                              'provisioning_target_id' => $t->id,
+                              $targetField => $targetId,
+                              'status' => SuspendableStatusEnum::Active
+                            ])
+                            ->first();
+
         // If the plugin implements a status() function we'll call it, otherwise
         // we'll get the status from ProvisioningHistory.
 
-        $pluginModel = StringUtilities::pluginModel($t->plugin);
+        $PluginModel = TableRegistry::getTableLocator()->get($t->plugin);
 
-        if(method_exists($this->$pluginModel, 'status')) {
-          // XXX define interface and call (implement with SqlProvisioner)
-          throw new \RuntimeException('NOT IMPLEMENTED');
+        if(method_exists($PluginModel, 'status')) {
+          try {
+            $status = $PluginModel->status(cfg: $t, groupId: $groupId, personId: $personId);
+            
+            $ret[] = [
+              'target'      => $t,
+              'status'      => $status['status'],
+              'comment'     => $status['comment'],
+              'timestamp'   => $status['timestamp'],
+              'identifier'  => $pkey ? $pkey->identifier : null
+            ];
+          }
+          catch(\Exception $e) {
+            $ret[] = [
+              'target'      => $t,
+              'status'      => ProvisioningStatusEnum::Unknown,
+              'comment'     => $e->getMessage()
+            ];
+          }
         } else {
           $subjectFK = null;
           $subjectID = null;
@@ -304,8 +382,7 @@ class ProvisioningTargetsTable extends Table {
               'target'      => $t,
               'status'      => $rec->status,
               'comment'     => $rec->comment,
-              // XXX where does identifier come from?
-              //'identifier'  => '?',
+              'identifier'  => $pkey ? $pkey->identifier : null,
               'timestamp'   => $rec->created
             ];
           } else {

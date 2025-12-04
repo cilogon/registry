@@ -60,6 +60,8 @@ return array(
     'League\\Container\\' => array($vendorDir . '/league/container/src'),
     'Laminas\\HttpHandlerRunner\\' => array($vendorDir . '/laminas/laminas-httphandlerrunner/src'),
     'Laminas\\Diactoros\\' => array($vendorDir . '/laminas/laminas-diactoros/src'),
+    'KerberosConnector\\Test\\' => array($baseDir . '/availableplugins/KerberosConnector/tests'),
+    'KerberosConnector\\' => array($baseDir . '/availableplugins/KerberosConnector/src'),
     'JsonSchema\\' => array($vendorDir . '/justinrainbow/json-schema/src/JsonSchema'),
     'Jasny\\Twig\\' => array($vendorDir . '/jasny/twig-extensions/src'),
     'FileConnector\\Test\\' => array($baseDir . '/availableplugins/FileConnector/tests'),

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry SSH Key Authenticators Table
+ * COmanage Registry Kerberos Servers Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,24 +27,22 @@
 
 declare(strict_types=1);
 
-namespace SshKeyAuthenticator\Model\Table;
+namespace KerberosConnector\Model\Table;
 
+use Cake\Core\Plugin;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use \App\Lib\Enum\SuspendableStatusEnum;
 
-class SshKeyAuthenticatorsTable extends Table {
-  use \App\Lib\Traits\AutoViewVarsTrait;
+class KerberosServersTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
-  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-
-  // Do we support multiple Authenticators attached to this configuration?
-  public $multiple = true;
 
   /**
    * Perform Cake Model initialization.
@@ -64,24 +62,12 @@ class SshKeyAuthenticatorsTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
 
     // Define associations
-    $this->belongsTo('Authenticators');
+    $this->belongsTo('Servers');
 
-    $this->hasMany('SshKeyAuthenticator.SshKeys')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
-    
-    $this->setDisplayField('id');
+    $this->setDisplayField('hostname');
 
-    $this->setPrimaryLink('authenticator_id');
+    $this->setPrimaryLink('server_id');
     $this->setRequiresCO(true);
-
-    $this->setEditContains([
-      'Authenticators',
-    ]);
-
-    $this->setViewContains([
-      'Authenticators',
-    ]);
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
@@ -99,41 +85,49 @@ class SshKeyAuthenticatorsTable extends Table {
   }
 
   /**
-   * Table specific logic to generate a display field.
+   * Establish a connection to the specified Kerberos server.
    *
    * @since  COmanage Registry v5.2.0
-   * @param \SshKeyAuthenticator\Model\Entity\SshKeyAuthenticator $entity Entity to generate display field for
-   * @return string         Display field
-   */
-  public function generateDisplayField(\SshKeyAuthenticator\Model\Entity\SshKeyAuthenticator $entity): string {
-    return $entity->authenticator->description;
-  }
-
-  /**
-   * Assemble Authenticator data for provisioning.
-   * 
-   * @since  COmanage Registry v5.2.0
-   * @param  Authenticator  $cfg      Authenticator Configuration
-   * @param  int            $personId Person ID
-   * @return array                    Array of SshKey entities
+   * @param  int    $serverId Server ID (NOT KerberosServer ID)
+   * @param  bool   $admin    If true, establish a kadmin connetion using the Admin Principal and Keytab
+   * @return mixed            KADM5 object if $admin is true
+   * @throws Exception
    */
 
-  public function marshalProvisioningData(
-    \App\Model\Entity\Authenticator $cfg,
-    int $personId
-  ): array {
-    // Retrieve any Passwords associated with this Person and the requested configuration.
-    // We'll include all available Password types (encodings) since we don't know which types
-    // any specific Provisioner will be interested in.
+  public function connect(int $serverId, bool $admin): \KADM5 {
+    // Pull our configuration via the parent Server object.
+    $server = $this->Servers->get($serverId, contain: ['KerberosServers']);
 
-    $sshKeys = $this->SshKeyis->find()
-                              ->where([
-                                'SshKeys.person_id' => $personId,
-                                'SshKeys.ssh_key_authenticator_id' => $cfg->ssh_key_authenticator->id
-                              ])
-                              ->all();
-    
-    return $sshKeys->toArray();
+    if($server->status != SuspendableStatusEnum::Active) {
+      throw new \InvalidArgumentException(__d('error', 'inactive', [__d('controller', 'Servers', [1]), $serverId]));
+    }
+
+    if(empty($server->kerberos_server->admin_principal)
+       || empty($server->kerberos_server->keytab_path)) {
+      throw new \InvalidArgumentException(__d('kerberos_connector', 'error.KerberosServers.admin.cfg'));
+    }
+
+    // If we omit this configuration, the local krb5.conf values will be used,
+    // but that would be confusing so we require the settings and check for them above.
+    $config = [
+      'realm' => $server->kerberos_server->realm,
+      'admin_server' => $server->kerberos_server->hostname
+    ];
+
+    if(!empty($server->kerberos_server->port) && (int)$server->kerberos_server->port > 0) {
+      $config['admin_port'] = $server->kerberos_server->port;
+    }
+
+    if(!is_readable($server->kerberos_server->keytab_path)) {
+      throw new \InvalidArgumentException(__d('error', 'file', [$server->kerberos_server->keytab_path]));
+    }
+
+    return new \KADM5(
+      principal: $server->kerberos_server->admin_principal,
+      credentials: $server->kerberos_server->keytab_path,
+      use_keytab: true,
+      config: $config
+    );
   }
 
   /**
@@ -147,10 +141,23 @@ class SshKeyAuthenticatorsTable extends Table {
   public function validationDefault(Validator $validator): Validator {
     $schema = $this->getSchema();
 
-    $validator->add('authenticator_id', [
+    $validator->add('server_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('authenticator_id');
+    $validator->notEmptyString('server_id');
+    
+    $this->registerStringValidation($validator, $schema, 'hostname', true);
+
+    $validator->add('port', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('port');
+
+    $this->registerStringValidation($validator, $schema, 'realm', true);
+    
+    $this->registerStringValidation($validator, $schema, 'admin_principal', false);
+
+    $this->registerStringValidation($validator, $schema, 'keytab_path', false);
     
     return $validator;
   }

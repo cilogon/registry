@@ -126,6 +126,10 @@ class IdentifiersTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'TemplateableStatusEnum'
+      ],
+      'provisioningTargets' => [
+        'type' => 'select',
+        'model' => 'ProvisioningTargets'
       ]
     ]);
     

@@ -1,0 +1,96 @@
+# COmanage Registry Localizations (kerberos_connector domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry-plugins
+# @since         COmanage Registry v5.2.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+msgid "controller.KerberosServers"
+msgstr "{0,plural,=1{Kerberos Server} other{Kerberos Servers}}"
+
+msgid "error.KerberosServers.admin.cfg"
+msgstr "Kerberos Server configuration does not have admin principal or keytab"
+
+msgid "error.principal.identifier"
+msgstr "No Identifier of configured type found, unable to construct principal"
+
+msgid "field.admin_principal"
+msgstr "Admin Principal"
+
+msgid "field.admin_principal.desc"
+msgstr "The admin principal to bind to the KDC as, required for admin operations only"
+
+msgid "field.authenticator_id"
+msgstr "Password Authenticator"
+
+msgid "field.authenticator_id.desc"
+msgstr "The Password Authenticator whose value to use to provision the Kerberos Server."
+
+msgid "field.keytab_path"
+msgstr "Keytab Path"
+
+msgid "field.keytab_path.desc"
+msgstr "The filesystem path to the keytab file holding credentials for the admin principal, required for admin operations only"
+
+msgid "field.realm"
+msgstr "Kerberos Realm"
+
+msgid "field.realm.desc"
+msgstr "The Realm is case sensitive"
+
+msgid "field.server_id"
+msgstr "Kerberos Server"
+
+msgid "field.server_id.desc"
+msgstr "The Kerberos Server must be configured with an Admin Principal and Keytab Path."
+
+msgid "field.type_id"
+msgstr "Principal Identifier Type"
+
+msgid "field.type_id.desc"
+msgstr "The Identifier Type used to construct the subject Principal. The Identifier value should not include the Kerberos Realm."
+
+msgid "result.created"
+msgstr "Created new principal {0}"
+
+msgid "result.never"
+msgstr "Never"
+
+msgid "result.notprov"
+msgstr "Principal {0} does not exist"
+
+msgid "result.active"
+msgstr "Principal active (expires: {0}), password expires: {1}"
+
+msgid "result.expired"
+msgstr "Principal expired {0}, password expires: {1}"
+
+msgid "result.locked"
+msgstr "Principal locked (expires: {0}, password expires {1})"
+
+msgid "result.locked-p"
+msgstr "Principal {0} is locked"
+
+msgid "result.pwexpired"
+# Note we swap the rendering order to make it more obvious, but the _parameter_ order is unchanged
+msgstr "Password expired {1}, Principal active (expires: {0})"
+
+msgid "result.synced"
+msgstr "Synced existing principal {0}"

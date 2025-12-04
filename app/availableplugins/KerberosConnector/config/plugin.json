@@ -1,0 +1,43 @@
+{
+  "types": {
+    "provisioning_target": [
+      "KerberosProvisioners"
+    ],
+    "server": [
+      "KerberosServers"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "kerberos_servers": {
+        "columns": {
+          "id": {},
+          "server_id": {},
+          "hostname": { "type": "string", "size": 256 },
+          "port": { "type": "integer" },
+          "realm": { "type": "string", "size": 256 },
+          "admin_principal": { "type": "string", "size": 256 },
+          "keytab_path": { "type": "string", "size": 256 }
+        },
+        "indexes": {
+          "kerberos_servers_i1": { "columns": [ "server_id" ]}
+        }
+      },
+      "kerberos_provisioners": {
+        "columns": {
+          "id": {},
+          "provisioning_target_id": {},
+          "server_id": { "notnull": false },
+          "type_id": { "notnull": false },
+          "authenticator_id": { "notnull": false }
+        },
+        "indexes": {
+          "kerberos_provisioners_i1": { "columns": [ "provisioning_target_id" ]},
+          "kerberos_provisioners_i2": { "columns": [ "server_id" ]},
+          "kerberos_provisioners_i3": { "columns": [ "type_id" ]},
+          "kerberos_provisioners_i4": { "columns": [ "authenticator_id" ]}
+        }
+      }
+    }
+  }
+}

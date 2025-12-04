@@ -166,6 +166,16 @@ class FieldHelper extends Helper {
       $key = (!$core ? 'field.' : '') . "$modelName.$fieldName.desc";
       $desc = __d(($core ? 'field' : $pluginDomain), $key);
 
+      if($desc === $key) {
+        $key = (!$core ? 'field.' : '') . "$fieldName.desc";
+        $desc = __d(($core ? 'field' : $pluginDomain), $key);
+
+        if($key !== $desc) {
+          // If we found a description, break the loop
+          break;
+        }
+      }
+
       // If the description is the literal key we just generated, there is no description
       if($desc === $key) {
         $desc = null;

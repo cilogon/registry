@@ -38,6 +38,7 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use PasswordAuthenticator\Lib\Enum\PasswordEncodingEnum;
 use PasswordAuthenticator\Lib\Enum\PasswordSourceEnum;
+use App\Lib\Enum\SuspendableStatusEnum;
 
 class PasswordAuthenticatorsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -118,6 +119,33 @@ class PasswordAuthenticatorsTable extends Table {
     if(!empty($data['source_mode']) && $data['source_mode'] == PasswordSourceEnum::SelfSelect) {
       $data['format_crypt_php'] = true;
     }
+  }
+
+  /**
+   * Assemble Authenticator data for provisioning.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Authenticator  $cfg      Authenticator Configuration
+   * @param  int            $personId Person ID
+   * @return array                    Array of Password entities
+   */
+
+  public function marshalProvisioningData(
+    \App\Model\Entity\Authenticator $cfg,
+    int $personId
+  ): array {
+    // Retrieve any Passwords associated with this Person and the requested configuration.
+    // We'll include all available Password types (encodings) since we don't know which types
+    // any specific Provisioner will be interested in.
+
+    $passwords = $this->Passwords->find()
+                                 ->where([
+                                  'Passwords.person_id' => $personId,
+                                  'Passwords.password_authenticator_id' => $cfg->password_authenticator->id
+                                 ])
+                                 ->all();
+    
+    return $passwords->toArray();
   }
 
   /**

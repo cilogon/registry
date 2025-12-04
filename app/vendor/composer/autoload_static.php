@@ -118,6 +118,11 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Laminas\\HttpHandlerRunner\\' => 26,
             'Laminas\\Diactoros\\' => 18,
         ),
+        'K' => 
+        array (
+            'KerberosConnector\\Test\\' => 23,
+            'KerberosConnector\\' => 18,
+        ),
         'J' => 
         array (
             'JsonSchema\\' => 11,
@@ -404,6 +409,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Laminas\\Diactoros\\' => 
         array (
             0 => __DIR__ . '/..' . '/laminas/laminas-diactoros/src',
+        ),
+        'KerberosConnector\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/KerberosConnector/tests',
+        ),
+        'KerberosConnector\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/availableplugins/KerberosConnector/src',
         ),
         'JsonSchema\\' => 
         array (
