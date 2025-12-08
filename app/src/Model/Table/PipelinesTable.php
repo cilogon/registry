@@ -1449,17 +1449,18 @@ class PipelinesTable extends Table {
                              'Identifiers.person_id IS NOT NULL',
                              'People.co_id' => $eis->co_id
                            ])
-                           ->contain(['People' => 'PrimaryName']) // XXX do we need PrimaryName?
+                           ->contain(['People' => 'PrimaryName'])
                            ->all();
     
     // We find all(), but really we should get back 0 or 1 records.
 
     if($matches->count() == 1) {
-      $person = $matches->first();
+      // We have an Identifier, but want to return the Person
+      $identifier = $matches->first();
 
-      $this->llog('trace', "Mapped Reference ID $referenceId to Person " . $person->id);
+      $this->llog('trace', "Mapped Reference ID $referenceId to Person " . $identifier->person->id);
 
-      return $person;
+      return $identifier->person;
     } elseif($matches->count() == 0) {
       $this->llog('trace', "No existing Person record found for Reference ID $referenceId");
       // No match

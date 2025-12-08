@@ -382,7 +382,7 @@ class JobsTable extends Table {
     // Make sure to skip any cached records, since a Job InProgress needs up to
     // date status to determine if it should stop.
 
-    $job = $this->get($id, ['cache' => false]);
+    $job = $this->get($id, cache: false);
 
     return $job->status == JobStatusEnum::Canceled;
   }
