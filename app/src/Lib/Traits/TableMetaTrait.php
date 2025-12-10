@@ -108,62 +108,73 @@ trait TableMetaTrait {
     // we need to handle the related plugin data specially.
 
     foreach($related as $k => $v) {
-      if(is_int($k)) {
-        // $v is the model name (EnrollmentFlowSteps)
-        // $m is the lowercased model name (enrollment_flow_steps)
-        $m = Inflector::tableize($v);
-        // $m1 is the singular version (enrollment_flow_step)
-        $m1 = Inflector::singularize($m);
-        // $t is the Table for $v
-        if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $v) {
-          // For pluggable models, get the plugin table from the entity configuration
-          $t = TableRegistry::getTableLocator()->get($entity->plugin);
-        } else {
-          if(!empty($entity->$m[0])) {
-            // hasMany Relation with at least one entity populated. Use the entity to get
-            // the appropriate table to make sure we handle plugins correctly.
-            $t = TableRegistry::getTableLocator()->get($entity->$m[0]->getSource());
+      try {
+        if(is_int($k)) {
+          // $v is the model name (EnrollmentFlowSteps)
+          // $m is the lowercased model name (enrollment_flow_steps)
+          $m = Inflector::tableize($v);
+          // $m1 is the singular version (enrollment_flow_step)
+          $m1 = Inflector::singularize($m);
+          // $t is the Table for $v
+          if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $v) {
+            // For pluggable models, get the plugin table from the entity configuration
+            $t = TableRegistry::getTableLocator()->get($entity->plugin);
           } else {
-            $t = TableRegistry::getTableLocator()->get($v);
+            if(!empty($entity->$m[0])) {
+              // hasMany Relation with at least one entity populated. Use the entity to get
+              // the appropriate table to make sure we handle plugins correctly.
+              $t = TableRegistry::getTableLocator()->get($entity->$m[0]->getSource());
+            } else {
+              $t = TableRegistry::getTableLocator()->get($v);
+            }
+          }
+
+          if(is_array($entity->$m)) {
+            // HasMany
+
+            foreach($entity->$m as $s) {
+              $ret[$m][] = $this->filterMetadataForCopy($t, $s);
+            }
+          } elseif(!empty($entity->$m1)) {
+            // HasOne
+
+            $ret[$m1] = $this->filterMetadataForCopy($t, $entity->$m1);
+          }
+        } elseif(is_array($v)) {
+          // $k is the model name (EnrollmentFlowSteps) and $v is an array of related models
+          // $m is the lowercased model name (enrollment_flow_steps)
+          $m = Inflector::tableize($k);
+          // $m1 is the singular version (enrollment_flow_step)
+          $m1 = Inflector::singularize($m);
+          // $t is the Table for $k
+
+          if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $k) {
+            // For pluggable models, get the plugin table from the entity configuration
+            $t = TableRegistry::getTableLocator()->get($entity->plugin);
+          } else {
+            $t = TableRegistry::getTableLocator()->get($k);
+          }
+
+          if(is_array($entity->$m)) {
+            // HasMany
+
+            foreach($entity->$m as $s) {
+              $ret[$m][] = $this->filterMetadataForCopy($t, $s, $v);
+            }
+          } elseif(!empty($entity->$m1)) {
+            // HasOne
+
+            $ret[$m1] = $this->filterMetadataForCopy($t, $entity->$m1, $v);
           }
         }
-
-        if(is_array($entity->$m)) {
-          // HasMany
-
-          foreach($entity->$m as $s) {
-            $ret[$m][] = $this->filterMetadataForCopy($t, $s);
-          }
-        } elseif(!empty($entity->$m1)) {
-          // HasOne
-
-          $ret[$m1] = $this->filterMetadataForCopy($t, $entity->$m1);
+      }
+      catch(\Exception $e) {
+        if(empty($entity->plugin)) {
+          throw $e;
         }
-      } elseif(is_array($v)) {
-        // $k is the model name (EnrollmentFlowSteps) and $v is an array of related models
-        // $m is the lowercased model name (enrollment_flow_steps)
-        $m = Inflector::tableize($k);
-        // $m1 is the singular version (enrollment_flow_step)
-        $m1 = Inflector::singularize($m);
-        // $t is the Table for $k
-        if(!empty($entity->plugin) && StringUtilities::pluginModel($entity->plugin) == $k) {
-          // For pluggable models, get the plugin table from the entity configuration
-          $t = TableRegistry::getTableLocator()->get($entity->plugin);
-        } else {
-          $t = TableRegistry::getTableLocator()->get($k);
-        }
-
-        if(is_array($entity->$m)) {
-          // HasMany
-
-          foreach($entity->$m as $s) {
-            $ret[$m][] = $this->filterMetadataForCopy($t, $s, $v);
-          }
-        } elseif(!empty($entity->$m1)) {
-          // HasOne
-
-          $ret[$m1] = $this->filterMetadataForCopy($t, $entity->$m1, $v);
-        }
+        // else this is probably a relation for a plugin that isn't configured for this pluggable
+        // model (eg $k = ApiSources where $entity->plugin = FileConnector.FileSources),
+        // so we just ignore the exception
       }
     }
 

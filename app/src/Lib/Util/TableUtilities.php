@@ -41,7 +41,7 @@ class TableUtilities {
    * will be the requested Table name (eg "People" for "People"). For any other connection,
    * the connection name will be CamelCased and prefixed to create the Table alias
    * (eg "RemotePeople" for "People"). For Plugins, the Plugin name will be removed and
-   * the Plugin model used as described (eg "RemoteWidgets" for "MyPlugin.Widgehs").
+   * the Plugin model used as described (eg "RemoteWidgets" for "MyPlugin.Widgets").
    * 
    * @since  COmanage Registry v5.2.0
    * @param  string $tableName      Table name, in the usual format (including Plugin.Models)
@@ -91,7 +91,7 @@ class TableUtilities {
     $m = self::getTableFromRegistry($modelName, $mergedOptions);
 
     // Relabel associations with $prefix. Some will already be correctly set up, in particular
-    // dynamic plugin assocations created via PluggableModelTrait::setPluginRelations, so we
+    // dynamic plugin associations created via PluggableModelTrait::setPluginRelations, so we
     // check for and skip those. (We're actually doing something similar to that code, here.)
 
     $assns = $m->associations();
@@ -108,13 +108,16 @@ class TableUtilities {
         $r = new \ReflectionClass($a);
         $aType = Inflector::variable($r->getShortName());
 
-        // The (new) prefixed alias (eg: RemoteIdentifiers)
+        // The alias for the target as defined in the associations, eg "Identifiers"
+        // or "PipelineMatchTypes", prefixed by the datasource alias (eg "RemoteIdentifiers"
+        // or "RemotePipelineMatchTypes").
         $targetAlias = $prefix . $target->getAlias();
 
-        // The class name we are trying to create. We need to handle plugins here.
+        // The class name we are trying to instantiate. We need to handle plugins here.
         // If $pluginName is set, we'll assume HasMany and HasOne relations are within
-        // the same plugin.
-        $className = $target->getAlias();
+        // the same plugin. This must be the underlying class name ("Identifiers" or "Types")
+        // so Cake can find it.
+        $className = Inflector::camelize($target->getTable());
 
         if($pluginName && ($aType == 'hasMany' || $aType == 'hasOne')) {
           $className = $pluginName . "." . $className;
@@ -135,7 +138,7 @@ class TableUtilities {
 
         if(!$aTargetTable->hasAssociation($targetAlias)) {
           $m->$aType($targetAlias)
-            ->setClassName($target->getAlias())
+            ->setClassName($className)
             ->setForeignKey(StringUtilities::tableToForeignKey($target))
             ->setCascadeCallbacks(true)
             ->setTarget($aTargetTable);

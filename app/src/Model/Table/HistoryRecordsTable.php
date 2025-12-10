@@ -61,7 +61,7 @@ class HistoryRecordsTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Artifact);
     
     // Define associations
-    $this->belongsTo('ApiUser')
+    $this->belongsTo('ApiUsers')
          ->setForeignKey('actor_api_user_id')
          ->setProperty('actor_api_user');
     $this->belongsTo('ActorPeople')

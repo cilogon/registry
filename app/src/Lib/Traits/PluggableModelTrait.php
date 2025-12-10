@@ -136,7 +136,16 @@ trait PluggableModelTrait {
         }
       };
 
-      $fn($related, $targetDataSource, $pluginName);
+      // getCloneRelations() will return all possible relations for all plugins for the
+      // current model (eg if $original is ExternalIdentitySource, we'll get back an
+      // array of all EIS plugins), but we only want to instantiate related models
+      // for $plugin.
+
+      $pluginModel = StringUtilities::pluginPlugin($original->plugin);
+
+      if(!empty($related[$pluginModel])) {
+        $fn($related[$pluginModel], $targetDataSource, $pluginName);
+      }
     }
   }
 

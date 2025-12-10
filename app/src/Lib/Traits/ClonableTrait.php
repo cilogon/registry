@@ -126,7 +126,7 @@ trait ClonableTrait {
       $originalParent = $SourceTable->get($original->parent_id);
 
       // We're the Target Table, query using the UUID we just found
-      $cloneParent = $this->getByUuid($originalParent->uuid, $originalParent->co_id);
+      $cloneParent = $this->getByUuid($originalParent->uuid, $clone->co_id);
 
       // Update the foreign key
       $clone->parent_id = $cloneParent->id;

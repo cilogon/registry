@@ -126,6 +126,12 @@ class CloneCommand extends BaseCommand {
    */
 
   public function execute(Arguments $args, ConsoleIo $io) {
+    // In general we don't want fallback classes (CFM-405) but they're particularly
+    // painful here (in debugging errors), and we can safely turn them off in a
+    // command line context.
+
+    TableRegistry::getTableLocator()->allowFallbackClass(false);
+
     $this->io = $io;
 
     // By default, the target database is the same as the source (ie: cloning from one
