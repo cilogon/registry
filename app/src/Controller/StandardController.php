@@ -686,7 +686,7 @@ class StandardController extends AppController {
     $this->set('vv_permission_set', $this->RegistryAuth->calculatePermissionsForResultSet($resultSet));
 
     // Default index view title is model name
-    [$title, , ] = StringUtilities::entityAndActionToTitle($resultSet, $modelsName, 'index');
+    [$title, , ] = StringUtilities::entityAndActionToTitle(null, $modelsName, 'index');
     $this->set('vv_title', $title);
     
     // Let the view render

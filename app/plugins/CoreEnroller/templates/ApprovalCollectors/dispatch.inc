@@ -63,7 +63,7 @@ $this->Field->enableFormEditMode();
     ]
   );
 
-  print $this->element('form/listItem', [
+  print $this->element('CoreEnroller.listItem', [
     'arguments' => [
       'fieldName' => 'comment',
       'fieldOptions' => [

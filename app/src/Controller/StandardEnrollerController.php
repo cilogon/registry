@@ -74,11 +74,45 @@ class StandardEnrollerController extends StandardPluginController {
 
     if(!empty($link->value)) {
       $currentTable = $this->getCurrentTable();
-      $efsTable = $currentTable->getAssociation('EnrollmentFlowSteps')->getTarget();
+      // Not all enroller plugin tables have a direct EnrollmentFlowSteps association
+      if (method_exists($currentTable, 'hasAssociation')
+        && $currentTable->hasAssociation('EnrollmentFlowSteps')) {
 
-      $this->set('vv_bc_parent_obj', $efsTable->get($link->value));
-      $this->set('vv_bc_parent_displayfield', $efsTable->getDisplayField());
-      $this->set('vv_bc_parent_primarykey', $efsTable->getPrimaryKey());
+        $efsTable = $currentTable->getAssociation('EnrollmentFlowSteps')->getTarget();
+
+        $this->set('vv_bc_parent_obj', $efsTable->get($link->value));
+        $this->set('vv_bc_parent_displayfield', $efsTable->getDisplayField());
+        $this->set('vv_bc_parent_primarykey', $efsTable->getPrimaryKey());
+      } else {
+        // Two-hop case: foreign key from $link (e.g. attribute_collector_id)
+        //   -> AttributeCollectors
+        //   -> EnrollmentFlowSteps
+        // Useful for deeply nested enrollment configuration objects.
+        if (!empty($link->attr)) {
+          // Derive the table class name from the foreign key name
+          $fkClassName = StringUtilities::foreignKeyToClassName($link->attr); // e.g. 'AttributeCollectors'
+
+          // Qualify with plugin if present
+          $tableAlias = !empty($link->plugin)
+            ? $link->plugin . '.' . $fkClassName         // e.g. 'CoreEnroller.AttributeCollectors'
+            : $fkClassName;
+
+          $attributeCollectorsTable = TableRegistry::getTableLocator()->get($tableAlias);
+
+          // Load the intermediate object (AttributeCollector, in your case)
+          $collector = $attributeCollectorsTable->get((int)$link->value);
+
+          // From the AttributeCollector, go up to the EnrollmentFlowStep
+          if (!empty($collector->enrollment_flow_step_id)) {
+            $efsTable = TableRegistry::getTableLocator()->get('EnrollmentFlowSteps');
+            $step = $efsTable->get((int)$collector->enrollment_flow_step_id);
+
+            $this->set('vv_bc_parent_obj', $step);
+            $this->set('vv_bc_parent_displayfield', $efsTable->getDisplayField());
+            $this->set('vv_bc_parent_primarykey', $efsTable->getPrimaryKey());
+          }
+        }
+      }
     }
 
     return parent::beforeRender($event);

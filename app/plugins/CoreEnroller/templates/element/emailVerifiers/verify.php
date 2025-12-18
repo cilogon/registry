@@ -72,7 +72,7 @@ print $this->Form->hidden('m', ['default' => $m]);
 
 print __d('core_enroller', 'information.EmailVerifiers.code_sent', [$vv_verify_address]);
 
-print $this->element('form/listItem', [
+print $this->element('CoreEnroller.listItem', [
   'arguments' => [
     'fieldName' => 'code',
     'fieldLabel' => __d('field', 'code'),

@@ -36,7 +36,7 @@ if($vv_action == 'dispatch') {
   // Make the Form fields editable
   $this->Field->enableFormEditMode();
 
-  print $this->element('form/listItem', [
+  print $this->element('CoreEnroller.listItem', [
     'arguments' => [
       'fieldName' => 'accepted',
       'fieldLabel' => __d('operation','accept.invitation'),

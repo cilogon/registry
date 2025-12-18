@@ -273,14 +273,10 @@ class AppController extends Controller {
    */
   public function getCurrentTable(): \Cake\ORM\Table
   {
-    /** @var string $modelsName */
     $modelsName = $this->getName();
+    $plugin = $this->getPlugin();
 
-    $alias = $this->getPlugin() !== null
-      ? $this->getPlugin() . '.' . $modelsName
-      : $modelsName;
-
-    return $this->fetchTable($alias);
+    return $this->fetchTable(StringUtilities::getQualifiedName($plugin, $modelsName));
   }
 
 

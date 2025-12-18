@@ -38,14 +38,11 @@ $modelTable = $this->Tab->getModelTableReference($modelsName);
 // For now, we just request the enrollee email. We're only called if
 // collect_enrollee_email is true, so we don't need to check it, though
 // if we ever add more fields to the start form we should.
-print $this->element('form/listItem', [
-  'arguments' => [
-    'fieldName' => 'enrollee_email',
-    'fieldOptions' => [
-      'required' => true
-    ],
+$fields = [
+  'enrollee_email' => [
+    'required' => true,
     'fieldType' => 'string'
   ]
-]);
+];
 
 // Any hidden fields??

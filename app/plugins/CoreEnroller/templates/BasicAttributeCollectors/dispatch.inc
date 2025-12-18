@@ -59,7 +59,7 @@ $this->Field->enableFormEditMode();
 </li>
   
 <?php
-  print $this->element('form/listItem', [
+  print $this->element('CoreEnroller.listItem', [
     'arguments' => [
       'fieldName' => 'mail',
       'fieldOptions' => [

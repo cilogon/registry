@@ -27,6 +27,11 @@
 
 declare(strict_types = 1);
 
+// Enrollment Flow Start has its own file of fields
+$fields = [];
+$modelsName = $this->getName();
+$templatePath = $vv_template_path ?? ROOT . DS . "templates" . DS . $modelsName;
+include($templatePath . DS . 'start.inc');
 ?>
   
 <div class="page-title-container">
@@ -38,8 +43,6 @@ declare(strict_types = 1);
 <?= $this->element('flash') // Flash messages ?>
 
 <?php
-// Enrollment Flow Start has its own file of fields
-$this->set('vv_fields_inc', 'start.inc');
 // Set form edit ability
 $this->set('vv_is_editable', true);
 
@@ -49,7 +52,7 @@ print $this->Form->create(null, [
   'type' => 'post',
 ]);
 // Form body
-print $this->element('form/unorderedList');
+print $this->element('form/unorderedList', ['vv_fields' => $fields]);
 // Close the Form
 print $this->Form->end();
 

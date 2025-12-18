@@ -204,6 +204,17 @@ class StringUtilities {
     // $classPath will be something like App\Model\Entity\Name, but we want to return "Names"
     $classPath = get_class($entity);
 
+    return self::classPathClassName($classPath);
+  }
+
+  /**
+   * Extracts and pluralizes the class name from a fully qualified class path.
+   *
+   * @param string $classPath Fully qualified class path (eg: App\Model\Entity\Name)
+   * @return string           Pluralized class name (eg: Names)
+   * @since  COmanage Registry v5.2.0
+   */
+  public static function classPathClassName(string $classPath): string {
     return Inflector::pluralize(substr($classPath, strrpos($classPath, '\\')+1));
   }
 
@@ -285,13 +296,15 @@ class StringUtilities {
       [$plugin, $modelsName] = explode('.', $modelPath, 2);
     }
 
-    if($entity == null && !empty($plugin)) {
-      $count = $action == 'index' ? 99 : 1;
-      return [__d($domain, "controller.$modelsName", [$count]), '', ''];
-    } elseif($entity === null) {
-      $count = $action == 'index' ? 99 : 1;
-      return [__d($domain, "{$modelPath}.{$action}", [$count]), '', ''];
+    // Index view → use the controller plural form (token 99 convention)
+    if($action === 'index') {
+      if(!empty($plugin)) {
+        $domain = StringUtilities::pluginToTextDomain($plugin);
+        return [__d($domain, "controller.$modelsName", [99]), '', ''];
     }
+      return [__d('controller', $modelsName, [99]), '', ''];
+    }
+
      // Base table and default message IDs for translation
     $linkTable      = TableRegistry::getTableLocator()->get($modelPath);
     $msgId          = "{$action}.a";               // eg: "edit.a"
@@ -308,23 +321,18 @@ class StringUtilities {
     // If the entity actually belongs to a different model than the provided $modelsName,
     // switch to that table and adjust the default message id pattern accordingly.
     // This is necessary for TAB oriented views
-    if(Inflector::singularize(self::entityToClassName($entity)) !== Inflector::singularize($modelsName)) {
+    if(
+      $entity !== null
+      && Inflector::singularize(self::entityToClassName($entity)) !== Inflector::singularize($modelsName)
+    ) {
       $linkTable  = TableRegistry::getTableLocator()->get(self::entityToClassName($entity));
       // If modelPath and action are equal, don’t concatenate (preserve legacy behavior)
       $msgId = $modelPath === $action ? $modelPath : "{$modelPath}.{$action}";
     }
 
-    // 2) No action → default to the controller label for the model (singular)
+    // No action → default to the controller label for the model (singular)
     if($action === null) {
       return [__d('controller', $modelsName), '', ''];
-    }
-
-    // 3) Index view → use the controller plural form (token 99 convention)
-    if($action === 'index') {
-      if(!empty($plugin)) {
-        return [__d($domain, "controller.$modelsName", [99]), '', ''];
-      }
-      return [__d('controller', $modelsName, [99]), '', ''];
     }
 
     // Add/Edit/View
@@ -338,7 +346,7 @@ class StringUtilities {
       $display = $entity->$field ?? null;
     }
 
-    // 6) Edit/View-like case for an existing entity with a usable display
+    // Edit/View-like case for an existing entity with a usable display
     // Title: translate with override key first; if not found, fall back to default key.
     // Super/Sub titles: set to the display (needed for External IDs in UI).
     if (
@@ -354,7 +362,7 @@ class StringUtilities {
       return [$title, $supertitle, $subtitle];
     }
 
-    // 7) Fallbacks:
+    // Fallbacks:
     // - New entities (no id),
     // - Add/Delete actions,
     // - Or we simply lack a display.
@@ -372,7 +380,7 @@ class StringUtilities {
    * @param string $domain Translation domain to use
    * @param string $overrideKey Primary translation key to try first
    * @param string $fallbackKey Fallback translation key if override not found
-   * @param string $value Value to substitute in translation
+   * @param string|int $value Value to substitute in translation
    * @return string            Translated string using either override or fallback key
    * @since  COmanage Registry v5.2.0
    */
@@ -415,6 +423,22 @@ class StringUtilities {
     return Inflector::underscore(Inflector::pluralize(substr($s, 0, strlen($s)-3)));
   }
 
+
+  /**
+   * Get the fully qualified name by combining plugin and name with a dot separator.
+   *
+   * @param string|null $plugin Plugin name, or null if no plugin
+   * @param string $name Base name to qualify
+   * @return string Qualified name in format "Plugin.Name" or just "Name" if no plugin
+   * @since COmanage Registry v5.2.0
+   */
+  public static function getQualifiedName(?string $plugin, string $name): string
+  {
+    return $plugin !== null && $plugin !== ''
+      ? $plugin . '.' . $name
+      : $name;
+  }
+
   /**
    * Localize a controller name, accounting for plugins.
    *
@@ -452,7 +476,7 @@ class StringUtilities {
     if (empty($plugin) || str_starts_with($modelPath, $plugin . '.')) {
       return $modelPath;
     }
-    return $plugin . '.' . $modelPath;
+    return self::getQualifiedName($plugin, $modelPath);;
   }
 
   /**
