@@ -407,7 +407,11 @@ class PeopleTable extends Table {
   
   public function generateDisplayField(Person $entity): string {
     if(empty($entity->primary_name)) {
-      throw new \InvalidArgumentException(__d('error', 'Names.primary_name'));
+      // Adding a new Person manually will generate an empty Person entity (with no Primary Name),
+      // which the Breadcrumbs logic (more specifically entityAndActionToTitle) will eventually
+      // pass here.
+
+      return __d('controller', 'People', [1]);
     }
     
     return $entity->primary_name->full_name;

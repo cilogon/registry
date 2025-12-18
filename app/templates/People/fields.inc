@@ -43,6 +43,7 @@ if($vv_action == 'add') {
   
   $fields['names.0.type_id'] = [
     'default' => $vv_default_name_type,
+    'fieldLabel' => __d('field', 'People.name.type_id'),
     'required' => true,
     'fieldType' => 'string'
   ];

@@ -848,6 +848,9 @@ msgstr "Subject (Group)"
 msgid "Notifications.subject_person_id"
 msgstr "Subject (Person)"
 
+msgid "People.name.type_id"
+msgstr "Name Type"
+
 msgid "Petitions.enrollee_email"
 msgstr "Enrollee Email Address"
 
