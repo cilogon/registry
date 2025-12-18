@@ -250,11 +250,16 @@ class RegistryAuthComponent extends Component
 
         $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
 
-        if($ApiUsers->getUserPrivilege($this->authenticatedUser) === true) {
+        $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
+        $apiUserCoId = $this->cache['api_user']['co_id'] ?? null;
+
+        if ($priv === true || ($apiUserCoId !== null && $priv === $apiUserCoId)) {
+          // Platform API user, or privileged API user for this CO:
+          // let the RecordNotFoundException bubble up.
           throw $e;
-        } else {
-          throw new UnauthorizedException(__d('error', 'auth.api.failed'));
         }
+
+        throw new UnauthorizedException(__d('error', 'auth.api.failed'));
       }
       catch(\Exception $e) {
         $this->llog('debug', $e->getMessage());
