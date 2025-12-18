@@ -47,6 +47,9 @@ if(isset($supportedAttributes['mveaModel'])) {
   $isRequiredFromValidationRule = !$modelTable->getValidator()->field($field)->isEmptyAllowed();
 }
 
+// Is the field required?
+$options['required'] = $isRequiredFromValidationRule;
+
 // Do we have a default value configured?
 // Either a value or an Environmental Variable,
 // Each default value is mutually exclusive to the rest. We do not have to worry about a conflict.
