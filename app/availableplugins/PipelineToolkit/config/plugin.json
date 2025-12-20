@@ -1,6 +1,6 @@
 {
   "types": {
-    "pipeline": [
+    "flange": [
       "IdentifierMappers",
       "PersonRoleMappers"
     ]
