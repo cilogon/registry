@@ -55,6 +55,19 @@ class Job extends Entity {
   }
   
   /**
+   * Determine if this entity is finished.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return bool         true if the entity is in a finished state, false otherwise
+   */
+
+  public function isFinished(): bool {
+    return in_array($this->status, [JobStatusEnum::Canceled,
+                                    JobStatusEnum::Complete,
+                                    JobStatusEnum::Failed]);
+  }
+
+  /**
    * Determine if this entity is Read Only.
    *
    * @since  COmanage Registry v5.0.0

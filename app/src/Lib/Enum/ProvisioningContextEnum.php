@@ -33,4 +33,5 @@ class ProvisioningContextEnum extends StandardEnum {
   const Automatic   = 'A';  // Triggered as a side effect, eg by StandardController
   const Enrollment  = 'E';  // Triggered during enrollment
   const Manual      = 'M';  // Triggered by request of an admin
+  const Queue       = 'Q';  // Triggered by ProvisionerJob processing the queue
 }

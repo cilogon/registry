@@ -57,11 +57,23 @@ msgstr "Queue runner {0} requesting assignment {1} for CO {2}"
 msgid "job.run.child.running"
 msgstr "Queue runner {0} processing job ID {1}"
 
+msgid "job.run.done.empty"
+msgstr "No jobs left in the queue, queue runner done processing CO {0}"
+
+msgid "job.run.done.max"
+msgstr "Queue runner reached maximum number of jobs ({0}), exiting"
+
 msgid "job.run.max"
 msgstr "Reached max queue runner count ({0}), waiting for one to exit"
 
 msgid "job.run.piddone"
 msgstr "Queue runner PID {0} completed"
+
+msgid "job.run.request"
+msgstr "Queue runner requesting assignment {0} for CO {1}"
+
+msgid "job.run.running"
+msgstr "Queue runner processing job ID {0}"
 
 msgid "job.run.start"
 msgstr "Launching queue runner {0} (of {1}) for CO {2}"

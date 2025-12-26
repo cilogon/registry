@@ -40,6 +40,7 @@ use App\Lib\Enum\ProvisioningContextEnum;
 use App\Lib\Enum\ProvisioningStatusEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\StringUtilities;
+use App\Model\Entity\Job;
 
 class ProvisioningTargetsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -89,7 +90,7 @@ class ProvisioningTargetsTable extends Table {
     
     $this->setPrimaryLink(['co_id', 'group_id', 'person_id']);
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['reprovision']);
+    $this->setAllowLookupPrimaryLink(['provision', 'reprovision']);
     $this->setAllowUnkeyedPrimaryLink(['status']);
 
     $this->setAutoViewVars([
@@ -113,6 +114,8 @@ class ProvisioningTargetsTable extends Table {
         'configure' =>    ['platformAdmin', 'coAdmin'],
         'delete' =>       ['platformAdmin', 'coAdmin'],
         'edit' =>         ['platformAdmin', 'coAdmin'],
+        // Used by ApiV2Controller
+        'provision' =>    ['platformAdmin', 'coAdmin'],
         'reprovision' =>  ['platformAdmin', 'coAdmin'],
         'view' =>         ['platformAdmin', 'coAdmin']
       ],
@@ -150,13 +153,15 @@ class ProvisioningTargetsTable extends Table {
    * @param  ProvisioningEligibilityEnum  $eligibility  Provisioning eligibility
    * @param  ProvisioningContextEnum      $context      Provisioning context
    * @param  int                          $id           Provisioning Target ID, or null to provision all targets
+   * @param  Job                          $job          If called from a Job, the current Job entity
    */
 
   public function provision(
-    mixed $data,
+    mixed  $data,
     string $eligibility,
     string $context,
-    ?int $id=null
+    ?int   $id=null,
+    ?Job   $job=null
   ) {
     // Convert the primary data object to the primary provisioned object name
     // (eg: People or Cous)
@@ -165,7 +170,6 @@ class ProvisioningTargetsTable extends Table {
     $query = $this->find()
                   ->where([
                     'ProvisioningTargets.co_id'      => $data->co_id,
-// XXX how do we know which mode's worth of provisioners we want?
                     'ProvisioningTargets.status <>'  => ProvisionerModeEnum::Disabled
                   ]);
     
@@ -178,12 +182,12 @@ class ProvisioningTargetsTable extends Table {
                      ->all();
     
     foreach($targets as $t) {
-      // Compare our $context against the target's $status. There are three possible
+      // Compare our $context against the target's $status. There are four possible
       // contexts, with their corresponding provisionable statuses:
       // Automatic:   Immediate, Queue, QuueOnError
       // Enrollment:  Enrollment, Immediate, Queue, QueueOnError
       // Manual:      Enrollment, Immediate, Manual, Queue, QueueOnError
-// XXX do we need ARs or PARs for this? add appropriate logging along with ARs
+      // Queue:       Enrollment, Immediate, Manual, Queue, QueueOnError
 
       switch($context) {
         case ProvisioningContextEnum::Automatic:
@@ -193,6 +197,7 @@ class ProvisioningTargetsTable extends Table {
             ProvisionerModeEnum::QueueOnError
           ])) {
             $this->llog('trace', "Skipping Provisioning Target " . $t->id . " with mode " . $t->status . " (automatic context)", $t->id);
+            // Note "continue 2" is correct here, since continue acts like a break within a switch
             continue 2;
           }
           break;
@@ -204,6 +209,9 @@ class ProvisioningTargetsTable extends Table {
           break;
         case ProvisioningContextEnum::Manual:
           // Manual provisioning is permitted regardless of target status
+          break;
+        case ProvisioningContextEnum::Queue:
+          // Queue provisioning is permitted regardless of target status
           break;
       }
 
@@ -217,68 +225,168 @@ class ProvisioningTargetsTable extends Table {
         continue;
       }
 
-      try {
-        $this->llog('trace', "Provisioning $provisionedModel for $pluginModel (context: $context)", $t->id);
+      $this->llog('trace', "Provisioning $provisionedModel for $pluginModel (context: $context)", $t->id);
+        
+      $requeue = false;
 
-        $result = $this->$pluginModel->provision($t, $provisionedModel, $data, $eligibility);
+      // We immediately run the requested Job, unless the Provisioner is in Queue mode
+      // _and_ the Provisioning Context is _not_ Queue (which would indicate we are processing
+      // the queue, so we shouldn't immedately requeue the job)
+      if($t->status != ProvisionerModeEnum::Queue
+          || $context == ProvisioningContextEnum::Queue) {
+        try {
+          $result = $this->$pluginModel->provision($t, $provisionedModel, $data, $eligibility);
 
-        $this->alog('trace', $result);
+          $this->alog('trace', $result);
 
-        $this->ProvisioningHistoryRecords->record(
-          provisioningTargetId: $t->id,
-          comment: $result['comment'],
-          status: $result['status'],
-          subjectModel: $provisionedModel,
-          subjectId: $data->id
-        );
+          // The plugin can report failure by throwing an Exception, which we catch below.
+          // Otherwise, the plugin can return Provisioned (success), NotProvisioned (also
+          // success, eg the result of a delete operation), or Unknown (error). The only
+          // situation we do not requeue is \InvalidArgumentException.
 
-        if(!empty($result['identifier']) && in_array($provisionedModel, ['People', 'Groups'])) {
-          $this->llog('trace', "Obtained Provisioning Key " . $result['identifier'] . " for $pluginModel", $t->id);
-
-          // Upsert the identifier
-          $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
-
-          $typeId = $Identifiers->Types->getTypeId(
-            coId: $data->co_id,
-            attribute: 'Identifiers.type',
-            // Although we now call these "Provisioning Keys", we reuse the database value from v4
-            value: 'provisioningtarget'
-          );
-
-          $pkey = [
-            'type_id' => $typeId,
-            'identifier' => $result['identifier'],
-            'status' => SuspendableStatusEnum::Active,
-            'provisioning_target_id' => $t->id,
-            'login' => false,
-            'frozen' => false
-          ];
-
-          $whereClause = [
-            'type_id' => $typeId
-          ];
-
-          if($provisionedModel == 'Group') {
-            $pkey['group_id'] = $data->id;
-            $whereClause['group_id'] = $data->id;
-          } else {
-            $pkey['person_id'] = $data->id;
-            $whereClause['person_id'] = $data->id;
+          if($result['status'] == ProvisioningStatusEnum::Unknown) {
+            $requeue = $result['comment'];
           }
 
-          $Identifiers->upsertOrFail($pkey, $whereClause);
+          $this->ProvisioningHistoryRecords->record(
+            provisioningTargetId: $t->id,
+            comment: $result['comment'],
+            status: $result['status'],
+            subjectModel: $provisionedModel,
+            subjectId: $data->id
+          );
+
+          if(!empty($result['identifier']) && in_array($provisionedModel, ['People', 'Groups'])) {
+            // We check for Provisioning Keys when provisioning People or Groups.
+            // Other models (Services, etc) could support Provisioning Keys,
+            // just currently they don't.
+            $this->llog('trace', "Obtained Provisioning Key " . $result['identifier'] . " for $pluginModel", $t->id);
+
+            // Upsert the identifier
+            $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+            $typeId = $Identifiers->Types->getTypeId(
+              coId: $data->co_id,
+              attribute: 'Identifiers.type',
+              // Although we now call these "Provisioning Keys", we reuse the database value from v4
+              value: 'provisioningtarget'
+            );
+
+            $pkey = [
+              'type_id' => $typeId,
+              'identifier' => $result['identifier'],
+              'status' => SuspendableStatusEnum::Active,
+              'provisioning_target_id' => $t->id,
+              'login' => false,
+              'frozen' => false
+            ];
+
+            $whereClause = [
+              'type_id' => $typeId
+            ];
+
+            if($provisionedModel == 'Group') {
+              $pkey['group_id'] = $data->id;
+              $whereClause['group_id'] = $data->id;
+            } else {
+              $pkey['person_id'] = $data->id;
+              $whereClause['person_id'] = $data->id;
+            }
+
+            if(!$Identifiers->upsert($pkey, $whereClause)) {
+              // We successfully provisioned, but for some reason we failed to store
+              // the Provisioning Key. We shouldn't throw an Exception because that
+              // will mask the fact that the target is provisioned, so we'll just log
+              // an error.
+
+              $this->llog('error', "Provisioning successfully completed, but failed to store Provisioning Key " . $result['identifier']);
+            }
+          }
+        }
+        catch(\InvalidArgumentException $e) {
+          // The plugin has determined its configuration is invalid, so we do not requeue.
+
+          $this->llog('error', "Provisioning failure due to invalid configuration: " . $e->getMessage());
+
+          $this->ProvisioningHistoryRecords->record(
+            provisioningTargetId: $t->id,
+            comment: $e->getMessage(),
+            status: ProvisioningStatusEnum::Unknown,
+            subjectModel: $provisionedModel,
+            subjectId: $data->id
+          );
+        }
+        catch(\Exception $e) {
+          $requeue = $e->getMessage();
+
+          $this->llog('error', "Provisioning failure: " . $e->getMessage());
+
+          $this->ProvisioningHistoryRecords->record(
+            provisioningTargetId: $t->id,
+            comment: $e->getMessage(),
+            status: ProvisioningStatusEnum::Unknown,
+            subjectModel: $provisionedModel,
+            subjectId: $data->id
+          );
         }
       }
-      catch(\Exception $e) {
-        $this->llog('error', "Provisioning failure: " . $e->getMessage());
-        
-        $this->ProvisioningHistoryRecords->record(
-          provisioningTargetId: $t->id,
-          comment: $e->getMessage(),
-          status: ProvisioningStatusEnum::NotProvisioned,
-          subjectModel: $provisionedModel,
-          subjectId: $data->id
-        );
+
+      if(($t->status == ProvisionerModeEnum::QueueOnError && $requeue)
+          || ($t->status == ProvisionerModeEnum::Queue && $context != ProvisioningContextEnum::Queue)) {
+        // We either failed or are in Queue mode, so queue the job for later processing.
+        // The max retry limit is implemented by register(), we'll just catch the
+        // Exception and log it if register() fails,
+
+        if($t->max_retry > 0) {
+          try {
+            $Jobs = TableRegistry::getTableLocator()->get("Jobs");
+
+            $rqjob = $Jobs->register(
+              coId:             $t->co_id,
+              plugin:           'CoreJob.ProvisionerJob',
+              parameters:       [
+                'model' => $provisionedModel,
+                'provisioning_target_id' => $t->id,
+                // entities is a comma separated string of $provisionedModel subject IDs
+                'entities' => $data->id
+              ],
+              registerSummary:  
+                $requeue 
+                ? __d('result', 'ProvisioningTargets.queued.error.ok', [$t->description, $t->id, $requeue])
+                : __d('result', 'ProvisioningTargets.queued.queue.ok', [$t->description, $t->id]),
+              synchronous:      false,
+              // When requeueing we need to allow concurrent jobs because the
+              // job we're replacing (as defined by having the same CO, plugin,
+              // and parameters) hasn't technically finished yet.
+              concurrent:       true,
+              delay:            $t->retry_interval,
+              // Provisioning Jobs should not automatically requeue on success
+              requeueInterval:  null,
+              retryInterval:    $t->retry_interval,
+              maxRetry:         $t->max_retry,
+              requeuedFrom:     $job ? $job->id : null,
+              retryCount:       !empty($job->retry_count) ? $job->retry_count + 1 : 1
+            );
+
+            $this->llog('trace', "Requeued provisioning request as Job " . $rqjob->id);
+          }
+          catch(\Exception $e) {
+            // This will be an OverflowException is max_retry was reached
+
+            $this->llog('error', "Could not requeue provisioning request: " . $e->getMessage());
+          }
+        } else {
+          $this->llog('trace', "Not requeueing provisioning request because max_retry is not set");
+        }
+
+        if($requeue) {
+          // If we got an error message from the original provisioning request
+          // (regardless of whether or not we then queued the job for processing)
+          // we want to throw that error back up the stack so ProvisionerJob can
+          // record it correctly.
+
+          throw new \RuntimeException($requeue);
+        }
       }
     }
   }
@@ -433,6 +541,11 @@ class ProvisioningTargetsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('retry_interval');
+
+    $validator->add('max_retry', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('max_retry');
 
     $validator->add('ordr', [
       'content' => ['rule' => 'isInteger']

@@ -40,6 +40,13 @@ use \App\Lib\Enum\EnrollmentAuthzEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
+// This controller is a bit of a special case in that it combines the functionality
+// of StandardController (add, edit, view) with model specific functionality
+// (generateApiKey, provision). Access to these specific functions is defined via
+// routes.php, and enabled via permissions in the model's Table file. Given the
+// relatively few model specific API extensions, this is probably OK, but if we end
+// up with significantly more of these we might need to consider some refactoring.
+
 class ApiV2Controller extends AppController {
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\IndexQueryTrait;
@@ -377,6 +384,49 @@ class ApiV2Controller extends AppController {
   
   public function index() {
     $this->dispatchIndex();
+  }
+
+  /**
+   * Provision an entity.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  string $id Provisioning Target ID
+   */
+  
+  public function provision(string $id) {
+    // we require a provisioning target ID in order to simplify primary key lookup.
+    // (To accept "all" or embed the ID into the JSON request would require custom
+    // logic to map the request to a CO... possible, but more complicated.)
+    
+    $json = $this->request->getData(); // Parsed by BodyParserMiddleware
+
+    if(empty($json['provisioningRequest']['entityType']) 
+       || empty($json['provisioningRequest']['entityId'])) {
+      throw new \InvalidArgumentException(__d('error', 'invalid.request'));
+    }
+
+    // We need to find the table for the entity type being provisioned in order to
+    // call requestProvisioning() on that table. We'll indirectly validate the
+    // requested entity type by checking for that function.
+
+    $entityType = $json['provisioningRequest']['entityType'];
+    $entityId = (int)$json['provisioningRequest']['entityId'];
+
+    $Table = TableRegistry::getTableLocator()->get($entityType);
+
+    if(!method_exists($Table, 'requestProvisioning')) {
+      throw new \InvalidArgumentException(__d('error', 'invalid.request'));
+    }
+
+    $Table->requestProvisioning(
+      id: $entityId,
+      context: \App\Lib\Enum\ProvisioningContextEnum::Manual,
+      provisioningTargetId: (int)$id
+    );
+    
+    // Let the view render
+    $this->viewBuilder()->setLayout('rest');
+    $this->render('/Standard/api/v2/json/add-edit');
   }
 
   /**

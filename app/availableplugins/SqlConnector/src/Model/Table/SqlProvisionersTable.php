@@ -500,6 +500,11 @@ class SqlProvisionersTable extends Table {
         // We have a currently provisioned record and the subject is not Deleted,
         // patch it with $data and try saving.
         $patchedEntity = $SpTable->patchEntity($curEntity, $data->toArray(), ['validate' => false]);
+        
+        // We always force an update to the modified timestamp in order to allow status()
+        // to report the last time provisioning ran. Cake has a touch() function as part
+        // of TimestampBehavior to do this, but our use of auto-tables means we can't use that.
+        $patchedEntity->modified = new \Cake\I18n\DateTime();
 
         $SpTable->saveOrFail(
           $patchedEntity, 

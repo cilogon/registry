@@ -31,6 +31,7 @@ namespace App\Lib\Traits;
 
 use Cake\ORM\TableRegistry;
 use \App\Lib\Util\StringUtilities;
+use \App\Model\Entity\Job;
 
 trait ProvisionableTrait {
   // We use a trait and not a behavior so method_exists($table, "requestProvisioning").
@@ -46,13 +47,16 @@ trait ProvisionableTrait {
    * @param  int                      $id                   This table's entity ID to provision
    * @param  ProvisioningContextEnum  $context              Context in which provisioning is being requested
    * @param  int                      $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
+   * @param  Job                      $job                  If called from a Job, the current Job entity
    * @throws InvalidArgumentException
    */
 
   public function requestProvisioning(
     int     $id,
     string  $context,
-    ?int    $provisioningTargetId=null) {
+    ?int    $provisioningTargetId=null,
+    ?Job    $job=null,
+  ) {
     if(method_exists($this, 'marshalProvisioningData')) {
       // The model specific marshalProvisioningData implementations are expected
       // to properly handle deleted records.
@@ -65,7 +69,8 @@ trait ProvisionableTrait {
         data: $data['data'], 
         eligibility: $data['eligibility'],
         context: $context,
-        id: $provisioningTargetId
+        id: $provisioningTargetId,
+        job: $job
       );
     } else {
       // This is a secondary model, eg Names. We need to figure out the primary model

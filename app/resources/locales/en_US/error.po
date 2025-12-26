@@ -262,6 +262,9 @@ msgstr "Job Plugin not provided"
 msgid "Jobs.failed.abnormal"
 msgstr "The Job terminated unexpectedly"
 
+msgid "Jobs.failed.abnormal.count"
+msgstr "The Job terminated unexpectedly ({0} open transaction/s)"
+
 msgid "Jobs.plugin.parameter.bool"
 msgstr "Boolean values may only be 0 or 1"
 

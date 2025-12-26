@@ -286,6 +286,16 @@ class JobsTable extends Table {
                 ->first();
     
     if(!empty($job)) {
+      // Make sure we don't have any open transactions
+
+      $cxn = ConnectionManager::get('default');
+
+      while($cxn->inTransaction()) {
+        // We need to clear out any transactions in order to properly close the job
+
+        $cxn->rollback();
+      }
+
       // Terminate the job
       $this->finish(
         job:      $job, 
@@ -335,38 +345,54 @@ class JobsTable extends Table {
     // on failure if a retry_interval is specified. We need to do this after we
     // update the status of $id to avoid issues with concurrent jobs.
 
+    // We let any exceptions (including OverflowExceptions) bubble up so the
+    // error gets reported to whatever called the Job (typically JobCommand).
+
     if($result == JobStatusEnum::Complete
        && !empty($job->requeue_interval)
        && $job->requeue_interval > 0) {
       // The new job will be substantially the same as the last one...
 
-      $this->register($job->co_id,
-                      $job->plugin,
-                      json_decode($job->parameters, true),
-                      $job->register_summary,
-                      false,
-                      // we only support serialized jobs, not concurrent
-                      false,
-                      $job->requeue_interval,
-                      $job->requeue_interval,
-                      $job->retry_interval,
-                      $job->id);
+      $this->register(
+        coId: $job->co_id,
+        plugin: $job->plugin,
+        parameters: json_decode($job->parameters, true),
+        registerSummary: $job->register_summary,
+        synchronous: false,
+        // we only support serialized jobs, not concurrent
+        concurrent: false,
+        delay: $job->requeue_interval,
+        requeueInterval: $job->requeue_interval,
+        retryInterval: $job->retry_interval,
+        maxRetry: $job->max_retry,
+        requeuedFrom: $job->id,
+        // We reset retry_count if max_retry was set, otherwise we leave it null
+        retryCount: !empty($job->max_retry) ? 0 : null
+      );
     } elseif($result == JobStatusEnum::Failed
              && !empty($job->retry_interval)
              && $job->retry_interval > 0) {
       // The new job will be substantially the same as the last one...
 
-      $this->register(job->co_id,
-                      $job->plugin,
-                      json_decode($job->parameters, true),
-                      $job->register_summary,
-                      false,
-                      // we only support serialized jobs, not concurrent
-                      false,
-                      $job->retry_interval,
-                      $job->requeue_interval,
-                      $job->retry_interval,
-                      $job->id);
+      $this->register(
+        coId: job->co_id,
+        plugin: $job->plugin,
+        parameters: json_decode($job->parameters, true),
+        registerSummary: $job->register_summary,
+        synchronous: false,
+        // we only support serialized jobs, not concurrent
+        concurrent: false,
+        // Note the delay parameter is different from when the Job completed
+        delay: $job->retry_interval,
+        requeueInterval: $job->requeue_interval,
+        retryInterval: $job->retry_interval,
+        maxRetry: $job->max_retry,
+        requeuedFrom: $job->id,
+        // If retry_count was not null, increment it. We don't check to see
+        // if it exceeds max_retry here because register() will do that and
+        // throw an OverflowException on error.
+        retryCount: $job->retry_count + 1
+      );
     }
   }
 
@@ -391,11 +417,12 @@ class JobsTable extends Table {
    * Process a Job. Jobs must be in Ready status (ie: assigned) in order to be processed.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  Job                      $job  Job to process
+   * @param  Job                      $job    Job to process
+   * @param  string                   $dbcxn  Database connection name to use
    * @throws InvalidArgumentException
    */
 
-  public function process(Job $job) {
+  public function process(Job $job, string $dbcxn='default') {
     // The Job must be Assigned to be processed
     if($job->status != JobStatusEnum::Assigned) {
       throw new \InvalidArgumentException(
@@ -416,20 +443,24 @@ class JobsTable extends Table {
 
     $JobHistoryRecords = TableRegistry::getTableLocator()->get('JobHistoryRecords');
 
-    // Maybe set the connection on the JobHistoryTable (if we were run via
-    // the queue runner).
-    try {
-      $cxn = ConnectionManager::get('plugin');
+    // Maybe set the connection on the JobHistoryTable
 
-      if(!empty($cxn)) {
-        $JobHistoryRecords->setConnection($cxn);
+    if($dbcxn != 'default') {
+      try {
+        $cxn = ConnectionManager::get($dbcxn);
+
+        if(!empty($cxn)) {
+          $JobHistoryRecords->setConnection($cxn);
+        }
       }
-    }
-    catch(\Cake\Datasource\Exception\MissingDatasourceConfigException $e) {
-      // plugin datasource not defined, so we're not in the queue runner
-    }
-    catch(\Exception $e) {
-      $this->finish($job, $e->getMessage(), JobStatusEnum::Failed);
+      catch(\Cake\Datasource\Exception\MissingDatasourceConfigException $e) {
+        // plugin datasource not defined (we previously used this to determine
+        // if we were in the queue runner, now it's just an error)
+        $this->finish($job, $e->getMessage(), JobStatusEnum::Failed);
+      }
+      catch(\Exception $e) {
+        $this->finish($job, $e->getMessage(), JobStatusEnum::Failed);
+      }
     }
 
     // We need a separate try block here because we want to specially handle
@@ -460,9 +491,12 @@ class JobsTable extends Table {
    * @param  int    $delay            Minimum number of seconds to delay the start of this Job
    * @param  int    $requeueInterval  If non-zero, number of seconds after successful completion to requeue the same Job
    * @param  int    $retryInterval    If non-zero, number of seconds after failed completion to requeue the same Job
+   * @param  int    $maxRetry         If non-zero, the maximum number of times this Job may be retried
    * @param  int    $requeuedFrom     If requeued, the ID of the Job that created this Job
+   * @param  int    $retryCount       If non-zero, the current retry count (ie: 0 the first time a Job is queued, 1 the first time it is retried)
    * @return Job                      Job entity
    * @throws InvalidArgumentException
+   * @throws OverflowException
    */
 
   public function register(
@@ -475,8 +509,14 @@ class JobsTable extends Table {
     int     $delay=0,
     ?int    $requeueInterval=null,
     ?int    $retryInterval=null,
-    ?int    $requeuedFrom=null
+    ?int    $maxRetry=null,
+    ?int    $requeuedFrom=null,
+    ?int    $retryCount=null
   ): Job {
+    if($maxRetry > 0 && $retryCount > $maxRetry) {
+      throw new \OverflowException("Maximum retry count reached (" . $maxRetry . ")");  // XXX I18n
+    }
+
     // Start a transaction. In addition to ruleAlreadyRegistered needing a read lock,
     // if we're synchronous we need to make sure the current caller gets assigned the Job.
 
@@ -512,7 +552,9 @@ class JobsTable extends Table {
       'status'                => JobStatusEnum::Queued,
       'requeue_interval'      => $requeueInterval,
       'retry_interval'        => $retryInterval,
+      'max_retry'             => $maxRetry,
       'requeued_from_job_id'  => $requeuedFrom,
+      'retry_count'           => $retryCount,
       'start_after_time'      => date('Y-m-d H:i:s', time()+$delay)
       // We don't set percent_complete here since not all jobs might use that field,
       // and then a null vs 0 can be used to distinguish.
@@ -521,7 +563,14 @@ class JobsTable extends Table {
     // If $concurrent is true, we want to disable AR-Job-1. Right now, since this
     // is the only application rule we can simply disable rule checking, but if
     // another rule is added this won't work.
-    $this->saveOrFail($entity, ['checkRules' => !$concurrent]);
+    try {
+      $this->saveOrFail($entity, ['checkRules' => !$concurrent]);
+    }
+    catch(\Exception $e) {
+      $cxn->rollback();
+
+      throw $e;
+    }
 
     if($synchronous) {
       // Assign the job within the transaction to make sure it doesn't get
@@ -671,7 +720,7 @@ class JobsTable extends Table {
             break;
           case 'int':
           case 'integer':
-            if(!preg_match('/^[0-9.+-]*$/', $val)) {
+            if(!is_int($val) && !preg_match('/^[0-9.+-]*$/', $val)) {
               $ret[$p] = __d('error', 'Jobs.plugin.parameter.int');
             }
             break;
@@ -741,10 +790,20 @@ class JobsTable extends Table {
     ]);
     $validator->allowEmptyString('retry_interval');
 
+    $validator->add('max_retry', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('max_retry');
+
     $validator->add('requeued_from_job_id', [
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('requeued_from_job_id');
+
+    $validator->add('retry_count', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('retry_count');
 
     $validator->add('status', [
       'content' => ['rule' => ['inList', JobStatusEnum::getConstValues()]]

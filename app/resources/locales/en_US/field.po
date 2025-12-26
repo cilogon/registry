@@ -675,6 +675,12 @@ msgstr "Finish Summary"
 msgid "Jobs.finish_time"
 msgstr "Finished"
 
+msgid "Jobs.max_retry"
+msgstr "Max Retries"
+
+msgid "Jobs.max_retry.desc"
+msgstr "The maximum number of times this Job will be retried on failure"
+
 msgid "Jobs.percent_complete"
 msgstr "Percent Complete"
 
@@ -692,6 +698,12 @@ msgstr "After the job successfully completes, it will automatically be requeued 
 
 msgid "Jobs.requeued_from_job_id"
 msgstr "Requeued From Job"
+
+msgid "Jobs.retry_count"
+msgstr "Retry Count"
+
+msgid "Jobs.retry_count.desc"
+msgstr "The retry count for this Job instance"
 
 msgid "Jobs.retry_interval"
 msgstr "Retry Interval"
@@ -934,6 +946,12 @@ msgstr "Subject Object Type"
 
 msgid "ProvisioningHistoryRecords.subjectid"
 msgstr "Subject Object ID"
+
+msgid "ProvisioningTargets.max_retry"
+msgstr "Max Retries"
+
+msgid "ProvisioningTargets.max_retry.desc"
+msgstr "For Queue and Queue On Error modes, the maximum number of times to retry on failure (set to 0 to retry indefinitely)"
 
 msgid "ProvisioningTargets.ordr.desc"
 msgstr "The order in which this provisioner will be run when provisioning occurs (leave blank to run after all current provisioners)"

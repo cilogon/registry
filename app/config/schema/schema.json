@@ -443,6 +443,7 @@
         "status": {},
         "provisioning_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
         "retry_interval": { "type": "integer" },
+        "max_retry": { "type": "integer" },
         "ordr": {}
       },
       "indexes": {
@@ -758,7 +759,9 @@
         "parameters": { "type": "text" },
         "requeue_interval": { "type": "integer" },
         "retry_interval": { "type": "integer" },
+        "max_retry": { "type": "integer" },
         "requeued_from_job_id": { "type": "integer", "foreignkey": { "table": "jobs", "column": "id" }},
+        "retry_count": { "type": "integer" },
         "status": {},
         "assigned_host": { "type": "string", "size": 64 },
         "assigned_pid": { "type": "integer" },

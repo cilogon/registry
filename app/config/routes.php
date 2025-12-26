@@ -62,9 +62,18 @@ $routes->scope('/api/v2', function (RouteBuilder $builder) {
   $builder->applyMiddleware('bodyparser');
   // Use setPass to make parameter show up as function parameter
   // Model specific actions, which will usually have more specific URLs:
+  // Note that while the UI uses dashes in URL paths, because we use {model} for the generic
+  // CRUD operations below we use underscores for consistency. Also, actions used here must
+  // be authorized in the relevant model permissions (even though they'll be used by ApiV2Controller
+  // and not the model's native controller).
   $builder->post(
     '/api_users/generate/{id}',
     ['controller' => 'ApiV2', 'action' => 'generateApiKey', 'model' => 'api_users'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  $builder->post(
+    '/provisioning_targets/provision/{id}',
+    ['controller' => 'ApiV2', 'action' => 'provision', 'model' => 'provisioning_targets'])
     ->setPass(['id'])
     ->setPatterns(['id' => '[0-9]+']);
   // These establish the usual CRUD options on all models:

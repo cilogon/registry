@@ -33,6 +33,7 @@ use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 use \App\Lib\Enum\JobStatusEnum;
 use \App\Lib\Enum\ProvisionerModeEnum;
+use \App\Lib\Enum\ProvisioningContextEnum;
 
 class ProvisionerJob {
   /**
@@ -97,7 +98,12 @@ class ProvisionerJob {
     int &$lastPct
   ): bool {
     try {
-      $EntityTable->requestProvisioning($entityId, $model, $target->id);
+      $EntityTable->requestProvisioning(
+        id: $entityId,
+        context: ProvisioningContextEnum::Queue,
+        provisioningTargetId: $target->id,
+        job: $job
+      );
 
       $JobHistoryRecordsTable->record(
         jobId: $job->id,
@@ -186,9 +192,17 @@ class ProvisionerJob {
     }
 
     if(!empty($parameters['entities'])) {
-      // We have one or more explicitly specified entities to process
+      // We have one or more explicitly specified entities to process.
+      // Entities might be an int (single request) or comma separated string
+      // (because PHP).
 
-      $ids = explode(',', $parameters['entities']);
+      $ids = [];
+
+      if(is_int($parameters['entities'])) {
+        $ids[] = $parameters['entities'];
+      } else {
+        $ids = explode(',', $parameters['entities']);
+      }
 
       $count = count($ids);
       

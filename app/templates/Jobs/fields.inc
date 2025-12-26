@@ -96,7 +96,9 @@ if($vv_action == 'add') {
     ],
     'finish_summary',
     'requeue_interval',
-    'retry_interval'
+    'retry_interval',
+    'max_retry',
+    'retry_count'
   ]);
 
   if(!empty($vv_obj->requeued_from_job->id)) {
@@ -110,6 +112,12 @@ if($vv_action == 'add') {
     $fields['requeued_from_job_id'] = [
       'status' => (string)$vv_obj->requeued_from_job->id,
       'link' => $link,
+    ];
+  } else {
+    // Make sure the field always renders, even if empty
+    $fields['requeued_from_job_id'] = [
+      'type' => 'text',
+      'value' => __d('result', 'set.not')
     ];
   }
 }

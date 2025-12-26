@@ -68,14 +68,14 @@ class JobCommand extends BaseCommand
         'short'     => 'j',
         'help'      => __d('command', 'opt.job.plugin')
       ]
-    )->addOption(
+/*    )->addOption(
       'parallel',
       [
         'required'  => false,
         'short'     => 'p',
         'default'   => '1',
         'help'      => __d('command', 'opt.job.parallel')
-      ]
+      ]*/
     )->addOption(
       'max',
       [
@@ -143,20 +143,66 @@ class JobCommand extends BaseCommand
       // The total number of actively running children
       $pidcount = 0;
 
-      // The maximum number of runners to run at any one time
-      $max = (int)$args->getOption('max');
-      // The number of parallel runners for each CO
-      $parallel = (int)$args->getOption('parallel');
-
       // The maximum number of jobs a queue runner will process before exiting
-      $maxjobs = 100;
+      $maxjobs = (int)$args->getOption('max');
+      // The number of parallel runners for each CO
+      // $parallel = (int)$args->getOption('parallel');
+
+      // The number of jobs launched (across all COs we're processing)
+      $jobcount = 0;
+      
+      // Initialize the CoIdEventListener, which will be used to set the CO ID for
+      // (eg) tables with CO specific validation rules
+      $CoIdEventListener = new CoIdEventListener();
+      EventManager::instance()->on($CoIdEventListener);
 
       foreach($coIds as $coId) {
-        // We probably need to do something like this (from synchronous running, below)
-        //       $CoIdEventListener = new CoIdEventListener((int)$args->getOption('co_id'));
-        //      EventManager::instance()->on($CoIdEventListener);
-        // but this wouldn't remove the previous $coId, so for now Sync Jobs can't be run
-        // via the queue. See CFM-400.
+        // Update the CoIdEventListener's CO ID. This works because EventManager
+        // is calling by reference, not copy.
+        $CoIdEventListener->updateCoId((int)$args->getOption('co_id'));
+
+        while($jobcount <= $maxjobs) {
+          $jobcount++;
+
+          $io->verbose(__d('command', 'job.run.request', [$jobcount, $coId]));
+
+          // Request a job to run
+          $job = $JobTable->assignNext($coId);
+
+          if(!$job) {
+            // Nothing to do, move on to the next CO
+            $io->verbose(__d('command', 'job.run.done.empty', [$coId]));
+            continue 2;
+          }
+
+          $io->verbose(__d('command', 'job.run.running', [$job->id]));
+
+          try {
+            $JobTable->process($job);
+          }
+          catch(\Exception $e) {
+            // The only Exception would be if the Job is in an invalid state,
+            // which shouldn't happen because we just ran assignNext()
+            $io->error($e->getMessage());
+          }
+
+          // Confirm the Job was properly finished. This was originally intended
+          // for use with fork()/wait(), but should work well enough here.
+          $JobTable->confirmFinished(getmypid());
+        }
+
+        if($jobcount > $maxjobs) {
+          $io->verbose(__d('command', 'job.run.done.max', [$maxjobs]));
+          break;
+        }
+
+        /* When calling pcntl_fork(), the child process inherits the same
+           file descriptors as the parent, including (problematically) the
+           connections to the database server. There doesn't seem to be a
+           functional way to generate new file descriptors, and requiring
+           Job plugins to use an alternate database connection creates an
+           implausible burden (see how complicated CloneCommand is, for
+           comparison). So for now we'll just disable $parallel.
 
         // We start counting from 1 rather than 0 to simplify console output
         for($i = 1;$i <= $parallel;$i++) {
@@ -179,12 +225,16 @@ class JobCommand extends BaseCommand
               // configuration and create a new configuration on the fly so we don't have
               // to pollute the database config file.
 
-              ConnectionManager::setConfig('plugin', ConnectionManager::getConfig('default'));
-// XXX this doesn't seem to work, so plugins must always access the 'plugin' database, at least for now (CFM-253)
-//              ConnectionManager::alias('plugin', 'default');
-              $cxn = ConnectionManager::get('plugin');
+              $config = ConnectionManager::getConfig('default');
 
-              $JobTable->setConnection($cxn);
+              // This doesn't work
+              // ConnectionManager::drop('default');
+              // ConnectionManager::setConfig('default', $config);
+
+              // This doesn't work either, and isn't plausible anyway
+              // ConnectionManager::alias('plugin', 'default');
+              // $cxn = ConnectionManager::get('plugin');
+              // $JobTable->setConnection($cxn);
 
               for($j = 1;$j <= $maxjobs;$j++) {
                 $io->verbose(__d('command', 'job.run.child.request', [$i, $j, $coId]));
@@ -201,7 +251,7 @@ class JobCommand extends BaseCommand
                 $io->verbose(__d('command', 'job.run.child.running', [$newPid, $job->id]));
 
                 try {
-                  $JobTable->process($job);
+                  $JobTable->process($job, 'plugin');
                 }
                 catch(\Exception $e) {
                   // The only Exception would be if the Job is in an invalid state,
@@ -232,9 +282,10 @@ class JobCommand extends BaseCommand
             $io->verbose(__d('command', 'job.run.piddone', [$pid]));
             $pidcount--;
           }
-        }
+        }*/
       }
 
+      /*
       // We are the parent, and we're done launching queue runners. wait() for them.
       while($pidcount > 0) {
         $io->out(__d('command', 'job.run.waiting', $pidcount));
@@ -248,7 +299,7 @@ class JobCommand extends BaseCommand
         $io->verbose(__d('command', 'job.run.piddone', [$pid]));
 
         $pidcount--;
-      }
+      }*/
     } else {
       // We have a specific job to process. Note that JobCommand can't require -j
       // since the -r usage doesn't need it, so we have to check for it manually.
@@ -291,6 +342,33 @@ class JobCommand extends BaseCommand
         $io->out(__d('command', 'job.process', [$job->id]));
 
         $JobTable->process($job);
+      }
+
+      // Check that the plugin terminated correctly without leaving any open
+      // transactions. We don't need to do this when running the queue because
+      // confirmFinished() will check for stragglers.
+
+      $cxn = ConnectionManager::get('default');
+
+      $txnCount = 0;
+
+      while($cxn->inTransaction()) {
+        // We need to clear out any transactions in order to properly close the job
+
+        $txnCount++;
+        $cxn->rollback();
+      }
+
+      // Note we'e overwriting $job
+      $job = $JobTable->get($job->id);
+
+      if(!$job->isFinished()) {
+        // Terminate the job
+        $JobTable->finish(
+          job:      $job, 
+          summary:  __d('error', 'Jobs.failed.abnormal.count', [$txnCount]),
+          result:   JobStatusEnum::Failed
+        );
       }
     }
   }

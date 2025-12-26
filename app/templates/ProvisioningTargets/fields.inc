@@ -33,6 +33,7 @@ $fields = [
   'retry_interval' => [
     'default' => 900
   ],
+  'max_retry',
   'plugin',
   // todo: Not yet implemented (CFM-26)
   // 'provisioning_group_id',
@@ -56,7 +57,6 @@ $subnav = [
 
     if(status == "<?= \App\Lib\Enum\ProvisionerModeEnum::Queue ?>"
       || status == "<?= \App\Lib\Enum\ProvisionerModeEnum::QueueOnError ?>") {
-      alert("Queue modes not yet implemented"); // XXX CFM-26
       showFields(['retry-interval'], isPageLoad);
     } else {
       hideFields(['retry-interval'], isPageLoad);

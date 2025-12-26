@@ -250,6 +250,12 @@ msgstr "Sent Update Match Attributes Request"
 msgid "ProvisioningTargets.queued.ok"
 msgstr "Reprovisioning for {0} queued for {1} ({2})"
 
+msgid "ProvisioningTargets.queued.error.ok"
+msgstr "Provisioning queued for {0} ({1}): {2}"
+
+msgid "ProvisioningTargets.queued.queue.ok"
+msgstr "Provisioning queued for {0} ({1})"
+
 msgid "removed"
 msgstr "removed"
 

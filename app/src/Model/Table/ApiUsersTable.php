@@ -90,6 +90,8 @@ class ApiUsersTable extends Table {
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
         'generate' => ['platformAdmin', 'coAdmin'],
+        // Used by ApiV2Controller
+        'generateApiKey' => ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
