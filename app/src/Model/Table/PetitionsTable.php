@@ -43,6 +43,7 @@ use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 use \App\Lib\Random\RandomString;
+use \App\Lib\Util\DeliveryUtilities;
 use \App\Lib\Util\StringUtilities;
 
 class PetitionsTable extends Table {
