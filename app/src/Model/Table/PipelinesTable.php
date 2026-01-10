@@ -652,21 +652,26 @@ class PipelinesTable extends Table {
       // Perform some record keeping if a new Reference Identifier was assigned
 
       if(!empty($newReferenceId) && ($newReferenceId !== $origReferenceId)) {
-        // Attach the Reference Identifier to the Person. Where we're creating a
-        // new Person, there won't be much else on the Person record at this point,
-        // but that will change quickly at step (4).
+        if($personInfo['status'] == 'created') {
+          // Attach the Reference Identifier to the Person. Where we're creating a
+          // new Person, there won't be much else on the Person record at this point,
+          // but that will change quickly at step (4).
 
-        $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+          $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
 
-        $rid = $Identifiers->newEntity([
-          'identifier'  => $newReferenceId,
-          'person_id'   => $person->id,
-          'type_id'     => $Identifiers->Types->getTypeId($eis->co_id, 'Identifiers.type', 'reference'),
-          'login'       => false,
-          'status'      => SuspendableStatusEnum::Active
-        ]);
+          $rid = $Identifiers->newEntity([
+            'identifier'  => $newReferenceId,
+            'person_id'   => $person->id,
+            'type_id'     => $Identifiers->Types->getTypeId($eis->co_id, 'Identifiers.type', 'reference'),
+            'login'       => false,
+            'status'      => SuspendableStatusEnum::Active
+          ]);
 
-        $Identifiers->saveOrFail($rid);
+          $Identifiers->saveOrFail($rid);
+        }
+        // else we've matched an existing Person, so by definition the Reference Identifier
+        // is already on the Person record (and if we try to resave it we'll violate
+        // AR-Identifier-2).
 
         // We can now also record Reference ID history
 
