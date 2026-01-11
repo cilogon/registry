@@ -41,7 +41,8 @@ class DeliveryUtilities {
   use \App\Lib\Traits\LabeledLogTrait;
 
   /**
-   * Send an email to an Address.
+   * Send an email to an Address. If no Outgoing SMTP Server is configured,
+   * an InvalidArgumentException will be thrown.
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int    $coId       CO ID
@@ -52,8 +53,9 @@ class DeliveryUtilities {
    * @param  string $cc         Addresses to cc
    * @param  string $bcc        Addresses to bcc
    * @param  string $replyTo    Reply-To address to use, instead of the default
-   * @return bool               Returns true if mail was sent, false if no SMTP server was set
+   * @return bool               Returns true if mail was sent
    * @throws Cake\Network\Exception\SocketException
+   * @throws InvalidArgumentException
    */
 
   public static function sendEmailToAddress(
@@ -78,7 +80,11 @@ class DeliveryUtilities {
       // No SMTP configured
       self::slog('debug', "No Outgoing SMTP Server is configured for CO $coId, so no mail will be sent");
 
-      return false;
+      // Originally we returned false here, but that means the only indication of a missing
+      // SMTP server configuration is in the error logs, which doesn't seem helpful.
+      // So we throw an Exception instead, and if the calling code doesn't like that
+      // it can catch it and do something else.
+      throw new \InvalidArgumentException(__d('error', 'smtp_server.none'));
     }
 
     // Next figure out the recipient

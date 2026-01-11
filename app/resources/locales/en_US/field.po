@@ -447,6 +447,9 @@ msgstr "If set, when sending email only verified Email Addresses of this type (a
 msgid "CoSettings.email_smtp_server_id"
 msgstr "Outgoing SMTP Server"
 
+msgid "CoSettings.email_smtp_server_id.desc"
+msgstr "If a Platform level SMTP Server is set, it will be used when no CO-specific SMTP Server is configured"
+
 msgid "CoSettings.permitted_fields_name"
 msgstr "Name Permitted Fields"
 

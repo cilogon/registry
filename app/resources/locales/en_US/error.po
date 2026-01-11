@@ -424,6 +424,9 @@ msgstr "Ooops... Something went wrong."
 msgid "setup.co.comanage"
 msgstr "Failed to setup COmanage CO"
 
+msgid "smtp_server.none"
+msgstr "No outgoing SMTP Server configuration found"
+
 msgid "tree.parent.invalid"
 msgstr "The selected {0} is not a valid parent for the current record"
 

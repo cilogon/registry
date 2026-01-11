@@ -349,6 +349,18 @@ class CoSettingsTable extends Table {
                          ->firstOrFail();
     }
     
+    // If this isn't the COmanageCO, then use that configuration, if there is one
+    $COmanageCO = $this->Cos->find('COmanageCO')->firstOrFail();
+
+    if($COmanageCO->id != $coId) {
+      // Note we're returning an object outside the calling CO's space, which isn't
+      // expected this shouldn't be a problem ordinarily (core code should know what
+      // it's doing, and plugins have full access to the database anyway), but there
+      // could be unidentified edge cases where this could cause problems.
+
+      return $this->getSmtpServer($COmanageCO->id);
+    }
+    
     return null;
   }
   

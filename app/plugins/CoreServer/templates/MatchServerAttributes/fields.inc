@@ -56,7 +56,6 @@ $fields[] = 'required';
     var curtypeid = document.getElementById(field);
     var typeid = document.getElementById('type-id');
 
-    alert(field + ": " + curtypeid.value);
     typeid.value = curtypeid.value;
   }
 
