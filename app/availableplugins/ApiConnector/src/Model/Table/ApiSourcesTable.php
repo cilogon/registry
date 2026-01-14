@@ -63,9 +63,6 @@ class ApiSourcesTable extends Table {
     $this->belongsTo('ExternalIdentitySources');
     $this->belongsTo('ApiUsers');
 
-    $this->hasMany('ApiConnector.ApiSourceEndpoints')
-      ->setDependent(true)
-      ->setCascadeCallbacks(true);
     $this->hasMany('ApiConnector.ApiSourceRecords')
       ->setDependent(true)
       ->setCascadeCallbacks(true);

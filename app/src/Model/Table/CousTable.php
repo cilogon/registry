@@ -175,6 +175,11 @@ class CousTable extends Table {
    */
 
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
+    if(isset($options['clone']) && $options['clone']) {
+      // If we're in the middle of cloning, don't run setup or addDefaults
+      return;
+    }
+    
     if(!empty($entity->id)) {
       if($entity->isNew()) {
         // Run setup for new COU

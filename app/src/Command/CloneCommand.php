@@ -401,7 +401,7 @@ class CloneCommand extends BaseCommand {
       }
 
       $this->io->out($original->uuid . ": Cloning " . $className . " " . $id
-                    . " from CO " . $sourceCoId . " to CO " . $targetCoId);
+                    . " from CO " . $sourceCoId . " to CO " . $targetCoId . " using $targetDataSource target");
 
       // Clone any predecessor objects first. There is a default implementations in
       // ClonableTrait that should cover most scenarios, so we don't need to check

@@ -139,7 +139,10 @@ class TableUtilities {
         if(!$aTargetTable->hasAssociation($targetAlias)) {
           $m->$aType($targetAlias)
             ->setClassName($className)
-            ->setForeignKey(StringUtilities::tableToForeignKey($target))
+            // For the relation (eg) RemoteMatchServers hasMany RemoteMatchServerAttributes
+            // we need to set the foreign key to match_server_id (ie what the data model has
+            // for match_server_attributes to fk back to match_servers)
+            ->setForeignKey(StringUtilities::classNameToForeignKey(StringUtilities::pluginModel($tableName)))
             ->setCascadeCallbacks(true)
             ->setTarget($aTargetTable);
             // Unlike PluggableTrait we don't setDependent(), it's not clear if we need to...
