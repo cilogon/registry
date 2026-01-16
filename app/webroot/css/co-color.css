@@ -134,7 +134,7 @@ html.dark-mode {
   --cmg-color-btn-bg-002: #333;      /* primary button hover color (black) */
   --cmg-color-btn-bg-003: #eee;      /* common background color (gray) */
   --cmg-color-btn-bg-004: #c33;      /* button (red) */
-  --cmg-color-btn-bg-005: #17730d;   /* button (green) */
+  --cmg-color-btn-bg-005: #155e0d;   /* button (green) */
 
   /* General Background and Border Colors (Grayscale) */
   --cmg-color-bg-001: #121212; /* background color */
@@ -148,10 +148,10 @@ html.dark-mode {
   --cmg-color-bg-009: #222;    /* data-list background color */
 
   /* Highlights: Alerts, Notices, and Badges */
-  --cmg-color-highlight-001: #bc6262; /* forms: required and error icons (red) */
+  --cmg-color-highlight-001: #cd6262; /* forms: required and error icons (red) */
   --cmg-color-highlight-002: #242400; /* forms: focused input (yellow) */
 
-  --cmg-color-highlight-003: #0B3556; /* alert: info text color (blue) */
+  --cmg-color-highlight-003: #96969b; /* alert: info text color (blue) */
   --cmg-color-highlight-004: #22222a; /* search bar active (blue) */
   --cmg-color-highlight-005: #ccc;    /* badge light (light gray) */
 
@@ -159,19 +159,28 @@ html.dark-mode {
   --cmg-color-highlight-007: #0f5132; /* alert: success text color, badge outline (green) */
   --cmg-color-highlight-008: #0f5132; /* alert: success border color (green) */
 
-  --cmg-color-highlight-009: #fffeb4; /* alert: warning (yellow) */
-  --cmg-color-highlight-010: #41412e; /* alert: warning text color (yellow) */
-  --cmg-color-highlight-011: #f6f5ae; /* alert: warning border color (yellow) */
+  --cmg-color-highlight-009: #353527; /* alert: warning (yellow) */
+  --cmg-color-highlight-010: #a0a092; /* alert: warning text color (yellow) */
+  --cmg-color-highlight-011: #383829; /* alert: warning border color (yellow) */
 
-  --cmg-color-highlight-012: #ffd4d4; /* alert: danger (red) */
+  --cmg-color-highlight-012: #d9b4b4; /* alert: danger (red) */
   --cmg-color-highlight-013: #e33;    /* title for deleted/archived (red) */
-  --cmg-color-highlight-014: #dc3545; /* danger badge (red) */
+  --cmg-color-highlight-014: #900; /* danger badge (red) */
   --cmg-color-highlight-015: #842029; /* alert: danger text color (red) */
-  --cmg-color-highlight-016: #f8cece; /* alert: danger border color (red) */
+  --cmg-color-highlight-016: #d9b4b4; /* alert: danger border color (red) */
 
-  --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
+  --cmg-color-highlight-017: #333; /* alert: info border color (blue) */
   --cmg-color-highlight-018: #cc0;    /* autocomplete highlight for query text */
   
   /* Bootstrap Overrides for Dark Mode */
   --bs-light-rgb: #151515;
+}
+
+/* Bootstrap checkbox overrides require more specificity */
+html .form-check-input {
+  --bs-border-color: #bbb;
+}
+html.dark-mode .form-check-input {
+  --bs-form-check-bg: #121212;
+  --bs-border-color: #555;
 }

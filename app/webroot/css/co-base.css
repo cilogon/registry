@@ -776,6 +776,14 @@ ul.form-list li.alert-banner .co-alert {
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-006) var(--cmg-color-bg-006) var(--cmg-color-body-bg) var(--cmg-color-bg-006);
 }
+.cm-subnav-tabs .nav-link .bg-outline-primary {
+  color: var(var(--cmg-color-link));
+  border-color: var(var(--cmg-color-link));
+}
+.cm-subnav-tabs .nav-link.active .bg-outline-primary {
+  color: var(--cmg-color-body-txt);
+  border-color: var(--cmg-color-body-txt);
+}
 .tab-count {
   display: inline-block;
   margin: -4px 0 -4px 0.5em;
@@ -971,7 +979,7 @@ ul.form-list li.alert-banner .co-alert {
 #top-filters-options-container .dropdown-menu {
   padding: 0;
 }
-#top-filters-options-container h4 {
+#top-filters-options-container h3 {
   font-size: 0.9em;
   background-color: var(--cmg-color-bg-005);
   text-align: center;
@@ -1317,6 +1325,9 @@ html.dark-mode #pagination {
 :-moz-placeholder {
   opacity: 0.2;
 }
+.form-control::placeholder {
+  color: var(--cmg-color-txt-soft);
+}
 /* PERSON CANVAS / CARDS */
 #person-actions {
   display: flex;
@@ -1615,6 +1626,9 @@ ul.form-list input[type="number"]:focus,
 ul.form-list input[type="password"]:focus {
   background-color: var(--cmg-color-highlight-002);
 }
+ul.form-list input[readonly="readonly"] {
+  color: var(--cmg-color-txt-soft);
+}
 ul.form-list select {
   width: auto; /* select boxes should fit to their content, typically */
   font-size: 0.9em;
@@ -1686,6 +1700,10 @@ ul.form-list li.info-title {
   margin-right: 0.5em;
   width: 1.24em;
   height: 1.24em;
+}
+html.dark-mode .form-check-input:checked {
+  background-color: var(--cmg-color-btn-bg-001);
+  border-color: var(--cmg-color-bg-006);
 }
 .checkbox .subfield {
   margin-left: 1.5em;
@@ -1778,11 +1796,14 @@ ul.form-list input.datepicker {
 .field-info .input-group .input.text {
   width: inherit;
 }
-.field-info .input-group .input-group-text{
+.field-info .input-group .input-group-text {
   border-radius: unset;
   font-size: inherit;
   line-height: inherit;
   padding: .25rem .75rem;
+  background-color: var(--cmg-color-bg-002);
+  color: var(--cmg-color-body-txt);
+  border-color: var(--cmg-color-bg-007);
 }
 .cm-time-picker {
   position: relative;
@@ -2113,6 +2134,7 @@ body.start .submit {
   padding: 0.5rem 1rem;
   background-color: var(--cmg-color-bg-004);
   border-bottom: none;
+  justify-content: space-between;
 }
 .cm-modal .modal-content {
   height: 80vh;
@@ -2426,9 +2448,11 @@ th, td {
   text-align: left;
 }
 th {
+  color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-bg-003);
 }
 thead td.actions {
+  color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-bg-003);
 }
 td {
@@ -2685,7 +2709,7 @@ html.dark-mode .btn-default:active {
 }
 .bg-danger {
   color: var(--cmg-color-txt-inverse);
-  background-color: var(--cmg-color-highlight-014);
+  background-color: var(--cmg-color-highlight-014) !important;
 }
 .bg-warning {
   background-color: var(--cmg-color-highlight-009) !important;
@@ -2702,7 +2726,7 @@ html.dark-mode .btn-default:active {
 }
 /* Bootstrap bg-outline */
 .bg-outline-primary {
-  color: var(--cmg-color-btn-bg-001);
+  color: var(--cmg-color-link);
   border: 1px solid var(--cmg-color-btn-bg-001);
 }
 .bg-outline-info {
@@ -2731,6 +2755,7 @@ html.dark-mode .btn-default:active {
 }
 /* Other Bootstrapisms */
 .accordion-item {
+  color: var(--cmg-color-body-txt);
   background-color: var(--cmg-color-body-bg);
   border-color: var(--cmg-color-bg-006);
 }
@@ -2741,6 +2766,10 @@ html.dark-mode .btn-default:active {
 .accordion-button:not(.collapsed) {
   color: var(--cmg-color-link);
   background-color: var(--cmg-color-bg-001);
+  box-shadow: inset 0 calc(-1 * var(--bs-accordion-border-width)) 0 var(--cmg-color-bg-006);
+}
+html.dark-mode .accordion-button::after { /* override Bootstrap SVG in dark mode */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(99, 146, 197)' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 .dropdown-menu, .dropdown-item {
   color: var(--cmg-color-body-txt);

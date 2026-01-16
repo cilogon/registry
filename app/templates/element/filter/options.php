@@ -40,7 +40,7 @@ $modelsName = $this->getName();
     <?= __d('menu', 'options') ?>
   </button>
   <div class="dropdown-menu dropdown-menu-lg-end" aria-labelledby="top-filters-options-button">
-    <h4><?= __d('menu','available.filters') ?></h4>
+    <h3><?= __d('menu','available.filters') ?></h3>
     <div id="top-filters-options">
       <?php foreach($vv_searchable_attributes as $key => $options): ?>
         <?php if($options['type'] == 'timestamp' || $options['type'] == 'boolean') continue; // skip timestamp types and put booleans at the bottom of the list ?>
