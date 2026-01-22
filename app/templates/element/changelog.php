@@ -88,7 +88,7 @@
                   $vv_obj->id
                 ?></td>
               <td><?= $vv_obj->revision ?></td>
-              <td><?= $vv_obj->modified ?></td>
+              <td><?= $this->Time->nice($vv_obj->modified, $vv_tz) ?></td>
               <td><?= $vv_obj->actor_identifier ?></td>
             </tr>
             <?php foreach($vv_archives as $archive): ?>
@@ -101,7 +101,7 @@
                     )
                   ?></td>
                 <td><?= $archive->revision ?></td>
-                <td><?= $archive->modified ?></td>
+                <td><?= $this->Time->nice($archive->modified, $vv_tz) ?></td>
                 <td><?= $archive->actor_identifier ?></td>
               </tr>
             <?php endforeach; // $archive ?>

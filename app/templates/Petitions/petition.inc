@@ -255,11 +255,11 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
   <div class="field">
     <div class="field-name ">
       <div class="field-title">
-        <?= __d('field','created') ?>: <?= $vv_obj->created ?> 
+        <?= __d('field','created') ?>: <?= $this->Time->nice($vv_obj->created, $vv_tz) ?> 
       </div>
     </div>
     <div class="field-info">
-      <?= __d('field','modified') ?>: <?= $vv_obj->modified ?> 
+      <?= __d('field','modified') ?>: <?= $this->Time->nice($vv_obj->modified, $vv_tz) ?> 
     </div>
   </div>
 </li>
@@ -306,7 +306,7 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
         </div>
         <div class="petition-step-meta">
           <span class="petition-step-modified">
-            <?= $step->modified ?>
+            <?= $this->Time->nice($step->modified, $vv_tz) ?>
           </span>
           <button class="cm-toggle nospin petition-step-toggle collapsed"
                   type="button"
@@ -377,7 +377,7 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
             ?>
           </td>
           <td><?= $hr->comment ?></td>
-          <td><?= $hr->created ?></td>
+          <td><?= $this->Time->nice($hr->created, $vv_tz) ?></td>
         </tr>
       <?php endforeach; ?>
       </tbody>

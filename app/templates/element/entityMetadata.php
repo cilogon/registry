@@ -34,11 +34,11 @@
       <?= __d('field', 'id.value', $vv_obj->id) ?>
     </div>
     <div id="cm-entity-created">
-      <?= __d('field', 'created.value', $vv_obj->created) ?>
+      <?= __d('field', 'created.value', $this->Time->nice($vv_obj->created, $vv_tz)) ?>
     </div>
     <?php if($vv_obj->created != $vv_obj->modified): ?>
       <div id="cm-entity-modified">
-        <?= __d('field', 'modified.value', $vv_obj->modified) ?>
+        <?= __d('field', 'modified.value', $this->Time->nice($vv_obj->modified, $vv_tz)) ?>
       </div>
     <?php endif; ?>
   </div>
