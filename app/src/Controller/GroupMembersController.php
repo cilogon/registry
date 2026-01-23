@@ -33,6 +33,7 @@ namespace App\Controller;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 use Cake\Log\Log;
+use App\Lib\Util\StringUtilities;
 
 class GroupMembersController extends StandardController {
   protected array $paginate = [
@@ -56,9 +57,11 @@ class GroupMembersController extends StandardController {
     $link = $this->getPrimaryLink(true);
     
     if(!empty($link->value)) {
-      $this->set('vv_bc_parent_obj', $this->GroupMembers->Groups->get($link->value));
-      $this->set('vv_bc_parent_displayfield', $this->GroupMembers->Groups->getDisplayField());
-      $this->set('vv_bc_parent_primarykey', $this->GroupMembers->Groups->getPrimaryKey());
+      $model = StringUtilities::foreignKeyToClassName($link->attr);
+
+      $this->set('vv_bc_parent_obj', $this->GroupMembers->$model->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->GroupMembers->$model->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->GroupMembers->$model->getPrimaryKey());
     }
     
     return parent::beforeRender($event);
