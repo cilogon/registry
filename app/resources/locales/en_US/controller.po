@@ -153,6 +153,12 @@ msgstr "{0,plural,=1{Server} other{Servers}}"
 msgid "TelephoneNumbers"
 msgstr "{0,plural,=1{Telephone Number} other{Telephone Numbers}}"
 
+msgid "TAndCAgreement"
+msgstr "{0,plural,=1{Terms and Conditions Agreement} other{Terms and Conditions Agreements}}"
+
+msgid "TermsAndConditions"
+msgstr "{0,plural,=1{Terms and Conditions} other{Terms and Conditions}}"
+
 msgid "TrafficDetours"
 msgstr "{0,plural,=1{Traffic Detour} other{Traffic Detours}}"
 

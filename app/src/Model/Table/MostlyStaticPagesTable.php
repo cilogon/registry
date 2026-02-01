@@ -65,7 +65,9 @@ class MostlyStaticPagesTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
     
-    $this->setDisplayField('name');
+    $this->hasMany('TermsAndConditions');
+    
+    $this->setDisplayField('title');
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);

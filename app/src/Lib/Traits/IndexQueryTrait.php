@@ -245,25 +245,6 @@ trait IndexQueryTrait {
       };
     }
 
-    // Special Authenticated Identifier filtering
-    if($modelsName == 'AuthenticationEvents') {
-      // Special case for filtering on authenticated identifier. There is a
-      // todo:
-      // similar filter in AuthenticationEventsController::beforeFilter.
-      // If other special cases show up this should get refactored into a trait
-      // populated by the table (or something similar).
-
-      if($this->getRequest()->getQuery('authenticated_identifier')) {
-        $query = $query->where(['authenticated_identifier' => StringUtilities::urlbase64decode($this->getRequest()->getQuery('authenticated_identifier'))]);
-      } else {
-        // We only allow unfiltered queries for platform users
-
-        if(!$this->RegistryAuth->isPlatformAdmin()) {
-          throw new \InvalidArgumentException(__d('error', 'input.notprov', 'authenticated_identifier'));
-        }
-      }
-    }
-
     return $query;
   }
 }

@@ -173,4 +173,4 @@ msgid "result.env.saved.login"
 msgstr "Env Attributes updated at login"
 
 msgid "result.pipeline.status"
-msgstr "Pipeline completed with status {0}"
+msgstr "EnvSource Pipeline completed with status {0}"

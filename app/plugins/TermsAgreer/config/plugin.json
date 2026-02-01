@@ -1,0 +1,35 @@
+{
+  "types": {
+    "enrollment_flow_step": [
+      "AgreementCollectors"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "agreement_collectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "t_and_c_mode": { "type": "string", "size": 2 }
+        },
+        "indexes": {
+          "agreement_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] }
+        }
+      },
+      "petition_agreements": {
+        "columns": {
+          "id": {},
+          "petition_id": {},
+          "agreement_collector_id": { "type": "integer", "foreignkey": { "table": "agreement_collectors", "column": "id" } },
+          "terms_and_conditions_id": { "type": "integer", "foreignkey": { "table": "terms_and_conditions", "column": "id" } },
+          "identifier": { "type": "string", "size": 512 },
+          "agreement_time": { "type": "datetime" }
+        },
+        "indexes": {
+          "petition_agreements_i1": { "columns": [ "petition_id" ] },
+          "petition_agreements_i2": { "needed": false, "columns": [ "terms_and_conditions_id" ] }
+        }
+      }
+    }
+  }
+}

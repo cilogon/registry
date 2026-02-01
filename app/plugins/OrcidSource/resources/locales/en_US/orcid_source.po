@@ -110,4 +110,4 @@ msgid "result.orcid.saved"
 msgstr "ORCID Token recorded"
 
 msgid "result.pipeline.status"
-msgstr "Pipeline completed with status {0}"
+msgstr "OrcidSource Pipeline completed with status {0}"

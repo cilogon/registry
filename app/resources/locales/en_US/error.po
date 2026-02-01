@@ -140,7 +140,7 @@ msgid "EmailAddresses.mail.verify.force.person"
 msgstr "Email Addresses not associated with People cannot be force verified"
 
 msgid "EnrollmentFlowSteps.message_template"
-msgstr "Enrollment Flow Step {0} is transitioning Actor Types but does not have a Mesasge Template configured"
+msgstr "Enrollment Flow Step {0} is transitioning Actor Types but does not have a Message Template configured"
 
 msgid "EnrollmentFlowSteps.none"
 msgstr "This Enrollment Flow has no Active steps and so cannot be run"
@@ -426,6 +426,12 @@ msgstr "Failed to setup COmanage CO"
 
 msgid "smtp_server.none"
 msgstr "No outgoing SMTP Server configuration found"
+
+msgid "TermsAndConditions.document.one"
+msgstr "Exactly one of Mostly Static Page or URL must be specified"
+
+msgid "TermsAndConditions.revoke.none"
+msgstr "No Agreements available to revoke"
 
 msgid "tree.parent.invalid"
 msgstr "The selected {0} is not a valid parent for the current record"

@@ -88,10 +88,10 @@ class ProvisioningTargetsTable extends Table {
     
     $this->setDisplayField('description');
     
-    $this->setPrimaryLink(['co_id', 'group_id', 'person_id']);
+    $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['provision', 'reprovision']);
-    $this->setAllowUnkeyedPrimaryLink(['status']);
+    $this->setAllowLookupRelatedPrimaryLink(['status' => ['person_id', 'group_id']]);
 
     $this->setAutoViewVars([
       'plugins' => [

@@ -354,6 +354,18 @@ msgstr "Switch To This CO"
 msgid "terminate"
 msgstr "Terminate"
 
+msgid "TermsAndConditions.proxy"
+msgstr "Agree on Behalf"
+
+msgid "TermsAndConditions.proxy.confirm"
+msgstr "Are you sure you wish to accept these Terms and Conditions on behalf of this Person?"
+
+msgid "TermsAndConditions.revoke"
+msgstr "Revoke"
+
+msgid "TermsAndConditions.revoke.confirm"
+msgstr "Are you sure you wish to revoke this Acceptance?"
+
 msgid "toggle.all"
 msgstr "Toggle All"
 

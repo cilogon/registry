@@ -48,7 +48,8 @@
             "PipelineToolkit\\": "availableplugins/PipelineToolkit/src/",
             "SqlConnector\\": "availableplugins/SqlConnector/src/",
             "SshKeyAuthenticator\\": "plugins/SshKeyAuthenticator/src/",
-            "CoreJob\\": "plugins/CoreJob/src/"
+            "CoreJob\\": "plugins/CoreJob/src/",
+            "TermsAgreer\\": "plugins/TermsAgreer/src/"
         }
     },
     "autoload-dev": {
@@ -68,7 +69,8 @@
             "PipelineToolkit\\Test\\": "availableplugins/PipelineToolkit/tests/",
             "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/",
             "SshKeyAuthenticator\\Test\\": "plugins/SshKeyAuthenticator/tests/",
-            "CoreJob\\Test\\": "plugins/CoreJob/tests/"
+            "CoreJob\\Test\\": "plugins/CoreJob/tests/",
+            "TermsAgreer\\Test\\": "plugins/TermsAgreer/tests/"
         }
     },
     "scripts": {

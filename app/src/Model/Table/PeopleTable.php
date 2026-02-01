@@ -310,8 +310,10 @@ class PeopleTable extends Table {
           'Identifiers',
           'Notifications',
           'PersonRoles',
+          'Petitions',
           'ProvisioningTargets',
           'TelephoneNumbers',
+          'TermsAndConditions',
           'Urls'
         ],
       ]

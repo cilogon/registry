@@ -348,6 +348,9 @@ msgstr "Tag"
 msgid "timestamp"
 msgstr "Timestamp"
 
+msgid "timestamp.tz"
+msgstr "Timestamp ({0})"
+
 msgid "title"
 msgstr "Title"
 
@@ -983,6 +986,33 @@ msgstr "Telephone Number"
 # This field is for rendering the telephone number into a string (eg: 555 1212 x279)
 msgid "TelephoneNumbers.number.ext"
 msgstr "x"
+
+msgid "TermsAndConditions.agree_to_updates"
+msgstr "Require Agreement on Updated T&C"
+
+msgid "TermsAndConditions.agree_to_updates.desc"
+msgstr "If set, a new Agreement will be required whenever the Terms and Conditions are updated"
+
+msgid "TermsAndConditions.agreement_duration"
+msgstr "Agreement Duration"
+
+msgid "TermsAndConditions.agreement_duration.desc"
+msgstr "If set, a new Agreement will be required after the specified duration (in days) has been reached"
+
+msgid "TermsAndConditions.mostly_static_page_id"
+msgstr "T&C via Mostly Static Page"
+
+msgid "TermsAndConditions.mostly_static_page_id.desc"
+msgstr "Content of Terms and Conditions, as defined in a Mostly Static Page (this or URL must be specified)"
+
+msgid "TermsAndConditions.cou_id.desc"
+msgstr "If set, these Terms and Conditions only apply to People with a Person Role in the specified COU"
+
+msgid "TermsAndConditions.url"
+msgstr "T&C via URL"
+
+msgid "TermsAndConditions.url.desc"
+msgstr "URL to web page holding Terms and Conditions (this or Mostly Static Page must be specified)"
 
 msgid "Types.case_insensitive"
 msgstr "Case Insensitive"

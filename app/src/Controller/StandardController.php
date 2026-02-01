@@ -675,6 +675,23 @@ class StandardController extends AppController {
       $query = $table->filterIndexByCO($query, $this->getCOID());
     }
 
+    // Filter on requested filter, if requested
+    // QueryModificationTrait
+    if(method_exists($table, "getIndexFilter")) {
+      $filter = $table->getIndexFilter();
+      
+      if(is_callable($filter)) {
+        $query = $query->where($filter($this->request));
+      } else {
+        $query = $query->where($filter);
+      }
+    }
+
+    if(!empty($this->request->getQuery('enrollee_person_id'))) {
+      // Authorization in PetitionsTable will ensure this is only used when authorized
+      $query = $query->where(['enrollee_person_id' => $this->request->getQuery('enrollee_person_id')]);
+    }
+
     // Fetch the data and paginate
     $paginationLimit = $this->getValue(ApplicationStateEnum::PaginationLimit, DEF_SEARCH_LIMIT);
     $resultSet = $this->paginate($query, [

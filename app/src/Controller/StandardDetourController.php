@@ -61,6 +61,10 @@ class StandardDetourController extends StandardPluginController {
    */
 
   public function willHandleAuth(\Cake\Event\EventInterface $event): string {
-    return 'yes';
+    if($this->request->getParam('action') == 'postlogin') {
+      return 'yes';
+    }
+
+    return 'no';
   }
 }

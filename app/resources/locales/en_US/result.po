@@ -298,6 +298,24 @@ msgstr "Not Set"
 msgid "TelephoneNumber.deleted"
 msgstr "Telephone number deleted"
 
+msgid "TermsAndConditions.agreed"
+msgstr "Terms and Conditions \"{0}\" agreed to"
+
+msgid "TermsAndConditions.agreed.behalf"
+msgstr "Terms and Conditions \"{0}\" agreed to on behalf of"
+
+msgid "TermsAndConditions.agreed.petition"
+msgstr "Terms and Conditions \"{0}\" agreed to via Petition {1}"
+
+msgid "TermsAndConditions.recorded"
+msgstr "Agreement to Terms and Conditions recorded"
+
+msgid "TermsAndConditions.revoked"
+msgstr "Agreement to Terms and Conditions revoked"
+
+msgid "TermsAndConditions.revoked.admin"
+msgstr "Agreement \"{0}\" to Terms and Conditions \"{1}\" revoked"
+
 # These are specifically for test command
 msgid "test.database.ok"
 msgstr "Database connection established"

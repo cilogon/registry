@@ -47,6 +47,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
+            'TermsAgreer\\' => 12,
         ),
         'S' => 
         array (
@@ -198,6 +199,10 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
+        ),
+        'TermsAgreer\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/TermsAgreer/src',
         ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (

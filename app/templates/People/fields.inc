@@ -108,6 +108,21 @@ $topLinks = [
     'class' => ''
   ],
   [
+    'icon' => 'note_stack',
+    'order' => 'Default',
+    'label' => __d('controller', 'Petitions', [99]),
+    'link' => [
+      'controller' => 'petitions',
+      'action' => 'index',
+      '?' => [
+        // The current implementation requires both the CO ID and the Enrollee Person ID
+        'co_id' => $vv_obj->co_id,
+        'enrollee_person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
     'icon' => 'lock',
     'order' => 'Default',
     // We use "Authenticators" as the label because it's less confusiong
@@ -132,6 +147,19 @@ $topLinks = [
       '?' => [
         'subject_person_id' => $vv_obj->id
         // XXX person_id is auto-inserted but isn't needed
+      ]
+    ],
+    'class' => ''
+  ],
+  [
+    'icon' => 'policy',
+    'order' => 'Default',
+    'label' => __d('controller', 'TermsAndConditions', [99]),
+    'link' => [
+      'controller' => 'terms_and_conditions',
+      'action' => 'status',
+      '?' => [
+        'person_id' => $vv_obj->id
       ]
     ],
     'class' => ''

@@ -53,6 +53,7 @@ class PetitionsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -176,37 +177,69 @@ class PetitionsTable extends Table {
       ]
     );
 
-    $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        // We handle assign authorization in the Controller
-        // 'assign' => true,
-        // We handle continue authorization in the Controller
-        'continue' => true,
-        'delete' =>   false,
-        'edit' =>     false,
-        // We handle finalize authorization in the Controller
-        'finalize' => true,
-        // We handle provision authorization in the Controller
-        // 'provision' => true,
-        // result just issues a redirect, so we're generous with permissions
-        'result' =>   ['platformAdmin', 'coAdmin'],
-        // resume renders a landing page, the admin can copy a URL and resend it
-        // to the appropriate actor if the actor is not also an admin
-        'resume' =>   ['platformAdmin', 'coAdmin'],
-        // terminate an in-progress Petition
-        'terminate' =>   ['platformAdmin', 'coAdmin'],
-        // Any approver for the associated Enrollment Flow can view the entire Petition
-        'view' =>     ['platformAdmin', 'coAdmin', 'approver']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>   ['result'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ]
-    ]);
+    $this->setPermissions(function (\Cake\Http\ServerRequest $r, \App\Controller\Component\RegistryAuthComponent $auth, ?int $id): array {
+      // We need to dynamically update index permissions if enrollee_person_id was provided.
+      // We're going to be called a bunch of times (once per row on the index view).
+      
+      $enrolleePersonId = $r->getQuery('enrollee_person_id');
+      $indexperm = ['platformAdmin'];
+
+      if($enrolleePersonId) {
+        $coId = $auth->getController()->getCOID();
+
+        // Make sure the requested person is in the current CO
+        if($this->EnrolleePeople->findCoForRecord((int)$enrolleePersonId) == $coId
+          // And finally that the current user is a CO Admin
+           && $auth->isCoAdmin($coId)) {
+          $indexperm[] = 'coAdmin';
+        }
+      } else {
+        $indexperm[] = 'coAdmin';
+      }
+
+      return [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          // We handle assign authorization in the Controller
+          // 'assign' => true,
+          // We handle continue authorization in the Controller
+          'continue' => true,
+          'delete' =>   false,
+          'edit' =>     false,
+          // We handle finalize authorization in the Controller
+          'finalize' => true,
+          // We handle provision authorization in the Controller
+          // 'provision' => true,
+          // result just issues a redirect, so we're generous with permissions
+          'result' =>   ['platformAdmin', 'coAdmin'],
+          // resume renders a landing page, the admin can copy a URL and resend it
+          // to the appropriate actor if the actor is not also an admin
+          'resume' =>   ['platformAdmin', 'coAdmin'],
+          // terminate an in-progress Petition
+          'terminate' =>   ['platformAdmin', 'coAdmin'],
+          // Any approver for the associated Enrollment Flow can view the entire Petition
+          'view' =>     ['platformAdmin', 'coAdmin', 'approver']
+        ],
+        // Actions that are permitted on readonly entities (besides view)
+        'readOnly' =>   ['result'],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    $indexperm
+        ]
+      ];
+    });
+
+    $this->setIndexFilter(function (\Cake\Http\ServerRequest $r): array|null {
+      // We checked authz in setPermissions()
+      $enrolleePersonId = $r->getQuery('enrollee_person_id');
+
+      if($enrolleePersonId) {
+        return ['enrollee_person_id' => $enrolleePersonId];
+      }
+
+      return null;
+    });
 
     $this->setTabsConfig(
       [
@@ -857,10 +890,10 @@ class PetitionsTable extends Table {
 
   public function start(
     int     $enrollmentFlowId,
-    string  $petitionerIdentifier=null,
-    int     $petitionerPersonId=null,
+    ?string $petitionerIdentifier=null,
+    ?int    $petitionerPersonId=null,
     bool    $isEnrollee=false,
-    string  $enrolleeEmail=null
+    ?string $enrolleeEmail=null
   ): \App\Model\Entity\Petition {
     $petition = $this->newEntity([
       'enrollment_flow_id'    => $enrollmentFlowId,

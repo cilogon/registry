@@ -249,11 +249,11 @@ ServerRequest::addDetector('tablet', function ($request) {
 // \Cake\Utility\Inflector::rules('irregular', ['red' => 'redlings']);
 // \Cake\Utility\Inflector::rules('uninflected', ['dontinflectme']);
 
-\Cake\Utility\Inflector::rules('irregular', ['co_terms_and_condition' => 'co_terms_and_conditions']);
-\Cake\Utility\Inflector::rules('uninflected', ['co_terms_and_conditions' => 'co_terms_and_conditions']);
 \Cake\Utility\Inflector::rules('irregular', ['cou' => 'cous']);
 \Cake\Utility\Inflector::rules('uninflected', ['cous' => 'cous']);
 \Cake\Utility\Inflector::rules('irregular', ['meta' => 'meta']);
+// \Cake\Utility\Inflector::rules('irregular', ['terms_and_condition' => 'terms_and_conditions']);
+\Cake\Utility\Inflector::rules('uninflected', ['terms_and_conditions' => 'terms_and_conditions']);
 
 /*
  * Define some constants

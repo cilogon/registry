@@ -149,6 +149,11 @@ class DashboardsController extends StandardController {
 //        'controller'    => 'reports',
 //        'action'        => 'index'
 //      ],
+      __d('controller', 'TermsAndConditions', [99]) => [
+        'icon'          => 'policy',
+        'controller'    => 'terms_and_conditions',
+        'action'        => 'index'
+      ],
       __d('controller', 'Types', [99]) => [
         'icon'          => 'widgets',
         'controller'    => 'types',

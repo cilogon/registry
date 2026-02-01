@@ -306,7 +306,7 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
         </div>
         <div class="petition-step-meta">
           <span class="petition-step-modified">
-            <?= $this->Time->nice($step->modified, $vv_tz) ?>
+            <?= !empty($result) ? $this->Time->nice($result[0]->modified, $vv_tz) : '' ?>
           </span>
           <button class="cm-toggle nospin petition-step-toggle collapsed"
                   type="button"

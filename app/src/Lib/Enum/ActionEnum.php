@@ -72,4 +72,8 @@ class ActionEnum extends StandardEnum {
   const PetitionFinalized             = 'CPPF';
   const PetitionUpdated               = 'CPUP';
   const ReferenceIdentifierObtained   = 'OIDR';
+  const TAndCAgreement                = 'TCAG';
+  const TAndCAgreementBehalf          = 'TCAB';
+  const TAndCAgreementPetition        = 'TCAP';
+  const TAndCAgreementRevoked         = 'TCAX';
 }

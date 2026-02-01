@@ -16,5 +16,6 @@ return [
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',
         'OrcidSource' => $baseDir . '/plugins/OrcidSource/',
         'SshKeyAuthenticator' => $baseDir . '/plugins/SshKeyAuthenticator/',
+        'TermsAgreer' => $baseDir . '/plugins/TermsAgreer/'
     ],
 ];

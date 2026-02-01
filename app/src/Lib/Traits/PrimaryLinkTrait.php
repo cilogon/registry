@@ -47,6 +47,9 @@ trait PrimaryLinkTrait {
   
   // Actions where the primary link can be obtained by looking up the record ID
   private $lookupActions = ['delete', 'edit', 'canvas', 'view'];
+
+  // Actions where the primary link can be calculated by lookup up an associated value
+  private $lookupRelatedActions = [];
   
   // Where to redirect on add or edit, can be 'self', 'index', 'pluggableLink', or 'primaryLink'.
   // We use null to mean "index unless we're in a plugin context, in which case pluggableLink".
@@ -76,7 +79,7 @@ trait PrimaryLinkTrait {
    * @return boolean          true if permitted, false otherwise
    */
   
-  public function allowEmptyPrimaryLink(string $action) {
+  public function allowEmptyPrimaryLink(string $action): bool {
     return in_array($action , $this->allowEmptyActions);
   }
   
@@ -89,8 +92,25 @@ trait PrimaryLinkTrait {
    * @return boolean true if permitted, false otherwise
    */
   
-  public function allowLookupPrimaryLink(string $action) {
+  public function allowLookupPrimaryLink(string $action): bool {
     return in_array($action, $this->lookupActions, true);
+  }
+
+  /**
+   * Check to see whether the specific action allows a related foreign key to be passed
+   * in the URL, which can be used to lookup a primary link.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  string $action Action
+   * @return array          Array of foreign keys that may be used to lookup a primary link
+   */
+
+  public function allowLookupRelatedLink(string $action): array {
+    if(isset($this->lookupRelatedActions[$action])) {
+      return $this->lookupRelatedActions[$action];
+    }
+
+    return [];
   }
   
   /**
@@ -102,7 +122,7 @@ trait PrimaryLinkTrait {
    * @return boolean true if permitted, false otherwise
    */
   
-  public function allowUnkeyedPrimaryLink(string $action) {
+  public function allowUnkeyedPrimaryLink(string $action): bool {
     return in_array($action, $this->unkeyedActions, true);
   }
   
@@ -443,6 +463,25 @@ trait PrimaryLinkTrait {
     $this->lookupActions = array_merge($this->lookupActions, $actions);
   }
   
+  /**
+   * Set whether the primary link can be resolved via a related foreign key.
+   * 
+   * The $actions parameter is an array of actions and their permitted primary links,
+   * for example
+   * 
+   *   ['status' => ['person_id', 'group_id']]
+   * 
+   * Only unaliased primary links are currently supported, eg "person_id" but not
+   * "enrollee_person_id".
+   * 
+   * @since  COmanage Rgistry v5.2.0
+   * @param  array  $actions  Actions where the primary link can be obtained by lookup of a related foreign key, and the foreign keys
+   */
+
+  public function setAllowLookupRelatedPrimaryLink(array $actions) {
+    $this->lookupRelatedActions = array_merge($this->lookupRelatedActions, $actions);
+  }
+
   /**
    * Set which actions permit a primary link to be passed as a request parameter.
    * Defaults to [add, index].

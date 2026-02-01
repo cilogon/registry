@@ -113,6 +113,20 @@ class AuthenticationEventsTable extends Table {
         ]
       ];
     });
+
+    $this->setIndexFilter(function (\Cake\Http\ServerRequest $r): array {
+      // This will be checked for authz in RegistryAuthComponent
+      $targetIdentifier = $r->getQuery('authenticated_identifier');
+      
+      // Note that in setPermissions above we permit index operations when no
+      // targetIdentifier is specified. We reject that here though since index
+      // views require a targetIdentifier.
+      if(!$targetIdentifier) {
+        throw new \InvalidArgumentException(__d('error', 'input.notprov', 'authenticated_identifier'));
+      }
+      
+      return ['authenticated_identifier' => StringUtilities::urlbase64decode($targetIdentifier)];
+    });
   }
   
   /**

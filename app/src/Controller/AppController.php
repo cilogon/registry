@@ -308,6 +308,52 @@ class AppController extends Controller {
       );
     }
 
+    // allowLookupRelatedLink() is intended to allow queries like
+    //  /provisioning-targets/status?person_id=123
+    // in particular to allow filtering.
+    //
+    // In this initial implementation, we only support keys that can be inflected
+    // directly to a table, eg person_id -> People, not enrollee_person_id. The related
+    // model needs to have a primary link in common (eg: co_id) with the current model.
+    $allowsRelatedLookup = $this->getCurrentTable()->allowLookupRelatedLink($actionParam);
+
+    if(!empty($allowsRelatedLookup)) {
+      // We have a set of related foreign keys (person_id, group_id, etc) that can be used
+      // to lookup a primary link for the current table. If one is populated, see if it
+      // has a value for $potentialPrimaryLink.
+
+      foreach($allowsRelatedLookup as $potentialRelatedKey) {
+        // The value for $potentialRelatedKey, eg person_id = 2298, as passed in the query
+        $potentialRelatedId = $this->request->getQuery($potentialRelatedKey);
+
+        if(is_numeric($potentialRelatedId)) {
+          // We need to find the table for $potentialRelatedKey in order to find
+          // the potential common link.
+
+          // $RelatedTable = (eg) People
+          $RelatedTable = TableRegistry::getTableLocator()->get(
+            StringUtilities::foreignKeyToClassName($potentialRelatedKey)
+          );
+
+          // $relatedEntity = (eg) person
+          $relatedEntity = $RelatedTable->get($potentialRelatedId);
+
+          // Check to see if the current table (eg: ProvisioningTargets) shares
+          // $potentialPrimaryLink (eg: co_id) with the related table (eg: People).
+          // If it does, we can return this primary link.
+          if(!empty($relatedEntity->$potentialPrimaryLink)) {
+            // XXX This is the same structure returned by findPrimaryLink()
+            return (object)[
+              'plugin'  => null,  // We don't currently support plugins
+              'attr'    => $potentialPrimaryLink,
+              'value'   => $relatedEntity->$potentialPrimaryLink,
+              'co_id'   => $RelatedTable->calculateCoForRecord($relatedEntity)
+            ];
+          }
+        }
+      }
+    }
+
     if(!$allowsLookup || empty($param)) {
       return false;
     }

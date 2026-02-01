@@ -29,6 +29,7 @@
       "language": { "type": "string", "size": 16 },
       "mail": { "type": "string", "size": 256 },
       "message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" } },
+      "mostly_static_page_id": { "type": "integer", "foreignkey": { "table": "mostly_static_pages", "column": "id" } },
       "name": { "type": "string", "size": 128, "notnull": true },
       "ordr": { "type": "integer" },
       "password": { "type": "string", "size": 400 },
@@ -980,6 +981,40 @@
         "authenticator_statuses_i1": { "columns": [ "authenticator_id", "person_id" ] },
         "authenticator_statuses_i2": { "needed": false, "columns": [ "authenticator_id"] },
         "authenticator_statuses_i3": { "needed": false, "columns": [ "person_id"] }
+      }
+    },
+
+    "terms_and_conditions": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "url": { "type": "url" },
+        "mostly_static_page_id": {},
+        "cou_id": {},
+        "status": {},
+        "ordr": {},
+        "agreement_duration": { "type": "integer" },
+        "agree_to_updates": { "type": "boolean" }
+      },
+      "indexes": {
+        "terms_and_conditions_i1": { "columns": [ "co_id" ] },
+        "terms_and_conditions_i2": { "needed": false, "columns": [ "cou_id" ] },
+        "terms_and_conditions_i3": { "needed": false, "columns": [ "mostly_static_page_id" ] }
+      }
+    },
+
+    "t_and_c_agreements": {
+      "columns": {
+        "id": {},
+        "terms_and_conditions_id": { "type": "integer", "foreignkey": { "table": "terms_and_conditions", "column": "id" } },
+        "person_id": {},
+        "agreement_time": { "type": "datetime" },
+        "identifier": { "type": "string", "size": 512 }
+      },
+      "indexes": {
+        "t_and_c_agreements_i1": { "columns": [ "terms_and_conditions_id" ]},
+        "t_and_c_agreements_i2": { "columns": [ "person_id" ]}
       }
     }
   },

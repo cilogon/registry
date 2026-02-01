@@ -83,7 +83,8 @@ class PetitionsController extends StandardController {
   }
 
   /**
-   * Calculate authorization for the current request.
+   * Calculate authorization for the current request. Note this only applies to
+   * Petition runtime actions, and not the standard CRUD actions (index, etc).
    * 
    * @since  COmanage Registry v5.1.0
    * @return bool     True if the current request is permitted, false otherwise

@@ -80,7 +80,7 @@ class PaginatedSqlIterator implements \Iterator {
    * 
    * @since  COmanage Registry v3.3.0
    * @param  Table    $table        Table
-   * @param  array    $condititions Query condittions (use direct queries only, avoid joins due to ChangelogBehavior complications)
+   * @param  array    $condititions Query conditions (use direct queries only, avoid joins due to ChangelogBehavior complications)
    * @param  array    $options      Options to pass to cake find()
    * @param  callable $filter       Optional filter to apply to individual results
    * @return PaginatedSqlIterator

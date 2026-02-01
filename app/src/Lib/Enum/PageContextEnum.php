@@ -33,4 +33,5 @@ class PageContextEnum extends StandardEnum {
   const EnrollmentHandoff     = 'EH';
   const ErrorLanding          = 'ER';
   const General               = 'G';
+  const TermsAndConditions    = 'TC';
 }

@@ -431,6 +431,9 @@ msgstr "Error Landing"
 msgid "PageContextEnum.G"
 msgstr "General"
 
+msgid "PageContextEnum.TC"
+msgstr "Terms and Conditions"
+
 msgid "PermittedCharactersEnum.AL"
 msgstr "Any"
 
@@ -689,6 +692,24 @@ msgstr "Suspended"
 
 msgid "TemplateableStatusEnum.T"
 msgstr "Template"
+
+msgid "TAndCLoginModeEnum.R"
+msgstr "Registry Login"
+
+msgid "TAndCLoginModeEnum.X"
+msgstr "Not Enforced"
+
+msgid "TAndCStatusEnum.N"
+msgstr "Not Agreed"
+
+msgid "TAndCStatusEnum.OD"
+msgstr "Outdated"
+
+msgid "TAndCStatusEnum.XP"
+msgstr "Expired"
+
+msgid "TAndCStatusEnum.Y"
+msgstr "Agreed"
 
 msgid "VerificationMethodEnum.C"
 msgstr "Code"

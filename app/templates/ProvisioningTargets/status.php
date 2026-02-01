@@ -65,9 +65,9 @@ use App\Lib\Util\StringUtilities;
                 'order' => $this->Menu->getMenuOrder('Default'),
                 'icon' => 'start',
                 'url' => [
-                  'controller' => $vv_primary_link_model,
+                  'controller' => StringUtilities::foreignKeyToController($vv_target_fk),
                   'action' => 'provision',
-                  $vv_primary_link_obj->id,
+                  $vv_target_id,
                   '?' => [
                     'provisioning_target_id' => $p['target']->id
                   ]
@@ -86,7 +86,7 @@ use App\Lib\Util\StringUtilities;
                   'action' => 'index',
                   '?' => [
                     'provisioning_target_id' => $p['target']->id,
-                    StringUtilities::entityToForeignKey($vv_primary_link_obj) => $vv_primary_link_obj->id
+                    $vv_target_fk => $vv_target_id
                   ]
                 ],
                 'label' => __d('controller', 'ProvisioningHistoryRecords', [99])
@@ -101,7 +101,7 @@ use App\Lib\Util\StringUtilities;
         <td><?= __d('enumeration', 'ProvisioningStatusEnum.'.$p['status']); ?></td>
         <td><?= $p['comment']; ?></td>
         <td><?= $p['identifier'] ?? ""; ?></td>
-        <td><?= $p['timestamp'] ?? ""; // $this->Time->nice and $vv_tz ?></td>
+        <td><?= !empty($p['timestamp']) ? $this->Time->nice($p['timestamp'], $vv_tz) : ""; ?></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
