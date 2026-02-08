@@ -49,7 +49,7 @@ trait ClonableTrait {
   public function getClonePredecessors(EntityInterface $original): array {
     // This is substantially the same logic as fixCloneForeignKeys, which means
     // we'll end up looking up the predecessors several times; once here, once when
-    // we clone the predecessor, and again in fixCloneForeifnKeys. It might make sense
+    // we clone the predecessor, and again in fixCloneForeignKeys. It might make sense
     // to cache these lookups.
 
     $ret = [];

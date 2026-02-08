@@ -75,7 +75,8 @@
         "indexes": {
           "env_source_identities_i1": { "columns": [ "source_key" ] },
           "env_source_identities_i2": { "needed": false, "columns": [ "env_source_id" ] }
-        }
+        },
+        "clone_relation": true
       },
       "env_source_detours": {
         "columns": {

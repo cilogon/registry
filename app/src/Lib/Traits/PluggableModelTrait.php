@@ -34,6 +34,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
 use App\Lib\Enum\SuspendableStatusEnum;
+use App\Lib\Util\PaginatedSqlIterator;
 use App\Lib\Util\StringUtilities;
 use App\Lib\Util\TableUtilities;
 
@@ -123,7 +124,7 @@ trait PluggableModelTrait {
       // the comments in CloneCommand::execute().) We don't actually need the Table
       // objects here, we just want to make sure the TableRegistry is correctly set up.
       
-      $related = TableUtilities::normalizeAssociationArray($this->getCloneRelations());
+      $related = TableUtilities::normalizeAssociationArray($this->getCloneHasMany());
 
       $fn = function($related, $targetDataSource, $pluginName) use (&$fn) {
         foreach($related as $rm => $ra) {
@@ -150,29 +151,73 @@ trait PluggableModelTrait {
   }
 
   /**
-   * Get the set of related models that are to be cloned along with this one.
+   * Get the set of hasMany related models that are to be duplicated along with
+   * this one, or its hasOne relations.
    * 
    * @since  COmanage Registry v5.2.0
    * @return array    Array of models, in contain() format
    */
 
-  public function getCloneRelations(): array {
+  public function getCloneHasMany(): array {
     $ret = [];
 
     foreach($this->_pluginModels as $entryPoint) {
       $PluginTable = TableRegistry::getTableLocator()->get($entryPoint);
 
-// XXX hasOne?
       $hasMany = $PluginTable->associations()->getByType('hasMany');
 
       if(!empty($hasMany)) {
         foreach($hasMany as $h) {
-          $ret[StringUtilities::pluginModel($entryPoint)][] = $h->getName();
+          // getClassName should return the fully qualified Plugin.Model name
+          $ret[$entryPoint][] = $h->getClassName();
         }
-      } else {
-        $ret[] = StringUtilities::pluginModel($entryPoint);
       }
     }
+
+    return $ret;
+  }
+
+  /**
+   * Get the set of hasOne related models that most be duplicated along with this one.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return array    Array of models, in contain() format
+   */
+
+  public function getCloneHasOne(): array {
+    $ret = [];
+
+    foreach($this->_pluginModels as $entryPoint) {
+      $ret[] = $entryPoint; //StringUtilities::pluginModel($entryPoint);
+    }
+
+    return $ret;
+  }
+
+  /**
+   * Get the set of entities that are to be cloned after $original.
+   * 
+   * The returned array may include both UUIDs (strings) and PaginatedSqlIterators,
+   * where the Iterator returns only clonable entities.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param   EntityInterface $original Current entity being cloned
+   * @return  array                     Array of UUIDs and/or PaginatedSqlIterators
+   */
+
+  public function getCloneSuccessors(
+    \Cake\Datasource\EntityInterface $original
+  ): array {
+    // We don't really know whether we need to use PaginatedSqlIterator for every
+    // hasMany relation (without adding annotations of some form), and indeed in most
+    // cases we probably don't need it (smaller deployments, models with only a few
+    // related entities), but for the cases where we need it we really need it
+    // (ApiSourceRecords, EnvSourceIdentities) so we always use it. (The overhead
+    // for smoller data sets should be marginal.)
+
+    // Because PaginatedSqlIterators only operate over a single table, we need to
+    // return one per hasMany relation.
+    $ret = [];
 
     return $ret;
   }

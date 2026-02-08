@@ -58,7 +58,6 @@ class PipelinesTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
-  use \App\Lib\Traits\PluggableModelTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;

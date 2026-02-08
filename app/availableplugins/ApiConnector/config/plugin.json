@@ -40,7 +40,8 @@
           "api_source_records_i1": { "columns": [ "api_source_id" ] },
           "api_source_records_i2": { "columns": [ "api_source_id", "source_key" ] }
         },
-        "changelog": false
+        "changelog": false,
+        "clone_relation": true
       }
     }
   }

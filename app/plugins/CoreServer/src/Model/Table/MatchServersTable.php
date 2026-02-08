@@ -328,7 +328,7 @@ class MatchServersTable extends HttpServersTable {
     }
     
     if($response->getStatusCode() != 200 && $response->getStatusCode() != 201) {
-      $error = $response->reasonPhrase;
+      $error = $response->getReasonPhrase();
       
       // If an error was provided in the response, use that instead
       if(!empty($body['error'])) {

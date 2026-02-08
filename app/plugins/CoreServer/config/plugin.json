@@ -47,8 +47,10 @@
           "required": {}
         },
         "indexes": {
-          "match_server_attributes_i1": { "columns": [ "match_server_id" ]}
-        }
+          "match_server_attributes_i1": { "columns": [ "match_server_id" ]},
+          "match_server_attributes_i2": { "needed": false, "columns": [ "type_id" ]}
+        },
+        "clone_relation": true
       },
       "oauth2_servers": {
         "columns": {
@@ -66,7 +68,8 @@
         },
         "indexes": {
           "oauth2_servers_i1": { "columns": [ "server_id" ] }
-        }
+        },
+        "clone_relation": true
       },
       "smtp_servers": {
         "columns": {
@@ -83,7 +86,8 @@
         },
         "indexes": {
           "smtp_servers_i1": { "columns": [ "server_id" ] }
-        }
+        },
+        "clone_relation": true
       },
       "sql_servers": {
         "columns": {
@@ -98,7 +102,8 @@
         },
         "indexes": {
           "sql_servers_i1": { "columns": [ "server_id" ]}
-        }
+        },
+        "clone_relation": true
       }
     }
   }

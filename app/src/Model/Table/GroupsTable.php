@@ -624,12 +624,13 @@ class GroupsTable extends Table {
     EntityInterface $original,
     string $targetDataSource='default'
   ) {
-    // As a first pass, we only sync Standard Groups.
+    // We don't clone Automatic Groups. Those should be created when the related structure
+    // (ie: a COU) is created, and then updated automatically as members are cloned.
 
-    if($original->isSystem()) {
+    if($original->isAutomatic()) {
       // This string isn't internationalized because it is intended to render
       // in CloneCommand output
-      throw new \InvalidArgumentException("Group " . $original->id . " is a system group, skipping...");
+      throw new \InvalidArgumentException("Group " . $original->id . " is an automatic group, skipping...");
     }
   }
   
