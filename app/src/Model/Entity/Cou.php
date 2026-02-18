@@ -39,4 +39,6 @@ class Cou extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+
+  public array $_supportedMetadata = ['clonable'];
 }

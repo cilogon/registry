@@ -63,5 +63,3 @@ $fields = [
   'remote_ip', // string
   'privileged', // boolean
 ];
-
-$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));

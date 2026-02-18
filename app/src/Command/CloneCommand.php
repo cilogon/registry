@@ -474,11 +474,25 @@ class CloneCommand extends BaseCommand {
 
       if(!empty($hasOne)) {
         if($targetDataSource != 'default') {
-          // Prefix the hasOne relations (we're assuming only one level for now,
-          // so no recursion) with the data source label.
-
           foreach($hasOne as $h) {
+            // Prefix the hasOne relations (we're assuming only one level for now,
+            // so no recursion) with the data source label.
+
             $targetHasOne[] = $prefix.$h;
+
+            // Also, while we're here prefix the property, if set.
+            // (eg: $copy['api_source'] -> $copy['remote_api_source'])
+            // (This could arguably be done in filterMetadataForCopy, but as a general
+            // rule we seem to be managing datasource-specific prefixing here in
+            // CloneCommand.)
+
+            $property = Inflector::singularize(Inflector::underscore($h));
+            $targetProperty = $targetDataSource . "_" . $property;
+
+            if(array_key_exists($property, $copy)) {
+              $copy[$targetProperty] = $copy[$property];
+              unset($copy[$property]);
+            }
           }
         } else {
           $targetHasOne = $hasOne;
@@ -657,9 +671,8 @@ class CloneCommand extends BaseCommand {
               $this->io->out($sourceIterator->count() . " records in source to sync");
 
               foreach($sourceIterator as $srcent) {
-
                 $targetent = $TargetRelatedTable->find()
-                                                ->where(['original_id' => $srcent->id])
+                                                ->where(['originalid' => $srcent->id])
                                                 // There should be at most one
                                                 ->first();
 
@@ -734,8 +747,8 @@ class CloneCommand extends BaseCommand {
                   // correct it, but this is clearer)
                   $targetent->$parent_key = $cloneId;
 
-                  // Insert original_id, _after_ fixing the foreign keys
-                  $targetent->original_id = $srcent->id;
+                  // Insert originalid, _after_ fixing the foreign keys
+                  $targetent->originalid = $srcent->id;
 
                   $TargetRelatedTable->saveOrFail($targetent);
 
@@ -810,7 +823,20 @@ class CloneCommand extends BaseCommand {
         }
       }
       
-      $tcxn->commit();
+      // Perform any table specific follow up tasks. Unlike checkCloneDependencies
+      // this call may perform work.
+
+      if(method_exists($TargetTable, "postClone")) {
+        try {
+          $TargetTable->postClone($clone, $targetDataSource);
+        }
+        catch(\Exception $e) {
+          // We catch the Exception to provide context
+          throw new \Exception($clone->uuid . ": postClone failed: " . $e->getMessage());
+        }
+      }
+
+      $tcxn->commit();  
     }
     catch(\Exception $e) {
       $this->io->err($e->getMessage());
@@ -818,6 +844,43 @@ class CloneCommand extends BaseCommand {
       if($tcxn) {
         $tcxn->rollback();
       }
+    }
+
+    if(method_exists($Table, "getCloneSuccessors")) {
+      // Now clone any successor entities
+
+      $uuids = $Table->getCloneSuccessors($original);
+
+      // We accept both UUIDs and PaginatedSqlIterators in the array. We have to accept
+      // multiple PaginatedSqlIterators because each one can only handle a single model.
+      // Failure to clone a successor entity does _not_ fail the primary clone action,
+      // and does not prevent other successors from being cloned.
+
+      $this->io->out("== Processing Successor Entities ==");
+
+      foreach($uuids as $uuid) {
+        if(is_string($uuid)) {
+          // Simple UUID
+          try {
+            $this->cloneByUuid($uuid, $sourceCoId, $targetCoId, $targetDataSource);
+          }
+          catch(\Exception $e) {
+            $this->io->err($uuid . ": " . $e->getMessage());
+          }
+        } else {
+          // PaginatedSqlIterator
+          foreach($uuid as $entity) {
+            try {
+              $this->cloneByUuid($entity->uuid, $sourceCoId, $targetCoId, $targetDataSource);
+            }
+            catch(\Exception $e) {
+              $this->io->err($uuid . ": " . $e->getMessage());
+            }
+          }
+        }
+      }
+
+      $this->io->out("== Finished Processing Successor Entities ==");
     }
   }
 

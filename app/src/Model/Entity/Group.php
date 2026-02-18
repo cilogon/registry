@@ -42,6 +42,8 @@ class Group extends Entity {
     'id' => false,
     'slug' => false, 
   ];
+
+  public array $_supportedMetadata = ['clonable'];
   
   /**
    * Determine if this entity record can be deleted.
@@ -73,6 +75,7 @@ class Group extends Entity {
    */
   
   public function isAutomatic(): bool {
+    // If this list is updated, CousTable::getCloneSuccessors will need to be updated as well
     return in_array($this->group_type, [GroupTypeEnum::ActiveMembers, GroupTypeEnum::AllMembers]);
   }
 

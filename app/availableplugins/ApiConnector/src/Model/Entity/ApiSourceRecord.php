@@ -48,4 +48,6 @@ class ApiSourceRecord extends Entity {
     'id' => false,
     'slug' => false,
   ];
+
+  public array $_supportedMetadata = ['clonable-related'];
 }

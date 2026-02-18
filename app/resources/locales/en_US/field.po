@@ -243,6 +243,9 @@ msgstr "Order"
 msgid "organization"
 msgstr "Organization"
 
+msgid "originalid"
+msgstr "Original Record ID"
+
 msgid "parameters"
 msgstr "Parameters"
 

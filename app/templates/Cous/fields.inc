@@ -35,5 +35,3 @@ if(!empty($parents)) {
     'fieldLabel' => __d('field', 'parent_id')
   ];
 }
-
-$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));

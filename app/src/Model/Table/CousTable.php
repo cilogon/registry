@@ -35,8 +35,10 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 
+use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Util\StringUtilities;
@@ -163,6 +165,35 @@ class CousTable extends Table {
     
     return $rules;
   }
+
+  /**
+   * Get the set of entities that are to be cloned after $original.
+   * 
+   * The returned array may include both UUIDs (strings) and PaginatedSqlIterators,
+   * where the Iterator returns only clonable entities.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface $original Current entity being cloned
+   * @return array                     Array of UUIDs and/or PaginatedSqlIterators
+   */
+
+  public function getCloneSuccessors(
+    \Cake\Datasource\EntityInterface $original
+  ): array {
+    // Pull the set of non-automatic COU Groups and return their UUIDs
+
+    $clonableGroups = $this->Groups->find()
+                                   ->where([
+                                    'cou_id' => $original->id,
+                                    'group_type NOT IN' => [
+                                      GroupTypeEnum::ActiveMembers,
+                                      GroupTypeEnum::AllMembers
+                                    ]
+                                   ])
+                                   ->all();
+
+    return $clonableGroups->extract('uuid')->toArray();
+  }
   
   /**
    * Callback after model save.
@@ -176,7 +207,11 @@ class CousTable extends Table {
 
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options) {
     if(isset($options['clone']) && $options['clone']) {
-      // If we're in the middle of cloning, don't run setup or addDefaults
+      // If we're in the middle of cloning, don't run setup or addDefaults.
+      // This is because CloneCommand needs to specially handle the data source
+      // and UUID syncing, and in edge cases it's possible that addDefaults() is not
+      // the right behavior because a COU was created before additional default Groups
+      // were added (though this should be pretty rare).
       return;
     }
     
@@ -225,6 +260,34 @@ class CousTable extends Table {
     }
 
     return $ret;
+  }
+
+  /**
+   * Check for any dependencies that must be in place before cloning begins.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $clone            Cloned entity
+   * @param  string           $targetDataSource Target DataSource connection name
+   */
+
+  public function postClone(
+    \Cake\Datasource\EntityInterface $clone,
+    string $targetDataSource='default'
+  ) {
+    // We need to call addDefaults on the Target datasource, but only for
+    // automatic Groups. (Non-automatic Groups are handled by getCloneSuccessors.)
+
+    $TargetGroups = TableUtilities::getTableWithDataSource(
+      tableName: "Groups",
+      connectionName: $targetDataSource
+    );
+
+    $TargetGroups->addDefaults(
+      coId: $clone->co_id,
+      couId: $clone->cou_id,
+      rename: true,   // Allow renaming on updates
+      autoOnly: true
+    );
   }
   
   /**

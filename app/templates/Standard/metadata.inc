@@ -25,11 +25,19 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-return [
-  'metadata' => [
-    'fieldLabel' => __d('field','metadata'),
-    'labelIsTextOnly' => true, 
-    'groupedControls' =>  [
+/* We currently support cloning related metadata, which comes in two flavors:
+ *  (1) Clonable Objects have uuid, cri, and do_not_clone attributes.
+ *  (2) Related Objects have originalid (if multivalued).
+ * 
+ * We use annotations on the entity to determine what to render, this approach can be
+ * expanded for future metadata types.
+ */
+
+if(isset($vv_obj->_supportedMetadata)) {
+  $controls = [];
+
+  if(in_array('clonable', $vv_obj->_supportedMetadata)) {
+    $controls = array_merge($controls, [
       'uuid' => [
         'singleRowItem' => true,
         'label' => __d('field','uuid'),
@@ -43,6 +51,29 @@ return [
         'singleRowItem' => true,
         'label' => __d('field','do_not_clone')
       ]
+    ]);
+  }
+
+  if(in_array('clonable-related', $vv_obj->_supportedMetadata)) {
+    // originalid is a foreign key, but possibly not to the current CMP. As such, we don't
+    // try to make it linkable to anything, and as a first pass we make it read only.
+    $controls = array_merge($controls, [
+      'originalid' => [
+        'singleRowItem' => true,
+        'label' => __d('field','originalid'),
+        'type' => 'text',
+        'readonly' => true
+      ]
+    ]);
+  }
+
+  return [
+    'metadata' => [
+      'fieldLabel' => __d('field','metadata'),
+      'labelIsTextOnly' => true, 
+      'groupedControls' => $controls
     ]
-  ]
-];
+  ];
+} else {
+  return [];
+}

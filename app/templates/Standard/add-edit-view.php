@@ -46,6 +46,9 @@ if(file_exists($templatePath . DS . 'fields-' . $vv_action . '.inc')) {
 }
 include($templatePath . DS . $fieldsFile);
 
+// Inject metadata fields, if appropriate
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard' . DS . 'metadata.inc'));
+
 // $flashArgs pass alert messages to the flash element container.
 // $alertMessages will hold the messages to pass to $flashArgs.  
 $flashArgs = [];

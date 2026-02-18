@@ -37,6 +37,7 @@ use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use \App\Lib\Util\PaginatedSqlIterator;
+use \App\Lib\Util\TableUtilities;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
@@ -265,19 +266,31 @@ class GroupsTable extends Table {
    * Add the system groups for a CO or COU. (AR-CO-6, AR-COU-4)
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int   $coId    CO ID
-   * @param  int   $couId   COU ID
-   * @param  bool  $rename  If true, rename any existing groups
-   * @return bool           True on success
+   * @param  int    $coId       CO ID
+   * @param  int    $couId      COU ID
+   * @param  bool   $rename     If true, rename any existing groups
+   * @param  bool   $autoOnly   If true, only process automatic groups
+   * @param  string $dataSource Datasource to use (primarily intended for use with cloning)
+   * @return bool             True on success
    * @throws InvalidArgumentException
    * @throws RuntimeException
    * @throws PersistenceFailedException
    */
 
-  public function addDefaults(int $coId, ?int $couId=null, bool $rename=false): bool {
-    // Pull the name of the CO/COU
+  public function addDefaults(
+    int     $coId,
+    ?int    $couId=null,
+    bool    $rename=false,
+    bool    $autoOnly=false,
+    string  $dataSource='default'
+  ): bool {
+    // Pull the name of the CO/COU, making sure to use the correct datasource so
+    // we get the correct name when cloning
     
-    $Cos = TableRegistry::getTableLocator()->get('Cos');
+    $Cos = TableUtilities::getTableWithDataSource(
+      tableName: "Cos",
+      connectionName: $dataSource
+    );
     
     try {
       $co = $Cos->get($coId);
@@ -289,7 +302,10 @@ class GroupsTable extends Table {
     $couName = null;
 
     if($couId) {
-      $Cous = TableRegistry::getTableLocator()->get('Cous');
+      $Cous = TableUtilities::getTableWithDataSource(
+        tableName: "Cous",
+        connectionName: $dataSource
+      );
       
       try {
         $cou = $Cous->get($couId);
@@ -306,6 +322,7 @@ class GroupsTable extends Table {
     $defaultGroups = [
       ':admins' => [
         'group_type'  => GroupTypeEnum::Admins,
+        // Note 'auto' isn't a field anymore, but we use it below before saving
         'auto'        => false,
         'description' => __d('field', 'Groups.desc.admins', [$couName ?: $co->name]),
         'open'        => false,
@@ -352,6 +369,12 @@ class GroupsTable extends Table {
     }
     
     foreach($defaultGroups as $suffix => $attrs) {
+      // $autoOnly is intended to support cloning, which needs to manually manage
+      // non-automatic Groups
+      if($autoOnly && !$attrs['auto']) {
+        continue;
+      }
+
       // Construct the full group name
       $gname = "CO" . ($couName ? ":COU:".$couName : "") . $suffix;
 
@@ -361,9 +384,9 @@ class GroupsTable extends Table {
 
       $grp = $this->find()
                   ->where([
-                    'Groups.co_id'      => $coId,
-                    'Groups.group_type' => $attrs['group_type'],
-                    'Groups.cou_id IS'  => $couId ?: null
+                    'co_id'      => $coId,
+                    'group_type' => $attrs['group_type'],
+                    'cou_id IS'  => $couId ?: null
                   ])
                   ->first();
       
@@ -374,7 +397,7 @@ class GroupsTable extends Table {
         $entity->co_id = $coId;
         $entity->name = $gname;
         
-        if(!$this->save($entity)) {
+        if(!$this->save($entity, options: ['autoOnly' => $autoOnly])) {
           throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
         }
       } elseif($rename) {
@@ -382,7 +405,7 @@ class GroupsTable extends Table {
         $grp->name = $gname;
         $grp->description = $attrs['description'];
         
-        if(!$this->save($grp)) {
+        if(!$this->save($grp, options: ['autoOnly' => $autoOnly])) {
           throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
         }
       }
@@ -524,6 +547,28 @@ class GroupsTable extends Table {
 
     return $rules;
   }
+  
+  /**
+   * Check for any dependencies that must be in place before cloning begins.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $original         Original entity
+   * @param  string           $targetDataSource Target DataSource connection name
+   */
+
+  public function checkCloneDependencies(
+    EntityInterface $original,
+    string $targetDataSource='default'
+  ) {
+    // We don't clone Automatic Groups. Those should be created when the related structure
+    // (ie: a COU) is created, and then updated automatically as members are cloned.
+
+    if($original->isAutomatic()) {
+      // This string isn't internationalized because it is intended to render
+      // in CloneCommand output
+      throw new \InvalidArgumentException("Group " . $original->id . " is an automatic group, skipping...");
+    }
+  }
 
   /**
    * Create an Owners Group for the requested Group.
@@ -610,28 +655,6 @@ class GroupsTable extends Table {
     $g = $this->find('adminGroup', co_id: $coId)->firstOrFail();
 
     return $g->id;
-  }
-  
-  /**
-   * Check for any dependencies that must be in place before cloning begins.
-   *
-   * @since  COmanage Registry v5.2.0
-   * @param  EntityInterface  $original         Original entity
-   * @param  string           $targetDataSource Target DataSource connection name
-   */
-
-  public function checkCloneDependencies(
-    EntityInterface $original,
-    string $targetDataSource='default'
-  ) {
-    // We don't clone Automatic Groups. Those should be created when the related structure
-    // (ie: a COU) is created, and then updated automatically as members are cloned.
-
-    if($original->isAutomatic()) {
-      // This string isn't internationalized because it is intended to render
-      // in CloneCommand output
-      throw new \InvalidArgumentException("Group " . $original->id . " is an automatic group, skipping...");
-    }
   }
   
   /**
@@ -822,18 +845,25 @@ class GroupsTable extends Table {
    */
     
   public function localAfterSave(EventInterface $event, EntityInterface $entity, \ArrayObject $options): bool {
-    if($entity->isNew()) {
-      $action = ActionEnum::GroupAdded;
-      $comment = __d('result', 'Groups.added', [$entity->name]);
-    } elseif($entity->get('deleted')) {
-      $action = ActionEnum::GroupDeleted;
-      $comment = __d('result', 'Groups.deleted', [$entity->name]);
-    } else {
-      $action = ActionEnum::GroupEdited;
-      $comment = __d('result', 'Groups.edited', [$entity->name, $this->changesToString($entity)]);
+    // We don't record history if autoOnly is set because we're in the middle of cloning
+    // and aside from the datasources not lining up, it's not clear it makes sense to record
+    // the history in that context
+
+   if((!isset($options['autoOnly']) || !$options['autoOnly'])
+      && (!isset($options['clone']) || !$options['clone'])) {
+      if($entity->isNew()) {
+        $action = ActionEnum::GroupAdded;
+        $comment = __d('result', 'Groups.added', [$entity->name]);
+      } elseif($entity->get('deleted')) {
+        $action = ActionEnum::GroupDeleted;
+        $comment = __d('result', 'Groups.deleted', [$entity->name]);
+      } else {
+        $action = ActionEnum::GroupEdited;
+        $comment = __d('result', 'Groups.edited', [$entity->name, $this->changesToString($entity)]);
+      }
+      
+      $this->recordHistory($entity, $action, $comment);
     }
-    
-    $this->recordHistory($entity, $action, $comment);
     
     if(!$entity->isOwners()) {
       if($entity->isNew()) {

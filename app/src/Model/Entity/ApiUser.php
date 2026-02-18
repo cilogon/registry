@@ -44,6 +44,8 @@ class ApiUser extends Entity {
     // can set api_key. (AR-ApiUser-4)
     'api_key' => false
   ];
+
+  public array $_supportedMetadata = ['clonable'];
   
   /**
    * Hash (bcrypt) an API Key on save.

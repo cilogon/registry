@@ -123,29 +123,21 @@ trait PluggableModelTrait {
       // model (attached to the remote data source) at save(). (For further discussion, see
       // the comments in CloneCommand::execute().) We don't actually need the Table
       // objects here, we just want to make sure the TableRegistry is correctly set up.
+
+      // We now only need to handle hasOne relations because hasMany relations are
+      // handled by iteration
       
-      $related = TableUtilities::normalizeAssociationArray($this->getCloneHasMany());
+      $related = TableUtilities::normalizeAssociationArray($this->getCloneHasOne());
 
-      $fn = function($related, $targetDataSource, $pluginName) use (&$fn) {
-        foreach($related as $rm => $ra) {
-          TableUtilities::getTableWithDataSource(
-            tableName: $pluginName.".".$rm,
-            connectionName: $targetDataSource
-          );
+      if(array_key_exists($original->plugin, $related)) {
+        // getCloneRelations() will return all possible relations for all plugins for the
+        // current model (eg if $original is ExternalIdentitySource, we'll get back an
+        // array of all EIS plugins), but we only want to instantiate the active model
 
-          $fn($ra, $targetDataSource, $pluginName);
-        }
-      };
-
-      // getCloneRelations() will return all possible relations for all plugins for the
-      // current model (eg if $original is ExternalIdentitySource, we'll get back an
-      // array of all EIS plugins), but we only want to instantiate related models
-      // for $plugin.
-
-      $pluginModel = StringUtilities::pluginPlugin($original->plugin);
-
-      if(!empty($related[$pluginModel])) {
-        $fn($related[$pluginModel], $targetDataSource, $pluginName);
+        TableUtilities::getTableWithDataSource(
+          tableName: $original->plugin,
+          connectionName: $targetDataSource
+        );
       }
     }
   }
@@ -188,36 +180,8 @@ trait PluggableModelTrait {
     $ret = [];
 
     foreach($this->_pluginModels as $entryPoint) {
-      $ret[] = $entryPoint; //StringUtilities::pluginModel($entryPoint);
+      $ret[] = $entryPoint;
     }
-
-    return $ret;
-  }
-
-  /**
-   * Get the set of entities that are to be cloned after $original.
-   * 
-   * The returned array may include both UUIDs (strings) and PaginatedSqlIterators,
-   * where the Iterator returns only clonable entities.
-   * 
-   * @since  COmanage Registry v5.2.0
-   * @param   EntityInterface $original Current entity being cloned
-   * @return  array                     Array of UUIDs and/or PaginatedSqlIterators
-   */
-
-  public function getCloneSuccessors(
-    \Cake\Datasource\EntityInterface $original
-  ): array {
-    // We don't really know whether we need to use PaginatedSqlIterator for every
-    // hasMany relation (without adding annotations of some form), and indeed in most
-    // cases we probably don't need it (smaller deployments, models with only a few
-    // related entities), but for the cases where we need it we really need it
-    // (ApiSourceRecords, EnvSourceIdentities) so we always use it. (The overhead
-    // for smoller data sets should be marginal.)
-
-    // Because PaginatedSqlIterators only operate over a single table, we need to
-    // return one per hasMany relation.
-    $ret = [];
 
     return $ret;
   }

@@ -272,10 +272,11 @@ class SchemaManager {
         // Add metadata fields for Clonable Related Models. Eventually this setting
         // should probably be the default, and disabled when not needed (like changelog).
         
-        // original_id is _not_ given a foreign key constraint because the Original
-        // Object may be in a different database.
-        $table->addColumn("original_id", "integer", ['notnull' => false]);
-        $table->addIndex(["original_id"], $tablePrefix.$tName."_icb", [], []);
+        // We call this "originalid" and not "original_id" because it's not a proper
+        // foreign key, since minimally it crosses a CO (which would violate AR-GMR-2)
+        // and maybe crosses CMPs (in which case it's a foreign key to another database).
+        $table->addColumn("originalid", "integer", ['notnull' => false]);
+        $table->addIndex(["originalid"], $tablePrefix.$tName."_icb", [], []);
       }
       
       // (For Registry) If MVEA models are specified, emit the appropriate

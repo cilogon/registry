@@ -72,8 +72,6 @@ if($vv_action != 'add') {
   }
 }
 
-$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
-
 // List the MVEAs that may be shown on the mveaCanvas
 // When this array exists, the mveaCanvas.php element will render  
 $mveas = [

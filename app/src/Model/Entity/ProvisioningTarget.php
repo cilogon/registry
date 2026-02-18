@@ -41,6 +41,8 @@ class ProvisioningTarget extends Entity {
     'slug' => false, 
   ];
 
+  public array $_supportedMetadata = ['clonable'];
+
   /**
    * Determine if this entity is Active.
    * 

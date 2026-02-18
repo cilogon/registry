@@ -34,7 +34,8 @@
           "format_assigner_sequences_i1": { "columns": [ "format_assigner_id", "affix" ], "unique": true },
           "format_assigner_sequences_i2": { "needed": false, "columns": [ "format_assigner_id" ] }
         },
-        "changelog": false
+        "changelog": false,
+        "clone_relation": true
       },
       "sql_assigners": {
         "columns": {
