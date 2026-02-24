@@ -867,7 +867,8 @@
       },
       "indexes": {
         "flanges_i1": { "columns": [ "pipeline_id" ] }
-      }
+      },
+      "clone_relation": true
     },
 
     "external_identity_sources": {
@@ -940,7 +941,8 @@
       "indexes": {
         "apis_i1": { "columns": [ "co_id" ] },
         "apis_i2": { "needed": false, "columns": [ "api_user_id" ]}
-      }
+      },
+      "clonable": true
     },
 
     "traffic_detours": {

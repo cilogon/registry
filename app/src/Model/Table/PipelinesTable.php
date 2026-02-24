@@ -769,6 +769,24 @@ class PipelinesTable extends Table {
   }
 
   /**
+   * Get the set of hasMany related models that are to be duplicated along with
+   * this one, or its hasOne relations.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @return array    Array of models, in contain() format
+   */
+
+  public function getCloneHasMany(): array {
+    // When a Pipeline is cloned, we also need to clone its Flanges.
+    // Because (unlike other pluggable models) Flanges don't fk to co_id,
+    // we also need to figure out its hasOne (plugin) relations, as well
+    // as any hasMany relations for those plugins (eg Pipeline > Flange >
+    // PersonRoleMapper > PersonRoleMapping).
+
+    return ['Flanges' => $this->Flanges->getCloneHasMany()];
+  }
+
+  /**
    * Pipeline step to create or update the External Identity Source Record.
    * 
    * @since  COmanage Registry v5.0.0

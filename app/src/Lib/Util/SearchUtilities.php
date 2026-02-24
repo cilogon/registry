@@ -33,9 +33,11 @@ use Cake\ORM\TableRegistry;
 
 class SearchUtilities {
   // Currently, only clonable models support CRN and UUID searching.
+  // To add a new clonable model, see https://spaces.at.internet2.edu/x/DIBuFQ
   // Because this list is used by CloneCommand, it should be sorted in dependency order.
   static protected $clonableModels = [
     'ApiUsers',
+    'Apis',
     'Cous',
     'Groups',
     'IdentifierAssignments',

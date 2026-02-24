@@ -75,7 +75,7 @@ class FlangesTable extends Table {
     $this->setAutoViewVars([
       'plugins' => [
         'type'        => 'plugin',
-        'pluginType'  => 'pipeline'
+        'pluginType'  => 'flange'
       ],
       'statuses' => [
         'type'  => 'enum',

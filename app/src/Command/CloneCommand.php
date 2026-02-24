@@ -546,7 +546,7 @@ class CloneCommand extends BaseCommand {
       }
 
       // Prepare for the save
-
+/*
       if($targetDataSource != 'default' && !empty($related)) {
         // We need to rekey the related models, and we need to check both singular (hasOne)
         // and plural (hasMany). This is similar to $fn2 above, but we operate on an entity
@@ -588,7 +588,7 @@ class CloneCommand extends BaseCommand {
         };
 
         $clone = $fn3($clone, TableUtilities::normalizeAssociationArray($related), $targetDataSource);
-      }
+      }*/
       
       // Since we're managing the entity, we can skip the UUID duplication check
       $clone->_uuidCloned = true;
@@ -621,171 +621,9 @@ class CloneCommand extends BaseCommand {
           // We have an array of models (eg: MatchServers, EmailAddresses)
           // associated with the current model (Server, People). In the former
           // example we're operating via hasOne relations, in the latter we're
-          // operating direct. We'll need to recurse here, and we only support
-          // hasOne at the top, before we do any recursion.
+          // operating direct. We'll need to recurse here.
 
-          $fn = function($original, $cloneId, $related, $targetDataSource) use (&$fn, $targetCoId) {
-            // $original is the parent of the hasMany relation, eg MatchServer
-            // $cloneId is the id of the (already saved) target copy in $targetDataSource
-            // Because $related is passed in normalized, we can expect it to always
-            // be in $model => [ $associated ] notation. For now we assume all $related
-            // models are hasMany relations.
-
-            foreach($related as $rt => $subrelations) {
-              $this->io->out("=== Processing Related Entities ($rt) ===");
-
-              // Sync the source and target tables for this related model.
-              // This code is optimized to work with the PaginatedSqlIterator
-              // for related models that might have large enough sets of data
-              // to require it, otherwise we'll simply pull all records the
-              // old fashioned way.
-
-              // eg: MatchServerAttributes
-              $SourceRelatedTable = TableRegistry::getTableLocator()->get($rt);
-              $TargetRelatedTable = TableUtilities::getTableWithDataSource(
-                tableName: $rt,
-                connectionName: $targetDataSource
-              );
-
-              // eg: match_server_id
-              $parent_key = StringUtilities::entityToForeignKey($original);
-
-              // Pull the records in the source table, to process adds and updates.
-              // We always use PaginatedSqlIterator here even though most of the time
-              // we won't need it, because in order to detect the cases where we do we
-              // either need to (1) annotate each model that _might_ need it, which is
-              // problematic especially for plugins we don't control, or (2) perform a
-              // count() to see if we do need it. But PaginatedSqlIterator for small
-              // datasets is just a count() followed by a select all, which reduces
-              // down to the same thing.
-
-              $sourceIterator = new PaginatedSqlIterator($SourceRelatedTable, [$parent_key => $original->id]);
-              
-              // Track which entries we've processed from source
-              $foundEntities = [];
-
-              // Iterate over all source entities. For each one, we basically
-              // perform an upsert, but since not all models currently implement
-              // UpsertTrait we do it manually.
-
-              $this->io->out($sourceIterator->count() . " records in source to sync");
-
-              foreach($sourceIterator as $srcent) {
-                $targetent = $TargetRelatedTable->find()
-                                                ->where(['originalid' => $srcent->id])
-                                                // There should be at most one
-                                                ->first();
-
-                if(!empty($targetent)) {
-                  // Update
-
-                  // Filter the metadata
-                  $targetdata = $TargetRelatedTable->filterMetadataForCopy(
-                    $SourceRelatedTable,
-                    $srcent
-                  );
-
-                  $targetent = $TargetRelatedTable->patchEntity($targetent, $targetdata);
-
-                  // Fix the foreign keys
-                  $targetent = $TargetRelatedTable->fixCloneForeignKeys(
-                    $srcent,
-                    $targetent,
-                    $targetCoId,
-                    $targetDataSource
-                  );
-
-                  // We can't just call $targetent->getDirty() here because
-                  // all foreign keys will flip when we patchEntity with the
-                  // filtered $srcent data, even though they flip back when
-                  // fixCloneForeignKeys() runs. (Cake just notes that the values
-                  // changed, not that they changed back to what they were.)
-                  // To determine if $targetent is really dirty we walk the list of
-                  // dirty fields reported by Cake and compare them against their
-                  // original values (which the entity does correctly track).
-
-                  $dirty = false;
-
-                  foreach($targetent->getDirty() as $d) {
-                    if($targetent->$d !== $targetent->getOriginal($d)) {
-                      // This field is dirty, we don't need to check anything else
-
-                      $dirty = true;
-                      break;
-                    }
-                  }
-
-                  if($dirty) {
-                    $this->io->out("Updating copy of source record " . $srcent->id
-                                   . " as target record " . $targetent->id);
-                    
-                    $TargetRelatedTable->saveOrFail($targetent);
-                  }
-
-                  $foundEntities[] = $targetent->id;
-                } else {
-                  // Insert
-
-                  // Filter the metadata
-                  $targetdata = $TargetRelatedTable->filterMetadataForCopy(
-                    $SourceRelatedTable,
-                    $srcent
-                  );
-
-                  $targetent = $TargetRelatedTable->newEntity($targetdata);
-
-                  // Fix the foreign keys
-                  $targetent = $TargetRelatedTable->fixCloneForeignKeys(
-                    $srcent,
-                    $targetent,
-                    $targetCoId,
-                    $targetDataSource
-                  );
-
-                  // Insert the parent key, _after_ fixing the foreign keys
-                  // (We could actually insert the source FK and let fixCloneForeignKeys
-                  // correct it, but this is clearer)
-                  $targetent->$parent_key = $cloneId;
-
-                  // Insert originalid, _after_ fixing the foreign keys
-                  $targetent->originalid = $srcent->id;
-
-                  $TargetRelatedTable->saveOrFail($targetent);
-
-                  $foundEntities[] = $targetent->id;
-
-                  $this->io->out("Inserted copy of source record " . $srcent->id
-                                 . " as target record " . $targetent->id);
-                }
-              }
-
-              // Now pull the records in the target table, to process deletes
-              $targetIterator = new PaginatedSqlIterator($TargetRelatedTable, [$parent_key => $cloneId]);
-
-              $this->io->out("Reviewing " . $targetIterator->count() . " records in target for deletions");
-
-              foreach($targetIterator as $targetent) {
-                if(!in_array($targetent->id, $foundEntities)) {
-                  // We didn't see this target entry in the source data, so remove it
-
-                  $this->io->out("Deleting target record " . $targetent->id);
-
-                  $TargetRelatedTable->delete($targetent);
-                }
-              }
-
-              // Recurse on any subrelations
-
-              if(!empty($related[$rt])) {
-                debug("Need to recurse here");
-                debug($related[$rt]);
-              }
-
-              $this->io->out("=== Finished Processing Related Entities ($rt) ===");
-            }
-
-            // We don't need to return anything because we processed our own saves
-          };
+          $this->cloneEntityRelations($original, $clone->id, $hasManyPlugin, $targetDataSource, $targetCoId);
 
           foreach($hasManyPlugin as $rm => $ra) {
             if(in_array($rm, $hasOnePlugin)) {
@@ -807,17 +645,19 @@ class CloneCommand extends BaseCommand {
               // (or more accurately not populated), simply skip this relation and move on.
 
               if(!empty($original->$singularSource)) {
-                // Because $fn2 is going to handle the saving of the related models,
-                // we don't need to update $copy
-
-                $fn($original->$singularSource, $clone->$singularTarget->id, $hasManyPlugin[$rm], $targetDataSource);
+                $this->cloneEntityRelations(
+                  $original->$singularSource,
+                  $clone->$singularTarget->id,
+                  $hasManyPlugin[$rm],
+                  $targetDataSource,
+                  $targetCoId
+                );
               }
             } else {
-              // $rm is a hasMany to the current model, eg Person -> EmailAddress,
-              // so we start there.
+              // $rm is a hasMany to the current model, eg Person -> EmailAddress
+              // or Pipeline -> Flange, so we start there.
 
-              // XXX not yet implemented
-              // debug("process $rm");
+              $this->cloneEntityRelations($original, $clone->id, $hasManyPlugin, $targetDataSource, $targetCoId);
             }
           }
         }
@@ -885,6 +725,167 @@ class CloneCommand extends BaseCommand {
   }
 
   /**
+   * Clone the relations of the entity currently being cloned.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity   $original         The entity being cloned
+   * @param  int      $cloneId          The record ID (in the target datasource) of the cloned entity
+   * @param  array    $related          Array of related models, in normalized, Plugin.Model format
+   * @param  string   $targetDataSource Label for the target datasource
+   * @param  int      $targetCoId       CO ID in the target datasource
+   */
+
+  protected function cloneEntityRelations(
+    \Cake\ORM\Entity  $original,
+    int               $cloneId,
+    array             $related,
+    string            $targetDataSource,
+    int               $targetCoId
+  ): void {
+    // $original is the parent of the hasMany relation, eg MatchServer $cloneId is the id of the
+    // (already saved) target copy in $targetDataSource. Because $related is passed in normalized,
+    // we can expect it to always be in $model => [ $associated ] notation.
+
+    foreach($related as $rt => $subrelations) {
+      $this->io->out("=== Processing Related Entities ($rt) ===");
+
+      // Sync the source and target tables for this related model. This code is optimized to work
+      // with the PaginatedSqlIterator for related models that might have large enough sets of data
+      // to require it, otherwise we'll simply pull all records the old fashioned way.
+
+      // eg: MatchServerAttributes
+      $SourceRelatedTable = TableRegistry::getTableLocator()->get($rt);
+      $TargetRelatedTable = TableUtilities::getTableWithDataSource(
+        tableName: $rt,
+        connectionName: $targetDataSource
+      );
+
+      // eg: match_server_id
+      $parent_key = StringUtilities::entityToForeignKey($original);
+
+      // We need to check if $original hasOne $related, since we handle that differently from
+      // hasMany. We could simply check if $related defines originalid (since that's our
+      // correlation key), but at some point someone adding a new clonable model will forget
+      // to define originalid on the hasMany relations and that will cause endless debugging pain.
+      // So instead we get the table for $original and check its relations.
+
+      $OriginalTable = TableRegistry::getTableLocator()->get($original->getSource());
+
+      // For Plugins, $rt will be in Plugin.Model format, but getAssociation wants Model (Alias) format
+
+      $rtAlias = StringUtilities::pluginModel($rt);
+
+      if($OriginalTable->getAssociation($rtAlias)->type() == \Cake\ORM\Association::ONE_TO_ONE) {
+        // hasOne
+
+        // This is (eg) a Flange's Plugin configuration (such as IdentifierMappers), which in turn
+        // might have subrelations. There should be at most one record in $SourceRelatedTable with
+        // a $parent_key of $original->id, upsert it into $TargetRelatedTable.
+
+        $srcent = $SourceRelatedTable->find()
+                                      ->where([$parent_key => $original->id])
+                                      ->first();
+        
+        $targetent = $TargetRelatedTable->find()
+                                        ->where([$parent_key => $cloneId])
+                                        ->first();
+
+        if(!empty($srcent)) {
+          $this->cloneUpsert(
+            $SourceRelatedTable,
+            $srcent,
+            $TargetRelatedTable,
+            $targetent,
+            $cloneId,
+            $targetDataSource,
+            $targetCoId
+          );
+
+          if(!empty($related[$rt])) {
+            // Recurse on any subrelations, but only on upserts.
+            // (Cake's dependency handling should deal with deletes.)
+
+            $this->cloneEntityRelations($srcent, $targetent->id, $related[$rt], $targetDataSource, $targetCoId);
+          }
+        } elseif(!empty($targetent)) {
+          // If there is no $srcent but there is a $targetent, delete $targetent.
+
+          $this->io->out("Deleting target record " . $targetent->id);
+
+          $TargetRelatedTable->delete($targetent);
+        }
+      } elseif($OriginalTable->getAssociation($rtAlias)->type() == \Cake\ORM\Association::ONE_TO_MANY) {
+        // hasMany
+
+        // Pull the records in the source table, to process adds and updates. We always use
+        // PaginatedSqlIterator here even though most of the time we won't need it, because
+        // in order to detect the cases where we do we either need to (1) annotate each model
+        // that _might_ need it, which is problematic especially for plugins we don't control,
+        // or (2) perform a count() to see if we do need it. But PaginatedSqlIterator for small
+        // datasets is just a count() followed by a select all, which reduces down to the same thing.
+
+        $sourceIterator = new PaginatedSqlIterator($SourceRelatedTable, [$parent_key => $original->id]);
+        
+        // Track which entries we've processed from source
+        $foundEntities = [];
+
+        // Iterate over all source entities. For each one, we basically perform an upsert, but
+        // since not all models currently implement UpsertTrait we do it manually.
+
+        $this->io->out($sourceIterator->count() . " records in source to sync");
+
+        foreach($sourceIterator as $srcent) {
+          $targetent = $TargetRelatedTable->find()
+                                          ->where(['originalid' => $srcent->id])
+                                          // There should be at most one
+                                          ->first();
+          
+          $foundEntities[] = $this->cloneUpsert(
+            $SourceRelatedTable,
+            $srcent,
+            $TargetRelatedTable,
+            $targetent,
+            $cloneId,
+            $targetDataSource,
+            $targetCoId,
+            true
+          );
+
+          if(!empty($related[$rt])) {
+            // Recurse on any subrelations. We have to recurse on _each_ source entity.
+            // We only recurse on inserts and updates. We assume that on a delete
+            // Cake's dependency declarations will remove the related models.
+
+            // If $original was Pipeline and $srcent was Flange, we're now calling ourselves
+            // with Flange and its relations (its Plugin instantiations, eg PipelineToolkit.PersonRoleMappers)
+            $this->cloneEntityRelations($srcent, $targetent->id, $related[$rt], $targetDataSource, $targetCoId);
+          }
+        }
+
+        // Now pull the records in the target table, to process deletes
+        $targetIterator = new PaginatedSqlIterator($TargetRelatedTable, [$parent_key => $cloneId]);
+
+        $this->io->out("Reviewing " . $targetIterator->count() . " records in target for deletions");
+
+        foreach($targetIterator as $targetent) {
+          if(!in_array($targetent->id, $foundEntities)) {
+            // We didn't see this target entry in the source data, so remove it
+
+            $this->io->out("Deleting target record " . $targetent->id);
+
+            $TargetRelatedTable->delete($targetent);
+          }
+        }                
+      }
+      // else unsupported association type
+
+      $this->io->out("=== Finished Processing Related Entities ($rt) ===");
+    }
+
+    // We don't need to return anything because we processed our own saves
+  }
+
+  /**
    * Clone all Types.
    *
    * @since  COmanage Registry v5.2.0
@@ -943,5 +944,113 @@ class CloneCommand extends BaseCommand {
         $this->io->err($e->getMessage());
       }
     }
+  }
+
+  /**
+   * Perform a contextually appropriate upsert.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  Table    $SourceRelatedTable   Source Table
+   * @param  Entity   $srcent               Source (original) Entity
+   * @param  Table    $TargetRelatedTable   Target Table
+   * @param  Entity   $targetent            Target Entity, if one exists
+   * @param  int      $cloneId              The clone record ID
+   * @param  string   $targetDataSource     Label for the target datasource
+   * @param  int      $targetCoId           CO ID in the target datasource
+   * @param  bool     $injectOriginalId     Whether to inject the original source record ID into the entity (for hasMany)
+   * @return int                            The record ID of the upserted entity
+   */
+
+  protected function cloneUpsert(
+    \Cake\ORM\Table   $SourceRelatedTable,
+    \Cake\ORM\Entity  $srcent,
+    \Cake\ORM\Table   $TargetRelatedTable,
+    ?\Cake\ORM\Entity $targetent,
+    int               $cloneId,
+    string            $targetDataSource,
+    int               $targetCoId,
+    bool              $injectOriginalId=false
+  ): int {
+    // We don't use UpsertTrait because not every model is currently UpsertTrait enabled
+    // (though maybe they should be).
+
+    if($targetent) {
+      // Update
+
+      // Filter the metadata
+      $targetdata = $TargetRelatedTable->filterMetadataForCopy(
+        $SourceRelatedTable,
+        $srcent
+      );
+
+      $targetent = $TargetRelatedTable->patchEntity($targetent, $targetdata);
+
+      // Fix the foreign keys
+      $targetent = $TargetRelatedTable->fixCloneForeignKeys(
+        $srcent,
+        $targetent,
+        $targetCoId,
+        $targetDataSource
+      );
+
+      // We can't just call $targetent->getDirty() here because all foreign keys will flip
+      // when we patchEntity with the filtered $srcent data, even though they flip back when
+      // fixCloneForeignKeys() runs. (Cake just notes that the values changed, not that they
+      // changed back to what they were.) To determine if $targetent is really dirty we walk
+      // the list of dirty fields reported by Cake and compare them against their original
+      // values (which the entity does correctly track).
+
+      $dirty = false;
+
+      foreach($targetent->getDirty() as $d) {
+        if($targetent->$d !== $targetent->getOriginal($d)) {
+          // This field is dirty, we don't need to check anything else
+
+          $dirty = true;
+          break;
+        }
+      }
+
+      if($dirty) {
+        $this->io->out("Updating copy of source record " . $srcent->id
+                      . " as target record " . $targetent->id);
+        
+        $TargetRelatedTable->saveOrFail($targetent);
+      }
+    } else {
+      // Insert
+
+      // Filter the metadata
+      $targetdata = $TargetRelatedTable->filterMetadataForCopy(
+        $SourceRelatedTable,
+        $srcent
+      );
+
+      $targetent = $TargetRelatedTable->newEntity($targetdata);
+
+      // Fix the foreign keys
+      $targetent = $TargetRelatedTable->fixCloneForeignKeys(
+        $srcent,
+        $targetent,
+        $targetCoId,
+        $targetDataSource
+      );
+
+      // Insert the parent key, _after_ fixing the foreign keys. (We could actually insert the
+      // source FK and let fixCloneForeignKeys correct it, but this is clearer)
+      $targetent->$parent_key = $cloneId;
+
+      if($injectOriginalId) {
+        // Insert originalid, _after_ fixing the foreign keys
+        $targetent->originalid = $srcent->id;
+      }
+
+      $TargetRelatedTable->saveOrFail($targetent);
+
+      $this->io->out("Inserted copy of source record " . $srcent->id
+                    . " as target record " . $targetent->id);
+    }
+
+    return $targetent->id;
   }
 }

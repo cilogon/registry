@@ -39,6 +39,7 @@ use App\Lib\Enum\SuspendableStatusEnum;
 class ApisTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PluggableModelTrait;
@@ -56,6 +57,7 @@ class ApisTable extends Table {
   public function initialize(array $config): void {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
+    $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
     
@@ -102,8 +104,25 @@ class ApisTable extends Table {
       ]
     ]);
   }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
   
-   /**
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-GMR-6 The same UUID cannot be assigned to multiple objects within the same CO.
+    $rules->add([$this, 'ruleUuidUnique'],
+                'uuidUnique',
+                ['errorField' => 'uuid']);
+
+    return $rules;
+  }  
+  
+  /**
    * Set validation rules.
    * 
    * @since  COmanage Registry v5.2.0
@@ -132,6 +151,8 @@ class ApisTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->notEmptyString('api_user_id');
+
+    $this->registerClonableValidation($validator, $schema);
 
     return $validator; 
   }

@@ -57,7 +57,8 @@
           "person_role_mappings_i2": { "needed": false, "columns": [ "affiliation_type_id" ] },
           "person_role_mappings_i3": { "needed": false, "columns": [ "target_cou_id" ] },
           "person_role_mappings_i4": { "needed": false, "columns": [ "target_affiliation_type_id" ] }
-        }
+        },
+        "clone_relation": true
       }
     }
   }
