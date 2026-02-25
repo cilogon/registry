@@ -796,6 +796,7 @@ class CloneCommand extends BaseCommand {
             $srcent,
             $TargetRelatedTable,
             $targetent,
+            $parent_key,
             $cloneId,
             $targetDataSource,
             $targetCoId
@@ -845,6 +846,7 @@ class CloneCommand extends BaseCommand {
             $srcent,
             $TargetRelatedTable,
             $targetent,
+            $parent_key,
             $cloneId,
             $targetDataSource,
             $targetCoId,
@@ -954,6 +956,7 @@ class CloneCommand extends BaseCommand {
    * @param  Entity   $srcent               Source (original) Entity
    * @param  Table    $TargetRelatedTable   Target Table
    * @param  Entity   $targetent            Target Entity, if one exists
+   * @param  string   $parentKey            Parent key from $targetent to its parent record
    * @param  int      $cloneId              The clone record ID
    * @param  string   $targetDataSource     Label for the target datasource
    * @param  int      $targetCoId           CO ID in the target datasource
@@ -966,6 +969,7 @@ class CloneCommand extends BaseCommand {
     \Cake\ORM\Entity  $srcent,
     \Cake\ORM\Table   $TargetRelatedTable,
     ?\Cake\ORM\Entity $targetent,
+    string            $parentKey,
     int               $cloneId,
     string            $targetDataSource,
     int               $targetCoId,
@@ -1038,7 +1042,7 @@ class CloneCommand extends BaseCommand {
 
       // Insert the parent key, _after_ fixing the foreign keys. (We could actually insert the
       // source FK and let fixCloneForeignKeys correct it, but this is clearer)
-      $targetent->$parent_key = $cloneId;
+      $targetent->$parentKey = $cloneId;
 
       if($injectOriginalId) {
         // Insert originalid, _after_ fixing the foreign keys
