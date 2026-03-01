@@ -644,6 +644,38 @@ class GroupsTable extends Table {
   }
 
   /**
+   * Find non-Automatic Groups.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  \Cake\ORM\Query $query   Query
+   * @param  array           $options Options: co_id, cou_id
+   * @return \Cake\ORM\Query          Query
+   */
+  
+  public function findNonAutomaticGroups(Query $query, array $options): Query {
+    $whereClause = [
+      'status'            => SuspendableStatusEnum::Active,
+      'group_type NOT IN' => [GroupTypeEnum::ActiveMembers, GroupTypeEnum::AllMembers]
+    ];
+
+    // We accept _either_ co_id or cou_id (but not both, since cou_id implies co_id).
+    // We also specifically allow co_id and a null cou_id (all groups in a CO without
+    // a cou_id, ie: the CO level non-automatic Groups).
+
+    if(isset($options['co_id'])) {
+      $whereClause['co_id'] = $options['co_id'];
+
+      if(isset($options['cou_id']) && is_null($options['cou_id'])) {
+        $whereClause['cou_id IS'] = null;
+      }
+    } elseif(isset($options['cou_id'])) {
+      $whereClause['cou_id'] = $options['cou_id'];
+    }
+
+    return $query->where($whereClause);
+  }
+
+  /**
    * Get the Admin Group for a CO.
    *
    * @since  COmanage Registry v5.0.0
@@ -845,6 +877,11 @@ class GroupsTable extends Table {
    */
     
   public function localAfterSave(EventInterface $event, EntityInterface $entity, \ArrayObject $options): bool {
+    // If we're cloning we don't want to record history or manage Owners Groups
+    if(isset($options['clone']) && $options['clone']) {
+      return true;
+    }
+
     // We don't record history if autoOnly is set because we're in the middle of cloning
     // and aside from the datasources not lining up, it's not clear it makes sense to record
     // the history in that context

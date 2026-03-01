@@ -791,7 +791,8 @@ class CloneCommand extends BaseCommand {
                                         ->first();
 
         if(!empty($srcent)) {
-          $this->cloneUpsert(
+          // In the event of an insert we'll need the record ID that was created
+          $targetEntId = $this->cloneUpsert(
             $SourceRelatedTable,
             $srcent,
             $TargetRelatedTable,
@@ -806,7 +807,7 @@ class CloneCommand extends BaseCommand {
             // Recurse on any subrelations, but only on upserts.
             // (Cake's dependency handling should deal with deletes.)
 
-            $this->cloneEntityRelations($srcent, $targetent->id, $related[$rt], $targetDataSource, $targetCoId);
+            $this->cloneEntityRelations($srcent, $targetEntId, $related[$rt], $targetDataSource, $targetCoId);
           }
         } elseif(!empty($targetent)) {
           // If there is no $srcent but there is a $targetent, delete $targetent.
@@ -841,7 +842,8 @@ class CloneCommand extends BaseCommand {
                                           // There should be at most one
                                           ->first();
           
-          $foundEntities[] = $this->cloneUpsert(
+          // In the event of an insert we'll need the record ID that was created
+          $targetEntId = $this->cloneUpsert(
             $SourceRelatedTable,
             $srcent,
             $TargetRelatedTable,
@@ -853,6 +855,8 @@ class CloneCommand extends BaseCommand {
             true
           );
 
+          $foundEntities[] = $targetEntId;
+
           if(!empty($related[$rt])) {
             // Recurse on any subrelations. We have to recurse on _each_ source entity.
             // We only recurse on inserts and updates. We assume that on a delete
@@ -860,7 +864,7 @@ class CloneCommand extends BaseCommand {
 
             // If $original was Pipeline and $srcent was Flange, we're now calling ourselves
             // with Flange and its relations (its Plugin instantiations, eg PipelineToolkit.PersonRoleMappers)
-            $this->cloneEntityRelations($srcent, $targetent->id, $related[$rt], $targetDataSource, $targetCoId);
+            $this->cloneEntityRelations($srcent, $targetEntId, $related[$rt], $targetDataSource, $targetCoId);
           }
         }
 
@@ -869,13 +873,13 @@ class CloneCommand extends BaseCommand {
 
         $this->io->out("Reviewing " . $targetIterator->count() . " records in target for deletions");
 
-        foreach($targetIterator as $targetent) {
-          if(!in_array($targetent->id, $foundEntities)) {
+        foreach($targetIterator as $te) {
+          if(!in_array($te->id, $foundEntities)) {
             // We didn't see this target entry in the source data, so remove it
 
-            $this->io->out("Deleting target record " . $targetent->id);
+            $this->io->out("Deleting target record " . $te->id);
 
-            $TargetRelatedTable->delete($targetent);
+            $TargetRelatedTable->delete($te);
           }
         }                
       }

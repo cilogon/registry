@@ -182,16 +182,10 @@ class CousTable extends Table {
   ): array {
     // Pull the set of non-automatic COU Groups and return their UUIDs
 
-    $clonableGroups = $this->Groups->find()
-                                   ->where([
-                                    'cou_id' => $original->id,
-                                    'group_type NOT IN' => [
-                                      GroupTypeEnum::ActiveMembers,
-                                      GroupTypeEnum::AllMembers
-                                    ]
-                                   ])
-                                   ->all();
-
+    $clonableGroups = $this->Groups
+                           ->find('nonAutomaticGroups', ['cou_id' => $original->id])
+                           ->all();
+    
     return $clonableGroups->extract('uuid')->toArray();
   }
   

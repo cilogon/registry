@@ -75,7 +75,7 @@ class Group extends Entity {
    */
   
   public function isAutomatic(): bool {
-    // If this list is updated, CousTable::getCloneSuccessors will need to be updated as well
+    // If this list is updated, GroupsTable::findNonAutomaticGroups will need to be updated as well
     return in_array($this->group_type, [GroupTypeEnum::ActiveMembers, GroupTypeEnum::AllMembers]);
   }
 

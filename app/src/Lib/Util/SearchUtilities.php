@@ -36,16 +36,16 @@ class SearchUtilities {
   // To add a new clonable model, see https://spaces.at.internet2.edu/x/DIBuFQ
   // Because this list is used by CloneCommand, it should be sorted in dependency order.
   static protected $clonableModels = [
-    'ApiUsers',
-    'Apis',
+    'Servers',
+    'Types',
     'Cous',
     'Groups',
+    'ApiUsers',
     'IdentifierAssignments',
     'Pipelines',
     'ExternalIdentitySources',
     'ProvisioningTargets',
-    'Servers',
-    'Types'
+    'Apis'
   ];
 
   // To add a new backend to search:
