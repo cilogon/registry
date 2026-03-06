@@ -296,7 +296,7 @@ class GroupsTable extends Table {
       $co = $Cos->get($coId);
     }
     catch(\Cake\Datasource\Exception\RecordNotFoundException $e) {
-      throw new \InvalidArgumentException(__d('error', __d('controller', 'Cos', [1])));
+      throw new \InvalidArgumentException(__d('error', 'notfound', __d('controller', 'Cos', [1])));
     }
     
     $couName = null;
@@ -317,7 +317,9 @@ class GroupsTable extends Table {
       $couName = $cou->name;
     }
     
-    // The names get prefixed "CO" or "CO:COU:<couname>", as appropriate
+    // The names get prefixed "CO" or "CO:COU:<couname>", as appropriate.
+    // If the set of $defaultGroups is updated, checkCloneDependencies()
+    // may also need to be updated.
     
     $defaultGroups = [
       ':admins' => [
@@ -553,11 +555,13 @@ class GroupsTable extends Table {
    *
    * @since  COmanage Registry v5.2.0
    * @param  EntityInterface  $original         Original entity
+   * @param  int              $targetCoId       Target CO ID
    * @param  string           $targetDataSource Target DataSource connection name
    */
 
   public function checkCloneDependencies(
     EntityInterface $original,
+    int $targetCoId,
     string $targetDataSource='default'
   ) {
     // We don't clone Automatic Groups. Those should be created when the related structure
@@ -567,6 +571,81 @@ class GroupsTable extends Table {
       // This string isn't internationalized because it is intended to render
       // in CloneCommand output
       throw new \InvalidArgumentException("Group " . $original->id . " is an automatic group, skipping...");
+    }
+
+    // Default Groups are automatically created when the CO is created, so (eg)
+    // CO:admins, CO:approvers, and CO:mfaexempt will already exist on the target
+    // CO. We need to make sure the UUIDs are in sync before proceeding.
+    // Note this does not need to be applied to COU default Groups, since those are
+    // cloned (and will therefore have the correct UUID).
+
+    $syncUuid = false;
+
+    if(!$original->cou_id) {
+      if(in_array($original->group_type, [
+        GroupTypeEnum::Admins,
+        GroupTypeEnum::Approvers,
+        GroupTYpeEnum::MfaExempt
+      ])) {
+        $syncUuid = true;
+      }
+
+      // We also need to sync the UUID on the Owners Group for the same type of Groups.
+      // We can't check the Owners Group when we process the original Group because
+      // we may process the Owners Group first (depending on the order returned from
+      // the database), so instead for each Owners Group we pull the base Group and
+      // see if it's one we're interested in.
+
+      if($original->group_type == GroupTypeEnum::Owners) {
+        $baseGroup = $this->find()->where(['owners_group_id' => $original->id])->first();
+
+        if($baseGroup && 
+          in_array($baseGroup->group_type, [
+            GroupTypeEnum::Admins,
+            GroupTypeEnum::Approvers,
+            GroupTYpeEnum::MfaExempt
+          ])) {
+          // We'll sync $baseGroup later (or maybe we did it already), for now we
+          // only worry about $original.
+          $syncUuid = true;
+        }
+      }
+    }
+
+    if($syncUuid) {
+      $TargetGroups = TableUtilities::getTableWithDataSource(
+        tableName: 'Groups',
+        connectionName: $targetDataSource
+      );
+
+      // We ignore the do_not_clone flag because all we're doing is syncing
+      // the UUID, and we have to make sure these Groups are linked.
+
+      $whereClause = [
+        'co_id' => $targetCoId,
+        'cou_id IS' => null,
+        'group_type' => $original->group_type
+      ];
+
+      if($original->group_type == GroupTypeEnum::Owners) {
+        // For Owners Groups we have to use the name to find the Group, hopefully
+        // the admin didn't rename it.
+
+        $whereClause['name'] = $original->name;
+      }
+
+      $targetGroup = $TargetGroups->find()->where($whereClause)->first();
+
+      if($targetGroup) {
+        if($original->uuid != $targetGroup->uuid) {
+          $this->llog('trace', "Updating uuid on target Group " . $targetGroup->id . " to " . $original->uuid);
+
+          $targetGroup->uuid = $original->uuid;
+
+          // We don't want to run afterSave callbacks
+          $TargetGroups->save($targetGroup, ['clone' => true]);
+        }
+      }
     }
   }
 

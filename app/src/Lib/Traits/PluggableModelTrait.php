@@ -88,11 +88,13 @@ trait PluggableModelTrait {
    * 
    * @since  COmanage Registry v5.2.0
    * @param  EntityInterface  $original         Original entity
+   * @param  int              $targetCoId       Target CO ID
    * @param  string           $targetDataSource Target DataSource connection name
    */
 
   public function checkCloneDependencies(
     \Cake\Datasource\EntityInterface $original,
+    int $targetCoId,
     string $targetDataSource='default'
   ) {
     // Verify the plugin in use is active in the target database. If we're on the same

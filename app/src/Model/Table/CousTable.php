@@ -183,7 +183,7 @@ class CousTable extends Table {
     // Pull the set of non-automatic COU Groups and return their UUIDs
 
     $clonableGroups = $this->Groups
-                           ->find('nonAutomaticGroups', ['cou_id' => $original->id])
+                           ->find('nonAutomaticGroups', cou_id: $original->id)
                            ->all();
     
     return $clonableGroups->extract('uuid')->toArray();
@@ -278,9 +278,10 @@ class CousTable extends Table {
 
     $TargetGroups->addDefaults(
       coId: $clone->co_id,
-      couId: $clone->cou_id,
+      couId: $clone->id,
       rename: true,   // Allow renaming on updates
-      autoOnly: true
+      autoOnly: true,
+      dataSource: $targetDataSource
     );
   }
   
