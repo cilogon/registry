@@ -149,6 +149,11 @@ class CousTable extends Table {
    */
   
   public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-COU-2 A COU may not be deleted if it has any children.
+    $rules->addDelete([$this, 'ruleHasChildren'],
+                      'hasChildrenDelete',
+                      ['errorField' => 'parent_id']);
+
     // AR-COU-3 Two COUs within the same CO cannot share the same name
     $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Cous', [1])])));
     
@@ -283,6 +288,27 @@ class CousTable extends Table {
       autoOnly: true,
       dataSource: $targetDataSource
     );
+  }
+
+  /**
+   * Application Rule to determine if the group has children.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleHasChildren($entity, $options) {
+    $count = $this->find('all')
+                  ->where(['parent_id' => $entity->id])
+                  ->count();
+    
+    if($count > 0) {
+      return __d('error', 'Cous.children', [$count]);
+    }
+
+    return true;
   }
   
   /**
