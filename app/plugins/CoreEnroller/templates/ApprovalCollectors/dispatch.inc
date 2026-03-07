@@ -27,7 +27,7 @@
 
 declare(strict_types = 1);
 
-use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\PetitionStatusEnum;
 
 print $this->element('flash', []);
 
@@ -49,15 +49,15 @@ $this->Field->enableFormEditMode();
   print $this->Form->radio(
     'approved', 
     [
-      StatusEnum::Approved => __d('enumeration', 'StatusEnum.'.StatusEnum::Approved), 
-      StatusEnum::Denied => __d('enumeration', 'StatusEnum.'.StatusEnum::Denied)
+      PetitionStatusEnum::Approved => __d('enumeration', 'PetitionStatusEnum.'.PetitionStatusEnum::Approved), 
+      PetitionStatusEnum::Denied => __d('enumeration', 'PetitionStatusEnum.'.PetitionStatusEnum::Denied)
     ],
     [
       'value' => !empty($petition_approvals)
                  ? ($petition_approvals['approved'] === true
-                   ? StatusEnum::Approved
+                   ? PetitionStatusEnum::Approved
                    : ($petition_approvals['approved'] === false
-                     ? StatusEnum::Denied
+                     ? PetitionStatusEnum::Denied
                      : ""))
                  : ""
     ]

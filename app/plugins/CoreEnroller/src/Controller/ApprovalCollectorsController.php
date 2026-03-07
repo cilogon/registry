@@ -32,7 +32,7 @@ namespace CoreEnroller\Controller;
 use App\Controller\StandardEnrollerController;
 use App\Lib\Util\DeliveryUtilities;
 use Cake\ORM\TableRegistry;
-use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\PetitionStatusEnum;
 
 class ApprovalCollectorsController extends StandardEnrollerController {
   protected array $paginate = [
@@ -72,11 +72,11 @@ class ApprovalCollectorsController extends StandardEnrollerController {
           petitionId:           $petition->id,
           approvalCollectorId:  (int)$id,
           approverPersonId:     $this->RegistryAuth->getPersonID($coId),
-          approved:             $approved == StatusEnum::Approved,
+          approved:             $approved == PetitionStatusEnum::Approved,
           comment:              $comment
         );
 
-        if($approved != StatusEnum::Approved) {
+        if($approved != PetitionStatusEnum::Approved) {
           // If we have a denial Message Template, send the notification to the enrollee
           // email address. We don't currently support using a Notification, since in most
           // cases the Enrollee will not have a Person record yet. (There are some edge
@@ -130,7 +130,7 @@ class ApprovalCollectorsController extends StandardEnrollerController {
         return $this->finishStep(
           enrollmentFlowStepId: $cfg->enrollment_flow_step_id,
           petitionId:           $petition->id,
-          comment:              __d('core_enroller', 'result.ApprovalCollectors.' . ($approved == StatusEnum::Approved ? 'approved' : 'denied'))
+          comment:              __d('core_enroller', 'result.ApprovalCollectors.' . ($approved == PetitionStatusEnum::Approved ? 'approved' : 'denied'))
         );
       }
       catch(\Exception $e) {
