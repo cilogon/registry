@@ -158,7 +158,7 @@ class IdentifierAssignmentsTable extends Table {
     bool   $provision=true,
 // XXX CFM-76 HistoryRecords don't seem to do anything with actorPersonId yet
 //     Also need to update StandardController or something for regular requests
-    int    $actorPersonId=null
+    ?int    $actorPersonId=null
   ): array {
     $ret = [
       'already'   => [],
