@@ -407,7 +407,7 @@ class CloneCommand extends BaseCommand {
 
       if(method_exists($Table, "checkCloneDependencies")) {
         try {
-          $Table->checkCloneDependencies($original, $targetDataSource);
+          $Table->checkCloneDependencies($original, $targetCoId, $targetDataSource);
         }
         catch(\Exception $e) {
           $this->io->out($original->uuid . ": checkCloneDependencies failed, skipping " . $className . " " . $id . ": " . $e->getMessage());
