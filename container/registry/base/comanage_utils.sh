@@ -1243,8 +1243,6 @@ Require valid-user
 </Directory>
 
 RewriteEngine On
-RewriteCond %{QUERY_STRING} !after_redirect
-RewriteRule ^/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout.* https://%{HTTP_HOST}/secure/redirect?logout=https://%{HTTP_HOST}/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout/?after_redirect [L,R]
 EOF
 
         # Write shib if module enabled.
@@ -1267,8 +1265,6 @@ Require shibboleth
 </Location>
 
 RewriteEngine On
-RewriteCond %{QUERY_STRING} !after_redirect
-RewriteRule ^/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout.* https://%{HTTP_HOST}/Shibboleth.sso/Logout?return=https://%{HTTP_HOST}/${COMANAGE_REGISTRY_WEBROOT:-registry}/auth/logout/?after_redirect [L,R]
 EOF
 
         # Else assume basic authentication.
