@@ -959,7 +959,7 @@ class PipelinesTable extends Table {
           }
           catch(\Exception $e) {
             // If we can't find a type we can't insert this record
-            $this->llog('error', "Failed to map $attr type \"" . $attr['type'] . "\" to a valid Type ID for EIS record " . $eisAttributes['source_key'] . ", skipping");
+            $this->llog('error', "Failed to map attribute type \"" . $attr['type'] . "\" to a valid Type ID for EIS record " . $eisAttributes['source_key'] . ", skipping");
           }
         }
       }

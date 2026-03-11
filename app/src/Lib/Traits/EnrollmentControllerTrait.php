@@ -393,7 +393,7 @@ trait EnrollmentControllerTrait {
 
       if(empty($stepInfo['step']->message_template_id)) {
         // Throw a more helpful error than "Record not found"
-        throw new \RuntimeException(__d('error', 'EnrollmentFlowSteps.message_template', [ $stepInfo['step']->id ]));
+        throw new \RuntimeException(__d('error', 'EnrollmentFlowSteps.message_template', [ $stepInfo['step']->id ?? $stepInfo['lastStep']->id ]));
       }
 
       $template = $MessageTemplates->get($stepInfo['step']->message_template_id);

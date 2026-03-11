@@ -335,8 +335,8 @@ class EnvSourcesTable extends Table {
       'env_identifier_epuid' => 'epuid',
       'env_identifier_network' => 'network',
       'env_identifier_oidcsub' => 'oidcsub',
-      'env_identifier_samlpairwiseid' => 'samlpairwiseid',
-      'env_identifier_samlsubjectid' => 'samlsubjectid'
+      'env_identifier_samlpairwiseid' => 'pairwiseid',
+      'env_identifier_samlsubjectid' => 'subjectid'
       // We don't include source_key (sorid) because the Pipeline will automatically insert it
     ] as $v => $t) {
       // Because we're in an External Identity context, we don't need to map the
