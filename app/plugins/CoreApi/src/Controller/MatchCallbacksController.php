@@ -49,8 +49,15 @@ class MatchCallbacksController extends StandardPluginController {
    */
 
   public function beforeRender(EventInterface $event) {
-    // Generate the callback URL
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->MatchCallbacks->Apis->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->MatchCallbacks->Apis->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->MatchCallbacks->Apis->getPrimaryKey());
+    }
     
+    // Generate the callback URL
     $this->set('vv_api_endpoint', \Cake\Routing\Router::url('/', true) . 'api/match/' . $this->getCOID() . '/v1/resolution');
 
     return parent::beforeRender($event);

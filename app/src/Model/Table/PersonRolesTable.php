@@ -54,7 +54,6 @@ class PersonRolesTable extends Table {
   use \App\Lib\Traits\TypeTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
-  use \App\Lib\Traits\TabTrait;
 
   // Default "out of the box" types for this model. Entries here should be
   // given a default localization in app/resources/locales/*/defaultType.po
@@ -175,24 +174,6 @@ class PersonRolesTable extends Table {
         'model' => 'Types'
       ]
     ]);
-
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['People', 'PersonRoles', 'ExternalIdentities'],
-        // What actions will inlcude the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'People' => ['edit', 'view'],
-          'PersonRoles' => ['edit', 'view', 'index'],
-          'ExternalIdentities' => ['index'],
-        ],
-        // What model will have a counter-badge after the tab title
-        'counter' => ['PersonRoles', 'ExternalIdentities']
-      ]
-    );
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

@@ -37,6 +37,8 @@ use \Cake\Utility\Inflector;
 
 /** var string $modelsName */
 $modelsName = $this->getName();
+$fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $modelsName : $modelsName;
+$modelsTable = $this->Tab->getModelTableReference($fullModelsName);
 // $tablename = models
 // XXX backport to match?
 $tableName = Inflector::tableize(Inflector::singularize($this->name));
@@ -80,9 +82,9 @@ if(!empty($alerts)) {
   $flashArgs['vv_alerts'] = $alerts;
 }
 
-// Subnavigation
+// Subnavigation: turned on by setting the $subnav string in columns.inc or fields.inc
 $hasSubnav = false;  
-if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
+if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');
   $hasSubnav = $this->get('hasSupertitle');
 }
@@ -90,10 +92,11 @@ if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
 
 <div class="page-title-container">
   <div class="page-title">
+    <?php // $localTitle is an override set in columns.inc; $vv_title is set by the controller. ?>
     <?php if(!$hasSubnav): ?>
-      <h1><?= $vv_title; ?></h1>
+      <h1><?= !empty($localTitle) ? $localTitle : $vv_title ?></h1>
     <?php else: ?>
-      <h2><?= $vv_title; ?></h2>
+      <h2><?= !empty($localTitle) ? $localTitle : $vv_title ?></h2>
     <?php endif; ?>
   </div>
 

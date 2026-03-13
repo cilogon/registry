@@ -32,3 +32,11 @@ $fields = [
   'auth_type',
   'skip_ssl_verification'
 ];
+
+$subnav = [
+  'tabs' => ['Servers', 'CoreServer.HttpServers'],
+  'action' => [
+    'Servers' => ['edit'],
+    'CoreServer.HttpServers' => ['edit']
+  ]
+];

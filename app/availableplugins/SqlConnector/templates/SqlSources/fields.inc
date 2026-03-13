@@ -52,6 +52,15 @@ $fields = array_merge($fields, [
   'threshold_override'
 ]);
 
+$subnav = [
+  'tabs' => ['ExternalIdentitySources', 'SqlConnector.SqlSources', 'ExternalIdentitySources@action.search'],
+  'action' => [
+    'ExternalIdentitySources' => ['edit', 'view', 'search'],
+    'SqlConnector.SqlSources' => ['edit'],
+    'ExternalIdentitySources@action.search' => [],
+  ],
+];
+
 ?>
 
 <script>

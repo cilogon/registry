@@ -28,3 +28,11 @@
 $fields = [
   'type_id'
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.IdentifierCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'CoreEnroller.IdentifierCollectors' => ['edit']
+  ],
+];

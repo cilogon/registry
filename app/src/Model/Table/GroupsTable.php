@@ -56,7 +56,6 @@ class GroupsTable extends Table {
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TreeTrait {
     potentialParents as traitPotentialParents;
@@ -206,24 +205,6 @@ class GroupsTable extends Table {
         ]
       ]
     ]);
-
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['Groups', 'GroupMembers', 'GroupNestings'],
-        // What actions will inlcude the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'Groups' => ['edit', 'view'],
-          'GroupMembers' => ['index'],
-          'GroupNestings' => ['index'],
-        ],
-        // What model will have a counter-badge after the tab title
-        'counter' => ['GroupMembers']
-      ]
-    );
 
     $this->setPermissions([
   // XXX update for couAdmins, etc

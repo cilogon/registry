@@ -41,7 +41,6 @@ class EnrollmentAttributesTable extends Table {
   use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
@@ -178,24 +177,6 @@ class EnrollmentAttributesTable extends Table {
                        'edit' => 'iframe',
                        'view' => 'iframe',
                      ]);
-
-    // All the tabs share the same configuration in the ModelTable file
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.AttributeCollectors', 'CoreEnroller.EnrollmentAttributes'],
-        // What actions will inlcude the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'EnrollmentFlowSteps' => ['edit', 'view'],
-          'CoreEnroller.AttributeCollectors' => ['edit'],
-          'CoreEnroller.EnrollmentAttributes' => ['index'],
-        ],
-        'skipTab' => ['CoreEnroller.AttributeCollectors']
-      ]
-    );
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

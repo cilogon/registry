@@ -36,10 +36,3 @@ $indexColumns = [
     'sortable' => true
   ]
 ];
-
-/*
-// TODO: develop $bulkActions. For now, use a placeholder. 
-$bulkActions = [
-  'delete' => true
-];
-*/

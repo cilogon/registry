@@ -67,3 +67,12 @@ $fields = [
   'email_address_type_id',
   'name_type_id'
 ];
+
+$subnav = [
+  'tabs' => ['ExternalIdentitySources', 'OrcidSource.OrcidSources', 'ExternalIdentitySources@action.search'],
+  'action' => [
+    'ExternalIdentitySources' => ['edit', 'view', 'search'],
+    'OrcidSource.OrcidSources' => ['edit'],
+    'ExternalIdentitySources@action.search' => [],
+  ],
+];

@@ -45,7 +45,6 @@ class EnrollmentFlowStepsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PluggableModelTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
@@ -145,43 +144,6 @@ class EnrollmentFlowStepsTable extends Table {
         ]
       ]
     ]);
-
-    $this->setTabsConfig(
-      [
-        'index' => [
-          // Ordered list of Tabs
-          'tabs' => ['EnrollmentFlows', 'EnrollmentFlowSteps', 'Petitions'],
-          // What actions will inlcude the subnavigation header
-          'action' => [
-            // If a model renders in a subnavigation mode in edit/view mode, it cannot
-            // render in index mode for the same use case/context
-            // XXX edit should go first.
-            'EnrollmentFlows' => ['edit', 'view'],
-            'EnrollmentFlowSteps' => ['index'],
-            'Petitions' => ['index'],
-          ],
-          // What model will have a counter-badge after the tab title
-          'counter' => ['EnrollmentFlowSteps', 'Petitions']
-        ],
-        'edit' => [
-          // Ordered list of Tabs
-          'tabs' => ['EnrollmentFlowSteps', 'EnrollmentFlowSteps.Plugin', 'EnrollmentFlowSteps.Hierarchy'],
-          // What actions will inlcude the subnavigation header
-          'action' => [
-            // If a model renders in a subnavigation mode in edit/view mode, it cannot
-            // render in index mode for the same use case/context
-            // XXX edit should go first.
-            'EnrollmentFlowSteps' => ['edit', 'view'],
-            'EnrollmentFlowSteps.Plugin' => ['edit'],
-            // This means that we are looking at the plugins associated model
-            // EnrollmentFlowSteps -> plugin -> @plugin
-            // XXX There might be plugins that have no hasMany associations. We will check
-            //     for these use cases inside the element.
-            'EnrollmentFlowSteps.Hierarchy' => ['index']
-          ],
-        ]
-      ]
-    );
   }
   
   /**

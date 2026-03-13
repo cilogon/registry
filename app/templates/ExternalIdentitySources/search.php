@@ -29,6 +29,11 @@ declare(strict_types = 1);
 
 // Required by the subnavigation partial
 $modelsName = $this->getName();
+$fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $modelsName : $modelsName;
+$modelsTable = $this->Tab->getModelTableReference($fullModelsName);
+
+$subnav = 'eis';
+
 // Subnavigation calculations
 if(file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');

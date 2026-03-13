@@ -34,6 +34,15 @@ $fields = [
   'maximum',
   'enable_transliteration'
 ];
+
+$subnav = [
+  'tabs' => ['IdentifierAssignments', 'CoreAssigner.FormatAssigners'],
+  'action' => [
+    'IdentifierAssignments' => ['edit'],
+    'CoreAssigner.FormatAssigners' => ['edit']
+  ]
+];
+
 ?>
 
 <script>

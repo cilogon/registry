@@ -45,7 +45,6 @@ class AgreementCollectorsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\ValidationTrait;
 
   /**
@@ -77,22 +76,6 @@ class AgreementCollectorsTable extends Table {
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['dispatch', 'display']);
     
-    // All the tabs share the same configuration in the ModelTable file
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['EnrollmentFlowSteps', 'TermsAgreer.AgreementCollectors'],
-        // What actions will include the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'EnrollmentFlowSteps' => ['edit', 'view'],
-          'TermsAgreer.AgreementCollectors' => ['edit']
-        ]
-      ]
-    );
-
     $this->setAutoViewVars([
       'tAndCModes' => [
         'type' => 'enum',

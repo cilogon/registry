@@ -52,7 +52,6 @@ class GroupMembersTable extends Table {
   use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
@@ -134,32 +133,20 @@ class GroupMembersTable extends Table {
       ]
     ]);
 
-      $this->setFilterConfig([
-         'family' => [
-             'type' => 'string',
-             'model' => 'People.Names',
-             'active' => true,
-             'order' => 2
-         ],
-         'given' => [
-             'type' => 'string',
-             'model' => 'People.Names',
-             'active' => true,
-             'order' => 1
-         ],
-     ]);
-
-    $this->setTabsConfig(
-      [
-        'tabs' => ['Groups', 'GroupMembers', 'GroupNestings'],
-        'action' => [
-          'Groups' => ['edit', 'view'],
-          'GroupMembers' => ['index'],
-          'GroupNestings' => ['index'],
-        ],
-        'counter' => ['GroupMembers']
-      ]
-    );
+    $this->setFilterConfig([
+       'family' => [
+           'type' => 'string',
+           'model' => 'People.Names',
+           'active' => true,
+           'order' => 2
+       ],
+       'given' => [
+           'type' => 'string',
+           'model' => 'People.Names',
+           'active' => true,
+           'order' => 1
+       ],
+   ]);
   }
   
   /**

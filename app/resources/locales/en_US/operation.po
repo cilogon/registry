@@ -336,6 +336,9 @@ msgstr "Save"
 msgid "search"
 msgstr "Search"
 
+msgid "search.a"
+msgstr "Search {0}"
+
 msgid "search.global"
 msgstr "Global Search"
 

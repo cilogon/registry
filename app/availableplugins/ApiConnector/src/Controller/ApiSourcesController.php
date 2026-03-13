@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace ApiConnector\Controller;
 
+use Cake\Event\EventInterface;
 use Cake\Routing\Router;
 use App\Controller\StandardPluginController;
 
@@ -38,4 +39,25 @@ class ApiSourcesController extends StandardPluginController {
       'ApiSources.id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->ApiSources->ExternalIdentitySources->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->ApiSources->ExternalIdentitySources->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->ApiSources->ExternalIdentitySources->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

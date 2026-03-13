@@ -127,16 +127,4 @@ if(!empty($vv_obj->external_identity_id)) {
       ]
     ]
   ];
-
-  // primary name: $vv_obj->external_identity->person->primary_name->full_name
-  $subnav = [
-    'name' => 'person',
-    'active' => 'external_identities',
-    'subActive' => 'external_identity_roles',
-    'tabsId' => $vv_obj->external_identity->person->id,
-    'tabsController' => 'people',
-    'subTabsId' => $vv_obj->external_identity->id,
-    'subTabsController' => 'external_identities',
-    'tabsSupertitle' =>  $vv_obj->external_identity->description
-  ];
 }

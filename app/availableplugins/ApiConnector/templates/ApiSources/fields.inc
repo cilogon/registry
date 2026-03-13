@@ -38,3 +38,12 @@ $fields = [
     'subtitle' => __d('api_connector', 'field.ApiSources.push_mode')
   ]
 ];
+
+$subnav = [
+  'tabs' => ['ExternalIdentitySources', 'ApiConnector.ApiSources', 'ExternalIdentitySources@action.search'],
+  'action' => [
+    'ExternalIdentitySources' => ['edit', 'view', 'search'],
+    'ApiConnector.ApiSources' => ['edit'],
+    'ExternalIdentitySources@action.search' => [],
+  ],
+];

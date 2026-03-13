@@ -28,3 +28,11 @@
 $fields = [
   't_and_c_mode'
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'TermsAgreer.AgreementCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'TermsAgreer.AgreementCollectors' => ['edit']
+  ],
+];

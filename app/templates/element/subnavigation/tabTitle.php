@@ -53,12 +53,12 @@ $linkFilter = $this->Tab->getLinkFilter($tab, $curId, $tabAction, $isNested);
 
 // Simple use case
 $tabLanguageKey = in_array('index', $navigation_action[$tab], true) ? $tab : 'Properties';
-$title = __d('controller', $tabLanguageKey, [99]);
+$title = !empty($tabLabel) ? $tabLabel : __d('controller', $tabLanguageKey, [99]);
 $tabToTableName = Inflector::tableize(Inflector::singularize($tab));
 
 // Plugin Configuration Tab
 if (str_contains($tab, '.') && in_array('edit', $navigation_action[$tab], true)) {
-  $title = 'Configure Plugin';
+  $title = __d('operation','configure.plugin');
 } else if (str_contains($tab, '@action.')) { // Top Links/Actions
   [$modelName, ] = explode('@', $tab);
   [, $action] = explode('.', $tab);

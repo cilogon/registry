@@ -40,6 +40,8 @@ $fields = [
   'nesting_mode_all' => $options
 ];
 
+$subnav = 'groups';
+
 if(!empty($parents)) {
   $fields['parent_id'] = [
     'fieldLabel' => __d('field', 'parent_id'),

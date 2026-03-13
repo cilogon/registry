@@ -30,3 +30,11 @@ $fields = [
     'fieldLabel' => __d('orcid_source', 'controller.OrcidSources', [1])
   ]
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'OrcidSource.OrcidSourceCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'OrcidSource.OrcidSourceCollectors' => ['edit']
+  ],
+];

@@ -52,6 +52,14 @@ class MatchServerAttributesController extends StandardPluginController {
 
   public function beforeRender(\Cake\Event\EventInterface $event)
   {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->MatchServerAttributes->MatchServers->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->MatchServerAttributes->MatchServers->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->MatchServerAttributes->MatchServers->getPrimaryKey());
+    }
+    
     // Build standard server breadcrumbs from *_server_id
     $customParents = $this->buildServerParamBreadcrumbs();
 

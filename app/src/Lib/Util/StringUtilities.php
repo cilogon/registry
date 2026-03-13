@@ -350,7 +350,7 @@ class StringUtilities {
     // Title: translate with override key first; if not found, fall back to default key.
     // Super/Sub titles: set to the display (needed for External IDs in UI).
     if (
-      $entity->id !== null &&
+      $entity?->id !== null &&
       $action !== 'add' &&
       $action !== 'delete' &&
       $display !== null

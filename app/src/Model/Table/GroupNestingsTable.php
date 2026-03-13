@@ -43,7 +43,6 @@ class GroupNestingsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
@@ -112,18 +111,6 @@ class GroupNestingsTable extends Table {
         'deleted' =>  ['platformAdmin', 'coAdmin']
       ]
     ]);
-
-    $this->setTabsConfig(
-      [
-        'tabs' => ['Groups', 'GroupMembers', 'GroupNestings'],
-        'action' => [
-          'Groups' => ['edit', 'view'],
-          'GroupMembers' => ['index'],
-          'GroupNestings' => ['index'],
-        ],
-        'counter' => ['GroupMembers']
-      ]
-    );
 
     // XXX Keeping for functionality reference
 //    $this->setAutoViewVars([

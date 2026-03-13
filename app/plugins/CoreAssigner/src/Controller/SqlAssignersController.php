@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace CoreAssigner\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
 
 class SqlAssignersController extends StandardPluginController {
   protected array $paginate = [
@@ -37,4 +38,25 @@ class SqlAssignersController extends StandardPluginController {
       'SqlAssigners.server_id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->SqlAssigners->IdentifierAssignments->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->SqlAssigners->IdentifierAssignments->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->SqlAssigners->IdentifierAssignments->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

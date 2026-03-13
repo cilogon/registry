@@ -117,3 +117,11 @@ $fields = [
     'default' => true
   ]
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.EmailVerifiers'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'CoreEnroller.EmailVerifiers' => ['edit']
+  ],
+];

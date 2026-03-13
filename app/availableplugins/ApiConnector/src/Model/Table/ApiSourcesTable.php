@@ -42,7 +42,6 @@ class ApiSourcesTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\TabTrait;
 
   /**
    * Perform Cake Model initialization.

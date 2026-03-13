@@ -32,3 +32,20 @@ $fields = [
     'labelIsTextOnly' => true
   ]
 ];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
+
+// Match Servers have special subnavigation treatment (they have an extra tab for Match Server Attributes).
+if($vv_obj['plugin'] == 'CoreServer.MatchServers') {
+  $subnav = [
+    'tabs' => ['Servers', 'Servers.Plugin', 'CoreServer.MatchServerAttributes'],
+    'action' => [
+      'Servers' => ['edit'],
+      'Servers.Plugin' => ['edit'],
+      'CoreServer.MatchServerAttributes' => ['index']
+    ]
+  ];
+} else {
+  // Otherwise, servers get the standard subnavigation treatment.
+  $subnav = 'standard';  
+}

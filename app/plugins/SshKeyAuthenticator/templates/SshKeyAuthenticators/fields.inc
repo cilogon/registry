@@ -29,6 +29,14 @@ declare(strict_types = 1);
 
 $this->Field->disableFormEditMode();
 
+$subnav = [
+  'tabs' => ['Authenticators', 'SshKeyAuthenticator.SshKeyAuthenticators'],
+  'action' => [
+    'Authenticators' => ['edit'],
+    'SshKeyAuthenticator.SshKeyAuthenticators' => ['edit']
+  ]
+];
+
 // There are currently no configurable options for the SSH Key Authenticator
 $alerts = [
   [

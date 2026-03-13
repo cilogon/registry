@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace CoreServer\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
 
 class SqlServersController extends StandardPluginController {
   protected array $paginate = [
@@ -37,4 +38,25 @@ class SqlServersController extends StandardPluginController {
       'SqlServers.hostname' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->SqlServers->Servers->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->SqlServers->Servers->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->SqlServers->Servers->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

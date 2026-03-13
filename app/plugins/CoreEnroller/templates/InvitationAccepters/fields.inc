@@ -31,3 +31,11 @@ $fields = [
   ],
   'welcome_message'
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.InvitationAccepters'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'CoreEnroller.InvitationAccepters' => ['edit']
+  ],
+];

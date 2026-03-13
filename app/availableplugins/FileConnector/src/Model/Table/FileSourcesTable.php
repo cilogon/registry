@@ -47,7 +47,6 @@ class FileSourcesTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\TabTrait;
 
   // Cache of the field configuration
   protected $fieldCfg = null;
@@ -88,23 +87,6 @@ class FileSourcesTable extends Table {
         'class' => 'FileConnector.FileSourceFormatEnum'
       ]
     ]);
-
-    // All the tabs share the same configuration in the ModelTable file
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['ExternalIdentitySources', 'FileConnector.FileSources', 'ExternalIdentitySources@action.search'],
-        // What actions will include the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'ExternalIdentitySources' => ['edit', 'view', 'search'],
-          'FileConnector.FileSources' => ['edit'],
-          'ExternalIdentitySources@action.search' => [],
-        ],
-      ]
-    );
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

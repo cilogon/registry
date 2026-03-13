@@ -38,3 +38,11 @@ if(!empty($vv_push_endpoint)) {
 $fields = [
   'external_identity_source_id'
 ];
+
+$subnav = [
+  'tabs' => ['Apis', 'ApiConnector.ApiSourceEndpoints'],
+  'action' => [
+    'Apis' => ['edit'],
+    'ApiConnector.ApiSourceEndpoints' => ['edit']
+  ]
+];

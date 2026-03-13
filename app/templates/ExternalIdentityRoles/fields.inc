@@ -80,8 +80,4 @@ $addMenuLinks = [
   ]
 ];
 
-$subnav = [
-  'name' => 'person',
-  'active' => 'external_identities',
-  'subActive' => 'external_identity_roles'
-];
+$subnav = 'people';

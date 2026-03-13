@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace PasswordAuthenticator\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
 
 class PasswordAuthenticatorsController extends StandardPluginController {
   protected array $paginate = [
@@ -37,4 +38,25 @@ class PasswordAuthenticatorsController extends StandardPluginController {
       'PasswordAuthenticators.id' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->PasswordAuthenticators->Authenticators->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->PasswordAuthenticators->Authenticators->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->PasswordAuthenticators->Authenticators->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
 }

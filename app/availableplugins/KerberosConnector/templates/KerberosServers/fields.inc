@@ -33,3 +33,10 @@ $fields = [
   'keytab_path'
 ];
 
+$subnav = [
+  'tabs' => ['Servers', 'KerberosConnector.KerberosServers'],
+  'action' => [
+    'Servers' => ['edit'],
+    'KerberosConnector.KerberosServers' => ['edit']
+  ]
+];

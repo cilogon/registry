@@ -27,88 +27,143 @@
 
 use App\Lib\Enum\BulkActionEnum;
 
-$indexColumns = [
- 'name' => [
-    'type' => 'link',
-    'model' => 'person',
-    'submodel' => 'primary_name',
-    'field' => 'full_name',
-    'class' => 'cm-modal-link nospin', // launch this in a modal 
-    'dataAttrs' => [
-      ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
-    ]
-// XXX not clear how to sort on submodel, but maybe just leave it for UX revisions?
-//    'sortable' => 'PrimaryName.family'
-  ],
-  'status' => [
-    'type' => 'enum',
-    'model' => 'person',
-    'field' => 'status',
-    'class' => 'StatusEnum'
-  ],
-  'source' => [
-    'type' => 'closure',
-    'function' => function ($entity) {
-      if(!empty($entity->group_nesting_id)) {
-        if(!empty($entity->group_nesting->group->name)) {
-          return $this->Html->link($entity->group_nesting->group->name,
-                                   ['controller' => 'groups', 'action' => 'edit', $entity->group_nesting->group->id]);
-        } else {
-          return __d('controller', 'GroupNestings', [1]);
-        }
-      } else {
-        return __d('field', 'GroupMembers.source.direct');
-      }
-    }
-  ],
-  'valid_from' => [
-    'type' => 'datetime'
-  ],
-  'valid_through' => [
-    'type' => 'datetime'
-  ]
-];
+/* There are two use cases for this index view: 
+   1. A list of Group Members for a group. The URL will contain ?group_id=n.
+   2. A list of Groups for a person. The URL will contain ?person_id=n.
+   
+   The display for each use case is nestled into different subnavigation, where 
+   group_id=n is on the "Group Members" tab in Group subnavigation, and 
+   person_id=n is on the "Groups" tab in Person navigation.
+   The configuration below will branch based on the existence of the query parameter.  
+*/
 
-// Suppress the default add link
-$suppressAddLink = true;
-$topLinks = [
-/* 
-  // This "Add" link launches the add form in a modal with a autocomplete people picker as a field. 
-  // Leave it here as a reference until we have a similar field such as "sponsor" created. 
-  [
-    'icon' => 'Add',
-    'order' => 'Default',
-    'label' => __d('operation', 'add.a', [__d('controller', 'GroupMembers', 1)]),
-    'link' => [
-      'controller' => 'GroupMembers',
-      'action' => 'add'
+// Check for the Group Members use case:
+if ($this->request->getQuery('group_id') !== null) {
+
+  $indexColumns = [
+    'name' => [
+      'type' => 'link',
+      'model' => 'person',
+      'submodel' => 'primary_name',
+      'field' => 'full_name',
+      'class' => 'cm-modal-link nospin', // launch this in a modal 
+      'dataAttrs' => [
+        ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
+      ]
+      // XXX not clear how to sort on submodel, but maybe just leave it for UX revisions?
+      //    'sortable' => 'PrimaryName.family'
     ],
-    'class' => 'cm-modal-link nospin', 
-    'dataAttrs' => [
-      ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
+    'status' => [
+      'type' => 'enum',
+      'model' => 'person',
+      'field' => 'status',
+      'class' => 'StatusEnum'
+    ],
+    'source' => [
+      'type' => 'closure',
+      'function' => function($entity) {
+        if(!empty($entity->group_nesting_id)) {
+          if(!empty($entity->group_nesting->group->name)) {
+            return $this->Html->link($entity->group_nesting->group->name,
+              ['controller' => 'groups', 'action' => 'edit', $entity->group_nesting->group->id]);
+          } else {
+            return __d('controller', 'GroupNestings', [1]);
+          }
+        } else {
+          return __d('field', 'GroupMembers.source.direct');
+        }
+      }
+    ],
+    'valid_from' => [
+      'type' => 'datetime'
+    ],
+    'valid_through' => [
+      'type' => 'datetime'
     ]
-  ]
-  */
-];
+  ];
+  
+  $subnav = 'groups';
 
-
-// When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index.
-// The array should contain a list of actions to be made available.
-$bulkActions = [BulkActionEnum::Delete];
-
-
-// Page options
-$peoplePicker = [
-  'label' => __d('operation','add.member'),
-  'viewConfigParameters' => [
-    'groupId' => $this->getRequest()?->getQuery('group_id')
-  ],
-  'actionUrl' => [
-    'plugin'     => null,
-    'controller' => 'GroupMembers',
-    'action' => 'add',
-    '?' => [
-      'group_id' => $this->getRequest()?->getQuery('group_id')
+  // Suppress the default add link
+  $suppressAddLink = true;
+  $topLinks = [
+    /* 
+      // This "Add" link launches the add form in a modal with a autocomplete people picker as a field. 
+      // Leave it here as a reference until we have a similar field such as "sponsor" created. 
+      [
+        'icon' => 'Add',
+        'order' => 'Default',
+        'label' => __d('operation', 'add.a', [__d('controller', 'GroupMembers', 1)]),
+        'link' => [
+          'controller' => 'GroupMembers',
+          'action' => 'add'
+        ],
+        'class' => 'cm-modal-link nospin', 
+        'dataAttrs' => [
+          ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
+        ]
+      ]
+      */
+  ];
+  
+  // When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index.
+  // The array should contain a list of actions to be made available.
+  $bulkActions = [BulkActionEnum::Delete];
+  
+  // Page options
+  $peoplePicker = [
+    'label' => __d('operation', 'add.member'),
+    'viewConfigParameters' => [
+      'groupId' => $this->getRequest()?->getQuery('group_id')
+    ],
+    'actionUrl' => [
+      'plugin' => null,
+      'controller' => 'GroupMembers',
+      'action' => 'add',
+      '?' => [
+        'group_id' => $this->getRequest()?->getQuery('group_id')
+      ]
     ]
-  ]
-];
+  ];
+
+// Otherwise, we are in the Person's Groups use case:  
+} else {
+  
+  $indexColumns = [
+    'group' => [
+      'type' => 'link',
+      'model' => 'group',
+      'field' => 'name',
+      'class' => 'cm-modal-link nospin', // launch this in a modal 
+      'dataAttrs' => [
+        ['data-cm-modal-title', __d('controller', 'GroupMembers', 1)]
+      ]
+    ],
+    'description' => [
+      'type' => 'echo',
+      'model' => 'group',
+      'field' => 'description',
+    ],
+    'status' => [
+      'type' => 'enum',
+      'model' => 'group',
+      'field' => 'status',
+      'class' => 'SuspendableStatusEnum'
+    ]
+  ];
+
+  $subnav = 'people';
+  $localTitle = __d('controller','Groups', 99);
+  
+  // Do not show the normal add link here
+  $suppressAddLink = true;
+?>
+<script>
+  $(function() {
+    // XXX On the user-centric Groups view, hide filtering until it can be configured in the view (rather than the model)
+    $('#top-filters-form').hide();
+  });
+</script>  
+  
+<?php
+}

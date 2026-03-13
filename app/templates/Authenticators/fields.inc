@@ -33,3 +33,5 @@ $fields = [
   ],
   'message_template_id'
 ];
+
+$subnav = 'standard';

@@ -73,3 +73,12 @@ foreach($defaultNames as $field => $envName) {
     'default' => $envName
   ];
 }
+
+$subnav = [
+  'tabs' => ['ExternalIdentitySources', 'EnvSource.EnvSources', 'ExternalIdentitySources@action.search'],
+  'action' => [
+    'ExternalIdentitySources' => ['edit', 'view', 'search'],
+    'EnvSource.EnvSources' => ['edit'],
+    'ExternalIdentitySources@action.search' => [],
+  ],
+];

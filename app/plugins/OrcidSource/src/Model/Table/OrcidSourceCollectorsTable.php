@@ -44,7 +44,6 @@ class OrcidSourceCollectorsTable extends Table {
     use \App\Lib\Traits\PrimaryLinkTrait;
     use \App\Lib\Traits\TableMetaTrait;
     use \App\Lib\Traits\ValidationTrait;
-    use \App\Lib\Traits\TabTrait;
 
     /**
      * Perform Cake Model initialization.
@@ -72,22 +71,6 @@ class OrcidSourceCollectorsTable extends Table {
         $this->setPrimaryLink('enrollment_flow_step_id');
         $this->setRequiresCO(true);
         $this->setAllowLookupPrimaryLink(['dispatch', 'display']);
-
-        // All the tabs share the same configuration in the ModelTable file
-        $this->setTabsConfig(
-            [
-                // Ordered list of Tabs
-                'tabs' => ['EnrollmentFlowSteps', 'OrcidSource.OrcidSourceCollectors'],
-                // What actions will include the subnavigation header
-                'action' => [
-                    // If a model renders in a subnavigation mode in edit/view mode, it cannot
-                    // render in index mode for the same use case/context
-                    // XXX edit should go first.
-                    'EnrollmentFlowSteps' => ['edit', 'view'],
-                    'OrcidSource.OrcidSourceCollectors' => ['edit'],
-                ]
-            ]
-        );
 
         $this->setAutoViewVars([
             'externalIdentitySources' => [

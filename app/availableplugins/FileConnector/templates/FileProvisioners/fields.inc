@@ -28,3 +28,11 @@
 $fields = [
   'filename'
 ];
+
+$subnav = [
+  'tabs' => ['ProvisioningTargets', 'FileConnector.FileProvisioners'],
+  'action' => [
+    'ProvisioningTargets' => ['edit'],
+    'FileConnector.FileProvisioners' => ['edit']
+  ]
+];

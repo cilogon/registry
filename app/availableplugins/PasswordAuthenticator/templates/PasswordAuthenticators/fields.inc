@@ -34,6 +34,14 @@ $fields = [
   'format_plaintext'
 ];
 
+$subnav = [
+  'tabs' => ['Authenticators', 'PasswordAuthenticator.PasswordAuthenticators'],
+  'action' => [
+    'Authenticators' => ['edit'],
+    'PasswordAuthenticator.PasswordAuthenticators' => ['edit']
+  ]
+]
+  
 ?>
   
 <script>

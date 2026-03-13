@@ -30,3 +30,11 @@ $fields = [
   'denial_message_template_id',
   'redirect_on_denial'
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.ApprovalCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'CoreEnroller.ApprovalCollectors' => ['edit']
+  ],
+];

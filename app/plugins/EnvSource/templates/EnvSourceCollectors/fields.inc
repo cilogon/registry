@@ -30,3 +30,11 @@ $fields = [
     'fieldLabel' => __d('env_source', 'controller.EnvSources', [1])
   ]
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'EnvSource.EnvSourceCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'EnvSource.EnvSourceCollectors' => ['edit']
+  ],
+];

@@ -40,3 +40,11 @@ $fields = [
   'override_to'
 ];
 
+$subnav = [
+  'tabs' => ['Servers', 'CoreServer.SmtpServers'],
+  'action' => [
+    'Servers' => ['edit'],
+    'CoreServer.SmtpServers' => ['edit']
+  ]
+];
+  

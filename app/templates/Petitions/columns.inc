@@ -77,6 +77,8 @@ $indexColumns = [
   ]
 ];
 
+$subnav = 'petitions';
+
 // $rowActions appear as row-level menu items in the index view gear icon
 $rowActions = [
   [

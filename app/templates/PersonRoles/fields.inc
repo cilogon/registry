@@ -70,6 +70,8 @@ if($vv_action == 'edit' || $vv_action == 'view') {
   ];
 }
 
+$subnav = 'people';
+
 // List the MVEAs that may be shown on the mveaCanvas
 // When this array exists, the mveaCanvas.php element will render  
 $mveas = [
@@ -101,10 +103,4 @@ $addMenuLinks = [
     'action' => 'add',
     'icon' => 'phone'
   ]
-];
-
-$subnav = [
-  'name' => 'person',
-  'active' => 'person_roles',
-  'subActive' => 'properties'
 ];

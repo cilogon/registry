@@ -32,6 +32,14 @@ $fields = [
   ]
 ];
 
+$subnav = [
+  'tabs' => ['ProvisioningTargets', 'SqlConnector.SqlProvisioners'],
+  'action' => [
+    'ProvisioningTargets' => ['edit'],
+    'SqlConnector.SqlProvisioners' => ['edit']
+  ]
+];
+
 // Top Links
 $topLinks = [
   [

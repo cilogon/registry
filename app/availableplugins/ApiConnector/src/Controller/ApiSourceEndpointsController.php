@@ -48,6 +48,14 @@ class ApiSourceEndpointsController extends StandardPluginController {
    */
 
   public function beforeRender(\Cake\Event\EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->ApiSourceEndpoints->Apis->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->ApiSourceEndpoints->Apis->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->ApiSourceEndpoints->Apis->getPrimaryKey());
+    }
+    
     $vv_obj = $this->viewBuilder()->getVar('vv_obj');
 
     if(!empty($vv_obj->external_identity_source->api_source->id)) {

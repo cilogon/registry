@@ -56,6 +56,8 @@ $fields = [
   'date_of_birth' // date
 ];
 
+$subnav = 'people';
+
 // List the MVEAs that may be shown on the mveaCanvas
 // When this array exists, the mveaCanvas.php element will render  
 $mveas = [
@@ -188,10 +190,4 @@ $addMenuLinks = [
     'action' => 'add',
     'icon' => 'link'
   ]
-];
-
-$subnav = [
-  'name' => 'person',
-  'active' => 'external_identities',
-  'subActive' => 'properties'
 ];

@@ -30,7 +30,9 @@ declare(strict_types = 1);
 //$action = $this->template;
 /** var string $modelsName */
 $modelsName = $this->getName();
-// $tablename = models
+$fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $modelsName : $modelsName;
+$modelsTable = $this->Tab->getModelTableReference($fullModelsName);
+
 // XXX backport to match?
 $tableName = \Cake\Utility\Inflector::tableize(\Cake\Utility\Inflector::singularize($this->name));
 
@@ -87,11 +89,11 @@ if(!empty($vv_primary_link) && !empty($this->request->getQuery($vv_primary_link)
   $linkFilter = [$vv_primary_link => $this->request->getQuery($vv_primary_link)];
 }
 
-// Subnavigation
+// Subnavigation: turned on by setting the $subnav string in columns.inc or fields.inc
 $hasSubnav = false;
-if($vv_action !== 'add' && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
+if(!empty($subnav) && $vv_action !== 'add' && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc')) {
   include(ROOT . DS . 'templates' . DS . 'Standard/subnavigation.inc');
-  $hasSubnav = $this->get('hasSupertitle');
+  $hasSubnav = true;
 }
 
 // When under subnavigation we do not want a title with Edit or Add or View followed by a number.
@@ -116,10 +118,11 @@ if (
 
 <div class="page-title-container">
   <div class="page-title">
+    <?php // $localTitle is an override set in fields.inc; $vv_title is set by the controller. ?>
     <?php if(!$hasSubnav): ?>
-      <h1><?= $title ?></h1>
+      <h1><?= !empty($localTitle) ? $localTitle : $vv_title ?></h1>
     <?php else: ?>
-      <h2><?= $title ?></h2>
+      <h2><?= !empty($localTitle) ? $localTitle : $vv_title ?></h2>
     <?php endif; ?>
   </div>
   <?php
@@ -208,10 +211,8 @@ if (
   ?>
 </div>
   
-<?php if(!$hasSubnav): ?>
-  <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
-  <?= $this->element('flash', $flashArgs) ?>
-<?php endif; ?>
+<?php /* Alerts and Flash Messages are placed below the title and subtitle. */ ?>
+<?= $this->element('flash', $flashArgs) ?>
 
 <?php
 $linkId = null;

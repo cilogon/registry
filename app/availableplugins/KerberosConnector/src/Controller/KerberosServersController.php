@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace KerberosConnector\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
 
 class KerberosServersController extends StandardPluginController {
   protected array $paginate = [
@@ -37,4 +38,25 @@ class KerberosServersController extends StandardPluginController {
       'KerberosServers.hostname' => 'asc'
     ]
   ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->KerberosServers->Servers->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->KerberosServers->Servers->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->KerberosServers->Servers->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }  
 }

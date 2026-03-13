@@ -54,7 +54,6 @@ class PetitionsTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
@@ -240,24 +239,6 @@ class PetitionsTable extends Table {
 
       return null;
     });
-
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['EnrollmentFlows', 'EnrollmentFlowSteps', 'Petitions'],
-        // What actions will include the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'EnrollmentFlows' => ['edit', 'view'],
-          'EnrollmentFlowSteps' => ['index'],
-          'Petitions' => ['index'],
-        ],
-        // What model will have a counter-badge after the tab title
-        'counter' => ['EnrollmentFlowSteps', 'Petitions']
-      ]
-    );
   }
 
   /**

@@ -36,6 +36,10 @@ $fields = [
   'hash_source_record',
   'suppress_noop_logs'
 ];
+
+$fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
+
+$subnav = 'eis';
       
 // Top Links
 $topLinks = [

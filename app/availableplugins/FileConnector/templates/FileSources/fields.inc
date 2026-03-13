@@ -32,3 +32,12 @@ $fields = [
   'threshold_check',
   'threshold_override',
 ];
+
+$subnav = [
+  'tabs' => ['ExternalIdentitySources', 'FileConnector.FileSources', 'ExternalIdentitySources@action.search'],
+  'action' => [
+    'ExternalIdentitySources' => ['edit', 'view', 'search'],
+    'FileConnector.FileSources' => ['edit'],
+    'ExternalIdentitySources@action.search' => [],
+  ],
+];

@@ -39,6 +39,9 @@ $fields = [
   'notification_group_id',
   'notification_message_template_id'
 ];
+
+$subnav = 'steps';
+
 ?>
 
 <script>

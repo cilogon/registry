@@ -31,3 +31,11 @@ $fields = [
   'affiliation_type_id',
   'cou_id'
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.BasicAttributeCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'CoreEnroller.BasicAttributeCollectors' => ['edit']
+  ],
+];

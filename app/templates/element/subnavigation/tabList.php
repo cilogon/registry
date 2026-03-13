@@ -32,11 +32,16 @@ $curController = $this->request->getParam('controller');
 $isNested = false;
 
 extract($vv_sub_nav_attributes, EXTR_PREFIX_ALL, 'vv_subnavigation');
+$nestings = $vv_subnavigation_nested['tabs'] ?? [];
 
 ?>
 
 <?php foreach($vv_subnavigation_tabs as $tab): ?>
 <?php
+  // If the tab is an array (used to pass in a custom label), extract the components
+  $tabLabel = is_array($tab) ? ($tab['tabLabel'] ?? null) : null;
+  $tab = is_array($tab) ? $tab['tabModel'] : $tab;
+
   // calculate the id
   $curId = $this->Tab->getCurrentId($tab, $isNested);
   // Check if there are child models. If not continue
@@ -57,14 +62,13 @@ extract($vv_sub_nav_attributes, EXTR_PREFIX_ALL, 'vv_subnavigation');
   <li class="nav-item">
     <?php
     // Calculate Tab Title
-    $title = $this->element('subnavigation/tabTitle', compact('tab', 'curId', 'isNested'));
+    $title = $this->element('subnavigation/tabTitle', compact('tab', 'curId', 'isNested', 'tabLabel'));
     // Construct Target URL
     $url = $this->Tab->constructLinkUrl($tab, $curId, $isNested);
     // Calculate Tab Style Class(es)
-    $linkClass = $this->Tab->getLinkClass($tab, $isNested);
+    $linkClass = $this->Tab->getLinkClass($tab, $isNested, $nestings);
     // Import <a> element in the DOM
     print $this->Html->link($title, $url, ['class' => $linkClass, 'escape' => false]);
     ?>
   </li>
 <?php endforeach; ?>
-

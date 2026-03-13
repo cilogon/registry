@@ -33,3 +33,5 @@ $fields = [
   ],
   'api_user_id'
 ];
+
+$subnav = 'standard';

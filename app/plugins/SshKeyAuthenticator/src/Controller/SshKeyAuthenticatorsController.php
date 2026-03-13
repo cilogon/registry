@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace SshKeyAuthenticator\Controller;
 
 use App\Controller\StandardPluginController;
+use Cake\Event\EventInterface;
 
 class SshKeyAuthenticatorsController extends StandardPluginController {
   protected array $paginate = [
@@ -37,4 +38,27 @@ class SshKeyAuthenticatorsController extends StandardPluginController {
       'SshKeyAuthenticators.id' => 'asc'
     ]
   ];
+
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   *
+   * @return Response|void
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->SshKeyAuthenticators->Authenticators->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->SshKeyAuthenticators->Authenticators->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->SshKeyAuthenticators->Authenticators->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
+
 }

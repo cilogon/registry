@@ -50,10 +50,16 @@ class Oauth2ServersController extends StandardPluginController
    * @since  COmanage Registry v5.2.0
    */
 
-  public function beforeRender(EventInterface $event)
-  {
-    // Generate the Redirect URI
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
 
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->Oauth2Servers->Servers->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->Oauth2Servers->Servers->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->Oauth2Servers->Servers->getPrimaryKey());
+    }
+    
+    // Generate the Redirect URI
     if ($this->getRequest()->getParam('action') === 'edit') {
       $id = $this->getRequest()->getParam('pass')[0] ?? null; // Assuming $id comes from passed arguments
       $this->set('vv_redirect_uri', $this->Oauth2Servers->redirectUri($id));

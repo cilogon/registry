@@ -44,3 +44,12 @@ $topLinks[] = [
   ],
   'class' => ''
 ];
+
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.AttributeCollectors', 'EnrollmentFlowSteps.Hierarchy'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'CoreEnroller.AttributeCollectors' => ['edit'],
+    'EnrollmentFlowSteps.Hierarchy' => ['index']
+  ],
+];

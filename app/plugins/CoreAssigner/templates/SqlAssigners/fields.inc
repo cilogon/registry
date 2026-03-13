@@ -30,3 +30,11 @@ $fields = [
   'source_table',
   'type_id'
 ];
+
+$subnav = [
+  'tabs' => ['IdentifierAssignments', 'CoreAssigner.SqlAssigners'],
+  'action' => [
+    'IdentifierAssignments' => ['edit'],
+    'CoreAssigner.SqlAssigners' => ['edit']
+  ]
+];

@@ -47,7 +47,6 @@ class ExternalIdentityRolesTable extends Table {
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
@@ -119,38 +118,6 @@ class ExternalIdentityRolesTable extends Table {
         'attribute' => 'PersonRoles.affiliation_type'
       ]
     ]);
-
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['People', 'PersonRoles', 'ExternalIdentities'],
-        // What actions will include the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'People' => ['edit', 'view'],
-          'PersonRoles' => ['index'],
-          'ExternalIdentities' => ['index'],
-        ],
-        // What model will have a counter-badge after the tab title
-        'counter' => ['PersonRoles', 'ExternalIdentities'],
-        'nested' => [
-          // Ordered list of Tabs
-          'tabs' => ['ExternalIdentities', 'ExternalIdentityRoles'],
-          // What actions will include the subnavigation header
-          'action' => [
-            // If a model renders in a subnavigation mode in edit/view mode, it cannot
-            // render in index mode for the same use case/context
-            // XXX edit should go first.
-            'ExternalIdentities' => ['edit', 'view'],
-            'ExternalIdentityRoles' => ['edit', 'view', 'index'],
-          ],
-          // What model will have a counter-badge after the tab title
-          'counter' => ['ExternalIdentityRoles'],
-        ]
-      ]
-    );
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

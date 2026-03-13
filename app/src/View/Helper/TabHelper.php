@@ -179,7 +179,7 @@ class TabHelper extends Helper
    * @return string
    * @since  COmanage Registry v5.0.0
    */
-  public function getLinkClass(string $tab, bool $isNested = false): string
+  public function getLinkClass(string $tab, bool $isNested = false, array $nestings = []): string
   {
     $vv_sub_nav_attributes = $this->getView()->get('vv_sub_nav_attributes');
 
@@ -201,7 +201,10 @@ class TabHelper extends Helper
       // The fullModelName can either be a simple Model or a Plugin with the path.
       $tab === $fullModelName && \in_array($curAction, ['index', 'edit', 'view']),
       // Always mark active the parent Tab
-      !$isNested && $parentModelForNested !== null && $tab === $parentModelForNested,
+      !$isNested && $parentModelForNested !== null && $tab === $parentModelForNested && in_array($fullModelName, $nestings),
+      // Match Configuration and Hierarchy tabs
+      isset($plugin) && str_contains($tab, '.Plugin') && $curAction === 'edit',
+      isset($plugin) && str_contains($tab, '.Hierarchy') && $curAction === 'index',
       // Matches the action tab links, e.g. FileSource/search
       $tab === "{$curController}@action.{$curAction}" => 'nav-link active',
       default => 'nav-link'

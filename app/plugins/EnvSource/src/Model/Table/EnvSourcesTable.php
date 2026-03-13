@@ -41,7 +41,6 @@ class EnvSourcesTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\QueryModificationTrait;
-  use \App\Lib\Traits\TabTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
@@ -105,23 +104,6 @@ class EnvSourcesTable extends Table {
     $this->setViewContains([
       'ExternalIdentitySources',
     ]);
-
-    // All the tabs share the same configuration in the ModelTable file
-    $this->setTabsConfig(
-      [
-        // Ordered list of Tabs
-        'tabs' => ['ExternalIdentitySources', 'EnvSource.EnvSources', 'ExternalIdentitySources@action.search'],
-        // What actions will include the subnavigation header
-        'action' => [
-          // If a model renders in a subnavigation mode in edit/view mode, it cannot
-          // render in index mode for the same use case/context
-          // XXX edit should go first.
-          'ExternalIdentitySources' => ['edit', 'view', 'search'],
-          'EnvSource.EnvSources' => ['edit'],
-          'ExternalIdentitySources@action.search' => [],
-        ],
-      ]
-    );
 
     $this->setAutoViewVars([
       'addressTypes' => [

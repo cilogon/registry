@@ -37,3 +37,11 @@ if(!empty($vv_api_endpoint)) {
 $fields = [
   'server_id'
 ];
+
+$subnav = [
+  'tabs' => ['Apis', 'CoreApi.MatchCallbacks'],
+  'action' => [
+    'Apis' => ['edit'],
+    'CoreApi.MatchCallbacks' => ['edit']
+  ]
+];

@@ -42,6 +42,8 @@ $fields = [
   'notification_message_template_id'
 ];
 
+$subnav = 'petitions';
+
 ?>
 
 <script>

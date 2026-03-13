@@ -54,9 +54,6 @@ $fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $model
     </div>
     <?= $this->element('subnavigation/upperButtons') ?>
   </div>
-
-  <!-- Flash Messages are placed below supertitle when subnavigation exists. -->
-  <?= $this->element('flash', $vv_subnavigation_flashArgs ?? []) ?>
   
   <!-- Top-Level Subnavigation Tabs -->  
   <nav id="cm-<?= $fullModelsName ?>-subnav-tabs" class="cm-subnav-tabs">
@@ -69,7 +66,7 @@ $fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $model
     // Do we have a nested element configured?
     !empty($subNavAttributes['nested'])
     // Check the nested elements if they allow navigation for this action
-    && in_array($vv_action, $subNavAttributes['nested']['action'][$fullModelsName], true)
+    && in_array($vv_action, $subNavAttributes['nested']['action'][$fullModelsName] ?? [], true)
   ): ?>
   <nav id="cm-<?= $fullModelsName ?>-subnav-links" class="cm-subnav-links">
     <ul class="list-inline">

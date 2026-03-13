@@ -64,11 +64,5 @@ $topLinks = [
 // Suppress the normal add link in lieu of the one above
 $suppressAddLink = true;
 
-/*
-// When the $bulkActions variable exists in a columns.inc config, the "Bulk edit" switch will appear in the index. 
-$bulkActions = [
-  // TODO: develop bulk actions. For now, use a placeholder.
-  'delete' => true
-];
-*/
+$subnav = 'groups';
 

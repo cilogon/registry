@@ -45,3 +45,12 @@ if(!empty($vv_obj->url)) {
     'class' => ''
   ];
 }
+
+$subnav = [
+  'tabs' => ['Servers', 'CoreServer.MatchServers', 'CoreServer.MatchServerAttributes'],
+  'action' => [
+    'Servers' => ['edit'],
+    'CoreServer.MatchServers' => ['edit'],
+    'CoreServer.MatchServerAttributes' => ['index']
+  ]
+];

@@ -53,12 +53,5 @@ $indexColumns = [
   ]
 ];
 
-// $rowActions appear as row-level menu items in the index view gear icon
-// XXX Turn this off, but leave for reference (for now): configure is a tab in the modal dialog  
-//$rowActions = [
-//  [
-//    'action'  => 'configure',
-//    'label'   => __d('operation', 'configure.plugin'),
-//    'icon'    => 'electrical_services'
-//  ]
-//];
+$subnav = 'petitions';
+

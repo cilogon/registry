@@ -63,3 +63,12 @@ $fields['access_token'] = [
   'link' => $generateLink,
   'labelIsTextOnly' => true
 ];
+
+$subnav = [
+  'tabs' => ['Servers', 'CoreServer.Oauth2Servers'],
+  'action' => [
+    'Servers' => ['edit'],
+    'CoreServer.Oauth2Servers' => ['edit']
+  ]
+];
+  

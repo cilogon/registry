@@ -33,3 +33,11 @@ $fields = [
   'username',
   'password'
 ];
+
+$subnav = [
+  'tabs' => ['Servers', 'CoreServer.SqlServers'],
+  'action' => [
+    'Servers' => ['edit'],
+    'CoreServer.SqlServers' => ['edit']
+  ]
+];
