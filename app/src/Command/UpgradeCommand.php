@@ -79,7 +79,7 @@ class UpgradeCommand extends BaseCommand
         'checkGroupNames'
       ],
       'post' => [
-        'asssignUuids',
+        'assignUuids',
         'buildGroupTree',
         'createDefaultGroups', 
         'installMostlyStaticPages'
