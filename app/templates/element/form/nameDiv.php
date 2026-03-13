@@ -63,9 +63,9 @@ $desc = $vv_field_arguments['fieldDescription'] ?? $desc;
 // from FieldHelper, then overriding that value if an argument was passed in.
 $isRequired = $this->Field->isReqField($fn);
 
-if(isset($vv_field_arguments['fieldOptions']['required'])) {
+if(isset($vv_field_arguments['required'])) {
   // Use this value (which could be either false or true)
-  $isRequired = $vv_field_arguments['fieldOptions']['required'];
+  $isRequired = $vv_field_arguments['required'];
 }
 
 // Extra class required for the grouped controls elements
