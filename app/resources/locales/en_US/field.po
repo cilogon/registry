@@ -956,6 +956,12 @@ msgstr "Subject Object Type"
 msgid "ProvisioningHistoryRecords.subjectid"
 msgstr "Subject Object ID"
 
+msgid "ProvisioningTargets.comment.last"
+msgstr "Last Comment"
+
+msgid "ProvisioningTargets.comment.live"
+msgstr "Comment"
+
 msgid "ProvisioningTargets.max_retry"
 msgstr "Max Retries"
 
@@ -979,6 +985,12 @@ msgstr "If the provisioning action fails, it will be automatically retried after
 
 msgid "ProvisioningTargets.status"
 msgstr "Provisioning Mode"
+
+msgid "ProvisioningTargets.status.last"
+msgstr "Last Status"
+
+msgid "ProvisioningTargets.status.live"
+msgstr "Live Status"
 
 msgid "TelephoneNumbers.formatted_number"
 msgstr "Telephone Number"

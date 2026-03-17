@@ -51,6 +51,7 @@ class ProvisioningTargetsTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PluggableModelTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -398,6 +399,7 @@ class ProvisioningTargetsTable extends Table {
    * @param  int  $coId     CO ID
    * @param  int  $groupId  Group ID
    * @param  int  $personId Person ID
+   * @return array          Array of provisioning data, per target
    */
 
   public function status(int $coId, ?int $groupId=null, ?int $personId=null): array {
@@ -439,68 +441,81 @@ class ProvisioningTargetsTable extends Table {
                             ])
                             ->first();
 
-        // If the plugin implements a status() function we'll call it, otherwise
-        // we'll get the status from ProvisioningHistory.
+        // There are two types of information we want to return here, live status
+        // (which requires plugin support) and last result (which is stored in
+        // ProvisioningHistoryRecords). We want to return both (when available) since
+        // (for example) the plugin might return "Provisioned" even though the last
+        // attempt to provision failed for some reason (but a prior one was successful).
 
         $PluginModel = TableRegistry::getTableLocator()->get($t->plugin);
 
+        $info = [
+          'target'      => $t,
+          // Live status from the plugin
+          'status'      => ProvisioningStatusEnum::Unknown,
+          'comment'     => null,
+          // Record status via ProvisionerHistoryRecords
+          'laststatus'  => ProvisioningStatusEnum::Unknown,
+          'lastcomment' => null,
+          // timestamp and identifier from the plugin if available, else history
+          'timestamp'   => null,
+          'identifier'  => null
+        ];
+
         if(method_exists($PluginModel, 'status')) {
+          // Determine live status from the plugin
           try {
             $status = $PluginModel->status(cfg: $t, groupId: $groupId, personId: $personId);
             
-            $ret[] = [
-              'target'      => $t,
-              'status'      => $status['status'],
-              'comment'     => $status['comment'],
-              'timestamp'   => $status['timestamp'],
-              'identifier'  => $pkey ? $pkey->identifier : null
-            ];
+            $info['status'] = $status['status'];
+            $info['comment'] = $status['comment'];
+            $info['timestamp'] = $status['timestamp'];
+            $info['identifier'] = $pkey ? $pkey->identifier : null;
           }
           catch(\Exception $e) {
-            $ret[] = [
-              'target'      => $t,
-              'status'      => ProvisioningStatusEnum::Unknown,
-              'comment'     => $e->getMessage()
-            ];
-          }
-        } else {
-          $subjectFK = null;
-          $subjectID = null;
-
-          if(!empty($personId)) {
-            $subjectFK = 'person_id';
-            $subjectID = $personId;
-          } elseif(!empty($groupId)) {
-            $subjectFK = 'group_id';
-            $subjectID = $groupId;
-          } else {
-            throw new \InvalidArgumentException("NOT IMPKEMENTED");
-          }
-          
-          $rec = $this->ProvisioningHistoryRecords->find()
-                                                  ->where([
-                                                    'provisioning_target_id' => $t->id,
-                                                    $subjectFK => $subjectID
-                                                  ])
-                                                  ->orderBy(['id' => 'DESC'])
-                                                  ->first();
-          
-          if(!empty($rec)) {
-            $ret[] = [
-              'target'      => $t,
-              'status'      => $rec->status,
-              'comment'     => $rec->comment,
-              'identifier'  => $pkey ? $pkey->identifier : null,
-              'timestamp'   => $rec->created
-            ];
-          } else {
-            $ret[] = [
-              'target'      => $t,
-              'status'      => ProvisioningStatusEnum::NotProvisioned,
-              'comment'     => __d('enumeration', 'ProvisioningStatusEnum.'.ProvisioningStatusEnum::NotProvisioned)
-            ];
+            $info['comment'] = $e->getMessage();
           }
         }
+        
+        // Now check history
+        $subjectFK = null;
+        $subjectID = null;
+
+        if(!empty($personId)) {
+          $subjectFK = 'person_id';
+          $subjectID = $personId;
+        } elseif(!empty($groupId)) {
+          $subjectFK = 'group_id';
+          $subjectID = $groupId;
+        } else {
+          throw new \InvalidArgumentException("NOT IMPKEMENTED");
+        }
+        
+        $rec = $this->ProvisioningHistoryRecords->find()
+                                                ->where([
+                                                  'provisioning_target_id' => $t->id,
+                                                  $subjectFK => $subjectID
+                                                ])
+                                                ->orderBy(['id' => 'DESC'])
+                                                ->first();
+        
+        if(!empty($rec)) {
+          $info['laststatus'] = $rec->status;
+          $info['lastcomment'] = $rec->comment;
+
+          if(!$info['identifier']) {
+            $info['identifier'] = $pkey ? $pkey->identifier : null;
+          }
+
+          if(!$info['timestamp']) {
+            $info['timestamp'] = $rec->created;
+          }
+        } else {
+          $info['laststatus'] = ProvisioningStatusEnum::NotProvisioned;
+          $info['lastcomment'] = __d('enumeration', 'ProvisioningStatusEnum.'.ProvisioningStatusEnum::NotProvisioned);
+        }
+
+        $ret[] = $info;
       }
     }
 

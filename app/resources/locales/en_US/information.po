@@ -162,6 +162,9 @@ msgstr "This plugin requires no configuration."
 msgid "plugin.inactive"
 msgstr "Inactive"
 
+msgid "ProvisioningTargets.status.title"
+msgstr "Provisioning Status for {0}"
+
 msgid "state.info"
 msgstr "{0} successfully {1} to {2}"
 

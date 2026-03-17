@@ -43,8 +43,10 @@ use App\Lib\Util\StringUtilities;
       <tr>
         <td class="actions"></td>
         <th><?= __d('controller', 'ProvisioningTargets', [1]); ?></th>
-        <th><?= __d('field', 'status'); ?></th>
-        <th><?= __d('field', 'comment'); ?></th>
+        <th><?= __d('field', 'ProvisioningTargets.status.live'); ?></th>
+        <th><?= __d('field', 'ProvisioningTargets.comment.live'); ?></th>
+        <th><?= __d('field', 'ProvisioningTargets.status.last'); ?></th>
+        <th><?= __d('field', 'ProvisioningTargets.comment.last'); ?></th>
         <th><?= __d('controller', 'Identifiers', [1]); ?></th>
         <th><?= __d('field', 'timestamp'); ?></th>
       </tr>
@@ -59,7 +61,7 @@ use App\Lib\Util\StringUtilities;
           <?php
             // Build the row actions
             $action_args = array();
-            $action_args['vv_attr_id'] =  $p['target']->id;
+            $action_args['vv_attr_id'] = $p['target']->id;
             $action_args['vv_actions'] = [
               [
                 'order' => $this->Menu->getMenuOrder('Default'),
@@ -97,10 +99,12 @@ use App\Lib\Util\StringUtilities;
           ?>
           </div>
         </td>
-        <td><?= $p['target']->description; ?></td>
+        <td><?= filter_var($p['target']->description, FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
         <td><?= __d('enumeration', 'ProvisioningStatusEnum.'.$p['status']); ?></td>
-        <td><?= $p['comment']; ?></td>
-        <td><?= $p['identifier'] ?? ""; ?></td>
+        <td><?= filter_var($p['comment'], FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
+        <td><?= __d('enumeration', 'ProvisioningStatusEnum.'.$p['laststatus']); ?></td>
+        <td><?= filter_var($p['lastcomment'], FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
+        <td><?= filter_var($p['identifier'] ?? "", FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
         <td><?= !empty($p['timestamp']) ? $this->Time->nice($p['timestamp'], $vv_tz) : ""; ?></td>
       </tr>
       <?php endforeach; ?>

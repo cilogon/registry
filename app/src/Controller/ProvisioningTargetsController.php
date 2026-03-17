@@ -38,7 +38,7 @@ use Cake\ORM\TableRegistry;
 class ProvisioningTargetsController extends StandardPluggableController {
   protected array $paginate = [
     'order' => [
-      'ProvisioningTargets.description' => 'asc'
+      'ProvisioningTargets.ordr' => 'asc'
     ]
   ];
 
@@ -54,27 +54,6 @@ class ProvisioningTargetsController extends StandardPluggableController {
     // Configure breadcrumb rendering
     $this->Breadcrumb->skipConfig(['/^\/provisioning-targets\/status/']);
     $this->Breadcrumb->skipParents(['/^\/provisioning-targets\/status/']);
-  }
-
-  /**
-   * Callback run prior to the request action.
-   *
-   * @since  COmanage Registry v5.0.0
-   * @param  EventInterface $event Cake Event
-   * @return \Cake\Http\Response   HTTP Response
-   */
-
-  public function beforeFilter(\Cake\Event\EventInterface $event) {
-    if(!$this->request->is('restful')) {
-      // Provide additional hints to BreadcrumbsComponent. This needs to be here
-      // and not in beforeRender because the component beforeRender will run first.
-      
-      if($this->request->getParam('action') == 'status') {
-        $this->Breadcrumb->injectPrimaryLink($this->getPrimaryLink(true));
-      }
-    }
-
-    parent::beforeFilter($event);
   }
 
   /**
@@ -119,24 +98,40 @@ class ProvisioningTargetsController extends StandardPluggableController {
    */
 
   public function status() {
-    // PrimaryLinkTrait - Look up our primary link to see which object type we're
-    // working with, an also get our CO ID
-    $link = $this->getPrimaryLink(true);
-    // Use argument unpacking operator with names parameters in order to make the call more dynamic
-    $statusCalculateParams = [
-      'coId' => $link->co_id,
-      // Currently supported function parameters are personId, groupId
-      Inflector::variable($link->attr) => (int)$link->value
-    ];
-    $statuses = $this->ProvisioningTargets->status(...$statusCalculateParams);
+    // We support filtering on person_id or group_id.
 
-    $this->set('vv_provisioning_statuses', $statuses);
+    $targetModel = 'People';
+    $targetFK = 'person_id';
+    $targetName = '(?)';
+
+    if(!empty($this->request->getQuery('group_id'))) {
+      $targetModel = 'Groups';
+      $targetFK = 'group_id';
+    }
+
+    $targetID = (int)$this->request->getQuery($targetFK);
+
+    $this->set('vv_provisioning_statuses', $this->ProvisioningTargets->status(
+      coId: $this->getCOID(),
+      groupId: $targetFK == 'group_id' ? $targetID : null,
+      personId: $targetFK == 'person_id' ? $targetID : null
+    ));
+
+    $this->set('vv_target_fk', $targetFK);
+    $this->set('vv_target_id', $targetID);
 
     if(!$this->request->is('restful')) {
-      [$title, , ] = StringUtilities::entityAndActionToTitle(null,
-                                                             'provisioning',
-                                                             $this->request->getParam('action'));
-      $this->set('vv_title', $title);
+      $Model = TableRegistry::getTableLocator()->get($targetModel);
+
+      if($targetModel == 'People') {
+        $entity = $Model->get($targetID, contain: ['PrimaryName']);
+        $targetName = $entity->primary_name->full_name;
+      } else {
+        $entity = $Model->get($targetID);
+        $targetName = $entity->name;
+      }
+
+      $this->set('vv_title', __d('information', 'ProvisioningTargets.status.title', $targetName));
     }
   }
 }
