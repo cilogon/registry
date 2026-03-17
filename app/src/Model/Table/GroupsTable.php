@@ -40,6 +40,7 @@ use \App\Lib\Util\PaginatedSqlIterator;
 use \App\Lib\Util\TableUtilities;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -376,11 +377,11 @@ class GroupsTable extends Table {
       if(!$grp) {
         // No existing group, create a new one
         
-        $entity = $this->newEntity($attrs);
-        $entity->co_id = $coId;
-        $entity->name = $gname;
+        $grp = $this->newEntity($attrs);
+        $grp->co_id = $coId;
+        $grp->name = $gname;
         
-        if(!$this->save($entity, options: ['autoOnly' => $autoOnly])) {
+        if(!$this->save($grp, options: ['autoOnly' => $autoOnly])) {
           throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
         }
       } elseif($rename) {
@@ -391,6 +392,14 @@ class GroupsTable extends Table {
         if(!$this->save($grp, options: ['autoOnly' => $autoOnly])) {
           throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
         }
+      }
+      
+      if($couId || $rename) {
+        // If we're adding COU Group or renaming any Groups that call provisioning in case
+        // there are any Provisioning Targets that need to be updated.
+
+        $this->llog('trace', "Requesting provisioning for default Group " . $grp->name);
+        $this->requestProvisioning(id: $grp->id, context: ProvisioningContextEnum::Automatic);
       }
     }
 

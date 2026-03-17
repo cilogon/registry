@@ -213,6 +213,15 @@ class SqlProvisionersTable extends Table {
       'related' => []
     ]
 /* XXX not yet implemented  
+
+Note that all currently supported reference data (Cous, Types, and Groups,
+which are treated like reference data) are also provisionable, meaning we
+don't need to jump through special hoops to detect when they have changed.
+If we add additional reference models that are not provisionable, then we
+will need to implement something like v4's Reference Data Event Listener,
+which would call syncReferenceData() on model.afterSave for the appropriate
+reference data mode.
+
     [
       'table'  => 'co_terms_and_conditions',
       // Ordinarily we'd call this SpCoTermsAndConditions, but it's not worth
@@ -477,7 +486,7 @@ class SqlProvisionersTable extends Table {
     }
 
     // Pull the current target record
-// XXX similar code in syncReferenceData, refactor?
+// XXX similar code in syncReferenceData and status, refactor?
     $options = [
       'table'       => $SqlProvisioner->table_prefix . $mconfig['table'],
       'alias'       => $mconfig['name'] . $SqlProvisioner->id,

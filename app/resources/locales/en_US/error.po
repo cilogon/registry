@@ -128,7 +128,10 @@ msgid "Cos.active"
 msgstr "Requested CO {0} is not active"
 
 msgid "Cous.children"
-msgstr "Cous has {0} child(ren) and cannot be deleted"
+msgstr "Cou has {0} child(ren) and cannot be deleted"
+
+msgid "Cous.members"
+msgstr "Cou has {0} member(s) and cannot be deleted"
 
 msgid "EmailAddresses.mail.delivery"
 msgstr "No verified Email Address is available for Person {0}"

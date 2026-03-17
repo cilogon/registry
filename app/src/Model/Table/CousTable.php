@@ -49,9 +49,12 @@ class CousTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\ClonableTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\ProvisionableTrait;
+  use \App\Lib\Traits\ProvisionableTrait{
+    requestProvisioning as traitRequestProvisioning;
+  }
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TreeTrait;
@@ -83,8 +86,8 @@ class CousTable extends Table {
          // _id suffix to match Cake's default pattern.
          ->setProperty('parent');
     
-    // AR-COU-6 If a COU is deleted, the special groups associated with the COU will also be deleted.
     $this->hasMany('EnrollmentFlows');
+    // AR-COU-6 If a COU is deleted, the special groups associated with the COU will also be deleted.
     $this->hasMany('Groups')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -149,6 +152,11 @@ class CousTable extends Table {
    */
   
   public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-COU-1 A COU may not be deleted if it has any members.
+    $rules->addDelete([$this, 'ruleHasMembers'],
+                      'hasMembersDelete',
+                      ['errorField' => 'status']);
+
     // AR-COU-2 A COU may not be deleted if it has any children.
     $rules->addDelete([$this, 'ruleHasChildren'],
                       'hasChildrenDelete',
@@ -226,12 +234,6 @@ class CousTable extends Table {
       }
     }
 
-    if($entity->isNew() && !empty($entity->id)) {
-      // Run setup for new COU
-      
-      $this->setup(id: $entity->id, coId: $entity->co_id);
-    }
-
     return true;
   }
   
@@ -291,7 +293,95 @@ class CousTable extends Table {
   }
 
   /**
-   * Application Rule to determine if the group has children.
+   * Request provisioning.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  int                      $id                   This table's entity ID to provision
+   * @param  ProvisioningContextEnum  $context              Context in which provisioning is being requested
+   * @param  int                      $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
+   * @param  Job                      $job                  If called from a Job, the current Job entity
+   * @throws InvalidArgumentException
+   */
+
+  public function requestProvisioning(
+    int     $id,
+    string  $context,
+    ?int    $provisioningTargetId=null,
+    ?Job    $job=null,
+  ) {
+    // We need to handle the special COU Groups manually, depending on whether this is
+    // a delete operation or an add. This is going to result in some duplicate work,
+    // but that's the tradeoff to work within the existing set of callbacks.
+
+    $couData = $this->marshalProvisioningData($id);
+
+    if($couData['eligibility'] == ProvisioningEligibilityEnum::Deleted) {
+      // This is a delete operation. Per AR-COU-6, the special groups associated with the
+      // COU also need to be deleted. This has already happened via Cake's dependency
+      // deletion, ie
+      //
+      // (1) StandardController::delete() deletes the COU entity
+      // (2) Cake cascades that delete to the Groups with a matching cou_id
+      // (3) StandardController::delete() calls (de)provisioning on the COU, but nothing
+      //     calls (de)provisioning on the Groups.
+      //
+      // Our workaround is to find the deleted groups and then request provisioning
+      // for them. Once that's done, we'll use the standard trait behavior to handle
+      // the COU deletion.
+
+      // (This is really a general problem for deleting cascaded provisionable models,
+      // but it only manifests here currently, so we haven't implemented a general solution.)
+
+
+      $groups = $this->Groups->find('all', archived: true)->where(['cou_id' => $id])->all();
+
+      foreach($groups as $g) {
+        $this->llog('trace', "Forcing reprovisioning of deleted Group " . $g->id . " following deletion of COU " . $id);
+
+        $this->Groups->requestProvisioning(
+          $g->id,
+          $context,
+          $provisioningTargetId,
+          $job
+        );
+      }
+
+      $this->traitRequestProvisioning($id, $context, $provisioningTargetId, $job);
+    } elseif($couData['eligibility'] == ProvisioningEligibilityEnum::Eligible) {
+      // We generally want the standard functionality. In addition, when a new COU is created,
+      // we also create default Groups, and GroupsTable::addDefault will attempt to provision
+      // then. This is fine for updates, but for new COUs the sequence of calls is
+      //
+      // (1) StandardController::add() saves new COU
+      // (2) CousTable::localAfterSave() calls setup
+      // (3) GroupsTable::addDefaults() creates the new Groups and tries to provision them,
+      //     but the COU hasn't been provisoned yet, so this may or may not work (depending
+      //     on the Provisioner)
+      // (4) StandardController::add() runs provisioning on the new COU
+      //
+      // Our workaround is to pull all COU related Groups and reprovision them here.
+      // We do this on both adds and updates because we don't haev the context anymore
+      // for whether $id is new.
+
+      $this->traitRequestProvisioning($id, $context, $provisioningTargetId, $job);
+
+      $groups = $this->Groups->find()->where(['cou_id' => $id])->all();
+
+      foreach($groups as $g) {
+        $this->llog('trace', "Forcing reprovisioning of Group " . $g->id . " following provisioning of COU " . $id);
+
+        $this->Groups->requestProvisioning(
+          $g->id,
+          $context,
+          $provisioningTargetId,
+          $job
+        );
+      }
+    }
+  }
+
+  /**
+   * Application Rule to determine if the COU has children.
    *
    * @since  COmanage Registry v5.2.0
    * @param  Entity  $entity  Entity to be validated
@@ -306,6 +396,28 @@ class CousTable extends Table {
     
     if($count > 0) {
       return __d('error', 'Cous.children', [$count]);
+    }
+
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the COU has members.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleHasMembers($entity, $options) {
+    $count = $this->PersonRoles
+                  ->find('all')
+                  ->where(['cou_id' => $entity->id])
+                  ->count();
+    
+    if($count > 0) {
+      return __d('error', 'Cous.members', [$count]);
     }
 
     return true;

@@ -325,7 +325,7 @@
         "groups_i2": { "columns": [ "co_id", "name" ] },
         "groups_i3": { "columns": [ "co_id", "group_type" ] },
         "groups_i4": { "columns": [ "cou_id", "group_type" ] },
-        "groups_i5": { "needed": false, "columns": [ "cou_id" ]},
+        "groups_i5": { "columns": [ "cou_id" ]},
         "groups_i6": { "needed": false, "columns": [ "owners_group_id" ]}
       },
       "clonable": true,
