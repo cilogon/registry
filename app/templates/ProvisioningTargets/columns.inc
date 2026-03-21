@@ -42,6 +42,13 @@ $indexColumns = [
     'type' => 'enum',
     'class' => 'ProvisionerModeEnum',
     'sortable' => true
+  ],
+  'provisioning_group_id' => [
+    'type' => 'relatedLink',
+    'label' => __d('field', 'ProvisioningTargets.provisioning_group_id'),
+    'model' => 'provisioning_group',
+    'field' => 'name',
+    'sortable' => true
   ]
 ];
 

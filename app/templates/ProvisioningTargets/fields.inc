@@ -35,8 +35,7 @@ $fields = [
   ],
   'max_retry',
   'plugin',
-  // todo: Not yet implemented (CFM-26)
-  // 'provisioning_group_id',
+  'provisioning_group_id',
   'ordr'
 ];
 

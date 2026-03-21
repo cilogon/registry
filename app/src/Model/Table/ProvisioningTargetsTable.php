@@ -33,10 +33,12 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use App\Lib\Enum\ProvisionerModeEnum;
 use App\Lib\Enum\ProvisioningContextEnum;
+use App\Lib\Enum\ProvisioningEligibilityEnum;
 use App\Lib\Enum\ProvisioningStatusEnum;
 use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Util\StringUtilities;
@@ -93,6 +95,10 @@ class ProvisioningTargetsTable extends Table {
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['provision', 'reprovision']);
     $this->setAllowLookupRelatedPrimaryLink(['status' => ['person_id', 'group_id']]);
+    
+    $this->setIndexContains([
+      'ProvisioningGroups'
+    ]);
 
     $this->setAutoViewVars([
       'plugins' => [
@@ -226,6 +232,36 @@ class ProvisioningTargetsTable extends Table {
         continue;
       }
 
+      // If there is a Provisioning Group configured, check if this subject is eligible,
+      // and if not override the $eligibility that was passed in. Note we want to call the
+      // plugin even if deleted so deprovisioning can be performed.
+
+      $celigibility = $eligibility;
+
+      if(!empty($t->provisioning_group_id)) {
+        if($provisionedModel == 'People') {
+          $memberGids = Hash::extract($data, 'group_members.{n}.group_id');
+
+          if(!in_array($t->provisioning_group_id, $memberGids)) {
+            // AR-ProvisioningTarget-2 If a Person is removed as a member from a 
+            // Provisioning Target's Provisioning Group, the Person will be reprovisioned
+            // with Deleted eligibility. We use Deleted because it is closer to the underlying
+            // intent -- the record should not (have) be(en) provisioned to the target at all,
+            // vs a formerly valid Person no longer being associated with the CO.
+
+            $celigibility = ProvisioningEligibilityEnum::Deleted;
+            $this->llog('rule', "AR-ProvisioningTarget-2 Person " . $data->id . " not in Provisioning Group " . $t->provisioning_group_id . ", flagging as Deleted");
+          }
+        } elseif($provisionedModel == 'Groups') {
+          if($t->provisioning_group_id != $data->id) {
+            // The requested Group is not the Provisioning Group, switch to a Delete
+
+            $celigibility = ProvisioningEligibilityEnum::Deleted;
+            $this->llog('trace', "Group " . $data->id . " is not the configured Provisioning Group " . $t->provisioning_group_id . ", flagging as Deleted");
+          }
+        }
+      }
+
       $this->llog('trace', "Provisioning $provisionedModel for $pluginModel (context: $context)", $t->id);
         
       $requeue = false;
@@ -236,7 +272,7 @@ class ProvisioningTargetsTable extends Table {
       if($t->status != ProvisionerModeEnum::Queue
           || $context == ProvisioningContextEnum::Queue) {
         try {
-          $result = $this->$pluginModel->provision($t, $provisionedModel, $data, $eligibility);
+          $result = $this->$pluginModel->provision($t, $provisionedModel, $data, $celigibility);
 
           $this->alog('trace', $result);
 

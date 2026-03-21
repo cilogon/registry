@@ -49,7 +49,6 @@ class GroupMembersTable extends Table {
   use \App\Lib\Traits\LayoutTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
-  use \App\Lib\Traits\ProvisionableTrait;
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -292,6 +291,42 @@ class GroupMembersTable extends Table {
     return true;
   }
   
+  /**
+   * Request provisioning.
+   * 
+   * @since  COmanage Registry v5.2.0
+   * @param  int                      $id                   This table's entity ID to provision
+   * @param  ProvisioningContextEnum  $context              Context in which provisioning is being requested
+   * @param  int                      $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
+   * @param  Job                      $job                  If called from a Job, the current Job entity
+   * @throws InvalidArgumentException
+   */
+
+  public function requestProvisioning(
+    int     $id,
+    string  $context,
+    ?int    $provisioningTargetId=null,
+    ?Job    $job=null,
+  ) {
+    // For GroupMembers we need to request provisioning on both the Group and the Person.
+
+    $gm = $this->get($id);
+
+    $this->People->requestProvisioning(
+      id: $gm->person_id,
+      context: $context,
+      provisioningTargetId: $provisioningTargetId,
+      job: $job
+    );
+
+    $this->Groups->requestProvisioning(
+      id: $gm->group_id,
+      context: $context,
+      provisioningTargetId: $provisioningTargetId,
+      job: $job
+    );
+  }
+
   /**
    * Application Rule to determine if the Person is already a member of the Group.
    *

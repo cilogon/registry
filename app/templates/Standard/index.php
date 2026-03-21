@@ -539,14 +539,16 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
                     // We have a related model, eg actor_person.primary_name
                     $sm = $cfg['submodel'];
                     
-                    if(!empty($entity->$m->$sm->$f)) {
+                    // We use isset() tests here to allow for empty fields,
+                    // eg $model->description = ''
+                    if(isset($entity->$m->$sm->$f)) {
                       $label = $entity->$m->$sm->$f . $suffix;
                     }
                   } else {
-                    if(!empty($entity->$m->$f)) {
+                    if(isset($entity->$m->$f)) {
                       // HasOne
                       $label = $entity->$m->$f . $suffix;
-                    } elseif(!empty($entity->$m[0]->$f)) {
+                    } elseif(isset($entity->$m[0]->$f)) {
                       // HasMany, pick the first
                       $label = $entity->$m[0]->$f . $suffix;
                     }

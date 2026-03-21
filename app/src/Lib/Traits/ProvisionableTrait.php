@@ -86,7 +86,8 @@ trait ProvisionableTrait {
       $this->$parentTableName->requestProvisioning(
         id: $primaryLink->value,
         context: $context,
-        provisioningTargetId: $provisioningTargetId
+        provisioningTargetId: $provisioningTargetId,
+        job: $job
       );
     }
   }

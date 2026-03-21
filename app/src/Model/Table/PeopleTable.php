@@ -611,7 +611,7 @@ class PeopleTable extends Table {
 
           $entityData = $APlugin->marshalProvisioningData($authenticator, $id);
 
-          // Determine the entity name in order to populate the provisiosing data.
+          // Determine the entity name in order to populate the provisioning data.
           // We can calculate this because (unlike other Plugin types) there are
           // naming conventions for Authenticators.
 
