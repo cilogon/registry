@@ -71,6 +71,7 @@ export default {
           dateField.value = dateTime.join(' ');  
         }
       }
+      this.clearExternalValidationMessages(this.target);
     },
     formatDate(date) {
       let formattedDate = date.getFullYear();
@@ -116,8 +117,25 @@ export default {
       if(type == 'minute') {
         time[1] = val;
       }
+      // Do some basic validation
+      let minutesAndSecondsRegex = /^(0\d|[1-5]\d)$/;
+      if(time[1] === undefined) {
+        // The minutes are missing (including the colon). Restore them.
+        time.push('00');
+      } else if(!minutesAndSecondsRegex.test(time[1])) {
+        // The minutes are invalid. Set them to zero.
+        time[1] = '00';
+      }
+      if(time[2] === undefined) {
+        // The seconds are missing (including the colon). Restore them.
+        time.push('00');
+      } else if(!minutesAndSecondsRegex.test(time[2])) {
+        // The seconds are invalid. Set them to zero.
+        time[2] = '00';
+      }
       dateTime[1] = time.join(':');
       dateField.value = dateTime.join(' ');
+      this.clearExternalValidationMessages(this.target);
     },
     formatToday() {
       const today = new Date();
@@ -127,6 +145,12 @@ export default {
       today.setSeconds(0);
       const formattedToday = this.formatDate(today);
       return formattedToday.split(' ');
+    },
+    clearExternalValidationMessages(fieldId) {
+      // Turn off validation messages that may have been revealed on the input field 
+      // which is outside of this component. (We'll use jQuery for simplicity.)
+      $('#' + fieldId + '-msg').hide();
+      $('#' + fieldId).removeClass('invalid');
     }
   },
   mounted() {

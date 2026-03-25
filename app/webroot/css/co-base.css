@@ -1785,7 +1785,11 @@ ul.fields li.fields-datepicker {
 ul.fields li.fields-datepicker .field-info {
   width: auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+}
+ul.fields li.fields-datepicker .datepicker-message {
+  flex-basis: 100%;
 }
 ul.form-list input.datepicker {
   width: auto;
@@ -1860,6 +1864,11 @@ ul.form-list .cm-time-picker-vals li {
 }
 .cm-time-picker-colon {
   padding: 0 1em;
+}
+.cm-tz {
+  font-size: 0.9em;
+  margin-left: 0.5em;
+  color: var(--cmg-color-txt-soft);
 }
 /* Autocomplete */
 .cm-autocomplete-panel {
@@ -2348,6 +2357,9 @@ address {
 }
 .invalid-feedback {
   font-size: 1em;
+}
+input[type='text'].invalid {
+  border: 1px solid var(--cmg-color-highlight-001) !important;
 }
 .warn-level-a,
 .warn-level-a td {

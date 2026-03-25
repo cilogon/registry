@@ -302,7 +302,9 @@ class FieldHelper extends Helper {
     // Initialize
     $dateFormat = $dateType === DateTypeEnum::DateOnly ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:mm:ss';
     $dateTitle = $dateType === DateTypeEnum::DateOnly ? 'datepicker.enterDate' : 'datepicker.enterDateTime';
-    $datePattern = $dateType === DateTypeEnum::DateOnly ? '\d{4}-\d{2}-\d{2}' : '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}';
+    $datePattern = $dateType === DateTypeEnum::DateOnly ? 
+      '\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])' : 
+      '\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0\d|1\d|2[0-3]):(0\d|[1-5]\d):(0\d|[1-5]\d)';
     $queryParams = $this->getView()->getRequest()->getQueryParams();
 
     $date_object = match(true) {
@@ -332,8 +334,8 @@ class FieldHelper extends Helper {
       default => $dateType
     };
 
-    // Append the timezone to the label
-    $coptions['class'] = 'form-control datepicker';
+    // Set the attributes for the field
+    $coptions['class'] = 'form-control datepicker ' . $pickerType;
     $coptions['placeholder'] = $dateFormat;
     $coptions['pattern'] = $datePattern;
     $coptions['title'] = __d('field', $dateTitle);

@@ -66,7 +66,7 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
           pm: "<?= __d('field', 'datepicker.pm') ?>",
           choosetime: "<?= __d('field', 'datepicker.chooseTime') ?>"
         }
-      }
+      };
     },
     components: {
       CmDateTimePicker
@@ -90,7 +90,7 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
   // is registered and destroyed as the component is mounted and unmounted.
   app.directive("clickout", {
     mounted(el, binding, vnode) {
-      el.clickOutEvent = function (event) {
+      el.clickOutEvent = function(event) {
         if (!(el === event.target || el.contains(event.target))) {
           binding.value(event, el);
         }
@@ -105,3 +105,38 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
   app.mount("#<?= $pickerId ?>-container");
 </script>
 <div id="<?= $pickerId ?>-container" class="datepicker-container"></div>
+
+<?php if($pickerType != "dateonly"): ?>
+  <div class="cm-tz"><?= $vv_tz->getName() ?></div>
+<?php endif; ?>
+
+<?php
+  /** DATE-TIME KEYBOARD HANDLING
+   * Registry's date and time pickers will automatically set the correct format for date and time.
+   * The date fields also check their validity against a pattern attribute on form submission.
+   * To improve UX when a user enters a date manually with the keyboard, the field can also
+   * check validity against the pattern on blur and "autocorrect" the value when possible.
+   * There are four types of date fields held in $pickerType described by DateTypeEnum (in parentheses):
+   * date-time (standard), date only (dateonly), valid from (fromtime), and valid through (throughtime).
+   * Valid from and standard date-time fields should behave the same way: time should default to 00:00:00 but
+   * can be set explicitly. Valid through needs special treatment for its end-time which defaults to 23:59:59
+   * but can also be set explicitly. The script below handles keyboard interaction independent of the
+   * VueJS widgets because we are acting on a simple text input field that is not directly part of the
+   * Vue components (for accessibility).
+   */
+?>
+<div id="<?= $pickerTarget ?>-msg" class="datepicker-message invalid-feedback">
+  <?= $pickerType == 'dateonly' ? __d('field','datepicker.enterDate') : __d('field','datepicker.enterDateTime') ?>
+</div>
+<script>
+  // Validate on blur for handling keyboard input.
+  $('#<?= $pickerTarget ?>').blur(function() {
+    const regExPattern = $(this).attr('pattern');
+    $(this).val(validateDateFormat($(this).val(), '<?= $pickerType ?>', regExPattern, '<?= $pickerTarget ?>'));
+  });
+  // Hide warning messages on focus.
+  $('#<?= $pickerTarget ?>').on('focus', function() {
+    $('#<?= $pickerTarget ?>-msg').hide();
+    $('#<?= $pickerTarget ?>').removeClass('invalid');
+  });
+</script>

@@ -424,3 +424,57 @@ function setApplicationState(value, elem, reload= false) {
     }
   });
 }
+
+// Validate a date and attempt autocompletion by type. This is used primarily with keyboard input.
+// dateVal      - (string) date value from date input field
+// dateType     - (string) type as defined in DateTypeEnum: standard, dateonly, fromtime, throughtime
+// regExPattern - (string) the regular expression pattern held in the field's pattern attribute
+// messageContainerId - (string) the ID of the field message container (for warnings to the user)
+function validateDateFormat(dateVal,dateType,regExPattern,fieldId) {
+  const dateValTrimmed = dateVal.trim();
+  const regexDateField = new RegExp(regExPattern);
+  const regexDateOnly = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  const regexDateOnlyCompact = /^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])$/;
+
+  const showInvalid = () => {
+    $('#' + fieldId + '-msg').show();
+    $('#' + fieldId).addClass('invalid');
+  };
+
+  const expandCompactYmd = (compactYmd) =>
+    compactYmd.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+
+  // empty is always OK
+  if(dateValTrimmed === '') {
+    return dateValTrimmed;
+  }
+
+  // already matches the field pattern, accept as-is
+  if(regexDateField.test(dateValTrimmed)) {
+    return dateValTrimmed;
+  }
+
+  const isDateOnly = (dateType === 'dateonly');
+
+  // compact date (yyyymmdd) can be auto-corrected
+  if(regexDateOnlyCompact.test(dateValTrimmed)) {
+    const expanded = expandCompactYmd(dateValTrimmed);
+
+    if(isDateOnly) {
+      return expanded;
+    }
+
+    const endTime = (dateType === 'throughtime') ? ' 23:59:59' : ' 00:00:00';
+    return expanded + endTime;
+  }
+
+  // yyyy-mm-dd can be accepted for datetime fields (append time)
+  if(!isDateOnly && regexDateOnly.test(dateValTrimmed)) {
+    const endTime = (dateType === 'throughtime') ? ' 23:59:59' : ' 00:00:00';
+    return dateValTrimmed + endTime;
+  }
+
+  // anything else is invalid
+  showInvalid();
+  return dateValTrimmed;
+}
