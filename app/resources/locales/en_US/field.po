@@ -411,6 +411,9 @@ msgstr "Authenticated Identifier"
 msgid "AuthenticationEvents.authentication_event"
 msgstr "Authentication Event"
 
+msgid "Authenticators.enable_ptp"
+msgstr "Enable Pass Through Provisioning"
+
 msgid "Authenticators.message_template_id.desc"
 msgstr "If set, when an Authenticator is updated the associated Person will be sent a message using this Template"
 

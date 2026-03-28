@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Lib\Traits;
 
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Inflector;
 use \App\Lib\Util\StringUtilities;
 use \App\Model\Entity\Job;
 
@@ -48,6 +49,7 @@ trait ProvisionableTrait {
    * @param  ProvisioningContextEnum  $context              Context in which provisioning is being requested
    * @param  int                      $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
    * @param  Job                      $job                  If called from a Job, the current Job entity
+   * @param  array                    $passThroughData      Additional data to merge into the marshalled provisioning data
    * @throws InvalidArgumentException
    */
 
@@ -56,11 +58,31 @@ trait ProvisionableTrait {
     string  $context,
     ?int    $provisioningTargetId=null,
     ?Job    $job=null,
+    ?array  $passThroughData=null
   ) {
     if(method_exists($this, 'marshalProvisioningData')) {
       // The model specific marshalProvisioningData implementations are expected
       // to properly handle deleted records.
       $data = $this->marshalProvisioningData($id);
+
+      if(!empty($passThroughData)) {
+        // Merge in Pass Through Data. We expect an array of entities rather than a
+        // ResultSet for consistency with Authenticator data marshalling in PeopleTable.
+        foreach($passThroughData as $entity) {
+          // Typically, we expect only one $entity (eg a Password), or if there are
+          // multiple that they'd be all of the same type (eg SSH Keys). However, we
+          // need to inflect the name of the entity (Password -> passwords) anyway,
+          // so we'll do it for each entity in case we ever support multiple types.
+
+          $property = Inflector::underscore(StringUtilities::entityToClassName($entity));
+
+          if(!empty($data['data']->$property)) {
+            array_push($data['data']->$property, $entity);
+          } else {
+            $data['data']->$property = [$entity];
+          }
+        }
+      }
 
       // Invocation of the plugins is handled by the Pluggable table
       $ProvisioningTargets = TableRegistry::getTableLocator()->get('ProvisioningTargets');
@@ -87,7 +109,8 @@ trait ProvisionableTrait {
         id: $primaryLink->value,
         context: $context,
         provisioningTargetId: $provisioningTargetId,
-        job: $job
+        job: $job,
+        passThroughData: $passThroughData
       );
     }
   }

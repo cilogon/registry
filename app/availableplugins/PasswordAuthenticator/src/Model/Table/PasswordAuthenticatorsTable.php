@@ -114,9 +114,16 @@ class PasswordAuthenticatorsTable extends Table {
 
   public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options) {
     // PAR-PasswordAuthenticator-1 When the Password Source is Self Select, the password
-    // must be stored in PHP Crypt format
+    // must be stored in PHP Crypt format, unless the Authenticator is configured in Pass
+    // Through Provisioning mode.
 
-    if(!empty($data['source_mode']) && $data['source_mode'] == PasswordSourceEnum::SelfSelect) {
+    $authenticator = $this->Authenticators->get($data['authenticator_id']);
+
+    if($authenticator->enable_ptp) {
+      $data['format_crypt_php'] = false;
+      $data['format_sha1_ldap'] = false;
+      $data['format_plaintext'] = false;
+    } elseif(!empty($data['source_mode']) && $data['source_mode'] == PasswordSourceEnum::SelfSelect) {
       $data['format_crypt_php'] = true;
     }
   }
@@ -134,6 +141,13 @@ class PasswordAuthenticatorsTable extends Table {
     \App\Model\Entity\Authenticator $cfg,
     int $personId
   ): array {
+    // If the Authenticator is in Pass Through Provisioning mode, do not pull any existing
+    // records from the database.
+    
+    if($cfg->enable_ptp) {
+      return [];
+    }
+
     // Retrieve any Passwords associated with this Person and the requested configuration.
     // We'll include all available Password types (encodings) since we don't know which types
     // any specific Provisioner will be interested in.
@@ -206,6 +220,16 @@ class PasswordAuthenticatorsTable extends Table {
       'content' => ['rule' => ['boolean']]
     ]);
     $validator->allowEmptyString('format_sha1_ldap');
+
+    $validator->add('prevent_reuse', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('prevent_reuse');
+
+    $validator->add('use_hard_delete', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('use_hard_delete');
 
     return $validator;
   }

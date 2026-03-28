@@ -33,6 +33,7 @@ use App\Lib\Enum\StandardEnum;
 
 class PasswordEncodingEnum extends StandardEnum {
   const Crypt    = 'CR';    // Crypt/bcrypt/etc as implemented by php's password_hash
+  const Empty    = 'MT';    // "Empty" type used to track mod time when PTP enabled
   const External = 'EX';    // Externally defined (ie: managed outside of Registry)
   const Plain    = 'NO';    // Not hashed
   const SSHA     = 'SH';    // Salted SHA 1 as intended for LDAP

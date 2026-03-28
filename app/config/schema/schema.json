@@ -964,6 +964,7 @@
         "description": {},
         "plugin": {},
         "status": {},
+        "enable_ptp": { "type": "boolean" },
         "message_template_id": {}
       },
       "indexes": {

@@ -92,5 +92,8 @@ msgid "result.pwexpired"
 # Note we swap the rendering order to make it more obvious, but the _parameter_ order is unchanged
 msgstr "Password expired {1}, Principal active (expires: {0})"
 
+msgid "result.unlocked-p"
+msgstr "Principal {0} is unlocked"
+
 msgid "result.synced"
 msgstr "Synced existing principal {0}"

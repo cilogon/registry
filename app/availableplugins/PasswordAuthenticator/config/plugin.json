@@ -15,7 +15,9 @@
           "max_length": { "type": "integer" },
           "format_crypt_php": { "type": "boolean" },
           "format_plaintext": { "type": "boolean" },
-          "format_sha1_ldap": { "type": "boolean" }
+          "format_sha1_ldap": { "type": "boolean" },
+          "prevent_reuse": { "type": "boolean" },
+          "use_hard_delete": { "type": "boolean" }
         },
         "indexes": {
           "password_authenticators_i1": { "columns": [ "authenticator_id" ]}

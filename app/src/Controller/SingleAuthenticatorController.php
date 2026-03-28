@@ -81,12 +81,36 @@ class SingleAuthenticatorController extends StandardPluginController {
     );
 
     if($this->request->is('post')) {
+      $ptpdata = null;
+
       try {
-        $Table->manage($authcfg, $status->person_id, $this->request->getData());
+        if($authcfg->enable_ptp) {
+          // Pass Through Provisioning (PTP) requires plugin support. The plugin is
+          // expected to return the same data it would normally return via
+          // marshalProvisioningData, but not persist it.
+
+          if(!method_exists($Table, "process")) {
+            throw new \InvalidArgumentException(__d('error', 'Authenticators.ptp.plugin', [$authcfg->plugin]));
+          }
+          
+          // For consistency with PeopleTable::marshalProvisioningData, we expect an
+          // array of entities rather than a ResultSet.
+          $ptpdata = $Table->process($authcfg, $status->person_id, $this->request->getData());
+        } else {
+          // Regular Provisioning - the plugin is expected to process the data we're
+          // providing and store it for later retrieval (via the plugin's
+          // marshalProvisioningData call)
+
+          $Table->manage($authcfg, $status->person_id, $this->request->getData());
+        }
 
         // Plugins are expected to record history. We'll handle provisioning here.
 
-        $Table->People->requestProvisioning($status->person_id, ProvisioningContextEnum::Automatic);
+        $Table->People->requestProvisioning(
+          id: $status->person_id, 
+          context: ProvisioningContextEnum::Automatic,
+          passThroughData: $ptpdata
+        );
 
         // Redirect to the main authenticator index for this Person
         return $this->redirect([

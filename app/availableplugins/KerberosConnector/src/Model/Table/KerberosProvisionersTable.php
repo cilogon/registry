@@ -196,12 +196,19 @@ class KerberosProvisionersTable extends Table {
       if(!empty($password)) {
         $action = 'update';
       } else {
-        // If we don't find a Password we lock the principal. We will typically get here
-        // if the Authenticator is Locked (Person is Active but Password is Locked), so we
-        // don't need to check the Authenticator Status specifically. There may be other
-        // edge cases that get us here as well.
+        // If Pass Through Provisioning is enabled, we may have various scenarios where
+        // we will get a blank password for an Eligible Person, including reprovisioning
+        // or Authenticator lock/unlock. We'll need to look at the Authenticator Status
+        // for more information, but we'll default to locking.
 
         $action = 'lock';
+
+        // There should be at least one entry with an authenticator status
+
+        if(!empty($data->passwords[0]->authenticator_status)
+          && !$data->passwords[0]->authenticator_status->locked) {
+          $action = 'unlock';
+        }
       }
     } elseif($eligibility == ProvisioningEligibilityEnum::Ineligible) {
       // Check to see if the principal exists in the KDC, and if so lock it
@@ -248,6 +255,25 @@ class KerberosProvisionersTable extends Table {
         return [
           'status' => ProvisioningStatusEnum::Provisioned,
           'comment' => __d('kerberos_connector', 'result.locked-p', [$principal]),
+          'identifier' => $principal
+        ];
+      } elseif($action == 'unlock') {
+        // We only end up here if Pass Through Provisioning is enabled, in which case
+        // we have an authenticator with no Password (but presumably a disabled password
+        // in the KDC).
+
+        $attributes = $curprinc->getAttributes();
+
+        if($attributes & 64) {
+          // Remove the locked bit
+          $curprinc->setAttributes($curprinc->getAttributes() ^ 64);
+          $curprinc->save();
+        }
+        // else the principal is already unlocked
+
+        return [
+          'status' => ProvisioningStatusEnum::Provisioned,
+          'comment' => __d('kerberos_connector', 'result.unlocked-p', [$principal]),
           'identifier' => $principal
         ];
       } elseif($action == 'update') {

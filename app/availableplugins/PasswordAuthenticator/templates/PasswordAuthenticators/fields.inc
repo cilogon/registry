@@ -31,7 +31,9 @@ $fields = [
   'max_length',
   'format_crypt_php',
   'format_sha1_ldap',
-  'format_plaintext'
+  'format_plaintext',
+  'prevent_reuse',
+  'use_hard_delete'
 ];
 
 $subnav = [
@@ -40,8 +42,10 @@ $subnav = [
     'Authenticators' => ['edit'],
     'PasswordAuthenticator.PasswordAuthenticators' => ['edit']
   ]
-]
-  
+];
+
+// Determine if Pass Through Provisioning is enabled
+$ptp = $vv_bc_parent_obj?->enable_ptp ? "PTP" : "NO";
 ?>
   
 <script>
@@ -49,6 +53,7 @@ $subnav = [
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
     var source = document.getElementById('source-mode').value;
+    var harddelete = document.getElementById('use-hard-delete').checked;
 
     if(source == '<?= \PasswordAuthenticator\Lib\Enum\PasswordSourceEnum::Autogenerate ?>') {
       showFields(['max-length'], isPageLoad);
@@ -65,6 +70,27 @@ $subnav = [
       // We can't disable the element or Cake won't process it correctly on save
       // document.getElementById('format-crypt-php').disabled = true;
     }
+
+    if('<?= $ptp; ?>' == 'PTP') {
+      // If Pass Through Provisioning is enabled, automatically disable all storage options
+      document.getElementById('format-crypt-php').checked = false;
+      document.getElementById('format-sha1-ldap').checked = false;
+      document.getElementById('format-plaintext').checked = false;
+      // and then hide the fields
+      hideFields([
+        'format-crypt-php', 
+        'format-sha1-ldap', 
+        'format-plaintext',
+        'prevent-reuse',
+        'use-hard-delete'
+      ], isPageLoad);
+    } else {
+      // If Use Hard Delete is enabled, we can't prevent Password Reuse (and vice versa)
+
+      if(harddelete) {
+        document.getElementById('prevent-reuse').checked = false;
+      }
+    }
   }
 
   $(function() {
@@ -73,7 +99,7 @@ $subnav = [
 
     // register onchange events
     // note that underscores in field names above must be represented with hyphens here.
-    $('#source-mode, #format_crypt_php').change(function() {
+    $('#source-mode, #format-crypt-php, #prevent-reuse, #use-hard-delete').change(function() {
       updateGadgets();
     });
   });

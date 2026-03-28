@@ -31,6 +31,7 @@ $fields = [
   'plugin' => [
     'labelIsTextOnly' => true
   ],
+  'enable_ptp',
   'message_template_id'
 ];
 

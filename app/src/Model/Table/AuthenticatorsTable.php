@@ -315,6 +315,11 @@ class AuthenticatorsTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'plugin', true);
     
+    $validator->add('enable_ptp', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('enable_ptp');
+    
     $validator->add('message_template_id', [
       'content' => ['rule' => 'isInteger']
     ]);

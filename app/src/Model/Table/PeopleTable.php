@@ -592,10 +592,23 @@ class PeopleTable extends Table {
                                        ->all();
 
       foreach($authenticators as $authenticator) {
+        $APlugin = TableRegistry::getTableLocator()->get($authenticator->plugin);
+
         // Start with the Authenticator Status for this Authenticator for this Person.
         // Only Authenticators in Active status are eligible for provisioning.
 
         $status = $Authenticators->AuthenticatorStatuses->getForPerson($authenticator, $id);
+
+        // Determine the entity name in order to populate the provisioning data.
+        // We can calculate this because (unlike other Plugin types) there are
+        // naming conventions for Authenticators.
+
+        $entityKey = Inflector::tableize(StringUtilities::PluginModel($Authenticators->authenticatorEntityName($authenticator->plugin)));
+
+        // We only want to marshal the authenticator data if the Authenticator Status
+        // is Active, however we always want to inject the Authenticator Status (one way
+        // or another).
+        $entityData = [];
 
         if($status->status == AuthenticatorStatusEnum::Active) {
           // Now ask the Plugin for the Provisioning data. Note a given Plugin may be
@@ -603,27 +616,38 @@ class PeopleTable extends Table {
           // more than once (with different configuration information). We'll need to
           // merge the results together.
 
-          $APlugin = TableRegistry::getTableLocator()->get($authenticator->plugin);
-
           // We expect an array of entities rather than a ResultSet (which would be
           // easily obtainable by a find()) in order to give Plugins more flexibility
           // in how they assemble the records.
 
           $entityData = $APlugin->marshalProvisioningData($authenticator, $id);
 
-          // Determine the entity name in order to populate the provisioning data.
-          // We can calculate this because (unlike other Plugin types) there are
-          // naming conventions for Authenticators.
-
-          $entityKey = Inflector::tableize(StringUtilities::PluginModel($Authenticators->authenticatorEntityName($authenticator->plugin)));
-
-          if(!empty($ret['data']->$entityKey)) {
-            // We already have data from a previous instantiation of the same plugin,
-            // merge the results together
-            $ret['data']->$entityKey = arary_merge($ret['data']->$entityKey, $entityData);
-          } else {
-            $ret['data']->$entityKey = $entityData;
+          if(!empty($entityData)) {
+            for($i = 0; $i < count($entityData);$i++) {
+              // If we get multiple entities we insert the same status for each of them
+              $entityData[$i]->authenticator_status = $status;
+            }
           }
+        }
+
+        if(empty($entityData)) {
+          // There is no password authenticator in the marshaled data, which can happen if
+          // none has been set, or if we are in Pass Through mode but not in a context
+          // where the authenticator value is available (eg: lock, unlock, reprovision).
+          // Create a placeholder for Authenticator Status.
+
+          $entity = $APlugin->newEntity(['authenticator_id' => $authenticator->id]);
+
+          $entity->authenticator_status = $status;
+          $entityData = [$entity];
+        }
+
+        if(!empty($ret['data']->$entityKey)) {
+          // We already have data from a previous instantiation of the same plugin,
+          // merge the results together
+          $ret['data']->$entityKey = array_merge($ret['data']->$entityKey, $entityData);
+        } else {
+          $ret['data']->$entityKey = $entityData;
         }
       }
     } else {
