@@ -76,7 +76,11 @@ class ProvisioningHistoryRecordsTable extends Table {
       'statuses' => [
         'type'  => 'enum',
         'class' => 'ProvisioningStatusEnum'
-      ]
+      ],
+      'provisioningTargets' => [
+        'type' => 'select',
+        'model' => 'ProvisioningTargets'
+      ],
     ]);
 
     $this->setIndexContains(['ProvisioningTargets']);
@@ -98,6 +102,27 @@ class ProvisioningHistoryRecordsTable extends Table {
         'add' =>      false,
         'index' =>    ['platformAdmin', 'coAdmin']
       ]
+    ]);
+
+    $this->setFilterConfig([
+      'provisioning_target_id' => [
+        'type' => 'select',
+        'active' => true,
+        'model' => 'ProvisioningHistoryRecords.ProvisioningTargets',
+        'order' => 1
+      ],
+      'subjectid' => [
+        'active' => false,
+        'type' => 'integer',
+        'model' => 'ProvisioningHistoryRecords',
+        'order' => 2
+      ],
+      'subject_model' => [
+        'active' => false,
+        'type' => 'select',
+        'model' => 'ProvisioningHistoryRecords',
+        'order' => 3
+      ],
     ]);
   }
   

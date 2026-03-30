@@ -82,7 +82,7 @@ foreach($this->Filter->getHiddenFields() as $param => $value) {
     <!-- XXX A view var is not accessible from inside the file we create/set it -->
     <?php $this->set('vv_active_search_filters_count', 0) ?>
 
-    <!--  Search TextBoxes/DropDowns/e.t.c.  -->
+    <!--  Search TextBoxes/DropDowns/etc.  -->
     <div id="top-filters-fields">
       <!--   Single Search Fields   -->
       <div class="top-filters-fields-subgroups">

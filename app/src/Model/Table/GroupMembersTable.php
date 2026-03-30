@@ -53,7 +53,6 @@ class GroupMembersTable extends Table {
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
-  use \App\Lib\Traits\SearchFilterTrait;
 
   /**
    * Provide the default layout
