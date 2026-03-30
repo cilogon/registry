@@ -29,11 +29,9 @@ declare(strict_types = 1);
 
 namespace App\Controller\Component;
 
-use \Cake\Controller\Component;
-use \Cake\Event\EventInterface;
-use \Cake\ORM\TableRegistry;
-use \Cake\Utility\Inflector;
-use \App\Lib\Util\StringUtilities;
+use Cake\Controller\Component;
+use Cake\Event\EventInterface;
+use App\Lib\Util\StringUtilities;
 
 class BreadcrumbComponent extends Component {
   use \App\Lib\Traits\LabeledLogTrait;
@@ -52,34 +50,80 @@ class BreadcrumbComponent extends Component {
 
   // Configuration provided by the controller
   // Don't render any breadcrumbs
-  protected $skipAllPaths = [];
+  protected array $skipAllPaths = [];
   // Don't render the configuration link
-  protected $skipConfigPaths = [];
+  protected array $skipConfigPaths = [];
   // Don't render the parent links
-  protected $skipParentPaths = [];
+  protected array $skipParentPaths = [];
+
   // Inject parent links (these render before the index link, if set)
-  // The parent links are constructed as part of the injectPrimaryLink function, as well as in the StandardController and
-  // in the StandardPluginController, MVEAController, ProvisioningHistoryRecordController, etc. These controllers are
-  // a descendant from the StandardController we will calculate the Parents twice. To avoid duplicates, the
-  // injectParents table has to be an associative array. The uniqueness of the key will preserve the uniqueness of
-  // the parent path while the order of firing will create the correct breadcrumb path order
-  protected $injectParents = [];
+  // Accumulator for parent breadcrumb links discovered during the request lifecycle.
+  // As the system resolves context (e.g. mapping a primary link to a Person or Group),
+  // it stores the generated URLs and labels here. This ensures all breadcrumbs are
+  // gathered, deduplicated by their unique entity keys, and ordered correctly before
+  // being pushed to the view for rendering.
+  protected array $injectParents = [];
   // Inject title links (immediately before the title breadcrumb)
-  protected $injectTitleLinks = [];
-  
+  protected array $injectTitleLinks = [];
+
+  /**
+   * Defines dynamic primary links derived from request query parameters.
+   *
+   * This allows a controller to declare that a specific action's breadcrumb
+   * hierarchy is dependent on the URL state (e.g., `?person_id=5`) rather than
+   * a strictly defined route parameter. The component will automatically intercept
+   * the configured action, read the query parameter, and feed it into the standard
+   * `injectPrimaryLink()` pipeline.
+   *
+   * Example:
+   * ```
+   * $this->Breadcrumb->configureQueryPrimaryLinks([
+   *   'status' => ['person_id', 'group_id']
+   * ]);
+   * ```
+   * If the current request is for the `status` action, the component will check the
+   * URL for `person_id`. If it finds it, it stops and generates breadcrumbs for that
+   * person. If it doesn't, it falls back to checking for `group_id`.
+   *
+   * @var array<string, array<int, string>>
+   */
+  protected array $queryPrimaryLinkConfigs = [];
+
   /**
    * Callback run prior to rendering the view.
    *
    * @since  COmanage Registry v5.0.0
    * @param  EventInterface $event Cake Event
    */
-  
+
   public function beforeRender(EventInterface $event) {
     $controller = $event->getSubject();
     $request = $controller->getRequest();
 
     if($request->is('restful') || $request->is('ajax')) {
       return;
+    }
+
+    $action = $request->getParam('action');
+
+    // Automatically inject primary links from query params if configured
+    if (!empty($this->queryPrimaryLinkConfigs[$action])) {
+      foreach ($this->queryPrimaryLinkConfigs[$action] as $queryParam) {
+        $val = $request->getQuery($queryParam);
+        if ($val) {
+          $link = (object)[
+            'attr'  => $queryParam,
+            'value' => $val,
+            'co_id' => method_exists($controller, 'getCOID') ? $controller->getCOID() : null
+          ];
+
+          // Force the component to use the model derived from the query param (e.g. People)
+          // instead of the global page model (e.g. Cos).
+          $modelName = StringUtilities::foreignKeyToClassName($queryParam);
+          $this->injectPrimaryLink($link, true, null, $modelName);
+          break; // Only inject the first matching parameter
+        }
+      }
     }
 
     // Determine the request target, but strip off query params
@@ -168,15 +212,21 @@ class BreadcrumbComponent extends Component {
 
   /**
    * Inject the primary link into the breadcrumb path.
-   * 
+   *
    * @param  object $link            Primary Link (as returned by getPrimaryLink())
    * @param  bool   $index           Include link to parent index
    * @param  string|null $linkLabel  Override the constructed label
+   * @param  string|null $linkModelNameOverride Override the inferred model name
    *
    *@since  COmanage Registry v5.0.0
    */
 
-  public function injectPrimaryLink(object $link, bool $index = true, string $linkLabel = null): void
+  public function injectPrimaryLink(
+    object $link,
+    bool $index = true,
+    ?string $linkLabel = null,
+    ?string $linkModelNameOverride = null
+  ): void
   {
     $controller = $this->getController();
     $request    = $controller->getRequest();
@@ -186,7 +236,8 @@ class BreadcrumbComponent extends Component {
     $id      = $idParam !== null ? (int)$idParam : null;
 
     // Determine link model name, optionally overridden by the view
-    $linkModelName = $controller->viewBuilder()->getVar('vv_primary_link_model')
+    $linkModelName = $linkModelNameOverride
+      ?? $controller->viewBuilder()->getVar('vv_primary_link_model')
       ?? StringUtilities::foreignKeyToClassName($link->attr);
 
     // Fully-qualify with plugin if not already qualified
@@ -301,18 +352,30 @@ class BreadcrumbComponent extends Component {
   }
 
   /**
-   * Inject a title link based on the display field of an entity into the breadcrumb set.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  Table    $table    Table for $entity
-   * @param  Entity   $entity   Entity to generate title link for
-   * @param  string   $action   Action to link to
-   * @param  string   $label    If set, use this label instead of the entity's displayField
+   * Set configuration for deriving primary links from query parameters.
+   * Format: ['actionName' => ['query_param_1', 'query_param_2']]
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  array $config Array of action to query parameters mapping
    */
-  
+  public function configureQueryPrimaryLinks(array $config): void
+  {
+    $this->queryPrimaryLinkConfigs = array_merge($this->queryPrimaryLinkConfigs, $config);
+  }
+
+  /**
+   * Inject a title link based on the display field of an entity into the breadcrumb set.
+   *
+   * @param Table $table Table for $entity
+   * @param Entity $entity Entity to generate title link for
+   * @param string $action Action to link to
+   * @param string|null $label If set, use this label instead of the entity's displayField
+   * @since  COmanage Registry v5.0.0
+   */
+
   public function injectTitleLink(
-    $table,
-    $entity,
+    Table $table,
+    Entity $entity,
     string $action='edit',
     ?string $label=null
   ): void {
@@ -332,7 +395,7 @@ class BreadcrumbComponent extends Component {
   /**
    * Set the set of paths that should be skipped when rendering breadcrumbs.
    * Paths are specified as regular expressions, eg: '/^\/cos\/select/'
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  array  $skipPaths  Array of regular expressions describing paths to be skipped
    */
@@ -346,7 +409,7 @@ class BreadcrumbComponent extends Component {
    * Set the set of paths which should not get a "configuration" breadcrumb even
    * though they might otherwise ordinarily get one (by being configuration objects).
    * Paths are specified as regular expressions, eg: '/^\/provisioning-targets\/status/'
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  array  $skipPaths  Array of regular expressions describing paths
    */
@@ -359,7 +422,7 @@ class BreadcrumbComponent extends Component {
   /**
    * Set the set of paths that should not automatically get a link back to their parent.
    * Paths are specified as regular expressions, eg: '/^\/co-settings\/edit/'
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  array  $skipPaths  Array of regular expressions describing paths
    */

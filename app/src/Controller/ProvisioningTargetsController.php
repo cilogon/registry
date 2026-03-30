@@ -54,6 +54,10 @@ class ProvisioningTargetsController extends StandardPluggableController {
     // Configure breadcrumb rendering
     $this->Breadcrumb->skipConfig(['/^\/provisioning-targets\/status/']);
     $this->Breadcrumb->skipParents(['/^\/provisioning-targets\/status/']);
+
+    $this->Breadcrumb->configureQueryPrimaryLinks([
+      'status' => ['person_id', 'group_id']
+    ]);
   }
 
   /**

@@ -367,7 +367,7 @@ class StringUtilities {
     // - Add/Delete actions,
     // - Or we simply lack a display.
     // Use the display if we have it; otherwise singular controller label for the model.
-    $displayOrDefault = $display ?? __d('controller', $modelsName, [1]);
+    $displayOrDefault = empty($display) ? __d('controller', $modelsName, [1]) : $display;
     $title = self::translateWithOverride($domain, $msgIdOverride, $msgId, $displayOrDefault);
 
     return [$title, $supertitle, $subtitle];
@@ -390,9 +390,9 @@ class StringUtilities {
     string $fallbackKey,
     string|int $value
   ): string {
-    $translated = __d($domain, $overrideKey, $value);
+    $translated = __d($domain, $overrideKey, [$value]);
     return ($translated === $overrideKey)
-      ? __d($domain, $fallbackKey, $value)
+      ? __d($domain, $fallbackKey, [$value])
       : $translated;
   }
 
