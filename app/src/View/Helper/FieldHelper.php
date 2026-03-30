@@ -349,10 +349,12 @@ class FieldHelper extends Helper {
 
     // Get the existing values, if present
     if($date_object !== null) {
-      // Adjust the time back to the user's timezone
-      $tz = $this->getView()->get('vv_tz');
-      if($tz) {
-        $date_object = $date_object->setTimezone($tz);
+      if($date_object instanceof \Cake\I18n\DateTime) {
+        // Adjust the time back to the user's timezone
+        $tz = $this->getView()->get('vv_tz');
+        if($tz) {
+          $date_object = $date_object->setTimezone($tz);
+        }
       }
       $coptions['value'] = $date_object->i18nFormat($dateFormat);
       $pickerDate = $date_object->i18nFormat($dateFormat);
