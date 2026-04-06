@@ -33,6 +33,7 @@ use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\ORM\Behavior;
 use Cake\ORM\Query;
+use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
 class ChangelogBehavior extends Behavior 
@@ -48,16 +49,24 @@ class ChangelogBehavior extends Behavior
    */
   
   public function beforeDelete(Event $event, $entity, \ArrayObject $options) {
+    $subject = $event->getSubject();
+    $tableName = $subject->getTable();
+    $alias = $subject->getAlias();
+    $parentfk = Inflector::singularize($tableName) . "_id";
+    
     if(isset($options['useHardDelete']) && $options['useHardDelete']) {
-      // Hard delete requested, so just return
+      // Hard delete requested. In order for a hard delete to succeed, any archive records
+      // must also (and first) be hard deleted, so we don't run into any (Changelog related)
+      // foreign key issues (GMR-7). We can just deleteAll since we neither want nor need
+      // callbacks.
+
+      $Table = TableRegistry::getTableLocator()->get($alias);
+
+      $Table->deleteAll([$parentfk => $entity->id]);
+      
       $event->setResult(true);
       return;
     }
-
-    $subject = $event->getSubject();
-    $table = $subject->getTable();
-    $alias = $subject->getAlias();
-    $parentfk = Inflector::singularize($table) . "_id";
     
     // Before we do anything else, make sure we're not trying to update an archive record
     if($entity->deleted || !empty($entity->$parentfk)) {
@@ -110,9 +119,9 @@ class ChangelogBehavior extends Behavior
     }
 
     $subject = $event->getSubject();
-    $table = $subject->getTable();
+    $tableName = $subject->getTable();
     $alias = $subject->getAlias();
-    $parentfk = Inflector::singularize($table) . "_id";
+    $parentfk = Inflector::singularize($tableName) . "_id";
     
     LogBehavior::strace($alias, 'Changelog altering find conditions');
     
@@ -132,8 +141,6 @@ class ChangelogBehavior extends Behavior
 // that will be not-changelog but might become changelog?
     $query->where([$alias . '.deleted IS NOT true'])
           ->where([$alias . '.' . $parentfk . ' IS NULL']);
-    
-    // XXX need to also check parent key IS NULL
   }
   
   /**
@@ -153,9 +160,9 @@ class ChangelogBehavior extends Behavior
     }
     
     $subject = $event->getSubject();
-    $table = $subject->getTable();
+    $tableName = $subject->getTable();
     $alias = $subject->getAlias();
-    $parentfk = Inflector::singularize($table) . "_id";
+    $parentfk = Inflector::singularize($tableName) . "_id";
 
     // Before we do anything else, make sure we're not trying to update an archive record
     if($entity->deleted || !empty($entity->$parentfk)) {

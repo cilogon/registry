@@ -3,6 +3,7 @@
     "job": [
       "AdopterJob",
       "AssignerJob",
+      "DeletionJob",
       "ProvisionerJob",
       "SyncJob"
     ]

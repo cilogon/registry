@@ -45,6 +45,9 @@ msgstr "Changelog, expanded, button, click to collapse"
 msgid "changelog.deleted"
 msgstr "This record has been deleted"
 
+msgid "cos.delete.sched"
+msgstr "This CO is scheduled for deletion"
+
 msgid "cos.none"
 msgstr "You are not an active member in any collaboration. If your request for enrollment is still being processed, you will not be able to login until it is approved. Please contact an administrator for assistance."
 

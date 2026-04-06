@@ -31,8 +31,6 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
-//use \App\Lib\Enum\PermissionEnum;
-
 use Cake\ORM\TableRegistry;
 
 class CosController extends StandardController {
@@ -70,6 +68,51 @@ class CosController extends StandardController {
     return parent::beforeRender($event);
   }
   
+  /**
+   * Handle a delete action for a Standard object.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  Integer $id Object ID
+   */
+  
+  public function delete($id) {
+    // XXX this could ultimately merge into StandardController
+    if(!empty($this->request->getQuery('queue'))
+       && $this->request->getQuery('queue') == 'yes') {
+      // Register a Job to delete the requested entity
+
+      $JobTable = TableRegistry::getTableLocator()->get("Jobs");
+
+      try {
+        $comanageco = $this->Cos->find('COmanageCO')->firstOrFail();
+
+        $JobTable->register(
+          coId:             $comanageco->id,
+          plugin:           'CoreJob.DeletionJob',
+          parameters:       ['target_model' => 'Cos', 'target_id' => $id],
+          registerSummary:  __d('core_job', 'Deletion.register_summary', ['Cos', $id])
+        );
+
+        // Because (unlike v4 Garbage Collection) Deletion Job doesn't use
+        // a special status, we update the entity description to provide a
+        // simple indicator to administrators. See also CFM-94.
+
+        $co = $this->Cos->get($id);
+        $co->description = __d('information', 'cos.delete.sched');
+        $this->Cos->save($co);
+
+        $this->Flash->success(__d('core_job', 'Deletion.register_summary', ['Cos', $id]));
+      }
+      catch(\Exception $e) {
+        $this->Flash->error($e->getMessage());
+      }
+
+      return $this->generateRedirect(null);
+    } else {
+      return parent::delete($id);
+    }
+  }
+
   /*
    * XXX implement, also REST API
    *

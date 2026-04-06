@@ -51,9 +51,9 @@ $rowActions = [
     'label'       => __d('operation', 'Cos.switch'),
     'if'          => 'isActive'
   ],
-  [
+/* CFM-127 [
     'action' => 'duplicate',
     'class'  => '',
     'icon'   => 'content_copy'
-  ]
+  ]*/
 ];

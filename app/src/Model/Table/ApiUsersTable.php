@@ -136,6 +136,8 @@ class ApiUsersTable extends Table {
   
   public function buildRules(RulesChecker $rules): RulesChecker {
     // AR-ApiUser-3 API usernames must be unique across the entire platform.
+    // Note we don't enforce case insensitive tests here, so we could have two
+    // different API Users called "co_2.apiuser" and "co_2.ApiUser".
     $rules->add(
       $rules->isUnique(['username']),
       'usernameUnique',

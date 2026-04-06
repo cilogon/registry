@@ -34,6 +34,12 @@ msgstr "Source Keys to process, comma separated (requires external_identity_sour
 msgid "opt.assigner.context"
 msgstr "Identifier Assignment context"
 
+msgid "opt.deletion.target_id"
+msgstr "Record ID of Model to delete"
+
+msgid "opt.deletion.target_model"
+msgstr "Model to delete"
+
 msgid "opt.entities"
 msgstr "Comma separated list of entity IDs to process"
 
@@ -93,6 +99,21 @@ msgstr "Assigned {0}: {1}"
 
 msgid "Assigner.start_summary"
 msgstr "Assigning all Identifiers in context {0} for CO {1} ({2} entities)"
+
+msgid "Deletion.error.co"
+msgstr "DeletionJob can only be scheduled from the COmanage CO"
+
+msgid "Deletion.error.model"
+msgstr "Unsupported target model"
+
+msgid "Deletion.register_summary"
+msgstr "Requested hard delete of {0} {1}"
+
+msgid "Deletion.start_summary"
+msgstr "Beginning hard delete of {0} {1}"
+
+msgid "Deletion.finish_summary"
+msgstr "Deletion completed successfully"
 
 msgid "Provisioner.cancel_summary"
 msgstr "Job canceled after provisioning {0} entities ({1} errors)"

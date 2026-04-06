@@ -55,6 +55,7 @@ class CousTable extends Table {
   use \App\Lib\Traits\ProvisionableTrait{
     requestProvisioning as traitRequestProvisioning;
   }
+  use \App\Lib\Traits\RuleTrait;
   use \App\Lib\Traits\SearchFilterTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\TreeTrait;
@@ -163,7 +164,9 @@ class CousTable extends Table {
                       ['errorField' => 'parent_id']);
 
     // AR-COU-3 Two COUs within the same CO cannot share the same name
-    $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('controller', 'Cous', [1])])));
+    $rules->add([$this, 'ruleIsCaseInsensitiveUnique'],
+                'isUnique',
+                ['errorField' => 'name', 'fields' => ['name', 'co_id']]);
     
     // This is not an Application Rule per se, but the parent_id must be a valid
     // potential parent

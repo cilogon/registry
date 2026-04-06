@@ -34,7 +34,6 @@ use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Validation\Validator;
 
@@ -47,8 +46,10 @@ class CosTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\LabeledLogTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\RuleTrait;
   use \App\Lib\Traits\ValidationTrait;
   
   /**
@@ -159,12 +160,11 @@ class CosTable extends Table {
     $rules->addDelete([$this, 'ruleIsCOmanageCO'],
                       'isCOmanageCO',
                       ['errorField' => 'name']);
-                
+    
     // AR-CO-3 Two COs cannot share the same name
-// XXX CO-1736 In general, these checks should be case insensitive
-// (ie: I shouldn't be able to create a CO called "comanage", similarly COUs etc)
-// Also, with CO-1845 maybe unique ignores non-alphanumeric
-    $rules->add($rules->isUnique(['name'], __d('error', 'exists', [__d('controller', 'Cos', [1])])));
+    $rules->add([$this, 'ruleIsCaseInsensitiveUnique'],
+                'isUnique',
+                ['errorField' => 'name', 'fields' => ['name']]);
     
     // AR-CO-5 A CO cannot be deleted if it is in Active status
     // This basically requires two steps to delete a CO (set to Suspended),
@@ -191,6 +191,25 @@ class CosTable extends Table {
     // dependency paths, we can't simply rely on Cake's dependency propagation
     // on delete.
 
+    // Before we start, we manually check AR-CO-2 and AR-CO-5 here. Cake's normal
+    // rule checking won't be applied until we call the parent delete() below,
+    // at which point we'll already have started hard deleting records, which
+    // seems not ideal.
+
+    // AR-CO-2 The COmanage CO cannot be deleted
+    $err = $this->ruleIsCOmanageCO($entity, []);
+
+    if($err !== true) {
+      throw new \InvalidArgumentException($err);
+    }
+
+    // AR-CO-5 An Active CO cannot be deleted
+    $err = $this->ruleIsActive($entity, []);
+
+    if($err !== true) {
+      throw new \InvalidArgumentException($err);
+    }
+
     // We ignore $options['useHardDelete'] because COs can _only_ be hard deleted.
 
     // We'll start by obtaining the set of models directly associated with the CO model.
@@ -216,7 +235,7 @@ class CosTable extends Table {
 
       if(method_exists($targetTable, "getPluggableModelType")) {
         $pluggable[ $a->getClassName() ] = $targetTable;
-      } elseif($targetTable->getIsConfigurationTable()) {
+      } elseif($targetTable->isConfigurationTable()) {
         // eg: CoSettings
         $targetAssociations = $a->associations();
 
@@ -245,6 +264,8 @@ class CosTable extends Table {
       }
     }
 
+    $this->llog('trace', "Beginning deletion of CO " . $entity->id);
+
     // First, delete plugin related models
     // XXX unclear that we need to do anything here... PluggableModelTrait will
     // automatically bind instantiated Entry Point Models when a Pluggable Table object
@@ -265,12 +286,18 @@ class CosTable extends Table {
 
     $this->paginatedDelete($entity->id, $configLast);
 
+    $this->llog('trace', "Deleting Changelog archives for CO " . $entity->id);
+
     // Delete any Changelog records for this CO. We can use deleteAll because we
     // don't need any callbacks to fire.
     $this->deleteAll(['Cos.co_id' => $entity->id]);
 
+    $this->llog('trace', "Deleting CO " . $entity->id);
+
     // Finally, delete the CO itself
     parent::deleteOrFail($entity, ['useHardDelete' => true, 'checkRules' => false]);
+
+    $this->llog('trace', "Finished deletion of CO " . $entity->id);
 
     return true;
   }
@@ -376,9 +403,24 @@ class CosTable extends Table {
 
   protected function paginatedDelete(int $coId, array $tableSet) {
     foreach($tableSet as $tableName => $table) {
+      // Because of how keyset pagination works, we are pretty much guaranteed
+      // to retrieve an active record before of any its related changelog
+      // archives, since the archived copy will generally get a higher record
+      // key since we maintain the current record key for the active record.
+      // As such, when we try to delete the active record we'll get a SQL error.
+      //
+      // The workaround is to have ChangelogBehavior::beforeDelete remove
+      // archive copies when a hard delete of an active record is requested
+      // (this is probably the correct behavior anyway), however we'll then
+      // run into a different problem, which is the PaginatedSqlIteratpr will
+      // probably have pulled one or more archived records, which will then
+      // no longer exist when we try to delete them.
+
       $iterator = new PaginatedSqlIterator(table: $table,
                                            conditions: ['co_id' => $coId],
                                            options: ['archived' => true]);
+
+      $this->llog('trace', "Performing paginated delete from " . $table->getAlias() . " for CO $coId (record count: " . $iterator->count() . ")");
 
       foreach($iterator as $k => $tentity) {
         // We call delete on each entity individually so that callbacks fire,
@@ -391,38 +433,36 @@ class CosTable extends Table {
   }
 
   /**
-   * Application Rule to determine if the current entity is the COmanage CO.
-   *
-   * @param   Entity  $entity   Entity to be validated
-   * @param   array   $options  Application rule options
-   *
-   * @return string|bool true if the Rule check passes, false otherwise
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function ruleIsCOmanageCO($entity, array $options): string|bool {
-    // We want negative logic since we want to fail if we're editing the COmanage CO
-    if($entity->isCOmanageCO()) {
-        return __d('error', 'edit.comanage');
-      }
-
-    return true;
-  }
-
-  /**
    * Application Rule to determine if the current entity is not Active.
    *
-   * @param   Entity  $entity   Entity to be validated
-   * @param   array   $options  Application rule options
-   *
-   * @return bool|string true if the Rule check passes, false otherwise
    * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity   Entity to be validated
+   * @param  array   $options  Application rule options
+   * @return bool|string true if the Rule check passes, false otherwise
    */
 
   public function ruleIsActive($entity, array $options): bool|string {
     // We want negative logic since we want to fail if the record is Active
     if($entity->status === TemplateableStatusEnum::Active) {
       return __d('error', 'delete.active');
+    }
+    
+    return true;
+  }
+
+  /**
+   * Application Rule to determine if the current entity is the COmanage CO.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Entity  $entity   Entity to be validated
+   * @param  array   $options  Application rule options
+   * @return string|bool true if the Rule check passes, false otherwise
+   */
+
+  public function ruleIsCOmanageCO($entity, array $options): string|bool {
+    // We want negative logic since we want to fail if we're editing the COmanage CO
+    if($entity->isCOmanageCO()) {
+      return __d('error', 'edit.comanage');
     }
     
     return true;

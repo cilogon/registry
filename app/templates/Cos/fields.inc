@@ -30,3 +30,26 @@ $fields = [
   'description',
   'status'
 ];
+
+// Top Links
+if($vv_action == 'edit') {
+  $topLinks[] = [
+    'icon'  => 'add_to_queue',
+    'order' => 'Default',
+    'label' => __d('operation', 'delete.queue'),
+    // 'url'  => $vv_base_url . $vv_obj->name,
+    'link'  => [
+      'action'  => 'delete',
+      $vv_obj->id,
+      '?' => [
+        'queue' => 'yes'
+      ]
+    ],
+    'confirm' => [
+      'dg_body_txt' => __d('operation', 'delete.queue.confirm', [$vv_obj->id]),
+      'dg_confirm_btn' => __d('operation', 'confirm.yes'),
+      'dg_cancel_btn' => __d('operation', 'confirm.no')
+    ],
+    'class' => ''
+  ];
+}

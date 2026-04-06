@@ -184,7 +184,13 @@ msgid "delete"
 msgstr "Delete"
 
 msgid "delete.confirm"
-msgstr "Are you sure you wish to delete this record ({0})?"
+msgstr "Are you sure you want to delete this record ({0})?"
+
+msgid "delete.queue"
+msgstr "Queue for Deletion"
+
+msgid "delete.queue.confirm"
+msgstr "Are you sure you want to schedule this record ({0}) for deletion?"
 
 msgid "duplicate"
 msgstr "Duplicate"
