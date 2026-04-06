@@ -43,7 +43,7 @@ export default {
     return {
       people: [],
       rawData: [],
-      person: '',
+      person: null,
       personUrl: '',
       identifierType: {},
       emailType: {},
@@ -215,6 +215,12 @@ export default {
       }
       return str
     },
+    onClear(ev) {
+      // The user cleared the input field - so clear the real field (and the model).
+      let inputElement = document.getElementById(this.options.fieldName)
+      inputElement.value = null;
+      this.person = null;
+    },
     onListNavigate(ev) {
       const listItemId = ev.target.getAttribute('aria-activedescendant')
       const $more = $('.cm-ac-pager')[0]
@@ -327,7 +333,8 @@ export default {
           @keyup.arrow-down="onListNavigate"
           @keyup.arrow-up="onListNavigate"
           @item-select="setPerson"
-          @keydown.enter="onEnter">
+          @keydown.enter="onEnter"
+          @clear="onClear">
           <template #option="slotProps">
             <div class="cm-ac-item">
               <div class="cm-ac-item-primary">

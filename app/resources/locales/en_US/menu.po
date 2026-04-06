@@ -223,7 +223,7 @@ msgid "options"
 msgstr "Options"
 
 msgid "person.canvas"
-msgstr "Person Canvas
+msgstr "Person Canvas"
 
 msgid "my.canvas"
 msgstr "my canvas"

@@ -30,145 +30,167 @@
   // - 'search', used when we find a person and display the fullname along with the ID
   // - 'field', used for model records. It has a postfix with a link to the person canvas
   $type = $type ?? 'stand-alone';
-  // In the context of a type=field we will pass vv_field_arguments
-  // In the context of a stand-alone field we will have vv_autocomplete_arguments
-  $vv_field_arguments = $vv_field_arguments ?? $vv_autocomplete_arguments ?? [];
-  $label = $label ?? $vv_field_arguments["fieldLabel"] ?? __d('operation','autocomplete.people.label');
-  $fieldName = $fieldName ?? 'person_id';
-  // Used by the SearchFilter Configuration
-  $personType = $personType ?? 'person';
-  $htmlId = $htmlId ?? 'person-id-picker';
-  // Does it have a value already. Default or stored
-  // CAKEPHP automatically generates a select element if the value is an integer. This is not helpful here.
-  $inputValue = $inputValue ?? $vv_field_arguments["fieldOptions"]["default"] ?? $vv_field_arguments["fieldOptions"]["value"] ?? '';
 
-  // Mainly required for the Group Members people picker since this is placed as an action url
-  $actionUrl = $actionUrl ?? []; // the url of the page to launch on select for a stand-alone picker
-  $viewConfigParameters = $viewConfigParameters ?? [];
-  $containerClasses = $containerClasses ?? 'cm-autocomplete-container';
+  // For a frozen field, print the referenced person (if one exists) and link to the person canvas.
+  if($type == 'field' && $vv_obj['frozen']) {
+    $personId = $vv_obj[$vv_field_arguments['fieldName']];
+    if(!empty($personId)) {
+      $personRecord = $this->Petition->getRecordForId(
+        'person_id', $personId, ['PrimaryName', 'EmailAddresses']
+      );
+      print $this->Html->link(
+        $personRecord['primary_name']['full_name'], 
+        ['controller' => 'people', 'action' => 'edit', $personId]
+      );
+    }
+  // Otherwise, build the people picker.  
+  } else {
+    // In the context of a type=field we will pass vv_field_arguments
+    // In the context of a stand-alone field we will have vv_autocomplete_arguments
+    $vv_field_arguments = $vv_field_arguments ?? $vv_autocomplete_arguments ?? [];
+    $label = $label ?? $vv_field_arguments["fieldLabel"] ?? __d('operation', 'autocomplete.people.label');
+    $fieldName = $fieldName ?? 'person_id';
+    // Used by the SearchFilter Configuration
+    $personType = $personType ?? 'person';
+    $htmlId = $htmlId ?? 'person-id-picker';
+    // Does it have a value already. Default or stored
+    // CAKEPHP automatically generates a select element if the value is an integer. This is not helpful here.
+    $inputValue = $inputValue ?? $vv_field_arguments["fieldOptions"]["default"] ?? $vv_field_arguments["fieldOptions"]["value"] ?? '';
 
-  // Load my helper functions
-  $vueHelper = $this->loadHelper('Vue');
-  
-  // If we have the $actionUrl array, construct the URL
-  $constructedActionUrl = '';
-  if(!empty($actionUrl)) {
-    $constructedActionUrl = $this->Url->build($actionUrl);
-  }
+    // Mainly required for the Group Members people picker since this is placed as an action url
+    $actionUrl = $actionUrl ?? []; // the url of the page to launch on select for a stand-alone picker
+    $viewConfigParameters = $viewConfigParameters ?? [];
+    $containerClasses = $containerClasses ?? 'cm-autocomplete-container';
 
-  // This is the peopleAutocomplete element. If we have the id we need to self construct the
-  // - the person canvas link
-  // - Get the person record for view or edit
-  if (!empty($inputValue)) {
-    $personRecord = $this->Petition->getRecordForId('person_id', $inputValue, ['PrimaryName', 'EmailAddresses']);
-    $canvasUrl = $this->Url->build(['controller' => 'people', 'action' => 'edit', $inputValue]);
-  }
-  $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id;
-  if (isset($vv_petition->id)) {
+    // Load my helper functions
+    $vueHelper = $this->loadHelper('Vue');
+
+    // If we have the $actionUrl array, construct the URL
+    $constructedActionUrl = '';
+    if(!empty($actionUrl)) {
+      $constructedActionUrl = $this->Url->build($actionUrl);
+    }
+
+    // This is the peopleAutocomplete element. If we have the id we need to self construct the
+    // - the person canvas link
+    // - Get the person record for view or edit
+    if(!empty($inputValue)) {
+      $personRecord = $this->Petition->getRecordForId('person_id', $inputValue, ['PrimaryName', 'EmailAddresses']);
+      $canvasUrl = $this->Url->build(['controller' => 'people', 'action' => 'edit', $inputValue]);
+    }
+    $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id;
+    if(isset($vv_petition->id)) {
       $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id . '&petition_id=' . $vv_petition->id;
-  }
+    }
 
-  // This is the actual field that will be submitted.
-  print $this->Form->control($fieldName, [
-      'id' => $fieldName,
-      'value' => '',
-      'type' => 'text',
-      'class' => 'visually-hidden',
-      'label' => false,
-    ]
-  );
+    // This is the actual field that will be submitted.
+    print $this->Form->control($fieldName, [
+        'id' => $fieldName,
+        'value' => '',
+        'type' => 'text',
+        'class' => 'visually-hidden',
+        'label' => false,
+      ]
+    );
+  }
 ?>
 
-<script type="module">
-  <?php if(Cake\Core\Configure::read('debug')): ?>
-    import AutocompletePeople from "<?= $this->Url->script('comanage/components/autocomplete/cm-autocomplete-people.js') ?>?time=<?= time() ?>";
-  <?php else: ?>
-    import AutocompletePeople from "<?= $this->Url->script('comanage/components/autocomplete/cm-autocomplete-people.js') ?>";
-  <?php endif; ?>
+<?php if(!$vv_obj['frozen']): ?>
+  
+  <script type="module">
+    <?php if(Cake\Core\Configure::read('debug')): ?>
+    import AutocompletePeople
+      from "<?= $this->Url->script('comanage/components/autocomplete/cm-autocomplete-people.js') ?>?time=<?= time() ?>";
+    <?php else: ?>
+    import AutocompletePeople
+      from "<?= $this->Url->script('comanage/components/autocomplete/cm-autocomplete-people.js') ?>";
+    <?php endif; ?>
 
-  // XXX Probably move this to comanage.js
-  const provided = {
-    txt: JSON.parse('<?= json_encode($vueHelper->locales()) ?>'),
-    app: {
-      coId: <?= $vv_cur_co->id ?>,
-      types: <?= json_encode($types) ?>,
-      cosettings: <?= json_encode($cosettings) ?>
-    },
-    api: {
-      viewConfigParameters: <?= json_encode($viewConfigParameters) ?>,
-      webroot: '<?= $this->request->getAttribute('webroot') ?>',
-      // co_id query parameter is required since it is the People's primary link
-      searchPeople: `<?= $searchPeople ?>`
-    }
-  }
+    // XXX Probably move this to comanage.js
+    const provided = {
+      txt: JSON.parse('<?= json_encode($vueHelper->locales()) ?>'),
+      app: {
+        coId: <?= $vv_cur_co->id ?>,
+        types: <?= json_encode($types) ?>,
+        cosettings: <?= json_encode($cosettings) ?>
+      },
+      api: {
+        viewConfigParameters: <?= json_encode($viewConfigParameters) ?>,
+        webroot: '<?= $this->request->getAttribute('webroot') ?>',
+        // co_id query parameter is required since it is the People's primary link
+        searchPeople: `<?= $searchPeople ?>`
+      }
+    };
 
-  const app = Vue.createApp({
-    data() {
-      return {
-        autocompleteOptions: {
-          label: '<?= $label ?>',
-          fieldName: '<?= $fieldName ?>', // This property hold the form input id
-          type: '<?= $type ?>',
-          personType: '<?= $personType ?>',
-          minLength: 2, // XXX probably should be set by config and default to 3
-          htmlId: '<?= $htmlId ?>', // This property holds the vuejs input id
-          actionUrl: '<?= $constructedActionUrl ?>',
-          inputValue: '<?= $inputValue ?>',
-          inputProps: {
-            // We need to skip the name since we do not want to submit the vue input field
-            //name: '<?php //= $htmlId ?>//',
-            dataName: '<?= $htmlId ?>',
-            // This is not translated to data-personid but to datapersonid.
-            dataPersonid: '<?= $inputValue ?>'
+    const app = Vue.createApp({
+      data() {
+        return {
+          autocompleteOptions: {
+            label: '<?= $label ?>',
+            fieldName: '<?= $fieldName ?>', // This property hold the form input id
+            type: '<?= $type ?>',
+            personType: '<?= $personType ?>',
+            minLength: 2, // XXX probably should be set by config and default to 3
+            htmlId: '<?= $htmlId ?>', // This property holds the vuejs input id
+            actionUrl: '<?= $constructedActionUrl ?>',
+            inputValue: '<?= $inputValue ?>',
+            inputProps: {
+              // We need to skip the name since we do not want to submit the vue input field
+              //name: '<?php //= $htmlId ?>//',
+              dataName: '<?= $htmlId ?>',
+              // This is not translated to data-personid but to datapersonid.
+              dataPersonid: '<?= $inputValue ?>'
+            },
+            personRecord: <?= json_encode($personRecord ?? [])?>,
+            canvasUrl: '<?= $canvasUrl ?? '' ?>'
           },
-          personRecord: <?= json_encode($personRecord ?? [])?>,
-          canvasUrl: '<?= $canvasUrl ?? '' ?>',
+          error: '',
+          core: {
+            webroot: '<?= $this->request->getAttribute('webroot') ?>'
+          }
+        };
+      },
+      components: {
+        AutocompletePeople
+      },
+      inject: ['txt', 'api', 'app'],
+      methods: {
+        setError(txt) {
+          this.error = txt;
         },
-        error: '',
-        core: {
-          webroot: '<?= $this->request->getAttribute('webroot') ?>'
+        handleNetworkError() {
+          this.successTxt = '';
+          this.setError('Network Error');
+          console.log('Status Code: 400');
+        },
+        handleError(res) {
+          this.successTxt = '';
+          this.setError(res?.message ?? this.txt.error500);
+          console.error(res);
+          console.log('Status Code: ', res.status);
         }
-      }
-    },
-    components: {
-      AutocompletePeople
-    },
-    inject: ['txt', 'api', 'app'],
-    methods: {
-      setError(txt) {
-        this.error = txt;
       },
-      handleNetworkError () {
-        this.successTxt = '';
-        this.setError('Network Error')
-        console.log('Status Code: 400')
-      },
-      handleError (res) {
-        this.successTxt = '';
-        this.setError(res?.message ?? this.txt.error500)
-        console.error(res);
-        console.log('Status Code: ', res.status)
-      }
-    },
-    template: `
+      template: `
         <autocomplete-people
           :options="this.autocompleteOptions"
           :core="this.core"
-          appendTo='self'
+          appendTo="self"
           :txt="this.txt">
         </autocomplete-people>
     `
-  });
+    });
 
 
-  app.use(primevue.config.default, {unstyled: true});
-  // For core configurations and texts globally
-  for (const [key, value] of Object.entries(provided)) {
-    app.provide( key, value);
-  }
+    app.use(primevue.config.default, {unstyled: true});
+    // For core configurations and texts globally
+    for (const [key, value] of Object.entries(provided)) {
+      app.provide(key, value);
+    }
 
-  // Mount the component and provide a global reference for this app instance.
-  window.<?= str_replace('-', '', $htmlId) ?> = app.mount("#<?= $htmlId ?>-container");
-</script>
+    // Mount the component and provide a global reference for this app instance.
+    window.<?= str_replace('-', '', $htmlId) ?> = app.mount("#<?= $htmlId ?>-container");
+  </script>
 
-<div id="<?= $htmlId ?>-container" class="<?= $containerClasses ?>"></div>
+  <div id="<?= $htmlId ?>-container" class="<?= $containerClasses ?>"></div>
+  
+<?php endif; ?>

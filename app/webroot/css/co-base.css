@@ -628,7 +628,9 @@ ul.form-list li.alert-banner .co-alert {
   line-height: 1.4em;
 }
 #main-menu .menu-panel-links .material-symbols,
-#main-menu .menu-panel-links .material-symbols-outlined {
+#main-menu .menu-panel-links .material-symbols-outlined,
+#navigation-drawer.closed #main-menu .menu-panel-links .material-symbols,
+#navigation-drawer.closed #main-menu .menu-panel-links .material-symbols-outlined {
   font-size: 2.5rem;
   margin-right: 0.75rem;
   display: inline;
@@ -638,7 +640,9 @@ ul.form-list li.alert-banner .co-alert {
   margin-bottom: 1em;
 }
 #main-menu .menu-panel-links-inner .material-symbols,
-#main-menu .menu-panel-links-inner .material-symbols-outlined {
+#main-menu .menu-panel-links-inner .material-symbols-outlined,
+#navigation-drawer.closed #main-menu .menu-panel-links-inner .material-symbols,
+#navigation-drawer.closed #main-menu .menu-panel-links-inner .material-symbols-outlined {
   font-size: 1.2em;
 }
 #main-menu .menu-panel-links .menu-panel-links-inner li {
@@ -1626,8 +1630,20 @@ ul.form-list input[type="number"]:focus,
 ul.form-list input[type="password"]:focus {
   background-color: var(--cmg-color-highlight-002);
 }
-ul.form-list input[readonly="readonly"] {
-  color: var(--cmg-color-txt-soft);
+ul.form-list input[type="text"][readonly="readonly"],
+ul.form-list input[type="number"][readonly="readonly"] {
+  border: none;
+  background-color: transparent;
+  appearance: textfield;
+  padding: 0;
+}
+ul.form-list select[readonly="readonly"] {
+  appearance: none;
+  --bs-form-select-bg-img: none;
+  background-color: transparent !important;
+  padding: 0;
+  border: none;
+  font-size: 1em;
 }
 ul.form-list select {
   width: auto; /* select boxes should fit to their content, typically */
@@ -1637,7 +1653,7 @@ ul.form-list select {
   border-color: var(--cmg-color-bg-007);
 }
 ul.form-list .not-set {
-  padding: 4px 6px;
+  padding: 0;
 }
 .form-select:disabled {
   background-color: var(--cmg-color-bg-009);
@@ -1648,6 +1664,10 @@ ul.form-list li.fields-submit .required {
 ul.form-list li.fields-submit .field-info {
   display: flex;
   gap: 1em;
+}
+ul.form-list .btn.inline-form-button {
+  padding: 0.25rem 0.75rem;
+  margin-left: 1rem;
 }
 ul.field-children {
   margin: 0.5em;
@@ -2123,6 +2143,7 @@ body.start .submit {
 #dialog .modal-header {
   background-color: var(--cmg-color-bg-004);
   border-bottom: none;
+  justify-content: space-between;
 }
 #dialog .modal-footer {
   border-top: none;

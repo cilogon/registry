@@ -47,16 +47,14 @@ if($link) {
     $linkHtml .= ' ' . $this->Html->link(
         $link['label'],
         $link['url'],
-        $link
+        ['class' => 'btn btn-sm btn-primary inline-form-button']
       );
   } else {
     // Make $status the link
 
     $linkHtml = $this->Html->link(
       $status,
-      $link['url'],
-      // Pass whatever other args are specified
-      $link
+      $link['url']
     );
   }
 }
