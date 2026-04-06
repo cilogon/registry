@@ -200,13 +200,12 @@ class ApiV2Controller extends AppController {
     try {
       $obj = $table->findById($id)->firstOrFail();
 
-// XXX document AR-CO-1 when we implement hard delete/changelog
-//     note similar logic in StandardController
-      $table->deleteOrFail($obj);
-
       if(method_exists($obj, "isReadOnly") && $obj->isReadOnly()) {
         throw new BadRequestException(__d('error', 'edit.readonly'));
       }
+// XXX document AR-CO-1 when we implement hard delete/changelog
+//     note similar logic in StandardController
+      $table->deleteOrFail($obj);
 
       // Trigger provisioning, letting errors bubble up (AR-GMR-5)
       if(method_exists($table, "requestProvisioning")) {

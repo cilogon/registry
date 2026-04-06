@@ -187,9 +187,11 @@ class ExternalIdentitySourcesController extends StandardPluggableController {
 
     $this->set('vv_search_attrs', $this->ExternalIdentitySources->searchableAttributes((int)$id));
 
-    [$title, , ] = StringUtilities::entityAndActionToTitle(null,
-                                                           $this->getName(),
-                                                           $this->request->getParam('action'));
+    [$title, , ] = StringUtilities::entityAndActionToTitle(
+      null,
+      null,
+      $this->getName() . '.search',
+    );
     $this->set('vv_title', $title);
   }
 

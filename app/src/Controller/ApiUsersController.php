@@ -56,9 +56,11 @@ class ApiUsersController extends StandardController {
       $this->Flash->error($e->getMessage());
     }
     
-    [$title, , ] = StringUtilities::entityAndActionToTitle(null,
-                                                           'api.key',
-                                                           $this->request->getParam('action'));
+    [$title, , ] = StringUtilities::entityAndActionToTitle(
+      null,
+      null,
+      'api.key.' . $this->request->getParam('action'),
+    );
     $this->set('vv_title', $title);
 
     // Render the view.

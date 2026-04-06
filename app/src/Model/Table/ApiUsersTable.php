@@ -179,11 +179,11 @@ class ApiUsersTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  string $username API Username
-   * @return mixed            true if $username is a platform API user, an integer (the CO ID) if the user is a privileged API user within that CO, or false otherwise
+   * @return bool|int         true if $username is a platform API user, an integer (the CO ID) if the user is a privileged API user within that CO, or false otherwise
    * @throws InvalidArgumentException
    */
   
-  public function getUserPrivilege(string $username) {
+  public function getUserPrivilege(string $username): bool|int {
     $apiUser = $this->find()->where(['username' => $username])->contain('Cos')->first();
     
     if(empty($apiUser)) {

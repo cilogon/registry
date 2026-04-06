@@ -252,6 +252,13 @@ class StandardController extends AppController {
     try {
       $obj = $table->findById($id)->firstOrFail();
       
+      // Align with REST API: do not allow delete of read-only records
+      if (method_exists($obj, "isReadOnly") && $obj->isReadOnly()) {
+        $this->Flash->error(__d('error', 'edit.readonly'));
+        // Redirect to view, as we do for read-only edits
+        return $this->redirect(['action' => 'view', $obj->id]);
+      }
+
       // By default, a delete is a soft delete. The exceptions is when
       // deleting a CO (AR-CO-1). In v4, we permitted a controller level
       // flag to be set, but the only controller this really applies to

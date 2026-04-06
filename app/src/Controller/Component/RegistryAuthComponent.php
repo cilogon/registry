@@ -240,12 +240,16 @@ class RegistryAuthComponent extends Component
         throw new ForbiddenException(__d('error', 'perm'));
       }
       catch(RecordNotFoundException $e) {
-        // Requested record does not exist. For platform API users, we can return
-        // a RecordNotFoundException, otherwise we recast to generate permission denied.
+        // The requested record does not exist. Because CO IDs are derived from existing
+        // records (via primary links / CO resolution helpers), we cannot reliably
+        // determine whether a privileged CO-scoped API user is actually related to
+        // a record that failed with RecordNotFoundException. To avoid leaking
+        // cross-CO information, we only allow platform API users to see the original
+        // exception and return a generic API failure for all other API users.
         $this->llog('debug', "User authorization failed: " . $e->getMessage());
-        
+
         $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
-        
+
         if($ApiUsers->getUserPrivilege($this->authenticatedUser) === true) {
           throw $e;
         } else {
