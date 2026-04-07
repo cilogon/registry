@@ -31,6 +31,8 @@ namespace App\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Event\EventInterface;
+use Cake\ORM\Entity;
+use Cake\ORM\Table;
 use App\Lib\Util\StringUtilities;
 
 class BreadcrumbComponent extends Component {
