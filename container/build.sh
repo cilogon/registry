@@ -187,7 +187,7 @@ DESCRIPTION
 
     The full name of the built images has the format
 
-    IMAGE_REGISTRY/REPOSITORY/NAME:TAG
+    REGISTRY/NAMESPACE/NAME:TAG
 
     When PRODUCT is registry NAME has the format
 
@@ -208,24 +208,21 @@ DESCRIPTION
     --build-arg
             pass build argument to docker build
 
-    --image_registry
-            image registry, default is none
-
     -l, --label
             label to use in image tag, default is determined
             by inspecting the source tree and has the format
             GITHUB_TAG for source tree tags or
             GITHUB_BRANCH-COMMIT when building from a branch
 
+    --namespace
+            image namespace, default is none,
+            required if --registry is specified
+
     --no-cache
             passed to docker build if present
 
-    -o,--owner
-            synonym for repository
-
-    --repository
-            image repository, default is none,
-            required if image_registry is specified
+    --registry
+            image registry, default is none
 
     --rm
             passed to docker build if present
@@ -286,11 +283,11 @@ function main() {
     local authentication
     local docker_build_flags
     local gnu_getopt_out
-    local image_registry
     local label=""
+    local namespace
     local prefix=""
     local product
-    local repository
+    local registry
     local suffix
 
     # Require bash version 4 or higher.
@@ -309,14 +306,13 @@ function main() {
     declare -a docker_build_flags=()
 
     gnu_getopt_out=$(/usr/bin/getopt \
-                     --options hl:os: \
+                     --options hl:s: \
                      --longoptions help \
                      --longoptions build-arg: \
-                     --longoptions image_registry: \
                      --longoptions label: \
+                     --longoptions namespace: \
                      --longoptions no-cache \
-                     --longoptions owner: \
-                     --longoptions repository: \
+                     --longoptions registry: \
                      --longoptions rm \
                      --longoptions suffix: \
                      --name 'build.sh' -- "${@}")
@@ -332,11 +328,10 @@ function main() {
         case "$1" in
             -h | --help ) usage $@; exit ;;
             --build-arg ) docker_build_flags+=(--build-arg "$2") ; shift 2 ;;
-            --image_registry ) image_registry="$2"; shift 2 ;;
             -l | --label ) label="$2"; shift 2 ;;
+            --namespace ) namespace="$2"; shift 2 ;;
             --no-cache ) docker_build_flags+=(--no-cache) ; shift 1 ;;
-            -o | --owner ) repository="$2"; shift 2 ;;
-            --repository ) repository="$2"; shift 2 ;;
+            --registry ) registry="$2"; shift 2 ;;
             --rm ) docker_build_flags+=(--rm) ; shift 1 ;;
             -s | --suffix ) suffix="$2"; shift 2 ;;
             -- ) shift; break ;;
@@ -349,19 +344,19 @@ function main() {
         exit 1
     fi
 
-    if [[ -z "${repository}" && -n "${image_registry}" ]]; then
-        err "ERROR: --repository must be specified if --image_registry is specified"
+    if [[ -z "${namespace}" && -n "${registry}" ]]; then
+        err "ERROR: --namespace must be specified if --registry is specified"
         exit 1
     fi
-    
+
     if [[ -z "${label}" ]]; then
         label="$(label_from_repository)"
     fi
 
-    if [[ -n "${repository}" ]]; then
-        prefix="${repository}/"
-        if [[ -n "${image_registry}" ]]; then
-            prefix="${image_registry}/${prefix}"
+    if [[ -n "${namespace}" ]]; then
+        prefix="${namespace}/"
+        if [[ -n "${registry}" ]]; then
+            prefix="${registry}/${prefix}"
         fi
     fi
 
