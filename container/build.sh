@@ -82,128 +82,6 @@ function build_base() {
 }
 
 ###########################################################################
-# Build the Registry basic auth image.
-# Globals:
-#   None
-# Arguments:
-#   Full image name prefix, a string.
-#   Tag label, a string.
-#   Tag suffix, a string.
-#   Docker build flags, other flags for docker build.
-# Outputs:
-#   None
-###########################################################################
-function build_basic_auth() {
-    local docker_build_command
-    local docker_build_flags
-    local label
-    local prefix
-    local suffix
-
-    prefix="$1"
-    label="$2"
-    suffix="$3"
-
-    if [[ -z "${label}" ]]; then
-        err "ERROR:build_basic_auth: label cannot be empty"
-        return 1
-    fi
-
-    if [[ -z "${suffix}" ]]; then
-        err "ERROR:build_basic_auth: suffix cannot be empty"
-        return 1
-    fi
-
-    declare -a docker_build_flags=("${@:4}")
-
-    tag="comanage-registry:${label}-basic-auth-${suffix}"
-
-    docker_build_command=(docker build)
-
-    if ((${#docker_build_flags[@]})); then
-        for flag in "${docker_build_flags[@]}"; do
-            docker_build_command+=("${flag}")
-        done
-    fi
-
-    docker_build_command+=(--tag "${tag}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_VERSION="${label}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION="${suffix}")
-    docker_build_command+=(--file container/registry/basic-auth/Dockerfile)
-    docker_build_command+=(.)
-
-    "${docker_build_command[@]}"
-
-    if (( $? != 0 )); then
-        exit 1
-    fi
-
-    if [[ -n "${prefix}" ]]; then
-        target="${prefix}${tag}"
-        docker tag "${tag}" "${target}"
-    fi
-}
-
-###########################################################################
-# Build the Registry cron image.
-# Globals:
-#   None
-# Arguments:
-#   Full image name prefix, a string.
-#   Tag label, a string.
-#   Tag suffix, a string.
-#   Docker build flags, other flags for docker build.
-# Outputs:
-#   None
-###########################################################################
-function build_crond() {
-    local docker_build_command
-    local docker_build_flags
-    local label
-    local prefix
-    local suffix
-
-    prefix="$1"
-    label="$2"
-    suffix="$3"
-
-    if [[ -z "${label}" ]]; then
-        err "ERROR:build_crond: label cannot be empty"
-        return 1
-    fi
-
-    if [[ -z "${suffix}" ]]; then
-        err "ERROR:build_crond: suffix cannot be empty"
-        return 1
-    fi
-
-    declare -a docker_build_flags=("${@:4}")
-
-    tag="comanage-registry-cron:${label}-${suffix}"
-
-    docker_build_command=(docker build)
-
-    if ((${#docker_build_flags[@]})); then
-        for flag in "${docker_build_flags[@]}"; do
-            docker_build_command+=("${flag}")
-        done
-    fi
-
-    docker_build_command+=(--tag "${tag}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_VERSION="${label}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION="${suffix}")
-    docker_build_command+=(--file container/registry/crond/Dockerfile)
-    docker_build_command+=(.)
-
-    "${docker_build_command[@]}"
-
-    if [[ -n "${prefix}" ]]; then
-        target="${prefix}${tag}"
-        docker tag "${tag}" "${target}"
-    fi
-}
-
-###########################################################################
 # Build the Registry mod_auth_openidc image.
 # Globals:
 #   None
@@ -267,149 +145,6 @@ function build_mod_auth_openidc() {
 }
 
 ###########################################################################
-# Build the Shibboleth SP base image.
-# Globals:
-#   None
-# Arguments:
-#   Full image name prefix, a string.
-#   Shibboleth SP version.
-#   Tag suffix, a string.
-#   Docker build flags, other flags for docker build.
-# Outputs:
-#   None
-###########################################################################
-function build_shibboleth_sp_base() {
-    local docker_build_command
-    local docker_build_flags
-    local label
-    local prefix
-    local suffix
-
-    prefix="$1"
-    label="$2"
-    suffix="$3"
-
-    if [[ -z "${label}" ]]; then
-        err "ERROR:build_shibboleth_sp_base: label cannot be empty"
-        return 1
-    fi
-
-    if [[ -z "${suffix}" ]]; then
-        err "ERROR:build_shibboleth_sp_base: suffix cannot be empty"
-        return 1
-    fi
-
-    declare -a docker_build_flags=("${@:4}")
-
-    tag="comanage-registry-shibboleth-sp-base:${label}-${suffix}"
-
-    docker_build_command=(docker build)
-
-    if ((${#docker_build_flags[@]})); then
-        for flag in "${docker_build_flags[@]}"; do
-            docker_build_command+=("${flag}")
-        done
-    fi
-
-    docker_build_command+=(--tag "${tag}")
-    docker_build_command+=(--build-arg SHIBBOLETH_SP_VERSION="${label}")
-    docker_build_command+=(--file container/shibboleth-sp-base/Dockerfile)
-    docker_build_command+=(.)
-
-    "${docker_build_command[@]}"
-
-    if (( $? != 0 )); then
-        exit 1
-    fi
-
-    if [[ -n "${prefix}" ]]; then
-        target="${prefix}${tag}"
-        docker tag "${tag}" "${target}"
-    fi
-}
-
-###########################################################################
-# Build the Shibboleth SP with supervisor image.
-# Globals:
-#   None
-# Arguments:
-#   Full image name prefix, a string.
-#   Tag label, a string.
-#   Tag suffix, a string.
-#   Shibboleth SP version.
-#   Shibboleth SP base image version.
-#   Docker build flags, other flags for docker build.
-# Outputs:
-#   None
-###########################################################################
-function build_shibboleth_sp_supervisor() {
-    local docker_build_command
-    local docker_build_flags
-    local label
-    local prefix
-    local shib_label
-    local shib_suffix
-    local suffix
-
-    prefix="$1"
-    label="$2"
-    suffix="$3"
-    shib_label="$4"
-    shib_suffix="$5"
-
-    if [[ -z "${label}" ]]; then
-        err "ERROR:build_shibboleth_sp_supervisor: label cannot be empty"
-        return 1
-    fi
-
-    if [[ -z "${suffix}" ]]; then
-        err "ERROR:build_shibboleth_sp_supervisor: suffix cannot be empty"
-        return 1
-    fi
-
-    if [[ -z "${shib_label}" ]]; then
-        err "ERROR:build_shibboleth_sp_supervisor: shib_label cannot be empty"
-        return 1
-    fi
-
-    if [[ -z "${shib_suffix}" ]]; then
-        err "ERROR:build_shibboleth_sp_supervisor: shib_suffix cannot be empty"
-        return 1
-    fi
-
-    declare -a docker_build_flags=("${@:6}")
-
-    tag="comanage-registry:${label}-shibboleth-sp-supervisor-${suffix}"
-
-    docker_build_command=(docker build)
-
-    if ((${#docker_build_flags[@]})); then
-        for flag in "${docker_build_flags[@]}"; do
-            docker_build_command+=("${flag}")
-        done
-    fi
-
-    docker_build_command+=(--tag "${tag}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_VERSION="${label}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION="${suffix}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION="${shib_label}")
-    docker_build_command+=(--build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION="${shib_suffix}")
-    docker_build_command+=(--file container/registry/shibboleth-sp-supervisor/Dockerfile)
-    docker_build_command+=(.)
-
-    "${docker_build_command[@]}"
-
-    if (( $? != 0 )); then
-        exit 1
-    fi
-
-    if [[ -n "${prefix}" ]]; then
-        target="${prefix}${tag}"
-        docker tag "${tag}" "${target}"
-    fi
-}
-
-###########################################################################
 # Echo errors to stderr with timestamp.
 # Globals:
 #   None
@@ -444,16 +179,11 @@ SYNOPSIS
 DESCRIPTION
     Build COmanage Registry container images.
 
-    PRODUCT is one of 
+    PRODUCT is one of
         registry AUTHENTICATION
-        crond
-        slapd
 
     where AUTHENTICATION is one of
-        basic-auth
-        shibboleth-sp-supervisor
         mod_auth_openidc
-        all
 
     The full name of the built images has the format
 
@@ -504,37 +234,12 @@ DESCRIPTION
             required image tag suffix
 
 EXAMPLES
-    $0 -s 1 registry all
-        Build all Registry images with tag suffix 1
-
-    $0 --suffix=2022-05-01 registry shibboleth-sp-supervisor
-        Build Registry image with Shibboleth SP authentication
-        and the tag suffix 2022-05-01. The Python Supervisor
-        system is used to start Apache HTTP Server and the
-        Shibboleth SP shibd daemon.
-
-    $0 -s 1 --repository=myorg registry basic-auth
-        Build Registry image with basic authentication,
-        repository myorg, and tag suffix 1. The full name of
-        the image will have the format
-        myorg/comanage-registry:LABEL-basic-auth-1
-
-    $0 -s 1 --image_registry=server.my.org --repository=myorg
-            registry basic-auth
-        Build Registry image with basic authentication,
-        repository myorg, image registry server.my.org, and tag suffix 1.
-        The full name of the image will have the format
-        my.server.org/myorg/comanage-registry:LABEL-basic-auth-1
+    $0 -s 1 registry mod_auth_openidc
+        Build the Registry image with OIDC authentication and tag suffix 1.
 
     $0 --suffix=mytag --no-cache registry mod_auth_openidc
-        Build Registry image with OIDC authentication and tag suffix
-        mytag and pass --no-cache to the docker build command
-
-    $0 -s 20220501 --label mylabel registry shibboleth-sp-supervisor
-        Build Registry image with Shibboleth SP authentication, tag
-        suffix 20220501, and label mylabel. The full name of the image
-        will have the format
-        comanage-registry:mylabel-shibboleth-sp-supervisor-20220501
+        Build the Registry image with OIDC authentication and tag suffix
+        mytag and pass --no-cache to the docker build command.
 EOF
 
     echo "${usage}"
@@ -571,7 +276,7 @@ function label_from_repository() {
 ###########################################################################
 # Parse command line and execute as specified.
 # Globals:
-#   SHIBBOLETH_SP_VERSION, string
+#   None
 # Arguments:
 #   Array of all input parameters
 # Outputs:
@@ -663,32 +368,12 @@ function main() {
     product="$1"
 
     case "${product}" in
-        crond )
-            build_base "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}"
-            build_crond "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}"
-            ;;
         registry )
             authentication="$2"
             case "${authentication}" in
-                all )
-                    build_base "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_basic_auth "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_mod_auth_openidc "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_shibboleth_sp_base "${prefix}" "${SHIBBOLETH_SP_VERSION}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_shibboleth_sp_supervisor "${prefix}" "${label}" "${suffix}" "${SHIBBOLETH_SP_VERSION}" "${suffix}" "${docker_build_flags[@]}"
-                    ;;
-                basic-auth )
-                    build_base "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_basic_auth "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}"
-                    ;;
                 mod_auth_openidc )
                     build_base "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}" \
                     && build_mod_auth_openidc "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}"
-                    ;;
-                shibboleth-sp-supervisor )
-                    build_base "${prefix}" "${label}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_shibboleth_sp_base "${prefix}" "${SHIBBOLETH_SP_VERSION}" "${suffix}" "${docker_build_flags[@]}" \
-                    && build_shibboleth_sp_supervisor "${prefix}" "${label}" "${suffix}" "${SHIBBOLETH_SP_VERSION}" "${suffix}" "${docker_build_flags[@]}"
                     ;;
                 *)
                     err "ERROR: Unrecognized authentication"
@@ -697,8 +382,6 @@ function main() {
                     ;;
             esac
             ;;
-        slapd )
-            ;;
         *)
             err "ERROR: unrecogized product"
             echo
@@ -706,8 +389,5 @@ function main() {
             ;;
     esac
 }
-
-# Globals
-SHIBBOLETH_SP_VERSION=3.4.1
 
 main "$@"
