@@ -26,11 +26,10 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-
 declare(strict_types=1);
 
 // View vars
-// $content - the text or markup to be rendered
+// $content - the text or markup to be rendered OR an element spec array
 // $type    - accepts "subtitle" or "html"
 // $vv_action
 
@@ -43,7 +42,16 @@ if (empty($content)) {
 <li class="fields-subsection fields-subsection-<?= $type ?>">
   <?php if($type === 'subtitle'): ?>
     <h3><?= $content ?></h3>
-  <?php else: // we have arbitrary HTML ?>
-    <?= $content ?>
+  <?php else: ?>
+    <?php
+      // If content is an element spec, render it now (after Form->create()).
+      if (is_array($content) && !empty($content['element'])) {
+        $params = $content['params'] ?? [];
+        echo $this->element($content['element'], $params);
+      } else {
+        // Otherwise treat as raw HTML/text.
+        echo $content;
+      }
+    ?>
   <?php endif; ?>
 </li>
