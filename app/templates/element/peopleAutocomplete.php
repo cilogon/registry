@@ -32,7 +32,7 @@
   $type = $type ?? 'stand-alone';
 
   // For a frozen field, print the referenced person (if one exists) and link to the person canvas.
-  if($type == 'field' && $vv_obj['frozen']) {
+  if($type == 'field' && isset($vv_obj) && $vv_obj['frozen']) {
     $personId = $vv_obj[$vv_field_arguments['fieldName']];
     if(!empty($personId)) {
       $personRecord = $this->Petition->getRecordForId(
@@ -95,7 +95,7 @@
   }
 ?>
 
-<?php if(!$vv_obj['frozen']): ?>
+<?php if(empty($vv_obj['frozen'])): // skip for frozen fields ?>
   
   <script type="module">
     <?php if(Cake\Core\Configure::read('debug')): ?>
