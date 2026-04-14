@@ -194,10 +194,19 @@ class PronounsTable extends Table {
   public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
-      // Check if this has already been saved
+      // Pronouns can be optional, but if they are not provided we have to skip save since empty strings are not allowed.
+      $value    = $field->value;
+
+      if (
+        $field->enrollment_attribute->required !== true
+        && ($value === null || trim((string)$value) === '')
+      ) {
+        continue;
+      }
+
       $pronoun = [
         'person_id'     => $personId,
-        'pronouns'      => $field->value,
+        'pronouns'      => $value,
         'language'      => $field->enrollment_attribute->attribute_language,
         'type_id'       => $field->enrollment_attribute->attribute_type,
       ];

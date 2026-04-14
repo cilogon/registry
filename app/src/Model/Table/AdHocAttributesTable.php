@@ -167,10 +167,19 @@ class AdHocAttributesTable extends Table {
   public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
-      // Check if this has already been saved
+      $tag = $field->enrollment_attribute->attribute_tag;
+      $value = $field->value;
+
+      if (
+        $field->enrollment_attribute->required !== true
+        && ($tag === null || trim((string)$tag) === '')
+      ) {
+        continue;
+      }
+
       $adhoc = [
-        'tag'          => $field->enrollment_attribute->attribute_tag,
-        'value'       => $field->value
+        'tag'         => $tag,
+        'value'       => $value
       ];
 
       if($parentModel === 'Person') {

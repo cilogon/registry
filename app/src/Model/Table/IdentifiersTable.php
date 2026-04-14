@@ -469,4 +469,38 @@ class IdentifiersTable extends Table {
     
     return $validator; 
   }
+
+  /**
+   * Save attributes for a given person and optionally their role.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param int $personId Identifier for the person
+   * @param int|null $roleId Identifier for the role (nullable)
+   * @param string $parentModel Name of the parent model
+   * @param array $fields Array of attributes to save
+   * @return bool                True on success, false otherwise
+   */
+  public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
+  {
+    foreach ($fields as $idx => $field) {
+      // Identifiers can be optional, but if they are not provided we have to skip save since empty strings are not allowed.
+      $value    = $field->value;
+
+      if (
+        $field->enrollment_attribute->required !== true
+        && ($value === null || trim((string)$value) === '')
+      ) {
+        continue;
+      }
+
+      $identifier = [
+        'person_id'     => $personId,
+        'identifier'      => $value,
+        'type_id'       => $field->enrollment_attribute->attribute_type,
+      ];
+
+      $this->saveOrFail($this->newEntity($identifier));
+    }
+    return true;
+  }
 }

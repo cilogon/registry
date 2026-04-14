@@ -386,10 +386,19 @@ class EmailAddressesTable extends Table {
   public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
-      // Check if this has already been saved
+      // Email Addresses can be optional, but if they are not provided we have to skip save since empty email values are not allowed.
+      $value    = $field->value;
+
+      if (
+        $field->enrollment_attribute->required !== true
+        && ($value === null || trim((string)$value) === '')
+      ) {
+        continue;
+      }
+
       $email = [
         'person_id'     => $personId,
-        'mail'          => $field->value,
+        'mail'          => $value,
         'type_id'       => $field->enrollment_attribute->attribute_type,
       ];
 

@@ -212,10 +212,19 @@ class UrlsTable extends Table {
   public function saveAttributeCollectorPetitionAttributes(int $personId, ?int $roleId, string $parentModel, array $fields): bool
   {
     foreach ($fields as $idx => $field) {
-      // Check if this has already been saved
+      // URLs can be optional, but if they are not provided we have to skip save since empty URL strings are not allowed.
+      $value    = $field->value;
+
+      if (
+        $field->enrollment_attribute->required !== true
+        && ($value === null || trim((string)$value) === '')
+      ) {
+        continue;
+      }
+
       $url = [
         'person_id'    => $personId,
-        'url'          => $field->value,
+        'url'          => $value,
         'type_id'      => $field->enrollment_attribute->attribute_type,
       ];
 
