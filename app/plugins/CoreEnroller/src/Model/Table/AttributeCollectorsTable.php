@@ -140,7 +140,6 @@ class AttributeCollectorsTable extends Table {
     // Get the collection object
     $attributesCollection = new Collection($attributes);
 
-
     /*********** PERSON ROLE  ***************/
     // Filter the Person Role Attributes and keep the field name
     $personRoleAttributes = (new Collection($supportedAttributes))->filter(function($attr, $key) {
@@ -157,9 +156,11 @@ class AttributeCollectorsTable extends Table {
     $cxn = $this->getConnection();
     $cxn->begin();
 
-    // Save the Person Role
-    $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
-    $role = $personRoleObj->saveAttributeCollectorPetitionAttributes((int)$person->id, $fieldsForPersonRole);
+    // Save the Person Role only if we collected something meaningful for it,
+    if(!empty($fieldsForPersonRole)) {
+      $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
+      $role = $personRoleObj->saveAttributeCollectorPetitionAttributes((int)$person->id, $fieldsForPersonRole);
+    }
 
     /*********  MVEAS **************/
     // Filter the MVEAS Attributes and keep the field name
@@ -179,14 +180,17 @@ class AttributeCollectorsTable extends Table {
     );
 
     // MVEAs for Role
-    $this->handleMveaAttributes(
-      $person,
-      $role,
-      'PersonRole',
-      $mveaAttributes,
-      $attributes,
-      $cxn
-    );
+    // Save the MVEAs for the PersonRole only if we collected something meaningful for it, and the role was created
+    if(!empty($fieldsForPersonRole)) {
+      $this->handleMveaAttributes(
+        $person,
+        $role,
+        'PersonRole',
+        $mveaAttributes,
+        $attributes,
+        $cxn
+      );
+    }
 
     /****** PERSON ******/
     // Keep the person attributes
