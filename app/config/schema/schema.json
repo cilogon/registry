@@ -836,6 +836,7 @@
         "match_email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "match_identifier_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "match_server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" } },
+        "sync_status_on_create": { "type": "string", "size": 2 },
         "sync_status_on_delete": { "type": "string", "size": 2 },
         "sync_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
         "sync_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },

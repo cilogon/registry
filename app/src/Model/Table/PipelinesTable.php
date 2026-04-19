@@ -157,6 +157,10 @@ class PipelinesTable extends Table {
         'model' => 'Cous'
       ],
       // Just go with Cake's default pluralization
+      'syncStatusOnCreates' => [
+        'type'  => 'enum',
+        'class' => 'StatusEnum'
+      ],
       'syncStatusOnDeletes' => [
         'type'  => 'enum',
         'class' => 'DeletedRoleStatusEnum'
@@ -374,7 +378,7 @@ class PipelinesTable extends Table {
 
     $newPerson = [
       'co_id'   => $pipeline->co_id,
-      'status'  => StatusEnum::Pending
+      'status'  => $pipeline->sync_status_on_create ?? StatusEnum::Pending
     ];
 
     if(!empty($mappedAttributes['date_of_birth'])) {
@@ -722,9 +726,7 @@ class PipelinesTable extends Table {
         $this->Cos->IdentifierAssignments->assign(
           entityType:     'People',
           entityId:       $person->id,
-          provision:      false,
-// XXX should we pass this in when we have it? CFM-343
-          actorPersonId:  null
+          provision:      false
         );
 
         // (6) Update Person Status
@@ -2592,6 +2594,11 @@ class PipelinesTable extends Table {
     ]);
     $validator->allowEmptyString('sync_replace_cou_id');
 
+    $validator->add('sync_status_on_create', [
+      'content' => ['rule' => ['inList', StatusEnum::getConstValues()]]
+    ]);
+    $validator->allowEmptyString('sync_status_on_create');
+    
     $validator->add('sync_status_on_delete', [
       'content' => ['rule' => ['inList', DeletedRoleStatusEnum::getConstValues()]]
     ]);

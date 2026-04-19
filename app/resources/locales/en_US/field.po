@@ -935,6 +935,12 @@ msgstr "Replace Record in COU"
 msgid "Pipelines.sync_replace_cou_id.desc"
 msgstr "If the Person has an existing Person Role in the specified Person Role will be deleted/expired"
 
+msgid "Pipelines.sync_status_on_create"
+msgstr "Person Status On Create"
+
+msgid "Pipelines.sync_status_on_create.desc"
+msgstr "When the Pipeline creates a new Person, the initial Person status (see the <a href=\"https://spaces.at.internet2.edu/spaces/COmanage/pages/275743515/Registry+PE+Pipelines#RegistryPEPipelines-PipelineStatusManagement\">documentation</a> for more details)"
+
 msgid "Pipelines.sync_status_on_delete"
 msgstr "Role Status On Delete"
 

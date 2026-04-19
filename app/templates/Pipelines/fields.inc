@@ -25,6 +25,8 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+use App\Lib\Enum\StatusEnum;
+
 $fields = [
   'description',
   'status',
@@ -32,8 +34,7 @@ $fields = [
   'match_email_address_type_id',
   'match_identifier_type_id',
   'match_server_id',
-  // 'sync_on_update',
-  // 'sync_on_delete',
+  'sync_status_on_create',
   'sync_status_on_delete',
   'sync_cou_id',
   'sync_replace_cou_id',
