@@ -29,13 +29,13 @@
  * click a CakePHP postLink or postButton in the DOM. Use jsConfirmGeneric() to call it.
  */
 
-use \App\Lib\Enum\StatusEnum;
+use \App\Lib\Enum\PetitionStatusEnum;
 
 $status = null;
 $approver = null;
 
 if(!empty($vv_pa->approver_person_id)) {
-  $enum = ($vv_pa->approved ? StatusEnum::Approved : StatusEnum::Denied);
+  $enum = ($vv_pa->approved ? PetitionStatusEnum::Approved : PetitionStatusEnum::Denied);
 
   $approver = $this->Html->link(
     $vv_pa->approver_person->primary_name->full_name,
@@ -48,7 +48,7 @@ if(!empty($vv_pa->approver_person_id)) {
   );
 
   $status = __d('core_enroller', 'result.ApprovalCollectors.status', [
-    __d('enumeration', 'StatusEnum.'.$enum),
+    __d('enumeration', 'PetitionStatusEnum.'.$enum),
     $approver,
     $vv_pa->modified,
     $vv_pa->comment

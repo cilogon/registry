@@ -126,12 +126,12 @@ class SshKeyAuthenticatorsTable extends Table {
     // We'll include all available Password types (encodings) since we don't know which types
     // any specific Provisioner will be interested in.
 
-    $sshKeys = $this->SshKeyis->find()
-                              ->where([
-                                'SshKeys.person_id' => $personId,
-                                'SshKeys.ssh_key_authenticator_id' => $cfg->ssh_key_authenticator->id
-                              ])
-                              ->all();
+    $sshKeys = $this->SshKeys->find()
+                             ->where([
+                               'SshKeys.person_id' => $personId,
+                               'SshKeys.ssh_key_authenticator_id' => $cfg->ssh_key_authenticator->id
+                             ])
+                             ->all();
     
     return $sshKeys->toArray();
   }
