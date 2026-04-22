@@ -1699,6 +1699,8 @@ ul.form-list textarea {
   height: 4em;
   border: 1px solid var(--cmg-color-bg-007);
   padding: 0.5em;
+  color: var(--cmg-color-body-txt);
+  background-color: var(--cmg-color-body-bg);
 }
 ul.form-list textarea.big-textarea {
   height: 24em;
@@ -1929,6 +1931,11 @@ ul.form-list .cm-time-picker-vals li {
   pointer-events:none;
   opacity:0.65;
   box-shadow: inset 0 0 0.2em var(--cmg-color-highlight-007);
+}
+input.cm-autocomplete {
+  color: var(--cmg-color-body-txt);
+  background-color: var(--cmg-color-body-bg);
+  border: 1px solid var(--cmg-color-bg-008);
 }
 .cm-ac-item-primary {
   display: flex;
