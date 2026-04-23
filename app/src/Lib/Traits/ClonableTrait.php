@@ -167,9 +167,12 @@ trait ClonableTrait {
     }
 
     // If we make it here the admin set the UUID, so we do need to check.
+    // Make sure we're working against the correct datasource.
+
+    $targetDataSource = $options['repository']->getConnection()->configName();
 
     // Clonable model must FK directly to CO
-    $result = SearchUtilities::uuidSearch($entity->co_id, $entity->uuid);
+    $result = SearchUtilities::uuidSearch($entity->co_id, $entity->uuid, $targetDataSource);
     
     if(!empty($result['entity']) && !empty($entity->id) && ($entity->id != $result['entity']->id)) {
       return __d('error', 'exists.uuid', [$result['class'], $result['entity']->id]); 

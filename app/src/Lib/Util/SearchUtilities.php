@@ -259,12 +259,17 @@ class SearchUtilities {
    * Perform a search across all objects that support UUIDs.
    * 
    * @since  COmanage Registry v5.2.0
-   * @param  int    $coId CO ID
-   * @param  string $uuid UUID
-   * @return ?array       Array of 'class' and 'entity' for the matching record, if found
+   * @param  int    $coId       CO ID
+   * @param  string $uuid       UUID
+   * @param  string $dataSource Data Source
+   * @return ?array             Array of 'class' and 'entity' for the matching record, if found
    */
 
-  public static function uuidSearch(int $coId, string $uuid): ?array {
+  public static function uuidSearch(
+    int $coId,
+    string $uuid,
+    string $dataSource='default'
+  ): ?array {
     $ret = null;
 
     // In theory there should only be one entity in a CO with a given UUID
@@ -275,7 +280,10 @@ class SearchUtilities {
     // to be a somewhat expensive call to make.
 
     foreach(self::$clonableModels as $m) {
-      $Table = TableRegistry::getTableLocator()->get($m);
+      $Table = TableUtilities::getTableWithDataSource(
+        tableName: $m,
+        connectionName: $dataSource
+      );
 
       // Clonable model must FK directly to CO
       $entity = $Table->find()->where(['co_id' => $coId, 'uuid' => $uuid])->first();

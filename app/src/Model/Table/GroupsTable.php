@@ -345,7 +345,7 @@ class GroupsTable extends Table {
       $defaultGroups[':mfaexempt'] = [
         'group_type'  => GroupTypeEnum::MfaExempt,
         'auto'        => false,
-        'description' => __d('field', 'Groups.desc.mfaexempt', [$couName]),
+        'description' => __d('field', 'Groups.desc.mfaexempt', [$couName ?: $co->name]),
         'open'        => false,
         'status'      => SuspendableStatusEnum::Active,
         'cou_id'      => null
@@ -632,8 +632,20 @@ class GroupsTable extends Table {
 
           $targetGroup->uuid = $original->uuid;
 
-          // We don't want to run afterSave callbacks
-          $TargetGroups->save($targetGroup, ['clone' => true]);
+          try {
+            // We don't want to run afterSave callbacks, so we set clone = true
+            $TargetGroups->save($targetGroup, ['clone' => true]);
+          }
+          catch(\Exception $e) {
+            // Catch any error for logging puroses
+            $this->llog('error', "Error updating UUID: " . $e->getMesage());
+            
+            if(!empty($entity->getErrors())) {
+              $this->alog('error', $entity->getErrors());
+            }
+
+            throw $e;
+          }
         }
       }
     }

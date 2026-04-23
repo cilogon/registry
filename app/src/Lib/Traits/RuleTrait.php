@@ -52,7 +52,12 @@ trait RuleTrait {
     }
 
     foreach($options['fields'] as $f) {
-      $whereClause['LOWER('.$f.')'] = strtolower($entity->$f);
+      // We might have non-string fields (eg: co_id, used to constrain the search)
+      if(is_string($entity->$f)) {
+        $whereClause['LOWER('.$f.')'] = strtolower($entity->$f);
+      } else {
+        $whereClause[$f] = $entity->$f;
+      }
     }
 
     $count = $this->find()
