@@ -1272,7 +1272,17 @@ class GroupsTable extends Table {
     // to check here.)
     
     foreach($groupNestings->toArray() as $groupNesting) {
-      $iterator = $this->getMembers($groupNesting->group_id, null, false, false, false);
+      $iterator = $this->getMembers(
+        id: $groupNesting->group_id,
+        groupNestingId: null,
+        valid: false,
+        active: false,
+        // AR-GroupNesting-1 Only Active Groups may be nested into a Target Group,
+        // this will throw an Exception if the source Group is not Active, however
+        // it shouldn't be possible to Suspend a Group that has been Nested, so
+        // this generally shouldn't be triggered.
+        activeGroup: true
+      );
       
       foreach($iterator as $k => $sourceGroupMember) {
         $this->GroupMembers->syncNestedMembership($sourceGroupMember->person_id,
