@@ -252,8 +252,10 @@ class GroupsTable extends Table {
    * @param  int    $couId      COU ID
    * @param  bool   $rename     If true, rename any existing groups
    * @param  bool   $autoOnly   If true, only process automatic groups
+   * @param  bool   $provision  If true, request provisioning after adding defaults
+   * @param  bool   $clone      If true, the request is in a cloning context
    * @param  string $dataSource Datasource to use (primarily intended for use with cloning)
-   * @return bool             True on success
+   * @return bool               True on success
    * @throws InvalidArgumentException
    * @throws RuntimeException
    * @throws PersistenceFailedException
@@ -264,6 +266,8 @@ class GroupsTable extends Table {
     ?int    $couId=null,
     bool    $rename=false,
     bool    $autoOnly=false,
+    bool    $provision=true,
+    bool    $clone=false,
     string  $dataSource='default'
   ): bool {
     // Pull the name of the CO/COU, making sure to use the correct datasource so
@@ -381,7 +385,7 @@ class GroupsTable extends Table {
         $grp->co_id = $coId;
         $grp->name = $gname;
         
-        if(!$this->save($grp, options: ['autoOnly' => $autoOnly])) {
+        if(!$this->save($grp, options: ['autoOnly' => $autoOnly, 'clone' => $clone])) {
           throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
         }
       } elseif($rename) {
@@ -389,13 +393,13 @@ class GroupsTable extends Table {
         $grp->name = $gname;
         $grp->description = $attrs['description'];
         
-        if(!$this->save($grp, options: ['autoOnly' => $autoOnly])) {
+        if(!$this->save($grp, options: ['autoOnly' => $autoOnly, 'clone' => $clone])) {
           throw new \RuntimeException(__d('error', 'save', ['GroupsTable::addDefaults']));
         }
       }
       
-      if($couId || $rename) {
-        // If we're adding COU Group or renaming any Groups that call provisioning in case
+      if($provision && ($couId || $rename)) {
+        // If we're adding COU Group or renaming any Groups then call provisioning in case
         // there are any Provisioning Targets that need to be updated.
 
         $this->llog('trace', "Requesting provisioning for default Group " . $grp->name);
@@ -1013,7 +1017,7 @@ class GroupsTable extends Table {
 
     $ret['data'] = $this->get($id, [
       // We need archives for handling deleted records
-      'archived' => 'true',
+      'archived' => true,
       'contain' => [
         'GroupMembers',
         'Identifiers'

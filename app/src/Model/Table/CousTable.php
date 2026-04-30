@@ -291,6 +291,8 @@ class CousTable extends Table {
       couId: $clone->id,
       rename: true,   // Allow renaming on updates
       autoOnly: true,
+      provision: false,
+      clone: true,
       dataSource: $targetDataSource
     );
   }
