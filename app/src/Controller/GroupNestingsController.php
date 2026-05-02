@@ -31,6 +31,7 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
 
 class GroupNestingsController extends StandardController {
   protected array $paginate = [
@@ -39,6 +40,55 @@ class GroupNestingsController extends StandardController {
     ]
   ];
   
+  /**
+   * Handle an add action for a Standard object.
+   *
+   * @since  COmanage Registry v5.2.0
+   */
+  
+  public function add() {
+    if($this->request->is('post')) {
+      // if queue is true, extract the parameters and queue a job,
+      // otherwise pass through to parent::add()
+
+      $data = $this->request->getData();
+
+      if(!empty($data['queue'] && $data['queue'])) {
+        // This is substantially similar to queue(), below
+
+        $JobTable = TableRegistry::getTableLocator()->get("Jobs");
+
+        try {
+          $job = $JobTable->register(
+            coId:             $this->getCOID(),
+            plugin:           'CoreJob.NesterJob',
+            parameters:       ['group_id' => $data['group_id'], 
+                               'target_group_id' => $data['target_group_id'],
+                               'negate' => (bool)$data['negate']],
+            registerSummary:  __d('result', 'GroupNesting.add.queued.ok', [$data['group_id'], $data['target_group_id']])
+          );
+
+          $this->Flash->success(__d('result', 'GroupNesting.add.queued.ok', [$data['group_id'], $data['target_group_id']]));
+
+          return $this->redirect([
+            'controller' => 'jobs',
+            'action' => 'view',
+            $job->id
+          ]);
+        }
+        catch(\Exception $e) {
+          $this->Flash->error($e->getMessage());
+          // We need to be careful not to call parent on failure or we'll end up
+          // immediately processing the request
+        }
+      } else {
+        return parent::add();
+      }
+    } else {
+      return parent::add();
+    }
+  }
+
   /**
    * Callback run prior to the request render.
    *
@@ -81,5 +131,40 @@ class GroupNestingsController extends StandardController {
     $this->set('vv_target_window', 'top');
     
     return parent::deleted();
+  }
+
+  /**
+   * Queue a job to process a Group Nesting removal.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  string $id  Record ID, for removal only
+   */
+
+  public function queue(string $id) {
+    $JobTable = TableRegistry::getTableLocator()->get("Jobs");
+
+    try {
+      $job = null;
+
+      // Requesting removal of an existing Group Nesting
+
+      $job = $JobTable->register(
+        coId:             $this->getCOID(),
+        plugin:           'CoreJob.DeletionJob',
+        parameters:       ['target_model' => 'GroupNestings', 'target_id' => $id],
+        registerSummary:  __d('result', 'GroupNesting.delete.queued.ok', [$id])
+      );
+
+      $this->Flash->success(__d('result', 'GroupNesting.delete.queued.ok', [$id]));
+
+      return $this->redirect([
+        'controller' => 'jobs',
+        'action' => 'view',
+        $job->id
+      ]);
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+    }
   }
 }

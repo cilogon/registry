@@ -38,6 +38,7 @@ use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
 class GroupMembersTable extends Table {
@@ -95,8 +96,18 @@ class GroupMembersTable extends Table {
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     
-    $this->setEditContains(['Groups', 'People.PrimaryName']);
-    $this->setViewContains(['Groups', 'People.PrimaryName']);
+    $this->setEditContains([
+      // We don't include GroupNestings here because if there is a nesting the
+      // membership should not be editable
+      'Groups', 
+      'People.PrimaryName'
+    ]);
+
+    $this->setViewContains([
+      'GroupNestings' => 'Groups',
+      'Groups',
+      'People.PrimaryName'
+    ]);
 
     $this->setIndexContains([
       'GroupNestings' => 'Groups',
@@ -162,6 +173,12 @@ class GroupMembersTable extends Table {
                       'isGroupMember',
                       ['errorField' => 'person_id']);
     
+    // AR-GroupMember-4 A Group Membership created via a Group Nesting cannot be
+    // manually deleted.
+    $rules->addDelete([$this, 'ruleIsNestedMember'],
+                      'isNestedMember',
+                      ['errorField' => 'person_id']);
+
     return $rules;
   }
 
@@ -329,7 +346,7 @@ class GroupMembersTable extends Table {
   /**
    * Application Rule to determine if the Person is already a member of the Group.
    *
-   * @since  COmanage Registyr v5.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  Entity  $entity  Entity to be validated
    * @param  array   $options Application rule options
    * @return boolean          true if the Rule check passes, false otherwise
@@ -340,12 +357,41 @@ class GroupMembersTable extends Table {
     // twice, though they could have a separate membership via Nestings or
     // EIS Pipelines.
     
-    if($this->isMember($entity->group_id, $entity->person_id, true, false)) {
-      // Pull the Person and Group name for the error message.
-      $person = $this->People->get($entity->person_id, contain: ['PrimaryName']);
-      $group = $this->Groups->get($entity->group_id);
-      
-      return __d('error', 'exists.GroupMember', [$person->primary_name->full_name, $group->name]);
+    // If $options['insync'] is true we skip this check since syncNestedMembership()
+    // has already performed it. (We could simply check if group_nesting_id is populated,
+    // but for consistency we use the same check as ruleIsNestedMember(), since it can't
+    // just check that value.)
+
+    if(!isset($options['insync']) || !$options['insync']) {
+      if($this->isMember($entity->group_id, $entity->person_id, true, false)) {
+        // Pull the Person and Group name for the error message.
+        $person = $this->People->get($entity->person_id, contain: ['PrimaryName']);
+        $group = $this->Groups->get($entity->group_id);
+        
+        return __d('error', 'exists.GroupMember', [$person->primary_name->full_name, $group->name]);
+      }
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Application Rule to determine if the Person is a member of the Group via a Nesting.
+   *
+   * @since  COmanage Registyr v5.2.0
+   * @param  Entity  $entity  Entity to be validated
+   * @param  array   $options Application rule options
+   * @return boolean          true if the Rule check passes, false otherwise
+   */
+  
+  public function ruleIsNestedMember($entity, $options) {
+    // We skip this check if $options['insync'] is true in order to allow
+    // syncNestedMembership() to complete.
+
+    if(!isset($options['insync']) || !$options['insync']) {
+      if(!empty($entity->group_nesting_id)) {
+        return __d('error', 'GroupMembers.nested');
+      }
     }
     
     return true;
@@ -403,14 +449,21 @@ class GroupMembersTable extends Table {
       
       $entity = $this->newEntity($membership);
       
-// XXX need to make sure $provision is honored here
-      $this->saveOrFail($entity, ['provision' => $provision]);
+      $this->saveOrFail($entity);
       $this->llog('rule', "Added automatic membership for Person ID $personId to Group ID " . $targetGroup->id);
+
+      if($provision) {
+        $this->People->requestProvisioning(id: $personId, context: ProvisioningContextEnum::Automatic);
+      }
     } elseif(!$eligible && $isMember) {
       // Remove the membership
       
       $this->delete($memberEntity);
       $this->llog('rule', "Removed automatic membership for Person ID $personId from Group ID " . $targetGroup->id);
+
+      if($provision) {
+        $this->People->requestProvisioning(id: $personId, context: ProvisioningContextEnum::Automatic);
+      }
     }
     // else nothing to do
   }
@@ -532,14 +585,21 @@ class GroupMembersTable extends Table {
         
         $entity = $this->newEntity($membership);
         
-  // XXX need to make sure $provision is honored here
-        $this->saveOrFail($entity, ['provision' => $provision]);
+        $this->saveOrFail($entity, ['insync' => true]);
         $this->llog('rule', "Added nested membership for Person ID $personId to Group ID " . $targetGroup->id . " (Group Nesting ID " . $groupNesting->id . ")");
+
+        if($provision) {
+          $this->People->requestProvisioning(id: $personId, context: ProvisioningContextEnum::Automatic);
+        }
       } elseif($isCurrent && !$shouldBe) {
         // Remove the GroupMember associated with this Nesting
         
-        $this->delete($memberEntity);
+        $this->delete($memberEntity, ['insync' => true]);
         $this->llog('rule', "Removed nested membership for Person ID $personId from Group ID " . $targetGroup->id . " (Group Nesting ID " . $groupNesting->id . ")");
+
+        if($provision) {
+          $this->People->requestProvisioning(id: $personId, context: ProvisioningContextEnum::Automatic);
+        }
       }
     }
   }

@@ -81,4 +81,15 @@ $fields = array_merge($fields, [
   'valid_through'
 ]);
 
+if(!empty($vv_obj->group_nesting->group)) {
+  $fields['source'] = [
+    'value' => $vv_obj->group_nesting->group->name
+  ];
+} else {
+  $fields['source'] = [
+    'value' => __d('field', 'GroupMembers.source.direct'),
+    'readonly' => true
+  ];
+}
+
 // XXX RFE: Add links to EIS or Nesting info

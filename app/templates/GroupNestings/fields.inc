@@ -63,3 +63,35 @@ $fields['group_id'] = [
   'link' => $link
 ];
 $fields[] = 'negate';
+
+if($vv_action == 'add') {
+  // Allow the admin to request background creation of the Nesting
+  $fields['queue'] = [
+    'fieldLabel' => __d('operation', 'add.queue', [__d('controller', 'GroupNestings', [1])]),
+    'type' => 'checkbox',
+    'checked' => ''
+  ];
+}
+
+if($vv_action == 'edit') {
+  $topLinks = [
+    [
+      'icon' => 'add_to_queue',
+      'order' => 'Default',
+      'label' => __d('operation', 'delete.queue'),
+      'link' => [
+        // 'controller' => 'group_nestings',
+        'action' => 'queue',
+        $vv_obj->id
+        // '?' => [
+        //   'id' => $vv_obj->id
+        // ]
+      ],
+      'confirm' => [
+        'dg_body_txt' => __d('operation', 'delete.queue.confirm', [$vv_obj->id]),
+        'dg_confirm_btn' => __d('operation', 'queue')
+      ],
+      'class' => ''
+    ]
+  ];
+}

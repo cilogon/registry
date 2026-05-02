@@ -44,6 +44,7 @@ use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Model\Entity\Job;
 
 class GroupsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -1126,16 +1127,17 @@ class GroupsTable extends Table {
    * Reconcile the members of an automatic or nested Group.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int    $id   Group ID
+   * @param  int  $id     Group ID
+   * @param  Job  $job    Job entity, if in Job context
    */
   
-  public function reconcile(int $id) {
+  public function reconcile(int $id, ?Job $job=null) {
     $group = $this->get($id);
     
     if($group->isAutomatic()) {
-      $this->reconcileAutomaticGroup($group);
+      $this->reconcileAutomaticGroup($group, $job);
     } else {
-      $this->reconcileNestedMemberships($group);
+      $this->reconcileNestedMemberships($group, $job);
     }
   }
   
@@ -1144,9 +1146,13 @@ class GroupsTable extends Table {
    *
    * @since  COmanage Registry v5.0.0
    * @param  EntityInterface $entity  Group
+   * @param  Job             $job     Job entity, if in Job context
    */
   
-  protected function reconcileAutomaticGroup(EntityInterface $entity) {
+  protected function reconcileAutomaticGroup(
+    EntityInterface $entity,
+    ?Job $job=null    // XXX not yet used here
+  ) {
     // In order to handle very large groups, we can't pull the full set of
     // members into memory. Instead, we use the paginated iterator. This
     // involves two passes.
@@ -1243,11 +1249,17 @@ class GroupsTable extends Table {
    * Reconcile the members of a nested Group.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  EntityInterface $entity  Group
+   * @param  EntityInterface  $entity   Group
+   * @param  Job              $job      Job entity, if in Job context
    */
   
-  protected function reconcileNestedMemberships(EntityInterface $entity) {
+  protected function reconcileNestedMemberships(
+    EntityInterface $entity,
+    ?Job $job=null
+  ) {
     // When a new GroupNesting is saved, we're called on the _target_.
+
+    $JobHistoryRecords = TableRegistry::getTableLocator()->get('JobHistoryRecords');
 
     // Start by pulling the Group Nestings for this Group. We'll only go one level deep.
     
@@ -1258,15 +1270,31 @@ class GroupsTable extends Table {
     // First iterate through the current members of the target group (who are
     // members due to one of the nestings) and recheck their eligibility. This
     // will remove anyone who is no longer eligible.
+
+    $done = 0;                            // Nestings processed, for use in Job context
+    $todo = $groupNestings->count() * 2;  // We process each Nesting twice
     
     // We convert $groupNestings to an array for the outer loop to ensure we don't
     // have conflicts with the next loop
     foreach($groupNestings->toArray() as $groupNesting) {
+      if($job) {
+        $JobHistoryRecords->record(
+          jobId: $job->id,
+          recordKey: (string)$groupNesting->id,
+          comment: __d('core_job', 'Nester.recheck.current', [$entity->name])
+        );
+      }
+
       $iterator = $this->getMembersViaNesting($groupNesting->target_group_id, $groupNesting->id);
 
       foreach($iterator as $k => $targetGroupMember) {
         $this->GroupMembers->syncNestedMembership($targetGroupMember->person_id,
                                                   $entity);
+      }
+
+      if($job) {
+        $done++;
+        $JobHistoryRecords->Jobs->setPercentComplete($job, (int)(($done * 100)/$todo));
       }
     }
   
@@ -1276,6 +1304,14 @@ class GroupsTable extends Table {
     // to check here.)
     
     foreach($groupNestings->toArray() as $groupNesting) {
+      if($job) {
+        $JobHistoryRecords->record(
+          jobId: $job->id,
+          recordKey: (string)$groupNesting->id,
+          comment: __d('core_job', 'Nester.recheck.eligible', [$entity->name])
+        );
+      }
+
       $iterator = $this->getMembers(
         id: $groupNesting->group_id,
         groupNestingId: null,
@@ -1291,6 +1327,11 @@ class GroupsTable extends Table {
       foreach($iterator as $k => $sourceGroupMember) {
         $this->GroupMembers->syncNestedMembership($sourceGroupMember->person_id,
                                                   $entity);
+      }
+
+      if($job) {
+        $done++;
+        $JobHistoryRecords->Jobs->setPercentComplete($job, (int)(($done * 100)/$todo));
       }
     }
     

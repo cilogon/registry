@@ -362,7 +362,7 @@ class JobCommand extends BaseCommand
       // Note we'e overwriting $job
       $job = $JobTable->get($job->id);
 
-      if(!$job->isFinished()) {
+      if($synchronous && !$job->isFinished()) {
         // Terminate the job
         $JobTable->finish(
           job:      $job, 

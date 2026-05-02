@@ -32,13 +32,28 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 class GroupMember extends Entity {
-  use \App\Lib\Traits\EntityMetaTrait;
+  use \App\Lib\Traits\EntityMetaTrait {
+    isReadOnly as traitIsReadOnly;
+  }
   
   protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
+
+  /**
+   * Determine if this entity is Read Only.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @return boolean  True if the entity is read only, false otherwise
+   */
+
+  public function isReadOnly(): bool {
+    // Nested Group Memberships are read only
+
+    return !empty($this->group_nesting_id) || $this->traitIsReadOnly();
+  }
 
   /**
    * Determine if this Group Membership is valid, meaning it has validity dates

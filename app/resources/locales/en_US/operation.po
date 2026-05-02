@@ -51,6 +51,9 @@ msgstr "Add Attribute"
 msgid "add.member"
 msgstr "Add member: "
 
+msgid "add.queue"
+msgstr "Queue Job to Add {0}"
+
 msgid "adopt"
 msgstr "Adopt"
 

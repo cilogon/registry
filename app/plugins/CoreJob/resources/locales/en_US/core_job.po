@@ -43,6 +43,15 @@ msgstr "Model to delete"
 msgid "opt.entities"
 msgstr "Comma separated list of entity IDs to process"
 
+msgid "opt.nester.group_id"
+msgstr "Nested Group ID"
+
+msgid "opt.nester.target_group_id"
+msgstr "Target Group ID"
+
+msgid "opt.nester.negate"
+msgstr "If true, Negate Nesting"
+
 msgid "opt.provisioner.model"
 msgstr "Model to provision"
 
@@ -103,9 +112,6 @@ msgstr "Assigning all Identifiers in context {0} for CO {1} ({2} entities)"
 msgid "Deletion.error.co"
 msgstr "DeletionJob can only be scheduled from the COmanage CO"
 
-msgid "Deletion.error.model"
-msgstr "Unsupported target model"
-
 msgid "Deletion.register_summary"
 msgstr "Requested hard delete of {0} {1}"
 
@@ -114,6 +120,21 @@ msgstr "Beginning hard delete of {0} {1}"
 
 msgid "Deletion.finish_summary"
 msgstr "Deletion completed successfully"
+
+msgid "Nester.recheck.current"
+msgstr "Rechecking existing nested memberships of {0}"
+
+msgid "Nester.recheck.eligible"
+msgstr "Rechecking nesting eligibility of {0} memberships"
+
+msgid "Nester.register_summary"
+msgstr "Requested nesting of Group {0} into target Group {1}"
+
+msgid "Nester.start_summary"
+msgstr "Nesting Group {0} into target Group {1}"
+
+msgid "Nester.finish_summary"
+msgstr "Group Nesting complete"
 
 msgid "Provisioner.cancel_summary"
 msgstr "Job canceled after provisioning {0} entities ({1} errors)"

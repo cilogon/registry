@@ -89,6 +89,8 @@ class GroupNestingsTable extends Table {
     
     $this->setPrimaryLink('group_id');
     $this->setRequiresCO(true);
+    $this->setAllowLookupPrimaryLink(['queue']);
+    $this->setAllowLookupRelatedPrimaryLink(['queue' => ['group_id']]);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');
 
@@ -102,6 +104,7 @@ class GroupNestingsTable extends Table {
       'entity' => [
         'delete' =>   ['platformAdmin', 'coAdmin'],
         'edit' =>     ['platformAdmin', 'coAdmin'],
+        'queue' =>    ['platformAdmin', 'coAdmin'],
         'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
@@ -284,11 +287,7 @@ class GroupNestingsTable extends Table {
    */
     
   public function localAfterSave(\Cake\Event\EventInterface $event, \Cake\Datasource\EntityInterface $entity, \ArrayObject $options): bool {
-    // XXX This is temporary until JobShell is available (CFM-169), at which
-    // point either all reconciliation moves to JobShell, or maybe only if
-    // the source group has a large number of records to process (though then
-    // we have to cascade, so maybe that's too hard to figure out).
-    $this->Groups->reconcile($entity->target_group_id);
+    $this->Groups->reconcile($entity->target_group_id, $options['job'] ?? null);
     
     return true;
   }

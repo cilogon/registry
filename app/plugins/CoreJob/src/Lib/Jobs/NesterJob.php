@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Deletion Job
+ * COmanage Registry Nester Job
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -31,7 +31,7 @@ namespace CoreJob\Lib\Jobs;
 
 use Cake\ORM\TableRegistry;
 
-class DeletionJob {
+class NesterJob {
   use \App\Lib\Traits\LabeledLogTrait;
 
   /**
@@ -45,16 +45,20 @@ class DeletionJob {
 
   public function parameterFormat(): array {
     return [
-      'target_model' => [
-        'help'      => __d('core_job', 'opt.deletion.target_model'),
-        'type'      => 'select',
-        'choices'   => ['Cos', 'GroupNestings'],
-        'required'  => true
-      ],
-      'target_id' => [
-        'help'      => __d('core_job', 'opt.deletion.target_id'),
+      'group_id' => [
+        'help'      => __d('core_job', 'opt.nester.group_id'),
         'type'      => 'integer',
         'required'  => true
+      ],
+      'target_group_id' => [
+        'help'      => __d('core_job', 'opt.nester.target_group_id'),
+        'type'      => 'integer',
+        'required'  => true
+      ],
+      'negate' => [
+        'help'      => __d('core_job', 'opt.nester.negate'),
+        'type'      => 'bool',
+        'required'  => false
       ]
     ];
   }
@@ -76,28 +80,21 @@ class DeletionJob {
     \App\Model\Entity\Job $job, 
     array $parameters
   ) {
-    if($parameters['target_model'] == 'Cos') {
-      // Check that the requesting CO is the COmanage CO.
+    // GMR-2 will prevent nesting Groups across COs, all we need to do is create a
+    // Group Nesting and save it.
 
-      $requestingCO = $JobsTable->Cos->get($job->co_id);
+    $GroupNestings = TableRegistry::getTableLocator()->get('GroupNestings');
 
-      if(!$requestingCO->isCOmanageCO()) {
-        throw new \InvalidArgumentException(__d('core_job', 'Deletion.error.co'));
-      }
-    }
+    $nesting = $GroupNestings->newEntity([
+      'group_id' => $parameters['group_id'],
+      'target_group_id' => $parameters['target_group_id'],
+      'negate' => isset($parameters['negate']) && $parameters['negate']
+    ]);
 
-    // Find the table to call delete on, and then pull the entity so we can delete it
-    $TargetTable = TableRegistry::getTableLocator()->get($parameters['target_model']);
+    $JobsTable->start(job: $job, summary: __d('core_job', 'Nester.start_summary', [$parameters['group_id'], $parameters['target_group_id']]));
 
-    // get() will throw an exception on an invalid CO ID
-    $entity = $TargetTable->get($parameters['target_id']);
+    $GroupNestings->save($nesting, ['job' => $job]);
 
-    $JobsTable->start(job: $job, summary: __d('core_job', 'Deletion.start_summary', [$parameters['target_model'], $parameters['target_id']]));
-
-    // CosTable implements a custom deleteOrFail() that will perform a hard delete,
-    // any other model will revert to the default Cake call which ChangelogBehavior will intercept.
-    $TargetTable->deleteOrFail($entity, ['jobId' => $job->id]);
-
-    $JobsTable->finish(job: $job, summary: __d('core_job', 'Deletion.finish_summary'));
+    $JobsTable->finish(job: $job, summary: __d('core_job', 'Nester.finish_summary'));
   }
 }

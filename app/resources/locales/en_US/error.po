@@ -160,6 +160,9 @@ msgstr "External Identity cannot be relinked due to Frozen Attribute {0} {1} on 
 msgid "ExternalIdentitySources.annul.person_id"
 msgstr "There is no adopted Person ID associated with this Source Key, and so it cannot be annuled"
 
+msgid "GroupMembers.nested"
+msgstr "This Group Membership was created via a Group Nesting and cannot be manually deleted"
+
 msgid "GroupNestings.active"
 msgstr "Group {0} is not active and so cannot be nested"
 

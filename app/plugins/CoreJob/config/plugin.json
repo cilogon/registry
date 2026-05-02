@@ -4,6 +4,7 @@
       "AdopterJob",
       "AssignerJob",
       "DeletionJob",
+      "NesterJob",
       "ProvisionerJob",
       "SyncJob"
     ]

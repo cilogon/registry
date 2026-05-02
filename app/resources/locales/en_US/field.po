@@ -597,6 +597,9 @@ msgstr "Membership Source"
 msgid "GroupMembers.source.direct"
 msgstr "Direct"
 
+msgid "GroupMembers.status"
+msgstr "Person Status"
+
 msgid "GroupNestings.group_id"
 msgstr "Nested Group"
 
