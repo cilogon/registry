@@ -428,7 +428,7 @@ class FieldHelper extends Helper {
                             string $fieldType = null,
                             array  $fieldSelectOptions = null,
                             string $fieldNameAlias = null,
-                              bool $labelIsTextOnly = null): string
+                            bool   $labelIsTextOnly = null): string
   {
     $fieldArgs = $fieldOptions ?? [];
     $fieldArgs['label'] = $fieldOptions['label'] ?? false;
@@ -766,7 +766,8 @@ class FieldHelper extends Helper {
       'id',
       'style',
       'checked',
-      'label'
+      'label',
+      'name',
     ];
     
     // Remove the top-level field options that are intended for Cake, and

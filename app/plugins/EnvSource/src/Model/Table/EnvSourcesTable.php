@@ -280,21 +280,15 @@ class EnvSourcesTable extends Table {
 
     // Email Address
     if(!empty($result['env_mail'])) {
-      $mails = [];
-
       // We accept multiple values if supported by the configured SP software.
+      $delimiter = $EnvSource->mva_delimiter;
+      $stringValue = $result['env_mail'];
 
-      switch($EnvSource->sp_mode) {
-        case EnvSourceSpModeEnum::Shibboleth:
-          $mails = explode(";", $result['env_mail']);
-          break;
-        case EnvSourceSpModeEnum::SimpleSamlPhp:
-          $mails = explode(",", $result['env_mail']);
-          break;
-        default:
-          // We dont' try to tokenize the string
-          $mails = [ $result['env_mail' ]];
-          break;
+      // Check if the delimiter is provided and not an empty string
+      if (!empty($delimiter)) {
+        $mails = explode($delimiter, $stringValue);
+      } else {
+        $mails = [$stringValue];
       }
 
       foreach($mails as $m) {
@@ -443,10 +437,7 @@ class EnvSourcesTable extends Table {
     ]);
     $validator->allowEmptyString('redirect_on_duplicate');
 
-    $validator->add('sp_mode', [
-      'content' => ['rule' => ['inList', EnvSourceSpModeEnum::getConstValues()]]
-    ]);
-    $validator->notEmptyString('sp_mode');
+    $this->registerStringValidation($validator, $schema, 'mva_delimiter', true);
 
     $validator->add('sync_on_login', [
       'content' => ['rule' => 'boolean']

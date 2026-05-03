@@ -189,11 +189,23 @@ msgstr "Executing post-database tasks for version {0}"
 msgid "ug.tasks.pre"
 msgstr "Executing pre-database tasks for version {0}"
 
+msgid "ug.tasks.cacheEnvSourcespMode"
+msgstr "Caching EnvSource SP modes"
+
+msgid "ug.tasks.assignEnvSourceMvaDelimiter"
+msgstr "Mapping EnvSource SP modes to multi-value delimiters"
+
+msgid "ug.schema.reload"
+msgstr "Force a global schema reload so that post-upgrade tasks are aware of the new schema"
+
 msgid "ug.version.current"
 msgstr "Current version: {0}"
 
 msgid "ug.version.target"
 msgstr "Target version: {0}"
+
+msgid "ug.tasks.assignEnvSourceMvaDelimiter.co"
+msgstr "Map the EnvSource SP Mode to Multi Value Delimitier for CO {0}"
 
 msgid "ug.tasks.assignUuids"
 msgstr "Assigning UUIDs (this may take a while for larger deployments)"

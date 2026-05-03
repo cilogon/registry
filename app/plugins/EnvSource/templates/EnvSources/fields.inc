@@ -25,9 +25,98 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
+use EnvSource\Lib\Enum\EnvSourceSpModeEnum;
+
+// Build the delimiter map dynamically from your $spModes array
+$phpDelimiterMap = [];
+$selectedValue = '';
+foreach ($spModes as $key => $label) {
+  if ($key === EnvSourceSpModeEnum::Shibboleth) {
+    $phpDelimiterMap[$key] = ';';
+    if ($vv_obj?->mva_delimiter == ';') {
+      $selectedValue = EnvSourceSpModeEnum::Shibboleth;
+    }
+  } elseif ($key === EnvSourceSpModeEnum::SimpleSamlPhp) {
+    $phpDelimiterMap[$key] = ',';
+    if ($vv_obj?->mva_delimiter == ',') {
+      $selectedValue = EnvSourceSpModeEnum::SimpleSamlPhp;
+    }
+  } elseif ($key === EnvSourceSpModeEnum::Other) {
+    $phpDelimiterMap[$key] = '';
+    if (!in_array($vv_obj?->mva_delimiter, ['', ',', ';'])) {
+      $phpDelimiterMap[$key] = $vv_obj?->mva_delimiter;
+      $selectedValue = EnvSourceSpModeEnum::Other;
+    }
+  }
+}
+
+// Encode the array to JSON before inserting it into the Javascript block
+$jsonDelimiterMap = json_encode($phpDelimiterMap);
+
+
+$afterField = <<<JS
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var select = document.getElementById('mva_delimiter_default');
+    var textbox = document.getElementById('mva_delimiter');
+
+    // Map the dropdown values to actual delimiter characters
+    var delimiterMap = $jsonDelimiterMap;
+
+    select.addEventListener('change', function() {
+        var selectedValue = select.value;
+
+        // Update the textbox with the corresponding delimiter
+        if (delimiterMap[selectedValue] !== undefined) {
+            textbox.value = delimiterMap[selectedValue];
+        } else {
+            // Fallback in case of unexpected values
+            textbox.value = selectedValue;
+        }
+
+        // Focus the textbox if "Other" is selected so we can immediately type
+        if (selectedValue === 'O') {
+            textbox.focus();
+        }
+    });
+
+    if (!textbox.value && select.value) {
+        textbox.value = delimiterMap[select.value] || '';
+    }
+});
+</script>
+JS;
+
+
 $fields = [
   // 'duplicate_mode',
-  'sp_mode',
+  'mva_delimiter' => [
+    'fieldLabel' => __d('env_source','field.EnvSources.mva_delimiter'),
+    'groupedControls' =>  [
+      'mva_delimiter' => [
+        'type' => 'text',
+        'id' => 'mva_delimiter',
+        'label' => false,
+        'required' => true,
+        'class' => 'form-control mb-1',
+        'singleRowItem' => true,
+      ],
+      'mva_delimiter_default' => [
+        'id' => 'mva_delimiter_default',
+        'label' => [
+          'text' => __d('env_source','field.EnvSources.mva_delimiter_common'),
+          'class' => 'mb-2'
+        ],
+        'name' => 'mva_delimiter_default',
+        'required' => false,
+        'empty' => false,
+        'type' => 'select',
+        'value' => $selectedValue,
+        'options' => $spModes,
+      ],
+    ],
+    'afterField' => $afterField
+  ],
   'sync_on_login',
   'address_type_id',
   'default_affiliation_type_id',

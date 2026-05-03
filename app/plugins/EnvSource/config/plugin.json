@@ -28,7 +28,7 @@
           "id": {},
           "external_identity_source_id": {},
           "redirect_on_duplicate": { "type": "url" },
-          "sp_mode": { "type": "enum" },
+          "mva_delimiter": { "type": "string", "size": "1" },
           "sync_on_login": { "type": "boolean"},
           "default_affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
           "address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },

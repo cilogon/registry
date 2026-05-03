@@ -55,6 +55,9 @@ msgstr "Source Key {0} is already attached to External Identity {1}"
 msgid "field.EnvSources.address_type_id"
 msgstr "Address Type"
 
+msgid "field.EnvSources.mva_delimiter_common"
+msgstr "Common Delimiters"
+
 msgid "field.EnvSources.default_affiliation_type_id"
 msgstr "Default Affiliation Type"
 
@@ -145,8 +148,8 @@ msgstr "Path to lookaside file, intended for testing only"
 msgid "field.EnvSources.redirect_on_duplicate"
 msgstr "Redirect on Duplicate"
 
-msgid "field.EnvSources.sp_mode"
-msgstr "Web Server Service Provider"
+msgid "field.EnvSources.mva_delimiter"
+msgstr "Service Provider Multi Value Delimiter"
 
 msgid "field.EnvSources.sync_on_login"
 msgstr "Sync on Login"

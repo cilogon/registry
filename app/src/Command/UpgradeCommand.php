@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use Cake\Cache\Cache;
 use Cake\Console\Arguments;
 use Cake\Console\BaseCommand;
 use Cake\Console\ConsoleIo;
@@ -37,12 +38,29 @@ use Cake\Datasource\ConnectionManager;
 use \App\Lib\Enum\GroupTypeEnum;
 use \App\Lib\Util\PaginatedSqlIterator;
 use \App\Lib\Util\SearchUtilities;
+use Cake\ORM\TableRegistry;
+use EnvSource\Lib\Enum\EnvSourceSpModeEnum;
 
 class UpgradeCommand extends BaseCommand
 {
   use \Cake\ORM\Locator\LocatorAwareTrait;
 
   protected $io = null;
+
+  /**
+   * Cache of EnvSource SP Modes.
+   *
+   * This array temporarily stores the `sp_mode` values (e.g., 'SH', 'SS', 'O')
+   * from the database prior to schema migration. It allows post-migration tasks
+   * to accurately map the deprecated `sp_mode` column data into the new
+   * `mva_delimiter` column structure.
+   *
+   * Format: `[ envSourceId => 'sp_mode_value' ]`
+   *
+   * @var array<int, string>
+   */
+  private array $EnvSourceSpMode = [];
+
 
   // A list of known versions, must be semantic versioning compliant. The value
   // is a "blocker" if it is a version that prevents an upgrade from happening.
@@ -76,13 +94,15 @@ class UpgradeCommand extends BaseCommand
     "5.2.0" => [
       'block' => false,
       'pre' => [
-        'checkGroupNames'
+        'checkGroupNames',
+        'cacheEnvSourcespMode'
       ],
       'post' => [
         'assignUuids',
         'buildGroupTree',
         'createDefaultGroups', 
-        'installMostlyStaticPages'
+        'installMostlyStaticPages',
+        'assignEnvSourceMvaDelimiter',
       ]
     ]
   ];
@@ -95,7 +115,9 @@ class UpgradeCommand extends BaseCommand
     'buildGroupTree' => ['global' => true],
     'checkGroupNames' => ['global' => true],
     'createDefaultGroups' => ['perCO' => true, 'perCOU' => true],
-    'installMostlyStaticPages' => ['perCO' => true]
+    'installMostlyStaticPages' => ['perCO' => true],
+    'cacheEnvSourcespMode' => ['global' => true],
+    'assignEnvSourceMvaDelimiter' => ['global' => true]
   ];
 
   /**
@@ -235,6 +257,19 @@ class UpgradeCommand extends BaseCommand
       if(!$args->getOption('skipdatabase')) {
         // Call database command
         $this->executeCommand(DatabaseCommand::class);
+
+        // Force a global schema reload so that post-upgrade tasks are aware of the new schema
+        $this->io->out(__d('information', 'ug.schema.reload'));
+
+        // Clear all loaded table instances so they are re-instantiated with the new schema
+        TableRegistry::getTableLocator()->clear();
+
+        // Clear the CakePHP cache for models (this holds the schema arrays)
+        Cache::clear('_cake_model_');
+
+        // Disable schema caching for this specific process going forward
+        $connection = ConnectionManager::get('default');
+        $connection->cacheMetadata(false);
       }
 
       // Run appropriate post-database steps
@@ -375,6 +410,64 @@ class UpgradeCommand extends BaseCommand
           // No need to provision
         }
       }
+    }
+  }
+
+
+  /**
+   * Cache the SP Mode for all EnvSource instances.
+   * This is used prior to database migrations where the sp_mode column is
+   * removed or altered, allowing post-migration tasks to map the old value
+   * to the new schema structure (e.g., mva_delimiter).
+   *
+   * @since  COmanage Registry v5.2.0
+   * @return void
+   */
+  protected function cacheEnvSourcespMode(): void
+  {
+    $EnvSourcesTable = $this->getTableLocator()->get('EnvSource.EnvSources');
+
+    $this->EnvSourceSpMode = $EnvSourcesTable->find('list', [
+        'keyField' => 'id',
+        'valueField' => 'sp_mode'
+      ])
+      ->applyOptions(['archived' => true])
+      ->toArray();
+  }
+
+  /**
+   * Map cached EnvSource SP Modes to the new mva_delimiter column.
+   *
+   * @return void
+   * @throws \Exception
+   * @since  COmanage Registry v5.2.0
+   */
+  protected function assignEnvSourceMvaDelimiter(): void
+  {
+    if (empty($this->EnvSourceSpMode)) {
+      // Nothing to migrate
+      return;
+    }
+
+    $EnvSourcesTable = $this->getTableLocator()->get('EnvSource.EnvSources');
+
+    // Iterate over the cached id => sp_mode array
+    foreach ($this->EnvSourceSpMode as $envSourceId => $spMode) {
+      $delimiter = ';';
+
+      // Map the old SP Mode to the new multi-value delimiter
+      if ($spMode === EnvSourceSpModeEnum::Shibboleth) {
+        $delimiter = ';';
+      } elseif ($spMode === EnvSourceSpModeEnum::SimpleSamlPhp) {
+        $delimiter = ',';
+      }
+
+      // Use updateAll to execute a raw SQL UPDATE.
+      // This bypasses the ORM's beforeSave event and ChangelogBehavior's lock.
+      $EnvSourcesTable->updateAll(
+        ['mva_delimiter' => $delimiter], // Fields to update
+        ['id' => $envSourceId]           // Conditions
+      );
     }
   }
 
