@@ -44,6 +44,7 @@ use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Model\Entity\Group;
 use \App\Model\Entity\Job;
 
 class GroupsTable extends Table {
@@ -1274,6 +1275,12 @@ class GroupsTable extends Table {
     $done = 0;                            // Nestings processed, for use in Job context
     $todo = $groupNestings->count() * 2;  // We process each Nesting twice
     
+    // Because syncNestedMembership will fully resync a person (not just for
+    // the current groupNesting) we might end up calling it multiple times (once
+    // per Group Nesting), which could be a lot of extra work. So we'll track
+    // who we've already processed.
+    $seenMembers = [];
+    
     // We convert $groupNestings to an array for the outer loop to ensure we don't
     // have conflicts with the next loop
     foreach($groupNestings->toArray() as $groupNesting) {
@@ -1288,8 +1295,12 @@ class GroupsTable extends Table {
       $iterator = $this->getMembersViaNesting($groupNesting->target_group_id, $groupNesting->id);
 
       foreach($iterator as $k => $targetGroupMember) {
-        $this->GroupMembers->syncNestedMembership($targetGroupMember->person_id,
-                                                  $entity);
+        if(!array_key_exists($targetGroupMember->person_id, $seenMembers)) {
+          $this->GroupMembers->syncNestedMembership($targetGroupMember->person_id,
+                                                    $entity);
+
+          $seenMembers[$targetGroupMember->person_id] = true;
+        }
       }
 
       if($job) {
@@ -1302,6 +1313,8 @@ class GroupsTable extends Table {
     // recheck their eligibility. This will add in anyone who is now eligible.
     // (We do this second since the first iteration might shrink the population
     // to check here.)
+
+    $seenMembers = [];
     
     foreach($groupNestings->toArray() as $groupNesting) {
       if($job) {
@@ -1325,8 +1338,12 @@ class GroupsTable extends Table {
       );
       
       foreach($iterator as $k => $sourceGroupMember) {
-        $this->GroupMembers->syncNestedMembership($sourceGroupMember->person_id,
-                                                  $entity);
+        if(!array_key_exists($sourceGroupMember->person_id, $seenMembers)) {
+          $this->GroupMembers->syncNestedMembership($sourceGroupMember->person_id,
+                                                    $entity);
+          
+          $seenMembers[$sourceGroupMember->person_id] = true;
+        }
       }
 
       if($job) {
