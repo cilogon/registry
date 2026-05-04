@@ -28,7 +28,8 @@
 $fields = [
   'external_identity_source_id' => [
     'fieldLabel' => __d('env_source', 'controller.EnvSources', [1])
-  ]
+  ],
+  'enable_confirmation_page'
 ];
 
 $subnav = [

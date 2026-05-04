@@ -85,7 +85,8 @@ class EnvSourceCollectorsController extends StandardEnrollerController {
 
       $this->set('vv_env_source_vars', $vars);
 
-      if($this->request->is(['post', 'put'])) {
+      if($this->request->is(['post', 'put'])
+         || ($this->request->is(['get']) && !$envSource->enable_confirmation_page)) {
         // We'll upsert the collected attributes. Generally this should always be an insert,
         // but we could imagine a scenario where an admin reruns the step to change the
         // collected identity. Or maybe if the enrollee just hits the back button.

@@ -29,7 +29,7 @@ declare(strict_types = 1);
 
 // This view is intended to work with dispatch
 if($vv_action == 'dispatch') {
-  // Make the Form fields editable
+  // This form isn't editable, but we need the continue button to render
   $this->Field->enableFormEditMode();
   ksort($vv_env_source_vars);
   $previousKey = '';

@@ -16,7 +16,8 @@
         "columns": {
           "id": {},
           "enrollment_flow_step_id": {},
-          "external_identity_source_id": {}
+          "external_identity_source_id": {},
+          "enable_confirmation_page": { "type": "boolean" }
         },
         "indexes": {
           "env_source_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },

@@ -52,6 +52,12 @@ msgstr "Source Key (env_identifier_sourcekey) not found in attributes"
 msgid "error.source_key.duplicate"
 msgstr "Source Key {0} is already attached to External Identity {1}"
 
+msgid "field.EnvSourceCollectors.enable_confirmation_page"
+msgstr "Enable Confirmation Page"
+
+msgid "field.EnvSourceCollectors.enable_confirmation_page.desc"
+msgstr "If enabled, Enrollees will be presented with the values asserted by their IdP to review before continuing"
+
 msgid "field.EnvSources.address_type_id"
 msgstr "Address Type"
 

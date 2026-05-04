@@ -134,6 +134,71 @@ class EnvSourceCollectorsTable extends Table {
   }
 
   /**
+   * Obtain a name (as a string) for the Enrollee associated with the specified Petition.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $config       Configuration entity for this plugin
+   * @param  int              $petitionId   Petition ID
+   * @return string                         Name, or null if thre is no name data
+   */
+
+  public function enrolleeName(
+    EntityInterface $config,
+    int $petitionId
+  ): ?string {
+    $ret = null;
+      
+    // To find an Enrolle Name we have to piece together a number of different queries.
+    // First, look up our configuration to find the EnvSource configuration in use.
+
+    $EnvSources = TableRegistry::getTableLocator()->get('EnvSource.EnvSources');
+
+    $envcfg = $EnvSources->find()
+                         ->where([
+                          'external_identity_source_id' => $config->external_identity_source_id
+                         ])
+                         ->firstOrFail();
+
+    // Now pull the EnvSourceIdentity. From here on out any failure just means we don't
+    // return a value (instead of throwing an exception).
+
+    $pei = $this->PetitionEnvIdentities
+                ->find()
+                ->where([
+                  'petition_id' => $petitionId,
+                  'env_source_collector_id' => $config->id
+                ])
+                ->contain(['EnvSourceIdentities'])
+                ->first();
+    
+    if(!empty($pei->env_source_identity->env_attributes)) {
+      // Create an array of env source columns to stored values
+      $envattrs = json_decode(json: $pei->env_source_identity->env_attributes, associative: true);
+
+      // Build a Name entity with the mapped values. As a basic test, we'll require
+      // given name, otherwise we'll assume we don't have a valid name. Note we're not
+      // planning on saving the Name entity, we just create it via the table to ensure
+      // it is properly initialized.
+
+      if(!empty($envattrs['env_name_given'])) {
+        $Names = TableRegistry::getTableLocator()->get('Names');
+
+        $name = $Names->newEntity([
+          'honorific' => $envattrs['env_name_honorific'] ?? null,
+          'given'     => $envattrs['env_name_given'] ?? null,
+          'middle'    => $envattrs['env_name_middle'] ?? null,
+          'family'    => $envattrs['env_name_family'] ?? null,
+          'suffix'    => $envattrs['env_name_suffix'] ?? null,
+        ]);
+
+        return $name->full_name;
+      }
+    }
+
+    return $ret;
+  }
+
+  /**
    * Perform steps necessary to hydrate the Person record as part of Petition finalization.
    * 
    * @since  COmanage Registry v5.1.0
@@ -469,6 +534,11 @@ class EnvSourceCollectorsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->notEmptyString('external_identity_source_id');
+    
+    $validator->add('enable_confirmation_page', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('enable_confirmation_page');
 
     return $validator;
   }
