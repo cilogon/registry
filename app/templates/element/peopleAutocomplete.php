@@ -130,7 +130,7 @@
             fieldName: '<?= $fieldName ?>', // This property hold the form input id
             type: '<?= $type ?>',
             personType: '<?= $personType ?>',
-            minLength: 2, // XXX probably should be set by config and default to 3
+            minLength: 3, // XXX probably should be set by config
             htmlId: '<?= $htmlId ?>', // This property holds the vuejs input id
             actionUrl: '<?= $constructedActionUrl ?>',
             inputValue: '<?= $inputValue ?>',

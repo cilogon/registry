@@ -228,9 +228,9 @@ trait IndexQueryTrait {
     // Filter results that will occur from the searchable attributes
     // TODO: Move to its own function
     if($pickerMode) {
-      // Get only the active People
-      // XXX Perhaps we need to make this a configuration
-      $query = $query->where(fn(QueryExpression $exp, Query $query) => $exp->in($table->getAlias().'.status', [StatusEnum::Active, StatusEnum::GracePeriod]));
+      // XXX Deprecated in v5.2: Get only the active People
+      // XXX Make this a configuration instead:
+      // $query = $query->where(fn(QueryExpression $exp, Query $query) => $exp->in($table->getAlias().'.status', [StatusEnum::Active, StatusEnum::GracePeriod]));
 
       // Specific expressions per view
       $query = match(true) {
