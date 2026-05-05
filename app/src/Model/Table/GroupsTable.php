@@ -570,8 +570,9 @@ class GroupsTable extends Table {
     }
 
     // Default Groups are automatically created when the CO is created, so (eg)
-    // CO:admins, CO:approvers, and CO:mfaexempt will already exist on the target
-    // CO. We need to make sure the UUIDs are in sync before proceeding.
+    // CO:admins, CO:approvers, and CO:mfaexempt (and their corresponding Owners Groups)
+    // will already exist on the target CO. We need to make sure the UUIDs are in sync
+    // before proceeding.
     // Note this does not need to be applied to COU default Groups, since those are
     // cloned (and will therefore have the correct UUID).
 
@@ -581,7 +582,10 @@ class GroupsTable extends Table {
       if(in_array($original->group_type, [
         GroupTypeEnum::Admins,
         GroupTypeEnum::Approvers,
-        GroupTYpeEnum::MfaExempt
+        GroupTypeEnum::MfaExempt,
+        // This will flag _all_ Owners Groups when we only want Owners Groups associated
+        // with the above types, but we'll filter below when we look for the base group
+        GroupTypeEnum::Owners
       ])) {
         $syncUuid = true;
       }
@@ -599,7 +603,7 @@ class GroupsTable extends Table {
           in_array($baseGroup->group_type, [
             GroupTypeEnum::Admins,
             GroupTypeEnum::Approvers,
-            GroupTYpeEnum::MfaExempt
+            GroupTypeEnum::MfaExempt
           ])) {
           // We'll sync $baseGroup later (or maybe we did it already), for now we
           // only worry about $original.
