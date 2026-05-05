@@ -299,15 +299,15 @@ trait SearchFilterTrait {
 
     // Include meta fields that are defined in the configuration
     // FORCE USAGE
-    $filterMetadatFielsList = $this->filterMetadataFields();
+    $filterMetadatFieldsList = $this->filterMetadataFields();
     foreach ($filterKeys as $key) {
-      if (isset($filterMetadatFielsList['meta'][$key])) {
-        $filterMetadatFielsList[$key] = $filterMetadatFielsList['meta'][$key];
+      if (isset($filterMetadatFieldsList['meta'][$key])) {
+        $filterMetadatFieldsList[$key] = $filterMetadatFieldsList['meta'][$key];
       }
 
     }
 
-    foreach ($filterMetadatFielsList as $column => $type) {
+    foreach ($filterMetadatFieldsList as $column => $type) {
       // If the column is an array, then we are accessing the Metadata fields. Skip
       if(\is_array($type)) {
         continue;

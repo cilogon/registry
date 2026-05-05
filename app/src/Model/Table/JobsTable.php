@@ -49,6 +49,7 @@ class JobsTable extends Table {
   use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
+  use \App\Lib\Traits\SearchFilterTrait;
   
   /**
    * Perform Cake Model initialization.
@@ -95,6 +96,47 @@ class JobsTable extends Table {
         'type'  => 'enum',
         'class' => 'JobStatusEnum'
       ]
+    ]);
+
+    // Hide the following fields from filters by default;
+    // their 'active' state is set to false.
+    $this->setFilterConfig([
+      'requeued_from_job_id' => [
+        'type' => 'field',
+        'model' => 'Jobs',
+        'active' => false,
+        'order' => 1
+      ],
+      'retry_interval' => [
+        'type' => 'field',
+        'model' => 'Jobs',
+        'active' => false,
+        'order' => 99
+      ],
+      'requeue_interval' => [
+        'type' => 'field',
+        'model' => 'Jobs',
+        'active' => false,
+        'order' => 99
+      ],
+      'max_retry' => [
+        'type' => 'field',
+        'model' => 'Jobs',
+        'active' => false,
+        'order' => 99
+      ],
+      'retry_count' => [
+        'type' => 'field',
+        'model' => 'Jobs',
+        'active' => false,
+        'order' => 99
+      ],
+      'percent_complete' => [
+        'type' => 'field',
+        'model' => 'Jobs',
+        'active' => false,
+        'order' => 99
+      ],
     ]);
     
     $this->setViewContains([

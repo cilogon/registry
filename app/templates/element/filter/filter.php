@@ -111,13 +111,15 @@ foreach($this->Filter->getHiddenFields() as $param => $value) {
       </div>
 
       <!--    Date/ Time search textboxes Group -->
-      <div class="top-filters-fields-subgroups">
-      <?= $this->element('filter/datetimeGroup', compact('field_datetime_columns'))
-      ?>
-      </div>
+      <?php if(!empty($field_datetime_columns)): ?>
+        <div class="top-filters-fields-subgroups">
+          <?= $this->element('filter/datetimeGroup', compact('field_datetime_columns')) ?>
+        </div>
+      <?php endif; ?>
 
       <!--    Footer / Submit Buttons    -->
-      <?= $this->element('filter/footerButtons', compact('field_booleans_columns'))
+      <?= $this->element('filter/footerButtons', 
+        compact('field_booleans_columns','field_datetime_columns'))
       ?>
     </div>
   </fieldset>

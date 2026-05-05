@@ -35,8 +35,8 @@ declare(strict_types = 1);
 
 $classes = '';
 if ($vv_active_search_filters_count % 2 === 1
-    &&
-    empty($field_booleans_columns)
+    && empty($field_booleans_columns)
+    && empty($field_datetime_columns)
 ) {
   $classes .= ' class="tss-rebalance"';
 }
