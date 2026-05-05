@@ -72,3 +72,24 @@ COPY --from=building /usr/lib/apache2/modules/mod_auth_openidc.so /usr/lib/apach
 
 RUN echo "LoadModule auth_openidc_module /usr/lib/apache2/modules/mod_auth_openidc.so" > /etc/apache2/mods-available/auth_openidc.load \
       && a2enmod auth_openidc 
+
+# Install MIT Kerberos runtime libraries and development files.
+RUN apt-get update && apt-get install -y \
+        libkrb5-3 \
+        libkrb5-dev
+
+# Default PECL krb5 version but may be overriden using a build argument.
+ARG PECL_KRB5_VERSION=1.2.4
+ENV PECL_KRB5_VERSION=${PECL_KRB5_VERSION}
+
+# Use the helper functions from the upstream php Docker image
+# to build, install, and enable the PECL krb5 module. After
+# build is complete purge the development libraries and source.
+RUN docker-php-source extract \
+        && pecl bundle -d /usr/src/php/ext krb5-${PECL_KRB5_VERSION} \
+        && docker-php-ext-configure krb5 --with-krb5kadm \
+        && docker-php-ext-install krb5 \
+        && docker-php-ext-enable krb5 \
+        && docker-php-source delete \
+        && apt-get purge -y libkrb5-dev \
+        && apt-get clean
