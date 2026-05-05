@@ -766,8 +766,7 @@ class FieldHelper extends Helper {
       'id',
       'style',
       'checked',
-      'label',
-      'name',
+      'label'
     ];
     
     // Remove the top-level field options that are intended for Cake, and

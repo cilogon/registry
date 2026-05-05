@@ -36,6 +36,7 @@
 
 declare(strict_types = 1);
 
+use App\Lib\Util\StringUtilities;
 use Cake\Utility\Inflector;
 
 extract($vv_sub_nav_attributes, EXTR_PREFIX_ALL, 'vv_subnavigation');
@@ -49,51 +50,89 @@ if (isset($isNested) && $isNested) {
 
 // We calculate this first because we want to initialize the Helper variables
 $tabAction = $this->Tab->getTabAction($tab, $isNested);
-$linkFilter = $this->Tab->getLinkFilter($tab, $curId, $tabAction, $isNested);
 
 // Simple use case
 $tabLanguageKey = in_array('index', $navigation_action[$tab], true) ? $tab : 'Properties';
 $title = !empty($tabLabel) ? $tabLabel : __d('controller', $tabLanguageKey, [99]);
-$tabToTableName = Inflector::tableize(Inflector::singularize($tab));
+$request = $this->getRequest();
+$requesterModel = StringUtilities::getQualifiedName(
+  $request->getParam('plugin'),
+  $request->getParam('controller')
+);
+
+// Some tabs (eg GroupMembers from ExternalIdentityRoles context) are not directly
+// associated with the current requester model. Title rendering must not fatal.
+try {
+$tabToTableName = StringUtilities::modelNameToQualifiedModelName($tab, $requesterModel);
+} catch (\Throwable $e) {
+  $tabToTableName = $tab;
+}
 
 // Plugin Configuration Tab
-if (str_contains($tab, '.') && in_array('edit', $navigation_action[$tab], true)) {
-  $title = __d('operation','configure.plugin');
+if (
+  str_contains($tab, '.')
+  && in_array('edit', $navigation_action[$tab], true)
+  && array_search($tab, $vv_subnavigation_tabs, true) !== 0
+) {
+  $title = __d('operation', 'configure.plugin');
 } else if (str_contains($tab, '@action.')) { // Top Links/Actions
   [$modelName, ] = explode('@', $tab);
   [, $action] = explode('.', $tab);
   $title = __d('operation', $modelName . '.' . $action);
-  $tabToTableName = Inflector::tableize(Inflector::singularize($modelName));
+
+  try {
+  $tabToTableName = StringUtilities::modelNameToQualifiedModelName($modelName, $requesterModel);
+  } catch (\Throwable $e) {
+    $tabToTableName = $modelName;
+  }
 } else if (str_ends_with($tab, '.Hierarchy')) { // Deep Associations
   $fullModelName = $this->Tab->getAssociation();
   [$plugin, $modelName] = explode('.', $fullModelName);
   $poFile = Inflector::underscore($plugin);
   $title = __d($poFile, 'controller.' . $modelName, [99]);
-  $tabToTableName = Inflector::tableize(Inflector::singularize($fullModelName));
-} else if(str_contains($tabLanguageKey, '.')) { // Simple Plugin Plugin.Model
+
+  try {
+  $tabToTableName = StringUtilities::modelNameToQualifiedModelName($fullModelName, $requesterModel);
+  } catch (\Throwable $e) {
+    $tabToTableName = $fullModelName;
+  }
+} else if (str_contains($tabLanguageKey, '.')) { // Simple Plugin Plugin.Model
   [$plugin, $modelName] = explode('.', $tabLanguageKey);
   $poFile = Inflector::underscore($plugin);
   $title = __d($poFile, 'controller.' . $modelName, [99]);
-  $tabToTableName = Inflector::tableize(Inflector::singularize($tabLanguageKey));
+
+  try {
+  $tabToTableName = StringUtilities::modelNameToQualifiedModelName($tabLanguageKey, $requesterModel);
+  } catch (\Throwable $e) {
+    $tabToTableName = $tabLanguageKey;
+  }
 }
 
 // Insert Counter Badge if applicable
-if(isset($tab_counter)
+if (isset($tab_counter)
   && in_array($tab, $tab_counter, true)
 ) {
-  $model = $tabToTableName;
-  $where = $linkFilter;
-}
-
-if(!isset($num)
-  && !empty($model)
-  && !empty($where)) {
+  $url = $this->Tab->constructLinkUrl($tab, $curId, $isNested);
+  $model = $url['controller'];
+  if (!empty($url['plugin'])) {
+      $model = $url['plugin'] . '.' . $model;
+  }
+  if (isset($url['?'])) {
+    $where = $url['?'];
+  } else {
+    $passed = array_values(array_filter(
+      $url,
+      static fn($k) => is_int($k),
+      ARRAY_FILTER_USE_KEY
+    ));
+    $where = ['id' => (int)$passed];
+  }
   $num = $this->Tab->getModelTotalCount($model, $where);
 }
 
 ?>
 
-<?php if(isset($num)): ?>
+<?php if (isset($num)): ?>
 <span class='tab-count'>
   <span class='tab-count-item'><?= $num ?></span>
 </span>

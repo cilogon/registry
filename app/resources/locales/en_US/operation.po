@@ -407,4 +407,3 @@ msgstr "View Petition {0}"
 
 msgid "view.ExternalIdentityRoles.a"
 msgstr "View Role {0}"
-

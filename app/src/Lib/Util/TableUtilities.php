@@ -211,10 +211,11 @@ class TableUtilities {
    * Calculates model name from primary link and traverses backwards through all record
    * associations. Returns list where keys are model names and values are record IDs.
    *
-   * @param string $primaryLinkKey Primary link key name
-   * @param int $primaryLinkValue ID value of the primary link record
-   * @param array $results Reference to array to store results
+   * @param string      $primaryLinkKey       Primary link key name
+   * @param int         $primaryLinkValue     ID value of the primary link record
+   * @param array       $results              Reference to array to store results
    * @param string|null $primaryLinkClassName Optional override for model class name
+   * @param string|null $requesterModel       Requester model path (required for strict FK resolution)
    * @return void Results stored in $results parameter
    * @since COmanage Registry v5.0.0
    */
@@ -222,7 +223,8 @@ class TableUtilities {
     string $primaryLinkKey,
     int $primaryLinkValue,
     array &$results,
-    ?string $primaryLinkClassName = null
+    ?string $primaryLinkClassName = null,
+    ?string $requesterModel = null
   ): void
   {
     $db = ConnectionManager::get('default');
@@ -230,9 +232,7 @@ class TableUtilities {
     $collection = $db->getSchemaCollection();
     $listOfTables = $collection->listTables();
 
-    $primaryLinkModelName = StringUtilities::foreignKeyToClassName(($primaryLinkKey));
-    // Check if the table exists.
-    // We can not handle
+    $primaryLinkModelName = StringUtilities::foreignKeyToQualifiedModelName($primaryLinkKey, $requesterModel);
 
     // We need to save the id by its alias not the containing class
     $results[$primaryLinkModelName] = $primaryLinkValue;
@@ -259,10 +259,15 @@ class TableUtilities {
           && $col !== $primaryLinkKey
           && str_ends_with($col, '_id')
         ) {
-          $fkModel = StringUtilities::foreignKeyToClassName(($col));
-          $fk_table = Inflector::underscore($fkModel);
+          // qualify the FK using the requester table we're currently traversing
+          // but compare against the physical table name in the database.
+          $fkQualifiedModel = StringUtilities::foreignKeyToQualifiedModelName($col, $primaryLinkModelName);
+          $fkTargetTable = TableRegistry::getTableLocator()->get($fkQualifiedModel);
+
+          $fk_table = $fkTargetTable->getTable();
+
           if (\in_array($fk_table, $listOfTables, true)) {
-            self::treeTraversalFromPrimaryLink($col, $val, $results);
+            self::treeTraversalFromPrimaryLink($col, (int)$val, $results, null, $primaryLinkModelName);
           }
         }
       }
@@ -318,13 +323,84 @@ class TableUtilities {
           && $col !== $modelName
           && str_ends_with($col, '_id')
         ) {
-          $fkModel = StringUtilities::foreignKeyToClassName(($col));
-          $fk_table = Inflector::underscore($fkModel);
+          // qualify the FK using the requester table we're currently traversing
+          // but compare against the physical table name in the database.
+          $fkQualifiedModel = StringUtilities::foreignKeyToQualifiedModelName($col, $modelName);
+          $fkTargetTable = TableRegistry::getTableLocator()->get($fkQualifiedModel);
+
+          $fk_table = $fkTargetTable->getTable();
+
           if (\in_array($fk_table, $listOfTables, true)) {
-            self::treeTraversalFromPrimaryLink($col, $val, $results);
+            // Pass requester context so strict resolution can continue recursively
+            self::treeTraversalFromPrimaryLink($col, (int)$val, $results, null, $modelName);
           }
         }
       }
     }
+  }
+
+  /**
+   * Walk an association graph (breadth-first) and return matching associations with their path.
+   *
+   * Each result contains:
+   * - assoc:  the matching Association
+   * - depth:  hop count from start table to assoc source table (1 = direct association)
+   * - path:   array of table aliases visited (start alias included)
+   *
+   * @param string   $startModel Fully qualified table alias (eg 'EnrollmentFlowSteps')
+   * @param callable $isMatch    function(Association $assoc): bool
+   * @param array    $types      Association types
+   * @param int      $maxDepth   Maximum hop count (1 = direct associations)
+   * @return array<int, array{assoc: Association, depth: int, path: array<int,string>}>
+   * @since  COmanage Registry v5.2.0
+   */
+  public static function findAssociationsByTraversalWithPath(
+    string $startModel,
+    callable $isMatch,
+    array $types,
+    int $maxDepth = 1
+  ): array {
+    $startTable = TableRegistry::getTableLocator()->get($startModel);
+
+    $matches = [];
+
+    // Queue entries: [Table $table, int $depth, array<int,string> $path]
+    $queue = [[$startTable, 0, [$startTable->getAlias()]]];
+
+    // Track visited tables by alias to avoid cycles
+    $visited = [];
+    $visited[$startTable->getAlias()] = true;
+
+    while (!empty($queue)) {
+      [$table, $depth, $path] = array_shift($queue);
+
+      if ($depth >= $maxDepth) {
+        continue;
+      }
+
+      foreach ($table->associations()->getByType($types) as $assoc) {
+        if ($isMatch($assoc)) {
+          $matches[] = [
+            'assoc' => $assoc,
+            'depth' => $depth + 1,
+            'path'  => $path,
+          ];
+        }
+
+        $target = $assoc->getTarget();
+        $alias = $target->getAlias();
+
+        if ($alias !== '' && empty($visited[$alias])) {
+          $visited[$alias] = true;
+
+          $nextPath = $path;
+          $nextPath[] = $alias;
+
+          $queue[] = [$target, $depth + 1, $nextPath];
+        }
+      }
+    }
+
+    return $matches;
   }
 }

@@ -411,7 +411,8 @@ class RegistryAuthComponent extends Component
                      ->applyOptions(['archived' => true]);
 
       // QueryModificationTrait
-      $getActionMethod = "get{$reqAction}Contains";
+      $reqActionCapitlize = ucfirst($reqAction) ;
+      $getActionMethod = "get{$reqActionCapitlize}Contains";
       if(method_exists($table, $getActionMethod) && $table->$getActionMethod()) {
         $query = $query->contain($table->$getActionMethod());
       }

@@ -62,7 +62,7 @@ $objectName = Inflector::tableize($vv_controller);
 if (
   (!empty($vv_obj) || !empty($$objectName))
   && !empty($this->getPlugin())
-  && $vv_subnavigation_tabs[0] !== StringUtilities::entityToClassName($vv_bc_parent_obj)
+  && $vv_subnavigation_tabs[0] !== $vv_bc_parent_obj->getSource()
 ) {
   $object = $vv_obj ?? $$objectName?->items()?->first();
   if ($object === null) {
@@ -73,7 +73,7 @@ if (
     // If we get here, it means that neither the request object nor its parent can give us a supertitle.
     // We need to fetch all the ids and get the supertitle from the root tab/node
     $results = [];
-    TableUtilities::treeTraversalFromId(StringUtilities::entityToClassName($object), (int)$object->id, $results);
+    TableUtilities::treeTraversalFromId($object->getSource(), (int)$object->id, $results);
     $superTitleModelReference = $this->Tab->getModelTableReference($vv_subnavigation_tabs[0]);
     $superTitleModelDisplayField = $superTitleModelReference->getDisplayField();
     $superTitleModelId = $results[$vv_subnavigation_tabs[0]];

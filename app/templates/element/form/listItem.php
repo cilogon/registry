@@ -34,9 +34,15 @@ declare(strict_types = 1);
 //     - add a prefix and create a namespace
 //     - wrap them in an array.
 //     We choose the latter.
+use App\Lib\Util\StringUtilities;
+
 $this->set('fieldName', $arguments['fieldName']);
 $fieldName = $arguments['fieldName'];
 $this->set('vv_field_arguments', $arguments);
+
+$qualifiedModelName = StringUtilities::entityToPluginClassName($this->Field->getEntity());
+$plugin = StringUtilities::pluginPlugin($qualifiedModelName);
+$controller = StringUtilities::pluginModel($qualifiedModelName);
 
 // If an attribute is frozen, inject a special link to unfreeze it, since
 // the attribute is read-only and the admin can't simply uncheck the setting
@@ -44,8 +50,8 @@ if($fieldName == 'frozen' && $this->Field->getEntity()->frozen) {
   $url = [
     'label' => __d('operation', 'unfreeze'),
     'url' => [
-      'plugin'      => null,
-      'controller'  => \App\Lib\Util\StringUtilities::entityToClassname($this->Field->getEntity()),
+      'plugin'      => !empty($plugin) ? $plugin : null,
+      'controller'  => $controller,
       'action'      => 'unfreeze',
       $this->Field->getEntity()->id
     ]
@@ -63,8 +69,8 @@ if($fieldName == 'plugin' && $vv_action == 'edit') {
   $url = [
     'label' => __d('operation', 'configure.plugin'),
     'url' => [
-      'plugin'      => null,
-      'controller'  => \App\Lib\Util\StringUtilities::entityToClassname($this->Field->getEntity()),
+      'plugin'      => !empty($plugin) ? $plugin : null,
+      'controller'  => $controller,
       'action'      => 'configure',
       $this->Field->getEntity()->id
     ]

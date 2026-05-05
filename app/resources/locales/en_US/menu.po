@@ -90,6 +90,9 @@ msgstr "All Features"
 msgid "co.groups"
 msgstr "Groups"
 
+msgid "co.groups.memberships"
+msgstr "Group Memberships"
+
 msgid "co.operations"
 msgstr "Operations"
 

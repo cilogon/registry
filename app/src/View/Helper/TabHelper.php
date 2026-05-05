@@ -78,6 +78,8 @@ class TabHelper extends Helper
     if(str_ends_with($tab, '.Plugin')) {
       // This is always the second tab of the plugin and it is configuration
       $controller = $curController;
+      $plugin = $this->getView()->getPlugin();
+      $plugin = !empty($plugin) ? $plugin : null;
       $action = 'configure';
     } else if (str_ends_with($tab, '.Hierarchy')) {
       $modelName = $this->retrievePluginName($tab, (int)$curId);
@@ -102,7 +104,11 @@ class TabHelper extends Helper
     ];
 
     if ($action === 'index') {
-      $deepId = $this->getDeepNestedId($linkFilter);
+      // The FK in $linkFilter belongs to the *tab target model* (plugin/controller),
+      // not necessarily the current requester controller.
+      $linkFilterModel = StringUtilities::qualifyModelPath($controller, $plugin);
+
+      $deepId = $this->getDeepNestedId($linkFilter, $linkFilterModel);
       If($deepId !== null) {
         $linkFilterForeignKey = array_key_first($linkFilter);
         $linkFilter[$linkFilterForeignKey] = $deepId;
@@ -119,7 +125,8 @@ class TabHelper extends Helper
       }
 
       // I will get the id from the associated ids table
-      $url[] = $vv_associated_ids[$controller];
+      $modelPath = StringUtilities::qualifyModelPath($controller, $plugin);
+      $url[] = $vv_associated_ids[$modelPath];
     } else {
       $url[] = $curId;
     }
@@ -131,43 +138,84 @@ class TabHelper extends Helper
   /**
    * Retrieve the ID for a deeply nested association.
    *
-   * @param array $linkFilter The link filter containing foreign key details.
+   * @param array       $linkFilter        The link filter containing foreign key details.
+   * @param string|null $linkFilterModel   Model that owns the FK in $linkFilter (eg "CoreEnroller.EnrollmentAttributes").
    *
    * @return int|null The ID of the deeply nested associated model or null if not found.
    * @since COmanage Registry v5.1.0
    */
-  public function getDeepNestedId(array $linkFilter): ?int
+  public function getDeepNestedId(array $linkFilter, ?string $linkFilterModel = null): ?int
   {
+    // Retrieve associated IDs for the current view
     $vv_associated_ids = $this->getView()->get('vv_associated_ids');
 
-    // Get the foreign from the linkFilter
+    // Extract the first key from the link filter array (foreign key)
     $linkFilterForeignKey = array_key_first($linkFilter);
-    // Generate the ModelName and instantiate the linked Table
+
+    $request = $this->getView()->getRequest();
+    $requesterModel = StringUtilities::getQualifiedName($request->getParam('plugin'), $request->getParam('controller'));
+
+    // Use the FK owner model (tab target) for strict FK resolution when provided.
+    $fkOwnerModel = $linkFilterModel ?: $requesterModel;
+
+    // resolve the FK to a canonical Plugin.Model registry alias using belongsTo metadata
+    $qualifiedModelName = StringUtilities::foreignKeyToQualifiedModelName($linkFilterForeignKey, $fkOwnerModel);
+    $table = TableRegistry::getTableLocator()->get($qualifiedModelName);
+
+    // Attempt to retrieve the ID from associated IDs using different possible keys
     $modelName = StringUtilities::foreignKeyToClassName($linkFilterForeignKey);
-    $table = TableRegistry::getTableLocator()->get($modelName);
-    $linkFilterId = $vv_associated_ids[Inflector::pluralize($modelName)] ?? null;
-    if($linkFilterId !== null) {
+    $linkFilterId =
+        $vv_associated_ids[$qualifiedModelName]
+      ?? $vv_associated_ids[$modelName]
+      ?? current(array_filter($vv_associated_ids, fn($k) => str_ends_with($k, '.' . $modelName), ARRAY_FILTER_USE_KEY))
+      ?: null;
+
+    // If an ID is found, return it as an integer
+    if ($linkFilterId !== null) {
       return (int)$linkFilterId;
     }
-    $foreignKeyId = -1;
+
+    // Initialize variables to track foreign key and its ID
+    $foreignKeyId = null;
     $foreignKey = null;
-    // This means that we are working on deep nested associations and we need
-    // to fetch more data
-    $linkFilterSchema = $table->getSchema();
-    foreach($linkFilterSchema->columns() as $column) {
-      // Check the foreign keys
-      if(str_ends_with($column, '_id')) {
-        $foreignKeytToTableName = Inflector::pluralize(StringUtilities::foreignKeyToClassName($column));
-        if(isset($vv_associated_ids[$foreignKeytToTableName])) {
-          $foreignKeyId = $vv_associated_ids[$foreignKeytToTableName];
-          $foreignKey = $column;
-          break;
-        }
+
+    // Iterate through all schema columns to look for a valid foreign key
+    foreach ($table->getSchema()->columns() as $column) {
+      // Skip columns that do not end with '_id'
+      if (!str_ends_with($column, '_id')) {
+        continue;
+      }
+
+      // resolve nested FK relative to the table we are currently traversing
+      // (qualifiedModelName is the requester in this nested context)
+      $fkQualifiedModelName = StringUtilities::foreignKeyToQualifiedModelName($column, $qualifiedModelName);
+
+      $fkModelName = StringUtilities::foreignKeyToClassName($column);
+
+      // Check for a match in associated IDs
+      $candidateId =
+        $vv_associated_ids[$fkQualifiedModelName]
+        ?? $vv_associated_ids[$fkModelName]
+        ?? null;
+
+      // If a match is found, set the foreign key ID and column, and break the loop
+      if ($candidateId !== null) {
+        $foreignKeyId = (int)$candidateId;
+        $foreignKey = $column;
+        break;
       }
     }
-    $id = $table->find()->where([$foreignKey => $foreignKeyId])->first()->id;
 
-    return(int)$id;
+    // If no valid foreign key or ID was found, return null
+    if ($foreignKey === null || $foreignKeyId === null) {
+      return null;
+    }
+
+    // Query the database for the associated row using the foreign key
+    $row = $table->find()->where([$foreignKey => $foreignKeyId])->first();
+
+    // Return the ID from the row if found or null otherwise
+    return $row ? (int)$row->id : null;
   }
 
   /**
@@ -203,7 +251,7 @@ class TabHelper extends Helper
       // Always mark active the parent Tab
       !$isNested && $parentModelForNested !== null && $tab === $parentModelForNested && in_array($fullModelName, $nestings),
       // Match Configuration and Hierarchy tabs
-      isset($plugin) && str_contains($tab, '.Plugin') && $curAction === 'edit',
+      isset($plugin) && str_contains($tab, '.Plugin') && $curAction === 'configure',
       isset($plugin) && str_contains($tab, '.Hierarchy') && $curAction === 'index',
       // Matches the action tab links, e.g. FileSource/search
       $tab === "{$curController}@action.{$curAction}" => 'nav-link active',
@@ -253,7 +301,7 @@ class TabHelper extends Helper
     $vv_primary_link = $this->getView()->get('vv_primary_link');
     $vv_bc_title_links = $this->getView()->get('vv_bc_title_links');
     $request = $this->getView()->getRequest();
-    $curController = $request->getParam('controller');
+    $curController = StringUtilities::getQualifiedName($request->getParam('plugin'), $request->getParam('controller'));
     $vv_sub_nav_attributes = $this->getView()->get('vv_sub_nav_attributes');
     $tab_actions = !$isNested ? $vv_sub_nav_attributes['action'] :  $vv_sub_nav_attributes['nested']['action'];
     $tabs = !$isNested ? $vv_sub_nav_attributes['tabs'] :  $vv_sub_nav_attributes['nested']['tabs'];
@@ -265,7 +313,7 @@ class TabHelper extends Helper
     // Get the ids of all the associated Model records
     $results = [];
     if ($request->getQuery($vv_primary_link) !== null) {
-      TableUtilities::treeTraversalFromPrimaryLink($vv_primary_link, (int)$tid, $results, );
+      TableUtilities::treeTraversalFromPrimaryLink($vv_primary_link, (int)$tid, $results, null, $curController);
     } else {
       TableUtilities::treeTraversalFromId($curController, (int)$tid, $results);
     }
@@ -372,14 +420,17 @@ class TabHelper extends Helper
     $modelName      = $tab;
     $curController  = $this->getView()->getRequest()->getParam('controller');
 
+    $request = $this->getView()->getRequest();
+    $requesterModel = StringUtilities::getQualifiedName($request->getParam('plugin'), $request->getParam('controller'));
+
     // We have two use cases. The first one is for the Core models and the second one is for the
     // plugins. In case we have a plugin we need to retrieve the name from the database
     if(str_contains($tab, '.Plugin')) {
-      $modelName = $this->retrievePluginName($tab, (int)$curId);
+      $modelName = $this->retrievePluginName($tab, (int)$curId, $requesterModel);
       $this->setPluginName($modelName);
       $fullModelsName = $modelName;
     } else if (str_contains($tab, '.Hierarchy')) {
-      $modelName = $this->retrievePluginName($tab, (int)$curId);
+      $modelName = $this->retrievePluginName($tab, (int)$curId, $requesterModel);
       [$plugin, ] = explode('.', $modelName);
       foreach ($this->getHasManyAssociationModels($modelName) as $association) {
         $fullModelsName = $association;
@@ -392,7 +443,15 @@ class TabHelper extends Helper
       [$plugin, $modelName] = explode('.', $tab);
     }
 
-    $modelsTable = TableRegistry::getTableLocator()->get($fullModelsName);
+    // Prefer strict canonical resolution first (avoids caching an unintended stub/alias in the Locator).
+    // Fall back to direct instantiation for UI tabs that are not ORM-associated with the requester.
+    try {
+      $qualified = StringUtilities::modelNameToQualifiedModelName($fullModelsName, $requesterModel);
+      $modelsTable = TableRegistry::getTableLocator()->get($qualified);
+    } catch (\Throwable $e) {
+      $modelsTable = TableRegistry::getTableLocator()->get($fullModelsName);
+    }
+
     $primary_link_list = $modelsTable->getPrimaryLinks();
     $primary_link = null;
     if(count($primary_link_list) > 1) {
@@ -456,7 +515,7 @@ class TabHelper extends Helper
    *
    * @return string|null
    * @since  COmanage Registry v5.0.0
- */
+   */
   public function getTabAction(string $tab, bool $isNested = false): ?string
   {
     $vv_sub_nav_attributes    = $this->getView()->get('vv_sub_nav_attributes');
@@ -504,24 +563,47 @@ class TabHelper extends Helper
   /**
    * Get the plugin name from the database
    *
-   * @param   string  $tab
-   * @param   int     $curId
-   *
-   * @return string
+   * @param string $tab
+   * @param int $curId
+   * @param string|null $requesterModel
+   * @return string|null
    * @since  COmanage Registry v5.0.0
    */
-  public function retrievePluginName(string $tab, int $curId): string
+  public function retrievePluginName(string $tab, int $curId, ?string $requesterModel = null): ?string
   {
     // Get the name of the Core Model
-    [$coreModel, $dummy] = explode('.', $tab);
-    $ModelTable = TableRegistry::getTableLocator()->get($coreModel);
-    $response = $ModelTable
-      ->find()
-      ->select(['plugin'])
-      ->where(['id' => $curId])
-      ->first();
+    $coreModel = substr($tab, 0, strrpos($tab, '.'));
 
-    return $response?->plugin;
+    // if this is not a real core table class, require requester context to resolve it canonically
+    if (str_contains($coreModel, '.')) {
+      $qualifiedCoreModel = $coreModel;
+    } else {
+      $coreTableClass = 'App\\Model\\Table\\' . $coreModel . 'Table';
+
+      if (class_exists($coreTableClass)) {
+        $qualifiedCoreModel = $coreModel;
+      } else {
+        // Use requester associations to find the canonical Plugin.Model
+        $qualifiedCoreModel = StringUtilities::modelNameToQualifiedModelName($coreModel, $requesterModel);
+      }
+    }
+
+    $ModelTable = TableRegistry::getTableLocator()->get($qualifiedCoreModel);
+
+    // If this table actually has a "plugin" column, fetch the plugin model path from the record.
+    // Example (pluggable wrapper tables):
+    //   ProvisioningTargets.plugin = "LdapConnector.LdapProvisioners"
+    if ($ModelTable->getSchema()->hasColumn('plugin')) {
+      $response = $ModelTable
+        ->find()
+        ->select(['plugin'])
+        ->where(['id' => $curId])
+        ->first();
+
+      return (string)($response?->plugin ?? '');
+    }
+
+    return null;
   }
 
   /**

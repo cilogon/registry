@@ -119,9 +119,10 @@ class BreadcrumbComponent extends Component {
             'co_id' => method_exists($controller, 'getCOID') ? $controller->getCOID() : null
           ];
 
-          // Force the component to use the model derived from the query param (e.g. People)
-          // instead of the global page model (e.g. Cos).
-          $modelName = StringUtilities::foreignKeyToClassName($queryParam);
+          // Use fully-qualified model name
+          $requesterModel = StringUtilities::getQualifiedName($request->getParam('plugin'), $request->getParam('controller'));
+          $modelName = StringUtilities::foreignKeyToQualifiedModelName($queryParam, $requesterModel);
+
           $this->injectPrimaryLink($link, true, null, $modelName);
           break; // Only inject the first matching parameter
         }
@@ -299,25 +300,113 @@ class BreadcrumbComponent extends Component {
         ->contain($contain)
         ->firstOrFail();
 
-      // Optional parent index breadcrumb
+      // Optional parent breadcrumb(s)
+      // This block tries to add navigation "above" the current linked entity, when the
+      // linked table implements findPrimaryLink().
+      //
+      // Example chain (plugin config entity):
+      //   LdapConnector.LdapProvisioners(id=18) has primary link provisioning_target_id=19
+      // Desired breadcrumbs:
+      //   Provisioning Targets  -> /provisioning-targets?co_id=2      (index/list)
+      //   LDEV LDAP Provisioner -> /provisioning-targets/edit/19      (specific parent entity)
+      //
+      // We intentionally generate two crumbs because the label and the target differ:
+      // - plural label should go to index/list
+      // - specific display label should go to edit/view of the parent record
       if ($index && method_exists($linkTable, 'findPrimaryLink')) {
         $parentLink = $linkTable->findPrimaryLink($linkedEntity->id);
 
-        $this->injectParents[strtolower($linkModelFqn) . ':index'] = [
-          'target' => [
-            'plugin'      => $parentLink->plugin ?? StringUtilities::blankToNull(StringUtilities::pluginPlugin($linkModelFqn)) ?? null,
-            'controller'  => StringUtilities::pluginModel($linkModelFqn),
-            'action'      => 'index',
-            '?'           => [
-              $parentLink->attr => $parentLink->value
-            ]
-          ],
-          'label' => StringUtilities::localizeController(
-            controllerName: $linkModelFqn,
-            pluginName:     $link->plugin ?? null,
-            plural:         true
-          )
-        ];
+        // CASE A: Parent link is NOT co_id (ie: parent is another entity, via an FK like provisioning_target_id).
+        // We treat this as a normal parent object relationship and generate:
+        //   1) parent index crumb (plural label)
+        //   2) parent entity crumb (display value label)
+        if (!empty($parentLink->attr) && $parentLink->attr !== 'co_id') {
+          // Derive the parent controller/table alias from the FK:
+          //   provisioning_target_id -> ProvisioningTargets
+          $parentController = StringUtilities::foreignKeyToClassName($parentLink->attr);
+          $parentTable      = \Cake\ORM\TableRegistry::getTableLocator()->get($parentController);
+
+          // A1) Parent INDEX crumb (plural label)
+          // Example:
+          //   "Provisioning Targets" -> /provisioning-targets?co_id=2
+          $parentIndexTarget = [
+            'plugin'     => null,
+            'controller' => $parentController,
+            'action'     => 'index',
+          ];
+
+          // If we know the CO context, keep it on the index URL so the list doesn't jump COs.
+          // Example:
+          //   /provisioning-targets?co_id=2
+          if (!empty($parentLink->co_id)) {
+            $parentIndexTarget['?'] = ['co_id' => (int)$parentLink->co_id];
+          }
+
+          $this->injectParents[strtolower($parentController) . ':index'] = [
+            'target' => $parentIndexTarget,
+            'label'  => StringUtilities::localizeController(
+              controllerName: $parentController,
+              pluginName:     null,
+              plural:         true
+            )
+          ];
+
+          // A2) Parent ENTITY crumb (specific display label)
+          // Example:
+          //   "LDEV LDAP Provisioner" -> /provisioning-targets/edit/19
+          $parentEntity = $parentTable->get((int)$parentLink->value);
+
+          // Prefer a table-provided display generator when available (lets tables compute a friendly label)
+          // Fallback to Cake's displayField, then to the raw ID.
+          $parentDisplay = null;
+
+          if (method_exists($parentTable, 'generateDisplayField')) {
+            $parentDisplay = $parentTable->generateDisplayField($parentEntity);
+          }
+
+          if ($parentDisplay === null) {
+            $df = $parentTable->getDisplayField();
+            $parentDisplay = $parentEntity->$df ?? null;
+          }
+
+          if ($parentDisplay === null) {
+            $parentDisplay = (string)$parentLink->value;
+          }
+
+          $this->injectParents[strtolower($parentController) . ':entity'] = [
+            'target' => [
+              'plugin'     => null,
+              'controller' => $parentController,
+              'action'     => 'edit',
+              (int)$parentLink->value
+            ],
+            'label' => (string)$parentDisplay
+          ];
+        }
+        // CASE B: Parent link is co_id (ie: this entity is rooted directly at the CO).
+        // In this case there isn't a meaningful parent entity page to link to; the "parent"
+        // is the CO context, and the most helpful breadcrumb is the linked model's index
+        // filtered by co_id (the standard list view in that CO).
+        //
+        // Example:
+        //   "Email Addresses" -> /email-addresses?co_id=2
+        else {
+          $this->injectParents[strtolower($linkModelFqn) . ':index'] = [
+            'target' => [
+              'plugin'      => $parentLink->plugin ?? StringUtilities::blankToNull(StringUtilities::pluginPlugin($linkModelFqn)) ?? null,
+              'controller'  => StringUtilities::pluginModel($linkModelFqn),
+              'action'      => 'index',
+              '?'           => [
+                $parentLink->attr => $parentLink->value
+              ]
+            ],
+            'label' => StringUtilities::localizeController(
+              controllerName: $linkModelFqn,
+              pluginName:     $link->plugin ?? null,
+              plural:         true
+            )
+          ];
+        }
       }
 
       // Determine target action for entity link

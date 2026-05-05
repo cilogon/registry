@@ -18,7 +18,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
  * @since         COmanage Registry v5.0.0
@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Lib\Util;
 
+use Cake\Core\Plugin;
 use Cake\ORM\TableRegistry;
 use \Cake\Utility\Inflector;
 
@@ -77,7 +78,7 @@ class StringUtilities {
 
   /**
    * Determine the foreign key name to point to a Cake Class Name (eg: foo_id for Foo).
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  string $className  Class Name
    * @return string             Foreign key name
@@ -100,7 +101,7 @@ class StringUtilities {
    */
 
   public static function columnKey(
-    string $modelsName, 
+    string $modelsName,
     string $c,
     ?\DateTimeZone $tz=null,
     bool $useCustomClMdlLabel=false
@@ -193,7 +194,7 @@ class StringUtilities {
 
   /**
    * Determine the class basename of a Cake Entity.
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  Entity $entity Entity
    * @return string         Entity Class Basename
@@ -220,7 +221,7 @@ class StringUtilities {
 
   /**
    * Determine the foreign key name to point to a Cake Entity (eg: foo_id for a Foo object).
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  Entity $entity Entity
    * @return string         Foreign key name
@@ -236,7 +237,7 @@ class StringUtilities {
 
   /**
    * Determine the class basename of a Cake Entity.
-   * 
+   *
    * @since  COmanage Registry v5.2.0
    * @param  Entity $entity Entity
    * @return string         Entity Class Basename, potentially in Plugin notation (Plugin.Model)
@@ -398,7 +399,7 @@ class StringUtilities {
 
   /**
    * Determine the class name from a foreign key (eg: report_id -> Reports).
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  string $s Foreign Key name
    * @return string    Class name
@@ -471,7 +472,7 @@ class StringUtilities {
    * @since  COmanage Registry v5.2.0
    * @return string Fully qualified model path
    */
-  public static function qualifyModelPath(string $modelPath, ?string $plugin): string
+  public static function qualifyModelPath(string $modelPath, ?string $plugin = null): string
   {
     if (empty($plugin) || str_starts_with($modelPath, $plugin . '.')) {
       return $modelPath;
@@ -481,7 +482,7 @@ class StringUtilities {
 
   /**
    * Determine the model component of a Plugin path.
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  string $s Plugin path, in Plugin.Model format.
    * @return string    Model name
@@ -495,9 +496,306 @@ class StringUtilities {
     return $s;
   }
 
+
+  /**
+   * Infer a model name from a foreign key name (eg: report_id -> Reports) and attempt
+   * to qualify it with a plugin by looking for a matching Table class.
+   *
+   * STRICT MODE:
+   * This method now requires $requesterModel and will resolve via belongsTo association
+   * metadata only. It will throw if the resolution is not possible or is ambiguous.
+   *
+   * @param string      $foreignKey       Foreign key name (eg: report_id)
+   * @param string|null $requesterModel   Requester model path (eg "CoreModel" or "Plugin.CoreModel") (required)
+   * @return string                       Model name, qualified as "Plugin.Model" when applicable
+   * @since  COmanage Registry v5.2.0
+   * @throws \InvalidArgumentException    When requester model is not provided or cannot be resolved
+   * @throws \RuntimeException            When the association is missing/ambiguous or the target alias cannot be determined
+   */
+  public static function foreignKeyToQualifiedModelName(string $foreignKey, ?string $requesterModel = null): string
+  {
+    if ($requesterModel === null || trim($requesterModel) === '') {
+      throw new \InvalidArgumentException(
+        "foreignKeyToQualifiedModelName requires a requester model path to resolve '$foreignKey' canonically"
+      );
+    }
+
+    $requesterTable = TableRegistry::getTableLocator()->get($requesterModel);
+
+    $matches = [];
+
+    foreach ($requesterTable->associations()->getByType(['belongsTo']) as $assoc) {
+      if ($assoc->getForeignKey() === $foreignKey) {
+        $matches[] = $assoc;
+      }
+    }
+
+    if (count($matches) === 0) {
+      // Provide a helpful diagnostic: what belongsTo FKs ARE defined on the requester?
+      $defined = [];
+
+      foreach ($requesterTable->associations()->getByType(['belongsTo']) as $assoc) {
+        $target = $assoc->getTarget();
+        $registryAlias = $target->getRegistryAlias();
+
+        $defined[] = sprintf(
+          "%s(fk=%s,class=%s,registry=%s)",
+          $assoc->getName(),
+          $assoc->getForeignKey(),
+          $assoc->getClassName(),
+          ($registryAlias !== '' ? $registryAlias : '?')
+        );
+      }
+
+      $definedText = !empty($defined) ? implode('; ', $defined) : '(none)';
+
+      throw new \RuntimeException(
+        "No belongsTo association found on '$requesterModel' for foreign key '$foreignKey'. "
+        . "Defined belongsTo associations: " . $definedText
+      );
+    }
+
+    if (count($matches) > 1) {
+      throw new \RuntimeException(
+        "Ambiguous belongsTo associations on '$requesterModel' for foreign key '$foreignKey' (" . count($matches) . " matches)"
+      );
+    }
+
+    $target = $matches[0]->getTarget();
+    $alias = $target->getRegistryAlias();
+
+    if ($alias !== '') {
+      return $alias;
+    }
+
+    throw new \RuntimeException(
+      "Unable to determine registry alias for belongsTo target of '$requesterModel.$foreignKey'"
+    );
+  }
+
+  /**
+   * Resolve an (unqualified) model name to a canonical registry alias ("Plugin.Model")
+   * by inspecting the requester's association metadata.
+   *
+   * STRICT:
+   * - Requires $requesterModel (no guessing, no plugin scanning).
+   * - Throws if no association matches or if multiple associations match.
+   *
+   * Accepts:
+   * - $modelName = "Plugin.Model" (already qualified): returned as-is after basic validation
+   * - $modelName = "Models" (unqualified): resolved via associations on $requesterModel
+   *
+   * @param string      $modelName       Model name (eg "MatchServers" or "CoreServer.MatchServers")
+   * @param string|null $requesterModel  Requester model path (eg "MatchServerAttributes" or "CoreServer.MatchServerAttributes")
+   * @return string                      Canonical registry alias for the target table (eg "CoreServer.MatchServers")
+   * @since  COmanage Registry v5.2.0
+   * @throws \InvalidArgumentException
+   * @throws \RuntimeException
+   */
+  public static function modelNameToQualifiedModelName(string $modelName, ?string $requesterModel = null): string
+  {
+    // Already qualified: validate it can be instantiated, then return it
+    if (str_contains($modelName, '.')) {
+      TableRegistry::getTableLocator()->get($modelName);
+      return $modelName;
+    }
+
+    if ($requesterModel === null || trim($requesterModel) === '') {
+      throw new \InvalidArgumentException(
+        "modelNameToQualifiedModelName requires a requester model path to resolve '$modelName' canonically"
+      );
+    }
+
+    // If the model being resolved is the same as the requester model, resolve to the requester.
+    // This avoids requiring a self-association (which typically doesn't exist).
+    if ($modelName === self::pluginModel($requesterModel)) {
+      $requesterTable = TableRegistry::getTableLocator()->get($requesterModel);
+
+      $alias = $requesterTable->getRegistryAlias();
+      if ($alias !== '') {
+        return $alias;
+      }
+
+      return $requesterModel;
+    }
+
+    // If the requester model has exactly one primary link, prefer that as the canonical parent
+    // (for breadcrumb "parent hook" resolution), instead of traversing the association graph.
+    $requesterTable = TableRegistry::getTableLocator()->get($requesterModel);
+
+    if (
+      method_exists($requesterTable, 'getPrimaryLinks')
+      && method_exists($requesterTable, 'getPrimaryLinkTableName')
+    ) {
+      $primaryLinks = (array)$requesterTable->getPrimaryLinks();
+
+      if (count($primaryLinks) === 1) {
+        $plField = (string)$primaryLinks[0];
+        $parentModelPath = (string)$requesterTable->getPrimaryLinkTableName($plField);
+
+        // Only short-circuit when the caller is asking for the primary-link parent model.
+        if ($parentModelPath !== '' && $modelName === self::pluginModel($parentModelPath)) {
+          $parentTable = TableRegistry::getTableLocator()->get($parentModelPath);
+
+          $alias = $parentTable->getRegistryAlias();
+          if ($alias !== '') {
+            return $alias;
+          }
+
+          return $parentModelPath;
+        }
+      }
+    }
+
+    $assocTypes = ['belongsTo', 'hasOne', 'hasMany', 'belongsToMany'];
+
+    // Prefer matching by association *name* first (eg "People" vs "ManagerPeople")
+    // then fall back to target alias/className/registryAlias heuristics.
+    $isMatch = static function ($assoc) use ($modelName): bool {
+      if ($assoc->getName() === $modelName) {
+        return true;
+      }
+
+      $target = $assoc->getTarget();
+
+      if ($target->getAlias() === $modelName) {
+        return true;
+      }
+
+      $className = (string)$assoc->getClassName();
+      if ($className === $modelName || str_ends_with($className, '.' . $modelName)) {
+        return true;
+      }
+
+      $ra = (string)$target->getRegistryAlias();
+      if ($ra === $modelName || str_ends_with($ra, '.' . $modelName)) {
+        return true;
+      }
+
+      return false;
+    };
+
+    // 1) Prefer direct associations
+    $requesterTable = TableRegistry::getTableLocator()->get($requesterModel);
+    $directMatches = [];
+
+    foreach ($requesterTable->associations()->getByType($assocTypes) as $assoc) {
+      if ($isMatch($assoc)) {
+        $directMatches[] = $assoc;
+      }
+    }
+
+    if (count($directMatches) === 1) {
+      $target = $directMatches[0]->getTarget();
+      $alias = $target->getRegistryAlias();
+
+      if ($alias !== '') {
+        return $alias;
+      }
+
+      throw new \RuntimeException(
+        "Unable to determine registry alias for association target '$requesterModel -> $modelName'"
+      );
+    } elseif (count($directMatches) > 1) {
+      // Disambiguation: prefer an association whose *association alias/name* exactly
+      // matches the requested model name (eg "People" vs "ManagerPeople"/"SponsorPeople").
+      $named = array_values(array_filter(
+        $directMatches,
+        static fn($a) => $a->getName() === $modelName
+      ));
+
+      if (count($named) === 1) {
+        $target = $named[0]->getTarget();
+        $alias = (string)$target->getRegistryAlias();
+
+        if ($alias !== '') {
+          return $alias;
+        }
+
+        throw new \RuntimeException(
+          "Unable to determine registry alias for association target '$requesterModel -> $modelName'"
+        );
+      }
+
+      throw new \RuntimeException(
+        "Ambiguous direct associations on '$requesterModel' targeting model '$modelName' (" . count($directMatches) . " matches)"
+      );
+    }
+
+    // 2) Fallback: traverse (depth 2) with path info
+    $candidates = \App\Lib\Util\TableUtilities::findAssociationsByTraversalWithPath(
+      startModel: $requesterModel,
+      isMatch: $isMatch,
+      types: $assocTypes,
+      maxDepth: 2
+    );
+
+    if (count($candidates) === 0) {
+      throw new \RuntimeException(
+        "No association found on '$requesterModel' that targets model '$modelName'"
+      );
+    }
+
+    if (count($candidates) > 1) {
+      // Prefer smallest depth
+      $minDepth = min(array_map(static fn($c) => $c['depth'], $candidates));
+      $candidates = array_values(array_filter($candidates, static fn($c) => $c['depth'] === $minDepth));
+
+      // If still ambiguous, prefer paths that go through the primary link parent (best effort)
+      if (count($candidates) > 1 && method_exists($requesterTable, 'getPrimaryLinks')) {
+        $primaryLinks = (array)$requesterTable->getPrimaryLinks();
+
+        $parentAliases = [];
+        foreach ($primaryLinks as $pl) {
+          if (is_string($pl) && str_ends_with($pl, '_id')) {
+            $parentAliases[] = self::foreignKeyToClassName($pl);
+          }
+        }
+
+        if (!empty($parentAliases)) {
+          $preferred = array_values(array_filter($candidates, static function ($c) use ($parentAliases): bool {
+            foreach ($parentAliases as $pa) {
+              if (in_array($pa, $c['path'], true)) {
+                return true;
+              }
+            }
+            return false;
+          }));
+
+          if (count($preferred) === 1) {
+            $candidates = $preferred;
+          }
+        }
+      }
+
+      if (count($candidates) > 1) {
+        $paths = array_map(
+          static fn($c) => implode(' -> ', $c['path']) . ' -> ' . $c['assoc']->getTarget()->getAlias(),
+          $candidates
+        );
+
+        throw new \RuntimeException(
+          "Ambiguous associations on '$requesterModel' targeting model '$modelName' (" . count($candidates) . " matches): " . implode(' | ', $paths)
+        );
+      }
+    }
+
+    $target = $candidates[0]['assoc']->getTarget();
+    $alias = (string)$target->getRegistryAlias();
+
+    if ($alias !== '') {
+      return $alias;
+    }
+
+    throw new \RuntimeException(
+      "Unable to determine registry alias for association target '$requesterModel -> $modelName'"
+    );
+  }
+
+
   /**
    * Determine the plugin component of a Plugin path.
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  string $s Plugin path, in Plugin.Model format.
    * @return string    Plugin name
@@ -518,7 +816,7 @@ class StringUtilities {
   /**
    * Convert a plugin name (in Plugin.Model format) to the field name it will be found
    * in as a related model to the Pluggable Entity (ie: $entity->my_plugin).
-   * 
+   *
    * @since  COmanage Registry v5.1.0
    * @param  string $plugin   Plugin path, in Plugin.Model format
    * @return string           Plugin field name, in underscore_format
@@ -542,12 +840,12 @@ class StringUtilities {
 
   /**
    * Determine the Entity name from a Table object.
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  Table $table Cake Table object
    * @return string       Entity name (eg: Report)
    */
-  
+
   public static function tableToEntityName($table): string {
     $classPath = $table->getEntityClass();
 
@@ -556,7 +854,7 @@ class StringUtilities {
 
   /**
    * Determine the foreign key name to point to a Cake Entity (eg: foo_id for FooTable).
-   * 
+   *
    * @since  COmanage Registry v5.0.0
    * @param  Table  $table  Table
    * @return string         Foreign key name
@@ -576,7 +874,7 @@ class StringUtilities {
   // https://stackoverflow.com/questions/1374753/passing-base64-encoded-strings-in-url
   // The mapping we use is the same as the YUI library. RFC 4648 base64url is
   // another option, but strangely doesn't map the padding character (=).
-  
+
   /**
    * base64 decode a string.
    *
@@ -584,15 +882,15 @@ class StringUtilities {
    * @param  string $s String to decode
    * @return string    Decoded string
    */
-  
+
   public static function urlbase64decode(string $s): string {
     return !empty($s)
            ? base64_decode(str_replace(array(".", "_", "-"),
                                        array("+", "/", "="),
                                        $s))
            : "";
-  } 
-  
+  }
+
   /**
    * base64 encode a string.
    *
@@ -600,7 +898,7 @@ class StringUtilities {
    * @param  string $s String to encode
    * @return string    Encoded string
    */
-  
+
   public static function urlbase64encode(string $s): string {
     return !empty($s)
            ? str_replace(array("+", "/", "="),

@@ -42,6 +42,16 @@ class GroupMembersController extends StandardController {
     ]
   ];
 
+  public function initialize(): void
+  {
+    parent::initialize();
+
+    // Build breadcrumb chain from query context: ?person_id=...
+    $this->Breadcrumb->configureQueryPrimaryLinks([
+      'index' => ['person_id']
+    ]);
+  }
+
   /**
    * Callback run prior to the request render.
    *
@@ -64,6 +74,17 @@ class GroupMembersController extends StandardController {
       $this->set('vv_bc_parent_primarykey', $this->GroupMembers->$model->getPrimaryKey());
     }
     
+    // If we're in a Person context (index filtered by ?person_id=...), override the page title.
+    if (
+      $this->getRequest()->getParam('action') === 'index'
+      && $this->getRequest()->getQuery('person_id') !== null
+    ) {
+      $this->set('vv_title', __d('menu', 'co.groups.memberships'));
+
+      // Ensure the breadcrumb leaf is plain text (no extra title-links).
+      $this->set('vv_bc_title_links', []);
+    }
+
     return parent::beforeRender($event);
   }
   

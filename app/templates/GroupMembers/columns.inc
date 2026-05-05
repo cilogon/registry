@@ -153,8 +153,14 @@ if ($this->request->getQuery('group_id') !== null) {
   ];
 
   $subnav = 'people';
-  $localTitle = __d('controller','Groups', 99);
-  
+  // If we're in a Person context (index filtered by ?person_id=...), do not override the subnav title.
+  if (
+    $this->getRequest()->getParam('action') === 'index'
+    && empty($this->getRequest()->getQuery('person_id'))
+  ) {
+    $localTitle = __d('controller','Groups', 99);
+  }
+
   // Do not show the normal add link here
   $suppressAddLink = true;
 ?>
