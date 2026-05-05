@@ -32,7 +32,7 @@
 ?>
 <?php if(!empty($vv_pa)): ?>
   <ul>
-    <? foreach($vv_pa as $pa): ?>
+    <?php foreach($vv_pa as $pa): ?>
     <li>
       <?= __d('terms_agreer', 'result.AgreementCollectors.recorded', [
             $pa->terms_and_conditions->description,
@@ -40,6 +40,6 @@
             $pa->modified
           ]); ?>
     </li>
-    <? endforeach; // $vv_pa ?>
+    <?php endforeach; // $vv_pa ?>
   </ul>
 <?php endif; ?>
