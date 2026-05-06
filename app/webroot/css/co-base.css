@@ -1378,6 +1378,18 @@ h2.card-title a {
 #main h2.card-title a:hover {
   text-decoration: none;
 }
+table.cm-mvea td {
+  width: 30%;
+}
+table.cm-mvea td:first-child {
+  width: 70%;
+}
+table.cm-mvea.cm-mvea-with-eis td {
+  width: 25%;
+}
+table.cm-mvea.cm-mvea-with-eis td:first-child {
+  width: 50%;
+}
 .field-data-container .id-col {
   text-align: right;
   padding-right: 1em;
@@ -2451,7 +2463,7 @@ code.source-record {
   align-items: center;
 }
 button.cm-copy-value-button {
-  display: flex;
+  display: none; /* turn on at 576px */
   align-items: center;
   gap: 0.1em;
   padding: 0 0.5em 0.2em;
@@ -2743,6 +2755,7 @@ html.dark-mode .btn-default:active {
   margin-top: auto;
   margin-bottom: auto;
   line-height: 1.2em;
+  border: 1px solid var(--cmg-color-bg-006);
 }
 .bg-light {
   color: var(--cmg-color-highlight-005);
@@ -2763,6 +2776,9 @@ html.dark-mode .btn-default:active {
 }
 .bg-secondary {
   background-color: var(--cmg-color-btn-bg-003);
+}
+.badge-eis {
+  box-shadow: var(--cmg-color-shadow-01);
 }
 /* Bootstrap bg-outline */
 .bg-outline-primary {

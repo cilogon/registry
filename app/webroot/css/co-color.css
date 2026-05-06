@@ -89,6 +89,8 @@
   
   --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
   --cmg-color-highlight-018: yellow;  /* autocomplete highlight for query text */
+
+  --cmg-color-shadow-01: 0px 0px 2px 0px rgba(13,69,115,0.6); /* RGBA box-shadow color based on --cmg-color-btn-bg-001 */
   
   /* Fonts */
   --cmg-font-regular: 'open_sansregular','Trebuchet MS',Arial,Helvetica,sans-serif;
@@ -171,6 +173,8 @@ html.dark-mode {
 
   --cmg-color-highlight-017: #333; /* alert: info border color (blue) */
   --cmg-color-highlight-018: #cc0;    /* autocomplete highlight for query text */
+  
+  --cmg-color-shadow-01: 0px 0px 2px 0px rgba(13,69,115,0.8); /* RGBA box-shadow color based on --cmg-color-btn-bg-001 */
   
   /* Bootstrap Overrides for Dark Mode */
   --bs-light-rgb: #151515;

@@ -112,13 +112,17 @@
   }
   /* PERSON CANVAS / CARDS */
   .co-cards .field-data-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    min-height: 2.5em;
+    vertical-align: center;
   }
-  #mvea-canvas-roles .field-data-container {
-    grid-template-columns: 1fr 1fr 2fr auto;
+  .co-cards th {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+  }
+  .co-cards .field-data.data-eis .badge {
+    margin: 0;
+  }
+  button.cm-copy-value-button {
+    display: flex;
   }
   /* PAGINATION */
   #pagination {

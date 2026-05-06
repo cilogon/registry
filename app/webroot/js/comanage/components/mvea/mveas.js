@@ -46,6 +46,10 @@ export default {
   computed: {
     mveaModel: function() {
       return this.mveas?.[camelize(this.core.mveaType)]
+    },
+    hasEis() {
+      return this.core?.externalIdentitySources &&
+        Object.keys(this.core.externalIdentitySources).length > 0;
     }
   },
   methods: {
@@ -54,16 +58,26 @@ export default {
     }
   },
   template: `
-    <ul class="cm-mvea fields data-list">
+    <table class="cm-mvea fields data-list"
+        :class="{ 'cm-mvea-with-eis': hasEis }">
       <mvea-item 
         :txt="this.txt"
         :core="this.core"
         v-for='mvea in mveaModel'
         :mvea="mvea">
       </mvea-item>
-      <li v-show="this.mveaModel?.length < 1" class="field-data-container cm-mvea-no-attributes-msg">
-        <div class="field-data">{{ this.txt['information.global.attributes.none'] }}</div>
-      </li>
-    </ul>
+      <thead>
+        <tr>
+          <th>{{ this.txt['field.value'] }}</th>
+          <th>{{ this.core.mveaType == 'ad_hoc_attributes' ? this.txt['field.key'] : this.txt['field.type'] }}</th>
+          <th v-if="hasEis">{{ this.txt['field.source'] }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="this.mveaModel?.length < 1" class="field-data-container cm-mvea-no-attributes-msg">
+          <td class="field-data">{{ this.txt['information.global.attributes.none'] }}</td>
+        </tr>
+      </tbody>
+    </table>
   `
 }

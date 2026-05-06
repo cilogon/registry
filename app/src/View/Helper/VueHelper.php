@@ -53,13 +53,17 @@ class VueHelper extends Helper {
     ],
     'field' => [
       'email',
+      'key',
       'login',
       'primary',
       'datepicker.chooseTime',
       'datepicker.hour',
       'datepicker.minute',
+      'source',
       'status',
+      'type',
       'unverified',
+      'value'
     ],
     'information' => [
       'global.attributes.none',
@@ -98,7 +102,7 @@ class VueHelper extends Helper {
   ];
 
   /**
-   * Helper which will produce an array of configured locales
+   * Helper which will produce an array of configured locales from the locales_list above.
    *
    * @param   string  $lang  The language of the locale
    *

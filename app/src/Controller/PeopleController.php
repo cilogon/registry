@@ -90,6 +90,31 @@ class PeopleController extends StandardController {
       $this->set('vv_default_name_type', $settings->default_name_type_id);
     }
     
+    if(!$this->request->is('restful') && $this->request->getParam('action') == 'edit') {
+      // Create a lookup table for badging External Identity Source descriptions on Person Canvas MVEAS.
+      // This will be passed to the view and made available to the JavaScript components.
+      $extIdentities = TableRegistry::getTableLocator()->get('ExternalIdentities');
+      $personId = $this->request->getParam('pass.0');
+      
+      // Pull External Identities with External Identity Source information as associated records
+      $records = $extIdentities
+        ->find()
+        ->where(['ExternalIdentities.person_id' => $personId])
+        ->contain(['ExtIdentitySourceRecords' => ['ExternalIdentitySources']])
+        ->all();
+
+      // Combine into a flat record id => EIS description lookup array
+      $eisLookupTable = (new \Cake\Collection\Collection($records))
+        ->filter(function ($record) {
+          // Only include rows that actually have an EIS description
+          return !empty($record->ext_identity_source_record->external_identity_source->description);
+        })
+        ->combine('id', 'ext_identity_source_record.external_identity_source.description')
+        ->toArray();
+
+      $this->set('vv_external_identity_sources', $eisLookupTable);
+    }
+    
     return parent::beforeRender($event);
   }
 }

@@ -197,6 +197,9 @@ msgstr "Full Name"
 msgid "hostname"
 msgstr "Hostname"
 
+msgid "key"
+msgstr "Key"
+
 msgid "language"
 msgstr "Language"
 

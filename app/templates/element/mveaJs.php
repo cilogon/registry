@@ -64,7 +64,8 @@ $vueHelper = $this->loadHelper('Vue');
           mveaController: '<?= Cake\Utility\Inflector::dasherize($mveaController) ?>',
           mveaTitle: '<?= $title ?>',
           webroot: '<?= $this->request->getAttribute('webroot') ?>',
-          action:  '<?= $vv_action ?>'
+          action:  '<?= $vv_action ?>',
+          externalIdentitySources: <?= json_encode($vv_external_identity_sources ?? null) ?>
         },
         txt: JSON.parse('<?= json_encode($vueHelper->locales()) ?>'),
         isLoading: true,

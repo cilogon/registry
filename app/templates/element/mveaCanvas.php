@@ -92,7 +92,7 @@
   }
 ?>
 <div id="mvea-canvas" class="co-cards">
-  <div id="mvea-canvas-attributes-js" class="row row-cols-1 g-4<?= ($widgetCount > 1) ? ' row-cols-md-2' : ''?>">
+  <div id="mvea-canvas-attributes-js" class="row row-cols-1 g-4<?= ($widgetCount > 1) ? ' row-cols-lg-2' : ''?>">
     <?php if($widgetCount == 0): ?>
         <div class="no-attributes"><?= __d('information','noattrs') ?></div>
     <?php else: ?>
