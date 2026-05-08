@@ -57,6 +57,9 @@ class Application extends BaseApplication
         }
 
         // Load more plugins here
+
+        // Dynamically update autoload paths before adding plugins
+        $loader = require ROOT . DS . 'vendor' . DS . 'autoload.php';
         
         try {
             $Plugins = TableRegistry::getTableLocator()->get('Plugins');
@@ -64,6 +67,26 @@ class Application extends BaseApplication
             $activePlugins = $Plugins->find('active')->all();
 
             foreach($activePlugins as $p) {
+                // For each plugin, regardless of location, we (1) update the PSR4
+                // autoload paths for the plugin and (2) tell Cake about it.
+
+                try {
+                    $tpath = $Plugins->pluginPath($p, "tests" . DS);
+                
+                    if(file_exists($tpath)) {
+                        $loader->addPsr4($p->plugin . '\\Test\\', $tpath);
+                    }
+                }
+                catch(\InvalidArgumentException $e) {
+                    // We allow the tests directory to not exist
+                }
+                
+                $ppath = $Plugins->pluginPath($p, "src" . DS);
+
+                if(file_exists($ppath)) {
+                    $loader->addPsr4($p->plugin . '\\', $ppath);
+                }
+
                 $this->addPlugin($p->plugin);
             }
         }

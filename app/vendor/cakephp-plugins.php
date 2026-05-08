@@ -6,16 +6,7 @@ return [
         'Authentication' => $baseDir . '/vendor/cakephp/authentication/',
         'Bake' => $baseDir . '/vendor/cakephp/bake/',
         'Cake/TwigView' => $baseDir . '/vendor/cakephp/twig-view/',
-        'CoreApi' => $baseDir . '/plugins/CoreApi/',
-        'CoreAssigner' => $baseDir . '/plugins/CoreAssigner/',
-        'CoreEnroller' => $baseDir . '/plugins/CoreEnroller/',
-        'CoreJob' => $baseDir . '/plugins/CoreJob/',
-        'CoreServer' => $baseDir . '/plugins/CoreServer/',
         'DebugKit' => $baseDir . '/vendor/cakephp/debug_kit/',
-        'EnvSource' => $baseDir . '/plugins/EnvSource/',
         'Migrations' => $baseDir . '/vendor/cakephp/migrations/',
-        'OrcidSource' => $baseDir . '/plugins/OrcidSource/',
-        'SshKeyAuthenticator' => $baseDir . '/plugins/SshKeyAuthenticator/',
-        'TermsAgreer' => $baseDir . '/plugins/TermsAgreer/'
     ],
 ];

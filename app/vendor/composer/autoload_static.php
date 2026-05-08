@@ -47,7 +47,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
-            'TermsAgreer\\' => 12,
         ),
         'S' => 
         array (
@@ -67,10 +66,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Symfony\\Component\\Filesystem\\' => 29,
             'Symfony\\Component\\Console\\' => 26,
             'Symfony\\Component\\Config\\' => 25,
-            'SshKeyAuthenticator\\Test\\' => 25,
-            'SshKeyAuthenticator\\' => 20,
-            'SqlConnector\\Test\\' => 18,
-            'SqlConnector\\' => 13,
             'SlevomatCodingStandard\\' => 23,
             'Seld\\Signal\\' => 12,
             'Seld\\PharUtils\\' => 15,
@@ -91,19 +86,13 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Psr\\Container\\' => 14,
             'Psr\\Clock\\' => 10,
             'Psr\\Cache\\' => 10,
-            'PipelineToolkit\\Test\\' => 21,
-            'PipelineToolkit\\' => 16,
             'PhpParser\\' => 10,
             'Phinx\\' => 6,
-            'PasswordAuthenticator\\Test\\' => 27,
-            'PasswordAuthenticator\\' => 22,
             'PHPStan\\PhpDocParser\\' => 21,
             'PHPCSStandards\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 57,
         ),
         'O' => 
         array (
-            'OrcidSource\\Test\\' => 17,
-            'OrcidSource\\' => 12,
         ),
         'M' => 
         array (
@@ -121,8 +110,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         ),
         'K' => 
         array (
-            'KerberosConnector\\Test\\' => 23,
-            'KerberosConnector\\' => 18,
         ),
         'J' => 
         array (
@@ -131,13 +118,9 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         ),
         'F' => 
         array (
-            'FileConnector\\Test\\' => 19,
-            'FileConnector\\' => 14,
         ),
         'E' => 
         array (
-            'EnvSource\\Test\\' => 15,
-            'EnvSource\\' => 10,
         ),
         'D' => 
         array (
@@ -151,16 +134,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         ),
         'C' => 
         array (
-            'CoreServer\\Test\\' => 16,
-            'CoreServer\\' => 11,
-            'CoreJob\\Test\\' => 13,
-            'CoreJob\\' => 8,
-            'CoreEnroller\\Test\\' => 18,
-            'CoreEnroller\\' => 13,
-            'CoreAssigner\\Test\\' => 18,
-            'CoreAssigner\\' => 13,
-            'CoreApi\\Test\\' => 13,
-            'CoreApi\\' => 8,
             'Composer\\XdebugHandler\\' => 23,
             'Composer\\Spdx\\' => 14,
             'Composer\\Semver\\' => 16,
@@ -186,8 +159,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Authentication\\' => 15,
             'App\\Test\\' => 9,
             'App\\' => 4,
-            'ApiConnector\\Test\\' => 18,
-            'ApiConnector\\' => 13,
         ),
     );
 
@@ -199,10 +170,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
-        ),
-        'TermsAgreer\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/TermsAgreer/src',
         ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (
@@ -268,22 +235,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/symfony/config',
         ),
-        'SshKeyAuthenticator\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/SshKeyAuthenticator/tests',
-        ),
-        'SshKeyAuthenticator\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/SshKeyAuthenticator/src',
-        ),
-        'SqlConnector\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/SqlConnector/tests',
-        ),
-        'SqlConnector\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/SqlConnector/src',
-        ),
         'SlevomatCodingStandard\\' => 
         array (
             0 => __DIR__ . '/..' . '/slevomat/coding-standard/SlevomatCodingStandard',
@@ -342,14 +293,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
-        'PipelineToolkit\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/PipelineToolkit/tests',
-        ),
-        'PipelineToolkit\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/PipelineToolkit/src',
-        ),
         'PhpParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
@@ -358,14 +301,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/robmorgan/phinx/src/Phinx',
         ),
-        'PasswordAuthenticator\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/PasswordAuthenticator/tests',
-        ),
-        'PasswordAuthenticator\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/PasswordAuthenticator/src',
-        ),
         'PHPStan\\PhpDocParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpstan/phpdoc-parser/src',
@@ -373,14 +308,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'PHPCSStandards\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 
         array (
             0 => __DIR__ . '/..' . '/dealerdirect/phpcodesniffer-composer-installer/src',
-        ),
-        'OrcidSource\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/OrcidSource/tests',
-        ),
-        'OrcidSource\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/OrcidSource/src',
         ),
         'Migrations\\' => 
         array (
@@ -415,14 +342,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             0 => __DIR__ . '/..' . '/laminas/laminas-diactoros/src',
         ),
-        'KerberosConnector\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/KerberosConnector/tests',
-        ),
-        'KerberosConnector\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/KerberosConnector/src',
-        ),
         'JsonSchema\\' => 
         array (
             0 => __DIR__ . '/..' . '/justinrainbow/json-schema/src/JsonSchema',
@@ -430,22 +349,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'Jasny\\Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/jasny/twig-extensions/src',
-        ),
-        'FileConnector\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/FileConnector/tests',
-        ),
-        'FileConnector\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/FileConnector/src',
-        ),
-        'EnvSource\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/EnvSource/tests',
-        ),
-        'EnvSource\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/EnvSource/src',
         ),
         'Doctrine\\SqlFormatter\\' => 
         array (
@@ -482,38 +385,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreServer\\' => 
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreServer/src',
-        ),
-        'CoreJob\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreJob/tests',
-        ),
-        'CoreJob\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreJob/src',
-        ),
-        'CoreEnroller\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreEnroller/tests',
-        ),
-        'CoreEnroller\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreEnroller/src',
-        ),
-        'CoreAssigner\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreAssigner/tests',
-        ),
-        'CoreAssigner\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreAssigner/src',
-        ),
-        'CoreApi\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreApi/tests',
-        ),
-        'CoreApi\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/plugins/CoreApi/src',
         ),
         'Composer\\XdebugHandler\\' => 
         array (
@@ -590,14 +461,6 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
-        ),
-        'ApiConnector\\Test\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/ApiConnector/tests',
-        ),
-        'ApiConnector\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/availableplugins/ApiConnector/src',
         ),
     );
 

@@ -177,6 +177,12 @@ msgstr "Message Template ID"
 msgid "opt.notify.type"
 msgstr "Type (label) for provided Identifier"
 
+msgid "opt.plugin.action"
+msgstr "Action to perform"
+
+msgid "opt.plugin.plugin"
+msgstr "Comma separated list of plugins to process"
+
 msgid "opt.test.database.source"
 msgstr "For database test, the datasource to use"
 
@@ -206,6 +212,9 @@ msgstr "Skip version validation -- ADVANCED USERS ONLY"
 
 msgid "opt.upgrade.version"
 msgstr "Version to upgrade to (default: current release)"
+
+msgid "pl.action.done"
+msgstr "Completed task {0} for Plugin {1}"
 
 # msgid "se.admin"
 # msgstr "Creating initial administrator permission"

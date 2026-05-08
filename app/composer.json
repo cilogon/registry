@@ -34,43 +34,13 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/",
-            "ApiConnector\\": "availableplugins/ApiConnector/src/",
-            "CoreApi\\": "plugins/CoreApi/src/",
-            "CoreAssigner\\": "plugins/CoreAssigner/src/",
-            "CoreEnroller\\": "plugins/CoreEnroller/src/",
-            "CoreServer\\": "plugins/CoreServer/src/",
-            "EnvSource\\": "plugins/EnvSource/src/",
-            "FileConnector\\": "availableplugins/FileConnector/src/",
-            "KerberosConnector\\": "availableplugins/KerberosConnector/src/",
-            "OrcidSource\\": "plugins/OrcidSource/src/",
-            "PasswordAuthenticator\\": "availableplugins/PasswordAuthenticator/src/",
-            "PipelineToolkit\\": "availableplugins/PipelineToolkit/src/",
-            "SqlConnector\\": "availableplugins/SqlConnector/src/",
-            "SshKeyAuthenticator\\": "plugins/SshKeyAuthenticator/src/",
-            "CoreJob\\": "plugins/CoreJob/src/",
-            "TermsAgreer\\": "plugins/TermsAgreer/src/"
+            "App\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
             "App\\Test\\": "tests/",
-            "ApiConnector\\Test\\": "availableplugins/ApiConnector/tests/",
-            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
-            "CoreApi\\Test\\": "plugins/CoreApi/tests/",
-            "CoreAssigner\\Test\\": "plugins/CoreAssigner/tests/",
-            "CoreEnroller\\Test\\": "plugins/CoreEnroller/tests/",
-            "CoreServer\\Test\\": "plugins/CoreServer/tests/",
-            "EnvSource\\Test\\": "plugins/EnvSource/tests/",
-            "FileConnector\\Test\\": "availableplugins/FileConnector/tests/",
-            "KerberosConnector\\Test\\": "availableplugins/KerberosConnector/tests/",
-            "OrcidSource\\Test\\": "plugins/OrcidSource/tests/",
-            "PasswordAuthenticator\\Test\\": "availableplugins/PasswordAuthenticator/tests/",
-            "PipelineToolkit\\Test\\": "availableplugins/PipelineToolkit/tests/",
-            "SqlConnector\\Test\\": "availableplugins/SqlConnector/tests/",
-            "SshKeyAuthenticator\\Test\\": "plugins/SshKeyAuthenticator/tests/",
-            "CoreJob\\Test\\": "plugins/CoreJob/tests/",
-            "TermsAgreer\\Test\\": "plugins/TermsAgreer/tests/"
+            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
         }
     },
     "scripts": {
