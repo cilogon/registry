@@ -188,10 +188,8 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
   <?php endif; ?>
 </div>
   
-<?php if(!$hasSubnav): ?>
-  <?php /* Flash Messages are placed below the main title when there's no subnavigation. */ ?>
-  <?= $this->element('flash', $flashArgs); ?>
-<?php endif; ?>
+<?php /* Alerts and Flash Messages are placed below the title and subtitle. */ ?>
+<?= $this->element('flash', $flashArgs); ?>
 
 <?php if(!empty($bulkActions)): ?>
   <!-- Bulk actions block -->
