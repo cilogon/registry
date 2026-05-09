@@ -203,20 +203,32 @@ class TelephoneNumbersTable extends Table {
       }
     }
     
+    // We further require Country Code and Area Code to be integers. We don't require
+    // this for number or extension because of various formatting marks, such as
+    // 555-1212 or x395, or even the use of letters in telephone numbers (800-USA-RAIL).
+
+    $validator->add('country_code', [
+      'numeric' => ['rule' => 'isInteger']
+    ]);
+
+    $validator->add('area_code', [
+      'numeric' => ['rule' => 'isInteger']
+    ]);
+    
     $this->registerStringValidation($validator, $schema, 'description', false);
     
     $validator->add('type_id', [
-      'content' => ['rule'     => 'isInteger']
+      'content' => ['rule' => 'isInteger']
     ]);
     $validator->notEmptyString('type_id');
     
     $validator->add('frozen', [
-      'content' => ['rule' => ['boolean']]
+      'content' => ['rule' => 'boolean']
     ]);
     $validator->allowEmptyString('frozen');
 
     $validator->add('source_telephone_number_id', [
-      'content' => [ 'rule'    => 'isInteger' ]
+      'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('source_telephone_number_id');
     
