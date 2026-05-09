@@ -40,9 +40,13 @@ $supportedAttributes = $this->Petition->getSupportedEnrollmentAttribute($attr->a
 // Do we have a default value configured?
 // Either a value or an Environmental Variable,
 // Each default value is mutually exclusive to the rest. We do not have to worry about a conflict.
+//
+// NOTE: name/address/telephoneNumber are MVEAs and are rendered as grouped sub-fields.
+// Their per-component defaults must be applied at the sub-field level, not here.
 $options['default'] = match(true) {
   isset($attr->default_value)                          => $attr->default_value,
   isset($attr->default_value_env_name)
+  && $attr->attribute !== 'name'
   && getenv($attr->default_value_env_name) !== false   => getenv($attr->default_value_env_name),
   isset($attr->default_value_datetime)                 => $attr->default_value_datetime,
   default                                              => ''

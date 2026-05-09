@@ -29,6 +29,7 @@
 declare(strict_types = 1);
 
 use \Cake\Utility\Inflector;
+use CoreEnroller\Lib\Util\MagicEnvDefaultUtilities;
 
 // $field: string
 // $attr:  object
@@ -53,12 +54,23 @@ $options['required'] = $isRequiredFromValidationRule;
 // Do we have a default value configured?
 // Either a value or an Environmental Variable,
 // Each default value is mutually exclusive to the rest. We do not have to worry about a conflict.
+//
+// NOTE: For Name, default_value_env_name is treated as a base env var name.
+// We derive per-component env vars (eg BASE_GIVEN). Missing/empty env vars yield no default.
 $options['default'] = match(true) {
   isset($attr->default_value)                          => $attr->default_value,
+
   // XXX The $attr->default_value_env_name for the name attribute is tricky. Since the name has many values.
   //     Check the EnvSource plugin
   isset($attr->default_value_env_name)
+  && $attr->attribute === 'name'
+  && MagicEnvDefaultUtilities::nameComponentFromEnv((string)$attr->default_value_env_name, (string)$field) !== null
+                                                  => MagicEnvDefaultUtilities::nameComponentFromEnv((string)$attr->default_value_env_name, (string)$field),
+
+  isset($attr->default_value_env_name)
+  && $attr->attribute !== 'name'
   && getenv($attr->default_value_env_name) !== false   => getenv($attr->default_value_env_name),
+
   isset($attr->default_value_datetime)                 => $attr->default_value_datetime,
   default                                              => ''
 };
