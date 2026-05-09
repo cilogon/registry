@@ -40,9 +40,8 @@ $this->set('fieldName', $arguments['fieldName']);
 $fieldName = $arguments['fieldName'];
 $this->set('vv_field_arguments', $arguments);
 
-$qualifiedModelName = StringUtilities::entityToPluginClassName($this->Field->getEntity());
-$plugin = StringUtilities::pluginPlugin($qualifiedModelName);
-$controller = StringUtilities::pluginModel($qualifiedModelName);
+$plugin = $this->getRequest()->getParam('plugin');
+$controller = (string)$this->getRequest()->getParam('controller');
 
 // If an attribute is frozen, inject a special link to unfreeze it, since
 // the attribute is read-only and the admin can't simply uncheck the setting
