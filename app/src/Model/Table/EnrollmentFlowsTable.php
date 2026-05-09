@@ -190,8 +190,8 @@ class EnrollmentFlowsTable extends Table {
 
     $steps = $this->EnrollmentFlowSteps->find()
                                        ->where([
-                                        'enrollment_flow_id' => $petition->enrollment_flow_id,
-                                        'status' => SuspendableStatusEnum::Active
+                                        'EnrollmentFlowSteps.enrollment_flow_id' => $petition->enrollment_flow_id,
+                                        'EnrollmentFlowSteps.status' => SuspendableStatusEnum::Active
                                        ])
                                        ->orderBy(['EnrollmentFlowSteps.ordr' => 'ASC'])
                                        ->contain($this->EnrollmentFlowSteps->getPluginRelations())
