@@ -185,7 +185,7 @@ if (
       }
 
       // Delete
-      if($vv_action != 'add' && !empty($vv_obj->id) && $vv_permissions['delete']) {
+      if(in_array($vv_action, ['edit','view']) && !empty($vv_obj->id) && $vv_permissions['delete']) {
         $action_args['vv_actions'][] = [
           'order' => $this->Menu->getMenuOrder('Delete'),
           'icon' => $this->Menu->getMenuIcon('Delete'),
