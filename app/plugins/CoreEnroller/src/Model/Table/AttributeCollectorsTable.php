@@ -105,6 +105,94 @@ class AttributeCollectorsTable extends Table {
   }
 
   /**
+   * Obtain a name (as a string) for the Enrollee associated with the specified Petition.
+   *
+   * Not all Petitions will have Enrollee Names, and some Petitions could have more than one
+   * Name. This function will try to find a suitable Name, but no guarantees can be made as
+   * to the result; different values can be returned across subsequent calls, especially if
+   * the Petition state changes.
+   *
+   * @since  COmanage Registry v5.2.0
+   * @param  EntityInterface  $config       Configuration entity for this plugin
+   * @param  int              $petitionId   Petition ID
+   * @return string|null                    Name, or null if there is no name data
+   */
+  public function enrolleeName(
+    EntityInterface $config,
+    int $petitionId
+  ): ?string {
+    // Identify active "name" EnrollmentAttributes for this collector (in configured order)
+    $nameEnrollmentAttributeIds = $this->EnrollmentAttributes
+      ->find()
+      ->select(['id'])
+      ->where([
+        'attribute_collector_id' => $config->id,
+        'attribute'              => 'name',
+        'status'                 => StatusEnum::Active,
+      ])
+      ->orderBy(['ordr' => 'ASC'])
+      ->all()
+      ->extract('id')
+      ->toList();
+
+    if (empty($nameEnrollmentAttributeIds)) {
+      return null;
+    }
+
+    // Pull all PetitionAttributes rows for those EnrollmentAttributes
+    $rows = $this->EnrollmentAttributes
+      ->PetitionAttributes
+      ->find()
+      ->where(['petition_id' => $petitionId])
+      ->where(fn(QueryExpression $exp, Query $q) => $exp->in('enrollment_attribute_id', $nameEnrollmentAttributeIds))
+      ->orderBy(['enrollment_attribute_id' => 'ASC', 'id' => 'ASC'])
+      ->toArray();
+
+    if (empty($rows)) {
+      return null;
+    }
+
+    // Choose the first EnrollmentAttribute (by ordr) that has any stored rows
+    $rowsByEnrollmentAttributeId = [];
+    foreach ($rows as $r) {
+      $rowsByEnrollmentAttributeId[$r->enrollment_attribute_id][] = $r;
+    }
+
+    $chosenEnrollmentAttributeId = null;
+    foreach ($nameEnrollmentAttributeIds as $eaId) {
+      if (!empty($rowsByEnrollmentAttributeId[$eaId])) {
+        $chosenEnrollmentAttributeId = $eaId;
+        break;
+      }
+    }
+
+    if ($chosenEnrollmentAttributeId === null) {
+      return null;
+    }
+
+    // Map PetitionAttributes.column_name => PetitionAttributes.value into Name fields
+    $allowedColumns = ['honorific', 'given', 'middle', 'family', 'suffix'];
+    $nameData = [];
+
+    foreach ($rowsByEnrollmentAttributeId[$chosenEnrollmentAttributeId] as $r) {
+      $column = $r->column_name ?? '';
+      if ($column !== '' && in_array($column, $allowedColumns, true) && !empty($r->value)) {
+        $nameData[$column] = $r->value;
+      }
+    }
+
+    if (empty($nameData)) {
+      return null;
+    }
+
+    // Construct a throw-away Name entity so we can use its full_name virtual field
+    $Names = TableRegistry::getTableLocator()->get('Names');
+    $name = $Names->newEntity($nameData);
+
+    return !empty($name->full_name) ? $name->full_name : null;
+  }
+
+  /**
    * Perform steps necessary to hydrate the Person record as part of Petition finalization.
    *
    * @param int $id Attribute Collector ID

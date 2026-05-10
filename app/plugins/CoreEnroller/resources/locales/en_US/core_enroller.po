@@ -164,7 +164,7 @@ msgid "field.AttributeCollectors.valid_through.default.after.desc"
 msgstr "Days After Finalization"
 
 msgid "field.AttributeCollectors.enable_person_find"
-msgstr "Enable People Picker for Self Service"
+msgstr "Enable People Picker for Unauthenticated Enrollments"
 
 msgid "field.AttributeCollectors.enable_person_find.desc"
 msgstr "Enable people picker for self-service enrollments, see <a target=\"_top\" href=\"https://spaces.at.internet2.edu/display/COmanage/Attribute+Collector+Enroller+Plugin\">Attribute Collector documentation</a> for privacy considerations"
