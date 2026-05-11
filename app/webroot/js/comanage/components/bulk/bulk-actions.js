@@ -180,7 +180,7 @@ export default {
     }
   },
   template: `
-    <legend>{{ this.legend }}</legend>
+    <label for="bulk-action-select">{{ this.legend }}</label>
     <select id="bulk-action-select" v-model="selected">
       <template v-if="bulkactions.length > 0">
         <option value="" disabled selected>{{ selectprompt }}</option>

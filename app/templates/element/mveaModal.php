@@ -105,7 +105,7 @@ $vueHelper = $this->loadHelper('Vue');
     template: `
       <Modal id="mvea":title="this.modal.title">
         <template v-slot:body="body">
-          <iframe :src="this.modal.url"/>
+          <iframe :src="this.modal.url" :aria-label="this.txt['menu.aria.label.lightbox']"/>
         </template>
       </Modal>
     `

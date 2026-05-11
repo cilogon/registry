@@ -88,8 +88,7 @@
         'id' => $fieldName,
         'value' => '',
         'type' => 'text',
-        'class' => 'visually-hidden',
-        'label' => false,
+        'class' => 'visually-hidden'
       ]
     );
   }

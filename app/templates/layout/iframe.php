@@ -114,7 +114,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
   <body class="<?= $bodyClasses ?>" onload="jsOnLoadCallHooks()">
     <!-- Iframe layout -->
     <div id="comanage-iframe-wrapper">
-      <main id="main">
+      <main id="main" aria-label="<?= __d('menu','aria.label.lightbox.main') ?>'">
         <div id="content">
           <!-- insert the page internal content -->
           <?= $this->fetch('content') ?>
@@ -123,7 +123,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
     </div>
 
     <!-- loading animation -->
-    <div id="co-loading"><span></span><span></span><span></span></div>
+    <div id="co-loading" aria-hidden="true"><span></span><span></span><span></span></div>
 
     <!-- modal dialog box -->
     <?= $this->element('dialog') ?>

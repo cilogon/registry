@@ -24,6 +24,24 @@
 
 # Menu Messages
 
+msgid "aria.label.actions"
+msgstr "Actions menu"
+
+msgid "aria.label.lightbox"
+msgstr "Registry lightbox"
+
+msgid "aria.label.lightbox.main"
+msgstr "Registry lightbox content"
+
+msgid "aria.label.search"
+msgstr "Search and user menu"
+
+msgid "aria.label.subnavigation"
+msgstr "Subnavigation"
+
+msgid "aria.label.subnavigation.links"
+msgstr "Subnavigation secondary links"
+
 msgid "artifacts"
 msgstr "Available {0} Artifacts"
 

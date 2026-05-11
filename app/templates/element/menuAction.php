@@ -49,7 +49,7 @@ $actionsIconClass = !empty($vv_actions_icon_class) ? $vv_actions_icon_class : 'm
     'data-bs-toggle' => 'dropdown',
     'aria-haspopup' => 'true',
     'aria-expanded' => 'false',
-    'title' => __d('field', 'action')
+    'aria-label' => __d('menu', 'aria.label.actions')
   );
   print $this->Html->link(
     '<span class="' . $actionsIconClass . '" aria-hidden="true">' . $actionsIcon . '</span> ' . $actionsTitle,

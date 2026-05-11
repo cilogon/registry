@@ -72,7 +72,7 @@
   
 <div id="search-results">
   <?php if($resultsCount): ?>
-    <nav id="cm-searchresults-subnav-tabs" class="cm-subnav-tabs">
+    <nav id="cm-searchresults-subnav-tabs" class="cm-subnav-tabs" aria-label="<?= __d('menu','aria.label.subnavigation') ?>">
       <ul class="nav nav-tabs" role="tablist">
         <?php $isFirstTab = true; ?>
         <?php foreach(['People', 'Groups'] as $i=>$pm): ?>

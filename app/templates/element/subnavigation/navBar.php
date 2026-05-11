@@ -56,7 +56,8 @@ $fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $model
   </div>
   
   <!-- Top-Level Subnavigation Tabs -->  
-  <nav id="cm-<?= $fullModelsName ?>-subnav-tabs" class="cm-subnav-tabs">
+  <nav id="cm-<?= $fullModelsName ?>-subnav-tabs" class="cm-subnav-tabs" 
+    aria-label="<?= __d('menu','aria.label.subnavigation') ?>">
     <ul class="nav nav-tabs">
       <?= $this->element('subnavigation/tabList')?>
     </ul>
@@ -68,7 +69,8 @@ $fullModelsName = !empty($this->getPlugin()) ? $this->getPlugin() . '.' . $model
     // Check the nested elements if they allow navigation for this action
     && in_array($vv_action, $subNavAttributes['nested']['action'][$fullModelsName] ?? [], true)
   ): ?>
-  <nav id="cm-<?= $fullModelsName ?>-subnav-links" class="cm-subnav-links">
+  <nav id="cm-<?= $fullModelsName ?>-subnav-links" class="cm-subnav-links" 
+    aria-label="<?= __d('menu','aria.label.subnavigation.links') ?>">
     <ul class="list-inline">
       <?= $this->element('subnavigation/inlineList')?>
     </ul>

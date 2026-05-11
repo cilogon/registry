@@ -74,7 +74,8 @@ class VueHelper extends Helper {
       'value.copied',
     ],
     'menu' => [
-      'person.canvas'
+      'aria.label.lightbox',
+      'person.canvas',
     ],
     'operation' => [
       'add',

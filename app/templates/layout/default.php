@@ -184,7 +184,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
       </header>
       
       <?php if(!$isActivePetition): ?>
-        <div id="top-bar">
+        <div id="top-bar" role="region" aria-label="<?= __d('menu','aria.label.search') ?>">
           <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
             <div id="top-controls">
               <div id="co-hamburger"><em class="material-symbols">menu</em></div>
@@ -217,7 +217,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
           <?= $this->element('menuMain') ?>
         <?php endif ?>
 
-        <main id="main">
+        <main id="main" aria-label="main content">
           <div id="content">
             <div id="content-inner">
               <?php if(!$isActivePetition): ?>
@@ -242,7 +242,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
     </div>
 
     <!-- loading animation -->
-    <div id="co-loading"><span></span><span></span><span></span></div>
+    <div id="co-loading" aria-hidden="true"><span></span><span></span><span></span></div>
 
     <!-- modal dialog boxes -->
     <?= $this->element('dialog') // used for confirmations ?>

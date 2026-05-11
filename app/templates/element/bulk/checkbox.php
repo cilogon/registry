@@ -48,8 +48,8 @@ if(empty($entity)) {
          id="<?= $id ?>"
          <?php if(!empty($entity)):?>
          data-entity="<?= htmlspecialchars(json_encode($entity), ENT_QUOTES, 'UTF-8') ?>"
-         data-entity-id="<?= $entity->id ?>">
-         <?php endif ?>
+         data-entity-id="<?= $entity->id ?>"
+         <?php endif ?>>
   <label class="form-check-label" for="<?= $id ?>">
     <?= $label ?>
   </label>

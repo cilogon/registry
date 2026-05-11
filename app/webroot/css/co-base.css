@@ -1158,8 +1158,7 @@ body.bulk-mode #bulk-actions {
   background-color: var(--cmg-color-bg-003);
   border: 1px solid var(--cmg-color-bg-005);
 }
-body.bulk-mode #bulk-actions legend {
-  width: auto;
+body.bulk-mode #bulk-actions label {
   font-size: 1.2em;
 }
 #bulk-action-select {
@@ -1221,8 +1220,7 @@ table.index-table .with-field-actions .form-check {
 /* PAGINATION */
 #pagination {
   margin: 0;
-  min-height: 1.5em;
-  padding: 0.5em 1em;
+  padding: 0;
   background-color: var(--cmg-color-btn-bg-001);
   color: var(--cmg-color-txt-inverse);
   text-align: center;
@@ -1230,26 +1228,31 @@ table.index-table .with-field-actions .form-check {
 html.dark-mode #pagination {
   background-color: var(--cmg-color-bg-003);
 }
+#pagination .pagination-counter {
+  padding: 0.5em 1em;
+}
 #pagination ul,
-#pagination li { /* override defaults */
-  display: inline-block;
-  list-style: none;
+#pagination li {
   margin: 0;
   padding: 0;
+  list-style: none;
+}
+#pagination ul {
+  display: flex;
+  align-items: center;
+}
+#pagination-links {
+  display: flex;
+  justify-content: center;
 }
 #pagination a {
+  display: block;
+  padding: 0.5em 0.6em;
   color: var(--cmg-color-txt-inverse);
 }
 #pagination a:hover {
   color: var(--cmg-color-bg-002);
   text-decoration: underline;
-}
-#pagination .paginationNumbers a {
-  display: inline-block;
-  padding: 0 4px;
-}
-#pagination .paginationCounter {
-  display: block;
 }
 #pagination ul.paginationFirstPrev li {
   margin-right: 0.5em;
@@ -1260,10 +1263,10 @@ html.dark-mode #pagination {
   font-size: 0.9em;
 }
 #pagination .pagination-form {
-  display: inline-block;
+  padding: 0.5em;
 }
 #pagination #goto-page {
-  margin: 0 2em;
+  padding: 0.5em;
 }
 #pagination .pagination-form label {
   margin-bottom: 0;
@@ -1305,9 +1308,7 @@ html.dark-mode #pagination {
 }
 #pagination li.active {
   font-weight: bold;
-  font-size: 120%;
-  position: relative;
-  top: 1px;
+  font-size: 1.2em;
 }
 #pagination .btn-primary {
   background-color: var(--cmg-color-btn-bg-001);
@@ -2021,6 +2022,19 @@ li[data-pc-section="emptymessage"] {
 .group-member-name {
   margin-right: 0.5em;
   font-size: 1.4em;
+}
+#cm-people-picker .input.text label,
+.fields-people-autocomplete .field-info .input.text label {
+  /* This is to hide the field label - same as .visually-hidden in bootstrap */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 /* Vue transitions */
 .v-enter-active,

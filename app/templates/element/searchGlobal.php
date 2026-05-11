@@ -42,7 +42,7 @@ $options = [
   <span class="visually-hidden"><?= __d('operation','search') ?></span>
 </button>
 
-<div id="global-search" class="dropdown-menu">
+<div id="global-search" class="dropdown-menu" role="search">
   <?php
     print $this->Form->create(null, $options);
     print $this->Form->hidden('co_id', ['default' => $vv_cur_co->id]);
@@ -60,7 +60,8 @@ $options = [
       [
         'id' => 'q', 
         'class' => $globalSearchInputClass, 
-        'placeholder' => __d('field','search.placeholder')
+        'placeholder' => __d('field','search.placeholder'),
+        'type' => 'search'
       ]
     );
     print $this->Form->button(

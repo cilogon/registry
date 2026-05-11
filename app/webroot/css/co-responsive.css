@@ -124,17 +124,6 @@
   button.cm-copy-value-button {
     display: flex;
   }
-  /* PAGINATION */
-  #pagination {
-    text-align: left;
-    min-height: 2.5em;
-  }
-  #pagination .paginationCounter {
-    float: right;
-  }
-  #pagination.with-pagination-elements .paginationCounter {
-    margin-top: 2px;
-  }
   /* DATE / TIME PICKER */
   .duet-date__dialog {
     left: -20em;
@@ -599,6 +588,22 @@
   }
   #changelog .accordion-body {
     overflow-x: unset;
+  }
+  /* PAGINATION */
+  #pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding-left: 0.5em;
+  }
+  #pagination.without-pagination-elements {
+    justify-content: flex-end;
+  }
+  #pagination .pagination-elements {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
   }
   /* FOOTER */
   #co-footer {
