@@ -26,23 +26,25 @@
    */
 ?>
 
-<!-- Flash Messages and defined Info Banners/Alerts -->
-<div class="alert-container" id="flash-messages">
-  <?php 
-    /* Render any Flash messages that have bubbled up. 
-       These will adopt the styles defined in the 
-       app/templates/element/flash/ directory. */
-    print $this->Flash->render();
-
-    /* Render information banners explicitly defined in Configuration.
-       These are defined in the alerts[] array in columns.inc and fields.inc files.
-       See app/templates/ApiUsers/columns.inc for an example. These must
-       be passed in as $vv_alerts to this element from the calling template. 
-    */ 
-    if(!empty($vv_alerts)) {
-      foreach($vv_alerts as $a) {
-        print $this->element('notify/alert', $a);
+<?php if ($this->request->getSession()->check('Flash.flash') || !empty($vv_alerts)): ?>
+  <!-- Flash Messages and defined Info Banners/Alerts -->
+  <div class="alert-container" id="flash-messages">
+    <?php 
+      /* Render any Flash messages that have bubbled up. 
+         These will adopt the styles defined in the 
+         app/templates/element/flash/ directory. */
+      print $this->Flash->render();
+  
+      /* Render information banners explicitly defined in Configuration.
+         These are defined in the alerts[] array in columns.inc and fields.inc files.
+         See app/templates/ApiUsers/columns.inc for an example. These must
+         be passed in as $vv_alerts to this element from the calling template. 
+      */ 
+      if(!empty($vv_alerts)) {
+        foreach($vv_alerts as $a) {
+          print $this->element('notify/alert', $a);
+        }
       }
-    }
-  ?>
-</div>
+    ?>
+  </div>
+<?php endif; ?>

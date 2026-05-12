@@ -2142,7 +2142,8 @@ body.start .submit {
   margin: 1em 1em 2em;
   font-size: 1.1em;
 }
-#dispatch-list-container ul.fields li.fields-accepted .field {
+#dispatch-list-container ul.fields li.fields-accepted .field,
+#dispatch-list-container ul.fields li.fields-approved .field  {
   background-color: var(--cmg-color-bg-001);
   border: 1px solid var(--cmg-color-bg-006);
   padding: 1em 1.5em 1.5em;
@@ -2151,7 +2152,17 @@ body.start .submit {
   justify-content: center;
   flex-wrap: wrap;
 }
-#dispatch-list-container ul.fields li.fields-accepted .field-info label {
+#dispatch-list-container ul.fields li.fields-approved .field {
+  background-color: var(--cmg-color-highlight-004);
+  color: var(--cmg-color-highlight-003);
+  border-color: var(--cmg-color-highlight-017);
+  border-bottom: none;
+}
+#dispatch-list-container ul.fields li.fields-approved .field  {
+  border-bottom: none;
+}
+#dispatch-list-container ul.fields li.fields-accepted .field-info label,
+#dispatch-list-container ul.fields li.fields-approved .field-info label {
   display: flex;
   align-items: center;
   gap: 0.25em;
@@ -2161,16 +2172,43 @@ body.start .submit {
   border-radius: 3px;
   box-shadow: 0 1px 1px 0 rgba(0,0,0,.14),0 3px 1px -3px rgba(0,0,0,.2),0 1px 3px 0 rgba(0,0,0,.12);
 }
-#dispatch-list-container ul.fields li.fields-accepted .field-info label[for='accepted-1'].is-selected {
+#dispatch-list-container ul.fields li.fields-accepted .field-info label[for='accepted-1'].is-selected,
+#dispatch-list-container ul.fields li.fields-approved .field-info label[for='approved-y'].is-selected {
   background-color: var(--cmg-color-highlight-006);
   border: 1px solid var(--cmg-color-highlight-008);
   color: var(--cmg-color-highlight-007);
 }
-#dispatch-list-container ul.fields li.fields-accepted .field-info label .form-check-input {
+#dispatch-list-container ul.fields li.fields-accepted .field-info label .form-check-input,
+#dispatch-list-container ul.fields li.fields-approved .field-info label .form-check-input {
   margin-top: 0;
 }
-#dispatch-list-container ul.fields li.fields-accepted .field .radio {
+#dispatch-list-container ul.fields li.fields-accepted .field .radio,
+#dispatch-list-container ul.fields li.fields-approved .field .radio {
   gap: 0.5em;
+}
+#approver-petition-info {
+  overflow-x: unset;
+}
+#view-petition-button {
+  float: right;
+  margin: -4em 0 1rem 0;
+}
+#dispatch-list-container ul#view_Petitions .field-title {
+  font-size: 1em;
+}
+#dispatch-list-container ul#view_Petitions .field-info {
+  padding: 0;
+}
+#dispatch_ApprovalCollectors .fields-comment .field {
+  padding: 0 1em 2em 1.25em;
+  margin: -0.5em 0 1em;
+  border-top: none;
+  border-color: var(--cmg-color-highlight-017);
+  background-color: var(--cmg-color-highlight-004);
+  color: var(--cmg-color-highlight-003);
+}
+#dispatch-list-container li.fields-approved {
+  margin-top: 2rem;
 }
 /* DIALOG BOX */
 #dialog .modal-header {
@@ -2286,10 +2324,10 @@ ul.form-list li.petition-status-title-finalized {
 ul.form-list li.petition-status-title-finalized h2 {
   color: var(--cmg-color-highlight-007);
 }
-ul.form-list li.petition-enrollee-items,
-ul.form-list li.petition-enrollee-items .field:hover {
+ul.form-list li.petition-enrollee-items {
   background-color: var(--cmg-color-highlight-004);
   color: var(--cmg-color-highlight-005);
+  border-bottom: 1px solid var(--cmg-color-highlight-019);
 }
 ul.form-list li.petition-enrollee-items .field-info {
   display: flex;
@@ -2305,33 +2343,90 @@ ul.form-list li.petition-enrollee-items .petition-inline-value a {
 .env-source-value {
   word-break: break-all;
 }
+ul#view_Petitions.form-list .field:hover {
+  background-color: unset;
+}
 ul#view_Petitions.form-list li.env-source-key-value-newgroup {
   border-top: 1px solid var(--cmg-color-bg-005);
+}
+ul#view_Petitions.form-list .field.petition-step.field-with-toggle,
+#dispatch-list-container ul#view_Petitions.form-list .field.petition-step.field-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--cmg-color-bg-003);
+  border-bottom: 1px solid var(--cmg-color-bg-006);
+  border-left: 1px solid var(--cmg-color-bg-006);
+  border-right: 1px solid var(--cmg-color-bg-006);
+}
+#dispatch-list-container ul#view_Petitions.form-list .field.petition-step.field-with-toggle {
+  border-top: 1px solid var(--cmg-color-bg-006);
 }
 .petition-step-modified {
   margin-right: 1em;
 }
-.petition-attrs {
-  padding: 0;
-  box-shadow: inset 0 0 0.5rem 0 rgba(0,0,0,0.1);
+h3.petition-step-description {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: unset;
 }
-.petition-attrs h3 {
+#content h3.petition-step-description .material-symbols-outlined {
+  font-size: 1.5rem;
+  color: var(--cmg-color-btn-bg-003);
+}
+.petition-step-meta {
+  display: flex;
+  align-items: center;
+}
+.petition-step-state {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+#content .petition-step-state .material-symbols-outlined {
+  font-size: 1.2rem;
+}
+.petition-step-state-completed {
+  color: var(--cmg-color-highlight-020);
+}
+.petition-step-state-pending {
+  color: var(--cmg-color-btn-bg-003);
+}
+.petition-step-plugin-title {
   padding: 1rem 1rem 0;
   margin: 0;
-  font-size: 1.2em;
-  font-weight: 600;
-  border-top: 1px solid var(--cmg-color-bg-006);
+  font-size: 0.9rem;
+  font-weight: 300;
+  font-style: italic;
+}
+ul.petiton-step-plugin-meta {
+  padding-left: 0;
+  font-size: 0.9em;
+}
+ul.petiton-step-plugin-meta li {
+  background-color: var(--cmg-color-bg-001);
+}
+.petition-attrs {
+  padding: 0;
+  border: 1px solid var(--cmg-color-bg-005);
+  font-style: italic;
+}
+#dispatch-list-container .petition-attrs {
+  margin: 0 0 1rem;
 }
 .petition-attrs h4 {
   font-size: 0.9em;
   margin: 0 0 0.25em;
 }
 .petition-attrs > ul {
-  padding: 0 0 1rem;
+  padding: 0;
   border-top: none;
 }
-.petition-attrs > ul > li {
-  padding: 0.5rem 1rem;
+.petition-attrs > ul > li,
+#dispatch-list-container .petition-attrs > ul > li {
+  padding: 0.5em 1em;
   border: none;
   background-color: unset;
 }
@@ -2340,6 +2435,7 @@ ul#view_Petitions.form-list li.env-source-key-value-newgroup {
 }
 ul.petition-attrs-subset {
   padding: 0;
+  margin-bottom: 0.5rem;
   border: 1px solid var(--cmg-color-bg-005);
   border-top: none;
 }

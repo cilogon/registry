@@ -31,12 +31,20 @@ use \Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 
 // Petitions are read-only, though they can link to other actions
-if ($vv_action !== 'view') {
+if($vv_action !== 'view' && $vv_action !== 'dispatch') {
   return;
 }
 
+$petitionObj = null;
+if($vv_action == 'view') {
+  $petitionObj = $vv_obj;
+} else {
+  // we are calling this file from approver dispatch
+  $petitionObj = $vv_approval_petition;
+}
+
 // Start with the petition metadata
-$statusTitle = __d('enumeration','PetitionStatusEnum.' . $vv_obj->status);
+$statusTitle = __d('enumeration','PetitionStatusEnum.' . $petitionObj->status);
 $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::dasherize($statusTitle);
 ?>
 
@@ -47,172 +55,12 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
     <?= $statusTitle ?>
   </h2>
 </li>
-<li class="form-list-header">
+<li id="petition-information-title" class="form-list-header">
   <h2>
     <?= __d('information', 'petition.information') ?>
   </h2>
 </li>
-<?php if(!empty($vv_obj?->enrollee_person?->id)): ?>
-  <li class="petition-enrollee-items">
-    <div class="field">
-      <div class="field-name ">
-        <div class="field-title">
-          <div class="petition-inline-item">
-            <span class="petition-inline-title">
-              <?= __d('enumeration','EnrollmentActorEnum.E') ?>:
-            </span>
-            <span class="petition-inline-value">
-              <?=
-                $this->Html->link(
-                  $vv_obj->enrollee_person->primary_name->full_name ?? __d('field', 'Petitions.enrollee.new'),
-                  [
-                    'controller' => 'people',
-                    'action' => 'edit',
-                    $vv_obj->enrollee_person_id
-                  ]
-                );
-              ?>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div class="field-info">
-        <?php if(!empty($vv_obj->enrollee_email)): ?>
-          <div class="petition-inline-item">
-            <span class="petition-inline-title">
-              <?= __d('field','email') ?>:
-            </span>
-            <span class="petition-inline-value">
-              <?=
-                $this->Html->link(
-                  $vv_obj->enrollee_email,
-                  'mailto:' . $vv_obj->enrollee_email,
-                  ['class' => 'nospin']
-                );
-              ?>
-            </span>
-          </div>
-        <?php endif; ?>
-        <?php if(!empty($vv_obj->enrollee_identifier)): ?>
-          <div class="petition-inline-item">
-            <span class="petition-inline-title">
-              <?= __d('field','identifier') ?>:
-            </span>
-            <span class="petition-inline-value">
-              <?= $vv_obj->enrollee_identifier ?>
-            </span>
-          </div>
-        <?php endif; ?>
-      </div>
-    </div>
-  </li> 
-  <?php /*
-  // XXX The following is an example of placing all enrollee information on a separate line. These rows are still 
-  // rendered with a different background color. Keep this for now so we can do A/B testing. Note: if identifiers are 
-  // very long, the following may be the better choice, even if less compact. 
-  <li class="petition-enrollee-items">
-    <div class="field">
-      <div class="field-name ">
-        <div class="field-title">
-          <?= __d('enumeration','EnrollmentActorEnum.E') ?>
-        </div>
-      </div>
-      <div class="field-info">
-        <?=
-          $this->Html->link(
-            $vv_obj->enrollee_person->primary_name->full_name ?? __d('field', 'Petitions.enrollee.new'),
-            [
-              'controller' => 'people',
-              'action' => 'edit',
-              $vv_obj->enrollee_person_id
-            ]
-          );
-        ?>
-      </div>
-    </div>
-  </li>
-  <?php if(!empty($vv_obj->enrollee_email)): ?>
-    <li class="petition-enrollee-items">
-      <div class="field">
-        <div class="field-name ">
-          <div class="field-title">
-            <?= __d('field','enrollee_email') ?>
-          </div>
-        </div>
-        <div class="field-info">
-          <?=
-            $this->Html->link(
-              $vv_obj->enrollee_email,
-              'mailto:' . $vv_obj->enrollee_email,
-              ['class' => 'nospin']
-            );
-          ?>
-        </div>
-      </div>
-    </li>
-  <?php endif; ?>
-  <?php if(!empty($vv_obj->enrollee_identifier)): ?>
-    <li class="petition-enrollee-items">
-      <div class="field">
-        <div class="field-name ">
-          <div class="field-title">
-            <?= __d('field','enrollee_identifier') ?>
-          </div>
-        </div>
-        <div class="field-info">
-          <?= $vv_obj->enrollee_identifier ?>
-        </div>
-      </div>
-    </li>
-  <?php endif; ?>
- */ ?>
-<?php endif; ?>
-
-<?php
-// Petitioner
-if (!empty($vv_obj?->petitioner_person?->id)) {
-  $petitionerStatus = $vv_obj?->petitioner_person?->primary_name?->full_name ?? '';
-  $petitionerLink = [
-    'url' => [
-      'controller' => 'people',
-      'action' => 'edit',
-      $vv_obj->petitioner_person->id
-    ]
-  ];
-  print $this->element('form/listItem', [
-    'arguments' => [
-      'fieldName' => 'petitioner_person_id',
-      'status' => $petitionerStatus,
-      'link' => !empty($vv_obj->petitioner_person->id) ? $petitionerLink : []
-    ]
-  ]);
-}
-?>
-
-<li>
-  <?php // Enrollment Flow name ?>
-  <div class="field">
-    <div class="field-name ">
-      <div class="field-title">
-        <?= __d('controller','EnrollmentFlows', [1]) ?>
-      </div>
-    </div>
-    <div class="field-info">
-      <?= 
-        $this->Html->link(
-          $vv_obj->enrollment_flow->name,
-          [
-            'controller' => 'enrollment_flows',
-            'action' => 'edit',
-            $vv_obj->enrollment_flow->id
-          ]
-        ) 
-      ?>
-    </div>
-  </div>
-</li>
-<li>
-  <?php // Email Address provided at Petition creation, might be empty but the field should render anyway ?>
+<li class="petition-enrollee-items">
   <div class="field">
     <div class="field-name ">
       <div class="field-title">
@@ -224,7 +72,7 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
     </div>
   </div>
 </li>
-<li>
+<li class="petition-enrollee-items">
   <?php // Email Address provided at Petition creation, might be empty but the field should render anyway ?>
   <div class="field">
     <div class="field-name ">
@@ -233,12 +81,19 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
       </div>
     </div>
     <div class="field-info">
-      <?= $vv_obj->enrollee_email ?>
+      <?php if(!empty($petitionObj->enrollee_email)): ?>
+      <?=
+        $this->Html->link(
+          $petitionObj->enrollee_email,
+          'mailto:' . $petitionObj->enrollee_email,
+          ['class' => 'nospin']
+        );
+      ?>
+      <?php endif; ?>
     </div>
   </div>
 </li>
-<li>
-  <?php // Email Address provided at Petition creation, might be empty but the field should render anyway ?>
+<li class="petition-enrollee-items">
   <div class="field">
     <div class="field-name ">
       <div class="field-title">
@@ -246,20 +101,81 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
       </div>
     </div>
     <div class="field-info">
-      <?= $vv_obj->enrollee_identifier ?>
+      <?= $petitionObj->enrollee_identifier ?>
+    </div>
+  </div>
+</li>
+<?php
+  // Petitioner
+  if (!empty($petitionObj?->petitioner_person?->id)) {
+    $petitionerStatus = $petitionObj?->petitioner_person?->primary_name?->full_name ?? '';
+    $petitionerLink = [
+      'url' => [
+        'controller' => 'people',
+        'action' => 'edit',
+        $petitionObj->petitioner_person->id
+      ]
+    ];
+    print $this->element('form/listItem', [
+      'arguments' => [
+        'fieldLabel' => __d('field','Petitions.petitioner_person_id'),
+        'fieldName' => 'petitioner_person_id',
+        'status' => $petitionerStatus,
+        'link' => !empty($petitionObj->petitioner_person->id) ? $petitionerLink : []
+      ]
+    ]);
+  }
+?>
+  
+<?php // Enrollment Flow name ?>
+<?php if($vv_action != 'dispatch' || $vv_user_roles['platform'] || $vv_user_roles['co']): 
+  // Show the enrollment flow name and link in petition view mode. In dispatch mode, only show this to admins:
+  // it's the dispatch title, and regular approvers don't need the link back to the enrollment flow. ?>
+<li>
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('controller','EnrollmentFlows', [1]) ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?=
+        $this->Html->link(
+          $petitionObj->enrollment_flow->name,
+          [
+            'controller' => 'enrollment_flows',
+            'action' => 'edit',
+            $petitionObj->enrollment_flow->id
+          ]
+        )
+      ?>
+    </div>
+  </div>
+</li>
+<?php endif; ?>
+
+<?php // Petition dates. ?>
+<li> 
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('field','created') ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?= $this->Time->nice($petitionObj->created, $vv_tz) ?>
     </div>
   </div>
 </li>
 <li>
-  <?php // Petition dates. XXX The DOM structure is being overloaded here, which is probably ok. But revisit if needed ?> 
   <div class="field">
     <div class="field-name ">
       <div class="field-title">
-        <?= __d('field','created') ?>: <?= $this->Time->nice($vv_obj->created, $vv_tz) ?> 
+        <?= __d('field','modified') ?>
       </div>
     </div>
     <div class="field-info">
-      <?= __d('field','modified') ?>: <?= $this->Time->nice($vv_obj->modified, $vv_tz) ?> 
+      <?= $this->Time->nice($petitionObj->modified, $vv_tz) ?>
     </div>
   </div>
 </li>
@@ -271,11 +187,11 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
   <div class="enrollment-steps-toggle-all">
     <?php
       $stepIds = ''; 
-      foreach($vv_obj->enrollment_flow->enrollment_flow_steps as $step) {
+      foreach($petitionObj->enrollment_flow->enrollment_flow_steps as $step) {
         $stepIds .= 'collapse-box-' . $step->id . ' ';
       }
     ?>
-    <button class="btn btn-sm enrollment-steps-toggle-all-button" 
+    <button class="btn btn-sm enrollment-steps-toggle-all-button all-open" 
             type="button"
             data-bs-toggle="collapse"
             aria-expanded="false"
@@ -289,101 +205,187 @@ if (!empty($vv_obj?->petitioner_person?->id)) {
     </button>
   </div>
 </li>
-
-
-<?php foreach($vv_obj->enrollment_flow->enrollment_flow_steps as $step): ?>
-  <?php $result = Hash::extract($vv_obj->petition_step_results, "{n}[enrollment_flow_step_id=$step->id]"); ?>
-  <li>
-    <div class="field field-with-toggle" data-bs-toggle="collapse" data-bs-target="#collapse-box-<?= $step->id ?>">
-      <div class="field-name">
-        <div class="field-title">
+<?php foreach($petitionObj->enrollment_flow->enrollment_flow_steps as $step): ?>
+  <?php // During enrollment flow Approval step, don't show the current or following steps.
+        // For regular petition views, we show all steps (i.e. $vv_step_config will not exist). ?>
+  <?php if(!isset($vv_step_config) || !((int)$step['ordr'] >= (int)$vv_step_config['enrollment_flow_step']['ordr'])): ?>
+    <?php $result = Hash::extract($petitionObj->petition_step_results, "{n}[enrollment_flow_step_id=$step->id]"); ?>
+    
+    <li class="petition-ef-step">
+      <div class="petition-step field field-with-toggle" 
+        data-bs-toggle="collapse"
+        data-bs-target="#collapse-box-<?= $step->id ?>"
+        aria-expanded="true">
+        <h3 class="petition-step-description">
+          <!-- in time, replace with icon representing the plugin -->
+          <span class="material-symbols-outlined">step</span>
           <?= $step->description ?>
-        </div>
-      </div>
-      <div class="field-info">
-        <div class="petition-step-info">
-          <?= !empty($result) ? $result[0]->comment : '' ?>
-        </div>
+        </h3>
         <div class="petition-step-meta">
-          <span class="petition-step-modified">
-            <?= !empty($result) ? $this->Time->nice($result[0]->modified, $vv_tz) : '' ?>
-          </span>
-          <button class="cm-toggle nospin petition-step-toggle collapsed"
+          <?php if($vv_action == 'view'): ?>
+            <?php if(!empty($result)): ?>
+              <div class="petition-step-state petition-step-state-completed">
+                <span class="material-symbols-outlined">check</span>
+                <?= __d('result','completed') ?>
+              </div>
+            <?php else: ?>
+              <div class="petition-step-state petition-step-state-pending">
+                <span class="material-symbols-outlined">hourglass</span>
+                <?= __d('enumeration','StatusEnum.P') ?>
+              </div>
+            <?php endif; ?>
+          <?php endif; ?>
+          <button class="cm-toggle nospin petition-step-toggle"
                   type="button"
                   data-bs-toggle="collapse"
                   aria-label="<?= __d('information','petition.step.toggle.details') ?>"      
-                  aria-expanded="false"
+                  aria-expanded="true"
                   aria-controls="collapse-box-<?= $step->id ?>"
                   data-bs-target="#collapse-box-<?= $step->id ?>">
             <em class="material-symbols-outlined petition-step-collapse-icon" aria-hidden="true">
-              arrow_drop_down
+              arrow_drop_up
             </em>
           </button>
         </div>
       </div>
-    </div>
-    <div id="collapse-box-<?= $step->id ?>" class="petition-attrs collapse">
-      <h3><?= $step->plugin ?></h3>
-      <?= $this->cell($step->plugin, [$vv_obj->id], ['vv_obj' => $vv_obj, 'vv_step' => $step, 'viewVars' => $this->viewVars]) ?>
-    </div>
-  </li>
+      <div id="collapse-box-<?= $step->id ?>" class="collapse show">
+        <ul class="petiton-step-plugin-meta">
+          <li>
+            <div class="field">
+              <div class="field-name ">
+                <div class="field-title">
+                  <?= __d('field','plugin') ?>
+                </div>
+              </div>
+              <div class="field-info">
+                <?= $step->plugin ?>
+              </div>
+            </div>
+          </li>
+          <?php if(!empty($result[0]->modified)): ?>
+            <li>
+              <div class="field">
+                <div class="field-name ">
+                  <div class="field-title">
+                    <?= __d('field','modified') ?>
+                  </div>
+                </div>
+                <div class="field-info">
+                  <?= $this->Time->nice($result[0]->modified, $vv_tz) ?>
+                </div>
+              </div>
+            </li>
+          <?php endif; ?>
+          <?php if(!empty($result[0]->comment)): ?>
+            <li>
+              <div class="field">
+                <div class="field-name ">
+                  <div class="field-title">
+                    <?= __d('field','comment') ?>
+                  </div>
+                </div>
+                <div class="field-info">
+                  <?= !empty($result) ? $result[0]->comment : '' ?>
+                </div>
+              </div>
+            </li>
+          <?php endif; ?>
+        </ul>
+        <?php
+          // Store the cell output so we can test for emptiness
+          $cellOutput = trim((string) $this->cell($step->plugin, [$petitionObj->id], ['vv_obj' => $petitionObj, 'vv_step' => $step, 'viewVars' => $this->viewVars])); 
+        ?>
+        <?php if(!empty($cellOutput)): ?>
+          <div class="petition-attrs">
+            <?= $cellOutput ?>
+          </div>
+        <?php endif; ?>
+  
+      </div>
+    </li>
+  <?php endif; ?>
 <?php endforeach; ?>
 
 
-<?php if(!empty($vv_obj->petition_history_records)): 
-  // XXX Generalize this into an element for all history records if we use this output elsewhere
-?>
-<li class="form-list-header">
-  <h2>
-    <?= __d('information', 'petition.history') ?>
-  </h2>
-</li>
-<li class="petition-history">
-  <div class="table-container">
-    <table id="petition-history-table" class="history-table list-mode">
-      <thead>
-      <tr>
-        <th><?= __d('field', 'action'); ?></th>
-        <th><?= __d('field', 'actor'); ?></th>
-        <th><?= __d('field', 'comment'); ?></th>
-        <th><?= __d('field', 'created'); ?></th>
-      </tr>
-      </thead>
-
-      <tbody>
-      <?php foreach($vv_obj->petition_history_records as $hr): ?>
+<?php if($vv_action != 'dispatch'): ?>  
+  <?php if(!empty($petitionObj->petition_history_records)): 
+    // XXX Generalize this into an element for all history records if we use this output elsewhere
+  ?>
+  <li class="form-list-header">
+    <h2>
+      <?= __d('information', 'petition.history') ?>
+    </h2>
+  </li>
+  <li class="petition-history">
+    <div class="table-container">
+      <table id="petition-history-table" class="history-table list-mode">
+        <thead>
         <tr>
-          <td>
-            <?= 
-              // We only render the code here (not the localization) partly because some
-              // codes may not be localized (especially local plugins) but also because
-              // it's noisy to render the full string when mostly 'comment' has the content
-              // of actual interest
-              $hr->action //__d('enumeration','PetitionActionEnum.' . $hr['action']) 
-            ?>
-          </td>
-          <td>
-            <?= 
-              !empty($hr->actor_person_id) 
-              ? $this->Html->link(
-                  $hr->actor_person->primary_name->full_name,
-                  [
-                    'controller' => 'people',
-                    'action' => 'edit',
-                    $hr->actor_person_id
-                  ]
-                )
-              : ""          
-            ?>
-          </td>
-          <td><?= $hr->comment ?></td>
-          <td><?= $this->Time->nice($hr->created, $vv_tz) ?></td>
+          <th><?= __d('field', 'action'); ?></th>
+          <th><?= __d('field', 'actor'); ?></th>
+          <th><?= __d('field', 'comment'); ?></th>
+          <th><?= __d('field', 'created'); ?></th>
         </tr>
-      <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-</li>
+        </thead>
+  
+        <tbody>
+        <?php foreach($petitionObj->petition_history_records as $hr): ?>
+          <tr>
+            <td>
+              <?= 
+                // We only render the code here (not the localization) partly because some
+                // codes may not be localized (especially local plugins) but also because
+                // it's noisy to render the full string when mostly 'comment' has the content
+                // of actual interest
+                $hr->action //__d('enumeration','PetitionActionEnum.' . $hr['action']) 
+              ?>
+            </td>
+            <td>
+              <?= 
+                !empty($hr->actor_person_id) 
+                ? $this->Html->link(
+                    $hr->actor_person->primary_name->full_name,
+                    [
+                      'controller' => 'people',
+                      'action' => 'edit',
+                      $hr->actor_person_id
+                    ]
+                  )
+                : ""          
+              ?>
+            </td>
+            <td><?= $hr->comment ?></td>
+            <td><?= $this->Time->nice($hr->created, $vv_tz) ?></td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </li>
+  <?php endif; ?>
 <?php endif; ?>
-
 </ul>
+
+<script>
+  // Toggle All button for Enrollment Flow Steps
+  // We click all the fields that have an associated accordion just to set the arrow state. 
+  $('button.enrollment-steps-toggle-all-button').click(function() {
+    if($(this).hasClass('all-open')) {
+      $(this).removeClass('all-open').addClass('all-closed');
+      $('#view_Petitions').find('.petition-step-toggle').each(function() {
+        if($(this).attr('aria-expanded') === 'true') {
+          $(this).trigger('click');
+          $(this).find('em').text("arrow_drop_down");
+        }
+      });
+    } else {
+      $(this).removeClass('all-closed').addClass('all-open');
+      $('#view_Petitions').find('.petition-step-toggle').each(function() {
+        if($(this).attr('aria-expanded') === 'false') {
+          $(this).trigger('click');
+          $(this).find('em').text("arrow_drop_up");
+        }
+      });
+    }
+  });
+</script>

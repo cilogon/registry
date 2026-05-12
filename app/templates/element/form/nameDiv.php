@@ -69,6 +69,12 @@ if (isset($vv_field_arguments['required'])) {
 } elseif (isset($vv_field_arguments['fieldOptions']['required'])) {
     $isRequired = $vv_field_arguments['fieldOptions']['required'];
 }
+// This is to catch required flags from enrollment flow fields (which use an older format for defining fields).
+// XXX CFM-518 - Align the CoreEnroller with the new approach and remove duplicate elements
+// (in plugins/CoreEnroller/templates/element).   
+if(isset($vv_field_arguments['fieldOptions']['required'])) {
+  $isRequired = $vv_field_arguments['fieldOptions']['required'];
+}
 
 // Extra class required for the grouped controls elements
 if(isset($groupedControls)) {

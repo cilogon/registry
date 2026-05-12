@@ -89,6 +89,8 @@
   
   --cmg-color-highlight-017: #cee6f8; /* alert: info border color (blue) */
   --cmg-color-highlight-018: yellow;  /* autocomplete highlight for query text */
+  --cmg-color-highlight-019: #c9e0f2; /* blue border for highlight-004 */
+  --cmg-color-highlight-020: #17730d; /* green text, "Completed" on petitions */
 
   --cmg-color-shadow-01: 0px 0px 2px 0px rgba(13,69,115,0.6); /* RGBA box-shadow color based on --cmg-color-btn-bg-001 */
   
@@ -167,12 +169,14 @@ html.dark-mode {
 
   --cmg-color-highlight-012: #d9b4b4; /* alert: danger (red) */
   --cmg-color-highlight-013: #e33;    /* title for deleted/archived (red) */
-  --cmg-color-highlight-014: #900; /* danger badge (red) */
+  --cmg-color-highlight-014: #900;    /* danger badge (red) */
   --cmg-color-highlight-015: #842029; /* alert: danger text color (red) */
   --cmg-color-highlight-016: #d9b4b4; /* alert: danger border color (red) */
 
-  --cmg-color-highlight-017: #333; /* alert: info border color (blue) */
+  --cmg-color-highlight-017: #333;    /* alert: info border color (blue) */
   --cmg-color-highlight-018: #cc0;    /* autocomplete highlight for query text */
+  --cmg-color-highlight-019: #111;    /* blue border for highlight-004 */
+  --cmg-color-highlight-020: #1e9711; /* green text, "Completed" on petitions */
   
   --cmg-color-shadow-01: 0px 0px 2px 0px rgba(13,69,115,0.8); /* RGBA box-shadow color based on --cmg-color-btn-bg-001 */
   

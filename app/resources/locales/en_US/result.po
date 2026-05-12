@@ -57,6 +57,9 @@ msgstr "Authenticator {0} Unlocked"
 msgid "clone.actor"
 msgstr "Cloned from CO {0}"
 
+msgid "completed"
+msgstr "Completed"
+
 msgid "copied"
 msgstr "Copied"
 

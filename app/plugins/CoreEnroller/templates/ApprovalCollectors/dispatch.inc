@@ -29,44 +29,75 @@ declare(strict_types = 1);
 
 use \App\Lib\Enum\PetitionStatusEnum;
 
-print $this->element('flash', []);
-
 // Make the Form fields editable
 $this->Field->enableFormEditMode();
 ?>
 
-<p><?= __d('core_enroller', 'information.ApprovalCollectors.review', [$vv_petition->id]); ?></p>
-
-<p><?= $this->Html->link(__d('operation', 'view'), ['plugin' => null, 'controller' => 'petitions', 'action' => 'view', $vv_petition->id]); ?></p>
+<li id="approver-petition-info">
+  <?php if($vv_user_roles['platform'] || $vv_user_roles['co']): ?>
+    <?= $this->Html->link(
+      '<span class="material-symbols">open_in_new</span> ' .
+      __d('operation', 'view.Petitions.a',[$vv_petition->id]),
+      [
+        'plugin' => null,
+        'controller' => 'petitions',
+        'action' => 'view',
+        $vv_petition->id
+      ],
+      [
+        'id' => 'view-petition-button',
+        'class' => 'btn btn-sm btn-primary',
+        'target' => 'co-petition-window',
+        'escape' => false
+      ]);
+    ?>
+  <?php endif; ?>
+  <div id="approver-petition-view">
+    <?php include ROOT . DS . "templates" . DS . 'Petitions/petition.inc'; ?>
+  </div>
+</li>
 
 <?php
-  // Begin the form
-  print $this->Form->create(null, [
-    'id'   => 'approval-form',
-    'type' => 'post'
-  ]);
-
-  print $this->Form->radio(
-    'approved', 
-    [
-      PetitionStatusEnum::Approved => __d('enumeration', 'PetitionStatusEnum.'.PetitionStatusEnum::Approved), 
-      PetitionStatusEnum::Denied => __d('enumeration', 'PetitionStatusEnum.'.PetitionStatusEnum::Denied)
-    ],
-    [
+  print $this->element('CoreEnroller.listItem', [
+  'arguments' => [
+    'fieldName' => 'approved',
+    'fieldLabel' => __d('core_enroller', 'information.ApprovalCollectors.review', [$vv_petition->id]),
+    'fieldOptions' => [
+      'type' => 'radio',
+      'options' => [
+        PetitionStatusEnum::Approved => __d('enumeration', 'PetitionStatusEnum.'.PetitionStatusEnum::Approved),
+        PetitionStatusEnum::Denied => __d('enumeration', 'PetitionStatusEnum.'.PetitionStatusEnum::Denied)
+      ],
       'value' => !empty($petition_approvals)
                  ? ($petition_approvals['approved'] === true
                    ? PetitionStatusEnum::Approved
                    : ($petition_approvals['approved'] === false
                      ? PetitionStatusEnum::Denied
                      : ""))
-                 : ""
+                 : "",
+      'empty' => false,
+      'required' => true,
+      'class' => 'form-check-input'
     ]
-  );
+  ]]);
 
   print $this->element('CoreEnroller.listItem', [
     'arguments' => [
       'fieldName' => 'comment',
       'fieldOptions' => [
-        'default' => $petition_approvals['comment'] ?? ""
-      ]
+        'default' => $petition_approvals['comment'] ?? "",
+        'required' => $vv_step_config['require_comment'] ?? false
+      ],
   ]]);
+?>
+
+<script>
+  $('#approved-y').click(function() {
+    $(this).closest('label').addClass('is-selected');
+    $("label[for='approved-n']").removeClass('is-selected');
+  });
+  $('#approved-n').click(function() {
+    $(this).closest('label').addClass('is-selected');
+    $("label[for='approved-y']").removeClass('is-selected');
+  });
+</script>

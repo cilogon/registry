@@ -88,7 +88,7 @@ class AttributeCollectorsCell extends Cell
    */
   public function display(int $petitionId): void
   {
-    $vv_enrollment_atttributes_ids = Hash::extract($this->vv_obj->petition_attributes, '{n}.enrollment_attribute_id');
+    $vv_enrollment_atttributes_ids = Hash::extract($this->vv_obj->petition_attributes ?? [], '{n}.enrollment_attribute_id');
     $vv_enrollment_atttributes_ids = array_unique($vv_enrollment_atttributes_ids);
     $vv_enrollment_attributes = [];
 

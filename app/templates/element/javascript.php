@@ -223,17 +223,11 @@
     // We allow Bootstrap to manage the accordion behavior, but we must set the state of our arrows.  
     $('.field-with-toggle').click(function() {
       let toggleButton = $(this).find('button.cm-toggle').first();
-      if($(toggleButton).attr('aria-expanded') == 'false') {
+      if($(toggleButton).attr('aria-expanded') === 'false') {
         $(toggleButton).find('em').text("arrow_drop_down");
       } else {
         $(toggleButton).find('em').text("arrow_drop_up");
       }
-    });
-    
-    // Toggle All button for Enrollment Flow Steps
-    // We click all the fields that have an associated accordion just to set the arrow state. 
-    $('button.enrollment-steps-toggle-all-button').click(function() {
-      $('#view_Petitions').find('.field-with-toggle').trigger('click');
     });
 
     // Make all submit buttons pretty (Bootstrap)

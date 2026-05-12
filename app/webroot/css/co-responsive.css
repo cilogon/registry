@@ -106,9 +106,16 @@
   .petition-attrs > ul {
     columns: 2;
     column-rule: 1px solid var(--cmg-color-bg-005);
+    gap: 0;
   }
   .petition-attrs > ul > li {
     break-inside: avoid;
+    padding: 0.75em 1.5em;
+  }
+  #dispatch-list-container ul#view_Petitions .field {
+    display: grid;
+    padding: 0.5rem 1rem;
+    grid-template-columns: 1fr 1fr;
   }
   /* PERSON CANVAS / CARDS */
   .co-cards .field-data-container {
@@ -129,11 +136,13 @@
     left: -20em;
   }
   /* DISPATCH */
-  #dispatch-list-container ul.fields li.fields-accepted .field {
+  #dispatch-list-container ul.fields li.fields-accepted .field,
+  #dispatch-list-container ul.fields li.fields-approved .field {
     justify-content: space-between;
     padding: 1em 1em 1em 1.25em;
   }
-  #dispatch-list-container ul.fields li.fields-accepted .field-info {
+  #dispatch-list-container ul.fields li.fields-accepted .field-info,
+  #dispatch-list-container ul.fields li.fields-approved .field-info {
     padding: 0;
   }
   /* DENSITY SETTINGS (from User Settings Menu; Medium is default) */
@@ -675,15 +684,10 @@
   body.dispatch #main,
   body.start #main {
     background-color: var(--cmg-color-body-bg);
-    margin: 4em auto;
+    margin: 4em auto 8em;
     padding: 0 2em;
     border: 1px solid var(--cmg-color-bg-006);
     border-radius: 1em;
-  }
-  /* PETITIONS */
-  .petition-key-value {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
   }
 }
 

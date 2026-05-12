@@ -55,6 +55,15 @@ class ApprovalCollectorsController extends StandardEnrollerController {
 
     $petition = $this->getPetition();
     $coId = $this->getCOID();
+    
+    // We need the petition to have more information in the approval view, so 
+    // build a view variable that holds more than vv_petition.
+    $Petition = TableRegistry::getTableLocator()->get('Petitions');
+    if(!empty($petition->id)) {
+      $this->set('vv_approval_petition', $Petition->get($petition->id, contain: $Petition->getViewContains()));
+    } else {
+      $this->set('vv_approval_petition', null);
+    }
 
     if($request->is('post')) {
       $cfg = $this->ApprovalCollectors->get($id);
