@@ -119,9 +119,16 @@ class BreadcrumbComponent extends Component {
             'co_id' => method_exists($controller, 'getCOID') ? $controller->getCOID() : null
           ];
 
-          // Use fully-qualified model name
+          // Use fully-qualified model name when possible (association-aware),
+          // but fail-soft for "filter params" like person_id/group_id on status pages.
           $requesterModel = StringUtilities::getQualifiedName($request->getParam('plugin'), $request->getParam('controller'));
-          $modelName = StringUtilities::foreignKeyToQualifiedModelName($queryParam, $requesterModel);
+
+          try {
+            $modelName = StringUtilities::foreignKeyToQualifiedModelName($queryParam, $requesterModel);
+          } catch (\Throwable $e) {
+            // Fall back to conventional inference (eg: person_id -> People)
+            $modelName = StringUtilities::foreignKeyToClassName($queryParam);
+          }
 
           $this->injectPrimaryLink($link, true, null, $modelName);
           break; // Only inject the first matching parameter
