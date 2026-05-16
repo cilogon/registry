@@ -188,7 +188,7 @@ export default {
           "identifier": this.filterByIdentifierType(item?.identifiers),
           "identifierPretty": this.shortenString(this.constructIdentifierCsv(this.filterByIdentifierType(item?.identifiers))),
           "identifierLabel": this.txt['controller.Identifiers'] + ": ",
-          "isMember": !!item?._matchingData?.GroupMembers?.id
+          "isMember": !!item?._matchingData?.GroupMembers?.id && !item?._matchingData?.GroupMembers?.group_nesting_id
         }
       })
     },

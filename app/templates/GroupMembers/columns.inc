@@ -67,7 +67,8 @@ if ($this->request->getQuery('group_id') !== null) {
             return $this->Html->link($entity->group_nesting->group->name,
               ['controller' => 'groups', 'action' => 'edit', $entity->group_nesting->group->id]);
           } else {
-            return __d('controller', 'GroupNestings', [1]);
+            // This shouldn't happen, label it as an error
+            return __d('error', 'GroupNestings.source.invalid');
           }
         } else {
           return __d('field', 'GroupMembers.source.direct');

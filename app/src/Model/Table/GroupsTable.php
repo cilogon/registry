@@ -1356,6 +1356,31 @@ class GroupsTable extends Table {
       }
     }
     
+    // Finally, walk through the full set of Group Memberships and remove any
+    // that have a Group Nesting ID that is not in the set of Group Nestings
+    // we obtained, above. We shouldn't ordinarily need to do this, but it's
+    // possible a Job failed after a Nesting was deleted, or an admin did something
+    // manually, and this will get things back in sync.
+
+    $groupNestingIds = $groupNestings->extract('id')->toArray();
+
+    $iterator = $this->getMembers(
+      id: $entity->id,
+      valid: false,
+      active: false
+    );
+
+    foreach($iterator as $k => $targetGroupMember) {
+      if(!empty($targetGroupMember->group_nesting_id)
+        && !in_array($targetGroupMember->group_nesting_id, $groupNestingIds)) {
+        // We'll log at rule level for consistency with GroupMembersTable::syncNestedMembership
+        $this->llog('rule', "Removed invalid nested membership for Person ID " . $targetGroupMember->person_id
+                            . " from Group ID " . $targetGroupMember->group_id 
+                            . " (Group Nesting ID " . $targetGroupMember->id . ")");
+        $this->GroupMembers->delete($targetGroupMember, ['insync' => true]);
+      }
+    }
+    
     return true;
   }
 

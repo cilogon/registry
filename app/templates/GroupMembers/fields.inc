@@ -81,9 +81,9 @@ $fields = array_merge($fields, [
   'valid_through'
 ]);
 
-if(!empty($vv_obj->group_nesting->group)) {
+if(!empty($vv_obj->group_nesting_id)) {
   $fields['source'] = [
-    'value' => $vv_obj->group_nesting->group->name
+    'value' => $vv_obj->group_nesting->group->name ?? __d('error', 'GroupNestings.source.invalid')
   ];
 } else {
   $fields['source'] = [

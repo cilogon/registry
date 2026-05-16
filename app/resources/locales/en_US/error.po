@@ -172,6 +172,9 @@ msgstr "Group {0} is an automatic Group and so cannot be a nesting target"
 msgid "GroupNestings.exists"
 msgstr "Group is already nested into this target"
 
+msgid "GroupNestings.source.invalid"
+msgstr "Invalid Group Nesting"
+
 msgid "GroupNestings.loop"
 msgstr "Target group is already nested into this Group"
 

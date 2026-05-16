@@ -225,26 +225,6 @@ trait IndexQueryTrait {
       }
     }
 
-    // Filter results that will occur from the searchable attributes
-    // TODO: Move to its own function
-    if($pickerMode) {
-      // XXX Deprecated in v5.2: Get only the active People
-      // XXX Make this a configuration instead:
-      // $query = $query->where(fn(QueryExpression $exp, Query $query) => $exp->in($table->getAlias().'.status', [StatusEnum::Active, StatusEnum::GracePeriod]));
-
-      // Specific expressions per view
-      $query = match(true) {
-        // GroupMembers Add view: We need to filter the active members
-        (isset($requestParams['group_id']) && $modelsName === 'People') => $query
-          ->leftJoinWith('GroupMembers', fn($q) => $q->where(['GroupMembers.group_id' => (int)($requestParams['group_id'] ?? -1)])),
-//   XXX We want to get both members and not members. The frontend will handle the rest
-//        ->where($this->getTableLocator()->get('GroupMembers')->checkValidity($query))
-//        ->where(fn(QueryExpression $exp, Query $query) => $exp->isNull('GroupMembers.' . StringUtilities::classNameToForeignKey($table->getAlias()))),
-        // Just return the query
-        default => $query
-      };
-    }
-
     return $query;
   }
 }
