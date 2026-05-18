@@ -1,0 +1,78 @@
+{
+    "types": {},
+    "schema": {
+        "tables": {
+            "petition_hist_attrs": {
+                "comment": "Transmogrified from cm_co_petition_attributes",
+                "columns": {
+                    "id": {},
+                    "petition_id": {},
+                    "historic_petition_viewer_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "historic_petition_viewers", "column": "id" },
+                        "notnull": false
+                    },
+                    "attribute": { "type": "string", "size": 128 },
+                    "value": { "type": "text" }
+                },
+                "indexes": {
+                    "petition_hist_attrs_i1": { "columns": [ "petition_id" ] },
+                    "petition_hist_attrs_i2": { "columns": [ "attribute" ] }
+                }
+            },
+            "petition_meta_hist_recs": {
+                "comment": "Transmogrified from cm_co_petitions fields that no longer map to petitions",
+                "columns": {
+                    "id": {},
+                    "petition_id": {},
+                    "enrollment_flow_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "enrollment_flows", "column": "id" }
+                    },
+                    "historic_petition_viewer_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "historic_petition_viewers", "column": "id" }
+                    },
+
+                    "enrollee_external_identity_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "external_identities", "column": "id" }
+                    },
+                    "archived_external_identity_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "external_identities", "column": "id" }
+                    },
+                    "enrollee_person_role_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "person_roles", "column": "id" }
+                    },
+                    "sponsor_person_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "people", "column": "id" }
+                    },
+                    "approver_person_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "people", "column": "id" }
+                    },
+                    "approver_comment": { "type": "string", "size": 256 }
+                },
+                "indexes": {
+                    "petition_meta_hist_recs_i1": { "columns": [ "petition_id" ] },
+                    "petition_meta_hist_recs_i2": { "columns": [ "enrollee_person_role_id" ] },
+                    "petition_meta_hist_recs_i3": { "columns": [ "sponsor_person_id" ] },
+                    "petition_meta_hist_recs_i4": { "columns": [ "approver_person_id" ] }
+                }
+            },
+            "historic_petition_viewers": {
+                "comment": "Enrollment Flow Step for historic petition data",
+                "columns": {
+                    "id": {},
+                    "enrollment_flow_step_id": {}
+                },
+                "indexes": {
+                    "historic_petition_step_links_i1": { "columns": [ "enrollment_flow_step_id" ] }
+                }
+            }
+        }
+    }
+}

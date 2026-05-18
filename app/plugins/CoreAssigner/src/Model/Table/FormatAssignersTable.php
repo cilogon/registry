@@ -341,13 +341,12 @@ class FormatAssignersTable extends Table {
    * Perform parameter substitution on an identifier format to generate the base
    * string used in identifier assignment.
    *
-   * @since  COmanage Registry v5.0.0
-   * @param  EntityInterface          $entity         Entity to assign Identifier for
-   * @param  string                   $format         Identifier assignment format
-   * @param  PermittedCharactersEnum  $permitted      Acceptable characters for substituted parameters
-   * @param  boolean                  $transliterate  Whether to apply transliteration in constructing the identifier base
+   * @param EntityInterface $entity Entity to assign Identifier for
+   * @param string $format Identifier assignment format
+   * @param string $permitted Acceptable characters for substituted parameters
+   * @param boolean $transliterate Whether to apply transliteration in constructing the identifier base
    * @return string                                   Identifier with paramaters substituted
-   * @throws RuntimeException
+   * @since  COmanage Registry v5.0.0
    */
   
   protected function substituteParameters(

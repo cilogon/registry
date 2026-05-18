@@ -1,0 +1,948 @@
+{
+    "__COMMENT__": "Template for adding new table configurations to the Transmogrify mapping. Keys starting with double underscores (__) are ignored by processors and exist only for documentation.",
+    "__EXAMPLE_TABLE_TEMPLATE__": {
+        "__INSTRUCTIONS_1__": "Copy this object, rename the key to your logical table name (eg, 'my_items'), and adjust values. Do NOT leave this example enabled in production.",
+        "__INSTRUCTIONS_2__": "When mapping legacy type fields, call the function-based mapper (eg, &map...Type) before configuring null for the old column name. The mapper still needs the original source column value, and performNoMapping() will unset that column once it sees a null mapping. In other words, always place the null mapping for the old column after the new field’s function mapping so the mapper can read the legacy value before it is removed.",
+        "__INSTRUCTIONS_3__": "Columns new to v5 (not in v4) should be omitted entirely from the configuration.",
+        "__INSTRUCTIONS_4__": "Columns present in v4 but dropped in v5 must be mapped to null to be unset, and these mappings must go at the end of the fieldMap list.",
+        "source": "cm_my_items",
+        "displayField": "name",
+        "addChangelog": true,
+        "plugin": "MyItems",
+        "booleans": ["is_active", "is_primary"],
+        "cache": [
+            "co_id",
+            ["co_id", "status"],
+            ["co_id", "name", "value"]
+        ],
+        "sqlSelect": "myItemsSqlSelect",
+        "preTable": "beforeInsertMyItems",
+        "postTable": "afterInsertMyItems",
+        "preRow": "beforeInsertMyItemRow",
+        "postRow": "afterInsertMyItemRow",
+        "fieldMap": {
+            "id": "id",
+            "co_id": "co_id",
+            "name": "name",
+            "description": "details",
+            "status": "status",
+            "value": "amount",
+            "created": "&mapNow",
+            "modified": "&mapNow",
+            "type_id": "&mapExtendedType",
+            "owner_identifier": "&mapIdentifierToPersonId",
+            "valid_from": "valid_from",
+            "valid_through": "valid_through"
+        },
+        "__NOTES__": "Common keys: source (DB table), displayField (for printing), addChangelog (add created/modified history), booleans (type coercion), cache (key(s) to cache rows by), sqlSelect (custom SELECT provider function), pre/postTable and pre/postRow (hook function names), fieldMap (left=new table column, right=source column name or &function). Use &mapNow to inject current timestamp, &mapExtendedType to resolve cm_co_extended_types, and mapping helpers found in Transmogrify traits. Note: There is no generic config-driven enforcement for required/defaults/unique; enforce uniqueness via database constraints."
+    },
+    "__NOTES__": "CONFIGURATION MIGRATIONS",
+    "cos": {
+        "source": "cm_cos",
+        "displayField": "name",
+        "addChangelog": true,
+        "cache": ["status"]
+    },
+    "types": {
+        "source": "cm_co_extended_types",
+        "displayField": "display_name",
+        "postTable": "insertPronounTypes",
+        "fieldMap": {
+            "attribute": "&mapExtendedType",
+            "name": "value",
+            "created": "&mapNow",
+            "modified": "&mapNow"
+        },
+        "cache": [["co_id", "attribute", "value"]],
+        "dependencies": ["cos"]
+    },
+    "co_settings": {
+        "source": "cm_co_settings",
+        "displayField": "co_id",
+        "addChangelog": true,
+        "booleans": [],
+        "postTable": "insertDefaultSettings",
+        "cache": ["co_id"],
+        "fieldMap": {
+            "global_search_limit": "search_global_limit",
+            "required_fields_addr": "required_fields_address",
+            "permitted_fields_telephone_number": "&populateCoSettingsPhone",
+            "enable_nsf_demo": null,
+            "disable_expiration": null,
+            "disable_ois_sync": null,
+            "group_validity_sync_window": null,
+            "garbage_collection_interval": null,
+            "enable_normalization": null,
+            "enable_empty_cou": null,
+            "invitation_validity": null,
+            "t_and_c_login_mode": null,
+            "sponsor_eligibility": null,
+            "sponsor_co_group_id": null,
+            "theme_stacking": null,
+            "default_co_pipeline_id": null,
+            "elect_strategy_primary_name": null,
+            "co_dashboard_id": null,
+            "co_theme_id": null,
+            "person_picker_email_type": null,
+            "person_picker_identifier_type": null,
+            "person_picker_display_types": null,
+            "group_create_admin_only": null,
+            "t_and_c_return_url_allowlist": null,
+            "population_hide": null
+        },
+        "dependencies": ["cos"]
+    },
+    "api_users": {
+        "source": "cm_api_users",
+        "displayField": "username",
+        "booleans": ["privileged"],
+        "cache": ["co_id"],
+        "fieldMap": {
+            "password": "api_key"
+        },
+        "dependencies": ["cos"]
+    },
+    "cous": {
+        "source": "cm_cous",
+        "displayField": "name",
+        "sqlSelect": "couSqlSelect",
+        "dependencies": ["cos"]
+    },
+    "servers": {
+        "source": "cm_servers",
+        "plugin": "CoreServer",
+        "displayField": "description",
+        "addChangelog": true,
+        "cache": ["co_id", "status"],
+        "fieldMap": {
+            "plugin": "&mapServerTypeToPlugin",
+            "server_type": null
+        },
+        "dependencies": ["cos"]
+    },
+    "http_servers": {
+        "source": "cm_http_servers",
+        "plugin": "CoreServer",
+        "displayField": "serverurl",
+        "addChangelog": true,
+        "booleans": [
+            "ssl_verify_host",
+            "ssl_verify_peer"
+        ],
+        "cache": ["server_id"],
+        "fieldMap": {
+            "serverurl": "url",
+            "ssl_verify_peer": "skip_ssl_verification",
+            "ssl_verify_host": null
+        },
+        "dependencies": ["servers"]
+    },
+    "oauth2_servers": {
+        "source": "cm_oauth2_servers",
+        "plugin": "CoreServer",
+        "displayField": "serverurl",
+        "addChangelog": true,
+        "cache": ["server_id"],
+        "booleans": ["access_token_exp"],
+        "fieldMap": {
+            "serverurl": "url",
+            "proxy": null
+        },
+        "dependencies": ["servers"]
+    },
+    "sql_servers": {
+        "source": "cm_sql_servers",
+        "plugin": "CoreServer",
+        "displayField": "hostname",
+        "cache": ["server_id"],
+        "addChangelog": true,
+        "fieldMap": {
+            "dbport": "port"
+        },
+        "dependencies": ["servers"]
+    },
+    "match_servers": {
+        "source": "cm_match_servers",
+        "plugin": "CoreServer",
+        "displayField": "username",
+        "addChangelog": true,
+        "booleans": [
+            "ssl_verify_peer",
+            "ssl_verify_host"
+        ],
+        "cache": ["server_id"],
+        "fieldMap": {
+            "serverurl": "url",
+            "auth_type": "?BA",
+            "ssl_verify_peer": "skip_ssl_verification",
+            "ssl_verify_host": null
+        },
+        "dependencies": ["servers"]
+    },
+    "match_server_attributes": {
+        "source": "cm_match_server_attributes",
+        "displayField": "attribute",
+        "plugin": "CoreServer",
+        "addChangelog": true,
+        "booleans": [
+            "required"
+        ],
+        "cache": ["match_server_id"],
+        "fieldMap": {
+            "type_id": "&mapMatchAttributeTypeId",
+            "type": null
+        },
+        "dependencies": ["match_servers", "types"]
+    },
+    "message_templates": {
+        "source": "cm_co_message_templates",
+        "displayField": "description",
+        "fieldMap": {
+            "context": "&mapMessageTemplateContext",
+            "message_subject": "subject",
+            "message_body": "body_text",
+            "message_body_html": "body_html",
+            "co_message_template_id": "message_template_id"
+        },
+        "dependencies": ["cos"]
+    },
+    "pipelines": {
+        "source": "cm_co_pipelines",
+        "displayField": "description",
+        "cache": ["co_id"],
+        "fieldMap": {
+            "name": "description",
+            "sync_affiliation_type_id": "&mapAffiliationType",
+            "sync_identifier_type_id": "&mapIdentifierType",
+            "match_identifier_type_id": "&mapIdentifierType",
+            "match_email_address_type_id": "&mapEmailType",
+            "co_pipeline_id": "pipeline_id",
+            "sync_on_add": null,
+            "sync_on_update": null,
+            "sync_on_delete": null,
+            "sync_coperson_status": null,
+            "sync_coperson_attributes": null,
+            "create_role": null,
+            "match_type": null,
+            "sync_affiliation": null,
+            "sync_identifier_type": null,
+            "establish_clusters": null,
+            "co_enrollment_flow_id": null
+        },
+        "dependencies": ["cos", "types"]
+    },
+    "external_identity_sources": {
+        "source": "cm_org_identity_sources",
+        "displayField": "description",
+        "booleans": ["hash_source_record"],
+        "cache": ["co_id"],
+        "fieldMap": {
+            "plugin": "&mapExternalIdentitySourcePlugin",
+            "co_pipeline_id": "pipeline_id",
+            "org_identity_source_id": "external_identity_source_id",
+            "status": "&mapStatusAndSyncToStatus",
+            "sync_mode": null,
+            "sync_query_mismatch_mode": null,
+            "sync_query_skip_known": null,
+            "sync_on_user_login": null,
+            "eppn_identifier_type": null,
+            "eppn_suffix": null
+        },
+        "dependencies": ["cos", "pipelines"]
+    },
+    "orcid_sources": {
+        "source": "cm_orcid_sources",
+        "displayField": "id",
+        "plugin": "OrcidSource",
+        "booleans": [
+            "scope_inherit"
+        ],
+        "cache": ["external_identity_source_id", "server_id"],
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "default_affiliation_type_id": "&mapToDefaultAffiliationTypeId",
+            "address_type_id": "&mapToDefaultAddressTypeId",
+            "email_address_type_id": "&mapToDefaultEmailAddressTypeId",
+            "name_type_id": "&mapToDefaultNameTypeId",
+            "telephone_number_type_id": "&mapToDefaultTelephoneNumberTypeId"
+        },
+        "addChangelog": true,
+        "dependencies": ["external_identity_sources", "types"]
+    },
+    "orcid_tokens": {
+        "source": "cm_orcid_tokens",
+        "displayField": "id",
+        "plugin": "OrcidSource",
+        "cache": ["orcid_identifier", "orcid_source_id"],
+        "addChangelog": true,
+        "dependencies": ["orcid_sources"]
+    },
+    "env_sources": {
+        "source": "cm_env_sources",
+        "plugin": "EnvSource",
+        "displayField": "id",
+        "addChangelog": true,
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "redirect_on_duplicate": "redirect_on_duplicate",
+            "sp_type": "sp_mode",
+            "default_affiliation_type_id": "&mapAffiliationType",
+            "address_type_id": "&mapToDefaultAddressTypeId",
+            "email_address_type_id": "&mapToDefaultEmailAddressTypeId",
+            "name_type_id": "&mapToDefaultNameTypeId",
+            "telephone_number_type_id": "&mapToDefaultTelephoneNumberTypeId",
+            "env_o": "env_organization",
+            "env_ou": "env_department",
+            "env_identifier_sorid": "env_identifier_sourcekey",
+            "env_identifier_eppn_login": null,
+            "env_identifier_eptid_login": null,
+            "env_identifier_epuid_login": null,
+            "env_identifier_oidcsub_login": null,
+            "env_identifier_orcid": null,
+            "env_identifier_orcid_login": null,
+            "env_identifier_samlpairwiseid_login": null,
+            "env_identifier_samlsubjectid_login": null,
+            "env_identifier_sorid_login": null,
+            "env_identifier_network_login": null,
+            "duplicate_mode": null,
+            "default_affiliation": null
+        },
+        "dependencies": ["external_identity_sources", "types"]
+    },
+    "api_sources": {
+        "source": "cm_api_sources",
+        "plugin": "ApiConnector",
+        "displayField": "id",
+        "postRow": "createApiForApiSource",
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "api_user_id": null,
+            "poll_mode": null,
+            "kafka_server_id": null
+        },
+        "addChangelog": true,
+        "dependencies": ["external_identity_sources"]
+    },
+    "api_source_endpoints": {
+        "source": "cm_api_sources",
+        "plugin": "ApiConnector",
+        "displayField": "id",
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "api_id": "&mapApiIdFromCache",
+            "api_user_id": null,
+            "poll_mode": null,
+            "kafka_server_id": null
+        },
+        "addChangelog": true,
+        "dependencies": ["external_identity_sources"]
+    },
+    "file_sources": {
+        "source": "cm_file_sources",
+        "plugin": "FileConnector",
+        "displayField": "id",
+        "booleans": [
+            "threshold_override"
+        ],
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "filepath": "filename",
+            "format": "=C3",
+            "threshold_warn": "threshold_check"
+        },
+        "addChangelog": true,
+        "dependencies": ["external_identity_sources"]
+    },
+    "sql_sources": {
+        "source": "cm_sql_sources",
+        "plugin": "SqlConnector",
+        "displayField": "id",
+        "booleans": [
+            "threshold_override"
+        ],
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "address_type_id":  "&mapAddressType",
+            "email_address_type_id": "&mapEmailType",
+            "identifier_type_id": "&mapIdentifierType",
+            "name_type_id": "&mapNameType",
+            "pronouns_type_id":  "&mapPronounsTypeDefault",
+            "telephone_number_type_id":  "&mapTelephoneType",
+            "url_type_id": "&mapUrlType",
+            "__NOTE__": "Old columns removal should go after the function mappers",
+            "address_type": null,
+            "email_address_type": null,
+            "identifier_type": null,
+            "name_type": null,
+            "telephone_number_type": null,
+            "url_type": null
+        },
+        "addChangelog": true,
+        "dependencies": ["external_identity_sources", "types"]
+    },
+    "authenticators": {
+        "source": "cm_authenticators",
+        "displayField": "description",
+        "cache": ["co_id"],
+        "fieldMap": {
+            "plugin": "&mapAuthenticatorPlugin",
+            "co_message_template_id": "message_template_id"
+        },
+        "addChangelog": true,
+        "dependencies": ["cos", "message_templates"]
+    },
+    "ssh_key_authenticators": {
+        "source": "cm_ssh_key_authenticators",
+        "displayField": "id",
+        "cache": ["authenticator_id"],
+        "addChangelog": true,
+        "dependencies": ["authenticators"]
+    },
+    "password_authenticators": {
+        "source": "cm_password_authenticators",
+        "displayField": "id",
+        "plugin": "PasswordAuthenticator",
+        "cache": ["authenticator_id"],
+        "booleans": [
+            "format_crypt_php",
+            "format_plaintext",
+            "format_sha1_ldap"
+        ],
+        "fieldMap": {
+            "password_source": "source_mode"
+        },
+        "addChangelog": true,
+        "dependencies": ["authenticators"]
+    },
+    "identifier_assignments": {
+        "source": "cm_co_identifier_assignments",
+        "displayField": "description",
+        "plugin": null,
+        "booleans": [
+            "login",
+            "allow_empty"
+        ],
+        "cache": ["co_id"],
+        "postRow": "createIdentifierAssignmentPluginRecord",
+        "fieldMap": {
+            "co_group_id": "group_id",
+            "email_address_type_id": "&mapEmailType",
+            "identifier_type_id": "&mapIdentifierType",
+            "plugin": "&mapAlgorithmToPlugin",
+            "algorithm": null,
+            "format": null,
+            "minimum_length": null,
+            "minimum": null,
+            "maximum": null,
+            "transliterate": null,
+            "permitted": null,
+            "collision_resolution": null,
+            "exclusions": null,
+            "identifier_type": null,
+            "email_type": null
+        },
+        "addChangelog": true,
+        "dependencies": ["cos", "groups", "types"]
+    },
+    "format_assigner_sequences": {
+        "source": "cm_co_sequential_identifier_assignments",
+        "displayField": "id",
+        "fieldMap": {
+            "co_identifier_assignment_id": "format_assigner_id"
+        },
+        "addChangelog": false,
+        "dependencies": ["identifier_assignments"]
+    },
+    "__NOTES__": "DATA MIGRATIONS",
+    "authentication_events": {
+        "source": "cm_authentication_events",
+        "displayField": "authenticated_identifier",
+        "canSkip": "true",
+        "dependencies": []
+    },
+    "people": {
+        "source": "cm_co_people",
+        "displayField": "id",
+        "cache": ["co_id"],
+        "fieldMap": {
+            "co_person_id": "person_id",
+            "status": "&mapPersonStatus"
+        },
+        "dependencies": ["cos"]
+    },
+    "authenticator_statuses": {
+        "source": "cm_authenticator_statuses",
+        "displayField": "id",
+        "booleans": [
+            "locked"
+        ],
+        "cache": ["person_id", "authenticator_id"],
+        "fieldMap": {
+            "co_person_id": "person_id"
+        },
+        "addChangelog": true,
+        "dependencies": ["people", "authenticators"]
+    },
+    "ssh_keys": {
+        "source": "cm_ssh_keys",
+        "displayField": "comment",
+        "cache": ["person_id", "ssh_key_authenticator_id"],
+        "fieldMap": {
+            "co_person_id": "person_id"
+        },
+        "dependencies": ["people", "ssh_key_authenticators"]
+    },
+    "passwords": {
+        "source": "cm_passwords",
+        "displayField": "id",
+        "plugin": "PasswordAuthenticator",
+        "cache": ["person_id", "password_authenticator_id"],
+        "fieldMap": {
+            "co_person_id": "person_id",
+            "password_type": "type"
+        },
+        "dependencies": ["people", "password_authenticators"]
+    },
+    "person_roles": {
+        "source": "cm_co_person_roles",
+        "sqlSelect": "roleSqlSelect",
+        "displayField": "id",
+        "cache": ["status", "person_id", "manager_person_id", "sponsor_person_id"],
+        "fieldMap": {
+            "co_person_id": "person_id",
+            "co_person_role_id": "person_role_id",
+            "affiliation_type_id": "&mapAffiliationType",
+            "manager_co_person_id": "manager_person_id",
+            "sponsor_co_person_id": "sponsor_person_id",
+            "o": "organization",
+            "ou": "department",
+            "source_org_identity_id": null,
+            "affiliation": null
+        },
+        "dependencies": ["people", "types"]
+    },
+    "external_identities": {
+        "source": "cm_org_identities",
+        "displayField": "id",
+        "cache": ["person_id"],
+        "sqlSelect": "orgidentitiesSqlSelect",
+        "postRow": "mapExternalIdentityToExternalIdentityRole",
+        "fieldMap": {
+            "person_id": "&mapOrgIdentityCoPersonId",
+            "org_identity_id": "external_identity_id",
+            "title": null,
+            "o": null,
+            "ou": null,
+            "affiliation": null,
+            "manager_identifier": null,
+            "sponsor_identifier": null,
+            "valid_from": null,
+            "valid_through": null,
+            "co_id": null
+        },
+        "dependencies": ["people"]
+    },
+    "groups": {
+        "source": "cm_co_groups",
+        "displayField": "name",
+        "cache": ["co_id", "owners_group_id"],
+        "booleans": ["nesting_mode_all", "open"],
+        "preRow": "applyCheckGroupNameARRule",
+        "fieldMap": {
+            "co_group_id": "group_id",
+            "group_type": "?S",
+            "introduction": null,
+            "auto": null
+        },
+        "postTable": "createOwnersGroups",
+        "dependencies": ["cos", "cous"]
+    },
+    "group_nestings": {
+        "source": "cm_co_group_nestings",
+        "displayField": "id",
+        "booleans": ["negate"],
+        "fieldMap": {
+            "co_group_id": "group_id",
+            "target_co_group_id": "target_group_id",
+            "co_group_nesting_id": "group_nesting_id"
+        },
+        "dependencies": ["groups"]
+    },
+    "provisioning_targets": {
+        "source": "cm_co_provisioning_targets",
+        "displayField": "description",
+        "cache": ["id", "co_id"],
+        "fieldMap": {
+            "plugin": "&mapProvisionerPlugin",
+            "provision_co_group_id": "provisioning_group_id",
+            "skip_org_identity_source_id": null
+        },
+        "dependencies": ["groups"]
+    },
+    "sql_provisioners": {
+        "source": "cm_co_sql_provisioner_targets",
+        "displayField": "provisioning_target_id",
+        "plugin": "ApiConnector",
+        "fieldMap": {
+            "co_provisioning_target_id": "provisioning_target_id"
+        },
+        "addChangelog": true
+    },
+    "group_members": {
+        "source": "cm_co_group_members",
+        "displayField": "id",
+        "booleans": ["member", "owner"],
+        "preRow": "reconcileGroupMembershipOwnership",
+        "fieldMap": {
+            "co_group_id": "group_id",
+            "co_person_id": "person_id",
+            "co_group_nesting_id": "group_nesting_id",
+            "co_group_member_id": "group_member_id",
+            "source_org_identity_id": null,
+            "member": null,
+            "owner": null
+        },
+        "dependencies": ["groups", "people", "group_nestings"]
+    },
+    "names": {
+        "source": "cm_names",
+        "displayField": "id",
+        "booleans": ["primary_name"],
+        "sqlSelect": "mveaSqlSelect",
+        "fieldMap": {
+            "type_id": "&mapNameType",
+            "co_person_id": "person_id",
+            "org_identity_id": "external_identity_id",
+            "type": null
+        },
+        "dependencies": ["people", "external_identities", "types"]
+    },
+    "email_addresses": {
+        "source": "cm_email_addresses",
+        "displayField": "id",
+        "booleans": ["verified"],
+        "sqlSelect": "mveaSqlSelect",
+        "fieldMap": {
+            "type_id": "&mapEmailType",
+            "co_person_id": "person_id",
+            "org_identity_id": "external_identity_id",
+            "co_department_id": null,
+            "organization_id": null,
+            "type": null
+        },
+        "dependencies": ["people", "external_identities", "types"]
+    },
+    "identifiers": {
+        "source": "cm_identifiers",
+        "displayField": "id",
+        "booleans": ["login"],
+        "sqlSelect": "mveaSqlSelect",
+        "preRow": "mapLoginIdentifiers",
+        "fieldMap": {
+            "type_id": "&mapIdentifierType",
+            "co_group_id": "group_id",
+            "co_person_id": "person_id",
+            "org_identity_id": "external_identity_id",
+            "co_department_id": null,
+            "co_provisioning_target_id": null,
+            "organization_id": null,
+            "type": null,
+            "language": null
+        },
+        "dependencies": ["groups", "people", "external_identities", "types"]
+    },
+    "urls": {
+        "source": "cm_urls",
+        "displayField": "id",
+        "sqlSelect": "mveaSqlSelect",
+        "fieldMap": {
+            "type_id": "&mapUrlType",
+            "co_person_id": "person_id",
+            "org_identity_id": "external_identity_id",
+            "co_department_id": null,
+            "organization_id": null,
+            "type": null,
+            "language": null
+        },
+        "dependencies": ["people", "external_identities", "types"]
+    },
+    "addresses": {
+        "source": "cm_addresses",
+        "displayField": "id",
+        "sqlSelect": "mveaSqlSelect",
+        "fieldMap": {
+            "type_id": "&mapAddressType",
+            "co_person_role_id": "person_role_id",
+            "org_identity_id": "external_identity_id",
+            "co_department_id": null,
+            "organization_id": null,
+            "type": null
+        },
+        "dependencies": ["person_roles", "external_identities", "types"]
+    },
+    "telephone_numbers": {
+        "source": "cm_telephone_numbers",
+        "displayField": "id",
+        "sqlSelect": "mveaSqlSelect",
+        "fieldMap": {
+            "type_id": "&mapTelephoneType",
+            "co_person_role_id": "person_role_id",
+            "org_identity_id": "external_identity_id",
+            "co_department_id": null,
+            "organization_id": null,
+            "type": null
+        },
+        "dependencies": ["person_roles", "external_identities", "types"]
+    },
+    "ad_hoc_attributes": {
+        "source": "cm_ad_hoc_attributes",
+        "displayField": "id",
+        "sqlSelect": "mveaSqlSelect",
+        "fieldMap": {
+            "co_person_role_id": "person_role_id",
+            "org_identity_id": "external_identity_id",
+            "co_department_id": null,
+            "organization_id": null
+        },
+        "postTable": "migrateExtendedAttributesToAdHocAttributes",
+        "dependencies": ["person_roles", "external_identities"]
+    },
+    "notifications": {
+        "source": "cm_co_notifications",
+        "displayField": "id",
+        "canSkip": "true",
+        "addChangelog": true,
+        "fieldMap": {
+            "subject_co_person_id": "subject_person_id",
+            "subject_co_group_id": "subject_group_id",
+            "actor_co_person_id": "actor_person_id",
+            "recipient_co_person_id": "recipient_person_id",
+            "recipient_co_group_id": "recipient_group_id",
+            "resolver_co_person_id": "resolver_person_id",
+            "action": "&mapNotificationAction",
+            "source_url": "source",
+            "email_body": "email_body_text",
+            "source_controller": null,
+            "source_action": null,
+            "source_id": null,
+            "source_arg0": null,
+            "source_val0": null
+        },
+        "dependencies": ["people", "groups"]
+    },
+    "history_records": {
+        "source": "cm_history_records",
+        "displayField": "id",
+        "sqlSelect": "historyRecordsSqlSelect",
+        "canSkip": "true",
+        "fieldMap": {
+            "actor_co_person_id": "actor_person_id",
+            "co_person_id": "person_id",
+            "co_person_role_id": "person_role_id",
+            "co_group_id": "group_id",
+            "org_identity_id": "external_identity_id",
+            "action": "&mapHistoryAction",
+            "co_email_list_id": null,
+            "co_service_id": null
+        },
+        "dependencies": ["people", "person_roles", "groups", "external_identities"]
+    },
+    "jobs": {
+        "source": "cm_co_jobs",
+        "displayField": "id",
+        "fieldMap": {
+            "job_type": "plugin",
+            "queue_time": "register_time",
+            "complete_time": "finish_time",
+            "job_params": "parameters",
+            "requeued_from_co_job_id": "requeued_from_job_id",
+            "max_retry": null,
+            "max_retry_count": null,
+            "job_type_fk": null,
+            "job_mode": null
+        },
+        "preRow": "validateJobIsTransmogrifiable",
+        "dependencies": ["cos"]
+    },
+    "job_history_records": {
+        "source": "cm_co_job_history_records",
+        "displayField": "id",
+        "sqlSelect": "jobHistoryRecordsSqlSelect",
+        "canSkip": "true",
+        "fieldMap": {
+            "co_job_id": "job_id",
+            "co_person_id": "person_id",
+            "org_identity_id": "external_identity_id"
+        },
+        "dependencies": ["jobs", "people", "external_identities"]
+    },
+    "enrollment_flows": {
+        "source": "cm_co_enrollment_flows",
+        "displayField": "name",
+        "booleans": [
+            "collect_enrollee_email"
+        ],
+        "cache": ["co_id", "auth_cou_id", "authz_co_group_id"],
+        "postRow": "createEnrollmentFlowStep",
+        "fieldMap": {
+            "authz_level": "authz_type",
+            "authz_co_group_id": "authz_group_id",
+            "notification_co_group_id": "notification_group_id",
+            "redirect_on_finalize": "redirect_on_finalize",
+            "status": "=S",
+            "approval_template_id": "notification_message_template_id",
+            "finalization_template_id": "finalization_message_template_id",
+            "co_enrollment_flow_id": "enrollment_flow_id",
+            "my_identity_shortcut": null,
+            "match_policy": null,
+            "match_server_id": null,
+            "enable_person_find": null,
+            "approval_required": null,
+            "approver_co_group_id": null,
+            "approval_confirmation_mode": null,
+            "approval_require_comment": null,
+            "verify_email": null,
+            "email_verification_mode": null,
+            "invitation_validity": null,
+            "regenerate_expired_verification": null,
+            "require_authn": null,
+            "notify_from": null,
+            "verification_subject": null,
+            "verification_body": null,
+            "verification_template_id": null,
+            "request_vetting": null,
+            "notify_on_approval": null,
+            "approval_subject": null,
+            "approval_body": null,
+            "approver_template_id": null,
+            "denial_template_id": null,
+            "notify_on_finalize": null,
+            "introduction_text": null,
+            "conclusion_text": null,
+            "introduction_text_pa": null,
+            "t_and_c_mode": null,
+            "redirect_on_submit": null,
+            "redirect_on_confirm": null,
+            "return_url_allowlist": null,
+            "ignore_authoritative": null,
+            "duplicate_mode": null,
+            "co_theme_id": null,
+            "theme_stacking": null,
+            "establish_authenticators": null,
+            "establish_cluster_accounts": null
+        },
+        "dependencies": ["cos", "cous", "groups", "message_templates"]
+    },
+    "petitions": {
+        "source": "cm_co_petitions",
+        "displayField": "authenticated_identifier",
+        "canSkip": "true",
+        "fieldMap": {
+            "co_enrollment_flow_id": "enrollment_flow_id",
+            "cou_id": "cou_id",
+            "status": "&mapPetitionStatus",
+            "enrollee_co_person_id": "enrollee_person_id",
+            "petitioner_co_person_id": "petitioner_person_id",
+            "authenticated_identifier": "petitioner_identifier",
+            "reference_identifier": "enrollee_identifier",
+            "co_petition_id": "petition_id",
+            "petitioner_token": null,
+            "enrollee_token": null,
+            "return_url": null,
+            "approver_comment": null,
+            "sponsor_co_person_id": null,
+            "approver_co_person_id": null,
+            "co_invite_id": null,
+            "vetting_request_id": null,
+            "enrollee_org_identity_id": null,
+            "archived_org_identity_id": null,
+            "enrollee_co_person_role_id": null,
+            "token": null,
+            "co_id": null
+        },
+        "dependencies": ["enrollment_flows", "cous", "people"]
+    },
+    "petition_meta_hist_recs": {
+        "source": "cm_co_petitions",
+        "displayField": "id",
+        "fieldMap": {
+            "co_enrollment_flow_id": "enrollment_flow_id",
+            "historic_petition_viewer_id" :"&mapHistoricPetitionViewerId",
+            "enrollee_org_identity_id": "enrollee_external_identity_id",
+            "archived_org_identity_id": "archived_external_identity_id",
+            "enrollee_co_person_role_id": "enrollee_person_role_id",
+            "sponsor_co_person_id": "sponsor_person_id",
+            "approver_co_person_id": "approver_person_id",
+            "co_petition_id": "petition_id",
+            "co_id": null,
+            "cou_id": null,
+            "status": null,
+            "authenticated_identifier": null,
+            "reference_identifier": null,
+            "petitioner_co_person_id": null,
+            "enrollee_co_person_id": null,
+            "co_invite_id": null,
+            "vetting_request_id": null,
+            "enrollee_token": null,
+            "petitioner_token": null,
+            "return_url": null
+        },
+        "dependencies": ["enrollment_flows", "external_identities", "person_roles", "people", "petitions"]
+    },
+    "petition_hist_attrs": {
+        "source": "cm_co_petition_attributes",
+        "displayField": "id",
+        "fieldMap": {
+            "co_petition_id": "petition_id",
+            "historic_petition_viewer_id" :"&mapHistoricPetitionViewerId",
+            "co_enrollment_attribute_id": null,
+            "attribute_foreign_key": null,
+            "co_petition_attribute_id": null
+        },
+        "addChangelog": true,
+        "dependencies": ["petitions"]
+    },
+    "ext_identity_source_records": {
+        "source": "cm_org_identity_source_records",
+        "displayField": "id",
+        "cache": ["org_identity_id", "sorid"],
+        "preRow": "findAdoptedPersonByLinkedOrgIdentityId",
+        "fieldMap": {
+            "org_identity_source_id": "external_identity_source_id",
+            "sorid": "source_key",
+            "org_identity_id": "external_identity_id",
+            "co_person_id": "adopted_person_id",
+            "reference_identifier": "reference_identifier",
+            "org_identity_source_record_id": "ext_identity_source_record_id",
+            "co_petition_id": null
+        },
+        "dependencies": ["external_identity_sources", "external_identities", "people"]
+    },
+    "api_source_records": {
+        "source": "cm_api_source_records",
+        "displayField": "id",
+        "plugin": "ApiConnector",
+        "fieldMap": {
+            "sorid": "source_key"
+        },
+        "dependencies": ["api_sources"]
+    },
+    "provisioning_history_records": {
+        "source": "cm_co_provisioning_exports",
+        "displayField": "id",
+        "fieldMap": {
+            "status": "=P",
+            "subject_model": "&mapToSubjectModel",
+            "subjectid": "&mapToSubjectId",
+            "co_provisioning_target_id": "provisioning_target_id",
+            "comment": "=Record Exported",
+            "co_person_id": "person_id",
+            "co_group_id": "group_id",
+            "co_email_list_id": null,
+            "co_service_id": null,
+            "exporttime": null
+        },
+        "addChangelog": true,
+        "dependencies": ["groups", "people", "provisioning_targets"]
+    }
+}

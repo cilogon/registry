@@ -1775,14 +1775,14 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'staabm\\SideEffectsDetector\\SideEffectsDetector' => __DIR__ . '/..' . '/staabm/side-effects-detector/lib/SideEffectsDetector.php',
     );
 
-    public static function getInitializer(ClassLoader $loader)
-    {
-        return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$classMap;
+  public static function getInitializer(ClassLoader $loader)
+  {
+    return \Closure::bind(function () use ($loader) {
+      $loader->prefixLengthsPsr4 = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$prefixLengthsPsr4;
+      $loader->prefixDirsPsr4 = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$prefixDirsPsr4;
+      $loader->prefixesPsr0 = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$prefixesPsr0;
+      $loader->classMap = ComposerStaticInitb25f76eec921984aa94dcf4015a4846e::$classMap;
 
-        }, null, ClassLoader::class);
-    }
+    }, null, ClassLoader::class);
+  }
 }
