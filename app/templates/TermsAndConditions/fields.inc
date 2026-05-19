@@ -28,8 +28,21 @@
 $fields = [
   'description',
   'status',
+  'mostly_static_page_id' => [
+    'afterField' =>
+      $this->Html->link(
+        __d('operation','manage.a',[__d('controller','MostlyStaticPages', 99)]),
+        [
+          'controller' => 'MostlyStaticPages', 
+          'action' => 'index',
+          '?' => [
+            'co_id' => $vv_cur_co->id
+          ]
+        ],
+        ['class' => 'manage-link']
+      )
+  ],
   'url',
-  'mostly_static_page_id',
   'cou_id',
   'agreement_duration',
   'agree_to_updates',

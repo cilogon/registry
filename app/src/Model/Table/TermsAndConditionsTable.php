@@ -45,6 +45,7 @@ class TermsAndConditionsTable extends Table {
   use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -76,6 +77,10 @@ class TermsAndConditionsTable extends Table {
     $this->setRequiresCO(true);
     $this->setAllowLookupPrimaryLink(['proxy', 'revoke']);
     $this->setAllowLookupRelatedPrimaryLink(['status' => ['person_id']]);
+
+    $this->setIndexContains([
+      'MostlyStaticPages'
+    ]);
 
     $this->setAutoViewVars([
       'cous' => [

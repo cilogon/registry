@@ -285,12 +285,18 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
           $actionOrderDefault = $this->Menu->getMenuOrder('Default');
           foreach ($rowActions as $a) {
             $ok = false;
+            $callbackUrl = '';
+            
             if (!empty($a['controller']) && $a['controller'] != $tableName) {
               $relTableName = Inflector::camelize($a['controller']);
   
               if (isset($vv_permission_set[$entity->id][$relTableName][$a['action']])) {
                 $ok = $vv_permission_set[$entity->id][$relTableName][$a['action']];
               }
+            } elseif(!empty($a['callbackUrl']) && is_callable($a['callbackUrl'])) {
+              // We are constructing a URL in a callback function.
+              $callbackUrl = $a['callbackUrl']($entity);
+              $ok = true; // There is no action to test in this case.
             } else {
               $ok = $vv_permission_set[$entity->id][$a['action']];
             }
@@ -307,7 +313,7 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
               $actionIcon = !empty($a['icon']) ? $a['icon'] : $this->Menu->getMenuIcon('Default');
               $actionIconClass = !empty($a['iconClass']) ? $a['iconClass'] : '';
               $actionClass = !empty($a['class']) ? $a['class'] : '';
-              $actionUrl = ['action' => $a['action'], $entity->id];
+              $actionUrl = !empty($callbackUrl) ? $callbackUrl : ['action' => $a['action'], $entity->id];
               $actionLabel = !empty($a['label']) ? $a['label'] : __d('operation', $a['action']);
   
               if (!empty($a['controller']) && $a['controller'] != $tableName) {

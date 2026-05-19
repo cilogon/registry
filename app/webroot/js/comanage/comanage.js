@@ -139,7 +139,7 @@ function jsConfirmGeneric(txt, confirmUrl, clickId, confirmbtxt, cancelbtxt, tit
   // Set the body text of the dialog
   $("#dialog-text").text(bodyText);
   
-  $("#dialog-confirm-button").click(function() {
+  $("#dialog-confirm-button").off('click').on('click', function() {
     if(clickId !== undefined) {
       // If we have a clickId, set the dialog confirmation button to click the DOM
       // element referenced by it.

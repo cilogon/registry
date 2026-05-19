@@ -1033,7 +1033,7 @@ msgid "TermsAndConditions.mostly_static_page_id"
 msgstr "T&C via Mostly Static Page"
 
 msgid "TermsAndConditions.mostly_static_page_id.desc"
-msgstr "Content of Terms and Conditions, as defined in a Mostly Static Page (this or URL must be specified)"
+msgstr "Content of Terms and Conditions, as defined in a Mostly Static Page<br/>(this or URL must be specified)"
 
 msgid "TermsAndConditions.cou_id.desc"
 msgstr "If set, these Terms and Conditions only apply to People with a Person Role in the specified COU"
@@ -1042,7 +1042,7 @@ msgid "TermsAndConditions.url"
 msgstr "T&C via URL"
 
 msgid "TermsAndConditions.url.desc"
-msgstr "URL to web page holding Terms and Conditions (this or Mostly Static Page must be specified)"
+msgstr "URL to web page holding Terms and Conditions<br/>(this or Mostly Static Page must be specified)"
 
 msgid "Types.case_insensitive"
 msgstr "Case Insensitive"

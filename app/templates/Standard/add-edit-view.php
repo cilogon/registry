@@ -276,7 +276,7 @@ if(!empty($vv_alternate_template)) {
 
 /** MVEA Canvas output **/
 if($vv_action != 'add' && !empty($mveas)) {
-  // Pass along the $mveas and any $addMenuLinks defined in templates/.../fields-nav.inc config. 
+  // Pass along the $mveas and any $addMenuLinks defined in templates/.../fields.inc config. 
   print $this->element('mveaCanvas',
     [
       'vv_mveas' => $mveas,

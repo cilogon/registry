@@ -37,11 +37,20 @@ msgstr "Ignore"
 msgid "enumeration.TAndCEnrollmentModeEnum.IC"
 msgstr "Implied Consent"
 
+msgid "error.TAndCAgreement.missing"
+msgstr "Did not receive agreement for \"{0}\" (T&C {1})"
+
 msgid "field.AgreementCollectors.t_and_c_mode"
 msgstr "Terms and Conditions Mode"
 
+msgid "information.AgreementCollectors.external"
+msgstr "These Terms and Conditions will be loaded in an external browser window. After review, you must return to this window and click \"Agree\" to continue."
+
 msgid "information.AgreementCollectors.review"
 msgstr "You must review and agree to these Terms and Conditions before continuing."
+
+msgid "information.AgreementCollectors.review.tc"
+msgstr "Review Terms & Conditions"
 
 msgid "result.AgreementCollectors.ignored"
 msgstr "Terms and Conditions collection disabled"

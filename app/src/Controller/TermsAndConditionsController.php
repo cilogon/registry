@@ -42,6 +42,23 @@ class TermsAndConditionsController extends StandardController {
   ];
 
   /**
+   * Callback run prior to the request render.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
+   */
+
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    $this->set('vv_base_url', \Cake\Routing\Router::url(
+      url: "/" . $this->getCOID(),
+      full: true
+    ));
+
+    return parent::beforeRender($event);
+  }
+
+  /**
    * Proxy an Agreement on behalf of a Person.
    * 
    * @since  COmanage Registry v5.2.0
@@ -148,6 +165,6 @@ class TermsAndConditionsController extends StandardController {
     $this->set('vv_tandc_statuses', $this->TermsAndConditions->status((int)$personId));
     $this->set('vv_person_id', (int)$personId);
     
-    $this->set('vv_title', __d('controller', 'TermsAndConditions'));
+    $this->set('vv_title', __d('controller', 'TermsAndConditions', 99));
   }
 }

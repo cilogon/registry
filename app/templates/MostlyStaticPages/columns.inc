@@ -45,3 +45,13 @@ $indexColumns = [
     'sortable' => true
   ]
 ];
+
+$rowActions = [
+  [
+    'icon'  => 'arrow_outward',
+    'label' => __d('operation', 'visit.msp'),
+    'callbackUrl' => function($entity) use ($vv_base_url) {
+      return $vv_base_url . '/' . $entity->name;
+    }
+  ]
+];

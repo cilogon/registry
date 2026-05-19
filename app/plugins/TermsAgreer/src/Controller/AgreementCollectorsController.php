@@ -75,8 +75,8 @@ class AgreementCollectorsController extends StandardEnrollerController {
     $TermsAndConditions = TableRegistry::getTableLocator()->get('TermsAndConditions');
 
     $whereClause = [
-      'co_id' => $coId,
-      'status' => SuspendableStatusEnum::Active
+      'TermsAndConditions.co_id' => $coId,
+      'TermsAndConditions.status' => SuspendableStatusEnum::Active
     ];
 
     if(!empty($petition->cou_id)) {
@@ -89,6 +89,7 @@ class AgreementCollectorsController extends StandardEnrollerController {
     }
 
     $tandc = $TermsAndConditions->find()
+                                ->contain(['MostlyStaticPages'])
                                 ->where($whereClause)
                                 ->order('ordr ASC')
                                 ->all();
@@ -118,7 +119,7 @@ class AgreementCollectorsController extends StandardEnrollerController {
         if(!isset($data[$key]) || $data[$key] != "1") {
           $ok = false;
 
-          $this->Flash->error("Did not find agreement for T&C " . $tc->id);  // XXX I18n
+          $this->Flash->error(__d('terms_agreer','error.TAndCAgreement.missing', [$tc->description, $tc->id]));
         }
       }
 

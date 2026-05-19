@@ -1668,6 +1668,12 @@ ul.form-list select {
 ul.form-list .not-set {
   padding: 0;
 }
+ul.form-list .manage-link {
+  display: inline-block;
+  margin: 0.5em 0;
+  font-size: 0.9em;
+  font-style: italic;
+}
 .form-select:disabled {
   background-color: var(--cmg-color-bg-009);
 }
@@ -1749,6 +1755,10 @@ html.dark-mode .form-check-input:checked {
 .checkbox .subfield label {
   display: inline;
   margin: 0;
+}
+.form-check-input:disabled ~ .form-check-label, 
+.form-check-input[disabled] ~ .form-check-label {
+  opacity: 0.65; /* adjust Bootstrapism for accessibility */
 }
 #content .material-symbols,
 #content .material-symbols-outlined {
@@ -2211,12 +2221,13 @@ body.start .submit {
   margin-top: 2rem;
 }
 /* DIALOG BOX */
-#dialog .modal-header {
+.co-dialog .modal-header {
+  justify-content: space-between;
   background-color: var(--cmg-color-bg-004);
   border-bottom: none;
   justify-content: space-between;
 }
-#dialog .modal-footer {
+.co-dialog .modal-footer {
   border-top: none;
 }
 .modal-header .btn-close {
@@ -2229,6 +2240,9 @@ body.start .submit {
   align-items: center;
   gap: 0.25em;
   margin: auto;
+}
+td .co-dialog {
+  text-align: left;
 }
 /* MVEA & STANDARD MODAL */
 .cm-modal .modal-header {
@@ -2449,6 +2463,22 @@ ul.petition-attrs-subset li {
 }
 .petition-attrs-subset-label {
   color: var(--cmg-color-txt-soft);
+}
+/* TERMS AND CONDITIONS */
+.tc-agree {
+  font-size: 1.2em;
+}
+body.termsandconditions ul.form-list li.fields-mostly_static_page_id,
+body.termsandconditions ul.form-list li.fields-url {
+  border-left: 2px solid var(--cmg-color-highlight-012);
+}
+.tc-agree-dialog .modal-body h1,
+.tc-agree-dialog .modal-body h2,
+.tc-agree-dialog .modal-body h3,
+.tc-agree-dialog .modal-body h4,
+.tc-agree-dialog .modal-body h5,
+.tc-agree-dialog .modal-body h6 {
+  margin-bottom: 0.5em;
 }
 /* MOSTLY STATIC PAGES */
 body.pages.logged-out #top-bar,

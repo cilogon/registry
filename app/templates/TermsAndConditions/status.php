@@ -42,8 +42,7 @@ use App\Lib\Util\StringUtilities;
   <table id="termsandconditionsstatus-table" class="index-table list-mode with-actions">
     <thead>
       <tr>
-        <td class="actions"></td>
-        <th><?= __d('controller', 'TermsAndConditions', [1]); ?></th>
+        <th class="with-field-actions"><?= __d('controller', 'TermsAndConditions', [1]); ?></th>
         <th><?= __d('field', 'status'); ?></th>
         <th><?= __d('field', 'changelog.actor_identifier'); ?></th>
         <th><?= __d('field', 'timestamp.tz', [$vv_tz->getName()]); ?></th>
@@ -53,8 +52,9 @@ use App\Lib\Util\StringUtilities;
     </tbody>
       <?php foreach($vv_tandc_statuses as $t): ?>
       <tr>
-        <td class="actions">
-          <div class="field-actions">
+        <td class="with-field-actions">
+          <div class="field-actions-container">
+            <div class="field-actions">
           <?php
             // Build the row actions
             $action_args = array();
@@ -110,8 +110,9 @@ use App\Lib\Util\StringUtilities;
             }
           ?>
           </div>
+            <?= $t['tandc']->description; ?>
+          </div>
         </td>
-        <td><?= $t['tandc']->description; ?></td>
         <td><?= __d('enumeration', 'TAndCStatusEnum.'.$t['status']); ?></td>
         <td><?= $t['agreement']->identifier ?? "" ?></td>
         <td><?= 

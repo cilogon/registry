@@ -57,6 +57,12 @@ msgstr "Queue Job to Add {0}"
 msgid "adopt"
 msgstr "Adopt"
 
+msgid "agree"
+msgstr "Agree"
+
+msgid "agreement"
+msgstr "Agreement"
+
 msgid "apply"
 msgstr "Apply"
 
@@ -267,6 +273,9 @@ msgstr "Login"
 msgid "logout"
 msgstr "Logout"
 
+msgid "manage.a"
+msgstr "Manage {0}"
+
 msgid "next"
 msgstr "Next"
 
@@ -339,6 +348,9 @@ msgstr "Resend"
 msgid "resume"
 msgstr "Resume"
 
+msgid "review"
+msgstr "Review"
+
 msgid "save"
 msgstr "Save"
 
@@ -396,8 +408,14 @@ msgstr "View"
 msgid "view.a"
 msgstr "View {0}"
 
+msgid "visit.msp"
+msgstr "Visit Page"
+
 msgid "visit.link"
 msgstr "Visit link"
+
+msgid "visit.tandc"
+msgstr "Visit Terms and Conditions URL"
 
 msgid "view.PersonRoles.a"
 msgstr "View Role {0}"

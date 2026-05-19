@@ -436,7 +436,7 @@
         <li>
           <h3><?= __d('menu','co.configuration.title') ?></h3>
           <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.desc') ?></p>
-          <ul class="menu-panel-links-inner">
+          <ul class="menu-panel-links-inner col2">
             <li>
               <?php
                 $menuUrl = $this->Url->build(
@@ -537,6 +537,22 @@
               <a href="<?= $menuUrl ?>">
                 <div class="material-symbols-outlined" aria-hidden="true">computer</div>
                 <div class="menu-panel-link-text"><?= __d('controller','Servers', [2]) ?></div>
+              </a>
+            </li>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'terms_and_conditions',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>">
+                <div class="material-symbols-outlined" aria-hidden="true">policy</div>
+                <div class="menu-panel-link-text"><?= __d('controller', 'TermsAndConditions', [99]) ?></div>
               </a>
             </li>
             <li>

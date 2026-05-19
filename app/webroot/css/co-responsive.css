@@ -346,6 +346,9 @@
   #main-menu .menu-panel .config-platform-notice {
     margin: 10em 0 4em;
   }
+  .menu-panel ul.col2 {
+    columns: 2;
+  }
   /* PEOPLE PICKER */
   #cm-people-picker {
     flex-direction: row;
@@ -613,6 +616,11 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+  }
+  /* SPECIAL */
+  .fields-mostly_static_page_id .field-info {
+    display: flex;
+    gap: 1em;
   }
   /* FOOTER */
   #co-footer {

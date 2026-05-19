@@ -44,3 +44,18 @@ $indexColumns = [
     'sortable' => true
   ]
 ];
+
+$rowActions = [
+  [
+    'icon'  => 'arrow_outward',
+    'label' => __d('operation', 'visit.tandc'),
+    'callbackUrl' => function($entity) use ($vv_base_url) {
+      // There should always be either a Mostly Static Page or a URL to reference. 
+      if(!empty($entity->mostly_static_page->name)) {
+        // The T&C is a mostly static page. Provide a link to it.
+        return $vv_base_url . '/' . $entity->mostly_static_page->name;
+      }
+      return $entity->url;
+    }
+  ]
+];
