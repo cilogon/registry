@@ -37,9 +37,6 @@ use Cake\ORM\TableRegistry;
 // sort of an MVEA, so maybe it makes sense to treat it as such.
 class ExternalIdentitiesController extends MVEAController {
   protected array $paginate = [
-    'order' => [
-      'Name.family' => 'asc'
-    ],
     'sortableFields' => [
       'Names.given',
       'Names.family'
