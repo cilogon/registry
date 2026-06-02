@@ -161,7 +161,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
     /**
      * Instance of ComponentRegistry used to create Components
      *
-     * @var \Cake\Controller\ComponentRegistry|null
+     * @var \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller>|null
      */
     protected ?ComponentRegistry $_components = null;
 
@@ -197,7 +197,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
      *   but expect that features that use the request parameters will not work.
      * @param string|null $name Override the name useful in testing when using mocks.
      * @param \Cake\Event\EventManagerInterface|null $eventManager The event manager. Defaults to a new instance.
-     * @param \Cake\Controller\ComponentRegistry|null $components ComponentRegistry to use. Defaults to a new instance.
+     * @param \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller>|null $components ComponentRegistry to use. Defaults to a new instance.
      */
     public function __construct(
         ServerRequest $request,
@@ -255,7 +255,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
     /**
      * Get the component registry for this controller.
      *
-     * @return \Cake\Controller\ComponentRegistry
+     * @return \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller>
      */
     public function components(): ComponentRegistry
     {
@@ -265,7 +265,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
     /**
      * Add a component to the controller's registry.
      *
-     * After loading a component it will be be accessible as a property through Controller::__get().
+     * After loading a component it will be accessible as a property through Controller::__get().
      * For example:
      *
      * ```
@@ -278,6 +278,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
      * @param array<string, mixed> $config The config for the component.
      * @return \Cake\Controller\Component
      * @throws \Exception
+     * @link https://book.cakephp.org/5/en/controllers.html#configuring-components-to-load
      */
     public function loadComponent(string $name, array $config = []): Component
     {
@@ -474,19 +475,16 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
     public function getAction(): Closure
     {
         $request = $this->request;
+        /** @var string $action */
         $action = $request->getParam('action');
         $controller = $this->name . 'Controller';
-        if ($request->getParam('prefix')) {
-            $controller = $request->getParam('prefix') . '/' . $controller;
-        }
-        if ($this->plugin) {
-            $controller = $this->plugin . '.' . $controller;
-        }
 
         if (!$this->isAction($action)) {
             throw new MissingActionException([
                 'controller' => $controller,
                 'action' => $action,
+                'prefix' => $request->getParam('prefix') ?? null,
+                'plugin' => $this->plugin ?? null,
             ]);
         }
 
@@ -639,7 +637,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
      * @param \Psr\Http\Message\UriInterface|array|string $url A string, array-based URL or UriInterface instance.
      * @param int $status HTTP status code. Defaults to `302`.
      * @return \Cake\Http\Response|null
-     * @link https://book.cakephp.org/5/en/controllers.html#Controller::redirect
+     * @link https://book.cakephp.org/5/en/controllers.html#redirecting-to-other-pages
      */
     public function redirect(UriInterface|array|string $url, int $status = 302): ?Response
     {
@@ -858,7 +856,7 @@ class Controller implements EventListenerInterface, EventDispatcherInterface
      * @param \Cake\Datasource\RepositoryInterface|\Cake\Datasource\QueryInterface|string|null $object Table to paginate
      * (e.g: Table instance, 'TableName' or a Query object)
      * @param array<string, mixed> $settings The settings/configuration used for pagination. See {@link \Cake\Controller\Controller::$paginate}.
-     * @return \Cake\Datasource\Paging\PaginatedInterface
+     * @return \Cake\Datasource\Paging\PaginatedInterface<int, mixed>
      * @link https://book.cakephp.org/5/en/controllers.html#paginating-a-model
      * @throws \Cake\Http\Exception\NotFoundException When a page out of bounds is requested.
      */

@@ -27,13 +27,10 @@ use Cake\Database\Schema\TableSchemaInterface;
  */
 class SubsetSchemaCollection implements CollectionInterface
 {
-    /**
-     * @var \Cake\Database\Schema\CollectionInterface
-     */
     protected CollectionInterface $collection;
 
     /**
-     * @var list<string>
+     * @var array<string>
      */
     protected array $tables = [];
 
@@ -60,7 +57,7 @@ class SubsetSchemaCollection implements CollectionInterface
     /**
      * Get the list of tables in this schema collection.
      *
-     * @return list<string>
+     * @return array<string>
      */
     public function listTables(): array
     {

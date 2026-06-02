@@ -41,7 +41,7 @@ class HeaderUtility
         $url = $matches[1];
         $parsedParams = ['link' => $url];
 
-        $params = $matches[2];
+        $params = $matches[2] ?? null;
         if (!$params) {
             return $parsedParams;
         }
@@ -97,9 +97,7 @@ class HeaderUtility
                 }
             }
 
-            if (!isset($accept[$prefValue])) {
-                $accept[$prefValue] = [];
-            }
+            $accept[$prefValue] ??= [];
             if ($prefValue) {
                 $accept[$prefValue][] = $value;
             }

@@ -11,6 +11,7 @@ namespace PHPUnit\Event;
 
 use function assert;
 use function memory_reset_peak_usage;
+use function preg_match;
 use PHPUnit\Event\Code\ClassMethod;
 use PHPUnit\Event\Code\ComparisonFailure;
 use PHPUnit\Event\Code\IssueTrigger\IssueTrigger;
@@ -596,6 +597,17 @@ final class DispatchingEmitter implements Emitter
         );
     }
 
+    public function testUsedCustomMethodInvocation(TestMethod $test, ClassMethod $customTestMethodInvocation): void
+    {
+        $this->dispatcher->dispatch(
+            new Test\CustomTestMethodInvocationUsed(
+                $this->telemetryInfo(),
+                $test,
+                $customTestMethodInvocation,
+            ),
+        );
+    }
+
     /**
      * @param class-string $className
      *
@@ -804,12 +816,8 @@ final class DispatchingEmitter implements Emitter
      * @throws NoTestCaseObjectOnCallStackException
      * @throws UnknownEventTypeException
      */
-    public function testTriggeredPhpunitNotice(?Code\Test $test, string $message): void
+    public function testTriggeredPhpunitNotice(Code\Test $test, string $message): void
     {
-        if ($test === null) {
-            $test = TestMethodBuilder::fromCallStack();
-        }
-
         $this->dispatcher->dispatch(
             new Test\PhpunitNoticeTriggered(
                 $this->telemetryInfo(),
@@ -1020,7 +1028,9 @@ final class DispatchingEmitter implements Emitter
             if (isset($metadata[0])) {
                 assert($metadata[0] instanceof IgnorePhpunitWarnings);
 
-                if ($metadata[0]->shouldIgnore($message)) {
+                $messagePattern = $metadata[0]->messagePattern();
+
+                if ($messagePattern === null || (bool) preg_match('{' . $messagePattern . '}', $message)) {
                     $ignoredByTest = true;
                 }
             }

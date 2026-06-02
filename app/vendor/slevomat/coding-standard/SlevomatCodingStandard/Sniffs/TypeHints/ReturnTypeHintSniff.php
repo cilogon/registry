@@ -19,6 +19,7 @@ use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use SlevomatCodingStandard\Helpers\Annotation;
 use SlevomatCodingStandard\Helpers\AnnotationHelper;
 use SlevomatCodingStandard\Helpers\AnnotationTypeHelper;
+use SlevomatCodingStandard\Helpers\AttributeHelper;
 use SlevomatCodingStandard\Helpers\DocCommentHelper;
 use SlevomatCodingStandard\Helpers\FixerHelper;
 use SlevomatCodingStandard\Helpers\FunctionHelper;
@@ -92,11 +93,7 @@ class ReturnTypeHintSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $pointer
-	 */
-	public function process(File $phpcsFile, $pointer): void
+	public function process(File $phpcsFile, int $pointer): void
 	{
 		$this->enableObjectTypeHint = SniffSettingsHelper::isEnabledByPhpVersion($this->enableObjectTypeHint, 70200);
 		$this->enableStaticTypeHint = SniffSettingsHelper::isEnabledByPhpVersion($this->enableStaticTypeHint, 80000);
@@ -110,10 +107,6 @@ class ReturnTypeHintSniff implements Sniff
 		);
 
 		if (SuppressHelper::isSniffSuppressed($phpcsFile, $pointer, self::NAME)) {
-			return;
-		}
-
-		if (DocCommentHelper::hasInheritdocAnnotation($phpcsFile, $pointer)) {
 			return;
 		}
 
@@ -149,6 +142,12 @@ class ReturnTypeHintSniff implements Sniff
 		array $prefixedReturnAnnotations
 	): void
 	{
+		$isInherited = AttributeHelper::hasAttribute(
+			$phpcsFile,
+			$functionPointer,
+			'\Override',
+		) || DocCommentHelper::hasInheritdocAnnotation($phpcsFile, $functionPointer);
+
 		$suppressNameAnyTypeHint = $this->getSniffName(self::CODE_MISSING_ANY_TYPE_HINT);
 		$isSuppressedAnyTypeHint = SuppressHelper::isSniffSuppressed($phpcsFile, $functionPointer, $suppressNameAnyTypeHint);
 
@@ -183,6 +182,31 @@ class ReturnTypeHintSniff implements Sniff
 				}
 			}
 
+			if (
+				$this->enableStandaloneNullTrueFalseTypeHints
+				&& $returnTypeHint->getTypeHint() === 'bool'
+				&& $returnTypeNode instanceof IdentifierTypeNode
+				&& in_array(strtolower($returnTypeNode->name), ['true', 'false'], true)
+			) {
+				$fix = $phpcsFile->addFixableError(
+					sprintf(
+						'%s %s() has return type hint "bool" but it should be possible to use "%s" based on @return annotation "%s".',
+						FunctionHelper::getTypeLabel($phpcsFile, $functionPointer),
+						FunctionHelper::getFullyQualifiedName($phpcsFile, $functionPointer),
+						strtolower($returnTypeNode->name),
+						AnnotationTypeHelper::print($returnTypeNode),
+					),
+					$functionPointer,
+					self::CODE_LESS_SPECIFIC_NATIVE_TYPE_HINT,
+				);
+
+				if ($fix) {
+					$phpcsFile->fixer->beginChangeset();
+					FixerHelper::replace($phpcsFile, $returnTypeHint->getStartPointer(), strtolower($returnTypeNode->name));
+					$phpcsFile->fixer->endChangeset();
+				}
+			}
+
 			return;
 		}
 
@@ -211,7 +235,7 @@ class ReturnTypeHintSniff implements Sniff
 				return;
 			}
 
-			if (!$isSuppressedAnyTypeHint) {
+			if (!$isSuppressedAnyTypeHint && !$isInherited) {
 				$phpcsFile->addError(
 					sprintf(
 						'%s %s() does not have return type hint nor @return annotation for its return value.',
@@ -233,7 +257,7 @@ class ReturnTypeHintSniff implements Sniff
 				|| $isAnnotationReturnTypeVoidOrNever
 			)
 		) {
-			if (!$isSuppressedNativeTypeHint) {
+			if (!$isSuppressedNativeTypeHint && !$isInherited) {
 				$message = !$hasReturnAnnotation
 					? sprintf(
 						'%s %s() does not have void return type hint.',
@@ -267,7 +291,7 @@ class ReturnTypeHintSniff implements Sniff
 			return;
 		}
 
-		if (!$isSuppressedNativeTypeHint && $returnsValue && $isAnnotationReturnTypeVoidOrNever) {
+		if (!$isSuppressedNativeTypeHint && !$isInherited && $returnsValue && $isAnnotationReturnTypeVoidOrNever) {
 			$message = sprintf(
 				'%s %s() does not have native return type hint for its return value but it should be possible to add it based on @return annotation "%s".',
 				FunctionHelper::getTypeLabel($phpcsFile, $functionPointer),
@@ -418,7 +442,7 @@ class ReturnTypeHintSniff implements Sniff
 			$nullableReturnTypeHint = true;
 		}
 
-		if ($isSuppressedNativeTypeHint) {
+		if ($isSuppressedNativeTypeHint || $isInherited) {
 			return;
 		}
 
@@ -471,6 +495,12 @@ class ReturnTypeHintSniff implements Sniff
 		array $prefixedReturnAnnotations
 	): void
 	{
+		$isInherited = AttributeHelper::hasAttribute(
+			$phpcsFile,
+			$functionPointer,
+			'\Override',
+		) || DocCommentHelper::hasInheritdocAnnotation($phpcsFile, $functionPointer);
+
 		$suppressName = $this->getSniffName(self::CODE_MISSING_TRAVERSABLE_TYPE_HINT_SPECIFICATION);
 		$isSuppressed = SuppressHelper::isSniffSuppressed($phpcsFile, $functionPointer, $suppressName);
 
@@ -484,7 +514,7 @@ class ReturnTypeHintSniff implements Sniff
 					return;
 				}
 
-				if (!$isSuppressed) {
+				if (!$isSuppressed && !$isInherited) {
 					$phpcsFile->addError(
 						sprintf(
 							'%s %s() does not have @return annotation for its traversable return value.',
@@ -525,7 +555,7 @@ class ReturnTypeHintSniff implements Sniff
 			return;
 		}
 
-		if ($isSuppressed) {
+		if ($isSuppressed || $isInherited) {
 			return;
 		}
 

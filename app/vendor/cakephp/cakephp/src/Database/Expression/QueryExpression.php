@@ -631,7 +631,7 @@ class QueryExpression implements ExpressionInterface, Countable
             $isNot = false;
             if (!$numericKey) {
                 $normalizedKey = strtolower($k);
-                $isOperator = in_array($normalizedKey, $operators);
+                $isOperator = in_array($normalizedKey, $operators, true);
                 $isNot = $normalizedKey === 'not';
             }
 
@@ -697,7 +697,7 @@ class QueryExpression implements ExpressionInterface, Countable
             }
             $operator = array_pop($parts);
             $expression = implode(' ', $parts);
-        } elseif ($spaces == 1) {
+        } elseif ($spaces === 1) {
             $parts = explode(' ', $expression, 2);
             [$expression, $operator] = $parts;
         }
@@ -705,7 +705,7 @@ class QueryExpression implements ExpressionInterface, Countable
 
         $type = $this->getTypeMap()->type($expression);
         $typeMultiple = (is_string($type) && str_contains($type, '[]'));
-        if (in_array($operator, ['IN', 'NOT IN']) || $typeMultiple) {
+        if (in_array($operator, ['IN', 'NOT IN'], true) || $typeMultiple) {
             $type = $type ?: 'string';
             if (!$typeMultiple) {
                 $type .= '[]';
@@ -774,8 +774,6 @@ class QueryExpression implements ExpressionInterface, Countable
 
     /**
      * Clone this object and its subtree of expressions.
-     *
-     * @return void
      */
     public function __clone()
     {

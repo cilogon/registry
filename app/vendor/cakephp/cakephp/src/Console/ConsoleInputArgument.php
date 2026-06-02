@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Console;
 
 use Cake\Console\Exception\ConsoleException;
+use Cake\Core\Exception\CakeException;
 use SimpleXMLElement;
 
 /**
@@ -86,12 +87,15 @@ class ConsoleInputArgument
         ?string $default = null,
         ?string $separator = null,
     ) {
-        if (is_array($name) && isset($name['name'])) {
+        if (is_array($name)) {
+            if (!isset($name['name'])) {
+                throw new CakeException('You must provide a `name` for the argument.');
+            }
+
             foreach ($name as $key => $value) {
                 $this->{'_' . $key} = $value;
             }
         } else {
-            /** @var string $name */
             $this->_name = $name;
             $this->_help = $help;
             $this->_required = $required;
@@ -228,7 +232,7 @@ class ConsoleInputArgument
             $values = [$value];
         }
 
-        $unwanted = array_filter($values, fn($value) => !in_array($value, $this->_choices, true));
+        $unwanted = array_filter($values, fn(string $value) => !in_array($value, $this->_choices, true));
         if ($unwanted) {
             throw new ConsoleException(
                 sprintf(
@@ -252,6 +256,7 @@ class ConsoleInputArgument
     public function xml(SimpleXMLElement $parent): SimpleXMLElement
     {
         $option = $parent->addChild('argument');
+        assert($option !== null);
         $option->addAttribute('name', $this->_name);
         $option->addAttribute('help', $this->_help);
         $option->addAttribute('required', (string)(int)$this->isRequired());

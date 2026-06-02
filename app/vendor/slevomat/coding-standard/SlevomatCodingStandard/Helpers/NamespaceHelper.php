@@ -11,9 +11,11 @@ use function count;
 use function defined;
 use function explode;
 use function implode;
-use function in_array;
 use function ltrim;
+use function min;
 use function sprintf;
+use function strcasecmp;
+use function strcmp;
 use function strpos;
 use const T_NAME_FULLY_QUALIFIED;
 use const T_NAMESPACE;
@@ -61,7 +63,7 @@ class NamespaceHelper
 
 	public static function isFullyQualifiedPointer(File $phpcsFile, int $pointer): bool
 	{
-		return in_array($phpcsFile->getTokens()[$pointer]['code'], [T_NS_SEPARATOR, T_NAME_FULLY_QUALIFIED], true);
+		return $phpcsFile->getTokens()[$pointer]['code'] === T_NAME_FULLY_QUALIFIED;
 	}
 
 	public static function getFullyQualifiedTypeName(string $typeName): string
@@ -196,6 +198,33 @@ class NamespaceHelper
 			$name = sprintf('%s%s%s', self::NAMESPACE_SEPARATOR, $namespaceName, $name);
 		}
 		return $name;
+	}
+
+	public static function compareStatements(string $fqnA, string $fqnB, bool $caseSensitive): int
+	{
+		$aNameParts = explode(self::NAMESPACE_SEPARATOR, ltrim($fqnA, self::NAMESPACE_SEPARATOR));
+		$bNameParts = explode(self::NAMESPACE_SEPARATOR, ltrim($fqnB, self::NAMESPACE_SEPARATOR));
+
+		$minPartsCount = min(count($aNameParts), count($bNameParts));
+		for ($i = 0; $i < $minPartsCount; $i++) {
+			$comparison = self::compare($aNameParts[$i], $bNameParts[$i], $caseSensitive);
+			if ($comparison === 0) {
+				continue;
+			}
+
+			return $comparison;
+		}
+
+		return count($aNameParts) <=> count($bNameParts);
+	}
+
+	private static function compare(string $a, string $b, bool $caseSensitive): int
+	{
+		if ($caseSensitive) {
+			return strcmp($a, $b);
+		}
+
+		return strcasecmp($a, $b);
 	}
 
 }

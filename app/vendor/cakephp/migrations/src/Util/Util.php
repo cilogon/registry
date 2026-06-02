@@ -8,9 +8,11 @@ declare(strict_types=1);
 
 namespace Migrations\Util;
 
+use Cake\Core\Configure;
 use Cake\Utility\Inflector;
 use DateTime;
 use DateTimeZone;
+use Migrations\Db\Adapter\UnifiedMigrationsTableStorage;
 use RuntimeException;
 
 /**
@@ -35,7 +37,16 @@ class Util
      * @var string
      * @phpstan-var non-empty-string
      */
-    protected const MIGRATION_FILE_NAME_NO_NAME_PATTERN = '/^[0-9]{14}\.php$/';
+    protected const MIGRATION_FILE_NAME_NO_NAME_PATTERN = '/^\d{14}\.php$/';
+
+    /**
+     * Enhanced migration file name pattern with readable timestamp and CamelCase
+     * Example: 2024_12_08_120000_CreateUsersTable.php
+     *
+     * @var string
+     * @phpstan-var non-empty-string
+     */
+    protected const READABLE_MIGRATION_FILE_NAME_PATTERN = '/^(\d{4})_(\d{2})_(\d{2})_(\d{6})_([A-Z][a-zA-Z\d]*)\.php$/';
 
     /**
      * @var string
@@ -95,7 +106,16 @@ class Util
     public static function getVersionFromFileName(string $fileName): int
     {
         $matches = [];
-        preg_match('/^[0-9]+/', basename($fileName), $matches);
+        $baseName = basename($fileName);
+
+        // Check for readable format: 2024_12_08_120000_CreateUsersTable.php
+        if (preg_match(static::READABLE_MIGRATION_FILE_NAME_PATTERN, $baseName, $matches)) {
+            // Convert to traditional format: 20241208120000
+            return (int)($matches[1] . $matches[2] . $matches[3] . $matches[4]);
+        }
+
+        // Traditional format
+        preg_match('/^\d+/', $baseName, $matches);
         $value = (int)($matches[0] ?? null);
         if (!$value) {
             throw new RuntimeException(sprintf('Cannot get a valid version from filename `%s`', $fileName));
@@ -114,15 +134,12 @@ class Util
      */
     public static function mapClassNameToFileName(string $className): string
     {
-        // TODO it would be nice to replace this with Inflector::underscore
-        // but it will break compatibility for little end user gain.
-        $snake = function ($matches) {
-            return '_' . strtolower($matches[0]);
+        $snake = function ($matches): string {
+            return '_' . strtolower((string)$matches[0]);
         };
         $fileName = preg_replace_callback('/\d+|[A-Z]/', $snake, $className);
-        $fileName = static::getCurrentTimestamp() . "$fileName.php";
 
-        return $fileName;
+        return static::getCurrentTimestamp() . $fileName . '.php';
     }
 
     /**
@@ -135,6 +152,12 @@ class Util
     public static function mapFileNameToClassName(string $fileName): string
     {
         $matches = [];
+
+        // Check for readable format first: 2024_12_08_120000_CreateUsersTable.php
+        if (preg_match(static::READABLE_MIGRATION_FILE_NAME_PATTERN, $fileName, $matches)) {
+            return $matches[5]; // Return the CamelCase class name directly
+        }
+
         if (preg_match(static::MIGRATION_FILE_NAME_PATTERN, $fileName, $matches)) {
             $fileName = $matches[1];
         } elseif (preg_match(static::MIGRATION_FILE_NAME_NO_NAME_PATTERN, $fileName)) {
@@ -153,7 +176,8 @@ class Util
     public static function isValidMigrationFileName(string $fileName): bool
     {
         return (bool)preg_match(static::MIGRATION_FILE_NAME_PATTERN, $fileName)
-            || (bool)preg_match(static::MIGRATION_FILE_NAME_NO_NAME_PATTERN, $fileName);
+            || (bool)preg_match(static::MIGRATION_FILE_NAME_NO_NAME_PATTERN, $fileName)
+            || (bool)preg_match(static::READABLE_MIGRATION_FILE_NAME_PATTERN, $fileName);
     }
 
     /**
@@ -165,6 +189,23 @@ class Util
     public static function isValidSeedFileName(string $fileName): bool
     {
         return (bool)preg_match(static::SEED_FILE_NAME_PATTERN, $fileName);
+    }
+
+    /**
+     * Get a human-readable display name for a seed class.
+     *
+     * Strips the 'Seed' suffix from class names like 'UsersSeed' to produce 'Users'.
+     *
+     * @param string $seedName The seed class name
+     * @return string The display name without the 'Seed' suffix
+     */
+    public static function getSeedDisplayName(string $seedName): string
+    {
+        if (str_ends_with($seedName, 'Seed')) {
+            return substr($seedName, 0, -4);
+        }
+
+        return $seedName;
     }
 
     /**
@@ -208,7 +249,7 @@ class Util
      */
     public static function getFiles(string|array $paths): array
     {
-        $files = static::globAll(array_map(function ($path) {
+        $files = static::globAll(array_map(function (string $path): string {
             return $path . DIRECTORY_SEPARATOR . '*.php';
         }, (array)$paths));
         // glob() can return the same file multiple times
@@ -221,11 +262,15 @@ class Util
     }
 
     /**
-     * @param string|null $plugin
      * @return string
      */
     public static function tableName(?string $plugin): string
     {
+        // When using unified table, always return the same table name
+        if (Configure::read('Migrations.legacyTables') === false) {
+            return UnifiedMigrationsTableStorage::TABLE_NAME;
+        }
+
         $table = 'phinxlog';
         if ($plugin) {
             $prefix = Inflector::underscore($plugin) . '_';

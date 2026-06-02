@@ -36,7 +36,7 @@ class FileLog extends BaseLog
      * - `size` Used to implement basic log file rotation. If log file size
      *   reaches specified size the existing file is renamed by appending timestamp
      *   to filename and new log file is created. Can be integer bytes value or
-     *   human readable string values like '10MB', '100KB' etc.
+     *   human-readable string values like '10MB', '100KB' etc.
      * - `rotate` Log files are rotated specified times before being removed.
      *   If value is 0, old versions are removed rather than rotated.
      * - `mask` A mask is applied when log files are created. Left empty no chmod
@@ -54,7 +54,7 @@ class FileLog extends BaseLog
         'rotate' => 10,
         'size' => 10485760, // 10MB
         'mask' => null,
-        'dirMask' => 0770,
+        'dirMask' => 0777,
         'formatter' => [
             'className' => DefaultFormatter::class,
         ],
@@ -92,7 +92,7 @@ class FileLog extends BaseLog
 
         $this->_path = $this->getConfig('path', sys_get_temp_dir() . DIRECTORY_SEPARATOR);
         if (!is_dir($this->_path)) {
-            mkdir($this->_path, $this->_config['dirMask'], true);
+            mkdir($this->_path, $this->_config['dirMask'] ^ umask(), true);
         }
 
         if (!empty($this->_config['file'])) {

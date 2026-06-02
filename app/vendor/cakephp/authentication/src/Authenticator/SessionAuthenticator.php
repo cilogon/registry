@@ -21,6 +21,7 @@ use Authentication\Identifier\AbstractIdentifier;
 use Cake\Http\Exception\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use function Cake\Core\deprecationWarning;
 
 /**
  * Session Authenticator
@@ -31,9 +32,9 @@ class SessionAuthenticator extends AbstractAuthenticator implements PersistenceI
      * Default config for this object.
      * - `fields` The fields to use to verify a user by.
      * - `sessionKey` Session key.
-     * - `identify` Whether to identify user data stored in a session. This is
-     *   useful if you want to remotely end sessions that have a different password stored,
-     *   or if your identification logic needs additional conditions before a user can login.
+     * - `identify` Whether to identify user data stored in a session.
+     *   Deprecated: Use `PrimaryKeySessionAuthenticator` instead if you
+     *   need to fetch fresh user data from the database on each request.
      *
      * @var array
      */
@@ -65,6 +66,11 @@ class SessionAuthenticator extends AbstractAuthenticator implements PersistenceI
         }
 
         if ($this->getConfig('identify') === true) {
+            deprecationWarning(
+                '3.4.0',
+                'The `identify` option is deprecated. ' .
+                'Use `PrimaryKeySessionAuthenticator` instead to fetch fresh user data on each request.',
+            );
             $credentials = [];
             foreach ($this->getConfig('fields') as $key => $field) {
                 $credentials[$key] = $user[$field];

@@ -23,6 +23,7 @@ use Cake\View\StringTemplateTrait;
 use DateTimeInterface;
 use DateTimeZone;
 use Exception;
+use function Cake\Core\deprecationWarning;
 
 /**
  * Time Helper class for easy use of time data.
@@ -31,6 +32,7 @@ use Exception;
  *
  * @link https://book.cakephp.org/5/en/views/helpers/time.html
  * @see \Cake\I18n\Time
+ * @extends \Cake\View\Helper<\Cake\View\View>
  */
 class TimeHelper extends Helper
 {
@@ -202,7 +204,7 @@ class TimeHelper extends Helper
      *
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
-     * @return bool True if datetime string was yesterday
+     * @return bool True if datetime string is tomorrow
      */
     public function isTomorrow(
         ChronosDate|DateTimeInterface|string|int $dateString,
@@ -214,16 +216,37 @@ class TimeHelper extends Helper
     /**
      * Returns the quarter
      *
+     * Deprecated 5.3.0 Argument $range. Use toQuarterRange() to get quarter date ranges instead of passing $range = true
+     *
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
-     * @param bool $range if true returns a range in Y-m-d format
+     * @param bool $range if true returns a range in Y-m-d format. Deprecated, use toQuarterRange() instead.
      * @return array<string>|int 1, 2, 3, or 4 quarter of year or array if $range true
-     * @see \Cake\I18n\Time::toQuarter()
+     * @see \Cake\I18n\DateTime::toQuarter()
      */
     public function toQuarter(
         ChronosDate|DateTimeInterface|string|int $dateString,
         bool $range = false,
     ): array|int {
-        return (new DateTime($dateString))->toQuarter($range);
+        if ($range) {
+            deprecationWarning('5.3.0', 'Use TimeHelper::toQuarterRange() instead of passing $range = true.');
+
+            return $this->toQuarterRange($dateString);
+        }
+
+        return (new DateTime($dateString))->toQuarter();
+    }
+
+    /**
+     * Returns the date range for the quarter the given date falls in.
+     *
+     * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
+     * @return array{0: string, 1: string} Array with start and end dates in 'Y-m-d' format
+     * @see \Cake\I18n\DateTime::toQuarterRange()
+     */
+    public function toQuarterRange(
+        ChronosDate|DateTimeInterface|string|int $dateString,
+    ): array {
+        return (new DateTime($dateString))->toQuarterRange();
     }
 
     /**
@@ -232,7 +255,7 @@ class TimeHelper extends Helper
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
      * @return string UNIX timestamp
-     * @see \Cake\I18n\Time::toUnix()
+     * @see \Cake\I18n\DateTime::toUnixString()
      */
     public function toUnix(
         ChronosDate|DateTimeInterface|string|int $dateString,
@@ -247,7 +270,7 @@ class TimeHelper extends Helper
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
      * @return string Formatted date string
-     * @see \Cake\I18n\Time::toAtom()
+     * @see \Cake\I18n\DateTime::toAtomString()
      */
     public function toAtom(
         ChronosDate|DateTimeInterface|string|int $dateString,
@@ -289,7 +312,7 @@ class TimeHelper extends Helper
      *   string or DateTime object.
      * @param array<string, mixed> $options Default format if timestamp is used in $dateString
      * @return string Relative time string.
-     * @see \Cake\I18n\Time::timeAgoInWords()
+     * @see \Cake\I18n\DateTime::timeAgoInWords()
      */
     public function timeAgoInWords(
         ChronosDate|DateTimeInterface|string|int $dateTime,
@@ -347,7 +370,7 @@ class TimeHelper extends Helper
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
      * @return bool
-     * @see \Cake\I18n\Time::wasWithinLast()
+     * @see \Cake\I18n\DateTime::wasWithinLast()
      */
     public function wasWithinLast(
         string $timeInterval,
@@ -365,7 +388,7 @@ class TimeHelper extends Helper
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int $dateString UNIX timestamp, strtotime() valid string or DateTime object
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
      * @return bool
-     * @see \Cake\I18n\Time::wasWithinLast()
+     * @see \Cake\I18n\DateTime::isWithinNext()
      */
     public function isWithinNext(
         string $timeInterval,
@@ -380,7 +403,7 @@ class TimeHelper extends Helper
      *
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|string|int|null $string UNIX timestamp, strtotime() valid string or DateTime object
      * @return string UNIX timestamp
-     * @see \Cake\I18n\Time::gmt()
+     * @see \Cake\I18n\DateTime::toUnixString()
      */
     public function gmt(ChronosDate|DateTimeInterface|string|int|null $string = null): string
     {
@@ -400,7 +423,7 @@ class TimeHelper extends Helper
      * @param string|false $invalid Default value to display on invalid dates
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
      * @return string|int|false Formatted and translated date string
-     * @see \Cake\I18n\Time::i18nFormat()
+     * @see \Cake\I18n\DateTime::i18nFormat()
      */
     public function format(
         ChronosDate|DateTimeInterface|string|int|null $date,
@@ -421,7 +444,7 @@ class TimeHelper extends Helper
      * @param \DateTimeZone|string|null $timezone User's timezone string or DateTimeZone object
      * @return string|int|false Formatted and translated date string or value for `$invalid` on failure.
      * @throws \Exception When the date cannot be parsed
-     * @see \Cake\I18n\Time::i18nFormat()
+     * @see \Cake\I18n\DateTime::i18nFormat()
      */
     public function i18nFormat(
         ChronosDate|DateTimeInterface|string|int|null $date,

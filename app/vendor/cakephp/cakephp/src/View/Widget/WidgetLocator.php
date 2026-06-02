@@ -194,6 +194,7 @@ class WidgetLocator
         }
 
         $class = array_shift($config);
+        /** @var class-string<\Cake\View\Widget\WidgetInterface>|null $className */
         $className = App::className($class, 'View/Widget', 'Widget');
         if ($className === null) {
             throw new InvalidArgumentException(sprintf('Unable to locate widget class `%s`.', $class));
@@ -213,7 +214,6 @@ class WidgetLocator
             return $reflection->newInstanceArgs($arguments);
         }
 
-        /** @var \Cake\View\Widget\WidgetInterface */
         return new $className($this->_templates);
     }
 }

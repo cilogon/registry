@@ -31,8 +31,6 @@ class BuiltinBackend implements BackendInterface
 {
     /**
      * Manager instance
-     *
-     * @var \Migrations\Migration\Manager|null
      */
     protected ?Manager $manager = null;
 
@@ -47,8 +45,6 @@ class BuiltinBackend implements BackendInterface
      * Current command being run.
      * Useful if some logic needs to be applied in the ConfigurationTrait depending
      * on the command
-     *
-     * @var string
      */
     protected string $command;
 
@@ -150,9 +146,10 @@ class BuiltinBackend implements BackendInterface
     {
         $options['source'] ??= ConfigInterface::DEFAULT_SEED_FOLDER;
         $seed = $options['seed'] ?? null;
+        $force = $options['force'] ?? false;
 
         $manager = $this->getManager($options);
-        $manager->seed($seed);
+        $manager->seed($seed, $force);
 
         return true;
     }

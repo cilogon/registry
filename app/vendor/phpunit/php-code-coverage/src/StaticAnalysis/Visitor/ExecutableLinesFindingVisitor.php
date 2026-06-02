@@ -10,6 +10,7 @@
 namespace SebastianBergmann\CodeCoverage\StaticAnalysis;
 
 use function array_diff_key;
+use function array_intersect_key;
 use function assert;
 use function count;
 use function current;
@@ -21,11 +22,14 @@ use function preg_quote;
 use function range;
 use function reset;
 use function sprintf;
+use function strtolower;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
  * @internal This class is not covered by the backward compatibility promise for phpunit/php-code-coverage
+ *
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for phpunit/php-code-coverage
  *
  * @phpstan-import-type LinesType from AnalysisResult
  */
@@ -40,6 +44,11 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
     private array $executableLinesGroupedByBranch = [];
 
     /**
+     * @var array<int, true>
+     */
+    private array $branchOperatorLines = [];
+
+    /**
      * @var array<int, bool>
      */
     private array $unsets = [];
@@ -48,6 +57,7 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
      * @var array<int, string>
      */
     private array $commentsToCheckForUnset = [];
+    private int $spreadDepth               = 0;
 
     public function __construct(string $source)
     {
@@ -56,6 +66,10 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
 
     public function enterNode(Node $node): null
     {
+        if ($node instanceof Node\ArrayItem && $node->unpack) {
+            $this->spreadDepth++;
+        }
+
         foreach ($node->getComments() as $comment) {
             $commentLine = $comment->getStartLine();
 
@@ -83,7 +97,9 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             return null;
         }
 
-        if ($node instanceof Node\Stmt\Interface_) {
+        if ($node instanceof Node\Stmt\Interface_ ||
+            $node instanceof Node\Attribute
+        ) {
             foreach (range($node->getStartLine(), $node->getEndLine()) as $line) {
                 $this->unsets[$line] = true;
             }
@@ -125,6 +141,24 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
                 );
             }
 
+            if ([] !== $node->arms) {
+                $firstArmLine = $node->arms[0]->getStartLine();
+                $lastArmLine  = $node->arms[count($node->arms) - 1]->getEndLine();
+
+                if ($node->getStartLine() < $firstArmLine &&
+                    $this->matchConditionHasNoOpcode($node->cond)) {
+                    foreach (range($node->getStartLine(), $firstArmLine - 1) as $line) {
+                        $this->unsets[$line] = true;
+                    }
+                }
+
+                if ($node->getEndLine() > $lastArmLine) {
+                    foreach (range($lastArmLine + 1, $node->getEndLine()) as $line) {
+                        $this->unsets[$line] = true;
+                    }
+                }
+            }
+
             return null;
         }
 
@@ -134,12 +168,21 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             return null;
         }
 
+        if ($node instanceof Node\Stmt\Expression &&
+            $this->isSideEffectFreeExpressionStatement($node)) {
+            return null;
+        }
+
         if ($node instanceof Node\Stmt\Enum_ ||
             $node instanceof Node\Stmt\Function_ ||
             $node instanceof Node\Stmt\Class_ ||
             $node instanceof Node\Stmt\ClassMethod ||
             $node instanceof Node\Expr\Closure ||
             $node instanceof Node\Stmt\Trait_) {
+            if ($node instanceof Node\Stmt\ClassMethod && $node->isAbstract()) {
+                return null;
+            }
+
             if ($node instanceof Node\Stmt\Function_ || $node instanceof Node\Stmt\ClassMethod) {
                 $unsets = [];
 
@@ -163,7 +206,10 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
                     }
 
                     foreach (range($stmt->getStartLine(), $stmt->getEndLine()) as $line) {
-                        unset($this->executableLinesGroupedByBranch[$line]);
+                        unset(
+                            $this->executableLinesGroupedByBranch[$line],
+                            $this->branchOperatorLines[$line],
+                        );
 
                         if (
                             $isConcreteClassLike &&
@@ -217,6 +263,10 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
         }
 
         if ($node instanceof Node\Expr\Ternary) {
+            if ($this->spreadDepth > 0) {
+                return null;
+            }
+
             if (null !== $node->if &&
                 $node->getStartLine() !== $node->if->getEndLine()) {
                 $this->setLineBranch($node->if->getStartLine(), $node->if->getEndLine(), ++$this->nextBranch);
@@ -238,17 +288,24 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
         }
 
         if ($node instanceof Node\Stmt\If_ ||
-            $node instanceof Node\Stmt\ElseIf_ ||
-            $node instanceof Node\Stmt\Case_) {
-            if (null === $node->cond) {
-                return null;
-            }
-
+            $node instanceof Node\Stmt\ElseIf_) {
             $this->setLineBranch(
                 $node->cond->getStartLine(),
                 $node->cond->getStartLine(),
                 ++$this->nextBranch,
             );
+
+            return null;
+        }
+
+        if ($node instanceof Node\Stmt\Case_) {
+            if (null === $node->cond) {
+                return null;
+            }
+
+            $line = $node->cond->getStartLine();
+
+            $this->executableLinesGroupedByBranch[$line] = ++$this->nextBranch;
 
             return null;
         }
@@ -356,7 +413,20 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             return null;
         }
 
-        $this->setLineBranch($node->getStartLine(), $node->getEndLine(), ++$this->nextBranch);
+        $branch = ++$this->nextBranch;
+
+        foreach (range($node->getStartLine(), $node->getEndLine()) as $line) {
+            $this->executableLinesGroupedByBranch[$line] = $branch;
+        }
+
+        return null;
+    }
+
+    public function leaveNode(Node $node): null
+    {
+        if ($node instanceof Node\ArrayItem && $node->unpack) {
+            $this->spreadDepth--;
+        }
 
         return null;
     }
@@ -382,6 +452,11 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
             $this->unsets,
         );
 
+        $this->branchOperatorLines = array_intersect_key(
+            $this->branchOperatorLines,
+            $this->executableLinesGroupedByBranch,
+        );
+
         return null;
     }
 
@@ -393,10 +468,55 @@ final class ExecutableLinesFindingVisitor extends NodeVisitorAbstract
         return $this->executableLinesGroupedByBranch;
     }
 
+    /**
+     * @return array<int, true>
+     */
+    public function branchOperatorLines(): array
+    {
+        return $this->branchOperatorLines;
+    }
+
     private function setLineBranch(int $start, int $end, int $branch): void
     {
         foreach (range($start, $end) as $line) {
             $this->executableLinesGroupedByBranch[$line] = $branch;
+            $this->branchOperatorLines[$line]            = true;
         }
+    }
+
+    private function matchConditionHasNoOpcode(Node\Expr $cond): bool
+    {
+        if (!$cond instanceof Node\Expr\ConstFetch) {
+            return false;
+        }
+
+        $name = strtolower($cond->name->toString());
+
+        return $name === 'true' || $name === 'false' || $name === 'null';
+    }
+
+    /**
+     * A statement consisting solely of a literal scalar (`'foo';`, `42;`) or
+     * one of the named constants `true`, `false`, `null` produces no opcodes:
+     * the Zend compiler discards it as dead code, so the driver cannot report
+     * it as executed and the analyser must not record it as executable.
+     */
+    private function isSideEffectFreeExpressionStatement(Node\Stmt\Expression $node): bool
+    {
+        $expr = $node->expr;
+
+        if ($expr instanceof Node\Scalar\String_ ||
+            $expr instanceof Node\Scalar\Int_ ||
+            $expr instanceof Node\Scalar\Float_) {
+            return true;
+        }
+
+        if ($expr instanceof Node\Expr\ConstFetch) {
+            $name = strtolower($expr->name->toString());
+
+            return $name === 'true' || $name === 'false' || $name === 'null';
+        }
+
+        return false;
     }
 }

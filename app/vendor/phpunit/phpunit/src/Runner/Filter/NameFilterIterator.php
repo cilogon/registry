@@ -97,7 +97,7 @@ abstract class NameFilterIterator extends RecursiveFilterIterator
 
                     $dataSetMinimum = (int) $matches[2];
                     $dataSetMaximum = (int) $matches[3];
-                } else {
+                } elseif ($matches[1] !== '') {
                     $filter = sprintf(
                         '%s.*with data set #%s$',
                         $matches[1],
@@ -109,7 +109,7 @@ abstract class NameFilterIterator extends RecursiveFilterIterator
             //  * testDetermineJsonError@JSON.*
             elseif (preg_match('/^(.*?)@(.+)$/', $filter, $matches)) {
                 $filter = sprintf(
-                    '%s.*with data set "@%s"$',
+                    '%s.*with data set "%s"$',
                     $matches[1],
                     $matches[2],
                 );

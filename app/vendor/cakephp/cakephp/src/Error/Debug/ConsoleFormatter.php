@@ -69,7 +69,7 @@ class ConsoleFormatter implements FormatterInterface
             DIRECTORY_SEPARATOR === '\\' &&
             !str_contains(strtolower(php_uname('v')), 'windows 10') &&
             !str_contains(strtolower((string)env('SHELL')), 'bash.exe') &&
-            !(bool)env('ANSICON') &&
+            !env('ANSICON') &&
             env('ConEmuANSI') !== 'ON'
         ) {
             return false;
@@ -84,7 +84,7 @@ class ConsoleFormatter implements FormatterInterface
     public function formatWrapper(string $contents, array $location): string
     {
         $lineInfo = '';
-        if (isset($location['file'], $location['file'])) {
+        if (isset($location['file'], $location['line'])) {
             $lineInfo = sprintf('%s (line %s)', $location['file'], $location['line']);
         }
         $parts = [

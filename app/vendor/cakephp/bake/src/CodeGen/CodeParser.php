@@ -18,6 +18,8 @@ namespace Bake\CodeGen;
 
 use PhpParser\Error;
 use PhpParser\Node;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\GroupUse;
 use PhpParser\Node\Stmt\Namespace_;
@@ -41,24 +43,12 @@ class CodeParser extends NodeVisitorAbstract
      */
     protected const INDENT = '    ';
 
-    /**
-     * @var \PhpParser\Parser
-     */
     protected Parser $parser;
 
-    /**
-     * @var \PhpParser\NodeTraverser
-     */
     protected NodeTraverser $traverser;
 
-    /**
-     * @var string
-     */
     protected string $fileText = '';
 
-    /**
-     * @var array
-     */
     protected array $parsed = [];
 
     /**
@@ -81,7 +71,11 @@ class CodeParser extends NodeVisitorAbstract
     {
         $this->fileText = $code;
         try {
-            $this->traverser->traverse($this->parser->parse($code));
+            $ast = $this->parser->parse($code);
+            if ($ast === null) {
+                return null;
+            }
+            $this->traverser->traverse($ast);
         } catch (Error $e) {
             throw new ParseException($e->getMessage(), null, $e);
         }
@@ -172,7 +166,11 @@ class CodeParser extends NodeVisitorAbstract
                     throw new ParseException('Multiple constants per line are not supported, update your file');
                 }
 
-                $name = (string)current($constant->consts)->name;
+                $const = current($constant->consts);
+                if ($const === false) {
+                    continue;
+                }
+                $name = (string)$const->name;
                 $constants[$name] = $this->getNodeCode($constant);
             }
 
@@ -182,7 +180,11 @@ class CodeParser extends NodeVisitorAbstract
                     throw new ParseException('Multiple properties per line are not supported, update your file');
                 }
 
-                $name = (string)current($property->props)->name;
+                $prop = current($property->props);
+                if ($prop === false) {
+                    continue;
+                }
+                $name = (string)$prop->name;
                 $properties[$name] = $this->getNodeCode($property);
             }
 
@@ -192,7 +194,7 @@ class CodeParser extends NodeVisitorAbstract
                 $methods[$name] = $this->getNodeCode($method);
             }
 
-            $implements = array_map(function ($name) {
+            $implements = array_map(function (Name $name): string {
                 return (string)$name;
             }, $node->implements);
 
@@ -225,9 +227,8 @@ class CodeParser extends NodeVisitorAbstract
 
         $startPos = $node->getStartFilePos();
         $endPos = $node->getEndFilePos();
-        $code .= static::INDENT . substr($this->fileText, $startPos, $endPos - $startPos + 1);
 
-        return $code;
+        return $code . static::INDENT . substr($this->fileText, $startPos, $endPos - $startPos + 1);
     }
 
     /**
@@ -243,13 +244,9 @@ class CodeParser extends NodeVisitorAbstract
         }
 
         $alias = $use->alias;
-        if (!$alias) {
+        if (!$alias instanceof Identifier) {
             $last = strrpos($name, '\\', -1);
-            if ($last !== false) {
-                $alias = substr($name, strrpos($name, '\\', -1) + 1);
-            } else {
-                $alias = $name;
-            }
+            $alias = $last !== false ? substr($name, strrpos($name, '\\', -1) + 1) : $name;
         }
 
         return [(string)$alias, $name];

@@ -74,6 +74,8 @@ class CommandRunner implements EventDispatcherInterface
         '--version' => 'version',
         '--help' => 'help',
         '-h' => 'help',
+        '-v' => 'help',
+        '--verbose' => 'help',
     ];
 
     /**
@@ -136,6 +138,13 @@ class CommandRunner implements EventDispatcherInterface
 
         $this->bootstrap();
 
+        if ($this->app instanceof EventAwareApplicationInterface) {
+            $eventManager = $this->getEventManager();
+            $eventManager = $this->app->events($eventManager);
+            $eventManager = $this->app->pluginEvents($eventManager);
+            $this->setEventManager($eventManager);
+        }
+
         $commands = new CommandCollection([
             'help' => HelpCommand::class,
         ]);
@@ -155,8 +164,24 @@ class CommandRunner implements EventDispatcherInterface
 
         $io = $io ?: new ConsoleIo();
 
+        /** @var array{string|null, array} $resolved */
+        $resolved = $this->longestCommandName($commands, $argv);
+        [$name, $argv] = $resolved;
+
+        // If -v/--verbose is used as command, preserve it as flag for help command
+        if ($name === '-v' || $name === '--verbose') {
+            $argv = array_merge([$name], $argv);
+            $name = 'help';
+        }
+
+        // Check if this is a command prefix (e.g., "cache" has subcommands like "cache clear")
+        // Show help for that prefix instead of running the base command
+        if ($name !== null && !$commands->has($name) && $this->hasCommandsWithPrefix($commands, $name)) {
+            $argv = [$name];
+            $name = 'help';
+        }
+
         try {
-            [$name, $argv] = $this->longestCommandName($commands, $argv);
             $name = $this->resolveName($commands, $io, $name);
         } catch (MissingOptionException $e) {
             $io->error($e->getFullMessage());
@@ -266,7 +291,7 @@ class CommandRunner implements EventDispatcherInterface
             }
 
             $firstChar = $name[0] ?? '';
-            if ($firstChar == strtoupper($firstChar) && str_contains($name, '.')) {
+            if ($firstChar === strtoupper($firstChar) && str_contains($name, '.')) {
                 $underName = Inflector::underscore($name);
                 if ($commands->has($underName)) {
                     return [$underName, array_slice($argv, $i)];
@@ -295,7 +320,7 @@ class CommandRunner implements EventDispatcherInterface
     protected function resolveName(CommandCollection $commands, ConsoleIo $io, ?string $name): string
     {
         if (!$name) {
-            $io->err('<error>No command provided. Choose one of the available commands.</error>', 2);
+            $io->error('No command provided. Choose one of the available commands.', 2);
             $name = 'help';
         }
         $name = $this->aliases[$name] ?? $name;
@@ -315,6 +340,24 @@ class CommandRunner implements EventDispatcherInterface
     }
 
     /**
+     * Check if there are commands that start with the given prefix.
+     *
+     * @param \Cake\Console\CommandCollection $commands The command collection.
+     * @param string $prefix The prefix to check.
+     * @return bool True if commands with this prefix exist.
+     */
+    protected function hasCommandsWithPrefix(CommandCollection $commands, string $prefix): bool
+    {
+        foreach ($commands->keys() as $name) {
+            if (str_starts_with($name, $prefix . ' ')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Execute a Command class.
      *
      * @param \Cake\Console\CommandInterface $command The command to run.
@@ -325,12 +368,6 @@ class CommandRunner implements EventDispatcherInterface
     protected function runCommand(CommandInterface $command, array $argv, ConsoleIo $io): ?int
     {
         try {
-            $eventManager = $this->getEventManager();
-            if ($this->app instanceof EventAwareApplicationInterface) {
-                $eventManager = $this->app->events($eventManager);
-                $eventManager = $this->app->pluginEvents($eventManager);
-            }
-            $this->setEventManager($eventManager);
             if ($command instanceof EventDispatcherInterface) {
                 $command->setEventManager($this->getEventManager());
             }
@@ -344,7 +381,7 @@ class CommandRunner implements EventDispatcherInterface
     /**
      * The wrapper for creating command instances.
      *
-     * @param string $className Command class name.
+     * @param class-string<\Cake\Console\CommandInterface> $className Command class name.
      * @return \Cake\Console\CommandInterface
      */
     protected function createCommand(string $className): CommandInterface

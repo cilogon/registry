@@ -133,11 +133,7 @@ class CognitiveSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $stackPtr
-	 */
-	public function process(File $phpcsFile, $stackPtr): void
+	public function process(File $phpcsFile, int $stackPtr): void
 	{
 		$this->phpcsFile = $phpcsFile;
 
@@ -157,7 +153,9 @@ class CognitiveSniff implements Sniff
 			return;
 		}
 
-		$name = $phpcsFile->getDeclarationName($stackPtr);
+		$name = $phpcsFile->getTokens()[$stackPtr]['code'] === T_FUNCTION
+			? FunctionHelper::getName($phpcsFile, $stackPtr)
+			: 'anonymous function';
 
 		$errorParameters = [
 			'Cognitive complexity for "%s" is %d but has to be less than or equal to %d.',
@@ -192,7 +190,7 @@ class CognitiveSniff implements Sniff
 
 		/*
 			Keep track of parser's level stack
-			We push to this stak whenever we encounter a Tokens::$scopeOpeners
+			We push to this stak whenever we encounter a Tokens::SCOPE_OPENERS token
 		*/
 		$levelStack = [];
 		/*
@@ -206,7 +204,7 @@ class CognitiveSniff implements Sniff
 			$currentToken = $tokens[$i];
 
 			$isNestingToken = false;
-			if (in_array($currentToken['code'], Tokens::$scopeOpeners, true)) {
+			if (in_array($currentToken['code'], Tokens::SCOPE_OPENERS, true)) {
 				$isNestingToken = true;
 				if ($levelIncreased === false && count($levelStack) > 0) {
 					// parser's level never increased
@@ -310,7 +308,7 @@ class CognitiveSniff implements Sniff
 
 		// B1. goto LABEL, break LABEL, continue LABEL
 		if (isset(self::BREAKING_TOKENS[$code])) {
-			$nextToken = $this->phpcsFile->findNext(Tokens::$emptyTokens, $position + 1, null, true);
+			$nextToken = $this->phpcsFile->findNext(Tokens::EMPTY_TOKENS, $position + 1, null, true);
 			if ($nextToken === false || $tokens[$nextToken]['code'] !== T_SEMICOLON) {
 				return true;
 			}

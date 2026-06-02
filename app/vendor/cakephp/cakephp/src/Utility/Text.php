@@ -16,7 +16,9 @@ declare(strict_types=1);
  */
 namespace Cake\Utility;
 
+use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
+use Closure;
 use InvalidArgumentException;
 use Transliterator;
 use function Cake\I18n\__d;
@@ -66,12 +68,29 @@ class Text
      * It should also not be used to create identifiers that have security implications, such as
      * 'unguessable' URL identifiers. Instead, you should use {@link \Cake\Utility\Security::randomBytes()}` for that.
      *
+     * ### Custom UUID generation
+     *
+     * You can configure a custom UUID generator by setting a Closure via Configure:
+     *
+     * ```
+     * Configure::write('Text.uuidGenerator', function () {
+     *     // Return your custom UUID string
+     *     return MyUuidLibrary::generate();
+     * });
+     * ```
+     *
      * @see https://www.ietf.org/rfc/rfc4122.txt
      * @return string RFC 4122 UUID
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-uuid
      * @copyright Matt Farina MIT License https://github.com/lootils/uuid/blob/master/LICENSE
      */
     public static function uuid(): string
     {
+        $generator = Configure::read('Text.uuidGenerator');
+        if ($generator instanceof Closure) {
+            return $generator();
+        }
+
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             // 32 bits for "time_low"
@@ -101,6 +120,7 @@ class Text
      * @param string $leftBound The left boundary to ignore separators in.
      * @param string $rightBound The right boundary to ignore separators in.
      * @return array<string> Array of tokens in $data.
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-tokenize
      */
     public static function tokenize(
         string $data,
@@ -197,6 +217,7 @@ class Text
      *     to be replaced with val
      * @param array<string, mixed> $options An array of options, see description above
      * @return string
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-insert
      */
     public static function insert(string $str, array $data, array $options = []): string
     {
@@ -215,7 +236,7 @@ class Text
 
         $dataKeys = array_keys($data);
         $hashKeys = array_map(
-            fn($str) => hash('xxh128', $str),
+            fn(int|string $str) => hash('xxh128', (string)$str),
             $dataKeys,
         );
         /** @var array<string, string> $tempData */
@@ -250,6 +271,7 @@ class Text
      * @param array<string, mixed> $options Options list.
      * @return string
      * @see \Cake\Utility\Text::insert()
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-cleaninsert
      */
     public static function cleanInsert(string $str, array $options): string
     {
@@ -320,6 +342,7 @@ class Text
      * @param string $text The text to format.
      * @param array<string, mixed>|int $options Array of options to use, or an integer to wrap the text to.
      * @return string Formatted text.
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-wrap
      */
     public static function wrap(string $text, array|int $options = []): string
     {
@@ -361,6 +384,7 @@ class Text
      * @param string $text The text to format.
      * @param array<string, mixed>|int $options Array of options to use, or an integer to wrap the text to.
      * @return string Formatted text.
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-wrapblock
      */
     public static function wrapBlock(string $text, array|int $options = []): string
     {
@@ -540,6 +564,7 @@ class Text
      * @param int $length Length of returned string, including ellipsis.
      * @param array<string, mixed> $options An array of options.
      * @return string Trimmed string.
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-tail
      */
     public static function tail(string $text, int $length = 100, array $options = []): string
     {
@@ -849,7 +874,7 @@ class Text
      *
      * @param string $text String to search the phrase in
      * @param string $phrase Phrase that will be searched for
-     * @param int $radius The amount of characters that will be returned on each side of the founded phrase
+     * @param int $radius The amount of characters that will be returned on each side of the found phrase
      * @param string $ellipsis Ending that will be appended
      * @return string Modified string
      * @link https://book.cakephp.org/5/en/core-libraries/text.html#extracting-an-excerpt
@@ -997,13 +1022,15 @@ class Text
     }
 
     /**
-     * Converts filesize from human readable string to bytes
+     * Converts filesize from human-readable string to bytes
      *
-     * @param string $size Size in human readable string like '5MB', '5M', '500B', '50kb' etc.
-     * @param mixed $default Value to be returned when invalid size was used, for example 'Unknown type'
-     * @return mixed Number of bytes as integer on success, `$default` on failure if not false
-     * @throws \InvalidArgumentException On invalid Unit type.
-     * @link https://book.cakephp.org/5/en/core-libraries/text.html#Cake\Utility\Text::parseFileSize
+     * @param string $size Size in human-readable string like '5MB', '5M', '500B', '50kb' etc.
+     * @param mixed $default Value to be returned when invalid size was used.
+     *   If set to false (default), an exception will be thrown instead.
+     * @return mixed Number of bytes as integer on success, or $default value on failure
+     *   (if $default is not false).
+     * @throws \InvalidArgumentException On invalid unit type when $default is false.
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-parsefilesize
      */
     public static function parseFileSize(string $size, mixed $default = false): mixed
     {
@@ -1095,6 +1122,7 @@ class Text
      *   `setTransliterator()` will be used.
      * @return string
      * @see https://secure.php.net/manual/en/transliterator.transliterate.php
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-transliterate
      */
     public static function transliterate(string $string, Transliterator|string|null $transliterator = null): string
     {
@@ -1128,8 +1156,9 @@ class Text
      * @param array<string, mixed>|string $options If string it will be use as replacement character
      *   or an array of options.
      * @return string
-     * @see setTransliterator()
-     * @see setTransliteratorId()
+     * @see Text::setTransliterator()
+     * @see Text::setTransliteratorId()
+     * @link https://book.cakephp.org/5/en/core-libraries/text.html#text-slug
      */
     public static function slug(string $string, array|string $options = []): string
     {

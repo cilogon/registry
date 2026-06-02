@@ -1,11 +1,11 @@
 # CakePHP Plugin Installer
 
-![Build Status](https://github.com/cakephp/plugin-installer/actions/workflows/ci.yml/badge.svg?branch=master)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/cakephp/plugin-installer/ci.yml?style=flat-square)](https://github.com/cakephp/plugin-installer/actions/workflows/ci.yml)
 [![Latest Stable Version](https://img.shields.io/github/v/release/cakephp/plugin-installer?sort=semver&style=flat-square)](https://packagist.org/packages/cakephp/plugin-installer)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/plugin-installer?style=flat-square)](https://packagist.org/packages/cakephp/plugin-installer/stats)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
-A composer installer for installing CakePHP 3.0+ plugins.
+A composer installer for installing CakePHP plugins.
 
 This installer ensures your application is aware of CakePHP plugins installed
 by composer in `vendor/`.
@@ -48,7 +48,7 @@ the autoload section would be like:
 ```json
 "autoload": {
     "psr-4": {
-        "MyPlugin\\": "src"
+        "MyPlugin\\": "src/"
     }
 }
 ```
@@ -59,13 +59,13 @@ also have an "autoload-dev" section for loading test files:
 ```json
 "autoload": {
     "psr-4": {
-        "MyPlugin\\": "src"
+        "MyPlugin\\": "src/"
     }
 },
 "autoload-dev": {
     "psr-4": {
-        "MyPlugin\\Test\\": "tests",
-        "Cake\\Test\\" : "vendor/cakephp/cakephp/test"
+        "MyPlugin\\Test\\": "tests/",
+        "Cake\\Test\\" : "vendor/cakephp/cakephp/tests/"
     }
 }
 ```
@@ -76,13 +76,13 @@ would be like:
 ```json
 "autoload": {
     "psr-4": {
-        "MyVendor\\MyPlugin\\": "src"
+        "MyVendor\\MyPlugin\\": "src/"
     }
 },
 "autoload-dev": {
     "psr-4": {
-        "MyVendor\\MyPlugin\\Test\\": "tests",
-        "Cake\\Test\\" : "vendor/cakephp/cakephp/test"
+        "MyVendor\\MyPlugin\\Test\\": "tests/",
+        "Cake\\Test\\" : "vendor/cakephp/cakephp/tests/"
     }
 }
 ```

@@ -16,10 +16,12 @@ declare(strict_types=1);
  */
 namespace Cake\Routing\Route;
 
+use BackedEnum;
 use Cake\Core\Exception\CakeException;
 use Cake\Http\Exception\BadRequestException;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
+use UnitEnum;
 
 /**
  * A single Route used by the Router to connect requests to
@@ -701,8 +703,19 @@ class Route
         unset($url['_method'], $url['[method]'], $defaults['_method']);
 
         // Defaults with different values are a fail.
-        if (array_intersect_key($url, $defaults) != $defaults) {
-            return null;
+        // Check each default value against the URL, but skip null plugin/prefix
+        // values as they should be treated as "not set" for matching purposes
+        foreach ($defaults as $key => $val) {
+            // Skip null plugin/prefix values - they shouldn't affect matching
+            if (($key === 'plugin' || $key === 'prefix') && $val === null && !isset($url[$key])) {
+                continue;
+            }
+            if (isset($url[$key]) && $url[$key] != $val) {
+                return null;
+            }
+            if (!isset($url[$key]) && $val !== null) {
+                return null;
+            }
         }
 
         // If this route uses pass option, and the passed elements are
@@ -817,6 +830,12 @@ class Route
                 ));
             }
             $string = $params[$key];
+            if ($string instanceof BackedEnum) {
+                $string = $string->value;
+            } elseif ($string instanceof UnitEnum) {
+                $string = $string->name;
+            }
+
             $search[] = "{{$key}}";
             $replace[] = $string;
         }

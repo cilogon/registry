@@ -38,14 +38,14 @@ use function Cake\Core\env;
 class Message implements JsonSerializable
 {
     /**
-     * Line length - no should more - RFC 2822 - 2.1.1
+     * Line length - should not exceed - RFC 2822 - 2.1.1
      *
      * @var int
      */
     public const LINE_LENGTH_SHOULD = 78;
 
     /**
-     * Line length - no must more - RFC 2822 - 2.1.1
+     * Line length - must not exceed - RFC 2822 - 2.1.1
      *
      * @var int
      */
@@ -910,7 +910,7 @@ class Message implements JsonSerializable
         $headersMultipleEmails = ['to', 'cc', 'bcc', 'replyTo'];
         foreach ($relation as $var => $header) {
             if ($include[$var]) {
-                if (in_array($var, $headersMultipleEmails)) {
+                if (in_array($var, $headersMultipleEmails, true)) {
                     $headers[$header] = implode(', ', $this->formatAddress($this->{$var}));
                 } else {
                     $headers[$header] = (string)current($this->formatAddress($this->{$var}));
@@ -926,9 +926,7 @@ class Message implements JsonSerializable
         }
 
         $headers += $this->headers;
-        if (!isset($headers['Date'])) {
-            $headers['Date'] = date(DATE_RFC2822);
-        }
+        $headers['Date'] ??= date(DATE_RFC2822);
         if ($this->messageId !== false) {
             if ($this->messageId === true) {
                 $this->messageId = '<' . str_replace('-', '', Text::uuid()) . '@' . $this->domain . '>';
@@ -999,9 +997,9 @@ class Message implements JsonSerializable
      * in address header fields.
      *
      * @param array $address Addresses to format.
-     * @return array
+     * @return array<string>
      */
-    protected function formatAddress(array $address): array
+    public function formatAddress(array $address): array
     {
         $return = [];
         foreach ($address as $email => $alias) {
@@ -1208,9 +1206,8 @@ class Message implements JsonSerializable
             ) {
                 $fileInfo['mimetype'] = mime_content_type($fileInfo['file']);
             }
-            if (!isset($fileInfo['mimetype'])) {
-                $fileInfo['mimetype'] = 'application/octet-stream';
-            }
+            $fileInfo['mimetype'] ??= 'application/octet-stream';
+
             $attach[$name] = $fileInfo;
         }
         $this->attachments = $attach;
@@ -1229,12 +1226,41 @@ class Message implements JsonSerializable
     }
 
     /**
+     * Add attachment.
+     *
+     * @param \Psr\Http\Message\UploadedFileInterface|string $path Path to the file or UploadedFileInterface instance.
+     * @param string|null $name Overrides the attachment name.
+     * @param string|null $mimetype Mimetype of the file.
+     * @param string|null $contentId Content ID for inline attachments.
+     * @param bool|null $contentDisposition Allows you to disable the `Content-Disposition` header
+     * @return $this
+     */
+    public function addAttachment(
+        UploadedFileInterface|string $path,
+        ?string $name = null,
+        ?string $mimetype = null,
+        ?string $contentId = null,
+        ?bool $contentDisposition = null,
+    ) {
+        $name ??= 0;
+
+        $this->addAttachments([$name => [
+            'file' => $path,
+            'mimetype' => $mimetype,
+            'contentId' => $contentId,
+            'contentDisposition' => $contentDisposition,
+        ]]);
+
+        return $this;
+    }
+
+    /**
      * Add attachments
      *
      * @param array $attachments Array of filenames.
      * @return $this
      * @throws \InvalidArgumentException
-     * @see \Cake\Mailer\Email::setAttachments()
+     * @see Message::setAttachments()
      */
     public function addAttachments(array $attachments)
     {
@@ -1862,7 +1888,7 @@ class Message implements JsonSerializable
             $array[$property] = $this->{$property};
         }
 
-        array_walk($array['attachments'], function (&$item, $key): void {
+        array_walk($array['attachments'], function (array &$item): void {
             if (!empty($item['file'])) {
                 $item['data'] = $this->readFile($item['file']);
                 unset($item['file']);
@@ -1897,7 +1923,7 @@ class Message implements JsonSerializable
     public function __serialize(): array
     {
         $array = $this->jsonSerialize();
-        array_walk_recursive($array, function (&$item, $key): void {
+        array_walk_recursive($array, function (&$item): void {
             if ($item instanceof SimpleXMLElement) {
                 $item = json_decode((string)json_encode((array)$item), true);
             }

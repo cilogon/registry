@@ -36,6 +36,7 @@ use InvalidArgumentException;
  * @see \Cake\ORM\Table::newEntities()
  * @see \Cake\ORM\Table::patchEntity()
  * @see \Cake\ORM\Table::patchEntities()
+ * @template TEntity of \Cake\Datasource\EntityInterface
  */
 class Marshaller
 {
@@ -44,14 +45,14 @@ class Marshaller
     /**
      * The table instance this marshaller is for.
      *
-     * @var \Cake\ORM\Table
+     * @var \Cake\ORM\Table<array<string, \Cake\ORM\Behavior>, TEntity>
      */
     protected Table $_table;
 
     /**
      * Constructor.
      *
-     * @param \Cake\ORM\Table $table The table this marshaller is for.
+     * @param \Cake\ORM\Table<array<string, \Cake\ORM\Behavior>, TEntity> $table The table this marshaller is for.
      */
     public function __construct(Table $table)
     {
@@ -64,7 +65,8 @@ class Marshaller
      * @param array $data The data being marshaled.
      * @param array<string, mixed> $options List of options containing the 'associated' key.
      * @throws \InvalidArgumentException When associations do not exist.
-     * @return array
+     * @return array<string, callable> Map of property names to marshaling callables.
+     *   Each callable accepts the value and entity, and returns the marshaled result.
      */
     protected function _buildPropertyMap(array $data, array $options): array
     {
@@ -76,7 +78,7 @@ class Marshaller
             $prop = (string)$prop;
             $columnType = $schema->getColumnType($prop);
             if ($columnType) {
-                $map[$prop] = fn($value) => TypeFactory::build($columnType)->marshal($value);
+                $map[$prop] = TypeFactory::build($columnType)->marshal(...);
             }
         }
 
@@ -128,7 +130,7 @@ class Marshaller
                     );
                 };
             } else {
-                $callback = function ($value, $entity) use ($assoc, $nested): array|EntityInterface|null {
+                $callback = function ($value) use ($assoc, $nested): array|EntityInterface|null {
                     $options = $nested + ['associated' => []];
 
                     return $this->_marshalAssociation($assoc, $value, $options);
@@ -193,7 +195,7 @@ class Marshaller
      *
      * @param array<string, mixed> $data The data to hydrate.
      * @param array<string, mixed> $options List of options
-     * @return \Cake\Datasource\EntityInterface
+     * @return TEntity
      * @see \Cake\ORM\Table::newEntity()
      * @see \Cake\ORM\Entity::$_accessible
      */
@@ -209,7 +211,13 @@ class Marshaller
                 $entity->setAccess($key, $value);
             }
         }
-        $errors = $this->_validate($data, $options['validate'], true);
+
+        $fieldsToValidate = $options['strictFields'] ? (array)$options['fields'] : [];
+        $context = [
+            'entity' => $entity,
+            'fields' => $fieldsToValidate,
+        ];
+        $errors = $this->_validate($data, $options['validate'], true, $context);
 
         $options['isMerge'] = false;
         $propertyMap = $this->_buildPropertyMap($data, $options);
@@ -242,12 +250,11 @@ class Marshaller
                     $entity->set($field, $properties[$field], ['asOriginal' => true]);
                 }
             }
+        // @phpstan-ignore function.alreadyNarrowedType (patch method available on EntityInterface)
+        } elseif (method_exists($entity, 'patch')) {
+            $entity->patch($properties, ['asOriginal' => true]);
         } else {
-            if (method_exists($entity, 'patch')) {
-                $entity->patch($properties, ['asOriginal' => true]);
-            } else {
-                $entity->set($properties, ['asOriginal' => true]);
-            }
+            $entity->set($properties, ['asOriginal' => true]);
         }
 
         // Don't flag clean association entities as
@@ -270,10 +277,11 @@ class Marshaller
      * @param array $data The data to validate.
      * @param string|bool $validator Validator name or `true` for default validator.
      * @param bool $isNew Whether it is a new entity or one to be updated.
+     * @param array<string, mixed> $context Additional validation context.
      * @return array The list of validation errors.
      * @throws \RuntimeException If no validator can be created.
      */
-    protected function _validate(array $data, string|bool $validator, bool $isNew): array
+    protected function _validate(array $data, string|bool $validator, bool $isNew, array $context = []): array
     {
         if (!$validator) {
             return [];
@@ -283,7 +291,7 @@ class Marshaller
             $validator = null;
         }
 
-        return $this->_table->getValidator($validator)->validate($data, $isNew);
+        return $this->_table->getValidator($validator)->validate($data, $isNew, $context);
     }
 
     /**
@@ -295,7 +303,7 @@ class Marshaller
      */
     protected function _prepareDataAndOptions(array $data, array $options): array
     {
-        $options += ['validate' => true];
+        $options += ['validate' => true, 'fields' => null, 'strictFields' => false];
 
         $tableName = $this->_table->getAlias();
         if (isset($data[$tableName]) && is_array($data[$tableName])) {
@@ -367,7 +375,7 @@ class Marshaller
      *
      * @param array $data The data to hydrate.
      * @param array<string, mixed> $options List of options
-     * @return array<\Cake\Datasource\EntityInterface> An array of hydrated records.
+     * @return array<TEntity> An array of hydrated records.
      * @see \Cake\ORM\Table::newEntities()
      * @see \Cake\ORM\Entity::$_accessible
      */
@@ -390,7 +398,7 @@ class Marshaller
      * Builds the related entities and handles the special casing
      * for junction table entities.
      *
-     * @param \Cake\ORM\Association\BelongsToMany $assoc The association to marshal.
+     * @param \Cake\ORM\Association\BelongsToMany<\Cake\ORM\Table> $assoc The association to marshal.
      * @param array $data The data to convert into entities.
      * @param array<string, mixed> $options List of options.
      * @return array<\Cake\Datasource\EntityInterface> An array of built entities.
@@ -436,7 +444,7 @@ class Marshaller
             }
         }
 
-        if ($conditions) {
+        if ($conditions !== []) {
             /** @var \Traversable<\Cake\Datasource\EntityInterface> $results */
             $results = $target->find()
                 ->andWhere(fn(QueryExpression $exp) => $exp->or($conditions))
@@ -517,7 +525,10 @@ class Marshaller
             $filter = [$primaryKey[0] . ' IN' => $ids];
         }
 
-        return $target->find()->where($filter)->toArray();
+        /** @var \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface> $query */
+        $query = $target->find()->where($filter);
+
+        return $query->toArray();
     }
 
     /**
@@ -560,11 +571,12 @@ class Marshaller
      * ]);
      * ```
      *
-     * @param \Cake\Datasource\EntityInterface $entity the entity that will get the
+     * @template TMergedEntity of \Cake\Datasource\EntityInterface
+     * @param TMergedEntity $entity the entity that will get the
      * data merged in
      * @param array $data key value list of fields to be merged into the entity
      * @param array<string, mixed> $options List of options.
-     * @return \Cake\Datasource\EntityInterface
+     * @return TMergedEntity
      * @see \Cake\ORM\Entity::$_accessible
      */
     public function merge(EntityInterface $entity, array $data, array $options = []): EntityInterface
@@ -584,7 +596,12 @@ class Marshaller
             }
         }
 
-        $errors = $this->_validate($data + $keys, $options['validate'], $isNew);
+        $fieldsToValidate = $options['strictFields'] ? (array)$options['fields'] : [];
+        $context = [
+            'entity' => $entity,
+            'fields' => $fieldsToValidate,
+        ];
+        $errors = $this->_validate($data + $keys, $options['validate'], $isNew, $context);
         $options['isMerge'] = true;
         $propertyMap = $this->_buildPropertyMap($data, $options);
         $properties = [];
@@ -607,6 +624,7 @@ class Marshaller
 
         $entity->setErrors($errors);
         if (!isset($options['fields'])) {
+            // @phpstan-ignore function.alreadyNarrowedType (patch method available on EntityInterface)
             if (method_exists($entity, 'patch')) {
                 $entity->patch($properties);
             } else {
@@ -662,11 +680,12 @@ class Marshaller
      *   the accessible fields list in the entity will be used.
      * - accessibleFields: A list of fields to allow or deny in entity accessible fields.
      *
-     * @param iterable<\Cake\Datasource\EntityInterface> $entities the entities that will get the
+     * @template TMergedEntity of \Cake\Datasource\EntityInterface
+     * @param iterable<TMergedEntity> $entities the entities that will get the
      *   data merged in
      * @param array $data list of arrays to be merged into the entities
      * @param array<string, mixed> $options List of options.
-     * @return array<\Cake\Datasource\EntityInterface>
+     * @return array<TEntity|TMergedEntity>
      * @see \Cake\ORM\Entity::$_accessible
      */
     public function mergeMany(iterable $entities, array $data, array $options = []): array
@@ -719,7 +738,10 @@ class Marshaller
         $maybeExistentQuery = $this->_table->find()->where($conditions);
 
         if ($indexed && count($maybeExistentQuery->clause('where'))) {
-            /** @var \Traversable<\Cake\Datasource\EntityInterface> $existent */
+            /**
+             * phpcs:ignore SlevomatCodingStandard.Namespaces.FullyQualifiedClassNameInAnnotation.NonFullyQualifiedClassName
+             * @var \Traversable<TEntity> $existent
+             */
             $existent = $maybeExistentQuery->all();
             foreach ($existent as $entity) {
                 $key = implode(';', $entity->extract($primary));
@@ -734,7 +756,12 @@ class Marshaller
             if (!is_array($value)) {
                 continue;
             }
-            $output[] = $this->one($value, $options);
+            /**
+             * phpcs:ignore SlevomatCodingStandard.Namespaces.FullyQualifiedClassNameInAnnotation.NonFullyQualifiedClassName
+             * @var TEntity $entity
+             */
+            $entity = $this->one($value, $options);
+            $output[] = $entity;
         }
 
         return $output;
@@ -798,7 +825,7 @@ class Marshaller
      * association.
      *
      * @param array<\Cake\Datasource\EntityInterface> $original The original entities list.
-     * @param \Cake\ORM\Association\BelongsToMany $assoc The association to marshall
+     * @param \Cake\ORM\Association\BelongsToMany<\Cake\ORM\Table> $assoc The association to marshall
      * @param array $value The data to hydrate
      * @param array<string, mixed> $options List of options.
      * @return array<\Cake\Datasource\EntityInterface>
@@ -829,7 +856,7 @@ class Marshaller
      * Merge the special junction property (_joinData) into the entity set.
      *
      * @param array<\Cake\Datasource\EntityInterface> $original The original entities list.
-     * @param \Cake\ORM\Association\BelongsToMany $assoc The association to marshall
+     * @param \Cake\ORM\Association\BelongsToMany<\Cake\ORM\Table> $assoc The association to marshall
      * @param array $value The data to hydrate
      * @param array<string, mixed> $options List of options.
      * @return array<\Cake\Datasource\EntityInterface> An array of entities

@@ -11,28 +11,40 @@ namespace Migrations\Db;
 use Cake\Collection\Collection;
 use Cake\Core\Configure;
 use InvalidArgumentException;
+use Migrations\Db\Action\AddCheckConstraint;
 use Migrations\Db\Action\AddColumn;
 use Migrations\Db\Action\AddForeignKey;
 use Migrations\Db\Action\AddIndex;
+use Migrations\Db\Action\AddPartition;
 use Migrations\Db\Action\ChangeColumn;
 use Migrations\Db\Action\ChangeComment;
 use Migrations\Db\Action\ChangePrimaryKey;
 use Migrations\Db\Action\CreateTable;
+use Migrations\Db\Action\CreateTrigger;
+use Migrations\Db\Action\CreateView;
+use Migrations\Db\Action\DropCheckConstraint;
 use Migrations\Db\Action\DropForeignKey;
 use Migrations\Db\Action\DropIndex;
+use Migrations\Db\Action\DropPartition;
 use Migrations\Db\Action\DropTable;
+use Migrations\Db\Action\DropTrigger;
+use Migrations\Db\Action\DropView;
 use Migrations\Db\Action\RemoveColumn;
 use Migrations\Db\Action\RenameColumn;
 use Migrations\Db\Action\RenameTable;
+use Migrations\Db\Action\SetPartitioning;
 use Migrations\Db\Adapter\AdapterInterface;
+use Migrations\Db\Adapter\MysqlAdapter;
 use Migrations\Db\Plan\Intent;
 use Migrations\Db\Plan\Plan;
+use Migrations\Db\Table\CheckConstraint;
 use Migrations\Db\Table\Column;
 use Migrations\Db\Table\ForeignKey;
 use Migrations\Db\Table\Index;
-use Migrations\Db\Table\Table as TableValue;
+use Migrations\Db\Table\Partition;
+use Migrations\Db\Table\PartitionDefinition;
+use Migrations\Db\Table\TableMetadata;
 use RuntimeException;
-use function Cake\Core\deprecationWarning;
 
 /**
  * Migration Table
@@ -46,25 +58,32 @@ use function Cake\Core\deprecationWarning;
  */
 class Table
 {
-    /**
-     * @var \Migrations\Db\Table\Table
-     */
-    protected TableValue $table;
+    protected TableMetadata $table;
 
-    /**
-     * @var \Migrations\Db\Adapter\AdapterInterface|null
-     */
     protected ?AdapterInterface $adapter = null;
 
-    /**
-     * @var \Migrations\Db\Plan\Intent
-     */
     protected Intent $actions;
 
-    /**
-     * @var array
-     */
     protected array $data = [];
+
+    /**
+     * Insert mode for data operations
+     */
+    protected ?InsertMode $insertMode = null;
+
+    /**
+     * Columns to update on upsert conflict
+     *
+     * @var array<string>|null
+     */
+    protected ?array $upsertUpdateColumns = null;
+
+    /**
+     * Columns that define uniqueness for upsert conflict detection
+     *
+     * @var array<string>|null
+     */
+    protected ?array $upsertConflictColumns = null;
 
     /**
      * Primary key for this table.
@@ -82,10 +101,10 @@ class Table
      */
     public function __construct(string $name, array $options = [], ?AdapterInterface $adapter = null)
     {
-        $this->table = new TableValue($name, $options);
+        $this->table = new TableMetadata($name, $options);
         $this->actions = new Intent();
 
-        if ($adapter !== null) {
+        if ($adapter instanceof AdapterInterface) {
             $this->setAdapter($adapter);
         }
     }
@@ -113,9 +132,9 @@ class Table
     /**
      * Gets the table name and options as an object
      *
-     * @return \Migrations\Db\Table\Table
+     * @return \Migrations\Db\Table\TableMetadata
      */
-    public function getTable(): TableValue
+    public function getTable(): TableMetadata
     {
         return $this->table;
     }
@@ -141,7 +160,7 @@ class Table
      */
     public function getAdapter(): AdapterInterface
     {
-        if (!$this->adapter) {
+        if (!$this->adapter instanceof AdapterInterface) {
             throw new RuntimeException('There is no database adapter set yet, cannot proceed');
         }
 
@@ -155,7 +174,11 @@ class Table
      */
     public function hasPendingActions(): bool
     {
-        return count($this->actions->getActions()) > 0 || count($this->data) > 0;
+        if ($this->actions->getActions() !== []) {
+            return true;
+        }
+
+        return $this->data !== [];
     }
 
     /**
@@ -251,7 +274,7 @@ class Table
     {
         $columns = array_filter(
             $this->getColumns(),
-            function ($column) use ($name) {
+            function (Column $column) use ($name): bool {
                 return $column->getName() === $name;
             },
         );
@@ -262,7 +285,7 @@ class Table
     /**
      * Sets an array of data to be inserted.
      *
-     * @param array $data Data
+     * @param array<string, mixed> $data Data
      * @return $this
      */
     public function setData(array $data)
@@ -325,28 +348,28 @@ class Table
      * Valid options can be: limit, default, null, precision or scale.
      *
      * @param string|\Migrations\Db\Table\Column $columnName Column Name
-     * @param string|\Migrations\Db\Literal|null $type Column Type
+     * @param string|null $type Column Type
      * @param array<string, mixed> $options Column Options
      * @throws \InvalidArgumentException
      * @return $this
      */
-    public function addColumn(string|Column $columnName, string|Literal|null $type = null, array $options = [])
+    public function addColumn(string|Column $columnName, ?string $type = null, array $options = [])
     {
-        assert($columnName instanceof Column || $type !== null);
         if ($columnName instanceof Column) {
             $action = new AddColumn($this->table, $columnName);
-        } elseif ($type instanceof Literal) {
-            $action = AddColumn::build($this->table, $columnName, $type, $options);
+        } elseif ($type === null) {
+            throw new InvalidArgumentException('Column type must not be null when column name is a string.');
         } else {
             $action = new AddColumn($this->table, $this->getAdapter()->getColumnForType($columnName, $type, $options));
         }
 
         // Delegate to Adapters to check column type
-        if (!$this->getAdapter()->isValidColumnType($action->getColumn())) {
+        $column = $action->getColumn();
+        if (!$this->getAdapter()->isValidColumnType($column)) {
             throw new InvalidArgumentException(sprintf(
                 'An invalid column type "%s" was specified for column "%s".',
-                (string)$action->getColumn()->getType(),
-                (string)$action->getColumn()->getName(),
+                $column->getType(),
+                $column->getName(),
             ));
         }
 
@@ -385,18 +408,77 @@ class Table
     }
 
     /**
-     * Change a table column type.
+     * Update a table column, preserving unspecified attributes.
+     *
+     * This is the recommended method for modifying columns as it automatically
+     * preserves existing column attributes (default, null, limit, etc.) unless
+     * explicitly overridden.
      *
      * @param string $columnName Column Name
-     * @param string|\Migrations\Db\Table\Column|\Migrations\Db\Literal $newColumnType New Column Type
+     * @param string|\Migrations\Db\Table\Column|null $newColumnType New Column Type (pass null to preserve existing type)
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function changeColumn(string $columnName, string|Column|Literal $newColumnType, array $options = [])
+    public function updateColumn(string $columnName, string|Column|null $newColumnType, array $options = [])
+    {
+        if (!($newColumnType instanceof Column)) {
+            $options['preserveUnspecified'] = true;
+        }
+
+        return $this->changeColumn($columnName, $newColumnType, $options);
+    }
+
+    /**
+     * Change a table column type.
+     *
+     * Note: This method replaces the column definition. Consider using updateColumn()
+     * instead, which preserves unspecified attributes by default.
+     *
+     * @param string $columnName Column Name
+     * @param string|\Migrations\Db\Table\Column|null $newColumnType New Column Type (pass null to preserve existing type)
+     * @param array<string, mixed> $options Options
+     * @return $this
+     */
+    public function changeColumn(string $columnName, string|Column|null $newColumnType, array $options = [])
     {
         if ($newColumnType instanceof Column) {
+            if ($options) {
+                throw new InvalidArgumentException(
+                    'Cannot specify options array when passing a Column object. ' .
+                    'Set all properties directly on the Column object instead.',
+                );
+            }
             $action = new ChangeColumn($this->table, $columnName, $newColumnType);
         } else {
+            // Check if we should preserve existing column attributes
+            $preserveUnspecified = $options['preserveUnspecified'] ?? false; // Default to false for BC
+            unset($options['preserveUnspecified']);
+
+            // If type is null, preserve the existing type
+            if ($newColumnType === null) {
+                if (!$this->hasColumn($columnName)) {
+                    throw new RuntimeException(
+                        sprintf("Cannot preserve column type for '%s' - column does not exist in table '%s'", $columnName, $this->getName()),
+                    );
+                }
+                $existingColumn = $this->getColumn($columnName);
+                if (!$existingColumn instanceof Column) {
+                    throw new RuntimeException(
+                        sprintf("Cannot retrieve column definition for '%s' in table '%s'", $columnName, $this->getName()),
+                    );
+                }
+                $newColumnType = $existingColumn->getType();
+            }
+
+            if ($preserveUnspecified && $this->hasColumn($columnName)) {
+                // Get existing column definition
+                $existingColumn = $this->getColumn($columnName);
+                if ($existingColumn instanceof Column) {
+                    // Merge existing attributes with new ones
+                    $options = $this->mergeColumnOptions($existingColumn, $newColumnType, $options);
+                }
+            }
+
             $action = ChangeColumn::build($this->table, $columnName, $newColumnType, $options);
         }
         $this->actions->addAction($action);
@@ -489,69 +571,20 @@ class Table
      * on_update, constraint = constraint name.
      *
      * @param string|string[]|\Migrations\Db\Table\ForeignKey $columns Columns
-     * @param string|\Migrations\Db\Table\Table $referencedTable Referenced Table
+     * @param string|\Migrations\Db\Table\TableMetadata $referencedTable Referenced Table
      * @param string|string[] $referencedColumns Referenced Columns
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function addForeignKey(string|array|ForeignKey $columns, string|TableValue|null $referencedTable = null, string|array $referencedColumns = ['id'], array $options = [])
+    public function addForeignKey(string|array|ForeignKey $columns, string|TableMetadata|null $referencedTable = null, string|array $referencedColumns = ['id'], array $options = [])
     {
         if ($columns instanceof ForeignKey) {
             $action = new AddForeignKey($this->table, $columns);
         } else {
-            if (!$referencedTable) {
+            if ($referencedTable === null) {
                 throw new InvalidArgumentException('Referenced table is required');
             }
             $action = AddForeignKey::build($this->table, $columns, $referencedTable, $referencedColumns, $options);
-        }
-        $this->actions->addAction($action);
-
-        return $this;
-    }
-
-    /**
-     * Add a foreign key to a database table with a given name.
-     *
-     * In $options you can specify on_delete|on_delete = cascade|no_action ..,
-     * on_update, constraint = constraint name.
-     *
-     * @param string|\Migrations\Db\Table\ForeignKey $name The constraint name or a foreign key object.
-     * @param string|string[] $columns Columns
-     * @param string|\Migrations\Db\Table\Table $referencedTable Referenced Table
-     * @param string|string[] $referencedColumns Referenced Columns
-     * @param array<string, mixed> $options Options
-     * @return $this
-     * @deprecated 4.6.0 Use addForeignKey() instead. Use `BaseMigration::foreignKey()` to get
-     *   a fluent interface for building foreign keys.
-     */
-    public function addForeignKeyWithName(
-        string|ForeignKey $name,
-        string|array|null $columns = null,
-        string|TableValue|null $referencedTable = null,
-        string|array $referencedColumns = ['id'],
-        array $options = [],
-    ) {
-        deprecationWarning(
-            '4.6.0',
-            'Use addForeignKey() instead. Use `BaseMigration::foreignKey()` to get a fluent' .
-                ' interface for building foreign keys.',
-        );
-        if (is_string($name)) {
-            if ($columns === null || $referencedTable === null) {
-                throw new InvalidArgumentException(
-                    'Columns and referencedTable are required when adding a foreign key with a name',
-                );
-            }
-            $action = AddForeignKey::build(
-                $this->table,
-                $columns,
-                $referencedTable,
-                $referencedColumns,
-                $options,
-                $name,
-            );
-        } else {
-            $action = new AddForeignKey($this->table, $name);
         }
         $this->actions->addAction($action);
 
@@ -586,6 +619,128 @@ class Table
     }
 
     /**
+     * Add a check constraint to a database table.
+     *
+     * @param string|\Migrations\Db\Table\CheckConstraint $expression The check constraint expression or object
+     * @param array<string, mixed> $options Options for the check constraint (e.g., 'name')
+     * @return $this
+     */
+    public function addCheckConstraint(string|CheckConstraint $expression, array $options = [])
+    {
+        if ($expression instanceof CheckConstraint) {
+            $action = new AddCheckConstraint($this->table, $expression);
+        } else {
+            $action = AddCheckConstraint::build($this->table, $expression, $options);
+        }
+        $this->actions->addAction($action);
+
+        return $this;
+    }
+
+    /**
+     * Removes the given check constraint from the table.
+     *
+     * @param string $constraintName The name of the check constraint to drop
+     * @return $this
+     */
+    public function dropCheckConstraint(string $constraintName)
+    {
+        $action = new DropCheckConstraint($this->table, $constraintName);
+        $this->actions->addAction($action);
+
+        return $this;
+    }
+
+    /**
+     * Checks to see if a check constraint exists.
+     *
+     * @param string $constraintName The name of the check constraint
+     * @return bool
+     */
+    public function hasCheckConstraint(string $constraintName): bool
+    {
+        return $this->getAdapter()->hasCheckConstraint($this->getName(), $constraintName);
+    }
+
+    /**
+     * Add partitioning to the table.
+     *
+     * @param string $type Partition type (RANGE, LIST, HASH, KEY)
+     * @param string|string[]|\Migrations\Db\Literal $columns Column(s) or expression to partition by
+     * @param array<string, mixed> $options Partition options (count for HASH/KEY)
+     * @return $this
+     */
+    public function partitionBy(string $type, string|array|Literal $columns, array $options = [])
+    {
+        $partition = new Partition($type, $columns, [], $options['count'] ?? null, $options);
+        $this->table->setPartition($partition);
+
+        return $this;
+    }
+
+    /**
+     * Add a partition definition (for RANGE/LIST types).
+     *
+     * @param string $name Partition name
+     * @param mixed $value Boundary value (use 'MAXVALUE' for RANGE upper bound)
+     * @param array<string, mixed> $options Additional options (tablespace, table for PG)
+     * @return $this
+     */
+    public function addPartition(string $name, mixed $value = null, array $options = [])
+    {
+        $partition = $this->table->getPartition();
+        if (!$partition instanceof Partition) {
+            throw new RuntimeException('Must call partitionBy() before addPartition()');
+        }
+
+        $definition = new PartitionDefinition(
+            $name,
+            $value,
+            $options['tablespace'] ?? null,
+            $options['table'] ?? null,
+            $options['comment'] ?? null,
+        );
+        $partition->addDefinition($definition);
+
+        return $this;
+    }
+
+    /**
+     * Remove a partition from an existing table.
+     *
+     * @param string $name Partition name
+     * @return $this
+     */
+    public function dropPartition(string $name)
+    {
+        $this->actions->addAction(new DropPartition($this->table, $name));
+
+        return $this;
+    }
+
+    /**
+     * Add a partition to an existing partitioned table.
+     *
+     * @param string $name Partition name
+     * @param mixed $value Boundary value
+     * @param array<string, mixed> $options Additional options
+     * @return $this
+     */
+    public function addPartitionToExisting(string $name, mixed $value, array $options = [])
+    {
+        $definition = new PartitionDefinition(
+            $name,
+            $value,
+            $options['tablespace'] ?? null,
+            $options['table'] ?? null,
+            $options['comment'] ?? null,
+        );
+        $this->actions->addAction(new AddPartition($this->table, $definition));
+
+        return $this;
+    }
+
+    /**
      * Add timestamp columns created_at and updated_at to the table.
      *
      * @param string|false|null $createdAt Alternate name for the created_at column
@@ -595,15 +750,15 @@ class Table
      */
     public function addTimestamps(string|false|null $createdAt = 'created', string|false|null $updatedAt = 'updated', bool $withTimezone = false)
     {
-        $createdAt = $createdAt ?? 'created';
-        $updatedAt = $updatedAt ?? 'updated';
+        $createdAt ??= 'created';
+        $updatedAt ??= 'updated';
 
         if (!$createdAt && !$updatedAt) {
             throw new RuntimeException('Cannot set both created_at and updated_at columns to false');
         }
         $timestampConfig = (bool)Configure::read('Migrations.add_timestamps_use_datetime');
         $timestampType = 'timestamp';
-        if ($timestampConfig === true) {
+        if ($timestampConfig) {
             $timestampType = 'datetime';
         }
 
@@ -666,11 +821,69 @@ class Table
             return $this;
         }
 
-        if (count($data) > 0) {
+        if ($data !== []) {
             $this->data[] = $data;
         }
 
         return $this;
+    }
+
+    /**
+     * Insert data into the table, skipping rows that would cause duplicate key conflicts.
+     *
+     * This method is idempotent and safe to run multiple times.
+     *
+     * @param array $data array of data in the same format as insert()
+     * @return $this
+     */
+    public function insertOrSkip(array $data)
+    {
+        $this->insertMode = InsertMode::IGNORE;
+
+        return $this->insert($data);
+    }
+
+    /**
+     * Insert data into the table, updating specified columns on duplicate key conflicts.
+     *
+     * This method performs an "upsert" operation - inserting new rows and updating
+     * existing rows that conflict on the specified unique columns.
+     *
+     * ### Database-specific behavior:
+     *
+     * - **MySQL**: Uses `ON DUPLICATE KEY UPDATE`. The `$conflictColumns` parameter is
+     *   ignored because MySQL automatically applies the update to all unique constraint
+     *   violations. Passing `$conflictColumns` will trigger a warning.
+     *
+     * - **PostgreSQL/SQLite**: Uses `ON CONFLICT (...) DO UPDATE SET`. The `$conflictColumns`
+     *   parameter is required and must specify the columns that have a unique constraint.
+     *   A RuntimeException will be thrown if this parameter is empty.
+     *
+     * - **SQL Server**: Not currently supported. Use separate insert/update logic.
+     *
+     * ### Example:
+     * ```php
+     * // Works on all supported databases
+     * $table->insertOrUpdate([
+     *     ['code' => 'USD', 'rate' => 1.0000],
+     *     ['code' => 'EUR', 'rate' => 0.9234],
+     * ], ['rate'], ['code']);
+     * ```
+     *
+     * @param array $data array of data in the same format as insert()
+     * @param array<string> $updateColumns Columns to update when a conflict occurs
+     * @param array<string> $conflictColumns Columns that define uniqueness. Required for PostgreSQL/SQLite,
+     *   ignored by MySQL (triggers warning if provided).
+     * @return $this
+     * @throws \RuntimeException When using PostgreSQL or SQLite without specifying conflictColumns
+     */
+    public function insertOrUpdate(array $data, array $updateColumns, array $conflictColumns)
+    {
+        $this->insertMode = InsertMode::UPSERT;
+        $this->upsertUpdateColumns = $updateColumns;
+        $this->upsertConflictColumns = $conflictColumns;
+
+        return $this->insert($data);
     }
 
     /**
@@ -681,25 +894,16 @@ class Table
     public function create(): void
     {
         $options = $this->getTable()->getOptions();
-        if ((!isset($options['id']) || $options['id'] === false) && !empty($this->primaryKey)) {
+        if ((!isset($options['id']) || $options['id'] === false) && (isset($this->primaryKey) && !in_array($this->primaryKey, ['', '0', []], true))) {
             $options['primary_key'] = (array)$this->primaryKey;
             $this->filterPrimaryKey($options);
         }
 
         $adapter = $this->getAdapter();
-        if ($adapter->getAdapterType() === 'mysql' && empty($options['collation'])) {
-            // TODO this should be a method on the MySQL adapter.
-            // It could be a hook method on the adapter?
-            $encodingRequest = 'SELECT DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME
-                FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :dbname';
-
-            $connection = $adapter->getConnection();
-            $connectionConfig = $connection->config();
-
-            $statement = $connection->execute($encodingRequest, ['dbname' => $connectionConfig['database']]);
-            $defaultEncoding = $statement->fetch('assoc');
-            if (!empty($defaultEncoding['DEFAULT_COLLATION_NAME'])) {
-                $options['collation'] = $defaultEncoding['DEFAULT_COLLATION_NAME'];
+        if ($adapter instanceof MysqlAdapter && empty($options['collation'])) {
+            $collation = $adapter->getDefaultCollation();
+            if ($collation) {
+                $options['collation'] = $collation;
             }
         }
 
@@ -714,8 +918,8 @@ class Table
      * This method is called in case a primary key was defined using the addPrimaryKey() method.
      * It currently does something only if using SQLite.
      * If a column is an auto-increment key in SQLite, it has to be a primary key and it has to defined
-     * when defining the column. Phinx takes care of that so we have to make sure columns defined as autoincrement were
-     * not added with the addPrimaryKey method, otherwise, SQL queries will be wrong.
+     * when defining the column. Migrations takes care of that so we have to make sure columns defined as autoincrement
+     * were not added with the addPrimaryKey method, otherwise, SQL queries will be wrong.
      *
      * @return void
      */
@@ -731,15 +935,16 @@ class Table
         }
         $primaryKey = array_flip($primaryKey);
 
+        /** @var \Cake\Collection\Collection $columnsCollection */
         $columnsCollection = (new Collection($this->actions->getActions()))
-            ->filter(function ($action) {
+            ->filter(function ($action): bool {
                 return $action instanceof AddColumn;
             })
             ->map(function ($action) {
-                /** @var \Phinx\Db\Action\ChangeColumn|\Phinx\Db\Action\RenameColumn|\Phinx\Db\Action\RemoveColumn|\Phinx\Db\Action\AddColumn $action */
+                /** @var \Migrations\Db\Action\ChangeColumn|\Migrations\Db\Action\RenameColumn|\Migrations\Db\Action\RemoveColumn|\Migrations\Db\Action\AddColumn $action */
                 return $action->getColumn();
             });
-        $primaryKeyColumns = $columnsCollection->filter(function (Column $columnDef, $key) use ($primaryKey) {
+        $primaryKeyColumns = $columnsCollection->filter(function (Column $columnDef, $key) use ($primaryKey): bool {
             return isset($primaryKey[$columnDef->getName()]);
         })->toArray();
 
@@ -793,21 +998,36 @@ class Table
         $c = array_keys($row);
         foreach ($this->getData() as $row) {
             $k = array_keys($row);
-            if ($k != $c) {
+            if ($k !== $c) {
                 $bulk = false;
                 break;
             }
         }
 
         if ($bulk) {
-            $this->getAdapter()->bulkinsert($this->table, $this->getData());
+            $this->getAdapter()->bulkinsert(
+                $this->table,
+                $this->getData(),
+                $this->insertMode,
+                $this->upsertUpdateColumns,
+                $this->upsertConflictColumns,
+            );
         } else {
             foreach ($this->getData() as $row) {
-                $this->getAdapter()->insert($this->table, $row);
+                $this->getAdapter()->insert(
+                    $this->table,
+                    $row,
+                    $this->insertMode,
+                    $this->upsertUpdateColumns,
+                    $this->upsertConflictColumns,
+                );
             }
         }
 
         $this->resetData();
+        $this->insertMode = null;
+        $this->upsertUpdateColumns = null;
+        $this->upsertConflictColumns = null;
     }
 
     /**
@@ -837,6 +1057,87 @@ class Table
     }
 
     /**
+     * Creates a view.
+     *
+     * @param string $viewName View name
+     * @param string $definition SQL SELECT statement for the view
+     * @param array<string, mixed> $options View options
+     * @return $this
+     */
+    public function createView(string $viewName, string $definition, array $options = [])
+    {
+        $view = new Table\View(
+            $viewName,
+            $definition,
+            $options['replace'] ?? false,
+            $options['materialized'] ?? false,
+        );
+
+        $action = new Action\CreateView($this->table, $view);
+        $this->actions->addAction($action);
+
+        return $this;
+    }
+
+    /**
+     * Drops a view.
+     *
+     * @param string $viewName View name
+     * @param array<string, mixed> $options View options
+     * @return $this
+     */
+    public function dropView(string $viewName, array $options = [])
+    {
+        $action = new Action\DropView(
+            $this->table,
+            $viewName,
+            $options['materialized'] ?? false,
+        );
+        $this->actions->addAction($action);
+
+        return $this;
+    }
+
+    /**
+     * Creates a trigger on this table.
+     *
+     * @param string $triggerName Trigger name
+     * @param string|array<string> $event Event(s) that fire the trigger (INSERT, UPDATE, DELETE)
+     * @param string $definition Trigger body/definition
+     * @param array<string, mixed> $options Trigger options
+     * @return $this
+     */
+    public function createTrigger(string $triggerName, string|array $event, string $definition, array $options = [])
+    {
+        $trigger = new Table\Trigger(
+            $triggerName,
+            $options['timing'] ?? Table\Trigger::BEFORE,
+            $event,
+            $definition,
+            $options['forEach'] ?? true,
+        );
+
+        $action = new Action\CreateTrigger($this->table, $trigger);
+        $this->actions->addAction($action);
+
+        return $this;
+    }
+
+    /**
+     * Drops a trigger from this table.
+     *
+     * @param string $triggerName Trigger name
+     * @return $this
+     */
+    public function dropTrigger(string $triggerName)
+    {
+        $action = new Action\DropTrigger($this->table, $triggerName);
+        $this->actions->addAction($action);
+
+        return $this;
+    }
+
+    /**
      * Executes all the pending actions for this table
      *
      * @param bool $exists Whether the table existed prior to executing this method
@@ -856,13 +1157,125 @@ class Table
             }
         }
 
+        // If table exists and has partition configuration, create SetPartitioning action
+        if ($exists) {
+            $partition = $this->table->getPartition();
+            if ($partition instanceof Partition && $partition->getDefinitions()) {
+                $this->actions->addAction(new SetPartitioning($this->table, $partition));
+            }
+        }
+
         // If the table does not exist, the last command in the chain needs to be
-        // a CreateTable action.
+        // a CreateTable action - unless we're ONLY creating views/triggers.
         if (!$exists) {
-            $this->actions->addAction(new CreateTable($this->table));
+            $actions = $this->actions->getActions();
+            $hasTableActions = false;
+            $hasViewOrTriggerActions = false;
+
+            foreach ($actions as $action) {
+                if (
+                    $action instanceof CreateView
+                    || $action instanceof DropView
+                    || $action instanceof CreateTrigger
+                    || $action instanceof DropTrigger
+                ) {
+                    $hasViewOrTriggerActions = true;
+                } else {
+                    $hasTableActions = true;
+                }
+            }
+
+            // Only skip CreateTable if we have ONLY view/trigger actions (and at least one)
+            if (!$hasViewOrTriggerActions || $hasTableActions || $actions === []) {
+                $this->actions->addAction(new CreateTable($this->table));
+            }
         }
 
         $plan = new Plan($this->actions);
         $plan->execute($this->getAdapter());
+    }
+
+    /**
+     * Merges existing column options with new options.
+     * Only attributes that are explicitly specified in the new options will override existing ones.
+     *
+     * @param \Migrations\Db\Table\Column $existingColumn Existing column definition
+     * @param string $newColumnType New column type
+     * @param array<string, mixed> $options New options
+     * @return array<string, mixed> Merged options
+     */
+    protected function mergeColumnOptions(Column $existingColumn, string $newColumnType, array $options): array
+    {
+        // Determine if type is changing
+        $newTypeString = $newColumnType;
+        $existingTypeString = $existingColumn->getType();
+        $typeChanging = $newTypeString !== $existingTypeString;
+
+        // Build array of existing column attributes
+        $existingOptions = [];
+
+        // Only preserve limit if type is not changing or limit is not explicitly set
+        if (!$typeChanging && !array_key_exists('limit', $options) && !array_key_exists('length', $options)) {
+            $limit = $existingColumn->getLimit();
+            if ($limit !== null) {
+                $existingOptions['limit'] = $limit;
+            }
+        }
+
+        // Preserve default if not explicitly set
+        if (!array_key_exists('default', $options)) {
+            $existingOptions['default'] = $existingColumn->getDefault();
+        }
+
+        // Preserve null if not explicitly set
+        if (!isset($options['null'])) {
+            $existingOptions['null'] = $existingColumn->getNull();
+        }
+
+        // Preserve scale/precision if not explicitly set
+        if (!array_key_exists('scale', $options) && !array_key_exists('precision', $options)) {
+            $scale = $existingColumn->getScale();
+            if ($scale !== null) {
+                $existingOptions['scale'] = $scale;
+            }
+            $precision = $existingColumn->getPrecision();
+            if ($precision !== null) {
+                $existingOptions['precision'] = $precision;
+            }
+        }
+
+        // Preserve comment if not explicitly set
+        if (!array_key_exists('comment', $options)) {
+            $comment = $existingColumn->getComment();
+            if ($comment !== null) {
+                $existingOptions['comment'] = $comment;
+            }
+        }
+
+        // Preserve signed if not explicitly set (always has a value)
+        if (!isset($options['signed'])) {
+            $existingOptions['signed'] = $existingColumn->getSigned();
+        }
+
+        // Preserve collation if not explicitly set
+        if (!isset($options['collation'])) {
+            $collation = $existingColumn->getCollation();
+            if ($collation !== null) {
+                $existingOptions['collation'] = $collation;
+            }
+        }
+
+        // Preserve encoding if not explicitly set
+        if (!isset($options['encoding'])) {
+            $encoding = $existingColumn->getEncoding();
+            if ($encoding !== null) {
+                $existingOptions['encoding'] = $encoding;
+            }
+        }
+
+        // Note: enum/set values are not preserved as schema reflection doesn't populate them
+
+        // New options override existing ones
+        return array_merge($existingOptions, $options);
     }
 }

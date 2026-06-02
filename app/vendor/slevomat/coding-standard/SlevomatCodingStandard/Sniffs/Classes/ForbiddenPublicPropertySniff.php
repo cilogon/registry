@@ -4,6 +4,7 @@ namespace SlevomatCodingStandard\Sniffs\Classes;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
+use SlevomatCodingStandard\Helpers\AttributeHelper;
 use SlevomatCodingStandard\Helpers\ClassHelper;
 use SlevomatCodingStandard\Helpers\PropertyHelper;
 use SlevomatCodingStandard\Helpers\StringHelper;
@@ -40,11 +41,7 @@ final class ForbiddenPublicPropertySniff implements Sniff
 		return TokenHelper::PROPERTY_MODIFIERS_TOKEN_CODES;
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $pointer
-	 */
-	public function process(File $phpcsFile, $pointer): void
+	public function process(File $phpcsFile, int $pointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -59,13 +56,17 @@ final class ForbiddenPublicPropertySniff implements Sniff
 			return;
 		}
 
-		// Ignore other class members with same mofidiers
+		// Ignore other class members with same modifiers
 		$propertyPointer = TokenHelper::findNext($phpcsFile, [T_VARIABLE, T_CONST, T_FUNCTION, T_CLASS], $pointer + 1);
 		if (
 			$propertyPointer === null
 			|| $tokens[$propertyPointer]['code'] !== T_VARIABLE
 			|| !PropertyHelper::isProperty($phpcsFile, $propertyPointer, $this->checkPromoted)
 		) {
+			return;
+		}
+
+		if (AttributeHelper::hasAttribute($phpcsFile, $propertyPointer, '\Override')) {
 			return;
 		}
 

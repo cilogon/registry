@@ -29,6 +29,7 @@ use function Cake\Core\h;
  *
  * @property \Cake\View\Helper\UrlHelper $Url
  * @link https://book.cakephp.org/5/en/views/helpers/html.html
+ * @extends \Cake\View\Helper<\Cake\View\View>
  */
 class HtmlHelper extends Helper
 {
@@ -76,9 +77,7 @@ class HtmlHelper extends Helper
             'ol' => '<ol{{attrs}}>{{content}}</ol>',
             'li' => '<li{{attrs}}>{{content}}</li>',
             'javascriptblock' => '<script{{attrs}}>{{content}}</script>',
-            'javascriptstart' => '<script>',
             'javascriptlink' => '<script src="{{url}}"{{attrs}}></script>',
-            'javascriptend' => '</script>',
             'confirmJs' => '{{confirm}}',
         ],
     ];
@@ -189,13 +188,6 @@ class HtmlHelper extends Helper
             } else {
                 $options['link'] = $this->Url->assetUrl($options['link']);
             }
-            if (isset($options['rel']) && $options['rel'] === 'icon') {
-                $out = $this->formatTemplate('metalink', [
-                    'url' => $options['link'],
-                    'attrs' => $this->templater()->formatAttributes($options, ['block', 'link']),
-                ]);
-                $options['rel'] = 'shortcut icon';
-            }
             $out .= $this->formatTemplate('metalink', [
                 'url' => $options['link'],
                 'attrs' => $this->templater()->formatAttributes($options, ['block', 'link']),
@@ -232,7 +224,7 @@ class HtmlHelper extends Helper
         }
 
         return $this->formatTemplate('charset', [
-            'charset' => !empty($charset) ? $charset : 'utf-8',
+            'charset' => $charset ?: 'utf-8',
         ]);
     }
 
@@ -325,7 +317,7 @@ class HtmlHelper extends Helper
      * @param array<string, mixed> $options Array of options and HTML attributes.
      * @return string An `<a>` element.
      * @see \Cake\Routing\Router::pathUrl()
-     * @link https://book.cakephp.org/5/en/views/helpers/html.html#creating-links
+     * @link https://book.cakephp.org/5/en/views/helpers/html.html#creating-links-from-route-paths
      */
     public function linkFromPath(string $title, string $path, array $params = [], array $options = []): string
     {
@@ -657,6 +649,10 @@ class HtmlHelper extends Helper
     public function scriptEnd(): ?string
     {
         $buffer = (string)ob_get_clean();
+        preg_match('/^\s*<script>(.*?)<\/script>\s*$/s', $buffer, $matches);
+        if ($matches) {
+            $buffer = $matches[1];
+        }
         $options = $this->_scriptBlockOptions;
         $this->_scriptBlockOptions = [];
 
@@ -1059,6 +1055,7 @@ class HtmlHelper extends Helper
      *  Or an array where each item itself can be a path string or an associate array containing keys `src` and `type`
      * @param array<string, mixed> $options Array of HTML attributes, and special options above.
      * @return string Generated media element
+     * @link https://book.cakephp.org/5/en/views/helpers/html.html#linking-to-videos-and-audio-files
      */
     public function media(array|string|null $path, array $options = []): string
     {

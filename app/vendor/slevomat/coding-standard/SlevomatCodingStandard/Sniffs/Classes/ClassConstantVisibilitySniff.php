@@ -36,11 +36,7 @@ class ClassConstantVisibilitySniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $constantPointer
-	 */
-	public function process(File $phpcsFile, $constantPointer): void
+	public function process(File $phpcsFile, int $constantPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -50,7 +46,7 @@ class ClassConstantVisibilitySniff implements Sniff
 
 		/** @var int $classPointer */
 		$classPointer = array_keys($tokens[$constantPointer]['conditions'])[count($tokens[$constantPointer]['conditions']) - 1];
-		if (!in_array($tokens[$classPointer]['code'], Tokens::$ooScopeTokens, true)) {
+		if (!in_array($tokens[$classPointer]['code'], Tokens::OO_SCOPE_TOKENS, true)) {
 			return;
 		}
 

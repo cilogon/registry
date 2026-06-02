@@ -182,7 +182,7 @@ class ConsoleInputOption
     }
 
     /**
-     * Generate the help for this this option.
+     * Generate the help for this option.
      *
      * @param int $width The width to make the name of the option.
      * @return string
@@ -300,7 +300,7 @@ class ConsoleInputOption
             $values = array_map('boolval', $values);
         }
 
-        $unwanted = array_filter($values, fn($value) => !in_array($value, $this->_choices, true));
+        $unwanted = array_filter($values, fn(bool|string $value) => !in_array($value, $this->_choices, true));
         if ($unwanted) {
             throw new ConsoleException(
                 sprintf(

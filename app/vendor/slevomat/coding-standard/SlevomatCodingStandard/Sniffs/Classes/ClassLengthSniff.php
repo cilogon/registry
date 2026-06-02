@@ -29,14 +29,10 @@ class ClassLengthSniff implements Sniff
 	 */
 	public function register(): array
 	{
-		return array_values(Tokens::$ooScopeTokens);
+		return array_values(Tokens::OO_SCOPE_TOKENS);
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $pointer
-	 */
-	public function process(File $phpcsFile, $pointer): void
+	public function process(File $phpcsFile, int $pointer): void
 	{
 		$this->maxLinesLength = SniffSettingsHelper::normalizeInteger($this->maxLinesLength);
 		$flags = array_keys(array_filter([

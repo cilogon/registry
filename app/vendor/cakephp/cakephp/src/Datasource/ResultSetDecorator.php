@@ -23,8 +23,10 @@ use Cake\Core\Configure;
  * Generic ResultSet decorator. This will make any traversable object appear to
  * be a database result
  *
- * @template T
- * @implements \Cake\Datasource\ResultSetInterface<T>
+ * @template TKey
+ * @template TValue
+ * @extends \Cake\Collection\Collection<TKey, TValue>
+ * @implements \Cake\Datasource\ResultSetInterface<TKey, TValue>
  */
 class ResultSetDecorator extends Collection implements ResultSetInterface
 {

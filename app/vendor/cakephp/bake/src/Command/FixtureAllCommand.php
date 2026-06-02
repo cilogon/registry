@@ -44,7 +44,7 @@ class FixtureAllCommand extends BakeCommand
      * @param \Cake\Console\ConsoleOptionParser $parser The parser to update
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $parser = $this->_setCommonOptions($parser);
 
@@ -83,7 +83,7 @@ class FixtureAllCommand extends BakeCommand
         $this->extractCommonProperties($args);
 
         /** @var \Cake\Database\Connection $connection */
-        $connection = ConnectionManager::get($args->getOption('connection') ?? 'default');
+        $connection = ConnectionManager::get((string)($args->getOption('connection') ?: 'default'));
         $scanner = new TableScanner($connection);
         $fixture = new FixtureCommand();
 

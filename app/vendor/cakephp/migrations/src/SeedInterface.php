@@ -15,8 +15,6 @@ use Migrations\Db\Table;
 
 /**
  * Seed interface
- *
- * Implements the same API as Phinx's SeedInterface does but with migrations classes.
  */
 interface SeedInterface
 {
@@ -145,6 +143,47 @@ interface SeedInterface
     public function insert(string $tableName, array $data): void;
 
     /**
+     * Insert data into a table, skipping rows that would cause duplicate key conflicts.
+     *
+     * This method is idempotent and safe to run multiple times.
+     * Uses INSERT IGNORE (MySQL), ON CONFLICT DO NOTHING (PostgreSQL),
+     * or INSERT OR IGNORE (SQLite).
+     *
+     * @param string $tableName Table name
+     * @param array $data Data
+     * @return void
+     */
+    public function insertOrSkip(string $tableName, array $data): void;
+
+    /**
+     * Insert data into a table, updating specified columns on duplicate key conflicts.
+     *
+     * This method performs an "upsert" operation - inserting new rows and updating
+     * existing rows that conflict on the specified unique columns.
+     *
+     * ### Database-specific behavior:
+     *
+     * - **MySQL**: Uses `ON DUPLICATE KEY UPDATE`. The `$conflictColumns` parameter is
+     *   ignored because MySQL automatically applies the update to all unique constraint
+     *   violations. Passing `$conflictColumns` will trigger a warning.
+     *
+     * - **PostgreSQL/SQLite**: Uses `ON CONFLICT (...) DO UPDATE SET`. The `$conflictColumns`
+     *   parameter is required and must specify the columns that have a unique constraint.
+     *   A RuntimeException will be thrown if this parameter is empty.
+     *
+     * - **SQL Server**: Not currently supported. Use separate insert/update logic.
+     *
+     * @param string $tableName Table name
+     * @param array $data Data
+     * @param array<string> $updateColumns Columns to update when a conflict occurs
+     * @param array<string> $conflictColumns Columns that define uniqueness. Required for PostgreSQL/SQLite,
+     *   ignored by MySQL (triggers warning if provided).
+     * @return void
+     * @throws \RuntimeException When using PostgreSQL or SQLite without specifying conflictColumns
+     */
+    public function insertOrUpdate(string $tableName, array $data, array $updateColumns, array $conflictColumns): void;
+
+    /**
      * Checks to see if a table exists.
      *
      * @param string $tableName Table name
@@ -173,6 +212,20 @@ interface SeedInterface
      * @return bool
      */
     public function shouldExecute(): bool;
+
+    /**
+     * Checks if this seed is idempotent (can run multiple times safely).
+     *
+     * Returns false by default, meaning the seed will be tracked and only run once.
+     *
+     * If you return true, the seed will run every time it is invoked.
+     * The last execution time is still tracked in the cake_seeds table.
+     * Make sure your seed is truly idempotent (handles duplicate data safely)
+     * before returning true.
+     *
+     * @return bool
+     */
+    public function isIdempotent(): bool;
 
     /**
      * Gives the ability to a seeder to call another seeder.

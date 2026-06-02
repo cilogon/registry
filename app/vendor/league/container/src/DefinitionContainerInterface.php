@@ -11,10 +11,14 @@ use Psr\Container\ContainerInterface;
 
 interface DefinitionContainerInterface extends ContainerInterface
 {
-    public function add(string $id, $concrete = null): DefinitionInterface;
+    public function add(string $id, mixed $concrete = null, bool $overwrite = false): DefinitionInterface;
     public function addServiceProvider(ServiceProviderInterface $provider): self;
-    public function addShared(string $id, $concrete = null): DefinitionInterface;
+    public function addShared(string $id, mixed $concrete = null, bool $overwrite = false): DefinitionInterface;
     public function extend(string $id): DefinitionInterface;
-    public function getNew($id);
+    public function getNew(string $id): mixed;
+
+    /**
+     * @deprecated Use event system instead. This method will be removed in v6.0
+     */
     public function inflector(string $type, ?callable $callback = null): InflectorInterface;
 }

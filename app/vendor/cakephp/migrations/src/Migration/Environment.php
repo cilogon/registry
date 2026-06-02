@@ -14,14 +14,10 @@ use Migrations\Db\Adapter\AdapterFactory;
 use Migrations\Db\Adapter\AdapterInterface;
 use Migrations\MigrationInterface;
 use Migrations\SeedInterface;
-use Migrations\Shim\MigrationAdapter;
 use RuntimeException;
 
 class Environment
 {
-    /**
-     * @var string
-     */
     protected string $name;
 
     /**
@@ -29,24 +25,12 @@ class Environment
      */
     protected array $options;
 
-    /**
-     * @var \Cake\Console\ConsoleIo|null
-     */
     protected ?ConsoleIo $io = null;
 
-    /**
-     * @var int
-     */
     protected int $currentVersion;
 
-    /**
-     * @var string
-     */
     protected string $schemaTableName = 'phinxlog';
 
-    /**
-     * @var \Migrations\Db\Adapter\AdapterInterface
-     */
     protected AdapterInterface $adapter;
 
     /**
@@ -74,8 +58,6 @@ class Environment
 
         $startTime = time();
 
-        // Use an adapter shim to bridge between the new migrations
-        // engine and the Phinx compatible interface
         $adapter = $this->getAdapter();
         $migration->setAdapter($adapter);
 
@@ -85,42 +67,35 @@ class Environment
             $migration->{MigrationInterface::INIT}();
         }
 
-        $atomic = $adapter->hasTransactions();
-        if (method_exists($migration, 'useTransactions')) {
-            $atomic = $migration->useTransactions();
-        }
+        $atomic = $migration->useTransactions();
         // begin the transaction if the adapter supports it
         if ($atomic) {
             $adapter->beginTransaction();
         }
 
         if (!$fake) {
-            if ($migration instanceof MigrationAdapter) {
-                $migration->applyDirection($direction);
-            } else {
-                // Run the migration
-                if (method_exists($migration, MigrationInterface::CHANGE)) {
-                    if ($direction === MigrationInterface::DOWN) {
-                        // Create an instance of the RecordingAdapter so we can record all
-                        // of the migration commands for reverse playback
+            // Run the migration
+            if (method_exists($migration, MigrationInterface::CHANGE)) {
+                if ($direction === MigrationInterface::DOWN) {
+                    // Create an instance of the RecordingAdapter so we can record all
+                    // of the migration commands for reverse playback
 
-                        /** @var \Migrations\Db\Adapter\RecordingAdapter $recordAdapter */
-                        $recordAdapter = AdapterFactory::instance()
-                            ->getWrapper('record', $adapter);
+                    /** @var \Migrations\Db\Adapter\RecordingAdapter $recordAdapter */
+                    $recordAdapter = AdapterFactory::instance()
+                        ->getWrapper('record', $adapter);
 
-                        // Wrap the adapter with a phinx shim to maintain contain
-                        $migration->setAdapter($recordAdapter);
+                    // Wrap the adapter with a phinx shim to maintain contain
+                    $migration->setAdapter($recordAdapter);
 
-                        $migration->{MigrationInterface::CHANGE}();
-                        $recordAdapter->executeInvertedCommands();
+                    $migration->{MigrationInterface::CHANGE}();
+                    $recordAdapter->executeInvertedCommands();
 
-                        $migration->setAdapter($this->getAdapter());
-                    } else {
-                        $migration->{MigrationInterface::CHANGE}();
-                    }
+                    $migration->setAdapter($this->getAdapter());
                 } else {
-                    $migration->{$direction}();
+                    $migration->{MigrationInterface::CHANGE}();
                 }
+            } elseif (method_exists($migration, $direction)) {
+                $migration->{$direction}();
             }
         }
 
@@ -156,6 +131,14 @@ class Environment
 
         // Run the seeder
         $seed->{SeedInterface::RUN}();
+
+        // Record the seed execution
+        // For idempotent seeds, remove old record first to update the timestamp
+        if ($seed->isIdempotent()) {
+            $adapter->removeSeedFromLog($seed);
+        }
+        $executedTime = date('Y-m-d H:i:s');
+        $adapter->seedExecuted($seed, $executedTime);
 
         // commit the transaction if the adapter supports it
         if ($atomic) {
@@ -322,7 +305,7 @@ class Environment
 
         // Get the driver classname as those are aligned with adapter names.
         $driver = $connection->getDriver();
-        $driverClass = get_class($driver);
+        $driverClass = $driver::class;
         $driverName = strtolower(substr($driverClass, (int)strrpos($driverClass, '\\') + 1));
         $options['adapter'] = $driverName;
 
@@ -339,7 +322,7 @@ class Environment
         }
 
         $io = $this->getIo();
-        if ($io) {
+        if ($io instanceof ConsoleIo) {
             $adapter->setIo($io);
         }
         $this->setAdapter($adapter);

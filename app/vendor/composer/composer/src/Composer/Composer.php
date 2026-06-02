@@ -51,9 +51,9 @@ class Composer extends PartialComposer
      *
      * @see getVersion()
      */
-    public const VERSION = '2.8.11';
+    public const VERSION = '2.9.8';
     public const BRANCH_ALIAS_VERSION = '';
-    public const RELEASE_DATE = '2025-08-21 11:29:39';
+    public const RELEASE_DATE = '2026-05-13 09:28:38';
     public const SOURCE_VERSION = '';
 
     /**
@@ -88,17 +88,17 @@ class Composer extends PartialComposer
     private $locker;
 
     /**
-     * @var Downloader\DownloadManager
+     * @var DownloadManager
      */
     private $downloadManager;
 
     /**
-     * @var Plugin\PluginManager
+     * @var PluginManager
      */
     private $pluginManager;
 
     /**
-     * @var Autoload\AutoloadGenerator
+     * @var AutoloadGenerator
      */
     private $autoloadGenerator;
 

@@ -28,11 +28,7 @@ class ConstantSpacingSniff extends AbstractPropertyConstantAndEnumCaseSpacing
 		return [T_CONST];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $constantPointer
-	 */
-	public function process(File $phpcsFile, $constantPointer): int
+	public function process(File $phpcsFile, int $constantPointer): int
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -42,7 +38,7 @@ class ConstantSpacingSniff extends AbstractPropertyConstantAndEnumCaseSpacing
 
 		/** @var int $classPointer */
 		$classPointer = array_keys($tokens[$constantPointer]['conditions'])[count($tokens[$constantPointer]['conditions']) - 1];
-		if (!in_array($tokens[$classPointer]['code'], Tokens::$ooScopeTokens, true)) {
+		if (!in_array($tokens[$classPointer]['code'], Tokens::OO_SCOPE_TOKENS, true)) {
 			return $constantPointer;
 		}
 

@@ -16,8 +16,6 @@ declare(strict_types=1);
  */
 namespace Cake\ORM\Association;
 
-use Cake\Database\Exception\DatabaseException;
-use Cake\Database\Expression\IdentifierExpression;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Association;
 use Cake\ORM\Association\Loader\SelectLoader;
@@ -52,11 +50,7 @@ class BelongsTo extends Association
      */
     public function getForeignKey(): array|string|false
     {
-        if (!isset($this->_foreignKey)) {
-            $this->_foreignKey = $this->_modelKey($this->getTarget()->getAlias());
-        }
-
-        return $this->_foreignKey;
+        return $this->_foreignKey ??= $this->_modelKey($this->getTarget()->getAlias());
     }
 
     /**
@@ -154,6 +148,7 @@ class BelongsTo extends Association
             $targetEntity->extract((array)$this->getBindingKey()),
         );
 
+        // @phpstan-ignore function.alreadyNarrowedType (patch method available on EntityInterface)
         if (method_exists($entity, 'patch')) {
             $entity = $entity->patch($properties, ['guard' => false]);
         } else {
@@ -161,47 +156,6 @@ class BelongsTo extends Association
         }
 
         return $entity;
-    }
-
-    /**
-     * Returns a single or multiple conditions to be appended to the generated join
-     * clause for getting the results on the target table.
-     *
-     * @param array<string, mixed> $options list of options passed to attachTo method
-     * @return array<\Cake\Database\Expression\IdentifierExpression>
-     * @throws \Cake\Database\Exception\DatabaseException if the number of columns in the foreignKey do not
-     * match the number of columns in the target table primaryKey
-     */
-    protected function _joinCondition(array $options): array
-    {
-        $conditions = [];
-        $tAlias = $this->_name;
-        $sAlias = $this->_sourceTable->getAlias();
-        $foreignKey = (array)$options['foreignKey'];
-        $bindingKey = (array)$this->getBindingKey();
-
-        if (count($foreignKey) !== count($bindingKey)) {
-            if (!$bindingKey) {
-                $msg = 'The `%s` table does not define a primary key. Please set one.';
-                throw new DatabaseException(sprintf($msg, $this->getTarget()->getTable()));
-            }
-
-            $msg = 'Cannot match provided foreignKey for `%s`, got `(%s)` but expected foreign key for `(%s)`.';
-            throw new DatabaseException(sprintf(
-                $msg,
-                $this->_name,
-                implode(', ', $foreignKey),
-                implode(', ', $bindingKey),
-            ));
-        }
-
-        foreach ($foreignKey as $k => $f) {
-            $field = sprintf('%s.%s', $tAlias, $bindingKey[$k]);
-            $value = new IdentifierExpression(sprintf('%s.%s', $sAlias, $f));
-            $conditions[$field] = $value;
-        }
-
-        return $conditions;
     }
 
     /**

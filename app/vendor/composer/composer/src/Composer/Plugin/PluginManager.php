@@ -134,6 +134,17 @@ class PluginManager
     }
 
     /**
+     * Gets all currently active plugin instances
+     *
+     * @internal
+     * @return array<string> Plugin package names which are currently active
+     */
+    public function getRegisteredPlugins(): array
+    {
+        return array_keys($this->registeredPlugins);
+    }
+
+    /**
      * Gets global composer or null when main composer is not fully loaded
      */
     public function getGlobalComposer(): ?PartialComposer
@@ -156,6 +167,7 @@ class PluginManager
     {
         if ($this->arePluginsDisabled($isGlobalPlugin ? 'global' : 'local')) {
             $this->io->writeError('<warning>The "'.$package->getName().'" plugin was not loaded as plugins are disabled.</warning>');
+
             return;
         }
 

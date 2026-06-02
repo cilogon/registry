@@ -10,166 +10,155 @@ namespace Migrations\Db\Table;
 
 use Cake\Core\Configure;
 use Cake\Database\Expression\QueryExpression;
-use Migrations\Db\Adapter\AdapterInterface;
+use Cake\Database\Schema\Column as DatabaseColumn;
+use Cake\Database\Schema\TableSchemaInterface;
 use Migrations\Db\Adapter\PostgresAdapter;
 use Migrations\Db\Literal;
 use RuntimeException;
 
 /**
  * This object is based loosely on: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html.
+ *
+ * ## Configuration
+ *
+ * The following configuration options can be set in your application's config:
+ *
+ * - `Migrations.unsigned_primary_keys` (bool): When true, identity columns default to unsigned.
+ *   Default: false
+ *
+ * - `Migrations.unsigned_ints` (bool): When true, all integer columns default to unsigned.
+ *   Default: false
+ *
+ * Example configuration in config/app.php:
+ * ```php
+ * 'Migrations' => [
+ *     'unsigned_primary_keys' => true,
+ *     'unsigned_ints' => true,
+ * ]
+ * ```
+ *
+ * Note: Explicitly calling setUnsigned() or setSigned() on a column will override these defaults.
  */
-class Column
+class Column extends DatabaseColumn
 {
-    // TODO use cakephp/database constants instead at next major.
-    public const BIGINTEGER = AdapterInterface::PHINX_TYPE_BIG_INTEGER;
-    public const SMALLINTEGER = AdapterInterface::PHINX_TYPE_SMALL_INTEGER;
-    public const TINYINTEGER = AdapterInterface::PHINX_TYPE_TINY_INTEGER;
-    public const BINARY = AdapterInterface::PHINX_TYPE_BINARY;
-    public const BOOLEAN = AdapterInterface::PHINX_TYPE_BOOLEAN;
-    public const CHAR = AdapterInterface::PHINX_TYPE_CHAR;
-    public const DATE = AdapterInterface::PHINX_TYPE_DATE;
-    public const DATETIME = AdapterInterface::PHINX_TYPE_DATETIME;
-    public const DECIMAL = AdapterInterface::PHINX_TYPE_DECIMAL;
-    public const FLOAT = AdapterInterface::PHINX_TYPE_FLOAT;
-    public const INTEGER = AdapterInterface::PHINX_TYPE_INTEGER;
-    public const STRING = AdapterInterface::PHINX_TYPE_STRING;
-    public const TEXT = AdapterInterface::PHINX_TYPE_TEXT;
-    public const TIME = AdapterInterface::PHINX_TYPE_TIME;
-    public const TIMESTAMP = AdapterInterface::PHINX_TYPE_TIMESTAMP;
-    public const UUID = AdapterInterface::PHINX_TYPE_UUID;
-    public const BINARYUUID = AdapterInterface::PHINX_TYPE_BINARYUUID;
-    public const NATIVEUUID = AdapterInterface::PHINX_TYPE_NATIVEUUID;
+    public const BIGINTEGER = TableSchemaInterface::TYPE_BIGINTEGER;
+
+    public const SMALLINTEGER = TableSchemaInterface::TYPE_SMALLINTEGER;
+
+    public const TINYINTEGER = TableSchemaInterface::TYPE_TINYINTEGER;
+
+    public const BINARY = TableSchemaInterface::TYPE_BINARY;
+
+    public const BOOLEAN = TableSchemaInterface::TYPE_BOOLEAN;
+
+    public const CHAR = TableSchemaInterface::TYPE_CHAR;
+
+    public const DATE = TableSchemaInterface::TYPE_DATE;
+
+    public const DATETIME = TableSchemaInterface::TYPE_DATETIME;
+
+    public const DECIMAL = TableSchemaInterface::TYPE_DECIMAL;
+
+    public const FLOAT = TableSchemaInterface::TYPE_FLOAT;
+
+    public const INTEGER = TableSchemaInterface::TYPE_INTEGER;
+
+    public const STRING = TableSchemaInterface::TYPE_STRING;
+
+    public const TEXT = TableSchemaInterface::TYPE_TEXT;
+
+    public const TIME = TableSchemaInterface::TYPE_TIME;
+
+    public const TIMESTAMP = TableSchemaInterface::TYPE_TIMESTAMP;
+
+    public const UUID = TableSchemaInterface::TYPE_UUID;
+
+    public const BINARYUUID = TableSchemaInterface::TYPE_BINARY_UUID;
+
+    public const NATIVEUUID = TableSchemaInterface::TYPE_NATIVE_UUID;
+
     /** MySQL-only column type */
-    public const MEDIUMINTEGER = AdapterInterface::PHINX_TYPE_MEDIUM_INTEGER;
-    /** MySQL-only column type */
-    public const ENUM = AdapterInterface::PHINX_TYPE_ENUM;
-    /** MySQL-only column type */
-    public const SET = AdapterInterface::PHINX_TYPE_STRING;
-    /** MySQL-only column type */
-    public const BLOB = AdapterInterface::PHINX_TYPE_BLOB;
-    /** MySQL-only column type */
-    public const YEAR = AdapterInterface::PHINX_TYPE_YEAR;
+    public const YEAR = TableSchemaInterface::TYPE_YEAR;
+
     /** MySQL/Postgres-only column type */
-    public const JSON = AdapterInterface::PHINX_TYPE_JSON;
+    public const JSON = TableSchemaInterface::TYPE_JSON;
+
     /** Postgres-only column type */
-    public const JSONB = AdapterInterface::PHINX_TYPE_JSONB;
+    public const CIDR = TableSchemaInterface::TYPE_CIDR;
+
     /** Postgres-only column type */
-    public const CIDR = AdapterInterface::PHINX_TYPE_CIDR;
+    public const INET = TableSchemaInterface::TYPE_INET;
+
     /** Postgres-only column type */
-    public const INET = AdapterInterface::PHINX_TYPE_INET;
+    public const MACADDR = TableSchemaInterface::TYPE_MACADDR;
+
+    /** Postgres-only column type, requires the `citext` extension */
+    public const CITEXT = TableSchemaInterface::TYPE_CITEXT;
+
     /** Postgres-only column type */
-    public const MACADDR = AdapterInterface::PHINX_TYPE_MACADDR;
-    /** Postgres-only column type */
-    public const INTERVAL = AdapterInterface::PHINX_TYPE_INTERVAL;
+    public const INTERVAL = TableSchemaInterface::TYPE_INTERVAL;
 
-    /**
-     * @var string
-     */
-    protected string $name = '';
-
-    /**
-     * @var string|\Migrations\Db\Literal
-     */
-    protected string|Literal $type;
-
-    /**
-     * @var int|null
-     */
-    protected ?int $limit = null;
-
-    /**
-     * @var bool
-     */
-    protected bool $null = true;
-
-    /**
-     * @var mixed
-     */
-    protected mixed $default = null;
-
-    /**
-     * @var bool
-     */
-    protected bool $identity = false;
-
-    /**
-     * Postgres-only column option for identity (always|default)
-     *
-     * @var ?string
-     */
-    protected ?string $generated = PostgresAdapter::GENERATED_BY_DEFAULT;
-
-    /**
-     * @var int|null
-     */
     protected ?int $seed = null;
 
-    /**
-     * @var int|null
-     */
-    protected ?int $increment = null;
-
-    /**
-     * @var int|null
-     */
     protected ?int $scale = null;
 
-    /**
-     * @var string|null
-     */
-    protected ?string $after = null;
-
-    /**
-     * @var string|null
-     */
     protected ?string $update = null;
 
-    /**
-     * @var string|null
-     */
-    protected ?string $comment = null;
-
-    /**
-     * @var bool
-     */
-    protected bool $signed = true;
-
-    /**
-     * @var bool
-     */
     protected bool $timezone = false;
 
-    /**
-     * @var array
-     */
     protected array $properties = [];
 
-    /**
-     * @var string|null
-     */
     protected ?string $collation = null;
 
-    /**
-     * @var string|null
-     */
-    protected ?string $encoding = null;
-
-    /**
-     * @var int|null
-     */
-    protected ?int $srid = null;
-
-    /**
-     * @var array|null
-     */
     protected ?array $values = null;
+
+    protected ?string $algorithm = null;
+
+    protected ?string $lock = null;
+
+    protected ?bool $fixed = null;
 
     /**
      * Column constructor
+     *
+     * @param string $name The name of the column.
+     * @param string $type The type of the column.
+     * @param bool|null $null Whether the column allows nulls.
+     * @param mixed $default The default value for the column.
+     * @param int|null $length The length of the column.
+     * @param bool $identity Whether the column is an identity column.
+     * @param string|null $generated Postgres-only generated option for identity columns (always|default).
+     * @param int|null $precision The precision for decimal columns.
+     * @param int|null $increment The increment for identity columns.
+     * @param string|null $after The column to add this column after.
+     * @param string|null $onUpdate The ON UPDATE function for the column.
+     * @param string|null $comment The comment for the column.
+     * @param bool|null $unsigned Whether the column is unsigned.
+     * @param string|null $collate The collation for the column.
+     * @param int|null $srid The SRID for spatial columns.
+     * @param string|null $encoding The character set encoding for the column.
+     * @param string|null $baseType The base type for the column.
      */
-    public function __construct()
-    {
-        $this->null = (bool)Configure::read('Migrations.column_null_default');
+    public function __construct(
+        protected string $name = '',
+        protected string $type = '',
+        protected ?bool $null = null,
+        protected mixed $default = null,
+        protected ?int $length = null,
+        protected bool $identity = false,
+        protected ?string $generated = PostgresAdapter::GENERATED_BY_DEFAULT,
+        protected ?int $precision = null,
+        protected ?int $increment = null,
+        protected ?string $after = null,
+        protected ?string $onUpdate = null,
+        protected ?string $comment = null,
+        protected ?bool $unsigned = null,
+        protected ?string $collate = null,
+        protected ?int $srid = null,
+        protected ?string $encoding = null,
+        protected ?string $baseType = null,
+    ) {
+        $this->null = $null ?? (bool)Configure::read('Migrations.column_null_default');
     }
 
     /**
@@ -188,34 +177,14 @@ class Column
     /**
      * Gets the column name.
      *
-     * @return string|null
+     * Narrows the return type from the parent's ?string to string,
+     * since $name is typed as string (not ?string) in this class.
+     *
+     * @return string
      */
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * Sets the column type.
-     *
-     * @param string|\Migrations\Db\Literal $type Column type
-     * @return $this
-     */
-    public function setType(string|Literal $type)
-    {
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * Gets the column type.
-     *
-     * @return string|\Migrations\Db\Literal
-     */
-    public function getType(): string|Literal
-    {
-        return $this->type;
     }
 
     /**
@@ -223,10 +192,11 @@ class Column
      *
      * @param int|null $limit Limit
      * @return $this
+     * @deprecated 5.0 Use setLength() instead.
      */
     public function setLimit(?int $limit)
     {
-        $this->limit = $limit;
+        $this->length = $limit;
 
         return $this;
     }
@@ -235,10 +205,11 @@ class Column
      * Gets the column limit.
      *
      * @return int|null
+     * @deprecated 5.0 Use getLength() instead.
      */
     public function getLimit(): ?int
     {
-        return $this->limit;
+        return $this->length;
     }
 
     /**
@@ -261,7 +232,7 @@ class Column
      */
     public function getNull(): bool
     {
-        return $this->null;
+        return $this->null ?? false;
     }
 
     /**
@@ -422,10 +393,11 @@ class Column
      * and the column could store value from -999.99 to 999.99.
      *
      * @return int|null
+     * @deprecated 5.0 Use getLength() instead.
      */
     public function getPrecision(): ?int
     {
-        return $this->limit;
+        return $this->length;
     }
 
     /**
@@ -545,14 +517,67 @@ class Column
     }
 
     /**
+     * Gets whether field should be unsigned.
+     *
+     * Checks configuration options to determine unsigned behavior:
+     * - If explicitly set via setUnsigned/setSigned, uses that value
+     * - If identity column and Migrations.unsigned_primary_keys is true, returns true
+     * - If integer type and Migrations.unsigned_ints is true, returns true
+     * - Otherwise defaults to false (signed)
+     *
+     * @return bool
+     */
+    public function getUnsigned(): bool
+    {
+        // If explicitly set, use that value
+        if ($this->unsigned !== null) {
+            return $this->unsigned;
+        }
+
+        $integerTypes = [
+            self::INTEGER,
+            self::BIGINTEGER,
+            self::SMALLINTEGER,
+            self::TINYINTEGER,
+        ];
+
+        // Only apply configuration to integer types
+        if (!in_array($this->type, $integerTypes, true)) {
+            return false;
+        }
+
+        // Check if this is a primary key/identity column
+        if ($this->identity && Configure::read('Migrations.unsigned_primary_keys')) {
+            return true;
+        }
+        // Check general integer configuration
+        // Default to signed for backward compatibility
+        return (bool)Configure::read('Migrations.unsigned_ints');
+    }
+
+    /**
+     * Sets whether field should be unsigned.
+     *
+     * @param bool $unsigned Unsigned
+     * @return $this
+     */
+    public function setUnsigned(bool $unsigned)
+    {
+        $this->unsigned = $unsigned;
+
+        return $this;
+    }
+
+    /**
      * Sets whether field should be signed.
      *
      * @param bool $signed Signed
      * @return $this
+     * @deprecated 5.0 Use setUnsigned() instead.
      */
     public function setSigned(bool $signed)
     {
-        $this->signed = $signed;
+        $this->unsigned = !$signed;
 
         return $this;
     }
@@ -561,20 +586,11 @@ class Column
      * Gets whether field should be signed.
      *
      * @return bool
+     * @deprecated 5.0 Use getUnsigned() instead.
      */
     public function getSigned(): bool
     {
-        return $this->signed;
-    }
-
-    /**
-     * Should the column be signed?
-     *
-     * @return bool
-     */
-    public function isSigned(): bool
-    {
-        return $this->getSigned();
+        return !$this->isUnsigned();
     }
 
     /**
@@ -665,10 +681,11 @@ class Column
      *
      * @param string $collation Collation
      * @return $this
+     * @deprecated 5.0 Use setCollate() instead.
      */
     public function setCollation(string $collation)
     {
-        $this->collation = $collation;
+        $this->collate = $collation;
 
         return $this;
     }
@@ -677,10 +694,11 @@ class Column
      * Gets the column collation.
      *
      * @return string|null
+     * @deprecated 5.0 Use getCollate() instead.
      */
     public function getCollation(): ?string
     {
-        return $this->collation;
+        return $this->collate;
     }
 
     /**
@@ -707,26 +725,74 @@ class Column
     }
 
     /**
-     * Sets the column SRID.
+     * Sets the ALTER TABLE algorithm (MySQL-specific).
      *
-     * @param int $srid SRID
+     * @param string $algorithm Algorithm
      * @return $this
      */
-    public function setSrid(int $srid)
+    public function setAlgorithm(string $algorithm)
     {
-        $this->srid = $srid;
+        $this->algorithm = $algorithm;
 
         return $this;
     }
 
     /**
-     * Gets the column SRID.
+     * Gets the ALTER TABLE algorithm.
      *
-     * @return int|null
+     * @return string|null
      */
-    public function getSrid(): ?int
+    public function getAlgorithm(): ?string
     {
-        return $this->srid;
+        return $this->algorithm;
+    }
+
+    /**
+     * Sets the ALTER TABLE lock mode (MySQL-specific).
+     *
+     * @param string $lock Lock mode
+     * @return $this
+     */
+    public function setLock(string $lock)
+    {
+        $this->lock = $lock;
+
+        return $this;
+    }
+
+    /**
+     * Gets the ALTER TABLE lock mode.
+     *
+     * @return string|null
+     */
+    public function getLock(): ?string
+    {
+        return $this->lock;
+    }
+
+    /**
+     * Sets whether field should use fixed-length storage (for binary columns).
+     *
+     * When true, binary columns will use BINARY(n) instead of VARBINARY(n).
+     *
+     * @param bool|null $fixed Fixed
+     * @return $this
+     */
+    public function setFixed(?bool $fixed)
+    {
+        $this->fixed = $fixed;
+
+        return $this;
+    }
+
+    /**
+     * Gets whether field should use fixed-length storage.
+     *
+     * @return bool|null
+     */
+    public function getFixed(): ?bool
+    {
+        return $this->fixed;
     }
 
     /**
@@ -746,15 +812,20 @@ class Column
             'update',
             'comment',
             'signed',
+            'unsigned',
             'timezone',
             'properties',
             'values',
             'collation',
+            'collate',
             'encoding',
             'srid',
             'seed',
             'increment',
             'generated',
+            'algorithm',
+            'lock',
+            'fixed',
         ];
     }
 
@@ -769,6 +840,7 @@ class Column
             'length' => 'limit',
             'precision' => 'limit',
             'autoIncrement' => 'identity',
+            'collation' => 'collate',
         ];
     }
 
@@ -844,7 +916,9 @@ class Column
             'length' => $length,
             'null' => $this->getNull(),
             'default' => $default,
-            'unsigned' => !$this->getSigned(),
+            'generated' => $this->getGenerated(),
+            'unsigned' => $this->getUnsigned(),
+            'fixed' => $this->getFixed(),
             'onUpdate' => $this->getUpdate(),
             'collate' => $this->getCollation(),
             'precision' => $precision,
@@ -852,6 +926,7 @@ class Column
             'timezone' => $this->getTimezone(),
             'comment' => $this->getComment(),
             'autoIncrement' => $this->getIdentity(),
+            'values' => $this->getValues(),
         ];
     }
 }

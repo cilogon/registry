@@ -80,16 +80,13 @@ class RoutesCommand extends Command
             $output[] = $item;
 
             foreach ($methods as $method) {
-                if (!isset($duplicateRoutesCounter[$route->template][$method])) {
-                    $duplicateRoutesCounter[$route->template][$method] = 0;
-                }
-
+                $duplicateRoutesCounter[$route->template][$method] ??= 0;
                 $duplicateRoutesCounter[$route->template][$method]++;
             }
         }
 
         if ($args->getOption('sort')) {
-            usort($output, function ($a, $b) {
+            usort($output, function (array $a, array $b) {
                 return strcasecmp($a[0], $b[0]);
             });
         }

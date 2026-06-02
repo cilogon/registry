@@ -61,7 +61,7 @@ class EventManager implements EventManagerInterface
     /**
      * The event list object.
      *
-     * @var \Cake\Event\EventList|null
+     * @var \Cake\Event\EventList<object>|null
      */
     protected ?EventList $_eventList = null;
 
@@ -424,7 +424,7 @@ class EventManager implements EventManagerInterface
     /**
      * Returns the event list.
      *
-     * @return \Cake\Event\EventList|null
+     * @return \Cake\Event\EventList<object>|null
      */
     public function getEventList(): ?EventList
     {
@@ -471,7 +471,7 @@ class EventManager implements EventManagerInterface
     /**
      * Enables the listing of dispatched events.
      *
-     * @param \Cake\Event\EventList $eventList The event list object to use.
+     * @param \Cake\Event\EventList<object> $eventList The event list object to use.
      * @return $this
      */
     public function setEventList(EventList $eventList)
@@ -512,12 +512,8 @@ class EventManager implements EventManagerInterface
             }
             $properties['_listeners'][$key] = $listenerCount . ' listener(s)';
         }
-        if ($this->_eventList) {
-            $count = count($this->_eventList);
-            for ($i = 0; $i < $count; $i++) {
-                assert(!empty($this->_eventList[$i]), 'Given event item not present');
-
-                $event = $this->_eventList[$i];
+        if ($this->_eventList !== null) {
+            foreach ($this->_eventList as $event) {
                 try {
                     $subject = $event->getSubject();
                     $properties['_dispatchedEvents'][] = $event->getName() . ' with subject ' . $subject::class;

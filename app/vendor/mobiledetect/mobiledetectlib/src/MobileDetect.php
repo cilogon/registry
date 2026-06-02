@@ -19,7 +19,7 @@
  * @author  Nick Ilyin <nick.ilyin@gmail.com>
  * @author: Victor Stanciu <vic.stanciu@gmail.com> (original author)
  *
- * @version 4.8.09
+ * @version 4.10.0
  */
 
 declare(strict_types=1);
@@ -29,10 +29,11 @@ namespace Detection;
 use BadMethodCallException;
 use Detection\Cache\Cache;
 use Detection\Cache\CacheException;
+use Detection\Cache\CacheInvalidArgumentException;
 use Detection\Exception\MobileDetectException;
-use Psr\Cache\CacheItemInterface;
-use Psr\Cache\InvalidArgumentException;
+use Detection\Exception\MobileDetectExceptionCode;
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException as PsrInvalidArgumentException;
 
 /**
  * Auto-generated isXXXX() magic methods.
@@ -241,7 +242,7 @@ class MobileDetect
     /**
      * Stores the version number of the current release.
      */
-    protected string $VERSION = '4.8.09';
+    protected string $VERSION = '4.10.0';
 
     protected array $config = [
         // Auto-initialization on HTTP headers from $_SERVER['HTTP...']
@@ -268,12 +269,12 @@ class MobileDetect
     /**
      * A type for the version() method indicating a string return value.
      */
-    private const VERSION_TYPE_STRING = 'text';
+    public const VERSION_TYPE_STRING = 'text';
 
     /**
      * A type for the version() method indicating a float return value.
      */
-    private const VERSION_TYPE_FLOAT = 'float';
+    public const VERSION_TYPE_FLOAT = 'float';
 
     /**
      * The User-Agent HTTP header is stored in here.
@@ -500,9 +501,12 @@ class MobileDetect
         // https://en.wikipedia.org/wiki/Pixel_C
         'GoogleTablet'           => 'Android.*Pixel C',
         'SamsungTablet'     => [
+            'SM-X926B|SM-X620|SM-X526B|SM-X520|SM-X626B|SM-X920|SM-X820|SM-X826B|SM-P625|SM-P620|SM-X306B|SM-T730|SM-T976B|SM-T875|SM-T575|SM-T545',
+            'SM-X210R|SM-X216R|SM-X356B|SM-T860X|SM-T636B|SM-T509|SM-T503|SM-T720X|SM-T570|SM-T540|SM-T510X|SM-T830X|SM-T820X|SM-T710X|SM-T810X|SM-T365|SM-T550X|SM-T116',
             'SM-X616B|SM-X610|SM-X516B|SM-X910|SM-X916B|SM-X816B|SM-X810|SM-X710|SM-X716B|SM-X510|SM-P619|SM-T225|SM-T225N|SM-T736B|SM-T505|SM-T733|SM-X205|SM-X210|SM-X216B',
             'SM-X700|SM-X706|SM-X706B|SM-X706U|SM-X706N|SM-X800|SM-X806|SM-X806B|SM-X806U|SM-X806N|SM-X900|SM-X906|SM-X906B|SM-X906U|SM-X906N|SM-P613|SM-X110|SM-X115',
             'SM-T970|SM-T380|SM-T5950|SM-T905|SM-T231|SM-T500|SM-T860|SM-T536|SM-T837A|SM-X200|SM-T220|SM-T870|SM-X906C', // SCH-P709|SCH-P729|SM-T2558|GT-I9205 - Samsung Mega - treat them like a regular phone.
+            'SM-X930|SM-X930N|SM-X936B|SM-X936N|SM-X730|SM-X736|SM-X736B|SM-X400|SM-X406|SM-X406B|SM-X230|SM-X236B|SM-X133|SM-X135|SM-X135F',
             'SM-T815Y|SM-T585|SM-T285|SM-T825|SM-W708|SM-T835|SM-T830|SM-T837V|SM-T720|SM-T510|SM-T387V|SM-P610|SM-T290|SM-T515|SM-T590|SM-T595|SM-T725|SM-T817P|SM-P585N0|SM-T395|SM-T295|SM-T865|SM-P610N|SM-P615',
             'SM-T560|SM-T670|SM-T677|SM-T377|SM-T567|SM-T357T|SM-T555|SM-T561|SM-T713|SM-T719|SM-T813|SM-T819|SM-T580|SM-T355Y?|SM-T280|SM-T817A|SM-T820|SM-W700|SM-P580|SM-T587|SM-P350|SM-P555M|SM-P355M|SM-T113NU',
             'SM-T807P|SM-P607T|SM-T217T|SM-T337T|SM-T807T|SM-T116NQ|SM-T116BU|SM-P550|SM-T350|SM-T550|SM-T9000|SM-P9000|SM-T705Y|SM-T805|GT-P3113|SM-T710|SM-T810|SM-T815|SM-T360|SM-T533|SM-T113|SM-T335|SM-T715',
@@ -560,7 +564,7 @@ class MobileDetect
             'TB-X704L|TB-J606F|TB-X606F|TB-X306X|YT-J706X|TB128FU',
             'YT3-X50M|YT-X705F|YT-X703F|YT-X703L|YT-X705L|YT-X705X|TB2-X30F|TB2-X30L|TB2-X30M|A2107A-F|A2107A-H|TB3-730F|TB3-730M|TB3-730X|TB-7504F|TB-7504X|TB-X704F|TB-X104F|TB3-X70F|TB-X705F|TB-8504F|TB3-X70L|TB3-710F',
             'TB-X103F|TB-X304X|TB-X304F|TB-X304L|TB-X505F|TB-X505L|TB-X505X|TB-X605F|TB-X605L|TB-8703F|TB-8703X|TB-8703N|TB-8704N|TB-8704F|TB-8704X|TB-8704V|TB-7304F|TB-7304I|TB-7304X|Tab2A7-10F|Tab2A7-20F|TB2-X30L|YT3-X50L|YT3-X50F',
-            'Lenovo TAB|Idea(Tab|Pad)( A1|A10| K1|)|ThinkPad([ ]+)?Tablet|YT3-850M|YT3-X90L|YT3-X90F|YT3-X90X|Lenovo.*(S2109|S2110|S5000|S6000|K3011|A3000|A3500|A1000|A2107|A2109|A1107|A5500|A7600|B6000|B8000|B8080)(-|)(FL|F|HV|H|)',
+            'Lenovo TB|Lenovo TAB|Idea(Tab|Pad)( A1|A10| K1|)|ThinkPad([ ]+)?Tablet|YT3-850M|YT3-X90L|YT3-X90F|YT3-X90X|Lenovo.*(S2109|S2110|S5000|S6000|K3011|A3000|A3500|A1000|A2107|A2109|A1107|A5500|A7600|B6000|B8000|B8080)(-|)(FL|F|HV|H|)',
         ],
         // http://www.dell.com/support/home/us/en/04/Products/tab_mob/tablets
         'DellTablet'        => 'Venue 11|Venue 8|Venue 7|Dell Streak 10|Dell Streak 7',
@@ -1082,16 +1086,16 @@ class MobileDetect
         // Go through known HTTP headers that we care about.
         // See "4.1.18. Protocol-Specific Meta-Variables" of http://www.faqs.org/rfcs/rfc3875.html
         $knownHttpHeaders = array_merge(
-            array_values(self::$knownUserAgentHttpHeaders),
-            array_keys(self::$knownMobilePositiveHeaders),
-            array_values(self::$knownCloudFrontHeaders)
+            array_values(static::$knownUserAgentHttpHeaders),
+            array_keys(static::$knownMobilePositiveHeaders),
+            array_values(static::$knownCloudFrontHeaders)
         );
 
         // Did not iterate through global $_SERVER to find ['HTTP...'] header values
         // because it's very slow and on some servers it can have more than 50 worthless keys.
-//        $httpHeaders = array_filter($_SERVER, function ($key) {
-//            return str_starts_with($key, 'HTTP_');
-//        }, ARRAY_FILTER_USE_KEY);
+        //        $httpHeaders = array_filter($_SERVER, function ($key) {
+        //            return str_starts_with($key, 'HTTP_');
+        //        }, ARRAY_FILTER_USE_KEY);
         $httpHeaders = [];
         foreach ($knownHttpHeaders as $headerName) {
             if (isset($_SERVER[$headerName])) {
@@ -1137,10 +1141,10 @@ class MobileDetect
 
         // Override User-Agent string if 'Amazon Cloudfront' specific HTTP headers are present.
         if (
-            $this->hasHttpHeader(self::$knownCloudFrontHeaders[0]) ||
-            $this->hasHttpHeader(self::$knownCloudFrontHeaders[1])
+            $this->hasHttpHeader(static::$knownCloudFrontHeaders[0]) ||
+            $this->hasHttpHeader(static::$knownCloudFrontHeaders[1])
         ) {
-            $this->setUserAgent(self::$cloudFrontUA);
+            $this->setUserAgent(static::$cloudFrontUA);
         }
     }
 
@@ -1315,10 +1319,10 @@ class MobileDetect
      */
     public function getRules(): array
     {
-        static $rules;
-
-        if (!$rules) {
-            $rules = array_merge(
+        static $rulesByClass = [];
+        $class = static::class;
+        if (!isset($rulesByClass[$class])) {
+            $rulesByClass[$class] = array_merge(
                 static::$browsers,
                 static::$operatingSystems,
                 static::$phoneDevices,
@@ -1326,7 +1330,7 @@ class MobileDetect
             );
         }
 
-        return $rules;
+        return $rulesByClass[$class];
     }
 
     /**
@@ -1370,15 +1374,13 @@ class MobileDetect
     /**
      * Magic overloading method.
      *
-     * @method boolean is[...]()
      * @param string $name
      * @param array $arguments
      * @return bool
      * @throws BadMethodCallException when the method doesn't exist and doesn't start with 'is'
      * @throws \Exception
-     * @throws InvalidArgumentException
      */
-    public function __call(string $name, array $arguments)
+    public function __call(string $name, array $arguments): bool
     {
         // make sure the name starts with 'is', otherwise
         if (!str_starts_with($name, 'is')) {
@@ -1399,7 +1401,7 @@ class MobileDetect
     public function isMobile(): bool
     {
         if (!$this->hasUserAgent()) {
-            throw new MobileDetectException('No valid user-agent has been set.');
+            throw new MobileDetectException('No valid user-agent has been set.', MobileDetectExceptionCode::INVALID_USER_AGENT_ERR);
         }
 
         if ($this->isUserAgentEmpty()) {
@@ -1411,16 +1413,12 @@ class MobileDetect
             $cacheKey = $this->createCacheKey("mobile");
             $cacheItem = $this->cache->get($cacheKey);
             if ($cacheItem !== null) {
-                if ($cacheItem instanceof CacheItemInterface) {
-                    return $cacheItem->get();
-                } else {
-                    return $cacheItem;
-                }
+                return $cacheItem;
             }
 
             // Special case: Amazon CloudFront mobile viewer
             if (
-                $this->getUserAgent() === self::$cloudFrontUA &&
+                $this->getUserAgent() === static::$cloudFrontUA &&
                 $this->getHttpHeader('HTTP_CLOUDFRONT_IS_MOBILE_VIEWER') === 'true'
             ) {
                 $this->cache->set($cacheKey, true, $this->config['cacheTtl']);
@@ -1435,8 +1433,8 @@ class MobileDetect
                 $this->cache->set($cacheKey, $result, $this->config['cacheTtl']);
                 return $result;
             }
-        } catch (CacheException $e) {
-            throw new MobileDetectException("Cache problem in isMobile(): {$e->getMessage()}");
+        } catch (CacheInvalidArgumentException | CacheException | PsrInvalidArgumentException $e) {
+            throw new MobileDetectException("Cache problem in isMobile(): {$e->getMessage()}", MobileDetectExceptionCode::IS_MOBILE_ERR, $e);
         }
     }
 
@@ -1449,7 +1447,7 @@ class MobileDetect
     public function isTablet(): bool
     {
         if (!$this->hasUserAgent()) {
-            throw new MobileDetectException('No user-agent has been set.');
+            throw new MobileDetectException('No user-agent has been set.', MobileDetectExceptionCode::INVALID_USER_AGENT_ERR);
         }
 
         if ($this->isUserAgentEmpty()) {
@@ -1461,16 +1459,12 @@ class MobileDetect
             $cacheKey = $this->createCacheKey("tablet");
             $cacheItem = $this->cache->get($cacheKey);
             if ($cacheItem !== null) {
-                if ($cacheItem instanceof CacheItemInterface) {
-                    return $cacheItem->get();
-                } else {
-                    return $cacheItem;
-                }
+                return $cacheItem;
             }
 
             // Special case: Amazon CloudFront mobile viewer
             if (
-                $this->getUserAgent() === self::$cloudFrontUA &&
+                $this->getUserAgent() === static::$cloudFrontUA &&
                 $this->getHttpHeader('HTTP_CLOUDFRONT_IS_TABLET_VIEWER') === 'true'
             ) {
                 $this->cache->set($cacheKey, true, $this->config['cacheTtl']);
@@ -1488,27 +1482,27 @@ class MobileDetect
                     return true;
                 }
 
-//                if (is_array($_regex)) {
-//                    foreach ($_regex as $regexString) {
-//                        $result = $this->match($regexString, $this->getUserAgent());
-//                        if ($result) {
-//                            $this->cache->set($cacheKey, true, $this->config['cacheTtl']);
-//                            return true;
-//                        }
-//                    }
-//                } else {
-//                    // assume the regex is a "string"
-//                    if ($this->match($_regex, $this->getUserAgent())) {
-//                        $this->cache->set($cacheKey, true, $this->config['cacheTtl']);
-//                        return true;
-//                    }
-//                }
+                //                if (is_array($_regex)) {
+                //                    foreach ($_regex as $regexString) {
+                //                        $result = $this->match($regexString, $this->getUserAgent());
+                //                        if ($result) {
+                //                            $this->cache->set($cacheKey, true, $this->config['cacheTtl']);
+                //                            return true;
+                //                        }
+                //                    }
+                //                } else {
+                //                    // assume the regex is a "string"
+                //                    if ($this->match($_regex, $this->getUserAgent())) {
+                //                        $this->cache->set($cacheKey, true, $this->config['cacheTtl']);
+                //                        return true;
+                //                    }
+                //                }
             }
 
             $this->cache->set($cacheKey, false, $this->config['cacheTtl']);
             return false;
-        } catch (CacheException $e) {
-            throw new MobileDetectException("Cache problem in isTablet(): {$e->getMessage()}");
+        } catch (CacheInvalidArgumentException | CacheException | PsrInvalidArgumentException $e) {
+            throw new MobileDetectException("Cache problem in isTablet(): {$e->getMessage()}", MobileDetectExceptionCode::IS_TABLET_ERR, $e);
         }
     }
 
@@ -1522,7 +1516,7 @@ class MobileDetect
     public function is(string $ruleName): bool
     {
         if (!$this->hasUserAgent()) {
-            throw new MobileDetectException('No user-agent has been set.');
+            throw new MobileDetectException('No user-agent has been set.', MobileDetectExceptionCode::INVALID_USER_AGENT_ERR);
         }
 
         if ($this->isUserAgentEmpty()) {
@@ -1534,11 +1528,7 @@ class MobileDetect
             $cacheKey = $this->createCacheKey($ruleName);
             $cacheItem = $this->cache->get($cacheKey);
             if ($cacheItem !== null) {
-                if ($cacheItem instanceof CacheItemInterface) {
-                    return $cacheItem->get();
-                } else {
-                    return $cacheItem;
-                }
+                return $cacheItem;
             }
 
             $result = $this->matchUserAgentWithRule($ruleName);
@@ -1546,8 +1536,8 @@ class MobileDetect
             // Cache save.
             $this->cache->set($cacheKey, $result, $this->config['cacheTtl']);
             return $result;
-        } catch (CacheException $e) {
-            throw new MobileDetectException("Cache problem in is(): {$e->getMessage()}");
+        } catch (CacheInvalidArgumentException | CacheException | PsrInvalidArgumentException $e) {
+            throw new MobileDetectException("Cache problem in is(): {$e->getMessage()}", MobileDetectExceptionCode::IS_MAGIC_ERR, $e);
         }
     }
 
@@ -1630,16 +1620,16 @@ class MobileDetect
                 $regexString = implode("|", $_rules[$ruleName]);
             }
             $result = $this->match($regexString, $this->getUserAgent());
-//            if (is_array($_rules[$ruleName])) {
-//             foreach($_rules[$ruleName] as $ruleRegex) {
-//                 $result = $this->match($ruleRegex, $this->getUserAgent());
-//                 if ($result) {
-//                     return true;
-//                 }
-//             }
-//            } else {
-//                $result = $this->match($_rules[$ruleName], $this->getUserAgent());
-//            }
+            //            if (is_array($_rules[$ruleName])) {
+            //             foreach($_rules[$ruleName] as $ruleRegex) {
+            //                 $result = $this->match($ruleRegex, $this->getUserAgent());
+            //                 if ($result) {
+            //                     return true;
+            //                 }
+            //             }
+            //            } else {
+            //                $result = $this->match($_rules[$ruleName], $this->getUserAgent());
+            //            }
         }
 
         return $result;
@@ -1654,11 +1644,11 @@ class MobileDetect
      */
     public function prepareVersionNo(string $ver): float
     {
-        $ver = str_replace(array('_', ' ', '/'), '.', $ver);
+        $ver = str_replace(['_', ' ', '/'], '.', $ver);
         $arrVer = explode('.', $ver, 2);
 
         if (isset($arrVer[1])) {
-            $arrVer[1] = @str_replace('.', '', $arrVer[1]); // @todo: treat strings versions.
+            $arrVer[1] = str_replace('.', '', $arrVer[1]); // @todo: treat strings versions.
         }
 
         return (float) implode('.', $arrVer);
@@ -1688,7 +1678,7 @@ class MobileDetect
             $type = self::VERSION_TYPE_STRING;
         }
 
-        $properties = self::getProperties();
+        $properties = static::getProperties();
 
         // Check if the property exists in the properties array.
         if (true === isset($properties[$propertyName])) {
@@ -1697,7 +1687,7 @@ class MobileDetect
             $properties[$propertyName] = (array) $properties[$propertyName];
 
             foreach ($properties[$propertyName] as $propertyMatchString) {
-                $propertyPattern = str_replace('[VER]', self::VERSION_REGEX, $propertyMatchString);
+                $propertyPattern = str_replace('[VER]', static::VERSION_REGEX, $propertyMatchString);
 
                 // Identify and extract the version.
                 preg_match(sprintf('#%s#is', $propertyPattern), $this->userAgent, $match);
@@ -1711,12 +1701,15 @@ class MobileDetect
         return false;
     }
 
-    public function getCache(): Cache
+    public function getCache(): CacheInterface
     {
         return $this->cache;
     }
 
     /**
+     * Creates the cache key string based on the defined fn.
+     * Function can be customized in the constructor. See `$config['cacheKeyFn']`.
+     *
      * @throws CacheException
      */
     protected function createCacheKey(string $key): string

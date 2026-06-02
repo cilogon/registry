@@ -17,13 +17,14 @@ use ArrayAccess;
 use Cake\Core\Configure;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Mysql;
-use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Schema\CollectionInterface;
+use Cake\Database\Schema\TableSchema;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
-use Cake\View\View;
+use Migrations\Db\Adapter\MysqlAdapter;
+use Migrations\Db\Table\ForeignKey;
 
 /**
  * Migration Helper class for output of field data in migration files.
@@ -72,22 +73,6 @@ class MigrationHelper extends Helper
     public function getReturnedData(): array
     {
         return $this->returnedData;
-    }
-
-    /**
-     * Constructor
-     *
-     * ### Settings
-     *
-     * - `collection` \Cake\Database\Schema\Collection
-     * - `connection` \Cake\Database\Connection
-     *
-     * @param \Cake\View\View $View The View this helper is being attached to.
-     * @param array $config Configuration settings for the helper.
-     */
-    public function __construct(View $View, array $config = [])
-    {
-        parent::__construct($View, $config);
     }
 
     /**
@@ -204,10 +189,8 @@ class MigrationHelper extends Helper
 
         $tableIndexes = $tableSchema->indexes();
         $indexes = [];
-        if ($tableIndexes) {
-            foreach ($tableIndexes as $name) {
-                $indexes[$name] = $tableSchema->getIndex($name);
-            }
+        foreach ($tableIndexes as $name) {
+            $indexes[$name] = $tableSchema->getIndex($name);
         }
 
         return $indexes;
@@ -257,14 +240,14 @@ class MigrationHelper extends Helper
     }
 
     /**
-     * Format a constraint action if it is not already in the format expected by Phinx
+     * Format a constraint action if it is not already in the format expected by migrations
      *
      * @param string $constraint Constraint action name
      * @return string Constraint action name altered if needed.
      */
     public function formatConstraintAction(string $constraint): string
     {
-        if (defined('\Phinx\Db\Table\ForeignKey::' . $constraint)) {
+        if (defined(ForeignKey::class . '::' . $constraint)) {
             return $constraint;
         }
 
@@ -358,11 +341,6 @@ class MigrationHelper extends Helper
     {
         $columnType = $tableSchema->getColumnType($column);
 
-        // Phinx doesn't understand timestampfractional or datetimefractional types
-        if ($columnType === 'timestampfractional' || $columnType === 'datetimefractional') {
-            $columnType = 'timestamp';
-        }
-
         return [
             'columnType' => $columnType,
             'options' => $this->attributes($tableSchema, $column),
@@ -391,8 +369,10 @@ class MigrationHelper extends Helper
             'comment',
             'autoIncrement',
             'precision',
+            'scale',
             'after',
             'collate',
+            'fixed',
         ]);
         $columnOptions = array_intersect_key($options, $wantedOptions);
         if (empty($columnOptions['comment'])) {
@@ -401,28 +381,42 @@ class MigrationHelper extends Helper
         if (empty($columnOptions['autoIncrement'])) {
             unset($columnOptions['autoIncrement']);
         }
+        if (empty($columnOptions['collate'])) {
+            unset($columnOptions['collate']);
+        }
+        // isset() returns false for null values, so this handles both missing and null cases
+        if (!isset($columnOptions['fixed'])) {
+            unset($columnOptions['fixed']);
+        }
 
         // currently only MySQL supports the signed option
         $driver = $connection->getDriver();
         $isMysql = $driver instanceof Mysql;
-        $isSqlserver = $driver instanceof Sqlserver;
-
         if (!$isMysql) {
+            unset($columnOptions['signed']);
+        } elseif (isset($columnOptions['signed']) && $columnOptions['signed'] === true) {
+            // Remove 'signed' => true since signed is the default for integer columns
+            // Only output explicit 'signed' => false for unsigned columns
             unset($columnOptions['signed']);
         }
 
-        if (($isMysql || $isSqlserver) && !empty($columnOptions['collate'])) {
-            // due to Phinx using different naming for the collation
+        if (!empty($columnOptions['collate'])) {
+            // Phinx uses 'collation' not 'collate'
             $columnOptions['collation'] = $columnOptions['collate'];
             unset($columnOptions['collate']);
         }
 
-        // TODO this can be cleaned up when we stop using phinx data structures for column definitions
+        // Handle precision/scale conversion between CakePHP's TableSchema format and SQL standard format.
+        // TableSchema uses: length=total digits, precision=decimal places
+        // Migrations uses SQL standard: precision=total digits, scale=decimal places
         if (!isset($columnOptions['precision']) || $columnOptions['precision'] == null) {
             unset($columnOptions['precision']);
         } else {
-            // due to Phinx using different naming for the precision and scale to CakePHP
-            $columnOptions['scale'] = $columnOptions['precision'];
+            // Convert CakePHP's precision (decimal places) to Migrations' scale
+            // Only convert if scale is not already set (for decimal columns from diff)
+            if (!isset($columnOptions['scale'])) {
+                $columnOptions['scale'] = $columnOptions['precision'];
+            }
 
             if (isset($columnOptions['limit'])) {
                 $columnOptions['precision'] = $columnOptions['limit'];
@@ -432,6 +426,13 @@ class MigrationHelper extends Helper
                 $columnOptions['precision'] = $columnOptions['length'];
                 unset($columnOptions['length']);
             }
+        }
+
+        // Convert CakePHP's LENGTH_LONG to migrations TEXT_LONG for text columns
+        // CakePHP uses LENGTH_LONG = 4294967295, but migrations expects TEXT_LONG = 2147483647
+        // (LENGTH_TINY and LENGTH_MEDIUM have the same values as TEXT_TINY and TEXT_MEDIUM)
+        if (isset($columnOptions['limit']) && $columnOptions['limit'] === TableSchema::LENGTH_LONG) {
+            $columnOptions['limit'] = MysqlAdapter::TEXT_LONG;
         }
 
         return $columnOptions;
@@ -446,7 +447,7 @@ class MigrationHelper extends Helper
      */
     public function value(string|float|int|bool|null $value, bool $numbersAsString = false): string|float
     {
-        if ($value === null || $value === 'null' || $value === 'NULL') {
+        if (in_array($value, [null, 'null', 'NULL'], true)) {
             return 'null';
         }
 
@@ -489,7 +490,7 @@ class MigrationHelper extends Helper
             'comment', 'unsigned',
             'signed', 'properties',
             'autoIncrement', 'unique',
-            'collate',
+            'collate', 'fixed',
         ];
 
         $attributes = [];
@@ -527,6 +528,10 @@ class MigrationHelper extends Helper
         // currently only MySQL supports the signed option
         $isMysql = $connection->getDriver() instanceof Mysql;
         if (!$isMysql) {
+            unset($attributes['signed']);
+        } elseif (isset($attributes['signed']) && $attributes['signed'] === true) {
+            // Remove 'signed' => true since signed is now the default for integer columns
+            // Only output explicit 'signed' => false for unsigned columns
             unset($attributes['signed']);
         }
 
@@ -583,7 +588,7 @@ class MigrationHelper extends Helper
                 $v = $this->value($v, $k === 'default');
             }
             if (!is_numeric($k)) {
-                $v = "'$k' => $v";
+                $v = sprintf("'%s' => %s", $k, $v);
             }
         }
 
@@ -608,14 +613,14 @@ class MigrationHelper extends Helper
      */
     public function tableStatement(string $table, bool $reset = false): string
     {
-        if ($reset === true) {
+        if ($reset) {
             unset($this->tableStatementStatus[$table]);
         }
 
         if (!isset($this->tableStatementStatus[$table])) {
             $this->tableStatementStatus[$table] = true;
 
-            return '$this->table(\'' . $table . '\')';
+            return '$this->table(\'' . addslashes($table) . "')";
         }
 
         return '';
@@ -649,7 +654,7 @@ class MigrationHelper extends Helper
      * Render an element.
      *
      * @param string $name The name of the element to render.
-     * @param array $data Additional data for the element.
+     * @param array<string, mixed> $data Additional data for the element.
      * @return ?string
      */
     public function element(string $name, array $data): ?string
@@ -682,7 +687,7 @@ class MigrationHelper extends Helper
         $indexes = $this->indexes($table);
         $foreignKeys = [];
         foreach ($constraints as $constraint) {
-            if ($constraint['type'] === 'foreign') {
+            if (isset($constraint['type']) && $constraint['type'] === 'foreign') {
                 $foreignKeys[] = $constraint['columns'];
             }
         }
@@ -703,14 +708,11 @@ class MigrationHelper extends Helper
             'tables' => [],
         ];
         foreach ($tables as $table) {
-            $tableName = $table;
-            if ($table instanceof TableSchemaInterface) {
-                $tableName = $table->name();
-            }
+            $tableName = $table instanceof TableSchemaInterface ? $table->name() : $table;
             $data = $this->getCreateTableData($table);
             $tableConstraintsNoUnique = array_filter(
                 $data['constraints'],
-                function ($constraint) {
+                function (array $constraint): bool {
                     return $constraint['type'] !== 'unique';
                 },
             );

@@ -54,11 +54,7 @@ class RequireNullSafeObjectOperatorSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $identicalPointer
-	 */
-	public function process(File $phpcsFile, $identicalPointer): int
+	public function process(File $phpcsFile, int $identicalPointer): int
 	{
 		$this->enable = SniffSettingsHelper::isEnabledByPhpVersion($this->enable, 80000);
 
@@ -119,7 +115,7 @@ class RequireNullSafeObjectOperatorSniff implements Sniff
 
 		$searchStartPointer = $ternaryOperatorStartPointer;
 		do {
-			$booleanOperatorPointer = TokenHelper::findNext($phpcsFile, Tokens::$booleanOperators, $searchStartPointer, $inlineThenPointer);
+			$booleanOperatorPointer = TokenHelper::findNext($phpcsFile, Tokens::BOOLEAN_OPERATORS, $searchStartPointer, $inlineThenPointer);
 			if ($booleanOperatorPointer === null) {
 				break;
 			}

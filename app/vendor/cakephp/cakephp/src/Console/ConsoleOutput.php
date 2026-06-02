@@ -92,7 +92,7 @@ class ConsoleOutput
     /**
      * The current output type.
      *
-     * @see setOutputAs() For manipulation.
+     * @see \Cake\Console\ConsoleOutput::setOutputAs() For manipulation.
      * @var int
      */
     protected int $_outputAs = self::COLOR;
@@ -192,7 +192,7 @@ class ConsoleOutput
                 DIRECTORY_SEPARATOR === '\\' &&
                 !str_contains(strtolower(php_uname('v')), 'windows 10') &&
                 !str_contains(strtolower((string)env('SHELL')), 'bash.exe') &&
-                !(bool)env('ANSICON') &&
+                !env('ANSICON') &&
                 env('ConEmuANSI') !== 'ON'
             ) ||
             (
@@ -236,7 +236,6 @@ class ConsoleOutput
             return $text;
         }
         if ($this->_outputAs !== static::PLAIN) {
-            /** @var \Closure $replaceTags */
             $replaceTags = $this->_replaceTags(...);
 
             $output = preg_replace_callback(
@@ -293,7 +292,8 @@ class ConsoleOutput
      */
     protected function _write(string $message): int
     {
-        if (!isset($this->_output)) {
+        // @phpstan-ignore isset.property (property may not be set: ConsoleOutput::__destruct() unsets _output)
+        if (!isset($this->_output) || !is_resource($this->_output)) {
             return 0;
         }
 
@@ -327,7 +327,7 @@ class ConsoleOutput
      * ```
      *
      * @param string $style The style to set.
-     * @param array $definition The array definition of the style to change or create..
+     * @param array $definition The array definition of the style to change or create.
      * @return void
      */
     public function setStyle(string $style, array $definition): void
@@ -382,6 +382,7 @@ class ConsoleOutput
      */
     public function __destruct()
     {
+        // @phpstan-ignore isset.property (property may not be set if constructor throws)
         if (isset($this->_output) && is_resource($this->_output)) {
             fclose($this->_output);
         }

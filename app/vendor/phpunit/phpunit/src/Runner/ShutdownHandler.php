@@ -9,7 +9,10 @@
  */
 namespace PHPUnit\Runner;
 
+use const PHP_EOL;
+use function getmypid;
 use function register_shutdown_function;
+use function rtrim;
 
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
@@ -40,11 +43,20 @@ final class ShutdownHandler
         }
 
         self::$registered = true;
+        $pid              = getmypid();
 
         register_shutdown_function(
-            static function (): void
+            static function () use ($pid): void
             {
-                print self::$message;
+                $message = rtrim(self::$message);
+
+                if ($message === '' || $pid !== getmypid()) {
+                    return;
+                }
+
+                print $message . PHP_EOL;
+
+                exit(2);
             },
         );
     }

@@ -28,7 +28,7 @@ use function Cake\I18n\__d;
 class AuthenticationRequiredException extends HttpException
 {
     /**
-     * @var array<string, mixed>
+     * @var array<non-empty-string, array<string>|string>
      */
     protected array $headers = [];
 

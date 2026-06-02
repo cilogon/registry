@@ -18,6 +18,8 @@ namespace Authentication\Authenticator;
 
 use ArrayAccess;
 use Authentication\Identifier\AbstractIdentifier;
+use Authentication\Identifier\IdentifierCollection;
+use Authentication\Identifier\IdentifierInterface;
 use Authentication\PasswordHasher\PasswordHasherTrait;
 use Authentication\UrlChecker\UrlCheckerTrait;
 use Cake\Http\Cookie\Cookie;
@@ -56,6 +58,26 @@ class CookieAuthenticator extends AbstractAuthenticator implements PersistenceIn
     ];
 
     /**
+     * Gets the identifier, loading a default Password identifier if none configured.
+     *
+     * This is done lazily to allow loadIdentifier() to be called after loadAuthenticator().
+     *
+     * @return \Authentication\Identifier\IdentifierInterface
+     */
+    public function getIdentifier(): IdentifierInterface
+    {
+        if ($this->_identifier instanceof IdentifierCollection && $this->_identifier->isEmpty()) {
+            $identifierConfig = [];
+            if ($this->getConfig('fields')) {
+                $identifierConfig['fields'] = $this->getConfig('fields');
+            }
+            $this->_identifier->load('Authentication.Password', $identifierConfig);
+        }
+
+        return $this->_identifier;
+    }
+
+    /**
      * @inheritDoc
      */
     public function authenticate(ServerRequestInterface $request): ResultInterface
@@ -82,10 +104,11 @@ class CookieAuthenticator extends AbstractAuthenticator implements PersistenceIn
 
         [$username, $tokenHash] = $token;
 
-        $identity = $this->_identifier->identify(compact('username'));
+        $identifier = $this->getIdentifier();
+        $identity = $identifier->identify(compact('username'));
 
         if (!$identity) {
-            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $this->_identifier->getErrors());
+            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $identifier->getErrors());
         }
 
         if (!$this->_checkToken($identity, $tokenHash)) {

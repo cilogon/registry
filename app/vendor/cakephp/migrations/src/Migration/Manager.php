@@ -10,40 +10,30 @@ namespace Migrations\Migration;
 
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
+use Cake\Core\Configure;
 use DateTime;
 use Exception;
 use InvalidArgumentException;
 use Migrations\Config\ConfigInterface;
 use Migrations\MigrationInterface;
 use Migrations\SeedInterface;
-use Migrations\Shim\MigrationAdapter;
-use Migrations\Shim\SeedAdapter;
 use Migrations\Util\Util;
-use Phinx\Migration\MigrationInterface as PhinxMigrationInterface;
-use Phinx\Seed\SeedInterface as PhinxSeedInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 class Manager
 {
     public const BREAKPOINT_TOGGLE = 1;
+
     public const BREAKPOINT_SET = 2;
+
     public const BREAKPOINT_UNSET = 3;
 
-    /**
-     * @var \Migrations\Config\ConfigInterface
-     */
     protected ConfigInterface $config;
 
-    /**
-     * @var \Cake\Console\ConsoleIo
-     */
     protected ConsoleIo $io;
 
-    /**
-     * @var \Migrations\Migration\Environment|null
-     */
-    protected ?Environment $environment;
+    protected ?Environment $environment = null;
 
     /**
      * @var \Migrations\MigrationInterface[]|null
@@ -55,9 +45,6 @@ class Manager
      */
     protected ?array $seeds = null;
 
-    /**
-     * @var \Psr\Container\ContainerInterface
-     */
     protected ContainerInterface $container;
 
     /**
@@ -211,6 +198,74 @@ class Manager
     }
 
     /**
+     * Check if a seed has been executed.
+     *
+     * @param \Migrations\SeedInterface $seed Seed to check
+     * @return bool
+     */
+    public function isSeedExecuted(SeedInterface $seed): bool
+    {
+        $adapter = $this->getEnvironment()->getAdapter();
+
+        // Ensure seed schema table exists
+        if (!$adapter->hasTable($adapter->getSeedSchemaTableName())) {
+            return false;
+        }
+
+        $seedLog = $adapter->getSeedLog();
+
+        $plugin = null;
+        $className = $seed::class;
+
+        if (str_contains($className, '\\')) {
+            $parts = explode('\\', $className);
+            $appNamespace = Configure::read('App.namespace', 'App');
+            if (count($parts) > 1 && $parts[0] !== $appNamespace) {
+                $plugin = $parts[0];
+            }
+        }
+
+        $seedName = $seed->getName();
+
+        foreach ($seedLog as $entry) {
+            if ($entry['seed_name'] === $seedName && $entry['plugin'] === $plugin) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get dependencies of a seed that have not been executed yet.
+     *
+     * @param \Migrations\SeedInterface $seed Seed to check dependencies for
+     * @return array<\Migrations\SeedInterface>
+     */
+    public function getSeedDependenciesNotExecuted(SeedInterface $seed): array
+    {
+        $dependencies = $seed->getDependencies();
+        if (!$dependencies) {
+            return [];
+        }
+
+        $seeds = $this->getSeeds();
+        $notExecuted = [];
+
+        foreach ($dependencies as $depName) {
+            $normalizedName = $this->normalizeSeedName($depName, $seeds);
+            if ($normalizedName !== null && isset($seeds[$normalizedName])) {
+                $depSeed = $seeds[$normalizedName];
+                if (!$this->isSeedExecuted($depSeed)) {
+                    $notExecuted[] = $depSeed;
+                }
+            }
+        }
+
+        return $notExecuted;
+    }
+
+    /**
      * Marks migration with version number $version migrated
      *
      * @param int $version Version number of the migration to check
@@ -230,15 +285,28 @@ class Manager
         }
 
         $migrationFile = $migrationFile[0];
-        /** @var class-string<\Phinx\Migration\MigrationInterface|\Migrations\MigrationInterface> $className */
         $className = $this->getMigrationClassName($migrationFile);
-        require_once $migrationFile;
 
-        if (is_subclass_of($className, PhinxMigrationInterface::class)) {
-            $migration = new MigrationAdapter($className, $version);
+        // For anonymous classes, we need to use require instead of require_once
+        $migrationInstance = null;
+        if (!class_exists($className)) {
+            $migrationInstance = require $migrationFile;
         } else {
-            $migration = new $className($version);
+            require_once $migrationFile;
         }
+
+        // Check if the file returns an anonymous class instance
+        if ($migrationInstance instanceof MigrationInterface) {
+            $migration = $migrationInstance;
+            $migration->setVersion($version);
+        } elseif (class_exists($className)) {
+            $migration = new $className($version);
+        } else {
+            throw new RuntimeException(
+                sprintf('Could not find class `%s` in file `%s` and file did not return a migration instance', $className, $migrationFile),
+            );
+        }
+
         /** @var \Migrations\MigrationInterface $migration */
         $config = $this->getConfig();
         $migration->setConfig($config);
@@ -255,17 +323,24 @@ class Manager
      *
      * @param string $path Path to the migration file of which we want the class name
      * @return string Migration class name
+     * @phpstan-return class-string<\Migrations\MigrationInterface>
      */
     protected function getMigrationClassName(string $path): string
     {
-        $class = (string)preg_replace('/^[0-9]+_/', '', basename($path));
+        $class = (string)preg_replace('/^\d+_/', '', basename($path));
         $class = str_replace('_', ' ', $class);
         $class = ucwords($class);
         $class = str_replace(' ', '', $class);
-        if (strpos($class, '.') !== false) {
-            $class = substr($class, 0, strpos($class, '.'));
+
+        $dotPos = strpos($class, '.');
+        if ($dotPos !== false) {
+            /** @var class-string<\Migrations\MigrationInterface> $name */
+            $name = substr($class, 0, $dotPos);
+
+            return $name;
         }
 
+        /** @var class-string<\Migrations\MigrationInterface> $class */
         return $class;
     }
 
@@ -297,17 +372,17 @@ class Manager
 
         if ($args->getOption('only') || $versionArg) {
             if (!in_array($version, $versions)) {
-                throw new InvalidArgumentException("Migration `$version` was not found !");
+                throw new InvalidArgumentException(sprintf('Migration `%d` was not found !', $version));
             }
 
             return [$version];
         }
 
         $lengthIncrease = $args->getOption('exclude') ? 0 : 1;
-        $index = array_search($version, $versions);
+        $index = array_search($version, $versions, true);
 
         if ($index === false) {
-            throw new InvalidArgumentException("Migration `$version` was not found !");
+            throw new InvalidArgumentException(sprintf('Migration `%d` was not found !', $version));
         }
 
         return array_slice($versions, 0, $index + $lengthIncrease);
@@ -380,16 +455,15 @@ class Manager
         }
 
         if ($version === null) {
-            $version = max(array_merge($versions, array_keys($migrations)));
-        } else {
-            if ($version != 0 && !isset($migrations[$version])) {
-                $this->getIo()->out(sprintf(
-                    '<comment>warning</comment> %s is not a valid version',
-                    $version,
-                ));
+            $candidates = [...$versions, ...array_keys($migrations)];
+            $version = $candidates ? max($candidates) : 0;
+        } elseif ($version !== 0 && !isset($migrations[$version])) {
+            $this->getIo()->out(sprintf(
+                '<comment>warning</comment> %s is not a valid version',
+                $version,
+            ));
 
-                return;
-            }
+            return;
         }
 
         // are we migrating up or down?
@@ -460,17 +534,56 @@ class Manager
      * Execute a seeder against the specified environment.
      *
      * @param \Migrations\SeedInterface $seed Seed
+     * @param bool $force Force re-execution even if seed has already been executed
+     * @param bool $fake Record seed as executed without actually running it
      * @return void
      */
-    public function executeSeed(SeedInterface $seed): void
+    public function executeSeed(SeedInterface $seed, bool $force = false, bool $fake = false): void
     {
-        $this->getIo()->out('');
-
         // Skip the seed if it should not be executed
         if (!$seed->shouldExecute()) {
+            $this->getIo()->out('');
             $this->printSeedStatus($seed, 'skipped');
 
             return;
+        }
+
+        // Silently skip non-idempotent seeds that have already been executed
+        if (!$force && !$seed->isIdempotent() && $this->isSeedExecuted($seed)) {
+            return;
+        }
+
+        $this->getIo()->out('');
+
+        // Ensure seed schema table exists
+        $adapter = $this->getEnvironment()->getAdapter();
+        if (!$adapter->hasTable($adapter->getSeedSchemaTableName())) {
+            $adapter->createSeedSchemaTable();
+        }
+
+        if ($fake) {
+            // Record seed as executed without running it
+            $this->printSeedStatus($seed, 'faking');
+
+            if ($seed->isIdempotent()) {
+                $adapter->removeSeedFromLog($seed);
+            }
+            $executedTime = date('Y-m-d H:i:s');
+            $adapter->seedExecuted($seed, $executedTime);
+
+            $this->printSeedStatus($seed, 'faked');
+
+            return;
+        }
+
+        // Auto-execute missing dependencies
+        $missingDeps = $this->getSeedDependenciesNotExecuted($seed);
+        foreach ($missingDeps as $depSeed) {
+            $this->getIo()->verbose(sprintf(
+                '  Auto-executing dependency: %s',
+                $depSeed->getName(),
+            ));
+            $this->executeSeed($depSeed, $force, $fake);
         }
 
         $this->printSeedStatus($seed, 'seeding');
@@ -515,7 +628,7 @@ class Manager
     protected function printSeedStatus(SeedInterface $seed, string $status, ?string $duration = null): void
     {
         $this->printStatusOutput(
-            $seed->getName(),
+            Util::getSeedDisplayName($seed->getName()) . ' seed',
             $status,
             $duration,
         );
@@ -613,7 +726,7 @@ class Manager
             $target = 0;
         } elseif (!is_numeric($target) && $target !== null) { // try to find a target version based on name
             // search through the migrations using the name
-            $migrationNames = array_map(function ($item) {
+            $migrationNames = array_map(function (array $item) {
                 return $item['migration_name'];
             }, $executedVersions);
             $found = array_search($target, $migrationNames, true);
@@ -622,7 +735,7 @@ class Manager
             if ($found !== false) {
                 $target = (string)$found;
             } else {
-                $io->out("<error>No migration found with name ($target)</error>");
+                $io->out(sprintf('<error>No migration found with name (%s)</error>', $target));
 
                 return;
             }
@@ -630,7 +743,7 @@ class Manager
 
         // Check we have at least 1 migration to revert
         $executedVersionCreationTimes = array_keys($executedVersions);
-        if (!$executedVersionCreationTimes || $target == end($executedVersionCreationTimes)) {
+        if (!$executedVersionCreationTimes || $target === end($executedVersionCreationTimes)) {
             $io->out('<error>No migrations to rollback</error>');
 
             return;
@@ -645,7 +758,7 @@ class Manager
 
         // If the target must match a version, check the target version exists
         if ($targetMustMatchVersion && $target !== 0 && !isset($migrations[$target])) {
-            $io->out("<error>Target version ($target) not found</error>");
+            $io->out(sprintf('<error>Target version (%s) not found</error>', $target));
 
             return;
         }
@@ -661,16 +774,11 @@ class Manager
             if (in_array($migration->getVersion(), $executedVersionCreationTimes)) {
                 $executedArray = $executedVersions[$migration->getVersion()];
 
-                if (!$targetMustMatchVersion) {
-                    if (
-                        ($this->getConfig()->isVersionOrderCreationTime() && $executedArray['version'] <= $target) ||
-                        (!$this->getConfig()->isVersionOrderCreationTime() && $executedArray['start_time'] <= $target)
-                    ) {
-                        break;
-                    }
+                if (!$targetMustMatchVersion && ($this->getConfig()->isVersionOrderCreationTime() && $executedArray['version'] <= $target || !$this->getConfig()->isVersionOrderCreationTime() && $executedArray['start_time'] <= $target)) {
+                    break;
                 }
 
-                if ($executedArray['breakpoint'] != 0 && !$force) {
+                if ((int)$executedArray['breakpoint'] !== 0 && !$force) {
                     $io->out('<error>Breakpoint reached. Further rollbacks inhibited.</error>');
                     break;
                 }
@@ -688,10 +796,12 @@ class Manager
      * Run database seeders against an environment.
      *
      * @param string|null $seed Seeder
+     * @param bool $force Force re-execution even if seed has already been executed
+     * @param bool $fake Record seed as executed without actually running it
      * @throws \InvalidArgumentException
      * @return void
      */
-    public function seed(?string $seed = null): void
+    public function seed(?string $seed = null, bool $force = false, bool $fake = false): void
     {
         $seeds = $this->getSeeds();
 
@@ -699,16 +809,14 @@ class Manager
             // run all seeders
             foreach ($seeds as $seeder) {
                 if (array_key_exists($seeder->getName(), $seeds)) {
-                    $this->executeSeed($seeder);
+                    $this->executeSeed($seeder, $force, $fake);
                 }
             }
         } else {
             // run only one seeder
-            if (array_key_exists($seed . 'Seed', $seeds)) {
-                $seed = $seed . 'Seed';
-                $this->executeSeed($seeds[$seed]);
-            } elseif (array_key_exists($seed, $seeds)) {
-                $this->executeSeed($seeds[$seed]);
+            $normalizedName = $this->normalizeSeedName($seed, $seeds);
+            if ($normalizedName !== null) {
+                $this->executeSeed($seeds[$normalizedName], $force, $fake);
             } else {
                 throw new InvalidArgumentException(sprintf('The seed `%s` does not exist', $seed));
             }
@@ -723,7 +831,7 @@ class Manager
      */
     public function getEnvironment(): Environment
     {
-        if (isset($this->environment)) {
+        if ($this->environment instanceof Environment) {
             return $this->environment;
         }
 
@@ -765,7 +873,6 @@ class Manager
     /**
      * Replace the environment
      *
-     * @param \Migrations\Migration\Environment $environment
      * @return $this
      */
     public function setEnvironment(Environment $environment)
@@ -817,8 +924,8 @@ class Manager
             $io->verbose('Migration file');
             $io->verbose(
                 array_map(
-                    function ($phpFile) {
-                        return "    <info>{$phpFile}</info>";
+                    function (string $phpFile): string {
+                        return sprintf('    <info>%s</info>', $phpFile);
                     },
                     $phpFiles,
                 ),
@@ -832,7 +939,7 @@ class Manager
             $io = $this->getIo();
             foreach ($phpFiles as $filePath) {
                 if (Util::isValidMigrationFileName(basename($filePath))) {
-                    $io->verbose("Valid migration file <info>{$filePath}</info>.");
+                    $io->verbose(sprintf('Valid migration file <info>%s</info>.', $filePath));
 
                     $version = Util::getVersionFromFileName(basename($filePath));
 
@@ -853,28 +960,41 @@ class Manager
 
                     $fileNames[$class] = basename($filePath);
 
-                    $io->verbose("Loading class <info>$class</info> from <info>$filePath</info>.");
+                    $io->verbose(sprintf('Loading class <info>%s</info> from <info>%s</info>.', $class, $filePath));
 
-                    // load the migration file
+                    $this->checkMigrationClass($filePath);
+
                     $orig_display_errors_setting = ini_get('display_errors');
                     ini_set('display_errors', 'On');
-                    /** @noinspection PhpIncludeInspection */
-                    require_once $filePath;
-                    ini_set('display_errors', $orig_display_errors_setting);
+
+                    // For anonymous classes, we need to use require instead of require_once
+                    // to get the returned instance
+                    $migrationInstance = null;
                     if (!class_exists($class)) {
+                        $migrationInstance = require $filePath;
+                    } else {
+                        require_once $filePath;
+                    }
+
+                    ini_set('display_errors', $orig_display_errors_setting);
+
+                    // Check if the file returns an anonymous class instance
+                    if ($migrationInstance instanceof MigrationInterface) {
+                        $io->verbose(sprintf('Using anonymous class from <info>%s</info>.', $filePath));
+                        $migration = $migrationInstance;
+                        $migration->setVersion($version);
+                    } elseif (class_exists($class)) {
+                        // Fall back to traditional class-based migration
+                        $io->verbose(sprintf('Constructing <info>%s</info>.', $class));
+                        $migration = new $class($version);
+                    } else {
                         throw new InvalidArgumentException(sprintf(
-                            'Could not find class `%s` in file `%s`',
+                            'Could not find class `%s` in file `%s` and file did not return a migration instance',
                             $class,
                             $filePath,
                         ));
                     }
 
-                    $io->verbose("Constructing <info>$class</info>.");
-                    if (is_subclass_of($class, PhinxMigrationInterface::class)) {
-                        $migration = new MigrationAdapter($class, $version);
-                    } else {
-                        $migration = new $class($version);
-                    }
                     /** @var \Migrations\MigrationInterface $migration */
                     $config = $this->getConfig();
                     $migration->setConfig($config);
@@ -882,7 +1002,7 @@ class Manager
 
                     $versions[$version] = $migration;
                 } else {
-                    $io->verbose("Invalid migration file <error>{$filePath}</error>.");
+                    $io->verbose(sprintf('Invalid migration file <error>%s</error>.', $filePath));
                 }
             }
 
@@ -891,6 +1011,32 @@ class Manager
         }
 
         return (array)$this->migrations;
+    }
+
+    /**
+     * Prevent fatal errors when loading legacy migration files that still reference old classes
+     *
+     * @param string $filePath Migration file path
+     * @return void
+     */
+    protected function checkMigrationClass(string $filePath): void
+    {
+        $contents = file_get_contents($filePath);
+        if ($contents === false) {
+            return;
+        }
+
+        $usesLegacyAbstractMigration =
+            str_contains($contents, 'use Migrations\AbstractMigration;') ||
+            str_contains($contents, 'extends AbstractMigration') ||
+            str_contains($contents, 'extends \Migrations\AbstractMigration');
+
+        if ($usesLegacyAbstractMigration) {
+            throw new RuntimeException(sprintf(
+                'Migration file `%s` uses the legacy `Migrations\\AbstractMigration` class, which is not available in this version. Update the migration to extend `Migrations\\BaseMigration`.',
+                $filePath,
+            ));
+        }
     }
 
     /**
@@ -917,6 +1063,28 @@ class Manager
     }
 
     /**
+     * Normalize a seed name by trying with and without the 'Seed' suffix.
+     *
+     * @param string $name Seed name to normalize
+     * @param array<string, \Migrations\SeedInterface> $seeds Seeds array to search in
+     * @return string|null The normalized seed name, or null if not found
+     */
+    public function normalizeSeedName(string $name, array $seeds): ?string
+    {
+        // Try with 'Seed' suffix first
+        if (array_key_exists($name . 'Seed', $seeds)) {
+            return $name . 'Seed';
+        }
+
+        // Try exact name
+        if (array_key_exists($name, $seeds)) {
+            return $name;
+        }
+
+        return null;
+    }
+
+    /**
      * Get seed dependencies instances from seed dependency array
      *
      * @param \Migrations\SeedInterface $seed Seed
@@ -928,11 +1096,9 @@ class Manager
         $dependencies = $seed->getDependencies();
         if ($dependencies && $this->seeds) {
             foreach ($dependencies as $dependency) {
-                foreach ($this->seeds as $seed) {
-                    $name = $seed->getName();
-                    if ($name === $dependency) {
-                        $dependenciesInstances[$name] = $seed;
-                    }
+                $normalizedName = $this->normalizeSeedName($dependency, $this->seeds);
+                if ($normalizedName !== null) {
+                    $dependenciesInstances[$normalizedName] = $this->seeds[$normalizedName];
                 }
             }
         }
@@ -944,18 +1110,46 @@ class Manager
      * Order seeds by dependencies
      *
      * @param \Migrations\SeedInterface[] $seeds Seeds
+     * @param array<string, true> $visiting Seeds currently being visited (for cycle detection)
+     * @param array<string, true> $visited Seeds that have been fully processed
      * @return \Migrations\SeedInterface[]
+     * @throws \RuntimeException When a circular dependency is detected
      */
-    protected function orderSeedsByDependencies(array $seeds): array
+    protected function orderSeedsByDependencies(array $seeds, array $visiting = [], array &$visited = []): array
     {
         $orderedSeeds = [];
         foreach ($seeds as $seed) {
             $name = $seed->getName();
-            $orderedSeeds[$name] = $seed;
+
+            // Skip if already fully processed
+            if (isset($visited[$name])) {
+                continue;
+            }
+
+            // Check for circular dependency
+            if (isset($visiting[$name])) {
+                $cycle = array_keys($visiting);
+                $cycle[] = $name;
+                throw new RuntimeException(
+                    'Circular dependency detected in seeds: ' . implode(' -> ', $cycle),
+                );
+            }
+
+            // Mark as currently visiting
+            $visiting[$name] = true;
+
             $dependencies = $this->getSeedDependenciesInstances($seed);
             if ($dependencies) {
-                $orderedSeeds = array_merge($this->orderSeedsByDependencies($dependencies), $orderedSeeds);
+                $orderedSeeds = array_merge(
+                    $this->orderSeedsByDependencies($dependencies, $visiting, $visited),
+                    $orderedSeeds,
+                );
             }
+
+            // Mark as fully visited and add to result
+            $visited[$name] = true;
+            unset($visiting[$name]);
+            $orderedSeeds[$name] = $seed;
         }
 
         return $orderedSeeds;
@@ -983,32 +1177,38 @@ class Manager
             foreach ($phpFiles as $filePath) {
                 if (Util::isValidSeedFileName(basename($filePath))) {
                     // convert the filename to a class name
+                    /** @var class-string<\Migrations\SeedInterface> $class */
                     $class = pathinfo($filePath, PATHINFO_FILENAME);
                     $fileNames[$class] = basename($filePath);
 
                     // load the seed file
-                    /** @noinspection PhpIncludeInspection */
-                    require_once $filePath;
+                    // For anonymous classes, we need to use require instead of require_once
+                    // to get the returned instance
+                    $seedInstance = null;
                     if (!class_exists($class)) {
+                        $seedInstance = require $filePath;
+                    } else {
+                        require_once $filePath;
+                    }
+
+                    // Check if the file returns an anonymous class instance
+                    if ($seedInstance instanceof SeedInterface) {
+                        $io->verbose(sprintf('Using anonymous class from <info>%s</info>.', $filePath));
+                        $seed = $seedInstance;
+                    } elseif (class_exists($class)) {
+                        // Fall back to traditional class-based seed
+                        $io->verbose(sprintf('Instantiating <info>%s</info>.', $class));
+                        // instantiate it
+                        /** @var \Migrations\SeedInterface $seed */
+                        $seed = isset($this->container) ? $this->container->get($class) : new $class();
+                    } else {
                         throw new InvalidArgumentException(sprintf(
-                            'Could not find class `%s` in file `%s`',
+                            'Could not find class `%s` in file `%s` and file did not return a seed instance',
                             $class,
                             $filePath,
                         ));
                     }
 
-                    // instantiate it
-                    /** @var \Phinx\Seed\AbstractSeed|\Migrations\SeedInterface $seed */
-                    if (isset($this->container)) {
-                        $seed = $this->container->get($class);
-                    } else {
-                        $seed = new $class();
-                    }
-                    // Shim phinx seeds so that the rest of migrations
-                    // can be isolated from phinx.
-                    if ($seed instanceof PhinxSeedInterface) {
-                        $seed = new SeedAdapter($seed);
-                    }
                     /** @var \Migrations\SeedInterface $seed */
                     $seed->setIo($io);
                     $seed->setConfig($config);
@@ -1095,7 +1295,7 @@ class Manager
         }
 
         $io = $this->getIo();
-        if ($version != 0 && (!isset($versions[$version]) || !isset($migrations[$version]))) {
+        if ($version !== 0 && (!isset($versions[$version]) || !isset($migrations[$version]))) {
             $io->out(sprintf(
                 '<comment>warning</comment> %s is not a valid version',
                 $version,
@@ -1109,12 +1309,12 @@ class Manager
                 $env->getAdapter()->toggleBreakpoint($migrations[$version]);
                 break;
             case self::BREAKPOINT_SET:
-                if ($versions[$version]['breakpoint'] == 0) {
+                if ((int)$versions[$version]['breakpoint'] === 0) {
                     $env->getAdapter()->setBreakpoint($migrations[$version]);
                 }
                 break;
             case self::BREAKPOINT_UNSET:
-                if ($versions[$version]['breakpoint'] == 1) {
+                if ((int)$versions[$version]['breakpoint'] === 1) {
                     $env->getAdapter()->unsetBreakpoint($migrations[$version]);
                 }
                 break;
@@ -1182,5 +1382,52 @@ class Manager
     public function resetSeeds(): void
     {
         $this->seeds = null;
+    }
+
+    /**
+     * Gets the schema table name being used for migration tracking.
+     *
+     * Returns the actual table name based on current configuration:
+     * - 'cake_migrations' for unified mode
+     * - 'phinxlog' or '{plugin}_phinxlog' for legacy mode
+     *
+     * @return string The migration tracking table name
+     */
+    public function getSchemaTableName(): string
+    {
+        return $this->getEnvironment()->getAdapter()->getSchemaTableName();
+    }
+
+    /**
+     * Cleanup missing migrations from the migration tracking table.
+     *
+     * Removes entries from the migrations table for migrations that no longer exist
+     * in the migrations directory (marked as MISSING in status output).
+     *
+     * @return int The number of missing migrations removed
+     */
+    public function cleanupMissingMigrations(): int
+    {
+        $defaultMigrations = $this->getMigrations();
+        $env = $this->getEnvironment();
+        $versions = $env->getVersionLog();
+        $adapter = $env->getAdapter();
+
+        // Find missing migrations (those in migration table but not in filesystem)
+        $missingVersions = [];
+        foreach (array_keys($versions) as $versionId) {
+            if (!isset($defaultMigrations[$versionId])) {
+                $missingVersions[] = $versionId;
+            }
+        }
+
+        if (!$missingVersions) {
+            return 0;
+        }
+
+        // Remove missing migrations from migrations table
+        $adapter->cleanupMissing($missingVersions);
+
+        return count($missingVersions);
     }
 }

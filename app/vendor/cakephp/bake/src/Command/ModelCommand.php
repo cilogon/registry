@@ -16,7 +16,9 @@ declare(strict_types=1);
  */
 namespace Bake\Command;
 
+use Bake\CodeGen\ColumnTypeExtractor;
 use Bake\CodeGen\FileBuilder;
+use Bake\CodeGen\ParsedFile;
 use Bake\Utility\Model\EnumParser;
 use Bake\Utility\TableScanner;
 use Cake\Console\Arguments;
@@ -44,8 +46,6 @@ class ModelCommand extends BakeCommand
 {
     /**
      * path to Model directory
-     *
-     * @var string
      */
     public string $pathFragment = 'Model/';
 
@@ -53,8 +53,6 @@ class ModelCommand extends BakeCommand
      * Table prefix
      *
      * Can be replaced in application subclasses if necessary
-     *
-     * @var string
      */
     public string $tablePrefix = '';
 
@@ -256,9 +254,7 @@ class ModelCommand extends BakeCommand
         $associations = $this->findHasMany($table, $associations);
         $associations = $this->findBelongsToMany($table, $associations);
 
-        $associations = $this->ensureAliasUniqueness($associations);
-
-        return $associations;
+        return $this->ensureAliasUniqueness($associations);
     }
 
     /**
@@ -274,7 +270,7 @@ class ModelCommand extends BakeCommand
      */
     public function applyAssociations(Table $model, array $associations): void
     {
-        if (get_class($model) !== Table::class) {
+        if ($model::class !== Table::class) {
             return;
         }
 
@@ -314,7 +310,7 @@ class ModelCommand extends BakeCommand
         foreach ($table->associations() as $association) {
             /** @var \Cake\ORM\Association $association */
 
-            $tableClass = get_class($association->getTarget());
+            $tableClass = $association->getTarget()::class;
             if ($tableClass === Table::class) {
                 $namespace = $appNamespace;
 
@@ -324,7 +320,7 @@ class ModelCommand extends BakeCommand
                     $namespace = $plugin;
                 }
 
-                $namespace = str_replace('/', '\\', trim($namespace, '\\'));
+                $namespace = str_replace('/', '\\', trim((string)$namespace, '\\'));
                 $tableClass = $namespace . '\Model\Table\\' . $className . 'Table';
             }
 
@@ -373,10 +369,10 @@ class ModelCommand extends BakeCommand
                 $tables = $this->listAll();
                 // Check if association model could not be instantiated as a subclass but a generic Table instance instead
                 if (
-                    get_class($associationTable) === Table::class &&
+                    $associationTable::class === Table::class &&
                     !in_array(Inflector::tableize($tmpModelName), $tables, true)
                 ) {
-                    $allowAliasRelations = $args && $args->getOption('skip-relation-check');
+                    $allowAliasRelations = $args instanceof Arguments && $args->getOption('skip-relation-check');
                     $found = $this->findTableReferencedBy($schema, $fieldName);
                     if ($found) {
                         $className = ($this->plugin ? $this->plugin . '.' : '') . Inflector::camelize($found);
@@ -391,7 +387,8 @@ class ModelCommand extends BakeCommand
                 if ($className && $className !== $tmpModelName) {
                     $assoc['className'] = $className;
                 }
-                if ($schema->getColumn($fieldName)['null'] === false) {
+                $columnInfo = $schema->getColumn($fieldName);
+                if ($columnInfo !== null && ($columnInfo['null'] ?? true) === false) {
                     $assoc['joinType'] = 'INNER';
                 }
             }
@@ -423,7 +420,7 @@ class ModelCommand extends BakeCommand
 
         foreach ($schema->constraints() as $constraint) {
             $constraintInfo = $schema->getConstraint($constraint);
-            if (!in_array($keyField, $constraintInfo['columns'])) {
+            if (!in_array($keyField, $constraintInfo['columns'] ?? [])) {
                 continue;
             }
 
@@ -431,8 +428,8 @@ class ModelCommand extends BakeCommand
                 continue;
             }
             $length = $this->tablePrefix ? mb_strlen($this->tablePrefix) : 0;
-            if ($length > 0 && mb_substr($constraintInfo['references'][0], 0, $length) === $this->tablePrefix) {
-                return mb_substr($constraintInfo['references'][0], $length);
+            if ($length > 0 && mb_substr((string)$constraintInfo['references'][0], 0, $length) === $this->tablePrefix) {
+                return mb_substr((string)$constraintInfo['references'][0], $length);
             }
 
             return $constraintInfo['references'][0];
@@ -483,8 +480,9 @@ class ModelCommand extends BakeCommand
         foreach ($schema->constraints() as $constraint) {
             $constraintInfo = $schema->getConstraint($constraint);
             if (
-                $constraintInfo['type'] === TableSchema::CONSTRAINT_UNIQUE &&
-                $constraintInfo['columns'] === [$keyField]
+                $constraintInfo !== null &&
+                ($constraintInfo['type'] ?? null) === TableSchema::CONSTRAINT_UNIQUE &&
+                ($constraintInfo['columns'] ?? []) === [$keyField]
             ) {
                 return true;
             }
@@ -641,15 +639,15 @@ class ModelCommand extends BakeCommand
      *
      * @param \Cake\ORM\Table $model The model to introspect.
      * @param \Cake\Console\Arguments $args CLI Arguments
-     * @return array<string>|string|null
+     * @return array<string>|string
      */
-    public function getDisplayField(Table $model, Arguments $args): array|string|null
+    public function getDisplayField(Table $model, Arguments $args): array|string
     {
         if ($args->getOption('display-field')) {
             return (string)$args->getOption('display-field');
         }
 
-        return $model->getDisplayField();
+        return $model->getDisplayField() ?? [];
     }
 
     /**
@@ -662,7 +660,7 @@ class ModelCommand extends BakeCommand
     public function getPrimaryKey(Table $model, Arguments $args): array
     {
         if ($args->getOption('primary-key')) {
-            $fields = explode(',', $args->getOption('primary-key'));
+            $fields = explode(',', (string)$args->getOption('primary-key'));
 
             return array_values(array_filter(array_map('trim', $fields)));
         }
@@ -701,6 +699,7 @@ class ModelCommand extends BakeCommand
 
         $schema = $model->getSchema();
         foreach ($schema->columns() as $column) {
+            /** @var array $columnSchema */
             $columnSchema = $schema->getColumn($column);
 
             $properties[$column] = [
@@ -720,7 +719,7 @@ class ModelCommand extends BakeCommand
                 if ($plugin !== null) {
                     $namespace = $plugin;
                 }
-                $namespace = str_replace('/', '\\', trim($namespace, '\\'));
+                $namespace = str_replace('/', '\\', trim((string)$namespace, '\\'));
 
                 $entityClass = $this->_entityName($association->getTarget()->getAlias());
                 $entityClass = '\\' . $namespace . '\Model\Entity\\' . $entityClass;
@@ -756,7 +755,7 @@ class ModelCommand extends BakeCommand
             return false;
         }
         if ($args->getOption('fields')) {
-            $fields = explode(',', $args->getOption('fields'));
+            $fields = explode(',', (string)$args->getOption('fields'));
 
             return array_values(array_filter(array_map('trim', $fields)));
         }
@@ -785,7 +784,7 @@ class ModelCommand extends BakeCommand
             return [];
         }
         if ($args->getOption('hidden')) {
-            $fields = explode(',', $args->getOption('hidden'));
+            $fields = explode(',', (string)$args->getOption('hidden'));
 
             return array_values(array_filter(array_map('trim', $fields)));
         }
@@ -890,9 +889,9 @@ class ModelCommand extends BakeCommand
             $rules['date'] = [];
         } elseif ($metaData['type'] === 'time') {
             $rules['time'] = [];
-        } elseif (strpos($metaData['type'], 'datetime') === 0) {
+        } elseif (str_starts_with((string)$metaData['type'], 'datetime')) {
             $rules['dateTime'] = [];
-        } elseif (strpos($metaData['type'], 'timestamp') === 0) {
+        } elseif (str_starts_with((string)$metaData['type'], 'timestamp')) {
             $rules['dateTime'] = [];
         } elseif ($metaData['type'] === 'inet') {
             $rules['ip'] = [];
@@ -931,8 +930,9 @@ class ModelCommand extends BakeCommand
         }
 
         foreach ($schema->constraints() as $constraint) {
+            /** @var array $constraint */
             $constraint = $schema->getConstraint($constraint);
-            if (!in_array($fieldName, $constraint['columns'], true) || count($constraint['columns']) > 1) {
+            if (!in_array($fieldName, $constraint['columns'] ?? [], true) || count($constraint['columns']) > 1) {
                 continue;
             }
 
@@ -1009,6 +1009,7 @@ class ModelCommand extends BakeCommand
         $uniqueConstraintsColumns = [];
 
         foreach ($schema->constraints() as $name) {
+            /** @var array $constraint */
             $constraint = $schema->getConstraint($name);
             if ($constraint['type'] !== TableSchema::CONSTRAINT_UNIQUE) {
                 continue;
@@ -1027,11 +1028,22 @@ class ModelCommand extends BakeCommand
                 }
             }
 
-            $uniqueRules[] = ['name' => 'isUnique', 'fields' => $constraintFields, 'options' => $options];
+            $rule = ['name' => 'isUnique', 'fields' => $constraintFields, 'options' => $options];
+
+            // Add descriptive message for composite unique constraints
+            if (count($constraintFields) > 1) {
+                $rule['message'] = sprintf(
+                    'This combination of %s and %s already exists',
+                    implode(', ', array_slice($constraintFields, 0, -1)),
+                    end($constraintFields),
+                );
+            }
+
+            $uniqueRules[] = $rule;
         }
 
         $possiblyUniqueColumns = ['username', 'login'];
-        if (in_array($model->getAlias(), ['Users', 'Accounts'])) {
+        if (in_array($model->getAlias(), ['Users', 'Accounts'], true)) {
             $possiblyUniqueColumns[] = 'email';
         }
 
@@ -1115,7 +1127,7 @@ class ModelCommand extends BakeCommand
 
             try {
                 $otherSchema = $otherModel->getSchema();
-            } catch (DatabaseException $e) {
+            } catch (DatabaseException) {
                 continue;
             }
 
@@ -1146,7 +1158,7 @@ class ModelCommand extends BakeCommand
         }
 
         $name = $this->_entityName($model->getAlias());
-        $io->out("\n" . sprintf('Baking entity class for %s...', $name), 1, ConsoleIo::NORMAL);
+        $io->out("\n" . sprintf('Baking entity class for %s...', $name));
 
         $namespace = Configure::read('App.namespace');
         $pluginPath = '';
@@ -1198,7 +1210,7 @@ class ModelCommand extends BakeCommand
         }
 
         $name = $model->getAlias();
-        $io->out("\n" . sprintf('Baking table class for %s...', $name), 1, ConsoleIo::NORMAL);
+        $io->out("\n" . sprintf('Baking table class for %s...', $name));
 
         $namespace = Configure::read('App.namespace');
         $pluginPath = '';
@@ -1210,11 +1222,24 @@ class ModelCommand extends BakeCommand
         $filename = $path . 'Table' . DS . $name . 'Table.php';
 
         $parsedFile = null;
+        $customColumnTypes = [];
         if ($args->getOption('update')) {
             $parsedFile = $this->parseFile($filename);
+            // Extract custom column types from existing file
+            if ($parsedFile instanceof ParsedFile && isset($parsedFile->class->methods['initialize'])) {
+                $customColumnTypes = $this->extractCustomColumnTypes($parsedFile->class->methods['initialize']);
+            }
         }
 
         $entity = $this->_entityName($model->getAlias());
+        $enums = $this->enums($model, $entity, $namespace);
+
+        // Merge custom column types with generated enums
+        // Remove custom types that are now handled by enums
+        foreach ($enums as $field => $enumClass) {
+            unset($customColumnTypes[$field]);
+        }
+
         $data += [
             'plugin' => $this->plugin,
             'pluginPath' => $pluginPath,
@@ -1228,7 +1253,8 @@ class ModelCommand extends BakeCommand
             'validation' => [],
             'rulesChecker' => [],
             'behaviors' => [],
-            'enums' => $this->enums($model, $entity, $namespace),
+            'enums' => $enums,
+            'customColumnTypes' => $customColumnTypes,
             'connection' => $this->connection,
             'fileBuilder' => new FileBuilder($io, "{$namespace}\Model\Table", $parsedFile),
         ];
@@ -1237,7 +1263,7 @@ class ModelCommand extends BakeCommand
             ->set($data)
             ->generate('Bake.Model/table');
 
-        $this->writefile($io, $filename, $contents, $this->force);
+        $this->writeFile($io, $filename, $contents, $this->force);
 
         // Work around composer caching that classes/files do not exist.
         // Check for the file as it might not exist in tests.
@@ -1307,7 +1333,7 @@ class ModelCommand extends BakeCommand
      * @param \Cake\Console\ConsoleOptionParser $parser The parser to configure
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $parser = $this->_setCommonOptions($parser);
 
@@ -1318,7 +1344,7 @@ class ModelCommand extends BakeCommand
                 'You can use Plugin.name to bake plugin models.',
         ])->addOption('update', [
             'boolean' => true,
-            'help' => 'Update generated methods in existing files. If the file doesn\'t exist it will be created.',
+            'help' => "Update generated methods in existing files. If the file doesn't exist it will be created.",
         ])->addOption('table', [
             'help' => 'The table name to use if you have non-conventional table names.',
         ])->addOption('no-entity', [
@@ -1418,9 +1444,6 @@ class ModelCommand extends BakeCommand
     }
 
     /**
-     * @param \Cake\ORM\Table $table
-     * @param string $entity
-     * @param string $namespace
      * @return array<string, class-string>
      */
     protected function enums(Table $table, string $entity, string $namespace): array
@@ -1442,7 +1465,6 @@ class ModelCommand extends BakeCommand
     }
 
     /**
-     * @param \Cake\Database\Schema\TableSchemaInterface $schema
      * @return array<string>
      */
     protected function possibleEnumFields(TableSchemaInterface $schema): array
@@ -1450,8 +1472,9 @@ class ModelCommand extends BakeCommand
         $fields = [];
 
         foreach ($schema->columns() as $column) {
+            /** @var array $columnSchema */
             $columnSchema = $schema->getColumn($column);
-            if (str_starts_with($columnSchema['type'], 'enum-')) {
+            if (str_starts_with((string)$columnSchema['type'], 'enum-')) {
                 $fields[] = $column;
 
                 continue;
@@ -1468,7 +1491,6 @@ class ModelCommand extends BakeCommand
     }
 
     /**
-     * @param \Cake\Database\Schema\TableSchemaInterface $schema
      * @return array<string, mixed>
      */
     protected function getEnumDefinitions(TableSchemaInterface $schema): array
@@ -1476,21 +1498,22 @@ class ModelCommand extends BakeCommand
         $enums = [];
 
         foreach ($schema->columns() as $column) {
+            /** @var array $columnSchema */
             $columnSchema = $schema->getColumn($column);
             if (
                 !in_array($columnSchema['type'], ['string', 'integer', 'tinyinteger', 'smallinteger'], true)
-                && !str_starts_with($columnSchema['type'], 'enum-')
+                && !str_starts_with((string)$columnSchema['type'], 'enum-')
             ) {
                 continue;
             }
 
-            if (empty($columnSchema['comment']) || !str_contains($columnSchema['comment'], '[enum]')) {
+            if (empty($columnSchema['comment']) || !str_contains((string)$columnSchema['comment'], '[enum]')) {
                 continue;
             }
 
             $enumsDefinitionString = EnumParser::parseDefinitionString($columnSchema['comment']);
             $isInt = in_array($columnSchema['type'], ['integer', 'tinyinteger', 'smallinteger'], true);
-            if (str_starts_with($columnSchema['type'], 'enum-')) {
+            if (str_starts_with((string)$columnSchema['type'], 'enum-')) {
                 $dbType = TypeFactory::build($columnSchema['type']);
                 if ($dbType instanceof EnumType) {
                     $class = $dbType->getEnumClassName();
@@ -1516,10 +1539,7 @@ class ModelCommand extends BakeCommand
     }
 
     /**
-     * @param \Cake\ORM\Table $model
      * @param array<string, mixed> $data
-     * @param \Cake\Console\Arguments $args
-     * @param \Cake\Console\ConsoleIo $io
      * @return void
      */
     protected function bakeEnums(Table $model, array $data, Arguments $args, ConsoleIo $io): void
@@ -1592,5 +1612,18 @@ class ModelCommand extends BakeCommand
         $foreignKey = $association['foreignKey'];
 
         return $this->_modelNameFromKey($foreignKey);
+    }
+
+    /**
+     * Extract custom column type mappings from existing initialize method
+     *
+     * @param string $initializeMethod The initialize method code
+     * @return array<string, string> Map of column names to type expressions
+     */
+    protected function extractCustomColumnTypes(string $initializeMethod): array
+    {
+        $extractor = new ColumnTypeExtractor();
+
+        return $extractor->extract($initializeMethod);
     }
 }

@@ -2,10 +2,59 @@
 
 All Notable changes to `League\Container` will be documented in this file
 
-## 4.2.5
+## 5.2.0
+
+### Added
+- **Event system** for hooking into the container lifecycle
+  - Four event types: `OnDefineEvent`, `BeforeResolveEvent`, `DefinitionResolvedEvent`, `ServiceResolvedEvent`
+  - Fluent filtering API: `forType()`, `forTag()`, `forId()`, `where()`
+  - `Container::listen()` for registering filtered event listeners
+  - `Container::afterResolve()` convenience method as a drop-in replacement for `inflector()`
+  - Lazy event dispatch: events are only created when listeners are registered for that event type
+  - `EventDispatcher::hasListenersFor()` to check whether listeners exist for a given event type
+  - `DefinitionInterface::getTags()` for retrieving tags from definitions
+  - Docs: [https://container.thephpleague.com/5.x/events/](https://container.thephpleague.com/5.x/events/)
+- `Container::getDelegate(string $class)` to retrieve a registered delegate container by type
 
 ### Fixed
-- Restored ability to perform recursive definition search. (@spider-mane)
+- Interface-to-concrete definitions now correctly resolve through the concrete's own registered definition instead of bypassing it via direct reflection (#275, #278)
+- `Definition::resolveClass()` now throws `ContainerException` with actionable guidance when a class has unsatisfied constructor dependencies, instead of a raw `ArgumentCountError`
+
+### Deprecated
+- `Container::inflector()` - use `Container::afterResolve()` or the event system instead. Will be removed in v6.0.
+
+### Changed
+- `DefinitionContainerInterface` no longer extends `EventAwareContainerInterface` (removed)
+- Shared definitions now receive a `'shared'` tag automatically via `addTag('shared')`
+
+### Removed
+- `EventAwareContainerInterface` - the event system is provided by `EventAwareTrait` on the concrete `Container` class, not as an interface contract
+
+## 5.1.0
+
+### Added
+- Attribute based resolution for dependencies using `#[Inject]` and `#[Resolve]` attributes.
+  - Docs: [https://container.thephpleague.com/5.x/attribute-resolution/](https://container.thephpleague.com/5.x/attribute-resolution/)
+- Support for PHPUnit 12 (@ADmad)
+- Explicit non-support for auto-wiring union types.
+
+### Changed
+- Small internal changes for stricter static analysis and type safety. (@ADmad)
+
+### 5.0.1
+
+### Fixed
+- Fixed a small unreachable code bug
+
+## 5.0.0
+
+### Added
+- Ability to overwrite a definition within the container, disabled by default
+
+### Changed
+- PHP requirement now `>=8.1`
+- General language modernisation
+- General prep for future updates and container compilation
 
 ## 4.2.4
 

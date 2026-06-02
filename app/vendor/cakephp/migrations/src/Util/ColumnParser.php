@@ -5,6 +5,7 @@ namespace Migrations\Util;
 
 use Cake\Collection\Collection;
 use Cake\Utility\Hash;
+use Cake\Utility\Inflector;
 use Migrations\Db\Adapter\AdapterInterface;
 use ReflectionClass;
 
@@ -15,8 +16,6 @@ class ColumnParser
 {
     /**
      * Regex used to parse the column definition passed through the shell
-     *
-     * @var string
      */
     protected string $regexpParseColumn = '/
         ^
@@ -27,6 +26,7 @@ class ColumnParser
                 (?:,(?:[0-9]|[1-9][0-9]+))?
             \])?
         ))?
+        (?::default\[([^\]]+)\])?
         (?::(\w+))?
         (?::(\w+))?
         $
@@ -34,8 +34,6 @@ class ColumnParser
 
     /**
      * Regex used to parse the field type and length
-     *
-     * @var string
      */
     protected string $regexpParseField = '/(\w+\??)\[([0-9,]+)\]/';
 
@@ -53,7 +51,8 @@ class ColumnParser
             preg_match($this->regexpParseColumn, $field, $matches);
             $field = $matches[1];
             $type = Hash::get($matches, 2, '');
-            $indexType = Hash::get($matches, 3);
+            $defaultValue = Hash::get($matches, 3);
+            $indexType = Hash::get($matches, 4);
 
             $typeIsPk = in_array($type, ['primary', 'primary_key'], true);
             $isPrimaryKey = false;
@@ -64,7 +63,14 @@ class ColumnParser
                     $type = 'primary';
                 }
             }
-            $nullable = (bool)strpos($type, '?');
+
+            // Handle references - convert to integer type
+            $isReference = in_array($type, ['references', 'references?'], true);
+            if ($isReference) {
+                $type = str_contains($type, '?') ? 'integer?' : 'integer';
+            }
+
+            $nullable = str_contains((string)$type, '?');
             $type = $nullable ? str_replace('?', '', $type) : $type;
 
             [$type, $length] = $this->getTypeAndLength($field, $type);
@@ -72,7 +78,7 @@ class ColumnParser
                 'columnType' => $type,
                 'options' => [
                     'null' => $nullable,
-                    'default' => null,
+                    'default' => $this->parseDefaultValue($defaultValue, $type ?? 'string'),
                 ],
             ];
 
@@ -84,7 +90,7 @@ class ColumnParser
                 }
             }
 
-            if ($isPrimaryKey === true && $type === 'integer') {
+            if ($isPrimaryKey && $type === 'integer') {
                 $fields[$field]['options']['autoIncrement'] = true;
             }
         }
@@ -106,14 +112,20 @@ class ColumnParser
             preg_match($this->regexpParseColumn, $field, $matches);
             $field = $matches[1];
             $type = Hash::get($matches, 2);
-            $indexType = Hash::get($matches, 3);
-            $indexName = Hash::get($matches, 4);
+            $indexType = Hash::get($matches, 4);
+            $indexName = Hash::get($matches, 5);
 
-            if (
-                in_array($type, ['primary', 'primary_key'], true) ||
-                in_array($indexType, ['primary', 'primary_key'], true) ||
-                $indexType === null
-            ) {
+            // Skip references - they create foreign keys, not indexes
+            if ($type && str_starts_with((string)$type, 'references')) {
+                continue;
+            }
+            if (in_array($type, ['primary', 'primary_key'], true)) {
+                continue;
+            }
+            if (in_array($indexType, ['primary', 'primary_key'], true)) {
+                continue;
+            }
+            if ($indexType === null) {
                 continue;
             }
 
@@ -155,7 +167,7 @@ class ColumnParser
             preg_match($this->regexpParseColumn, $field, $matches);
             $field = $matches[1];
             $type = Hash::get($matches, 2);
-            $indexType = Hash::get($matches, 3);
+            $indexType = Hash::get($matches, 4);
 
             if (
                 in_array($type, ['primary', 'primary_key'], true)
@@ -169,6 +181,55 @@ class ColumnParser
     }
 
     /**
+     * Parses a list of arguments into an array of foreign key constraints
+     *
+     * @param array<int, string> $arguments A list of arguments being parsed
+     * @return array<string, array>
+     */
+    public function parseForeignKeys(array $arguments): array
+    {
+        $foreignKeys = [];
+        $arguments = $this->validArguments($arguments);
+
+        foreach ($arguments as $field) {
+            preg_match($this->regexpParseColumn, $field, $matches);
+            $fieldName = $matches[1];
+            $type = Hash::get($matches, 2, '');
+            $indexType = Hash::get($matches, 4);
+            $indexName = Hash::get($matches, 5);
+
+            // Check if type is 'references' or 'references?'
+            $isReference = str_starts_with((string)$type, 'references');
+            if (!$isReference) {
+                continue;
+            }
+
+            // Determine referenced table
+            // If indexType is provided, use it as the referenced table name
+            // Otherwise, infer from field name (e.g., category_id -> categories)
+            $referencedTable = $indexType;
+            if (!$referencedTable) {
+                // Remove common suffixes like _id and pluralize
+                $referencedTable = (string)preg_replace('/_id$/', '', $fieldName);
+                $referencedTable = Inflector::pluralize($referencedTable);
+            }
+
+            // Generate constraint name
+            $constraintName = $indexName ?: 'fk_' . $fieldName;
+
+            $foreignKeys[$constraintName] = [
+                'type' => 'foreign',
+                'columns' => [$fieldName],
+                'references' => [$referencedTable, 'id'],
+                'update' => 'CASCADE',
+                'delete' => 'CASCADE',
+            ];
+        }
+
+        return $foreignKeys;
+    }
+
+    /**
      * Returns a list of only valid arguments
      *
      * @param array<string> $arguments A list of arguments
@@ -178,7 +239,7 @@ class ColumnParser
     {
         $collection = new Collection($arguments);
 
-        return $collection->filter(function ($value, $field) {
+        return $collection->filter(function ($value, $field): int|false {
             return preg_match($this->regexpParseColumn, (string)$field);
         })->toArray();
     }
@@ -188,17 +249,16 @@ class ColumnParser
      *
      * @param string $field Name of field
      * @param string|null $type User-specified type
-     * @return array<string|int|array|null> First value is the field type, second value is the field length. If no length
+     * @return array{0: string|null, 1: int|array<int>|null} First value is the field type, second value is the field length. If no length
      * can be extracted, null is returned for the second value
      */
     public function getTypeAndLength(string $field, ?string $type): array
     {
         if ($type && preg_match($this->regexpParseField, $type, $matches)) {
-            if (str_contains($matches[2], ',')) {
-                $matches[2] = explode(',', $matches[2]);
-            }
+            $length = $matches[2];
+            $length = str_contains($length, ',') ? array_map(intval(...), explode(',', $length)) : (int)$length;
 
-            return [$matches[1], $matches[2]];
+            return [$matches[1], $length];
         }
 
         /** @var string $fieldType */
@@ -220,8 +280,9 @@ class ColumnParser
         $reflector = new ReflectionClass(AdapterInterface::class);
         $collection = new Collection($reflector->getConstants());
 
-        $validTypes = $collection->filter(function ($value, $constant) {
-            return substr($constant, 0, strlen('PHINX_TYPE_')) === 'PHINX_TYPE_';
+        $validTypes = $collection->filter(function ($value, $constant): bool {
+            return str_starts_with($constant, 'TYPE_') ||
+                   str_starts_with($constant, 'PHINX_TYPE_');
         })->toArray();
         $fieldType = $type;
         if ($type === null || !in_array($type, $validTypes, true)) {
@@ -229,7 +290,7 @@ class ColumnParser
                 $fieldType = 'integer';
             } elseif ($field === 'id') {
                 $fieldType = 'integer';
-            } elseif (in_array($field, ['created', 'modified', 'updated'], true) || substr($field, -3) === '_at') {
+            } elseif (in_array($field, ['created', 'modified', 'updated'], true) || str_ends_with($field, '_at')) {
                 $fieldType = 'datetime';
             } elseif (in_array($field, ['latitude', 'longitude', 'lat', 'lng'], true)) {
                 $fieldType = 'decimal';
@@ -288,5 +349,62 @@ class ColumnParser
         }
 
         return $indexName;
+    }
+
+    /**
+     * Parses a default value string into the appropriate PHP type.
+     *
+     * Supports:
+     * - Booleans: true, false
+     * - Null: null, NULL
+     * - Integers: 123, -123
+     * - Floats: 1.5, -1.5
+     * - Strings: 'hello' (quoted) or unquoted values
+     *
+     * @param string|null $value The raw default value from the command line
+     * @param string $columnType The column type to help with type coercion
+     * @return string|int|float|bool|null The parsed default value
+     */
+    public function parseDefaultValue(?string $value, string $columnType): string|int|float|bool|null
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $lowerValue = strtolower($value);
+
+        // Handle null
+        if ($lowerValue === 'null') {
+            return null;
+        }
+
+        // Handle booleans
+        if ($lowerValue === 'true') {
+            return true;
+        }
+        if ($lowerValue === 'false') {
+            return false;
+        }
+
+        // Handle quoted strings - strip quotes
+        if (
+            (str_starts_with($value, "'") && str_ends_with($value, "'")) ||
+            (str_starts_with($value, '"') && str_ends_with($value, '"'))
+        ) {
+            return substr($value, 1, -1);
+        }
+
+        // Handle integers
+        if (preg_match('/^-?\d+$/', $value)) {
+            return (int)$value;
+        }
+
+        // Handle floats
+        if (preg_match('/^-?\d+\.\d+$/', $value)) {
+            return (float)$value;
+        }
+
+        // Return as-is for SQL expressions like CURRENT_TIMESTAMP
+        return $value;
     }
 }

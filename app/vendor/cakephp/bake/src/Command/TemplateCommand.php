@@ -39,22 +39,16 @@ class TemplateCommand extends BakeCommand
 {
     /**
      * Name of the controller being used
-     *
-     * @var string
      */
     public string $controllerName;
 
     /**
      * Classname of the controller being used
-     *
-     * @var string
      */
     public string $controllerClass;
 
     /**
      * Name with plugin of the model being used
-     *
-     * @var string
      */
     public string $modelName;
 
@@ -74,22 +68,16 @@ class TemplateCommand extends BakeCommand
 
     /**
      * AssociationFilter utility
-     *
-     * @var \Bake\Utility\Model\AssociationFilter|null
      */
     protected ?AssociationFilter $_associationFilter = null;
 
     /**
      * Template path.
-     *
-     * @var string
      */
     public string $path;
 
     /**
      * Output extension
-     *
-     * @var string
      */
     public string $ext = 'php';
 
@@ -100,7 +88,17 @@ class TemplateCommand extends BakeCommand
      */
     public function initialize(): void
     {
-        $this->path = current(App::path('templates'));
+        parent::initialize();
+
+        $templatePaths = App::path('templates');
+        if ($templatePaths === []) {
+            throw new RuntimeException(
+                'Could not read template paths. ' .
+                'Ensure `App.paths.templates` is defined in your application configuration.',
+            );
+        }
+
+        $this->path = current($templatePaths);
     }
 
     /**
@@ -130,8 +128,7 @@ class TemplateCommand extends BakeCommand
         $template = $args->getArgument('template');
         $action = $args->getArgument('action');
 
-        $controller = $args->getOption('controller');
-        $this->controller($args, $name, $controller);
+        $this->controller($args, $name, (string)$args->getOption('controller'));
         $this->model($name);
 
         if ($template && $action === null) {
@@ -171,7 +168,7 @@ class TemplateCommand extends BakeCommand
         $tableName = $this->_camelize($table);
         $plugin = $this->plugin;
         if ($plugin) {
-            $plugin = $plugin . '.';
+            $plugin .= '.';
         }
         $this->modelName = $plugin . $tableName;
     }
@@ -213,9 +210,8 @@ class TemplateCommand extends BakeCommand
     public function getTemplatePath(Arguments $args, ?string $container = null): string
     {
         $path = parent::getTemplatePath($args, $container);
-        $path .= $this->controllerName . DS;
 
-        return $path;
+        return $path . $this->controllerName . DS;
     }
 
     /**
@@ -316,6 +312,12 @@ class TemplateCommand extends BakeCommand
         $pluralVar = Inflector::variable($this->controllerName);
         $pluralHumanName = $this->_pluralHumanName($this->controllerName);
 
+        // Handle cases where singular and plural are identical (e.g., "news", "sheep")
+        // to avoid generating invalid code like `foreach ($news as $news)`
+        if ($singularVar === $pluralVar) {
+            $singularVar .= 'Entity';
+        }
+
         return compact(
             'modelObject',
             'modelClass',
@@ -360,14 +362,14 @@ class TemplateCommand extends BakeCommand
         }
         if (empty($content)) {
             // phpcs:ignore Generic.Files.LineLength
-            $io->err("<warning>No generated content for '{$template}.{$this->ext}', not generating template.</warning>");
+            $io->warning("No generated content for '{$template}.{$this->ext}', not generating template.");
 
             return;
         }
         $path = $this->getTemplatePath($args);
         $filename = $path . Inflector::underscore($outputFile) . '.' . $this->ext;
 
-        $io->out("\n" . sprintf('Baking `%s` view template file...', $outputFile), 1, ConsoleIo::NORMAL);
+        $io->out("\n" . sprintf('Baking `%s` view template file...', $outputFile));
         $io->createFile($filename, $content, $this->force);
     }
 
@@ -406,7 +408,7 @@ class TemplateCommand extends BakeCommand
         }
         $renderer->set('indexColumns', $indexColumns);
 
-        return $renderer->generate("Bake.Template/$action");
+        return $renderer->generate("Bake.Template/{$action}");
     }
 
     /**
@@ -415,7 +417,7 @@ class TemplateCommand extends BakeCommand
      * @param \Cake\Console\ConsoleOptionParser $parser The option parser to update.
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $parser = $this->_setCommonOptions($parser);
 
@@ -448,7 +450,7 @@ class TemplateCommand extends BakeCommand
      */
     protected function _filteredAssociations(Table $model): array
     {
-        if ($this->_associationFilter === null) {
+        if (!$this->_associationFilter instanceof AssociationFilter) {
             $this->_associationFilter = new AssociationFilter();
         }
 

@@ -44,11 +44,7 @@ class ClassMemberSpacingSniff implements Sniff
 		return TokenHelper::CLASS_TYPE_WITH_ANONYMOUS_CLASS_TOKEN_CODES;
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $classPointer
-	 */
-	public function process(File $phpcsFile, $classPointer): void
+	public function process(File $phpcsFile, int $classPointer): void
 	{
 		$this->linesCountBetweenMembers = SniffSettingsHelper::normalizeInteger($this->linesCountBetweenMembers);
 
@@ -214,7 +210,7 @@ class ClassMemberSpacingSniff implements Sniff
 				continue;
 			}
 
-			if (in_array($tokens[$pointerBefore]['code'], Tokens::$commentTokens, true)) {
+			if (in_array($tokens[$pointerBefore]['code'], Tokens::COMMENT_TOKENS, true)) {
 				$pointerBeforeComment = TokenHelper::findPreviousEffective($phpcsFile, $pointerBefore - 1);
 				if ($tokens[$pointerBeforeComment]['line'] !== $tokens[$pointerBefore]['line']) {
 					$memberFirstCodePointer = array_key_exists('comment_opener', $tokens[$pointerBefore])

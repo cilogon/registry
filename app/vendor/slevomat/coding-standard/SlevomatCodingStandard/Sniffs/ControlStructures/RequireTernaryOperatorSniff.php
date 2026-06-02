@@ -39,11 +39,7 @@ class RequireTernaryOperatorSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $ifPointer
-	 */
-	public function process(File $phpcsFile, $ifPointer): void
+	public function process(File $phpcsFile, int $ifPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -245,7 +241,7 @@ class RequireTernaryOperatorSniff implements Sniff
 		$tokens = $phpcsFile->getTokens();
 		return TokenHelper::findNext(
 			$phpcsFile,
-			Tokens::$commentTokens,
+			Tokens::COMMENT_TOKENS,
 			$tokens[$scopeOwnerPointer]['scope_opener'] + 1,
 			$tokens[$scopeOwnerPointer]['scope_closer'],
 		) !== null;

@@ -35,11 +35,12 @@ Disallows usage of "mixed" type hint in phpDocs.
 
 #### SlevomatCodingStandard.TypeHints.DNFTypeHintFormat 🔧
 
-Checks format of DNF type hints.
+Checks format of DNF type hints. The same checks can also be applied to type hints inside `@param`, `@return`, `@var`, `@property` and `@property-read` annotations by enabling `enableForDocComments`.
 
 Sniff provides the following settings:
 
 * `enable`: either to enable or not this sniff. By default, it is enabled for PHP versions 8.0 or higher.
+* `enableForDocComments`: `true` also applies the configured checks to type hints in doc-comment annotations. Disabled by default.
 * `withSpacesAroundOperators`: `yes` requires spaces around `|` and `&`, `no` requires no space around `|`and `&`. None is set by default so both are enabled.
 * `withSpacesInsideParentheses`: `yes` requires spaces inside parentheses, `no` requires no spaces inside parentheses. None is set by default so both are enabled.
 * `shortNullable`: `yes` requires usage of `?` for nullable type hint, `no` disallows it. None is set by default so both are enabled.
@@ -50,6 +51,8 @@ Sniff provides the following settings:
 Enforces using shorthand scalar typehint variants in phpDocs: `int` instead of `integer` and `bool` instead of `boolean`. This is for consistency with native scalar typehints which also allow shorthand variants only.
 
 #### SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition 🔧
+
+> **Deprecated.** Use [`SlevomatCodingStandard.TypeHints.DNFTypeHintFormat`](#slevomatcodingstandardtypehintsdnftypehintformat-) with `nullPosition` set to `last` and `enableForDocComments` set to `true`, which enforces the same rule for both PHP code and annotations.
 
 Enforces `null` type hint on last position in annotations.
 
@@ -81,7 +84,7 @@ Sniff provides the following settings:
 * `enableStandaloneNullTrueFalseTypeHints`: enforces to transform `@param true`, `@param false` or `@param null` into native typehints. It's on by default if you're on PHP 8.2+
 * `traversableTypeHints`: enforces which typehints must have specified contained type. E.g. if you set this to `\Doctrine\Common\Collections\Collection`, then `\Doctrine\Common\Collections\Collection` must always be supplied with the contained type: `\Doctrine\Common\Collections\Collection|Foo[]`.
 
-This sniff can cause an error if you're overriding or implementing a parent method which does not have typehints. In such cases add `@phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint` annotation to the method to have this sniff skip it.
+This sniff can cause an error if you're overriding or implementing a parent method which does not have typehints. In such cases add `#[Override]` attribute or `@phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint` annotation to the method to have this sniff skip it.
 
 #### SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing 🔧
 
@@ -103,7 +106,7 @@ Sniff provides the following settings:
 * `enableStandaloneNullTrueFalseTypeHints`: enforces to transform `@var true`, `@var false` or `@var null` into native typehints. It's on by default if you're on PHP 8.2+. It can be enabled only when `enableNativeTypeHint` is enabled too.
 * `traversableTypeHints`: enforces which typehints must have specified contained type. E.g. if you set this to `\Doctrine\Common\Collections\Collection`, then `\Doctrine\Common\Collections\Collection` must always be supplied with the contained type: `\Doctrine\Common\Collections\Collection|Foo[]`.
 
-This sniff can cause an error if you're overriding parent property which does not have typehints. In such cases add `@phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint` annotation to the property to have this sniff skip it.
+This sniff can cause an error if you're overriding parent property which does not have typehints. In such cases add `#[Override]` attribute if you are using PHP 8.5+ or add `@phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint` annotation to the property to have this sniff skip it.
 
 #### SlevomatCodingStandard.TypeHints.ReturnTypeHint 🔧🚧
 

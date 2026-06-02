@@ -121,11 +121,7 @@ class ReferenceUsedNamesOnlySniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $openTagPointer
-	 */
-	public function process(File $phpcsFile, $openTagPointer): void
+	public function process(File $phpcsFile, int $openTagPointer): void
 	{
 		if (TokenHelper::findPrevious($phpcsFile, T_OPEN_TAG, $openTagPointer - 1) !== null) {
 			return;
@@ -218,58 +214,71 @@ class ReferenceUsedNamesOnlySniff implements Sniff
 			}
 
 			if ($isFullyQualified) {
-				if ($reference->isClass && $this->allowFullyQualifiedNameForCollidingClasses) {
-					$lowerCasedUnqualifiedClassName = strtolower($unqualifiedName);
+				$hasExistingUseForCanonicalName = false;
+				foreach ($useStatements as $useStatement) {
 					if (
-						array_key_exists($lowerCasedUnqualifiedClassName, $definedClassesIndex)
-						&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
-							$definedClassesIndex[$lowerCasedUnqualifiedClassName],
-						)
+						$useStatement->getType() === $reference->type
+						&& $useStatement->getFullyQualifiedTypeName() === $canonicalName
 					) {
-						continue;
+						$hasExistingUseForCanonicalName = true;
+						break;
 					}
+				}
 
-					if (
-						array_key_exists($lowerCasedUnqualifiedClassName, $classReferencesIndex)
-						&& $name !== $classReferencesIndex[$lowerCasedUnqualifiedClassName]
-					) {
-						continue;
-					}
+				if (!$hasExistingUseForCanonicalName) {
+					if ($reference->isClass && $this->allowFullyQualifiedNameForCollidingClasses) {
+						$lowerCasedUnqualifiedClassName = strtolower($unqualifiedName);
+						if (
+							array_key_exists($lowerCasedUnqualifiedClassName, $definedClassesIndex)
+							&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
+								$definedClassesIndex[$lowerCasedUnqualifiedClassName],
+							)
+						) {
+							continue;
+						}
 
-					if (
-						array_key_exists($collidingUseStatementUniqueId, $useStatements)
-						&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
-							$useStatements[$collidingUseStatementUniqueId]->getFullyQualifiedTypeName(),
-						)
-					) {
-						continue;
-					}
-				} elseif ($reference->isFunction && $this->allowFullyQualifiedNameForCollidingFunctions) {
-					$lowerCasedUnqualifiedFunctionName = strtolower($unqualifiedName);
-					if (array_key_exists($lowerCasedUnqualifiedFunctionName, $definedFunctionsIndex)) {
-						continue;
-					}
+						if (
+							array_key_exists($lowerCasedUnqualifiedClassName, $classReferencesIndex)
+							&& $name !== $classReferencesIndex[$lowerCasedUnqualifiedClassName]
+						) {
+							continue;
+						}
 
-					if (
-						array_key_exists($collidingUseStatementUniqueId, $useStatements)
-						&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
-							$useStatements[$collidingUseStatementUniqueId]->getFullyQualifiedTypeName(),
-						)
-					) {
-						continue;
-					}
-				} elseif ($reference->isConstant && $this->allowFullyQualifiedNameForCollidingConstants) {
-					if (array_key_exists($unqualifiedName, $definedConstantsIndex)) {
-						continue;
-					}
+						if (
+							array_key_exists($collidingUseStatementUniqueId, $useStatements)
+							&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
+								$useStatements[$collidingUseStatementUniqueId]->getFullyQualifiedTypeName(),
+							)
+						) {
+							continue;
+						}
+					} elseif ($reference->isFunction && $this->allowFullyQualifiedNameForCollidingFunctions) {
+						$lowerCasedUnqualifiedFunctionName = strtolower($unqualifiedName);
+						if (array_key_exists($lowerCasedUnqualifiedFunctionName, $definedFunctionsIndex)) {
+							continue;
+						}
 
-					if (
-						array_key_exists($collidingUseStatementUniqueId, $useStatements)
-						&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
-							$useStatements[$collidingUseStatementUniqueId]->getFullyQualifiedTypeName(),
-						)
-					) {
-						continue;
+						if (
+							array_key_exists($collidingUseStatementUniqueId, $useStatements)
+							&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
+								$useStatements[$collidingUseStatementUniqueId]->getFullyQualifiedTypeName(),
+							)
+						) {
+							continue;
+						}
+					} elseif ($reference->isConstant && $this->allowFullyQualifiedNameForCollidingConstants) {
+						if (array_key_exists($unqualifiedName, $definedConstantsIndex)) {
+							continue;
+						}
+
+						if (
+							array_key_exists($collidingUseStatementUniqueId, $useStatements)
+							&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName(
+								$useStatements[$collidingUseStatementUniqueId]->getFullyQualifiedTypeName(),
+							)
+						) {
+							continue;
+						}
 					}
 				}
 			}
@@ -416,38 +425,44 @@ class ReferenceUsedNamesOnlySniff implements Sniff
 				true,
 			);
 
-			if (
-				(
-					$reference->isClass
-					&& array_key_exists($canonicalNameToReference, $definedClassesIndex)
-					&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName($definedClassesIndex[$canonicalNameToReference])
-				)
-				|| (
-					$reference->isClass
-					&& array_key_exists($canonicalNameToReference, $classReferencesIndex)
-					&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName($classReferencesIndex[$canonicalNameToReference])
-				)
-				|| ($reference->isFunction && array_key_exists($canonicalNameToReference, $definedFunctionsIndex))
-				|| ($reference->isConstant && array_key_exists($canonicalNameToReference, $definedConstantsIndex))
-			) {
-				$canBeFixed = false;
-			}
-
+			$hasExistingUseForCanonicalName = false;
+			$hasCollision = false;
 			foreach ($useStatements as $useStatement) {
 				if ($useStatement->getType() !== $reference->type) {
 					continue;
 				}
 
 				if ($useStatement->getFullyQualifiedTypeName() === $canonicalName) {
-					continue;
+					$hasExistingUseForCanonicalName = true;
+					break;
 				}
 
-				if ($useStatement->getCanonicalNameAsReferencedInFile() !== $canonicalNameToReference) {
-					continue;
+				if ($useStatement->getCanonicalNameAsReferencedInFile() === $canonicalNameToReference) {
+					$hasCollision = true;
+				}
+			}
+
+			if (!$hasExistingUseForCanonicalName) {
+				if (
+					(
+						$reference->isClass
+						&& array_key_exists($canonicalNameToReference, $definedClassesIndex)
+						&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName($definedClassesIndex[$canonicalNameToReference])
+					)
+					|| (
+						$reference->isClass
+						&& array_key_exists($canonicalNameToReference, $classReferencesIndex)
+						&& $canonicalName !== NamespaceHelper::normalizeToCanonicalName($classReferencesIndex[$canonicalNameToReference])
+					)
+					|| ($reference->isFunction && array_key_exists($canonicalNameToReference, $definedFunctionsIndex))
+					|| ($reference->isConstant && array_key_exists($canonicalNameToReference, $definedConstantsIndex))
+				) {
+					$canBeFixed = false;
 				}
 
-				$canBeFixed = false;
-				break;
+				if ($hasCollision) {
+					$canBeFixed = false;
+				}
 			}
 
 			$label = sprintf(
@@ -625,7 +640,7 @@ class ReferenceUsedNamesOnlySniff implements Sniff
 		}
 
 		$nonWhitespacePointerAfterOpenTag = TokenHelper::findNextNonWhitespace($phpcsFile, $openTagPointer + 1);
-		if (in_array($tokens[$nonWhitespacePointerAfterOpenTag]['code'], Tokens::$commentTokens, true)) {
+		if (in_array($tokens[$nonWhitespacePointerAfterOpenTag]['code'], Tokens::COMMENT_TOKENS, true)) {
 			$commentEndPointer = CommentHelper::getCommentEndPointer($phpcsFile, $nonWhitespacePointerAfterOpenTag);
 
 			if (StringHelper::endsWith($tokens[$commentEndPointer]['content'], $phpcsFile->eolChar)) {

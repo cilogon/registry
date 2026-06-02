@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Authentication\Authenticator;
 
 use ArrayObject;
+use Authentication\Identifier\IdentifierCollection;
 use Authentication\Identifier\IdentifierInterface;
 use Authentication\Identifier\JwtSubjectIdentifier;
 use Cake\Utility\Security;
@@ -67,6 +68,22 @@ class JwtAuthenticator extends TokenAuthenticator
     }
 
     /**
+     * Gets the identifier, loading a default JwtSubject identifier if none configured.
+     *
+     * This is done lazily to allow loadIdentifier() to be called after loadAuthenticator().
+     *
+     * @return \Authentication\Identifier\IdentifierInterface
+     */
+    public function getIdentifier(): IdentifierInterface
+    {
+        if ($this->_identifier instanceof IdentifierCollection && $this->_identifier->isEmpty()) {
+            $this->_identifier->load('Authentication.JwtSubject');
+        }
+
+        return $this->_identifier;
+    }
+
+    /**
      * Authenticates the identity based on a JWT token contained in a request.
      *
      * @link https://jwt.io/
@@ -106,12 +123,13 @@ class JwtAuthenticator extends TokenAuthenticator
             return new Result($user, Result::SUCCESS);
         }
 
-        $user = $this->_identifier->identify([
+        $identifier = $this->getIdentifier();
+        $user = $identifier->identify([
             $subjectKey => $result[$subjectKey],
         ]);
 
         if (!$user) {
-            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $this->_identifier->getErrors());
+            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $identifier->getErrors());
         }
 
         return new Result($user, Result::SUCCESS);

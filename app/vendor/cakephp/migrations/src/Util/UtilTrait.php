@@ -13,9 +13,10 @@ declare(strict_types=1);
  */
 namespace Migrations\Util;
 
-use Cake\Core\Plugin as CorePlugin;
+use Cake\Core\Configure;
+use Cake\Database\Connection;
 use Cake\Utility\Inflector;
-use Symfony\Component\Console\Input\InputInterface;
+use Migrations\Db\Adapter\UnifiedMigrationsTableStorage;
 
 /**
  * Trait gathering useful methods needed in various places of the plugin
@@ -23,25 +24,50 @@ use Symfony\Component\Console\Input\InputInterface;
 trait UtilTrait
 {
     /**
-     * Get the plugin name based on the current InputInterface
+     * Get the migrations table name used to store migrations data.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input Input of the current command.
-     * @return string|null
+     * In v5.0+, this returns either:
+     * - 'cake_migrations' (unified table) for new installations
+     * - Legacy phinxlog table names for existing installations with phinxlog tables
+     *
+     * The behavior is controlled by `Migrations.legacyTables` config:
+     * - null (default): Autodetect - use legacy if phinxlog tables exist
+     * - false: Always use new cake_migrations table
+     * - true: Always use legacy phinxlog tables
+     *
+     * @param string|null $plugin Plugin name
+     * @param \Cake\Database\Connection|null $connection Database connection for autodetect
+     * @return string
      */
-    protected function getPlugin(InputInterface $input): ?string
+    protected function getPhinxTable(?string $plugin = null, ?Connection $connection = null): string
     {
-        $plugin = $input->getOption('plugin') ?: null;
+        $config = Configure::read('Migrations.legacyTables');
 
-        return $plugin;
+        // Explicit configuration takes precedence
+        if ($config === false) {
+            return UnifiedMigrationsTableStorage::TABLE_NAME;
+        }
+
+        if ($config === true) {
+            return $this->getLegacyTableName($plugin);
+        }
+
+        // Autodetect mode (config is null or not set)
+        if ($connection instanceof Connection && $this->detectLegacyTables($connection)) {
+            return $this->getLegacyTableName($plugin);
+        }
+
+        // No legacy tables detected or no connection provided - use new table
+        return UnifiedMigrationsTableStorage::TABLE_NAME;
     }
 
     /**
-     * Get the phinx table name used to store migrations data
+     * Get the legacy phinxlog table name.
      *
      * @param string|null $plugin Plugin name
      * @return string
      */
-    protected function getPhinxTable(?string $plugin = null): string
+    protected function getLegacyTableName(?string $plugin = null): string
     {
         $table = 'phinxlog';
 
@@ -56,28 +82,41 @@ trait UtilTrait
     }
 
     /**
-     * Get the migrations or seeds files path based on the current InputInterface
+     * Detect if any legacy phinxlog tables exist in the database.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input Input of the current command.
-     * @param string $default Default folder to set if no source option is found in the $input param
-     * @return string
+     * @param \Cake\Database\Connection $connection Database connection
+     * @return bool True if legacy tables exist
      */
-    protected function getOperationsPath(InputInterface $input, string $default = 'Migrations'): string
+    protected function detectLegacyTables(Connection $connection): bool
     {
-        $folder = $input->getOption('source') ?: $default;
+        $dialect = $connection->getDriver()->schemaDialect();
 
-        $dir = ROOT . DS . 'config' . DS . $folder;
+        return $dialect->hasTable('phinxlog');
+    }
 
-        if (defined('CONFIG')) {
-            $dir = CONFIG . $folder;
+    /**
+     * Check if the system is using legacy migration tables.
+     *
+     * @param \Cake\Database\Connection|null $connection Database connection for autodetect
+     * @return bool
+     */
+    protected function isUsingLegacyTables(?Connection $connection = null): bool
+    {
+        $config = Configure::read('Migrations.legacyTables');
+
+        if ($config === false) {
+            return false;
         }
 
-        $plugin = $this->getPlugin($input);
-
-        if ($plugin !== null) {
-            $dir = CorePlugin::path($plugin) . 'config' . DS . $folder;
+        if ($config === true) {
+            return true;
         }
 
-        return $dir;
+        // Autodetect
+        if ($connection instanceof Connection) {
+            return $this->detectLegacyTables($connection);
+        }
+
+        return false;
     }
 }

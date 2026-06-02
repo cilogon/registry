@@ -45,6 +45,7 @@ class MultiCheckboxWidget extends BasicWidget
         'idPrefix' => null,
         'templateVars' => [],
         'label' => true,
+        'nestedInput' => true,
     ];
 
     /**
@@ -74,6 +75,7 @@ class MultiCheckboxWidget extends BasicWidget
     {
         parent::__construct($templates);
 
+        $this->defaults['nestedInput'] = $label instanceof NestingLabelWidget;
         $this->_label = $label;
     }
 
@@ -154,16 +156,13 @@ class MultiCheckboxWidget extends BasicWidget
             $checkbox = [
                 'value' => $key,
                 'text' => $val,
+                'nestedInput' => $data['nestedInput'],
             ];
             if (is_array($val) && isset($val['text'], $val['value'])) {
                 $checkbox = $val;
             }
-            if (!isset($checkbox['templateVars'])) {
-                $checkbox['templateVars'] = $data['templateVars'];
-            }
-            if (!isset($checkbox['label'])) {
-                $checkbox['label'] = $data['label'];
-            }
+            $checkbox['templateVars'] ??= $data['templateVars'];
+            $checkbox['label'] ??= $data['label'];
             if (!empty($data['templateVars'])) {
                 $checkbox['templateVars'] = array_merge($data['templateVars'], $checkbox['templateVars']);
             }
@@ -196,6 +195,9 @@ class MultiCheckboxWidget extends BasicWidget
      */
     protected function _renderInput(array $checkbox, ContextInterface $context): string
     {
+        $nestedInput = $checkbox['nestedInput'];
+        unset($checkbox['nestedInput']);
+
         $input = $this->_templates->format('checkbox', [
             'name' => $checkbox['name'] . '[]',
             'value' => $checkbox['escape'] ? h($checkbox['value']) : $checkbox['value'],
@@ -206,8 +208,12 @@ class MultiCheckboxWidget extends BasicWidget
             ),
         ]);
 
-        if ($checkbox['label'] === false && !str_contains($this->_templates->get('checkboxWrapper'), '{{input}}')) {
+        if (
+            $checkbox['label'] === false
+            && ($nestedInput || !str_contains($this->_templates->get('checkboxWrapper'), '{{input}}'))
+        ) {
             $label = $input;
+            $input = '';
         } else {
             $labelAttrs = is_array($checkbox['label']) ? $checkbox['label'] : [];
             $labelAttrs += [
@@ -215,8 +221,16 @@ class MultiCheckboxWidget extends BasicWidget
                 'escape' => $checkbox['escape'],
                 'text' => $checkbox['text'],
                 'templateVars' => $checkbox['templateVars'],
-                'input' => $input,
             ];
+
+            if ($nestedInput) {
+                if (!isset($labelAttrs['input']) || $labelAttrs['input'] !== false) {
+                    $labelAttrs['input'] = $input;
+                    $input = '';
+                }
+            } else {
+                $labelAttrs['input'] = '';
+            }
 
             if ($checkbox['checked']) {
                 $selectedClass = $this->_templates->format('selectedClass', []);

@@ -743,6 +743,7 @@ final class Tokenizer
         '>',
         '+',
         '-',
+        '~*', // https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP
         '*',
         '/',
         '!',
@@ -804,9 +805,9 @@ final class Tokenizer
         }
 
         if ($items !== []) {
-            $valuesBySharedPrefix[$prefix] = $items;
-            $items                         = [];
-            $prefix                        = null;
+            $valuesBySharedPrefix[(string) $prefix] = $items;
+            $items                                  = [];
+            $prefix                                 = null;
         }
 
         $regex = '(?>';
@@ -820,10 +821,10 @@ final class Tokenizer
                 $prefix = (string) $prefix;
             }
 
-            $regex .= preg_quote($prefix, '/');
+            $regex .= preg_quote($prefix);
 
             $regex .= count($items) === 1
-                ? preg_quote(substr(reset($items), strlen($prefix)), '/')
+                ? preg_quote(substr(reset($items), strlen($prefix)))
                 : $this->makeRegexFromList(array_map(static fn ($v) => substr($v, strlen($prefix)), $items), true);
         }
 
@@ -842,7 +843,7 @@ final class Tokenizer
 
         return [
             Token::TOKEN_TYPE_WHITESPACE => '\s+',
-            Token::TOKEN_TYPE_COMMENT => '(?:--|#)[^\n]*+',
+            Token::TOKEN_TYPE_COMMENT => '(?:--|#(?!>))[^\n]*+', // #>, #>> and <#> are PostgreSQL operators
             Token::TOKEN_TYPE_BLOCK_COMMENT => '/\*(?:[^*]+|\*(?!/))*+(?:\*|$)(?:/|$)',
             // 1. backtick quoted string using `` to escape
             // 2. square bracket quoted string (SQL Server) using ]] to escape
@@ -887,7 +888,7 @@ final class Tokenizer
             $parts[] = '(?<t_' . $type . '>' . $regex . ')';
         }
 
-        return '~\G(?:' . implode('|', $parts) . ')~';
+        return '(\G(?:' . implode('|', $parts) . '))';
     }
 
     /**

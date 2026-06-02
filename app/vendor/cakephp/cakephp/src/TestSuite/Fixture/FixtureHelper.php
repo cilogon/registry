@@ -90,10 +90,7 @@ class FixtureHelper
                 throw new UnexpectedValueException(sprintf('Could not find fixture `%s`.', $fixtureName));
             }
 
-            if (!isset($cachedFixtures[$className])) {
-                $cachedFixtures[$className] = new $className();
-            }
-
+            $cachedFixtures[$className] ??= new $className();
             $fixtures[$className] = $cachedFixtures[$className];
         }
 
@@ -186,7 +183,7 @@ class FixtureHelper
         $this->runPerConnection(function (ConnectionInterface $connection, array $groupFixtures): void {
             if ($connection instanceof Connection) {
                 $sortedFixtures = null;
-                if ($connection->getDriver()->supports(DriverFeatureEnum::TRUNCATE_WITH_CONSTRAINTS)) {
+                if ($connection->getWriteDriver()->supports(DriverFeatureEnum::TRUNCATE_WITH_CONSTRAINTS)) {
                     $sortedFixtures = $this->sortByConstraint($connection, $groupFixtures);
                 }
 
@@ -283,7 +280,7 @@ class FixtureHelper
 
         $references = [];
         foreach ($schema->constraints() as $constraintName) {
-            $constraint = $schema->getConstraint($constraintName);
+            $constraint = $schema->getConstraint((string)$constraintName);
 
             if ($constraint && $constraint['type'] === TableSchema::CONSTRAINT_FOREIGN) {
                 $references[] = $constraint['references'][0];

@@ -37,13 +37,15 @@ use InvalidArgumentException;
  *
  * If the including class also implements events the `Model.buildValidator` event
  * will be triggered when validators are created.
+ *
+ * @require-implements \Cake\Validation\ValidatorAwareInterface
  */
 trait ValidatorAwareTrait
 {
     /**
      * Validator class.
      *
-     * @var string
+     * @var class-string<\Cake\Validation\Validator>
      */
     protected string $_validatorClass = Validator::class;
 
@@ -113,7 +115,7 @@ trait ValidatorAwareTrait
     {
         $method = 'validation' . ucfirst($name);
         if (!$this->validationMethodExists($method)) {
-            $message = sprintf('The `%s::%s()` validation method does not exists.', static::class, $method);
+            $message = sprintf('The `%s::%s()` validation method does not exist.', static::class, $method);
             throw new InvalidArgumentException($message);
         }
 

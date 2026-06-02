@@ -28,12 +28,12 @@ use DateTimeInterface;
 class RelativeTimeFormatter implements DifferenceFormatterInterface
 {
     /**
-     * Get the difference in a human readable format.
+     * Get the difference in a human-readable format.
      *
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface $first The datetime to start with.
      * @param \Cake\Chronos\ChronosDate|\DateTimeInterface|null $second The datetime to compare against.
      * @param bool $absolute Removes time difference modifiers ago, after, etc.
-     * @return string The difference between the two days in a human readable format.
+     * @return string The difference between the two days in a human-readable format.
      * @see \Cake\Chronos\Chronos::diffForHumans
      */
     public function diffForHumans(
@@ -99,17 +99,17 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
     }
 
     /**
-     * Format a into a relative timestring.
+     * Format a time into a relative timestring.
      *
      * @param \Cake\I18n\DateTime|\Cake\I18n\Date $time The time instance to format.
      * @param array<string, mixed> $options Array of options.
      * @return string Relative time string.
-     * @see \Cake\I18n\Time::timeAgoInWords()
+     * @see \Cake\I18n\DateTime::timeAgoInWords()
      */
     public function timeAgoInWords(DateTime|Date $time, array $options = []): string
     {
         $options = $this->_options($options, DateTime::class);
-        if ($options['timezone']) {
+        if ($time instanceof DateTime && $options['timezone']) {
             $time = $time->setTimezone($options['timezone']);
         }
 
@@ -329,7 +329,7 @@ class RelativeTimeFormatter implements DifferenceFormatterInterface
     }
 
     /**
-     * Format a into a relative date string.
+     * Format a date into a relative date string.
      *
      * @param \Cake\I18n\DateTime|\Cake\I18n\Date $date The date to format.
      * @param array<string, mixed> $options Array of options.

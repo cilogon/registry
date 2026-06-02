@@ -28,7 +28,7 @@ use Throwable;
  * caught by the ErrorHandlerMiddleware. This is useful while debugging or
  * writing integration test cases.
  *
- * @see \Cake\TestSuite\IntegrationTestCase::disableErrorHandlerMiddleware()
+ * @see \Cake\TestSuite\IntegrationTestTrait::disableErrorHandlerMiddleware()
  * @internal
  */
 class TestExceptionRenderer implements ExceptionRendererInterface
@@ -37,7 +37,6 @@ class TestExceptionRenderer implements ExceptionRendererInterface
      * Simply rethrow the given exception
      *
      * @param \Throwable $exception Exception.
-     * @return void
      * @throws \Throwable $exception Rethrows the passed exception.
      */
     public function __construct(Throwable $exception)

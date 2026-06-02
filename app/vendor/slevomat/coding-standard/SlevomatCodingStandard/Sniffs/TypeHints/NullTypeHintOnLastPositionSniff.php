@@ -16,6 +16,9 @@ use function sprintf;
 use function strtolower;
 use const T_DOC_COMMENT_OPEN_TAG;
 
+/**
+ * @deprecated Use DNFTypeHintFormatSniff with nullPosition set to 'last' and enableForDocComments set to true, which enforces the same rule for both PHP code and docblocks.
+ */
 class NullTypeHintOnLastPositionSniff implements Sniff
 {
 
@@ -31,11 +34,7 @@ class NullTypeHintOnLastPositionSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $docCommentOpenPointer
-	 */
-	public function process(File $phpcsFile, $docCommentOpenPointer): void
+	public function process(File $phpcsFile, int $docCommentOpenPointer): void
 	{
 		$annotations = AnnotationHelper::getAnnotations($phpcsFile, $docCommentOpenPointer);
 

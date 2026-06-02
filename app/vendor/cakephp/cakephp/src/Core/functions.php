@@ -146,7 +146,7 @@ if (!function_exists('Cake\Core\pluginSplit')) {
      * @param bool $dotAppend Set to true if you want the plugin to have a '.' appended to it.
      * @param string|null $plugin Optional default plugin to use if no plugin is found. Defaults to null.
      * @return array Array with 2 indexes. 0 => plugin name, 1 => class name.
-     * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#pluginSplit
+     * @link https://book.cakephp.org/5/en/core-libraries/global-constants-and-functions.html#pluginsplit
      * @phpstan-return array{string|null, string}
      */
     function pluginSplit(string $name, bool $dotAppend = false, ?string $plugin = null): array
@@ -527,10 +527,10 @@ if (!function_exists('Cake\Core\toBool')) {
      */
     function toBool(mixed $value): ?bool
     {
-        if ($value === '1' || $value === 1 || $value === 1.0 || $value === true) {
+        if (in_array($value, ['1', 1, 1.0, true], true)) {
             return true;
         }
-        if ($value === '0' || $value === 0 || $value === 0.0 || $value === false) {
+        if (in_array($value, ['0', 0, 0.0, false], true)) {
             return false;
         }
 

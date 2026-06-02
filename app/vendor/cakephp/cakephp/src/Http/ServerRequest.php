@@ -30,6 +30,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
+use function Cake\Core\deprecationWarning;
 use function Cake\Core\env;
 
 /**
@@ -622,7 +623,7 @@ class ServerRequest implements ServerRequestInterface
         if (isset($detect['value'])) {
             $value = $detect['value'];
 
-            return isset($this->params[$key]) && $this->params[$key] == $value;
+            return isset($this->params[$key]) && $this->params[$key] === $value;
         }
         if (isset($detect['options'])) {
             return isset($this->params[$key]) && in_array($this->params[$key], $detect['options']);
@@ -641,7 +642,7 @@ class ServerRequest implements ServerRequestInterface
     {
         if (isset($detect['env'])) {
             if (isset($detect['value'])) {
-                return $this->getEnv($detect['env']) == $detect['value'];
+                return $this->getEnv($detect['env']) === $detect['value'];
             }
             if (isset($detect['pattern'])) {
                 return (bool)preg_match($detect['pattern'], (string)$this->getEnv($detect['env']));
@@ -841,7 +842,7 @@ class ServerRequest implements ServerRequestInterface
      * is not present, an empty array will be returned.
      *
      * @param string $name The header you want to get (case-insensitive)
-     * @return array<string, string> An associative array of headers and their values.
+     * @return array<string> An array of all the header values for a particular case-insensitive header by name.
      *   If the header doesn't exist, an empty array will be returned.
      * @link https://www.php-fig.org/psr/psr-7/ This method is part of the PSR-7 server request interface.
      */
@@ -994,6 +995,32 @@ class ServerRequest implements ServerRequestInterface
     public function getQueryParams(): array
     {
         return $this->query;
+    }
+
+    /**
+     * Returns query parameters filtered to include only the specified keys or exclude specified keys.
+     *
+     * If the `$only` parameter is provided, only those keys will be returned.
+     * If the `$exclude` parameter is provided, all keys except those will be returned.
+     * Both parameters cannot be provided at the same time.
+     *
+     * @param array $only    List of query parameter keys to include. Defaults to an empty array.
+     * @param array $exclude List of query parameter keys to exclude. Defaults to an empty array.
+     * @return array Filtered query parameters.
+     * @throws \InvalidArgumentException When both `$only` and `$exclude` are provided.
+     */
+    public function getFilteredQueryParams(array $only = [], array $exclude = []): array
+    {
+        if ($only !== [] && $exclude !== []) {
+            throw new InvalidArgumentException('Specify either `$only` or `$exclude`, not both.');
+        }
+        $params = $this->getQueryParams();
+
+        if ($only !== []) {
+            return array_intersect_key($params, array_flip($only));
+        }
+
+        return array_diff_key($params, array_flip($exclude));
     }
 
     /**
@@ -1522,6 +1549,13 @@ class ServerRequest implements ServerRequestInterface
      */
     public function getParam(string $name, mixed $default = null): mixed
     {
+        if ($name === '?') {
+            deprecationWarning(
+                '5.3.0',
+                'Using `$request->getParam("?")` is deprecated. Use `$request->getQueryParams()` instead.',
+            );
+        }
+
         return Hash::get($this->params, $name, $default);
     }
 

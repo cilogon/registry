@@ -234,7 +234,7 @@ class EntityContext implements ContextInterface
             'schemaDefault' => true,
         ];
 
-        if (empty($this->_context['entity'])) {
+        if (!$this->_context['entity']) {
             return $options['default'];
         }
         $parts = explode('.', $field);
@@ -489,7 +489,14 @@ class EntityContext implements ContextInterface
 
         $validator = $this->_getValidator($parts);
         $fieldName = array_pop($parts);
+
         if (!$validator->hasField($fieldName)) {
+            return null;
+        }
+        // If allowEmpty was given a callable (e.g. allowEmptyString('field', function(...) {})),
+        // we cannot evaluate it here because we don't have the submitted form data yet.
+        // Return null so FormHelper skips adding required="required" to the input.
+        if (is_callable($validator->field($fieldName)->isEmptyAllowed())) {
             return null;
         }
         if ($this->type($field) !== 'boolean') {
@@ -575,7 +582,7 @@ class EntityContext implements ContextInterface
      */
     protected function _getValidator(array $parts): Validator
     {
-        $keyParts = array_filter(array_slice($parts, 0, -1), function ($part) {
+        $keyParts = array_filter(array_slice($parts, 0, -1), function (string $part) {
             return !is_numeric($part);
         });
         $key = implode('.', $keyParts);
@@ -625,7 +632,7 @@ class EntityContext implements ContextInterface
             return $this->_tables[$this->_rootName];
         }
 
-        $normalized = array_slice(array_filter($parts, function ($part) {
+        $normalized = array_slice(array_filter($parts, function (string $part) {
             return !is_numeric($part);
         }), 0, -1);
 
@@ -645,10 +652,9 @@ class EntityContext implements ContextInterface
                 $table = $assoc->junction();
                 $assoc = null;
                 continue;
-            } else {
-                $associationCollection = $table->associations();
-                $assoc = $associationCollection->getByProperty($part);
             }
+            $associationCollection = $table->associations();
+            $assoc = $associationCollection->getByProperty($part);
 
             if ($assoc === null) {
                 if ($fallback) {
@@ -674,9 +680,8 @@ class EntityContext implements ContextInterface
     public function type(string $field): ?string
     {
         $parts = explode('.', $field);
-        $table = $this->_getTable($parts);
 
-        return $table?->getSchema()->baseColumnType(array_pop($parts));
+        return $this->_getTable($parts)?->getSchema()->baseColumnType(array_pop($parts));
     }
 
     /**

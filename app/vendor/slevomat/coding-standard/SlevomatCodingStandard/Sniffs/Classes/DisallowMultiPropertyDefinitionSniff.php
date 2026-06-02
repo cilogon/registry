@@ -19,6 +19,7 @@ use const T_CLASS;
 use const T_COMMA;
 use const T_CONST;
 use const T_FUNCTION;
+use const T_OPEN_CURLY_BRACKET;
 use const T_OPEN_SHORT_ARRAY;
 use const T_SEMICOLON;
 use const T_VARIABLE;
@@ -36,11 +37,7 @@ class DisallowMultiPropertyDefinitionSniff implements Sniff
 		return TokenHelper::PROPERTY_MODIFIERS_TOKEN_CODES;
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $modifierPointer
-	 */
-	public function process(File $phpcsFile, $modifierPointer): void
+	public function process(File $phpcsFile, int $modifierPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -55,13 +52,18 @@ class DisallowMultiPropertyDefinitionSniff implements Sniff
 			return;
 		}
 
-		// Ignore other class members with same mofidiers
+		// Ignore other class members with same modifiers
 		$propertyPointer = TokenHelper::findNext($phpcsFile, [T_VARIABLE, T_CONST, T_FUNCTION, T_CLASS], $modifierPointer + 1);
 		if (
 			$propertyPointer === null
 			|| $tokens[$propertyPointer]['code'] !== T_VARIABLE
 			|| !PropertyHelper::isProperty($phpcsFile, $propertyPointer)
 		) {
+			return;
+		}
+
+		$endPointer = TokenHelper::findNext($phpcsFile, [T_SEMICOLON, T_OPEN_CURLY_BRACKET], $propertyPointer + 1);
+		if ($tokens[$endPointer]['code'] === T_OPEN_CURLY_BRACKET) {
 			return;
 		}
 

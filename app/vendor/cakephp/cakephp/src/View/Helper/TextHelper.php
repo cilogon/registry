@@ -35,6 +35,7 @@ use function Cake\Core\h;
  * @method string truncate(string $text, int $length = 100, array $options = []) See Text::truncate()
  * @link https://book.cakephp.org/5/en/views/helpers/text.html
  * @see \Cake\Utility\Text
+ * @extends \Cake\View\Helper<\Cake\View\View>
  */
 class TextHelper extends Helper
 {
@@ -105,13 +106,13 @@ class TextHelper extends Helper
 
         $text = (string)preg_replace_callback(
             $pattern,
-            [&$this, '_insertPlaceHolder'],
+            $this->_insertPlaceHolder(...),
             $text,
         );
         // phpcs:disable Generic.Files.LineLength
         $text = preg_replace_callback(
             '#(?<!href="|">)(?<!\b[[:punct:]])(?<!http://|https://|ftp://|nntp://)www\.[^\s\n\%\ <]+[^\s<\n\%\,\.\ ](?<!\))#i',
-            [&$this, '_insertPlaceHolder'],
+            $this->_insertPlaceHolder(...),
             $text,
         );
         // phpcs:enable Generic.Files.LineLength
@@ -181,7 +182,7 @@ class TextHelper extends Helper
      * Prepares the link label.
      *
      * @param string $name Link label.
-     * @param array $options<string, mixed> $htmlOptions The options for the generated link label.
+     * @param array<string, mixed> $options The options for the generated link label.
      * @return string Modified link label.
      */
     protected function _prepareLinkLabel(string $name, array $options): string
@@ -241,7 +242,7 @@ class TextHelper extends Helper
         $atom = '[\p{L}0-9!#$%&\'*+\/=?^_`{|}~-]';
         $text = preg_replace_callback(
             '/(?<=\s|^|\(|\>|\;)(' . $atom . '*(?:\.' . $atom . '+)*@[\p{L}0-9-]+(?:\.[\p{L}0-9-]+)+)/ui',
-            [&$this, '_insertPlaceholder'],
+            $this->_insertPlaceholder(...),
             $text,
         );
         if ($options['escape']) {

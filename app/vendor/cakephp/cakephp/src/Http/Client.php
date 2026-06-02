@@ -204,7 +204,7 @@ class Client implements EventDispatcherInterface, ClientInterface
                 $adapter = Stream::class;
             }
         } else {
-            $this->setConfig('adapter', null);
+            $this->deleteConfig('adapter');
         }
 
         if (is_string($adapter)) {
@@ -215,7 +215,7 @@ class Client implements EventDispatcherInterface, ClientInterface
 
         if (!empty($this->_config['cookieJar'])) {
             $this->_cookies = $this->_config['cookieJar'];
-            $this->setConfig('cookieJar', null);
+            $this->deleteConfig('cookieJar');
         } else {
             $this->_cookies = new CookieCollection();
         }
@@ -554,7 +554,17 @@ class Client implements EventDispatcherInterface, ClientInterface
      *
      * ### Matching Requests
      *
-     * TODO finish this.
+     * Request matching is done on the HTTP method and URL. If the URL is
+     * an exact match, the response will be returned. You can use `*` as
+     * a wildcard to match any suffix:
+     *
+     * ```
+     * // Match any URL starting with https://example.com/api/
+     * Client::addMockResponse('GET', 'https://example.com/api/*', $response);
+     * ```
+     *
+     * For more complex matching, use the `match` option with a closure
+     * that receives the request and returns a boolean.
      *
      * ### Options
      *
@@ -689,11 +699,9 @@ class Client implements EventDispatcherInterface, ClientInterface
      * Returns headers for Accept/Content-Type based on a short type
      * or full mime-type.
      *
-     * @phpstan-param non-empty-string $type
      * @param string $type short type alias or full mimetype.
-     * @return array<string, string> Headers to set on the request.
+     * @return array{'Accept': non-empty-string, 'Content-Type': non-empty-string} Headers to set on the request.
      * @throws \Cake\Core\Exception\CakeException When an unknown type alias is used.
-     * @phpstan-return array<non-empty-string, non-empty-string>
      */
     protected function _typeHeaders(string $type): array
     {

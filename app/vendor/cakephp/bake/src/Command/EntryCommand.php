@@ -32,15 +32,11 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
 {
     /**
      * The command collection to get help on.
-     *
-     * @var \Cake\Console\CommandCollection
      */
     protected CommandCollection $commands;
 
     /**
      * The HelpCommand to get help.
-     *
-     * @var \Cake\Console\Command\HelpCommand
      */
     protected HelpCommand $help;
 
@@ -82,7 +78,7 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
                 $parser->argumentNames(),
             );
         } catch (ConsoleException $e) {
-            $io->err('Error: ' . $e->getMessage());
+            $io->error('Error: ' . $e->getMessage());
 
             return static::CODE_ERROR;
         }
@@ -109,14 +105,14 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
     {
         if ($args->hasArgumentAt(0)) {
             $name = $args->getArgumentAt(0);
-            $io->err(
-                "<error>Could not find bake command named `$name`."
-                . ' Run `bake --help` to get a list of commands.</error>',
+            $io->error(
+                "Could not find bake command named `{$name}`."
+                . ' Run `bake --help` to get a list of commands.',
             );
 
             return static::CODE_ERROR;
         }
-        $io->err('<warning>No command provided. Run `bake --help` to get a list of commands.</warning>');
+        $io->warning('No command provided. Run `bake --help` to get a list of commands.');
 
         return static::CODE_ERROR;
     }
@@ -127,7 +123,7 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
      * @param \Cake\Console\ConsoleOptionParser $parser The console option parser
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $this->help = new HelpCommand();
         $parser = $this->help->buildOptionParser($parser);
@@ -139,12 +135,12 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
             );
         $commands = [];
         foreach ($this->commands as $command => $class) {
-            if (substr($command, 0, 4) === 'bake') {
+            if (str_starts_with($command, 'bake')) {
                 $parts = explode(' ', $command);
 
                 // Remove `bake`
                 array_shift($parts);
-                if (count($parts) === 0) {
+                if ($parts === []) {
                     continue;
                 }
                 $commands[$command] = $class;

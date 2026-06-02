@@ -29,11 +29,7 @@ class DisallowEmptyFunctionSniff implements Sniff
 		return [T_FUNCTION];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $functionPointer
-	 */
-	public function process(File $phpcsFile, $functionPointer): void
+	public function process(File $phpcsFile, int $functionPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -54,7 +50,7 @@ class DisallowEmptyFunctionSniff implements Sniff
 
 			$propertyPromotion = TokenHelper::findNext(
 				$phpcsFile,
-				Tokens::$scopeModifiers,
+				Tokens::SCOPE_MODIFIERS,
 				$tokens[$functionPointer]['parenthesis_opener'] + 1,
 				$tokens[$functionPointer]['parenthesis_closer'],
 			);

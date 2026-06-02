@@ -1,0 +1,72 @@
+{#
+/**
+ * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @since         5.0.0
+ * @license       https://www.opensource.org/licenses/mit-license.php MIT License
+ */
+#}
+{% for table in tables %}
+        $table = $this->table('{{ table }}');
+    {%~ if tableMethod != 'drop' %}
+        {%~ if columnMethod == 'removeColumn' %}
+            {%~ for column, config in columns['fields'] %}
+        $table->{{ columnMethod }}('{{ column }}');
+            {%~ endfor %}
+            {%~ for column, config in columns['indexes'] %}
+        $table->{{ indexMethod }}([{{
+            Migration.stringifyList(config['columns'])  | raw
+        }}]);
+            {%~ endfor %}
+        {%~ else %}
+            {%~ for column, config in columns['fields'] %}
+        $table->{{ columnMethod }}('{{ column }}', '{{ config['columnType'] }}', [{{
+            Migration.stringifyList(config['options'], {'indent': 3}, wantedOptions) | raw
+        }}]);
+            {%~ endfor %}
+            {%~ for column, config in columns['indexes'] %}
+        $table->{{ indexMethod }}([{{
+             Migration.stringifyList(config['columns'], {'indent': 3}) | raw }}
+            ], [{{
+                Migration.stringifyList(config['options'], {'indent': 3})  | raw
+        }}]);
+            {%~ endfor %}
+        {%~ if tableMethod == 'create' and columns['primaryKey'] is not empty %}
+        $table->addPrimaryKey([{{
+            Migration.stringifyList(columns['primaryKey'], {'indent': 3}) | raw
+        }}]);
+        {%~ endif %}
+        {%~ if constraints is defined and constraints is not empty %}
+            {%~ for constraintName, constraint in constraints %}
+                {%~ if constraint['type'] == 'foreign' %}
+                    {%~ set columnsList = '\'' ~ constraint['columns'][0] ~ '\'' %}
+                    {%~ if constraint['columns']|length > 1 %}
+                        {%~ set columnsList = '[' ~ Migration.stringifyList(constraint['columns'], {'indent': 3}) ~ ']' %}
+                    {%~ endif %}
+                    {%~ if constraint['references'][1] is iterable %}
+                        {%~ set columnsReference = '[' ~ Migration.stringifyList(constraint['references'][1], {'indent': 3}) ~ ']' %}
+                    {%~ else %}
+                        {%~ set columnsReference = '\'' ~ constraint['references'][1] ~ '\'' %}
+                    {%~ endif %}
+        $table->addForeignKey(
+            $this->foreignKey({{ columnsList | raw }})
+                ->setReferencedTable('{{ constraint['references'][0] }}')
+                ->setReferencedColumns({{ columnsReference | raw }})
+                ->setDelete('{{ Migration.formatConstraintAction(constraint['delete']) | raw }}')
+                ->setUpdate('{{ Migration.formatConstraintAction(constraint['update']) | raw }}')
+                ->setName('{{ constraintName }}')
+        );
+                {%~ endif %}
+            {%~ endfor %}
+        {%~ endif %}
+    {%~ endif %}
+{% endif %}
+        $table->{{ tableMethod }}(){% if tableMethod == 'drop' %}->save(){% endif %};
+{%- endfor -%}

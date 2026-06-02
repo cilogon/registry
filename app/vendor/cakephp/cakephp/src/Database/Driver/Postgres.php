@@ -210,6 +210,8 @@ class Postgres extends Driver
             DriverFeatureEnum::INTERSECT_ALL => true,
             DriverFeatureEnum::SET_OPERATIONS_ORDER_BY => true,
             DriverFeatureEnum::DISABLE_CONSTRAINT_WITHOUT_TRANSACTION => false,
+            DriverFeatureEnum::OPTIMIZER_HINT_COMMENT => true,
+            DriverFeatureEnum::CHECK_CONSTRAINTS => true,
         };
     }
 
@@ -246,7 +248,7 @@ class Postgres extends Driver
     }
 
     /**
-     * Changes identifer expression into postgresql format.
+     * Changes identifier expression into postgresql format.
      *
      * @param \Cake\Database\Expression\IdentifierExpression $expression The expression to transform.
      * @return void

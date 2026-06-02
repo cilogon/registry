@@ -52,11 +52,7 @@ class TraitUseSpacingSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $classPointer
-	 */
-	public function process(File $phpcsFile, $classPointer): void
+	public function process(File $phpcsFile, int $classPointer): void
 	{
 		$this->linesCountBeforeFirstUse = SniffSettingsHelper::normalizeInteger($this->linesCountBeforeFirstUse);
 		$this->linesCountBeforeFirstUseWhenFirstInClass = SniffSettingsHelper::normalizeNullableInteger(
@@ -86,9 +82,9 @@ class TraitUseSpacingSniff implements Sniff
 		/** @var int $pointerBeforeFirstUse */
 		$pointerBeforeFirstUse = TokenHelper::findPreviousNonWhitespace($phpcsFile, $firstUsePointer - 1);
 
-		if (in_array($tokens[$pointerBeforeFirstUse]['code'], Tokens::$commentTokens, true)) {
+		if (in_array($tokens[$pointerBeforeFirstUse]['code'], Tokens::COMMENT_TOKENS, true)) {
 			$pointerBeforeFirstUse = TokenHelper::findPreviousEffective($phpcsFile, $pointerBeforeFirstUse - 1);
-			$useStartPointer = TokenHelper::findNext($phpcsFile, Tokens::$commentTokens, $pointerBeforeFirstUse + 1);
+			$useStartPointer = TokenHelper::findNext($phpcsFile, Tokens::COMMENT_TOKENS, $pointerBeforeFirstUse + 1);
 		}
 
 		$isAtTheStartOfClass = $tokens[$pointerBeforeFirstUse]['code'] === T_OPEN_CURLY_BRACKET;
@@ -239,10 +235,10 @@ class TraitUseSpacingSniff implements Sniff
 			$useStartPointer = $usePointer;
 			$pointerBeforeUse = TokenHelper::findPreviousNonWhitespace($phpcsFile, $usePointer - 1);
 
-			if (in_array($tokens[$pointerBeforeUse]['code'], Tokens::$commentTokens, true)) {
+			if (in_array($tokens[$pointerBeforeUse]['code'], Tokens::COMMENT_TOKENS, true)) {
 				$useStartPointer = TokenHelper::findNext(
 					$phpcsFile,
-					Tokens::$commentTokens,
+					Tokens::COMMENT_TOKENS,
 					TokenHelper::findPreviousEffective($phpcsFile, $pointerBeforeUse - 1) + 1,
 				);
 			}

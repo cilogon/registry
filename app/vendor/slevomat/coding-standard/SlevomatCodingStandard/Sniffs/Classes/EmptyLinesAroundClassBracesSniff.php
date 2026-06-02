@@ -35,14 +35,10 @@ class EmptyLinesAroundClassBracesSniff implements Sniff
 	 */
 	public function register(): array
 	{
-		return array_values(Tokens::$ooScopeTokens);
+		return array_values(Tokens::OO_SCOPE_TOKENS);
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $stackPointer
-	 */
-	public function process(File $phpcsFile, $stackPointer): void
+	public function process(File $phpcsFile, int $stackPointer): void
 	{
 		$this->linesCountAfterOpeningBrace = SniffSettingsHelper::normalizeInteger($this->linesCountAfterOpeningBrace);
 		$this->linesCountBeforeClosingBrace = SniffSettingsHelper::normalizeInteger($this->linesCountBeforeClosingBrace);

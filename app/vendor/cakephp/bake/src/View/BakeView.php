@@ -18,17 +18,12 @@ namespace Bake\View;
 
 use Cake\Core\Configure;
 use Cake\Core\ConventionsTrait;
-use Cake\Event\EventDispatcherTrait;
 use Cake\Event\EventInterface;
 use Cake\TwigView\View\TwigView;
 use function Cake\Core\pluginSplit;
 
 class BakeView extends TwigView
 {
-    /**
-     * @use \Cake\Event\EventDispatcherTrait<\Cake\View\View>
-     */
-    use EventDispatcherTrait;
     use ConventionsTrait;
 
     /**
@@ -81,6 +76,8 @@ class BakeView extends TwigView
      */
     public function render(?string $template = null, string|false|null $layout = null): string
     {
+        assert($template !== null, 'Template name must be provided.');
+
         $viewFileName = $this->_getTemplateFileName($template);
         [, $templateEventName] = pluginSplit($template);
         $templateEventName = str_replace(['/', '\\'], '.', $templateEventName);
@@ -107,19 +104,19 @@ class BakeView extends TwigView
      *
      * Use the Bake prefix for bake related view events
      *
-     * @template TSubject of \Cake\View\View
      * @param string $name Name of the event.
      * @param array $data Any value you wish to be transported with this event to
      * it can be read by listeners.
-     *
-     * @param TSubject|null $subject The object that this event applies to
+     * @param object|null $subject The object that this event applies to
      * ($this by default).
-     * @return \Cake\Event\EventInterface<\Cake\View\View>
+     * @return \Cake\Event\EventInterface
+     * @phpstan-ignore missingType.generics
      */
     public function dispatchEvent(string $name, array $data = [], ?object $subject = null): EventInterface
     {
-        $name = preg_replace('/^View\./', 'Bake.', $name);
+        $name = (string)preg_replace('/^View\./', 'Bake.', $name);
 
+        /** @phpstan-ignore-next-line missingType.generics */
         return parent::dispatchEvent($name, $data, $subject);
     }
 
@@ -128,14 +125,14 @@ class BakeView extends TwigView
      *
      * @param ?string $plugin Optional plugin name to scan for view files.
      * @param bool $cached Set to false to force a refresh of view paths. Default true.
-     * @return list<string> paths
+     * @return array<string> paths
      */
     protected function _paths(?string $plugin = null, bool $cached = true): array
     {
         $paths = parent::_paths($plugin, false);
         foreach ($paths as &$path) {
             // Append 'bake' to all directories that aren't the application override directory.
-            if (strpos($path, 'plugin' . DS . 'Bake') === false) {
+            if (!str_contains($path, 'plugin' . DS . 'Bake')) {
                 $path .= static::BAKE_TEMPLATE_FOLDER . DS;
             }
         }

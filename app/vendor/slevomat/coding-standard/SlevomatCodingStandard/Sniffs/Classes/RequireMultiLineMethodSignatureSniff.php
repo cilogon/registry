@@ -28,6 +28,8 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 
 	public bool $withPromotedProperties = false;
 
+	public bool $withParametersWithAttributes = false;
+
 	/** @var list<string> */
 	public array $includedMethodPatterns = [];
 
@@ -40,11 +42,7 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 	/** @var list<string>|null */
 	public ?array $excludedMethodNormalizedPatterns = null;
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $methodPointer
-	 */
-	public function process(File $phpcsFile, $methodPointer): void
+	public function process(File $phpcsFile, int $methodPointer): void
 	{
 		$this->minLineLength = SniffSettingsHelper::normalizeNullableInteger($this->minLineLength);
 		$this->minParametersCount = SniffSettingsHelper::normalizeNullableInteger($this->minParametersCount);
@@ -93,18 +91,21 @@ class RequireMultiLineMethodSignatureSniff extends AbstractMethodSignature
 			return;
 		}
 
-		$splitPromotedProperties = false;
-		if ($this->withPromotedProperties) {
-			foreach ($parameters as $parameter) {
-				if (isset($parameter['property_visibility'])) {
-					$splitPromotedProperties = true;
-					break;
-				}
+		$forceSplit = $this->minLineLength === 0;
+		foreach ($parameters as $parameter) {
+			if ($this->withPromotedProperties && isset($parameter['property_visibility'])) {
+				$forceSplit = true;
+				break;
+			}
+
+			if ($this->withParametersWithAttributes && isset($parameter['has_attributes']) && $parameter['has_attributes']) {
+				$forceSplit = true;
+				break;
 			}
 		}
 
-		if (!$splitPromotedProperties) {
-			if ($this->minLineLength !== null && $this->minLineLength !== 0 && strlen($signature) < $this->minLineLength) {
+		if (!$forceSplit) {
+			if ($this->minLineLength !== null && strlen($signature) < $this->minLineLength) {
 				return;
 			}
 

@@ -18,12 +18,14 @@ namespace Cake\View\Helper;
 
 use Cake\Core\Exception\CakeException;
 use Cake\Datasource\Paging\PaginatedInterface;
+use Cake\Datasource\Paging\SortField;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\StringTemplate;
 use Cake\View\StringTemplateTrait;
 use Cake\View\View;
+use InvalidArgumentException;
 use function Cake\Core\h;
 use function Cake\I18n\__;
 
@@ -37,6 +39,7 @@ use function Cake\I18n\__;
  * @property \Cake\View\Helper\HtmlHelper $Html
  * @property \Cake\View\Helper\FormHelper $Form
  * @link https://book.cakephp.org/5/en/views/helpers/paginator.html
+ * @extends \Cake\View\Helper<\Cake\View\View>
  */
 class PaginatorHelper extends Helper
 {
@@ -61,6 +64,7 @@ class PaginatorHelper extends Helper
      * - `url['?']['direction']` Direction of the sorting (default: 'asc').
      * - `url['?']['page']` Page number to use in links.
      * - `escape` Defines if the title field for the link should be escaped (default: true).
+     * - `sortFormat` Format for sort URLs: 'separate' (default, ?sort=x&direction=y) or 'combined' (?sort=x-y).
      * - `routePlaceholders` An array specifying which paging params should be
      *   passed as route placeholders instead of query string parameters. The array
      *   can have values `'sort'`, `'direction'`, `'page'`.
@@ -71,7 +75,9 @@ class PaginatorHelper extends Helper
      */
     protected array $_defaultConfig = [
         'params' => [],
-        'options' => [],
+        'options' => [
+            'sortFormat' => 'separate',
+        ],
         'templates' => [
             'nextActive' => '<li class="next"><a rel="next" href="{{url}}">{{text}}</a></li>',
             'nextDisabled' => '<li class="next disabled"><a>{{text}}</a></li>',
@@ -95,9 +101,9 @@ class PaginatorHelper extends Helper
     /**
      * Paginated results
      *
-     * @var \Cake\Datasource\Paging\PaginatedInterface
+     * @var \Cake\Datasource\Paging\PaginatedInterface<array-key, mixed>|null
      */
-    protected PaginatedInterface $paginated;
+    protected ?PaginatedInterface $paginated = null;
 
     /**
      * Constructor. Overridden to merge passed args with URL options.
@@ -120,7 +126,7 @@ class PaginatorHelper extends Helper
     /**
      * Set paginated results.
      *
-     * @param \Cake\Datasource\Paging\PaginatedInterface $paginated Instance to use.
+     * @param \Cake\Datasource\Paging\PaginatedInterface<array-key, mixed> $paginated Instance to use.
      * @param array<string, mixed> $options Options array.
      * @return void
      */
@@ -133,7 +139,7 @@ class PaginatorHelper extends Helper
     /**
      * Get pagination instance.
      *
-     * @return \Cake\Datasource\Paging\PaginatedInterface
+     * @return \Cake\Datasource\Paging\PaginatedInterface<array-key, mixed>
      */
     protected function paginated(): PaginatedInterface
     {
@@ -400,6 +406,26 @@ class PaginatorHelper extends Helper
             $title = __(Inflector::humanize((string)preg_replace('/_id$/', '', $title)));
         }
 
+        if (!isset($options['direction']) || !isset($options['lock'])) {
+            $sortableFields = $this->param('sortableFields');
+            if ($sortableFields && isset($sortableFields[$key])) {
+                $fieldConfig = $sortableFields[$key];
+
+                // Handle array of SortField objects
+                if (is_array($fieldConfig) && isset($fieldConfig[0]) && $fieldConfig[0] instanceof SortField) {
+                    $sortField = $fieldConfig[0];
+
+                    if (!isset($options['direction'])) {
+                        // Get the default direction (asc if not set, or the locked direction)
+                        $options['direction'] = $sortField->getDirection(SortField::ASC, false);
+                    }
+                    if (!isset($options['lock'])) {
+                        $options['lock'] = $sortField->isLocked();
+                    }
+                }
+            }
+        }
+
         $defaultDir = isset($options['direction']) ? strtolower($options['direction']) : 'asc';
         unset($options['direction']);
 
@@ -423,7 +449,7 @@ class PaginatorHelper extends Helper
         $dir = $defaultDir;
         if ($isSorted) {
             if ($locked) {
-                $template = $dir === 'asc' ? 'sortDescLocked' : 'sortAscLocked';
+                $template = $dir === 'asc' ? 'sortAscLocked' : 'sortDescLocked';
             } else {
                 $dir = $this->sortDir() === 'asc' ? 'desc' : 'asc';
                 $template = $dir === 'asc' ? 'sortDesc' : 'sortAsc';
@@ -433,7 +459,12 @@ class PaginatorHelper extends Helper
             $title = $title[$dir];
         }
 
-        $paging = ['sort' => $key, 'direction' => $dir, 'page' => 1];
+        $sortFormat = $this->getConfig('options.sortFormat', 'separate');
+        if ($sortFormat === 'combined') {
+            $paging = ['sort' => $key . '-' . $dir, 'direction' => null, 'page' => 1];
+        } else {
+            $paging = ['sort' => $key, 'direction' => $dir, 'page' => 1];
+        }
 
         $vars = [
             'text' => $options['escape'] ? h($title) : $title,
@@ -1137,51 +1168,153 @@ class PaginatorHelper extends Helper
      * Dropdown select for pagination limit.
      * This will generate a wrapping form.
      *
+     * Options:
+     *  - `steps`: If provided as an integer, will generate limit options in multiples of this value
+     *     up to maxLimit (e.g., steps of 10 with maxLimit 50 generates [10, 20, 30, 40, 50]).
+     *
      * @param array<string, string> $limits The options array.
      * @param int|null $default Default option for pagination limit. Defaults to `$this->param('perPage')`.
-     * @param array<string, mixed> $options Options for Select tag attributes like class, id or event
+     * @param array<string, mixed> $options Options for Select tag attributes like class, id or event. Or steps.
      * @return string html output.
      */
     public function limitControl(array $limits = [], ?int $default = null, array $options = []): string
     {
-        $limits = $limits ?: [
-            '20' => '20',
-            '50' => '50',
-            '100' => '100',
-        ];
+        $steps = $options['steps'] ?? null;
+        unset($options['steps']);
+
+        $limits = $this->prepareLimitOptions($limits, $steps);
+
         $default ??= $this->paginated()->perPage();
         $scope = $this->param('scope');
         assert($scope === null || is_string($scope));
 
-        $url = null;
         $currentPage = $this->paginated()->currentPage();
+        $query = $this->_View->getRequest()->getQueryParams();
 
-        if ($currentPage > 1) {
-            $query = $this->_View->getRequest()->getQueryParams();
-
-            if ($scope) {
-                $query[$scope]['page'] = 1;
-            } else {
-                $query['page'] = 1;
+        // Prepare query params to preserve as hidden fields
+        $hiddenFields = $query;
+        if ($scope) {
+            // Remove limit and page from scoped params
+            unset($hiddenFields[$scope]['limit'], $hiddenFields[$scope]['page']);
+            if (isset($hiddenFields[$scope]) && empty($hiddenFields[$scope])) {
+                unset($hiddenFields[$scope]);
             }
-
-            $url = $this->_View->getRequest()->getPath();
-            $url .= '?' . http_build_query($query);
+            // Set page to 1 if not on first page
+            if ($currentPage > 1) {
+                $hiddenFields[$scope]['page'] = 1;
+            }
+        } else {
+            // Remove pagination params that will be handled separately
+            unset($hiddenFields['limit'], $hiddenFields['page'], $hiddenFields['sort'], $hiddenFields['direction']);
+            // Set page to 1 if not on first page
+            if ($currentPage > 1) {
+                $hiddenFields['page'] = 1;
+            }
         }
 
         if ($scope) {
             $scope .= '.';
         }
-        $out = $this->Form->create(null, ['type' => 'get', 'url' => $url]);
+
+        $out = $this->Form->create(null, ['type' => 'get', 'url' => $this->_View->getRequest()->getPath()]);
+
+        $out .= $this->generateHiddenFields($hiddenFields);
+
+        $limit = $this->_View->getRequest()->getQuery('limit');
         $out .= $this->Form->control($scope . 'limit', $options + [
             'type' => 'select',
             'label' => __('View'),
             'default' => $default,
-            'value' => $this->_View->getRequest()->getQuery('limit'),
+            'value' => $limit !== null ? (int)$limit : null,
             'options' => $limits,
-            'onChange' => 'this.form.submit()',
+            'onChange' => 'this.form.requestSubmit()',
         ]);
+
         $out .= $this->Form->end();
+
+        return $out;
+    }
+
+    /**
+     * Prepare and filter limit options for limitControl.
+     *
+     * Handles generating limits from steps, applying defaults, and filtering by maxLimit.
+     *
+     * @param array<string, string> $limits Explicit limit options
+     * @param int|null $steps If provided, generates limits in multiples of this value
+     * @return array<int|string, string> Prepared limit options
+     */
+    protected function prepareLimitOptions(array $limits, ?int $steps): array
+    {
+        // Generate limits based on steps if provided
+        if ($steps !== null) {
+            if ($limits !== []) {
+                throw new InvalidArgumentException(
+                    'Cannot use both `steps` option and explicit `$limits` array. ' .
+                    'Use one or the other.',
+                );
+            }
+
+            $maxLimit = $this->param('maxLimit');
+            $upperLimit = $maxLimit ?? 100;
+            $limits = [];
+            for ($i = $steps; $i <= $upperLimit; $i += $steps) {
+                $limits[$i] = (string)$i;
+            }
+
+            return $limits;
+        }
+
+        // Apply default limits if none provided
+        $limits = $limits ?: [
+            '20' => '20',
+            '50' => '50',
+            '100' => '100',
+        ];
+
+        // Filter out limits that exceed maxLimit
+        $maxLimit = $this->param('maxLimit');
+        if ($maxLimit !== null) {
+            $limits = array_filter($limits, function ($limit) use ($maxLimit) {
+                return (int)$limit <= $maxLimit;
+            });
+            if (!$limits) {
+                $limits[$maxLimit] = (string)$maxLimit;
+            }
+        }
+
+        return $limits;
+    }
+
+    /**
+     * Recursively generate hidden form fields for nested arrays.
+     *
+     * This handles query parameters with arbitrary nesting levels by converting
+     * nested arrays into dot-notation field names.
+     *
+     * Example:
+     * ['filter' => ['date' => ['start' => '2024-01-01']]]
+     * becomes: hidden field "filter.date.start" with value "2024-01-01"
+     *
+     * @param array $data The data to convert to hidden fields
+     * @param string $prefix The current key prefix for nested fields
+     * @return string HTML for hidden form fields
+     */
+    protected function generateHiddenFields(array $data, string $prefix = ''): string
+    {
+        $out = '';
+
+        foreach ($data as $key => $value) {
+            $fieldName = $prefix === '' ? $key : "{$prefix}.{$key}";
+
+            if (is_array($value)) {
+                // Recursively handle nested arrays
+                $out .= $this->generateHiddenFields($value, $fieldName);
+            } else {
+                // Generate hidden field for scalar values
+                $out .= $this->Form->hidden(h($fieldName), ['value' => $value]);
+            }
+        }
 
         return $out;
     }

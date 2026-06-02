@@ -78,7 +78,7 @@ abstract class SimpleBakeCommand extends BakeCommand
         $this->extractCommonProperties($args);
         $name = $args->getArgumentAt(0);
         if (empty($name)) {
-            $io->err('You must provide a name to bake a ' . $this->name());
+            $io->error('You must provide a name to bake a ' . $this->name());
             $this->abort();
         }
         $name = $this->_getName($name);
@@ -135,7 +135,7 @@ abstract class SimpleBakeCommand extends BakeCommand
      * @param \Cake\Console\ConsoleOptionParser $parser Option parser to update.
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $parser = $this->_setCommonOptions($parser);
         $name = $this->name();

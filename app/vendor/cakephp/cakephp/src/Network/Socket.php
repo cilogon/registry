@@ -57,6 +57,7 @@ class Socket
      * This boolean contains the current state of the Socket class
      *
      * @var bool
+     * @deprecated 5.2.9 Use isConnected() instead.
      */
     protected bool $connected = false;
 
@@ -166,8 +167,8 @@ class Socket
         restore_error_handler();
 
         if ($this->connection === null && (!$errNum || !$errStr)) {
-            $this->setLastError($errNum, $errStr);
-            throw new SocketException($errStr, $errNum);
+            $this->setLastError($errNum ?? 0, $errStr ?? '');
+            throw new SocketException($errStr ?? '', $errNum ?? 0);
         }
 
         if ($this->connection === null && $this->_connectionErrors) {
@@ -175,14 +176,15 @@ class Socket
             throw new SocketException($message, E_WARNING);
         }
 
-        $this->connected = is_resource($this->connection);
-        if ($this->connected) {
+        $connected = is_resource($this->connection);
+        $this->connected = $connected;
+        if ($connected) {
             assert($this->connection !== null);
 
             stream_set_timeout($this->connection, (int)$this->_config['timeout']);
         }
 
-        return $this->connected;
+        return $connected;
     }
 
     /**
@@ -192,15 +194,15 @@ class Socket
      */
     public function isConnected(): bool
     {
-        return $this->connected;
+        return is_resource($this->connection);
     }
 
     /**
      * Create a stream socket client. Mock utility.
      *
      * @param string $remoteSocketTarget remote socket
-     * @param int $errNum error number
-     * @param string $errStr error string
+     * @param int|null $errNum error number
+     * @param string|null $errStr error string
      * @param int $timeout timeout
      * @param int<0, 7> $connectAs flags
      * @param resource $context context
@@ -208,8 +210,8 @@ class Socket
      */
     protected function _getStreamSocketClient(
         string $remoteSocketTarget,
-        int &$errNum,
-        string &$errStr,
+        ?int &$errNum,
+        ?string &$errStr,
         int $timeout,
         int $connectAs,
         $context,
@@ -248,9 +250,8 @@ class Socket
             }
             unset($this->_config[$key]);
         }
-        if (!isset($this->_config['context']['ssl']['SNI_enabled'])) {
-            $this->_config['context']['ssl']['SNI_enabled'] = true;
-        }
+        $this->_config['context']['ssl']['SNI_enabled'] ??= true;
+
         if (empty($this->_config['context']['ssl']['peer_name'])) {
             $this->_config['context']['ssl']['peer_name'] = $host;
         }
@@ -264,7 +265,7 @@ class Socket
     }
 
     /**
-     * socket_stream_client() does not populate errNum, or $errStr when there are
+     * stream_socket_client() does not populate errNum, or $errStr when there are
      * connection errors, as in the case of SSL verification failure.
      *
      * Instead, we need to handle those errors manually.
@@ -368,7 +369,7 @@ class Socket
      */
     public function write(string $data): int
     {
-        if (!$this->connected && !$this->connect()) {
+        if (!$this->isConnected() && !$this->connect()) {
             return 0;
         }
         $totalBytes = strlen($data);
@@ -399,7 +400,7 @@ class Socket
             throw new InvalidArgumentException('Length must be greater than `0`');
         }
 
-        if (!$this->connected && !$this->connect()) {
+        if (!$this->isConnected() && !$this->connect()) {
             return null;
         }
 
@@ -449,7 +450,7 @@ class Socket
     }
 
     /**
-     * Resets the state of this Socket instance to it's initial state (before Object::__construct got executed)
+     * Resets the state of this Socket instance to its initial state (before __construct() got executed)
      *
      * @param array|null $state Array with key and values to reset
      * @return void

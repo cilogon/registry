@@ -9,22 +9,31 @@ declare(strict_types=1);
 namespace Migrations\Db\Plan;
 
 use ArrayObject;
+use Migrations\Db\Action\AddCheckConstraint;
 use Migrations\Db\Action\AddColumn;
 use Migrations\Db\Action\AddForeignKey;
 use Migrations\Db\Action\AddIndex;
+use Migrations\Db\Action\AddPartition;
 use Migrations\Db\Action\ChangeColumn;
 use Migrations\Db\Action\ChangeComment;
 use Migrations\Db\Action\ChangePrimaryKey;
 use Migrations\Db\Action\CreateTable;
+use Migrations\Db\Action\CreateTrigger;
+use Migrations\Db\Action\CreateView;
+use Migrations\Db\Action\DropCheckConstraint;
 use Migrations\Db\Action\DropForeignKey;
 use Migrations\Db\Action\DropIndex;
+use Migrations\Db\Action\DropPartition;
 use Migrations\Db\Action\DropTable;
+use Migrations\Db\Action\DropTrigger;
+use Migrations\Db\Action\DropView;
 use Migrations\Db\Action\RemoveColumn;
 use Migrations\Db\Action\RenameColumn;
 use Migrations\Db\Action\RenameTable;
+use Migrations\Db\Action\SetPartitioning;
 use Migrations\Db\Adapter\AdapterInterface;
 use Migrations\Db\Plan\Solver\ActionSplitter;
-use Migrations\Db\Table\Table;
+use Migrations\Db\Table\TableMetadata;
 
 /**
  * A Plan takes an Intent and transforms int into a sequence of
@@ -71,11 +80,25 @@ class Plan
     protected array $constraints = [];
 
     /**
+     * List of partition additions or removals
+     *
+     * @var \Migrations\Db\Plan\AlterTable[]
+     */
+    protected array $partitions = [];
+
+    /**
      * List of dropped columns
      *
      * @var \Migrations\Db\Plan\AlterTable[]
      */
     protected array $columnRemoves = [];
+
+    /**
+     * List of view and trigger operations
+     *
+     * @var \Migrations\Db\Plan\AlterTable[]
+     */
+    protected array $viewsAndTriggers = [];
 
     /**
      * Constructor
@@ -100,6 +123,8 @@ class Plan
         $this->gatherTableMoves($actions);
         $this->gatherIndexes($actions);
         $this->gatherConstraints($actions);
+        $this->gatherPartitions($actions);
+        $this->gatherViewsAndTriggers($actions);
         $this->resolveConflicts();
     }
 
@@ -114,6 +139,8 @@ class Plan
             $this->tableUpdates,
             $this->constraints,
             $this->indexes,
+            $this->partitions,
+            $this->viewsAndTriggers,
             $this->columnRemoves,
             $this->tableMoves,
         ];
@@ -129,6 +156,8 @@ class Plan
         return [
             $this->constraints,
             $this->tableMoves,
+            $this->viewsAndTriggers,
+            $this->partitions,
             $this->indexes,
             $this->columnRemoves,
             $this->tableUpdates,
@@ -186,6 +215,7 @@ class Plan
                     $this->tableUpdates = $this->forgetTable($action->getTable(), $this->tableUpdates);
                     $this->constraints = $this->forgetTable($action->getTable(), $this->constraints);
                     $this->indexes = $this->forgetTable($action->getTable(), $this->indexes);
+                    $this->partitions = $this->forgetTable($action->getTable(), $this->partitions);
                     $this->columnRemoves = $this->forgetTable($action->getTable(), $this->columnRemoves);
                 }
             }
@@ -197,7 +227,7 @@ class Plan
         $splitter = new ActionSplitter(
             RenameColumn::class,
             ChangeColumn::class,
-            function (RenameColumn $a, ChangeColumn $b) {
+            function (RenameColumn $a, ChangeColumn $b): bool {
                 return $a->getNewName() === $b->getColumnName();
             },
         );
@@ -217,7 +247,7 @@ class Plan
         $splitter = new ActionSplitter(
             DropForeignKey::class,
             AddForeignKey::class,
-            function (DropForeignKey $a, AddForeignKey $b) {
+            function (DropForeignKey $a, AddForeignKey $b): bool {
                 return $a->getForeignKey()->getColumns() === $b->getForeignKey()->getColumns();
             },
         );
@@ -235,11 +265,11 @@ class Plan
      * Deletes all actions related to the given table and keeps the
      * rest
      *
-     * @param \Migrations\Db\Table\Table $table The table to find in the list of actions
+     * @param \Migrations\Db\Table\TableMetadata $table The table to find in the list of actions
      * @param \Migrations\Db\Plan\AlterTable[] $actions The actions to transform
      * @return \Migrations\Db\Plan\AlterTable[] The list of actions without actions for the given table
      */
-    protected function forgetTable(Table $table, array $actions): array
+    protected function forgetTable(TableMetadata $table, array $actions): array
     {
         $result = [];
         foreach ($actions as $action) {
@@ -285,16 +315,16 @@ class Plan
     /**
      * Deletes any DropIndex actions for the given table and exact columns
      *
-     * @param \Migrations\Db\Table\Table $table The table to find in the list of actions
+     * @param \Migrations\Db\Table\TableMetadata $table The table to find in the list of actions
      * @param string[] $columns The column names to match
      * @param \Migrations\Db\Plan\AlterTable[] $actions The actions to transform
      * @return array A tuple containing the list of actions without actions for dropping the index
      * and a list of drop index actions that were removed.
      */
-    protected function forgetDropIndex(Table $table, array $columns, array $actions): array
+    protected function forgetDropIndex(TableMetadata $table, array $columns, array $actions): array
     {
         $dropIndexActions = new ArrayObject();
-        $indexes = array_map(function ($alter) use ($table, $columns, $dropIndexActions) {
+        $indexes = array_map(function (AlterTable $alter) use ($table, $columns, $dropIndexActions): AlterTable {
             if ($alter->getTable()->getName() !== $table->getName()) {
                 return $alter;
             }
@@ -317,16 +347,16 @@ class Plan
     /**
      * Deletes any RemoveColumn actions for the given table and exact columns
      *
-     * @param \Migrations\Db\Table\Table $table The table to find in the list of actions
+     * @param \Migrations\Db\Table\TableMetadata $table The table to find in the list of actions
      * @param string[] $columns The column names to match
      * @param \Migrations\Db\Plan\AlterTable[] $actions The actions to transform
      * @return array A tuple containing the list of actions without actions for removing the column
      * and a list of remove column actions that were removed.
      */
-    protected function forgetRemoveColumn(Table $table, array $columns, array $actions): array
+    protected function forgetRemoveColumn(TableMetadata $table, array $columns, array $actions): array
     {
         $removeColumnActions = new ArrayObject();
-        $indexes = array_map(function ($alter) use ($table, $columns, $removeColumnActions) {
+        $indexes = array_map(function (AlterTable $alter) use ($table, $columns, $removeColumnActions): AlterTable {
             if ($alter->getTable()->getName() !== $table->getName()) {
                 return $alter;
             }
@@ -393,8 +423,9 @@ class Plan
                 && !($action instanceof RemoveColumn)
                 && !($action instanceof RenameColumn)
             ) {
-                 continue;
-            } elseif (isset($this->tableCreates[$action->getTable()->getName()])) {
+                continue;
+            }
+            if (isset($this->tableCreates[$action->getTable()->getName()])) {
                 continue;
             }
             $table = $action->getTable();
@@ -453,7 +484,8 @@ class Plan
         foreach ($actions as $action) {
             if (!($action instanceof AddIndex) && !($action instanceof DropIndex)) {
                 continue;
-            } elseif (isset($this->tableCreates[$action->getTable()->getName()])) {
+            }
+            if (isset($this->tableCreates[$action->getTable()->getName()])) {
                 continue;
             }
 
@@ -469,7 +501,9 @@ class Plan
     }
 
     /**
-     * Collects all foreign key creation and drops from the given intent
+     * Collects all constraint creation and drops from the given intent
+     *
+     * This includes foreign keys and check constraints.
      *
      * @param \Migrations\Db\Action\Action[] $actions The actions to parse
      * @return void
@@ -477,7 +511,12 @@ class Plan
     protected function gatherConstraints(array $actions): void
     {
         foreach ($actions as $action) {
-            if (!($action instanceof AddForeignKey || $action instanceof DropForeignKey)) {
+            if (
+                !($action instanceof AddForeignKey)
+                && !($action instanceof DropForeignKey)
+                && !($action instanceof AddCheckConstraint)
+                && !($action instanceof DropCheckConstraint)
+            ) {
                 continue;
             }
             $table = $action->getTable();
@@ -488,6 +527,65 @@ class Plan
             }
 
             $this->constraints[$name]->addAction($action);
+        }
+    }
+
+    /**
+     * Collects all partition creation and drops from the given intent
+     *
+     * @param \Migrations\Db\Action\Action[] $actions The actions to parse
+     * @return void
+     */
+    protected function gatherPartitions(array $actions): void
+    {
+        foreach ($actions as $action) {
+            if (
+                !($action instanceof AddPartition)
+                && !($action instanceof DropPartition)
+                && !($action instanceof SetPartitioning)
+            ) {
+                continue;
+            }
+            if (isset($this->tableCreates[$action->getTable()->getName()])) {
+                continue;
+            }
+
+            $table = $action->getTable();
+            $name = $table->getName();
+
+            if (!isset($this->partitions[$name])) {
+                $this->partitions[$name] = new AlterTable($table);
+            }
+
+            $this->partitions[$name]->addAction($action);
+        }
+    }
+
+    /**
+     * Collects all view and trigger creation and drops from the given intent
+     *
+     * @param \Migrations\Db\Action\Action[] $actions The actions to parse
+     * @return void
+     */
+    protected function gatherViewsAndTriggers(array $actions): void
+    {
+        foreach ($actions as $action) {
+            if (
+                !($action instanceof CreateView)
+                && !($action instanceof DropView)
+                && !($action instanceof CreateTrigger)
+                && !($action instanceof DropTrigger)
+            ) {
+                continue;
+            }
+            $table = $action->getTable();
+            $name = $table->getName();
+
+            if (!isset($this->viewsAndTriggers[$name])) {
+                $this->viewsAndTriggers[$name] = new AlterTable($table);
+            }
+
+            $this->viewsAndTriggers[$name]->addAction($action);
         }
     }
 }

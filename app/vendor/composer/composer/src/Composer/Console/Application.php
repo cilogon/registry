@@ -20,6 +20,7 @@ use Composer\Util\Silencer;
 use LogicException;
 use RuntimeException;
 use Symfony\Component\Console\Application as BaseApplication;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
 use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -42,6 +43,7 @@ use Composer\Util\HttpDownloader;
 use Composer\EventDispatcher\ScriptExecutionException;
 use Composer\Exception\NoSslException;
 use Composer\XdebugHandler\XdebugHandler;
+use Symfony\Component\Console\SingleCommandApplication;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
 /**
@@ -167,16 +169,16 @@ class Application extends BaseApplication
         if (null !== $newWorkDir) {
             $oldWorkingDir = Platform::getCwd(true);
             chdir($newWorkDir);
-            $this->initialWorkingDirectory = $newWorkDir;
+            $this->initialWorkingDirectory = getcwd();
             $cwd = Platform::getCwd(true);
             $io->writeError('Changed CWD to ' . ($cwd !== '' ? $cwd : $newWorkDir), true, IOInterface::DEBUG);
         }
 
         // determine command name to be executed without including plugin commands
         $commandName = '';
-        if ($name = $this->getCommandNameBeforeBinding($input)) {
+        if ($rawCommandName = $this->getCommandNameBeforeBinding($input)) {
             try {
-                $commandName = $this->find($name)->getName();
+                $commandName = $this->find($rawCommandName)->getName();
             } catch (CommandNotFoundException $e) {
                 // we'll check command validity again later after plugins are loaded
                 $commandName = false;
@@ -208,7 +210,7 @@ class Application extends BaseApplication
                         $io->writeError('<info>No composer.json in current directory, to use the one at '.$dir.' run interactively or set config.use-parent-dir to true</info>');
                         break;
                     }
-                    if ($useParentDirIfNoJsonAvailable === true || $io->askConfirmation('<info>No composer.json in current directory, do you want to use the one at '.$dir.'?</info> [<comment>Y,n</comment>]? ')) {
+                    if ($useParentDirIfNoJsonAvailable === true || $io->askConfirmation('<info>No composer.json in current directory, do you want to use the one at '.$dir.'?</info> [<comment>y,n</comment>]? ')) {
                         if ($useParentDirIfNoJsonAvailable === true) {
                             $io->writeError('<info>No composer.json in current directory, changing working directory to '.$dir.'</info>');
                         } else {
@@ -259,6 +261,8 @@ class Application extends BaseApplication
                 || ($commandName === '_complete' && !$isNonAllowedRoot)
             );
 
+        $mayNeedScriptCommand = $mayNeedPluginCommand || $commandName === 'run-script' || $rawCommandName !== $commandName;
+
         if ($mayNeedPluginCommand && !$this->disablePluginsByDefault && !$this->hasPluginCommands) {
             // at this point plugins are needed, so if we are running as root and it is not allowed we need to prompt
             // if interactive, and abort otherwise
@@ -281,6 +285,7 @@ class Application extends BaseApplication
                         $io->writeError('<warning>Plugin command '.$command->getName().' ('.get_class($command).') would override a Composer command and has been skipped</warning>');
                     } else {
                         // Compatibility layer for symfony/console <7.4
+                        // @phpstan-ignore method.notFound, function.alreadyNarrowedType
                         method_exists($this, 'addCommand') ? $this->addCommand($command) : $this->add($command);
                     }
                 }
@@ -366,24 +371,58 @@ class Application extends BaseApplication
 
             // add non-standard scripts as own commands
             $file = Factory::getComposerFile();
-            if (is_file($file) && Filesystem::isReadable($file) && is_array($composer = json_decode(file_get_contents($file), true))) {
-                if (isset($composer['scripts']) && is_array($composer['scripts'])) {
-                    foreach ($composer['scripts'] as $script => $dummy) {
+            if ($mayNeedScriptCommand && is_file($file) && Filesystem::isReadable($file) && is_array($composerJson = json_decode(file_get_contents($file), true))) {
+                if (isset($composerJson['scripts']) && is_array($composerJson['scripts'])) {
+                    foreach ($composerJson['scripts'] as $script => $dummy) {
                         if (!defined('Composer\Script\ScriptEvents::'.str_replace('-', '_', strtoupper($script)))) {
                             if ($this->has($script)) {
                                 $io->writeError('<warning>A script named '.$script.' would override a Composer command and has been skipped</warning>');
                             } else {
-                                $description = null;
+                                $description = 'Runs the '.$script.' script as defined in composer.json';
 
-                                if (isset($composer['scripts-descriptions'][$script])) {
-                                    $description = $composer['scripts-descriptions'][$script];
+                                if (isset($composerJson['scripts-descriptions'][$script])) {
+                                    $description = $composerJson['scripts-descriptions'][$script];
                                 }
 
-                                $aliases = $composer['scripts-aliases'][$script] ?? [];
+                                $aliases = $composerJson['scripts-aliases'][$script] ?? [];
 
-                                $scriptAlias = new Command\ScriptAliasCommand($script, $description, $aliases);
+                                $composer = $this->getComposer(false);
+                                if ($composer !== null) {
+                                    $rootPackage = $composer->getPackage();
+                                    $generator = $composer->getAutoloadGenerator();
+
+                                    $packageMap = $generator->buildPackageMap($composer->getInstallationManager(), $rootPackage, []);
+                                    $map = $generator->parseAutoloads($packageMap, $rootPackage);
+
+                                    $loader = $generator->createLoader($map, $composer->getConfig()->get('vendor-dir'));
+                                    $loader->register(false);
+                                }
+
+                                // if the command is not an array of commands, and points to a valid Command subclass, import its details directly
+                                if (is_string($dummy) && class_exists($dummy) && is_subclass_of($dummy, SymfonyCommand::class)) {
+                                    if (is_subclass_of($dummy, SingleCommandApplication::class)) {
+                                        $io->writeError('<warning>The script named '.$script.' extends SingleCommandApplication which is not compatible with Composer 2.9+, make sure you extend Symfony\Component\Console\Command instead.</warning>');
+                                    }
+
+                                    $cmd = new $dummy($script);
+
+                                    // makes sure the command is find()'able by the name defined in composer.json, and the name isn't overridden in its configure()
+                                    if ($cmd->getName() !== '' && $cmd->getName() !== null && $cmd->getName() !== $script) {
+                                        $io->writeError('<warning>The script named '.$script.' in composer.json has a mismatched name in its class definition. For consistency, either use the same name, or do not define one inside the class.</warning>');
+                                        $cmd->setName($script); // override it with the defined script name
+                                    }
+
+                                    if ($cmd->getDescription() === '' && is_string($description)) {
+                                        $cmd->setDescription($description);
+                                    }
+                                } else {
+                                    // fallback to usual aliasing behavior
+                                    $cmd = new Command\ScriptAliasCommand($script, $description, $aliases);
+                                }
+
                                 // Compatibility layer for symfony/console <7.4
-                                method_exists($this, 'addCommand') ? $this->addCommand($scriptAlias) : $this->add($scriptAlias);
+                                // @phpstan-ignore method.notFound, function.alreadyNarrowedType
+                                method_exists($this, 'addCommand') ? $this->addCommand($cmd) : $this->add($cmd);
                             }
                         }
                     }
@@ -455,15 +494,14 @@ class Application extends BaseApplication
     }
 
     /**
-     * @throws \RuntimeException
-     * @return ?string
+     * @throws RuntimeException
      */
     private function getNewWorkingDir(InputInterface $input): ?string
     {
         /** @var string|null $workingDir */
         $workingDir = $input->getParameterOption(['--working-dir', '-d'], null, true);
         if (null !== $workingDir && !is_dir($workingDir)) {
-            throw new \RuntimeException('Invalid working directory specified, '.$workingDir.' does not exist.');
+            throw new RuntimeException('Invalid working directory specified, '.$workingDir.' does not exist.');
         }
 
         return $workingDir;
@@ -602,11 +640,11 @@ class Application extends BaseApplication
 
     /**
      * Initializes all the composer commands.
-     * @return \Symfony\Component\Console\Command\Command[]
+     * @return SymfonyCommand[]
      */
     protected function getDefaultCommands(): array
     {
-        $commands = array_merge(parent::getDefaultCommands(), [
+        return array_merge(parent::getDefaultCommands(), [
             new Command\AboutCommand(),
             new Command\ConfigCommand(),
             new Command\DependsCommand(),
@@ -637,13 +675,9 @@ class Application extends BaseApplication
             new Command\FundCommand(),
             new Command\ReinstallCommand(),
             new Command\BumpCommand(),
+            new Command\RepositoryCommand(),
+            new Command\SelfUpdateCommand(),
         ]);
-
-        if (strpos(__FILE__, 'phar:') === 0 || '1' === Platform::getEnv('COMPOSER_TESTS_ARE_RUNNING')) {
-            $commands[] = new Command\SelfUpdateCommand();
-        }
-
-        return $commands;
     }
 
     /**

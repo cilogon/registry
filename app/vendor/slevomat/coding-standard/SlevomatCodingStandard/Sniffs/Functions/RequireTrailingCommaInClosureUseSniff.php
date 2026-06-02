@@ -27,11 +27,7 @@ class RequireTrailingCommaInClosureUseSniff implements Sniff
 		return [T_CLOSURE];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $functionPointer
-	 */
-	public function process(File $phpcsFile, $functionPointer): void
+	public function process(File $phpcsFile, int $functionPointer): void
 	{
 		$this->enable = SniffSettingsHelper::isEnabledByPhpVersion($this->enable, 80000);
 
@@ -49,8 +45,8 @@ class RequireTrailingCommaInClosureUseSniff implements Sniff
 			return;
 		}
 
-		$useParenthesisOpenerPointer = TokenHelper::findNextEffective($phpcsFile, $usePointer + 1);
-		$useParenthesisCloserPointer = $tokens[$useParenthesisOpenerPointer]['parenthesis_closer'];
+		$useParenthesisOpenerPointer = $tokens[$usePointer]['parenthesis_opener'];
+		$useParenthesisCloserPointer = $tokens[$usePointer]['parenthesis_closer'];
 
 		if ($tokens[$useParenthesisOpenerPointer]['line'] === $tokens[$useParenthesisCloserPointer]['line']) {
 			return;

@@ -22,9 +22,10 @@ use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Utility\Filesystem;
 use Cake\Utility\Inflector;
+use InvalidArgumentException;
 
 /**
- * trait for symlinking / copying plugin assets to app's webroot.
+ * Trait for symlinking / copying plugin assets to app's webroot.
  *
  * @internal
  */
@@ -100,10 +101,15 @@ trait PluginAssetsTrait
      * @param array<string, mixed> $plugins List of plugins to process
      * @param bool $copy Force copy mode. Default false.
      * @param bool $overwrite Overwrite existing files.
+     * @param bool $relative Relative. Default false.
      * @return void
      */
-    protected function _process(array $plugins, bool $copy = false, bool $overwrite = false): void
-    {
+    protected function _process(
+        array $plugins,
+        bool $copy = false,
+        bool $overwrite = false,
+        bool $relative = false,
+    ): void {
         foreach ($plugins as $plugin => $config) {
             $this->io->out();
             $this->io->out('For plugin: ' . $plugin);
@@ -118,34 +124,40 @@ trait PluginAssetsTrait
             }
 
             $dest = $config['destDir'] . $config['link'];
+            if ($copy) {
+                if ((is_link($dest) || $overwrite) && !$this->_remove($config)) {
+                    continue;
+                }
 
-            if (file_exists($dest)) {
-                if ($overwrite && !$this->_remove($config)) {
-                    continue;
+                if (file_exists($dest)) {
+                    $this->io->verbose($dest . ' already exists', 1);
+                } else {
+                    $this->_copyDirectory($config['srcPath'], $dest);
                 }
-                if (!$overwrite) {
-                    $this->io->verbose(
-                        $dest . ' already exists',
-                        1,
-                    );
-                    continue;
-                }
+                continue;
             }
 
-            if (!$copy) {
-                $result = $this->_createSymlink(
-                    $config['srcPath'],
-                    $dest,
-                );
-                if ($result) {
-                    continue;
-                }
-            }
-
-            $this->_copyDirectory(
+            $result = $this->_createSymlink(
                 $config['srcPath'],
                 $dest,
+                $relative,
             );
+            if ($result) {
+                continue;
+            }
+
+            if ($this->_isSymlinkValid($config['srcPath'], $dest)) {
+                $this->io->verbose($dest . ' already exists', 1);
+                continue;
+            }
+
+            if (!$this->_remove($config)) {
+                continue;
+            }
+
+            if (!$this->_createSymlink($config['srcPath'], $dest)) {
+                continue;
+            }
         }
 
         $this->io->out();
@@ -161,24 +173,10 @@ trait PluginAssetsTrait
     protected function _remove(array $config): bool
     {
         if ($config['namespaced'] && !is_dir($config['destDir'])) {
-            $this->io->verbose(
-                $config['destDir'] . $config['link'] . ' does not exist',
-                1,
-            );
-
-            return false;
+            return true;
         }
 
         $dest = $config['destDir'] . $config['link'];
-
-        if (!file_exists($dest)) {
-            $this->io->verbose(
-                $dest . ' does not exist',
-                1,
-            );
-
-            return false;
-        }
 
         if (is_link($dest)) {
             // phpcs:ignore
@@ -188,20 +186,25 @@ trait PluginAssetsTrait
 
                 return true;
             }
-            $this->io->err('Failed to unlink  ' . $dest);
+            $this->io->error('Failed to unlink  ' . $dest);
 
             return false;
         }
 
-        $fs = new Filesystem();
-        if ($fs->deleteDir($dest)) {
-            $this->io->out('Deleted ' . $dest);
-
+        if (!file_exists($dest)) {
             return true;
         }
-        $this->io->err('Failed to delete ' . $dest);
 
-        return false;
+        $fs = new Filesystem();
+        if (!$fs->deleteDir($dest)) {
+            $this->io->error('Failed to delete ' . $dest);
+
+            return false;
+        }
+
+        $this->io->out('Deleted ' . $dest);
+
+        return true;
     }
 
     /**
@@ -212,11 +215,9 @@ trait PluginAssetsTrait
      */
     protected function _createDirectory(string $dir): bool
     {
-        $old = umask(0);
         // phpcs:disable
-        $result = @mkdir($dir, 0755, true);
+        $result = @mkdir($dir, 0777 ^ umask(), true);
         // phpcs:enable
-        umask($old);
 
         if ($result) {
             $this->io->out('Created directory ' . $dir);
@@ -224,7 +225,7 @@ trait PluginAssetsTrait
             return true;
         }
 
-        $this->io->err('Failed creating directory ' . $dir);
+        $this->io->error('Failed creating directory ' . $dir);
 
         return false;
     }
@@ -234,10 +235,15 @@ trait PluginAssetsTrait
      *
      * @param string $target Target directory
      * @param string $link Link name
+     * @param bool $relative Relative (true) or Absolute (false)
      * @return bool
      */
-    protected function _createSymlink(string $target, string $link): bool
+    protected function _createSymlink(string $target, string $link, bool $relative = false): bool
     {
+        if ($relative) {
+            $target = $this->_makeRelativePath($link, $target);
+        }
+
         // phpcs:disable
         $result = @symlink($target, $link);
         // phpcs:enable
@@ -249,6 +255,61 @@ trait PluginAssetsTrait
         }
 
         return false;
+    }
+
+    /**
+     * Generate a relative path from one directory to another.
+     *
+     * @param string $from The symlink path
+     * @param string $to The target path
+     * @return string Relative path
+     */
+    protected function _makeRelativePath(string $from, string $to): string
+    {
+        $from = is_dir($from) ? rtrim($from, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : dirname($from);
+        $from = realpath($from);
+        $to = realpath($to);
+
+        if ($from === false || $to === false) {
+            throw new InvalidArgumentException('Invalid path provided to _makeRelativePath.');
+        }
+
+        $fromParts = explode(DIRECTORY_SEPARATOR, $from);
+        $toParts = explode(DIRECTORY_SEPARATOR, $to);
+
+        $fromCount = count($fromParts);
+        $toCount = count($toParts);
+
+        // Remove common parts
+        while ($fromCount && $toCount && $fromParts[0] === $toParts[0]) {
+            array_shift($fromParts);
+            array_shift($toParts);
+            $fromCount--;
+            $toCount--;
+        }
+
+        return str_repeat('..' . DIRECTORY_SEPARATOR, $fromCount) . implode(DIRECTORY_SEPARATOR, $toParts);
+    }
+
+    /**
+     * Checks if symlink exist and points to the correct target.
+     *
+     * @param string $target
+     * @param string $link
+     * @return bool
+     */
+    protected function _isSymlinkValid(string $target, string $link): bool
+    {
+        if (!is_link($link)) {
+            return false;
+        }
+
+        $linkedPath = readlink($link);
+        if ($linkedPath === false) {
+            return false;
+        }
+
+        return realpath($target) === realpath($linkedPath);
     }
 
     /**
@@ -267,7 +328,7 @@ trait PluginAssetsTrait
             return true;
         }
 
-        $this->io->err('Error copying assets to directory ' . $destination);
+        $this->io->error('Error copying assets to directory ' . $destination);
 
         return false;
     }

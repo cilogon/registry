@@ -25,7 +25,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Handles common security headers in a convenient way
  *
- * @link https://book.cakephp.org/5/en/controllers/middleware.html#security-header-middleware
+ * @link https://book.cakephp.org/5/en/security/security-headers.html
  */
 class SecurityHeadersMiddleware implements MiddlewareInterface
 {
@@ -253,7 +253,7 @@ class SecurityHeadersMiddleware implements MiddlewareInterface
     protected function checkValues(string $value, array $allowed): void
     {
         if (!in_array($value, $allowed, true)) {
-            array_walk($allowed, fn(&$x) => $x = "`{$x}`");
+            array_walk($allowed, fn(string &$x) => $x = "`{$x}`");
             throw new InvalidArgumentException(sprintf(
                 'Invalid arg `%s`, use one of these: %s.',
                 $value,

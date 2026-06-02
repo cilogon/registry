@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Database\Schema;
 
+use Cake\Database\Driver\Mysql;
 use Cake\Database\DriverFeatureEnum;
 use Cake\Database\Exception\DatabaseException;
 use PDOException;
@@ -120,13 +121,19 @@ class MysqlSchemaDialect extends SchemaDialect
     public function describeColumns(string $tableName): array
     {
         $sql = $this->describeColumnQuery($tableName);
-        $columns = [];
         try {
-            $statement = $this->_driver->execute($sql);
+            $rows = $this->_driver->execute($sql)->fetchAll('assoc');
         } catch (PDOException $e) {
             throw new DatabaseException("Could not describe columns on `{$tableName}`", null, $e);
         }
-        foreach ($statement->fetchAll('assoc') as $row) {
+
+        $geometryColumns = [];
+        if (array_intersect(array_column($rows, 'Type'), TableSchemaInterface::GEOSPATIAL_TYPES)) {
+            $geometryColumns = $this->describeGeometryColumns($tableName);
+        }
+
+        $columns = [];
+        foreach ($rows as $row) {
             $field = $this->_convertColumn($row['Type']);
             $default = $this->parseDefault($field['type'], $row);
 
@@ -138,18 +145,56 @@ class MysqlSchemaDialect extends SchemaDialect
                 'comment' => $row['Comment'],
                 'length' => null,
             ];
-            if (isset($row['Extra']) && $row['Extra'] === 'auto_increment') {
+            $extra = trim($row['Extra'] ?? '');
+            if ($extra === 'auto_increment') {
                 $field['autoIncrement'] = true;
             }
-            if ($row['Extra'] === 'on update CURRENT_TIMESTAMP') {
-                $field['onUpdate'] = 'CURRENT_TIMESTAMP';
-            } elseif ($row['Extra'] === 'on update current_timestamp()') {
+            // Depending on the MySQL Version the extra column can contain/start with DEFAULT_GENERATED as well
+            if (
+                str_ends_with($extra, 'on update CURRENT_TIMESTAMP') ||
+                str_ends_with($extra, 'on update current_timestamp()')
+            ) {
                 $field['onUpdate'] = 'CURRENT_TIMESTAMP';
             }
+
+            $srid = $geometryColumns[$field['name']]['srid'] ?? null;
+            if ($srid !== null) {
+                $field['srid'] = $srid;
+            }
+
             $columns[] = $field;
         }
 
         return $columns;
+    }
+
+    /**
+     * Describes geometry-specific column information.
+     *
+     * @param string $table The table name.
+     * @return array<string, array{name: string, srid: int}> The column information.
+     */
+    private function describeGeometryColumns(string $table): array
+    {
+        /** @var \Cake\Database\Driver\Mysql $driver */
+        $driver = $this->_driver;
+
+        if (!$driver->isMariaDb() && version_compare($driver->version(), '8.0.1', '>=')) {
+            $sql = <<<SQL
+                SELECT
+                    COLUMN_NAME AS name,
+                    SRS_ID AS srid
+                FROM information_schema.ST_GEOMETRY_COLUMNS
+                WHERE TABLE_NAME = ? AND TABLE_SCHEMA = ?
+                SQL;
+        } else {
+            return [];
+        }
+
+        $schema = $driver->config()['database'];
+        $columns = $this->_driver->execute($sql, [$table, $schema])->fetchAll('assoc');
+
+        return array_combine(array_column($columns, 'name'), $columns);
     }
 
     /**
@@ -170,6 +215,7 @@ class MysqlSchemaDialect extends SchemaDialect
                     TableSchema::GEOSPATIAL_TYPES,
                     [TableSchema::TYPE_BINARY, TableSchema::TYPE_JSON, TableSchema::TYPE_TEXT],
                 ),
+                true,
             )
         ) {
             // The default that comes back from MySQL for these types prefixes the collation type and
@@ -185,6 +231,14 @@ class MysqlSchemaDialect extends SchemaDialect
                 "\\1'\\3')",
                 $default,
             );
+        }
+
+        if (
+            $this->_driver instanceof Mysql &&
+            $this->_driver->isMariaDb() &&
+            $default === 'current_timestamp()'
+        ) {
+            return 'CURRENT_TIMESTAMP';
         }
 
         return $default;
@@ -326,10 +380,10 @@ class MysqlSchemaDialect extends SchemaDialect
             return $type;
         }
 
-        if (in_array($col, ['date', 'time'])) {
+        if (in_array($col, ['date', 'time', 'year'], true)) {
             return ['type' => $col, 'length' => null];
         }
-        if (in_array($col, ['datetime', 'timestamp'])) {
+        if (in_array($col, ['datetime', 'timestamp'], true)) {
             $typeName = $col;
             if ($length > 0) {
                 $typeName = $col . 'fractional';
@@ -342,8 +396,12 @@ class MysqlSchemaDialect extends SchemaDialect
             return ['type' => TableSchemaInterface::TYPE_BOOLEAN, 'length' => null];
         }
 
+        if ($col === 'bit') {
+            return ['type' => TableSchemaInterface::TYPE_BIT, 'length' => $length];
+        }
+
         $unsigned = (isset($matches[3]) && strtolower($matches[3]) === 'unsigned');
-        if (str_contains($col, 'bigint') || $col === 'bigint') {
+        if (str_contains($col, 'bigint')) {
             return ['type' => TableSchemaInterface::TYPE_BIGINTEGER, 'length' => null, 'unsigned' => $unsigned];
         }
         if ($col === 'tinyint') {
@@ -352,7 +410,7 @@ class MysqlSchemaDialect extends SchemaDialect
         if ($col === 'smallint') {
             return ['type' => TableSchemaInterface::TYPE_SMALLINTEGER, 'length' => null, 'unsigned' => $unsigned];
         }
-        if (in_array($col, ['int', 'integer', 'mediumint'])) {
+        if (in_array($col, ['int', 'integer', 'mediumint'], true)) {
             return ['type' => TableSchemaInterface::TYPE_INTEGER, 'length' => null, 'unsigned' => $unsigned];
         }
         if ($col === 'char' && $length === 36) {
@@ -376,11 +434,16 @@ class MysqlSchemaDialect extends SchemaDialect
         if ($col === 'uuid') {
             return ['type' => TableSchemaInterface::TYPE_NATIVE_UUID, 'length' => null];
         }
-        if (str_contains($col, 'blob') || in_array($col, ['binary', 'varbinary'])) {
+        if (str_contains($col, 'blob') || in_array($col, ['binary', 'varbinary'], true)) {
             $lengthName = substr($col, 0, -4);
             $length = TableSchema::$columnLengths[$lengthName] ?? $length;
 
-            return ['type' => TableSchemaInterface::TYPE_BINARY, 'length' => $length];
+            $result = ['type' => TableSchemaInterface::TYPE_BINARY, 'length' => $length];
+            if ($col === 'binary') {
+                $result['fixed'] = true;
+            }
+
+            return $result;
         }
         if (str_contains($col, 'float') || str_contains($col, 'double')) {
             return [
@@ -402,7 +465,7 @@ class MysqlSchemaDialect extends SchemaDialect
         if (str_contains($col, 'json')) {
             return ['type' => TableSchemaInterface::TYPE_JSON, 'length' => null];
         }
-        if (in_array($col, TableSchemaInterface::GEOSPATIAL_TYPES)) {
+        if (in_array($col, TableSchemaInterface::GEOSPATIAL_TYPES, true)) {
             // TODO how can srid be preserved? It doesn't come back
             // in the output of show full columns from ...
             return [
@@ -571,6 +634,41 @@ class MysqlSchemaDialect extends SchemaDialect
     /**
      * @inheritDoc
      */
+    public function describeCheckConstraints(string $tableName): array
+    {
+        if (!$this->_driver->supports(DriverFeatureEnum::CHECK_CONSTRAINTS)) {
+            return [];
+        }
+
+        [$schema, $name] = $this->splitTablename($tableName);
+        $sql = <<<SQL
+        SELECT
+        cc.CONSTRAINT_NAME AS name,
+        cc.CHECK_CLAUSE AS expression
+        FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS AS cc
+        INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc ON (
+            tc.CONSTRAINT_SCHEMA = cc.CONSTRAINT_SCHEMA
+            AND tc.CONSTRAINT_NAME = cc.CONSTRAINT_NAME
+        )
+        WHERE tc.CONSTRAINT_SCHEMA = ? AND tc.TABLE_NAME = ? AND tc.CONSTRAINT_TYPE = 'CHECK'
+SQL;
+
+        $constraints = [];
+        $statement = $this->_driver->execute($sql, [$schema, $name]);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $constraints[] = [
+                'name' => $row['name'],
+                'type' => TableSchema::CONSTRAINT_CHECK,
+                'expression' => $row['expression'],
+            ];
+        }
+
+        return $constraints;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function truncateTableSql(TableSchema $schema): array
     {
         return [sprintf('TRUNCATE TABLE `%s`', $schema->name())];
@@ -639,6 +737,7 @@ class MysqlSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_POINT => ' POINT',
             TableSchemaInterface::TYPE_LINESTRING => ' LINESTRING',
             TableSchemaInterface::TYPE_POLYGON => ' POLYGON',
+            TableSchemaInterface::TYPE_BIT => ' BIT',
         ];
         $specialMap = [
             'string' => true,
@@ -674,6 +773,7 @@ class MysqlSchemaDialect extends SchemaDialect
                     if ($isKnownLength) {
                         $length = array_search($column['length'], TableSchema::$columnLengths);
                         assert(is_string($length));
+                        unset($column['length']);
                         $out .= ' ' . strtoupper($length) . 'BLOB';
                         break;
                     }
@@ -683,10 +783,10 @@ class MysqlSchemaDialect extends SchemaDialect
                         break;
                     }
 
-                    if ($column['length'] > 2) {
-                        $out .= ' VARBINARY(' . $column['length'] . ')';
+                    if (!empty($column['fixed'])) {
+                        $out .= ' BINARY';
                     } else {
-                        $out .= ' BINARY(' . $column['length'] . ')';
+                        $out .= ' VARBINARY';
                     }
                     break;
             }
@@ -697,7 +797,13 @@ class MysqlSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_SMALLINTEGER,
             TableSchemaInterface::TYPE_TINYINTEGER,
             TableSchemaInterface::TYPE_STRING,
+            TableSchemaInterface::TYPE_BINARY,
+            TableSchemaInterface::TYPE_BIT,
         ];
+        if (!isset($typeMap[$column['type']]) && !isset($specialMap[$column['type']])) {
+            $out .= ' ' . strtoupper($column['type']);
+            $hasLength[] = $column['type'];
+        }
         if (in_array($column['type'], $hasLength, true) && isset($column['length'])) {
             $out .= '(' . $column['length'] . ')';
         }
@@ -742,6 +848,7 @@ class MysqlSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_TEXT,
             TableSchemaInterface::TYPE_CHAR,
             TableSchemaInterface::TYPE_STRING,
+            TableSchemaInterface::TYPE_UUID,
         ];
         if (in_array($column['type'], $hasCollate, true) && isset($column['collate']) && $column['collate'] !== '') {
             $out .= ' COLLATE ' . $column['collate'];
@@ -822,7 +929,7 @@ class MysqlSchemaDialect extends SchemaDialect
         $data = $schema->getColumn($name);
         assert($data !== null);
 
-        // TODO deprecrate Type defined schema mappings?
+        // TODO deprecate Type defined schema mappings?
         $sql = $this->_getTypeSpecificColumnSql($data['type'], $schema, $name);
         if ($sql !== null) {
             return $sql;
@@ -865,9 +972,10 @@ class MysqlSchemaDialect extends SchemaDialect
         $out = '';
         if ($data['type'] === TableSchema::CONSTRAINT_UNIQUE) {
             $out = 'UNIQUE KEY ';
-        }
-        if ($data['type'] === TableSchema::CONSTRAINT_FOREIGN) {
+        } elseif ($data['type'] === TableSchema::CONSTRAINT_FOREIGN) {
             $out = 'CONSTRAINT ';
+        } elseif ($data['type'] === TableSchema::CONSTRAINT_CHECK) {
+            return 'CONSTRAINT ' . $this->_driver->quoteIdentifier($name) . ' CHECK (' . $data['expression'] . ')';
         }
         $out .= $this->_driver->quoteIdentifier($name);
 

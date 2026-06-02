@@ -22,6 +22,12 @@ const FOO = 1; // visibility missing!
 public const BAR = 2; // correct
 ```
 
+#### SlevomatCodingStandard.Classes.ClassKeywordOrder 🔧
+
+Enforces the correct order of class modifiers (e.g., `final`, `abstract`, `readonly`).
+
+Required order is (final | abstract) readonly class. That is, use either `final` or `abstract` (never both), then `readonly` if present, then `class`.
+
 #### SlevomatCodingStandard.Classes.ClassLength
 
 Disallows long classes. This sniff provides the following settings:
@@ -46,6 +52,7 @@ Sniff provides the following settings:
 
 * `groups`: order of groups. Use multiple groups in one `<element value="">` to not differentiate among them. You can use specific groups or shortcuts.
 * `methodGroups`: custom method groups. Define a custom group for special methods based on their name, annotation, or attribute.
+  * You can use a `*` as prefix or suffix to filter methods name as seen in the example below.
 
 **List of supported groups**:
 uses,
@@ -68,6 +75,7 @@ constants, properties, static properties, methods, all public methods, all prote
 			<element key="inject method" value="inject"/>
 			<element key="inject methods" value="inject*"/>
 			<element key="phpunit before" value="setUp, @before, #PHPUnit\Framework\Attributes\Before"/>
+			<element key="phpunit data provider" value="*DataProvider"/>
 		</property>
 
 		<property name="groups" type="array">
@@ -95,6 +103,9 @@ constants, properties, static properties, methods, all public methods, all prote
 			<!-- Then all public methods, followed by protected/private methods -->
 			<element value="all public methods"/>
 			<element value="methods"/>
+
+			<!-- PHPUnit's data providers are placed after all other public methods using a custom method group -->
+			<element value="phpunit data provider"/>
 
 			<!-- Magic methods are last -->
 			<element value="magic methods"/>
@@ -246,7 +257,8 @@ Sniff provides the following settings:
 
 * `excludedMethodPatterns`: allows to configure which methods are excluded from sniff detection. This is an array of regular expressions (PCRE) with delimiters. You should not use this with `includedMethodPatterns`, as it will not work properly.
 
-* `withPromotedProperties`: always require multiline signatures for methods with promoted properties.
+* `withPromotedProperties` (default: `false`): always require multiline signatures for methods with promoted properties.
+* `withParametersWithAttributes` (default: `false`): always require multiline signatures for methods with parameters with attributes.
 
 #### SlevomatCodingStandard.Classes.RequireSelfReference 🔧
 
@@ -287,6 +299,14 @@ Reports use of superfluous suffix "Trait" for traits.
 #### SlevomatCodingStandard.Classes.TraitUseDeclaration 🔧
 
 Prohibits multiple traits separated by commas in one `use` statement.
+
+#### SlevomatCodingStandard.Classes.TraitUseOrder 🔧
+
+Enforces alphabetical order of trait `use` statements, both when traits are on separate lines and when they are comma-separated in a single `use` statement.
+
+Sniff provides the following settings:
+
+* `caseSensitive` (default: `false`): compare trait names case-sensitively.
 
 #### SlevomatCodingStandard.Classes.TraitUseSpacing 🔧
 

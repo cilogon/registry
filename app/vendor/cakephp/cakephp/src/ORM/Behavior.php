@@ -213,9 +213,7 @@ class Behavior implements EventListenerInterface
         $indexed = array_flip($defaults[$key]);
         $indexedCustom = array_flip($config[$key]);
         foreach ($indexed as $method => $alias) {
-            if (!isset($indexedCustom[$method])) {
-                $indexedCustom[$method] = $alias;
-            }
+            $indexedCustom[$method] ??= $alias;
         }
         $this->setConfig($key, array_flip($indexedCustom), false);
         unset($config[$key]);
@@ -353,6 +351,7 @@ class Behavior implements EventListenerInterface
      *
      * @return array
      * @throws \ReflectionException
+     * @deprecated 5.3.0 Calling behavior methods on the table instance is deprecated.
      */
     public function implementedMethods(): array
     {

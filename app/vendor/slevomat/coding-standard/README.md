@@ -43,6 +43,7 @@ Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/PHPCSStandards
  - [SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment](doc/attributes.md#slevomatcodingstandardattributesrequireattributeafterdoccomment-) 🔧
  - [SlevomatCodingStandard.Classes.BackedEnumTypeSpacing](doc/classes.md#slevomatcodingstandardclassesbackedenumtypespacing-) 🔧
  - [SlevomatCodingStandard.Classes.ClassConstantVisibility](doc/classes.md#slevomatcodingstandardclassesclassconstantvisibility-) 🔧
+ - [SlevomatCodingStandard.Classes.ClassKeywordOrder](doc/classes.md#slevomatcodingstandardclassesclasskeywordorder-) 🔧
  - [SlevomatCodingStandard.Classes.ClassLength](doc/classes.md#slevomatcodingstandardclassesclasslength)
  - [SlevomatCodingStandard.Classes.ClassMemberSpacing](doc/classes.md#slevomatcodingstandardclassesclassmemberspacing-) 🔧
  - [SlevomatCodingStandard.Classes.ClassStructure](doc/classes.md#slevomatcodingstandardclassesclassstructure-) 🔧
@@ -71,6 +72,7 @@ Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/PHPCSStandards
  - [SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming](doc/classes.md#slevomatcodingstandardclassessuperfluousinterfacenaming)
  - [SlevomatCodingStandard.Classes.SuperfluousTraitNaming](doc/classes.md#slevomatcodingstandardclassessuperfluoustraitnaming)
  - [SlevomatCodingStandard.Classes.TraitUseDeclaration](doc/classes.md#slevomatcodingstandardclassestraitusedeclaration-) 🔧
+ - [SlevomatCodingStandard.Classes.TraitUseOrder](doc/classes.md#slevomatcodingstandardclassestraituseorder-) 🔧
  - [SlevomatCodingStandard.Classes.TraitUseSpacing](doc/classes.md#slevomatcodingstandardclassestraitusespacing-) 🔧
  - [SlevomatCodingStandard.Classes.UselessLateStaticBinding](doc/classes.md#slevomatcodingstandardclassesuselesslatestaticbinding-) 🔧
  - [SlevomatCodingStandard.Commenting.AnnotationName](doc/commenting.md#slevomatcodingstandardcommentingannotationname-)
@@ -82,8 +84,10 @@ Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/PHPCSStandards
  - [SlevomatCodingStandard.Commenting.ForbiddenAnnotations](doc/commenting.md#slevomatcodingstandardcommentingforbiddenannotations-) 🔧
  - [SlevomatCodingStandard.Commenting.ForbiddenComments](doc/commenting.md#slevomatcodingstandardcommentingforbiddencomments-) 🔧
  - [SlevomatCodingStandard.Commenting.InlineDocCommentDeclaration](doc/commenting.md#slevomatcodingstandardcommentinginlinedoccommentdeclaration-) 🔧
+ - [SlevomatCodingStandard.Commenting.RequireOneDocComment](doc/commenting.md#slevomatcodingstandardcommentingrequireonedoccomment-) 🔧
  - [SlevomatCodingStandard.Commenting.RequireOneLineDocComment](doc/commenting.md#slevomatcodingstandardcommentingrequireonelinedoccomment-) 🔧
  - [SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment](doc/commenting.md#slevomatcodingstandardcommentingrequireonelinepropertydoccomment-) 🔧
+ - [SlevomatCodingStandard.Commenting.ThrowsAnnotationsOrder](doc/commenting.md#slevomatcodingstandardcommentingthrowsannotationsorder-) 🔧
  - [SlevomatCodingStandard.Commenting.UselessFunctionDocComment](doc/commenting.md#slevomatcodingstandardcommentinguselessfunctiondoccomment-) 🔧
  - [SlevomatCodingStandard.Commenting.UselessInheritDocComment](doc/commenting.md#slevomatcodingstandardcommentinguselessinheritdoccomment-) 🔧
  - [SlevomatCodingStandard.Complexity.Cognitive](doc/complexity.md#slevomatcodingstandardcomplexitycognitive)
@@ -112,6 +116,7 @@ Slevomat Coding Standard for [PHP_CodeSniffer](https://github.com/PHPCSStandards
  - [SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn](doc/control-structures.md#slevomatcodingstandardcontrolstructuresuselessifconditionwithreturn-) 🔧
  - [SlevomatCodingStandard.ControlStructures.UselessTernaryOperator](doc/control-structures.md#slevomatcodingstandardcontrolstructuresuselessternaryoperator-) 🔧
  - [SlevomatCodingStandard.Exceptions.DeadCatch](doc/exceptions.md#slevomatcodingstandardexceptionsdeadcatch)
+ - [SlevomatCodingStandard.Exceptions.CatchExceptionsOrder](doc/exceptions.md#slevomatcodingstandardexceptionscatchexceptionsorder-) 🔧
  - [SlevomatCodingStandard.Exceptions.DisallowNonCapturingCatch](doc/exceptions.md#slevomatcodingstandardexceptionsdisallownoncapturingcatch)
  - [SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly](doc/exceptions.md#slevomatcodingstandardexceptionsreferencethrowableonly-) 🔧🚧
  - [SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch](doc/exceptions.md#slevomatcodingstandardexceptionsrequirenoncapturingcatch-) 🔧

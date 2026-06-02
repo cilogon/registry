@@ -109,11 +109,7 @@ abstract class AbstractControlStructureSpacing implements Sniff
 		return $this->getTokensToCheck();
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $controlStructurePointer
-	 */
-	public function process(File $phpcsFile, $controlStructurePointer): void
+	public function process(File $phpcsFile, int $controlStructurePointer): void
 	{
 		$this->checkLinesBefore($phpcsFile, $controlStructurePointer);
 
@@ -143,7 +139,7 @@ abstract class AbstractControlStructureSpacing implements Sniff
 
 		$pointerToCheckFirst = $pointerBefore;
 
-		if (in_array($tokens[$nonWhitespacePointerBefore]['code'], Tokens::$commentTokens, true)) {
+		if (in_array($tokens[$nonWhitespacePointerBefore]['code'], Tokens::COMMENT_TOKENS, true)) {
 			$effectivePointerBefore = TokenHelper::findPreviousEffective($phpcsFile, $pointerBefore - 1);
 
 			if ($tokens[$effectivePointerBefore]['line'] === $tokens[$nonWhitespacePointerBefore]['line']) {
@@ -261,7 +257,7 @@ abstract class AbstractControlStructureSpacing implements Sniff
 			return;
 		}
 
-		$hasCommentAfter = in_array($tokens[$notWhitespacePointerAfter]['code'], Tokens::$commentTokens, true);
+		$hasCommentAfter = in_array($tokens[$notWhitespacePointerAfter]['code'], Tokens::COMMENT_TOKENS, true);
 		$isCommentAfterOnSameLine = false;
 		$pointerAfter = $notWhitespacePointerAfter;
 
@@ -466,7 +462,7 @@ abstract class AbstractControlStructureSpacing implements Sniff
 				if (TokenHelper::findPrevious($phpcsFile, T_SWITCH, $pointer - 1) === $switchPointer) {
 					$pointerBeforeCaseOrDefault = TokenHelper::findPreviousNonWhitespace($phpcsFile, $pointer - 1);
 					if (
-						in_array($tokens[$pointerBeforeCaseOrDefault]['code'], Tokens::$commentTokens, true)
+						in_array($tokens[$pointerBeforeCaseOrDefault]['code'], Tokens::COMMENT_TOKENS, true)
 						&& $tokens[$pointerBeforeCaseOrDefault]['line'] + 1 === $tokens[$pointer]['line']
 					) {
 						$pointerBeforeCaseOrDefault = TokenHelper::findPreviousExcluding(

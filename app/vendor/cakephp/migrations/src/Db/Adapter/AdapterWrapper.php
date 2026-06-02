@@ -15,10 +15,12 @@ use Cake\Database\Query\DeleteQuery;
 use Cake\Database\Query\InsertQuery;
 use Cake\Database\Query\SelectQuery;
 use Cake\Database\Query\UpdateQuery;
-use Migrations\Db\Literal;
+use Migrations\Db\InsertMode;
+use Migrations\Db\Table\CheckConstraint;
 use Migrations\Db\Table\Column;
-use Migrations\Db\Table\Table;
+use Migrations\Db\Table\TableMetadata;
 use Migrations\MigrationInterface;
+use Migrations\SeedInterface;
 
 /**
  * Adapter Wrapper.
@@ -28,9 +30,6 @@ use Migrations\MigrationInterface;
  */
 abstract class AdapterWrapper implements WrapperInterface
 {
-    /**
-     * @var \Migrations\Db\Adapter\AdapterInterface
-     */
     protected AdapterInterface $adapter;
 
     /**
@@ -136,17 +135,27 @@ abstract class AdapterWrapper implements WrapperInterface
     /**
      * @inheritDoc
      */
-    public function insert(Table $table, array $row): void
-    {
-        $this->getAdapter()->insert($table, $row);
+    public function insert(
+        TableMetadata $table,
+        array $row,
+        ?InsertMode $mode = null,
+        ?array $updateColumns = null,
+        ?array $conflictColumns = null,
+    ): void {
+        $this->getAdapter()->insert($table, $row, $mode, $updateColumns, $conflictColumns);
     }
 
     /**
      * @inheritDoc
      */
-    public function bulkinsert(Table $table, array $rows): void
-    {
-        $this->getAdapter()->bulkinsert($table, $rows);
+    public function bulkinsert(
+        TableMetadata $table,
+        array $rows,
+        ?InsertMode $mode = null,
+        ?array $updateColumns = null,
+        ?array $conflictColumns = null,
+    ): void {
+        $this->getAdapter()->bulkinsert($table, $rows, $mode, $updateColumns, $conflictColumns);
     }
 
     /**
@@ -179,6 +188,14 @@ abstract class AdapterWrapper implements WrapperInterface
     public function getVersionLog(): array
     {
         return $this->getAdapter()->getVersionLog();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cleanupMissing(array $missingVersions): void
+    {
+        $this->getAdapter()->cleanupMissing($missingVersions);
     }
 
     /**
@@ -235,6 +252,50 @@ abstract class AdapterWrapper implements WrapperInterface
     public function createSchemaTable(): void
     {
         $this->getAdapter()->createSchemaTable();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createSeedSchemaTable(): void
+    {
+        $this->getAdapter()->createSeedSchemaTable();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSeedSchemaTableName(): string
+    {
+        return $this->getAdapter()->getSeedSchemaTableName();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSeedLog(): array
+    {
+        return $this->getAdapter()->getSeedLog();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function seedExecuted(SeedInterface $seed, string $executedTime): AdapterInterface
+    {
+        $this->getAdapter()->seedExecuted($seed, $executedTime);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function removeSeedFromLog(SeedInterface $seed): AdapterInterface
+    {
+        $this->getAdapter()->removeSeedFromLog($seed);
+
+        return $this;
     }
 
     /**
@@ -312,7 +373,7 @@ abstract class AdapterWrapper implements WrapperInterface
     /**
      * @inheritDoc
      */
-    public function createTable(Table $table, array $columns = [], array $indexes = []): void
+    public function createTable(TableMetadata $table, array $columns = [], array $indexes = []): void
     {
         $this->getAdapter()->createTable($table, $columns, $indexes);
     }
@@ -363,14 +424,6 @@ abstract class AdapterWrapper implements WrapperInterface
     public function hasForeignKey(string $tableName, $columns, ?string $constraint = null): bool
     {
         return $this->getAdapter()->hasForeignKey($tableName, $columns, $constraint);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getSqlType(Literal|string $type, ?int $limit = null): array
-    {
-        return $this->getAdapter()->getSqlType($type, $limit);
     }
 
     /**
@@ -440,7 +493,7 @@ abstract class AdapterWrapper implements WrapperInterface
     /**
      * @inheritDoc
      */
-    public function executeActions(Table $table, array $actions): void
+    public function executeActions(TableMetadata $table, array $actions): void
     {
         $this->getAdapter()->executeActions($table, $actions);
     }
@@ -488,6 +541,30 @@ abstract class AdapterWrapper implements WrapperInterface
     /**
      * @inheritDoc
      */
+    public function hasCheckConstraint(string $tableName, string $constraintName): bool
+    {
+        return $this->getAdapter()->hasCheckConstraint($tableName, $constraintName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addCheckConstraint(TableMetadata $table, CheckConstraint $checkConstraint): void
+    {
+        $this->getAdapter()->addCheckConstraint($table, $checkConstraint);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function dropCheckConstraint(string $tableName, string $constraintName): void
+    {
+        $this->getAdapter()->dropCheckConstraint($tableName, $constraintName);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function setIo(ConsoleIo $io)
     {
         $this->getAdapter()->setIo($io);
@@ -501,5 +578,29 @@ abstract class AdapterWrapper implements WrapperInterface
     public function getIo(): ?ConsoleIo
     {
         return $this->getAdapter()->getIo();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSchemaTableName(): string
+    {
+        return $this->getAdapter()->getSchemaTableName();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function disableForeignKeyConstraints(): void
+    {
+        $this->getAdapter()->disableForeignKeyConstraints();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function enableForeignKeyConstraints(): void
+    {
+        $this->getAdapter()->enableForeignKeyConstraints();
     }
 }

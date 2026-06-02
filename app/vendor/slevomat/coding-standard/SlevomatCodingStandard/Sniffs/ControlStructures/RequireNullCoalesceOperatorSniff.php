@@ -38,11 +38,7 @@ class RequireNullCoalesceOperatorSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $pointer
-	 */
-	public function process(File $phpcsFile, $pointer): void
+	public function process(File $phpcsFile, int $pointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -62,12 +58,12 @@ class RequireNullCoalesceOperatorSniff implements Sniff
 			return;
 		}
 
-		if (in_array($tokens[$previousPointer]['code'], Tokens::$booleanOperators, true)) {
+		if (in_array($tokens[$previousPointer]['code'], Tokens::BOOLEAN_OPERATORS, true)) {
 			return;
 		}
 
-		$openParenthesisPointer = TokenHelper::findNextEffective($phpcsFile, $issetPointer + 1);
-		$closeParenthesisPointer = $tokens[$openParenthesisPointer]['parenthesis_closer'];
+		$openParenthesisPointer = $tokens[$issetPointer]['parenthesis_opener'];
+		$closeParenthesisPointer = $tokens[$issetPointer]['parenthesis_closer'];
 
 		/** @var int $inlineThenPointer */
 		$inlineThenPointer = TokenHelper::findNextEffective($phpcsFile, $closeParenthesisPointer + 1);
@@ -99,7 +95,7 @@ class RequireNullCoalesceOperatorSniff implements Sniff
 		}
 
 		$startPointer = $issetPointer;
-		if (in_array($tokens[$previousPointer]['code'], Tokens::$castTokens, true)) {
+		if (in_array($tokens[$previousPointer]['code'], Tokens::CAST_TOKENS, true)) {
 			$startPointer = $previousPointer;
 		}
 
@@ -145,7 +141,7 @@ class RequireNullCoalesceOperatorSniff implements Sniff
 			($isYodaCondition ? $pointerBeforeIdenticalOperator : $variableStartPointer) - 1,
 		);
 
-		if (in_array($tokens[$pointerBeforeCondition]['code'], Tokens::$booleanOperators, true)) {
+		if (in_array($tokens[$pointerBeforeCondition]['code'], Tokens::BOOLEAN_OPERATORS, true)) {
 			return;
 		}
 

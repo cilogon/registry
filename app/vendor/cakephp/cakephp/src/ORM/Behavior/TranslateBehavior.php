@@ -166,11 +166,7 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
      */
     public function getStrategy(): TranslateStrategyInterface
     {
-        if ($this->strategy !== null) {
-            return $this->strategy;
-        }
-
-        return $this->strategy = $this->createStrategy();
+        return $this->strategy ??= $this->createStrategy();
     }
 
     /**
@@ -227,9 +223,9 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
      * This allows `_translations.{locale}.field_name` type naming even for the
      * default locale in forms.
      *
-     * @param \Cake\Event\EventInterface $event
-     * @param \ArrayObject $data
-     * @param \ArrayObject $options
+     * @param \Cake\Event\EventInterface<\Cake\ORM\Table> $event The event that was fired.
+     * @param \ArrayObject<string, mixed> $data The data being marshalled.
+     * @param \ArrayObject<string, mixed> $options The options for marshalling.
      * @return void
      */
     public function beforeMarshal(EventInterface $event, ArrayObject $data, ArrayObject $options): void
@@ -257,10 +253,10 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
      * of translations by setting `'translations' => false` in the options
      * provided to `Table::newEntity()` or `Table::patchEntity()`.
      *
-     * @param \Cake\ORM\Marshaller $marshaller The marshaler of the table the behavior is attached to.
-     * @param array $map The property map being built.
+     * @param \Cake\ORM\Marshaller<\Cake\Datasource\EntityInterface> $marshaller The marshaler of the table the behavior is attached to.
+     * @param array<string, callable> $map The property map being built.
      * @param array<string, mixed> $options The options array used in the marshaling call.
-     * @return array A map of `[property => callable]` of additional properties to marshal.
+     * @return array<string, callable> A map of `[property => callable]` of additional properties to marshal.
      */
     public function buildMarshalMap(Marshaller $marshaller, array $map, array $options): array
     {
@@ -284,7 +280,7 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
      * globally configured locale.
      * @return $this
      * @see \Cake\ORM\Behavior\TranslateBehavior::getLocale()
-     * @link https://book.cakephp.org/5/en/orm/behaviors/translate.html#retrieving-one-language-without-using-i18n-locale
+     * @link https://book.cakephp.org/5/en/orm/behaviors/translate.html#retrieving-one-language-without-using-i18n-setlocale
      * @link https://book.cakephp.org/5/en/orm/behaviors/translate.html#saving-in-another-language
      */
     public function setLocale(?string $locale)
@@ -342,9 +338,9 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
      * If the `locales` array is not passed, it will bring all translations found
      * for each record.
      *
-     * @param \Cake\ORM\Query\SelectQuery $query The original query to modify
+     * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query The original query to modify
      * @param array<string> $locales A list of locales or options with the `locales` key defined
-     * @return \Cake\ORM\Query\SelectQuery
+     * @return \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array>
      */
     public function findTranslations(SelectQuery $query, array $locales = []): SelectQuery
     {
@@ -358,7 +354,7 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
 
                 return $query;
             }])
-            ->formatResults($this->getStrategy()->groupTranslations(...), $query::PREPEND);
+            ->formatResults($this->getStrategy()->groupTranslations(...), SelectQuery::PREPEND);
     }
 
     /**
@@ -370,7 +366,7 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
      */
     public function __call(string $method, array $args): mixed
     {
-        return $this->strategy->{$method}(...$args);
+        return $this->getStrategy()->{$method}(...$args);
     }
 
     /**
@@ -387,7 +383,7 @@ class TranslateBehavior extends Behavior implements PropertyMarshalInterface
     protected function referenceName(Table $table): string
     {
         $name = namespaceSplit($table::class);
-        $name = substr((string)end($name), 0, -5);
+        $name = substr(end($name), 0, -5);
         if (!$name) {
             $name = $table->getTable() ?: $table->getAlias();
             $name = Inflector::camelize($name);

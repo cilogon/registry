@@ -85,7 +85,6 @@ class ManagerFactory
         // Get the phinxlog table name. Plugins have separate migration history.
         // The names and separate table history is something we could change in the future.
         $table = Util::tableName($plugin);
-        $templatePath = dirname(__DIR__) . DS . 'templates' . DS;
         $connectionName = (string)$this->getOption('connection');
 
         if (str_contains($connectionName, '://')) {
@@ -96,23 +95,25 @@ class ManagerFactory
                 ConnectionManager::setConfig($connectionName, $connectionConfig);
             }
         } else {
+            /** @var array<string, string> $connectionConfig */
             $connectionConfig = ConnectionManager::getConfig($connectionName);
         }
         if (!$connectionConfig) {
-            throw new RuntimeException("Could not find connection `{$connectionName}`");
+            throw new RuntimeException(sprintf('Could not find connection `%s`', $connectionName));
         }
         if (!isset($connectionConfig['database'])) {
-            throw new RuntimeException("The `{$connectionName}` connection has no `database` key defined.");
+            throw new RuntimeException(sprintf('The `%s` connection has no `database` key defined.', $connectionName));
         }
 
-        /** @var array<string, string> $connectionConfig */
         $adapter = $connectionConfig['scheme'] ?? null;
         $adapterConfig = [
             'adapter' => $adapter,
             'connection' => $connectionName,
             'database' => $connectionConfig['database'],
             'migration_table' => $table,
+            'seed_table' => Configure::read('Migrations.seed_table', 'cake_seeds'),
             'dryrun' => $this->getOption('dry-run'),
+            'plugin' => $plugin,
         ];
 
         $configData = [
@@ -120,13 +121,9 @@ class ManagerFactory
                 'migrations' => $dir,
                 'seeds' => $dir,
             ],
-            'templates' => [
-                'file' => $templatePath . 'Phinx/create.php.template',
-            ],
-            'migration_base_class' => 'Migrations\AbstractMigration',
             'environment' => $adapterConfig,
             'plugin' => $plugin,
-            'source' => (string)$this->getOption('source'),
+            'source' => $folder,
             'feature_flags' => [
                 'unsigned_primary_keys' => Configure::read('Migrations.unsigned_primary_keys'),
                 'column_null_default' => Configure::read('Migrations.column_null_default'),

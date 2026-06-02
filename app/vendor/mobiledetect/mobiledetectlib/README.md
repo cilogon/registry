@@ -3,7 +3,7 @@
 MobileDetect, PHP mobile detection class
 ========================================
 
-![Workflow status](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/4.8.x-test.yml?style=flat-square)
+![Workflow status](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/4.x-test.yml?style=flat-square)
 ![Latest tag](https://img.shields.io/github/v/tag/serbanghita/Mobile-Detect?filter=4.*&style=flat-square)
 ![Monthly Downloads](https://img.shields.io/packagist/dm/mobiledetect/mobiledetectlib?style=flat-square&label=installs)
 ![Total Downloads](https://img.shields.io/packagist/dt/mobiledetect/mobiledetectlib?style=flat-square&label=installs)
@@ -14,23 +14,25 @@ It uses the User-Agent string combined with specific HTTP headers to detect the 
 
 ## Before you install
 
-There are three versions of MobileDetect. 
-`4.8.x` is the main version that is ALWAYS going to be updated first.
+MobileDetect is maintained on one rolling branch per major line. Tags follow the pattern `<major>.<minor>.<patch>` and always live on the matching branch.
 
-| Version | Tests                                                                                                                                                                                                 | Namespace | Code                                                             | PHP Version | Status               |
-|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|------------------------------------------------------------------|-------------|----------------------|
-| 2.8.x   | [![5x](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/2.8.x-test.yml?style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/test.yml)  | `\Mobile_Detect`       | [2.8](https://github.com/serbanghita/Mobile-Detect/tree/2.8.x)   | \>=5.0,<7.0 | Deprecated           |
-| 3.74.x  | [![7x](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/3.74.x-test.yml?style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/test.yml) | `Detection\MobileDetect`        | [3.74](https://github.com/serbanghita/Mobile-Detect/tree/3.74.x) | \>=7.4,<8.0 | LTS                  |
-| 4.8.x   | [![7x](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/4.8.x-test.yml?style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/test.yml)  | `Detection\MobileDetect`        | [4.8](https://github.com/serbanghita/Mobile-Detect/tree/4.8.x)   | \>=8.0      | Current, **Recommended** |
+| Version | Namespace                | Branch | PHP Version  | Purpose                  |
+|---------|--------------------------|--------|--------------|--------------------------|
+| 2.*     | `\Mobile_Detect`         | `2.x`  | \>=5.0,<7.0  | Deprecated               |
+| 3.*     | `Detection\MobileDetect` | `3.x`  | \>=7.4,<8.0  | LTS                      |
+| 4.*     | `Detection\MobileDetect` | `4.x`  | \>=8.2 (since 4.10.0, previously \>=8.0) | Current, **Recommended** |
 
 ## 🤝 Supporting
 
-If you are using Mobile Detect open-source package in your production apps, in presentation demos, hobby projects, school projects or so, you can sponsor my work by [donating a small amount :+1:](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=mobiledetectlib%40gmail%2ecom&lc=US&item_name=Mobile%20Detect&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted). I'm currently paying for hosting and spend a lot of my family time to maintain the project and planning the future releases. I would highly appreciate any money donations.
+If you are using Mobile Detect open-source package in your production apps, in presentation demos, hobby projects, 
+school projects or so, you can sponsor my work by [donating a small amount :+1:](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=mobiledetectlib%40gmail%2ecom&lc=US&item_name=Mobile%20Detect&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted).  
+
+I'm currently paying for domains, hosting and spend a lot of my family time to maintain the project and planning the future 
+releases. I would highly appreciate any money donations.
 
 Special thanks to:
 
 * the community :+1: for donations, submitting patches and issues
-* the JetBrains team for the open-source licenses for [PHPStorm IDE](https://www.jetbrains.com/phpstorm/)
 * [Gitbook](https://www.gitbook.com/) team for the open-source license for their technical documentation tool.
 
 

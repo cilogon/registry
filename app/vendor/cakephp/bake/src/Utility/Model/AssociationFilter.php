@@ -78,11 +78,11 @@ class AssociationFilter
                 if ($type === 'HasMany' && in_array($alias, $belongsToManyJunctionsAliases)) {
                     continue;
                 }
-                $targetClass = get_class($target);
+                $targetClass = $target::class;
                 [, $className] = namespaceSplit($targetClass);
 
                 $navLink = true;
-                $modelClass = get_class($model);
+                $modelClass = $model::class;
                 if ($modelClass !== Table::class && $targetClass === $modelClass) {
                     $navLink = false;
                 }
@@ -93,6 +93,7 @@ class AssociationFilter
                 }
 
                 try {
+                    $foreignKey = (array)$assoc->getForeignKey();
                     $associations[$type][$assocName] = [
                         'property' => $assoc->getProperty(),
                         'variable' => Inflector::variable($assocName),
@@ -101,10 +102,10 @@ class AssociationFilter
                         'foreignKey' => $assoc->getForeignKey(),
                         'alias' => $alias,
                         'controller' => $className,
-                        'fields' => $target->getSchema()->columns(),
+                        'fields' => array_values(array_diff($target->getSchema()->columns(), $foreignKey)),
                         'navLink' => $navLink,
                     ];
-                } catch (Exception $e) {
+                } catch (Exception) {
                     // Do nothing it could be a bogus association name.
                 }
             }

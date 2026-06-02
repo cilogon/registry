@@ -36,11 +36,7 @@ class UselessIfConditionWithReturnSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $ifPointer
-	 */
-	public function process(File $phpcsFile, $ifPointer): void
+	public function process(File $phpcsFile, int $ifPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -143,7 +139,7 @@ class UselessIfConditionWithReturnSniff implements Sniff
 	{
 		$tokens = $phpcsFile->getTokens();
 
-		if (TokenHelper::findNext($phpcsFile, Tokens::$commentTokens, $ifPointer + 1, $endPointer) !== null) {
+		if (TokenHelper::findNext($phpcsFile, Tokens::COMMENT_TOKENS, $ifPointer + 1, $endPointer) !== null) {
 			return false;
 		}
 

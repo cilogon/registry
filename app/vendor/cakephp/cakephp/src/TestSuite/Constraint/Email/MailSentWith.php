@@ -33,7 +33,6 @@ class MailSentWith extends MailConstraintBase
      *
      * @param int|null $at At
      * @param string|null $method Method
-     * @return void
      */
     public function __construct(?int $at = null, ?string $method = null)
     {
@@ -60,7 +59,7 @@ class MailSentWith extends MailConstraintBase
             }
             if (
                 !is_array($other)
-                && in_array($this->method, ['to', 'cc', 'bcc', 'from', 'replyTo', 'sender'])
+                && in_array($this->method, ['to', 'cc', 'bcc', 'from', 'replyTo', 'sender'], true)
                 && array_key_exists($other, $value)
             ) {
                 return true;

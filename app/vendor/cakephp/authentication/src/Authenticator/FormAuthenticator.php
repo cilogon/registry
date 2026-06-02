@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace Authentication\Authenticator;
 
 use Authentication\Identifier\AbstractIdentifier;
+use Authentication\Identifier\IdentifierCollection;
+use Authentication\Identifier\IdentifierInterface;
 use Authentication\UrlChecker\UrlCheckerTrait;
 use Cake\Routing\Router;
 use Psr\Http\Message\ServerRequestInterface;
@@ -46,6 +48,26 @@ class FormAuthenticator extends AbstractAuthenticator
             AbstractIdentifier::CREDENTIAL_PASSWORD => 'password',
         ],
     ];
+
+    /**
+     * Gets the identifier, loading a default Password identifier if none configured.
+     *
+     * This is done lazily to allow loadIdentifier() to be called after loadAuthenticator().
+     *
+     * @return \Authentication\Identifier\IdentifierInterface
+     */
+    public function getIdentifier(): IdentifierInterface
+    {
+        if ($this->_identifier instanceof IdentifierCollection && $this->_identifier->isEmpty()) {
+            $identifierConfig = [];
+            if ($this->getConfig('fields')) {
+                $identifierConfig['fields'] = $this->getConfig('fields');
+            }
+            $this->_identifier->load('Authentication.Password', $identifierConfig);
+        }
+
+        return $this->_identifier;
+    }
 
     /**
      * Checks the fields to ensure they are supplied.
@@ -116,9 +138,12 @@ class FormAuthenticator extends AbstractAuthenticator
     }
 
     /**
-     * Authenticates the identity contained in a request. Will use the `config.userModel`, and `config.fields`
-     * to find POST data that is used to find a matching record in the `config.userModel`. Will return false if
-     * there is no post data, either username or password is missing, or if the scope conditions have not been met.
+     * Authenticates the identity contained in a request.
+     *
+     * Will use the `config.userModel`, and `config.fields` to find POST data
+     * that is used to find a matching record in the `config.userModel`.
+     * Will return false if there is no post data, either username or password is missing,
+     * or if the scope conditions have not been met.
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request The request that contains login information.
      * @return \Authentication\Authenticator\ResultInterface
@@ -136,10 +161,11 @@ class FormAuthenticator extends AbstractAuthenticator
             ]);
         }
 
-        $user = $this->_identifier->identify($data);
+        $identifier = $this->getIdentifier();
+        $user = $identifier->identify($data);
 
         if (!$user) {
-            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $this->_identifier->getErrors());
+            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $identifier->getErrors());
         }
 
         return new Result($user, Result::SUCCESS);

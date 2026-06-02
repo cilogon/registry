@@ -234,6 +234,7 @@ class TreeBehavior extends Behavior
 
         if ($diff > 2) {
             if ($this->getConfig('cascadeCallbacks')) {
+                /** @var \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface> $query */
                 $query = $this->_scope($this->_table->query())
                     ->where(
                         fn(QueryExpression $exp) => $exp
@@ -384,18 +385,16 @@ class TreeBehavior extends Behavior
      * to a specific node in the tree. This custom finder requires that the key 'for'
      * is passed in the options containing the id of the node to get its path for.
      *
-     * @param \Cake\ORM\Query\SelectQuery $query The constructed query to modify
+     * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query The constructed query to modify
      * @param string|int $for The path to find or an array of options with `for`.
-     * @return \Cake\ORM\Query\SelectQuery
+     * @return \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array>
      * @throws \InvalidArgumentException If the 'for' key is missing in options
      */
     public function findPath(SelectQuery $query, string|int $for): SelectQuery
     {
         $config = $this->getConfig();
         [$left, $right] = array_map(
-            function ($field) {
-                return $this->_table->aliasField($field);
-            },
+            $this->_table->aliasField(...),
             [$config['left'], $config['right']],
         );
 
@@ -439,19 +438,17 @@ class TreeBehavior extends Behavior
      * If the direct option is set to true, only the direct children are returned
      * (based upon the parent_id field).
      *
-     * @param \Cake\ORM\Query\SelectQuery $query Query.
+     * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query Query.
      * @param string|int $for The id of the record to read. Can also be an array of options.
      * @param bool $direct Whether to return only the direct (true) or all children (false).
-     * @return \Cake\ORM\Query\SelectQuery
+     * @return \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array>
      * @throws \InvalidArgumentException When the 'for' key is not passed in $options
      */
     public function findChildren(SelectQuery $query, int|string $for, bool $direct = false): SelectQuery
     {
         $config = $this->getConfig();
         [$parent, $left, $right] = array_map(
-            function ($field) {
-                return $this->_table->aliasField($field);
-            },
+            $this->_table->aliasField(...),
             [$config['parent'], $config['left'], $config['right']],
         );
 
@@ -477,13 +474,13 @@ class TreeBehavior extends Behavior
      * the primary key for the table and the values are the display field for the table.
      * Values are prefixed to visually indicate relative depth in the tree.
      *
-     * @param \Cake\ORM\Query\SelectQuery $query Query.
+     * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query Query.
      * @param \Closure|string|null $keyPath A dot separated path to fetch the field to use for the array key, or a closure to
      *   return the key out of the provided row.
      * @param \Closure|string|null $valuePath A dot separated path to fetch the field to use for the array value, or a closure to
      *   return the value out of the provided row.
      * @param string|null $spacer A string to be used as prefix for denoting the depth in the tree for each item.
-     * @return \Cake\ORM\Query\SelectQuery
+     * @return \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array>
      */
     public function findTreeList(
         SelectQuery $query,
@@ -504,13 +501,13 @@ class TreeBehavior extends Behavior
      * and the values are the display field for the table. Values are prefixed to visually
      * indicate relative depth in the tree.
      *
-     * @param \Cake\ORM\Query\SelectQuery $query The query object to format.
+     * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query The query object to format.
      * @param \Closure|string|null $keyPath A dot separated path to the field that will be the result array key, or a closure to
      *   return the key from the provided row.
      * @param \Closure|string|null $valuePath A dot separated path to the field that is the array's value, or a closure to
      *   return the value from the provided row.
      * @param string|null $spacer A string to be used as prefix for denoting the depth in the tree for each item.
-     * @return \Cake\ORM\Query\SelectQuery Augmented query.
+     * @return \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> Augmented query.
      */
     public function formatTreeList(
         SelectQuery $query,
@@ -567,7 +564,7 @@ class TreeBehavior extends Behavior
         $right = $node->get($config['right']);
         $parent = $node->get($config['parent']);
 
-        $node->set($config['parent'], null);
+        $node->set($config['parent']);
 
         if ($right - $left === 1) {
             return $this->_table->save($node);
@@ -605,7 +602,7 @@ class TreeBehavior extends Behavior
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
      * @return \Cake\Datasource\EntityInterface|false $node The node after being moved or false if `$number` is < 1
      */
-    public function moveUp(EntityInterface $node, int|bool $number = 1): EntityInterface|false
+    public function moveUp(EntityInterface $node, int|true $number = 1): EntityInterface|false
     {
         if ($number < 1) {
             return false;
@@ -626,7 +623,7 @@ class TreeBehavior extends Behavior
      * @return \Cake\Datasource\EntityInterface $node The node after being moved
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
      */
-    protected function _moveUp(EntityInterface $node, int|bool $number): EntityInterface
+    protected function _moveUp(EntityInterface $node, int|true $number): EntityInterface
     {
         $config = $this->getConfig();
         [$parent, $left, $right] = [$config['parent'], $config['left'], $config['right']];
@@ -693,7 +690,7 @@ class TreeBehavior extends Behavior
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
      * @return \Cake\Datasource\EntityInterface|false the entity after being moved or false if `$number` is < 1
      */
-    public function moveDown(EntityInterface $node, int|bool $number = 1): EntityInterface|false
+    public function moveDown(EntityInterface $node, int|true $number = 1): EntityInterface|false
     {
         if ($number < 1) {
             return false;
@@ -714,7 +711,7 @@ class TreeBehavior extends Behavior
      * @return \Cake\Datasource\EntityInterface $node The node after being moved
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When node was not found
      */
-    protected function _moveDown(EntityInterface $node, int|bool $number): EntityInterface
+    protected function _moveDown(EntityInterface $node, int|true $number): EntityInterface
     {
         $config = $this->getConfig();
         [$parent, $left, $right] = [$config['parent'], $config['left'], $config['right']];
@@ -791,7 +788,7 @@ class TreeBehavior extends Behavior
             ->where([$this->_table->aliasField($primaryKey) => $id])
             ->first();
 
-        if (!$node) {
+        if (!$node instanceof EntityInterface) {
             throw new RecordNotFoundException(sprintf('Node `%s` was not found in the tree.', $id));
         }
 
@@ -891,7 +888,7 @@ class TreeBehavior extends Behavior
         /** @var \Cake\Database\Expression\IdentifierExpression $field */
         foreach ([$config['leftField'], $config['rightField']] as $field) {
             $query = $this->_scope($this->_table->updateQuery());
-            $exp = $query->newExpr();
+            $exp = $query->expr();
 
             $movement = clone $exp;
             $movement->add($field)->add((string)$shift)->setConjunction($dir);
@@ -915,11 +912,9 @@ class TreeBehavior extends Behavior
      * Alters the passed query so that it only returns scoped records as defined
      * in the tree configuration.
      *
-     * @param \Cake\ORM\Query\SelectQuery|\Cake\ORM\Query\UpdateQuery|\Cake\ORM\Query\DeleteQuery $query the Query to modify
-     * @return \Cake\ORM\Query\SelectQuery|\Cake\ORM\Query\UpdateQuery|\Cake\ORM\Query\DeleteQuery
-     * @template T of \Cake\ORM\Query\SelectQuery|\Cake\ORM\Query\UpdateQuery|\Cake\ORM\Query\DeleteQuery
-     * @phpstan-param T $query
-     * @phpstan-return T
+     * @template TQuery of \Cake\ORM\Query\SelectQuery|\Cake\ORM\Query\UpdateQuery|\Cake\ORM\Query\DeleteQuery
+     * @param TQuery $query the Query to modify
+     * @return TQuery
      */
     protected function _scope(SelectQuery|UpdateQuery|DeleteQuery $query): SelectQuery|UpdateQuery|DeleteQuery
     {
@@ -949,6 +944,7 @@ class TreeBehavior extends Behavior
         }
 
         $fresh = $this->_table->get($entity->get($this->_getPrimaryKey()));
+        // @phpstan-ignore function.alreadyNarrowedType (patch method available on EntityInterface)
         if (method_exists($entity, 'patch')) {
             $entity->patch($fresh->extract($fields), ['guard' => false]);
         } else {

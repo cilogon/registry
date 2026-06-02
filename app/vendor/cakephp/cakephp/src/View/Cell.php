@@ -36,12 +36,13 @@ use Stringable;
 /**
  * Cell base.
  *
- * @implements \Cake\Event\EventDispatcherInterface<\Cake\View\View>
+ * @template TSubject of \Cake\View\View
+ * @implements \Cake\Event\EventDispatcherInterface<TSubject>
  */
 abstract class Cell implements EventDispatcherInterface, Stringable
 {
     /**
-     * @use \Cake\Event\EventDispatcherTrait<\Cake\View\View>
+     * @use \Cake\Event\EventDispatcherTrait<TSubject>
      */
     use EventDispatcherTrait;
     use LocatorAwareTrait;
@@ -58,7 +59,7 @@ abstract class Cell implements EventDispatcherInterface, Stringable
      * Instance of the View created during rendering. Won't be set until after
      * Cell::__toString()/render() is called.
      *
-     * @var \Cake\View\View
+     * @var TSubject
      */
     protected View $View;
 
@@ -91,6 +92,13 @@ abstract class Cell implements EventDispatcherInterface, Stringable
      * @var array
      */
     protected array $args = [];
+
+    /**
+     * The plugin name this cell belongs to.
+     *
+     * @var string|null
+     */
+    protected ?string $plugin = null;
 
     /**
      * List of valid options (constructor's fourth arguments)
@@ -128,7 +136,7 @@ abstract class Cell implements EventDispatcherInterface, Stringable
         $this->request = $request;
         $this->response = $response;
 
-        $this->_validCellOptions = array_merge(['action', 'args'], $this->_validCellOptions);
+        $this->_validCellOptions = array_merge(['action', 'args', 'plugin'], $this->_validCellOptions);
         foreach ($this->_validCellOptions as $var) {
             if (isset($cellOptions[$var])) {
                 $this->{$var} = $cellOptions[$var];
@@ -151,6 +159,23 @@ abstract class Cell implements EventDispatcherInterface, Stringable
      */
     public function initialize(): void
     {
+    }
+
+    /**
+     * Get the view builder being used.
+     *
+     * @return \Cake\View\ViewBuilder
+     */
+    public function viewBuilder(): ViewBuilder
+    {
+        if ($this->_viewBuilder === null) {
+            $this->_viewBuilder = new ViewBuilder();
+            if ($this->plugin !== null) {
+                $this->_viewBuilder->setPlugin($this->plugin);
+            }
+        }
+
+        return $this->_viewBuilder;
     }
 
     /**

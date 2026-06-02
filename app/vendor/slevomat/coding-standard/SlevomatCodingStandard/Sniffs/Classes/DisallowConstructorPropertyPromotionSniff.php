@@ -26,11 +26,7 @@ class DisallowConstructorPropertyPromotionSniff implements Sniff
 		return [T_FUNCTION];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $functionPointer
-	 */
-	public function process(File $phpcsFile, $functionPointer): void
+	public function process(File $phpcsFile, int $functionPointer): void
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -42,7 +38,7 @@ class DisallowConstructorPropertyPromotionSniff implements Sniff
 
 		$modifierPointers = TokenHelper::findNextAll(
 			$phpcsFile,
-			[...array_values(Tokens::$scopeModifiers), T_READONLY],
+			[...array_values(Tokens::SCOPE_MODIFIERS), T_READONLY],
 			$tokens[$functionPointer]['parenthesis_opener'] + 1,
 			$tokens[$functionPointer]['parenthesis_closer'],
 		);

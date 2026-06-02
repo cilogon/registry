@@ -56,6 +56,7 @@ use function Cake\I18n\__d;
  * @property \Cake\View\Helper\HtmlHelper $Html
  * @property \Cake\View\Helper\UrlHelper $Url
  * @link https://book.cakephp.org/5/en/views/helpers/form.html
+ * @extends \Cake\View\Helper<\Cake\View\View>
  */
 class FormHelper extends Helper
 {
@@ -76,7 +77,7 @@ class FormHelper extends Helper
      */
     protected array $_defaultConfig = [
         'idPrefix' => null,
-        // Deprecated option, use templates.errorClass intead.
+        // Deprecated option, use templates.errorClass instead.
         'errorClass' => null,
         'defaultPostLinkBlock' => null,
         'typeMap' => [
@@ -105,9 +106,9 @@ class FormHelper extends Helper
             // Used for checkboxes in checkbox() and multiCheckbox().
             'checkbox' => '<input type="checkbox" name="{{name}}" value="{{value}}"{{attrs}}>',
             // Input group wrapper for checkboxes created via control().
-            'checkboxFormGroup' => '{{label}}',
+            'checkboxFormGroup' => '{{input}}{{label}}',
             // Wrapper container for checkboxes in a multicheckbox input
-            'checkboxWrapper' => '<div class="checkbox">{{label}}</div>',
+            'checkboxWrapper' => '<div class="checkbox">{{input}}{{label}}</div>',
             // Error message wrapper elements.
             'error' => '<div class="error-message" id="{{id}}">{{content}}</div>',
             // Container for error items.
@@ -156,7 +157,7 @@ class FormHelper extends Helper
             // Radio input element,
             'radio' => '<input type="radio" name="{{name}}" value="{{value}}"{{attrs}}>',
             // Wrapping container for radio input/label,
-            'radioWrapper' => '{{label}}',
+            'radioWrapper' => '{{input}}{{label}}',
             // Textarea input element,
             'textarea' => '<textarea name="{{name}}"{{attrs}}>{{value}}</textarea>',
             // Container for submit buttons.
@@ -179,6 +180,8 @@ class FormHelper extends Helper
         ],
         // set HTML5 validation message to custom required/empty messages
         'autoSetCustomValidity' => true,
+        // Whether checkboxes and radios should be wrapped in a label element
+        'nestedCheckboxAndRadio' => true,
     ];
 
     /**
@@ -382,7 +385,7 @@ class FormHelper extends Helper
      *   array of meta data. You can use `null` to make a context-less form.
      * @param array<string, mixed> $options An array of html attributes and options.
      * @return string An formatted opening FORM tag.
-     * @link https://book.cakephp.org/5/en/views/helpers/form.html#Cake\View\Helper\FormHelper::create
+     * @link https://book.cakephp.org/5/en/views/helpers/form.html#starting-a-form
      */
     public function create(mixed $context = null, array $options = []): string
     {
@@ -1149,7 +1152,7 @@ class FormHelper extends Helper
 
         $nestedInput = false;
         if ($options['type'] === 'checkbox') {
-            $nestedInput = true;
+            $nestedInput = $this->getConfig('nestedCheckboxAndRadio');
         }
         $nestedInput = $options['nestedInput'] ?? $nestedInput;
         unset($options['nestedInput']);
@@ -1256,7 +1259,7 @@ class FormHelper extends Helper
             case 'radio':
             case 'multicheckbox':
                 $opts = $options['options'];
-                if ($opts == null) {
+                if ($opts === null) {
                     $opts = [];
                 }
                 unset($options['options']);
@@ -1648,6 +1651,7 @@ class FormHelper extends Helper
     {
         $attributes['options'] = $options;
         $attributes['idPrefix'] = $this->_idPrefix;
+        $attributes['nestedInput'] ??= $this->getConfig('nestedCheckboxAndRadio');
 
         $generatedHiddenId = false;
         if (!isset($attributes['id'])) {
@@ -2181,6 +2185,7 @@ class FormHelper extends Helper
 
         if ($attributes['multiple'] === 'checkbox') {
             unset($attributes['multiple'], $attributes['empty']);
+            $attributes['nestedInput'] = $this->getConfig('nestedCheckboxAndRadio');
 
             return $this->multiCheckbox($fieldName, $options, $attributes);
         }
@@ -2296,7 +2301,7 @@ class FormHelper extends Helper
      * @param string $fieldName The field name.
      * @param array<string, mixed> $options Options & attributes for the select elements.
      * @return string Completed year select input
-     * @link https://book.cakephp.org/5/en/views/helpers/form.html#creating-year-inputs
+     * @link https://book.cakephp.org/5/en/views/helpers/form.html#creating-year-controls
      */
     public function year(string $fieldName, array $options = []): string
     {
@@ -2429,9 +2434,7 @@ class FormHelper extends Helper
     {
         $options += ['fieldName' => $field];
 
-        if (!isset($options['secure'])) {
-            $options['secure'] = $this->_View->getRequest()->getAttribute('formTokenData') !== null;
-        }
+        $options['secure'] ??= $this->_View->getRequest()->getAttribute('formTokenData') !== null;
         $context = $this->_getContext();
 
         if (isset($options['id']) && $options['id'] === true) {
@@ -2517,7 +2520,7 @@ class FormHelper extends Helper
             if (is_array($first)) {
                 $disabled = array_filter(
                     $options['options'],
-                    fn($i) => in_array($i['value'], $options['disabled'], true),
+                    fn(array $i) => in_array($i['value'], $options['disabled'], true),
                 );
 
                 return $disabled !== [];
@@ -2681,8 +2684,8 @@ class FormHelper extends Helper
         $diff = array_diff($sources, $this->supportedValueSources);
 
         if ($diff) {
-            array_walk($diff, fn(&$x) => $x = "`{$x}`");
-            array_walk($this->supportedValueSources, fn(&$x) => $x = "`{$x}`");
+            array_walk($diff, fn(string &$x) => $x = "`{$x}`");
+            array_walk($this->supportedValueSources, fn(string &$x) => $x = "`{$x}`");
             throw new InvalidArgumentException(sprintf(
                 'Invalid value source(s): %s. Valid values are: %s.',
                 implode(', ', $diff),

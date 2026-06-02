@@ -43,12 +43,36 @@ class NumericPaginator implements PaginatorInterface
      * - `allowedParameters` - A list of parameters users are allowed to set using request
      *   parameters. Modifying this list will allow users to have more influence
      *   over pagination, be careful with what you permit.
-     * - `sortableFields` - A list of fields which can be used for sorting. By
-     *   default all table columns can be used for sorting. You can use this option
-     *   to restrict sorting only by particular fields. If you want to allow
-     *   sorting on either associated columns or calculated fields then you will
-     *   have to explicitly specify them (along with other fields). Using an empty
-     *   array will disable sorting alltogether.
+     * - `sortableFields` - Controls which fields can be used for sorting. Accepts multiple formats:
+     *   - Simple array: A list of field names that can be sorted. By default all table
+     *     columns can be used. Use this to restrict sorting to specific fields. An empty
+     *     array will disable sorting altogether.
+     *   - Map with SortField objects: A map of sort keys to their corresponding database fields.
+     *     Allows creating friendly sort keys that map to one or more actual fields. Supports
+     *     simple mapping, multi-column sorting, locked directions, and default directions.
+     *     Can accept a callable that receives a SortableFieldsBuilder instance.
+     *
+     *   Examples:
+     *   ```
+     *   // Simple array (traditional)
+     *   'sortableFields' => ['title', 'created', 'author_id']
+     *
+     *   // Map with SortField objects
+     *   'sortableFields' => [
+     *       'name' => 'Users.name',
+     *       'newest' => [
+     *           SortField::desc('created'),
+     *           SortField::asc('title'),
+     *       ],
+     *   ]
+     *
+     *   // Callable with builder
+     *   'sortableFields' => function(SortableFieldsBuilder $builder) {
+     *       return $builder
+     *           ->add('name', SortField::asc('Users.name'))
+     *           ->add('popularity', SortField::desc('score', locked: true), 'created');
+     *   }
+     *   ```
      * - `finder` - The table finder to use. Defaults to `all`.
      * - `scope` - If specified this scope will be used to get the paging options
      *   from the query params passed to paginate(). Scopes allow namespacing the
@@ -74,6 +98,7 @@ class NumericPaginator implements PaginatorInterface
      */
     protected array $pagingParams = [
         'limit' => null,
+        'maxLimit' => null,
         'count' => null,
         'totalCount' => null,
         'perPage' => null,
@@ -196,7 +221,7 @@ class NumericPaginator implements PaginatorInterface
      *   to paginate.
      * @param array $params Request params
      * @param array $settings The settings/configuration used for pagination.
-     * @return \Cake\Datasource\Paging\PaginatedInterface
+     * @return \Cake\Datasource\Paging\PaginatedInterface<int, mixed>
      * @throws \Cake\Datasource\Paging\Exception\PageOutOfBoundsException
      */
     public function paginate(
@@ -241,9 +266,9 @@ class NumericPaginator implements PaginatorInterface
     /**
      * Build paginated result set.
      *
-     * @param \Cake\Datasource\ResultSetInterface $items
+     * @param \Cake\Datasource\ResultSetInterface<int, mixed> $items
      * @param array $pagingParams
-     * @return \Cake\Datasource\Paging\PaginatedInterface
+     * @return \Cake\Datasource\Paging\PaginatedInterface<int, mixed>
      */
     protected function buildPaginated(ResultSetInterface $items, array $pagingParams): PaginatedInterface
     {
@@ -289,7 +314,7 @@ class NumericPaginator implements PaginatorInterface
      *
      * @param \Cake\Datasource\QueryInterface $query Query to fetch items.
      * @param array $data Paging data.
-     * @return \Cake\Datasource\ResultSetInterface
+     * @return \Cake\Datasource\ResultSetInterface<int, mixed>
      */
     protected function getItems(QueryInterface $query, array $data): ResultSetInterface
     {
@@ -355,6 +380,7 @@ class NumericPaginator implements PaginatorInterface
             'requestedPage' => $data['options']['page'],
             'alias' => $data['alias'],
             'scope' => $data['options']['scope'],
+            'maxLimit' => $data['options']['maxLimit'],
         ] + $this->pagingParams;
 
         $this->addPageCountParams($data);
@@ -362,9 +388,17 @@ class NumericPaginator implements PaginatorInterface
         $this->addPrevNextParams($data);
         $this->addSortingParams($data);
 
-        $this->pagingParams['limit'] = $data['defaults']['limit'] != $data['options']['limit']
+        $this->pagingParams['limit'] = (int)$data['defaults']['limit'] !== (int)$data['options']['limit']
             ? $data['options']['limit']
             : null;
+
+        // Add sortableFields configuration for view helpers
+        if (isset($data['options']['sortableFields'])) {
+            $sortableFields = $data['options']['sortableFields'];
+            if ($sortableFields instanceof SortableFieldsBuilder) {
+                $this->pagingParams['sortableFields'] = $sortableFields->toArray();
+            }
+        }
 
         return $this->pagingParams;
     }
@@ -444,10 +478,15 @@ class NumericPaginator implements PaginatorInterface
             $sortDefault = key($defaults['order']);
             $directionDefault = current($defaults['order']);
         }
+        if (isset($data['options']['sortDirection'])) {
+            $direction = $data['options']['sortDirection'];
+        } else {
+            $direction = isset($data['options']['sort']) && count($order) ? current($order) : null;
+        }
 
         $this->pagingParams = [
             'sort' => $data['options']['sort'],
-            'direction' => isset($data['options']['sort']) && count($order) ? current($order) : null,
+            'direction' => $direction,
             'sortDefault' => $sortDefault,
             'directionDefault' => $directionDefault,
             'completeSort' => $order,
@@ -474,7 +513,7 @@ class NumericPaginator implements PaginatorInterface
     {
         if (!empty($settings['scope'])) {
             $scope = $settings['scope'];
-            $params = !empty($params[$scope]) ? (array)$params[$scope] : [];
+            $params = (array)($params[$scope] ?? []);
         }
         $params = array_intersect_key($params, array_flip($this->getConfig('allowedParameters')));
 
@@ -518,6 +557,7 @@ class NumericPaginator implements PaginatorInterface
      * also be sanitized. Lastly sort + direction keys will be converted into
      * the model friendly order key.
      *
+     /**
      * You can use the allowedParameters option to control which columns/fields are
      * available for sorting via URL parameters. This helps prevent users from ordering large
      * result sets on un-indexed values.
@@ -539,24 +579,76 @@ class NumericPaginator implements PaginatorInterface
      */
     protected function validateSort(RepositoryInterface $object, array $options): array
     {
+        // Check if we have sortableFields configured
+        $sortableFields = $options['sortableFields'] ?? null;
+        $builder = $sortableFields instanceof SortableFieldsBuilder
+            ? $sortableFields
+            : SortableFieldsBuilder::create($sortableFields);
+
+        // Store the converted builder for later use in paging params
+        if ($builder !== null) {
+            $options['sortableFields'] = $builder;
+        }
+
+        $sortAllowed = $builder !== null;
+
         if (isset($options['sort'])) {
-            $direction = null;
-            if (isset($options['direction'])) {
-                $direction = strtolower($options['direction']);
-            }
-            if (!in_array($direction, ['asc', 'desc'], true)) {
-                $direction = 'asc';
-            }
+            // Parse sort and direction parameters
+            $sortParams = $this->parseSortParams($options);
 
-            $order = isset($options['order']) && is_array($options['order']) ? $options['order'] : [];
-            if ($order && $options['sort'] && !str_contains($options['sort'], '.')) {
-                $order = $this->_removeAliases($order, $object->getAlias());
-            }
+            // Update options with parsed sort key (handles combined format)
+            $options['sort'] = $sortParams['sortKey'];
 
-            $options['order'] = [$options['sort'] => $direction] + $order;
+            if ($builder !== null) {
+                // Use builder to resolve sort key
+                $order = $builder->resolve(
+                    $sortParams['sortKey'],
+                    $sortParams['direction'],
+                    $sortParams['directionSpecified'],
+                );
+
+                if ($order === null) {
+                    // Invalid sort key, clear sort
+                    $options['order'] = [];
+                    $options['sort'] = null;
+                    unset($options['direction']);
+
+                    return $options;
+                }
+
+                // Merge with existing order - existing order comes AFTER our resolved order
+                $existingOrder = isset($options['order']) && is_array($options['order']) ? $options['order'] : [];
+                $modelAlias = $object->getAlias();
+                // Only keep fields from existing order that aren't already in our resolved order
+                // Account for prefixed vs unprefixed field names (e.g., 'modified' vs 'Alerts.modified')
+                foreach ($existingOrder as $field => $dir) {
+                    // Check if this field (or its unprefixed version) is already in $order
+                    $alreadyInOrder = isset($order[$field]);
+                    if (!$alreadyInOrder && str_contains($field, '.')) {
+                        [$alias, $fieldName] = explode('.', $field, 2);
+                        if ($alias === $modelAlias && isset($order[$fieldName])) {
+                            $alreadyInOrder = true;
+                        }
+                    }
+                    if (!$alreadyInOrder) {
+                        $order[$field] = $dir;
+                    }
+                }
+                $options['order'] = $order;
+                $options['sortDirection'] = $sortParams['direction'];
+            } else {
+                // No sortableFields configured - allow any field (default behavior)
+                $order = isset($options['order']) && is_array($options['order']) ? $options['order'] : [];
+                if ($order && $sortParams['sortKey'] && !str_contains($sortParams['sortKey'], '.')) {
+                    $order = $this->_removeAliases($order, $object->getAlias());
+                }
+
+                $options['order'] = [$sortParams['sortKey'] => $sortParams['direction']] + $order;
+            }
         } else {
             $options['sort'] = null;
         }
+
         unset($options['direction']);
 
         if (empty($options['order'])) {
@@ -564,18 +656,6 @@ class NumericPaginator implements PaginatorInterface
         }
         if (!is_array($options['order'])) {
             return $options;
-        }
-
-        $sortAllowed = false;
-        if (isset($options['sortableFields'])) {
-            $field = key($options['order']);
-            $sortAllowed = in_array($field, $options['sortableFields'], true);
-            if (!$sortAllowed) {
-                $options['order'] = [];
-                $options['sort'] = null;
-
-                return $options;
-            }
         }
 
         if (
@@ -666,6 +746,41 @@ class NumericPaginator implements PaginatorInterface
         }
 
         return $tableOrder;
+    }
+
+    /**
+     * Parse sort parameters from options.
+     *
+     * Extracts and normalizes sort key and direction from pagination options.
+     * Supports both traditional format (?sort=field&direction=asc) and
+     * combined format (?sort=field-asc).
+     *
+     * @param array<string, mixed> $options The options array
+     * @return array{sortKey: string, direction: string, directionSpecified: bool}
+     */
+    protected function parseSortParams(array $options): array
+    {
+        $sortKey = $options['sort'];
+        $direction = isset($options['direction']) ? strtolower($options['direction']) : SortField::ASC;
+        $directionSpecified = isset($options['direction']);
+
+        // Check for combined sort-direction format (e.g., 'title-asc' or 'title-desc')
+        if (preg_match('/^(.+)-(asc|desc)$/i', $sortKey, $matches)) {
+            $sortKey = $matches[1];
+            $direction = strtolower($matches[2]);
+            $directionSpecified = true;
+        }
+
+        // Validate direction
+        if (!in_array($direction, [SortField::ASC, SortField::DESC], true)) {
+            $direction = SortField::ASC;
+        }
+
+        return [
+            'sortKey' => $sortKey,
+            'direction' => $direction,
+            'directionSpecified' => $directionSpecified,
+        ];
     }
 
     /**

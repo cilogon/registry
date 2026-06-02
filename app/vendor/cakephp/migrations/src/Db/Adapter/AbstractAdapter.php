@@ -10,6 +10,7 @@ namespace Migrations\Db\Adapter;
 
 use BadMethodCallException;
 use Cake\Console\ConsoleIo;
+use Cake\Core\Configure;
 use Cake\Database\Connection;
 use Cake\Database\Query;
 use Cake\Database\Query\DeleteQuery;
@@ -22,32 +23,44 @@ use Cake\I18n\DateTime;
 use Exception;
 use InvalidArgumentException;
 use Migrations\Config\Config;
+use Migrations\Db\Action\AddCheckConstraint;
 use Migrations\Db\Action\AddColumn;
 use Migrations\Db\Action\AddForeignKey;
 use Migrations\Db\Action\AddIndex;
+use Migrations\Db\Action\AddPartition;
 use Migrations\Db\Action\ChangeColumn;
 use Migrations\Db\Action\ChangeComment;
 use Migrations\Db\Action\ChangePrimaryKey;
+use Migrations\Db\Action\CreateTrigger;
+use Migrations\Db\Action\CreateView;
+use Migrations\Db\Action\DropCheckConstraint;
 use Migrations\Db\Action\DropForeignKey;
 use Migrations\Db\Action\DropIndex;
+use Migrations\Db\Action\DropPartition;
 use Migrations\Db\Action\DropTable;
+use Migrations\Db\Action\DropTrigger;
+use Migrations\Db\Action\DropView;
 use Migrations\Db\Action\RemoveColumn;
 use Migrations\Db\Action\RenameColumn;
 use Migrations\Db\Action\RenameTable;
+use Migrations\Db\Action\SetPartitioning;
 use Migrations\Db\AlterInstructions;
+use Migrations\Db\InsertMode;
 use Migrations\Db\Literal;
 use Migrations\Db\Table;
+use Migrations\Db\Table\CheckConstraint;
 use Migrations\Db\Table\Column;
 use Migrations\Db\Table\ForeignKey;
 use Migrations\Db\Table\Index;
-use Migrations\Db\Table\Table as TableMetadata;
+use Migrations\Db\Table\Partition;
+use Migrations\Db\Table\TableMetadata;
+use Migrations\Db\Table\Trigger;
+use Migrations\Db\Table\View;
 use Migrations\MigrationInterface;
-use Migrations\Shim\OutputAdapter;
+use Migrations\SeedInterface;
 use PDOException;
-use Phinx\Util\Literal as PhinxLiteral;
 use RuntimeException;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use function Cake\Core\deprecationWarning;
 
 /**
  * Base Abstract Database Adapter.
@@ -59,9 +72,6 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     protected array $options = [];
 
-    /**
-     * @var \Cake\Console\ConsoleIo
-     */
     protected ConsoleIo $io;
 
     /**
@@ -69,19 +79,12 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     protected array $createdTables = [];
 
-    /**
-     * @var string
-     */
     protected string $schemaTableName = 'phinxlog';
 
-    /**
-     * @var array
-     */
+    protected string $seedSchemaTableName = 'cake_seeds';
+
     protected array $dataDomain = [];
 
-    /**
-     * @var \Cake\Database\Connection|null
-     */
     protected ?Connection $connection = null;
 
     /**
@@ -93,7 +96,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     public function __construct(array $options, ?ConsoleIo $io = null)
     {
         $this->setOptions($options);
-        if ($io !== null) {
+        if ($io instanceof ConsoleIo) {
             $this->setIo($io);
         }
     }
@@ -107,6 +110,10 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
 
         if (isset($options['migration_table'])) {
             $this->setSchemaTableName($options['migration_table']);
+        }
+
+        if (isset($options['seed_table'])) {
+            $this->setSeedSchemaTableName($options['seed_table']);
         }
 
         if (isset($options['connection']) && $options['connection'] instanceof Connection) {
@@ -130,21 +137,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
         if (!$this->hasTable($this->getSchemaTableName())) {
             $this->createSchemaTable();
         } else {
-            $table = new Table($this->getSchemaTableName(), [], $this);
-            if (!$table->hasColumn('migration_name')) {
-                $table
-                    ->addColumn(
-                        'migration_name',
-                        'string',
-                        ['limit' => 100, 'after' => 'version', 'default' => null, 'null' => true],
-                    )
-                    ->save();
-            }
-            if (!$table->hasColumn('breakpoint')) {
-                $table
-                    ->addColumn('breakpoint', 'boolean', ['default' => false, 'null' => false])
-                    ->save();
-            }
+            $this->migrationsTable()->upgradeTable();
         }
 
         return $this;
@@ -197,9 +190,12 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     public function getConnection(): Connection
     {
-        if ($this->connection === null) {
+        if (!$this->connection instanceof Connection) {
             $this->connection = $this->getOption('connection');
             $this->connect();
+        }
+        if (!$this->connection instanceof Connection) {
+            throw new RuntimeException('Unable to establish database connection. Ensure a connection is configured.');
         }
 
         return $this->connection;
@@ -208,12 +204,16 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Backwards compatibility shim for migrations 3.x
      *
-     * TODO add deprecation for this. Use getConnection() instead.
-     *
      * @return \Cake\Database\Connection
+     * @deprecated 4.8.0 Use getConnection() instead.
      */
     public function getDecoratedConnection(): Connection
     {
+        deprecationWarning(
+            '4.8.0',
+            'Using getDecoratedConnection() is deprecated. Use getConnection() instead.',
+        );
+
         return $this->getConnection();
     }
 
@@ -290,9 +290,9 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     {
         $io = $this->getIo();
         if (
-            $io === null || (
+            !$io instanceof ConsoleIo || (
                 !$this->isDryRunEnabled() &&
-                $io->level() != ConsoleIo::VERBOSE
+                $io->level() !== ConsoleIo::VERBOSE
             )
         ) {
             return;
@@ -302,44 +302,20 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     }
 
     /**
-     * @inheritDoc
-     */
-    public function setInput(InputInterface $input): AdapterInterface
-    {
-        throw new RuntimeException('Using setInput() interface is not supported.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getInput(): ?InputInterface
-    {
-        throw new RuntimeException('Using getInput() interface is not supported.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setOutput(OutputInterface $output): AdapterInterface
-    {
-        throw new RuntimeException('Using setInput() method is not supported');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getOutput(): OutputInterface
-    {
-        return new OutputAdapter($this->io);
-    }
-
-    /**
      * Gets the schema table name.
+     *
+     * Returns the appropriate table name based on configuration:
+     * - 'cake_migrations' for unified mode
+     * - Phinxlog table name for backwards compatibility mode
      *
      * @return string
      */
     public function getSchemaTableName(): string
     {
+        if ($this->isUsingUnifiedTable()) {
+            return UnifiedMigrationsTableStorage::TABLE_NAME;
+        }
+
         return $this->schemaTableName;
     }
 
@@ -352,6 +328,29 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     public function setSchemaTableName(string $schemaTableName)
     {
         $this->schemaTableName = $schemaTableName;
+
+        return $this;
+    }
+
+    /**
+     * Gets the seed schema table name.
+     *
+     * @return string
+     */
+    public function getSeedSchemaTableName(): string
+    {
+        return $this->seedSchemaTableName;
+    }
+
+    /**
+     * Sets the seed schema table name.
+     *
+     * @param string $seedSchemaTableName Seed Schema Table Name
+     * @return $this
+     */
+    public function setSeedSchemaTableName(string $seedSchemaTableName)
+    {
+        $this->seedSchemaTableName = $seedSchemaTableName;
 
         return $this;
     }
@@ -371,27 +370,38 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
 
     /**
      * @inheritDoc
+     */
+    public function hasColumn(string $tableName, string $columnName): bool
+    {
+        $dialect = $this->getSchemaDialect();
+
+        return $dialect->hasColumn($tableName, $columnName);
+    }
+
+    /**
+     * @inheritDoc
      * @throws \InvalidArgumentException
      * @return void
      */
     public function createSchemaTable(): void
     {
-        try {
-            $options = [
-                'id' => false,
-                'primary_key' => 'version',
-            ];
+        $this->migrationsTable()->createTable();
+    }
 
-            $table = new Table($this->getSchemaTableName(), $options, $this);
-            $table->addColumn('version', 'biginteger', ['null' => false])
-                ->addColumn('migration_name', 'string', ['limit' => 100, 'default' => null, 'null' => true])
-                ->addColumn('start_time', 'timestamp', ['default' => null, 'null' => true])
-                ->addColumn('end_time', 'timestamp', ['default' => null, 'null' => true])
-                ->addColumn('breakpoint', 'boolean', ['default' => false, 'null' => false])
+    /**
+     * @inheritDoc
+     */
+    public function createSeedSchemaTable(): void
+    {
+        try {
+            $table = new Table($this->getSeedSchemaTableName(), [], $this);
+            $table->addColumn('plugin', 'string', ['limit' => 100, 'default' => null, 'null' => true])
+                ->addColumn('seed_name', 'string', ['limit' => 100, 'null' => false])
+                ->addColumn('executed_at', 'timestamp', ['default' => null, 'null' => true])
                 ->save();
         } catch (Exception $exception) {
             throw new InvalidArgumentException(
-                'There was a problem creating the schema table: ' . $exception->getMessage(),
+                'There was a problem creating the seed schema table: ' . $exception->getMessage(),
                 (int)$exception->getCode(),
                 $exception,
             );
@@ -411,7 +421,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     public function isValidColumnType(Column $column): bool
     {
-        return $column->getType() instanceof Literal || in_array($column->getType(), $this->getColumnTypes(), true);
+        return in_array($column->getType(), $this->getColumnTypes(), true);
     }
 
     /**
@@ -451,7 +461,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     protected function addCreatedTable(string $tableName): void
     {
         $tableName = $this->quoteTableName($tableName);
-        if (substr_compare($tableName, 'phinxlog', -strlen('phinxlog')) !== 0) {
+        if (!str_ends_with($tableName, 'phinxlog')) {
             $this->createdTables[] = $tableName;
         }
     }
@@ -499,6 +509,24 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
         $tableName = $this->quoteTableName($tableName);
 
         return in_array($tableName, $this->createdTables, true);
+    }
+
+    /**
+     * Execute a Query object. Handles logging and dry-run modes.
+     *
+     * @param \Cake\Database\Query $query The query to execute
+     * @return int The number of affected rows.
+     */
+    public function executeQuery(Query $query): int
+    {
+        $this->verboseLog($query->sql());
+
+        if ($this->isDryRunEnabled()) {
+            return 0;
+        }
+        $stmt = $query->execute();
+
+        return $stmt->rowCount();
     }
 
     /**
@@ -602,9 +630,14 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * @inheritDoc
      */
-    public function insert(TableMetadata $table, array $row): void
-    {
-        $sql = $this->generateInsertSql($table, $row);
+    public function insert(
+        TableMetadata $table,
+        array $row,
+        ?InsertMode $mode = null,
+        ?array $updateColumns = null,
+        ?array $conflictColumns = null,
+    ): void {
+        $sql = $this->generateInsertSql($table, $row, $mode, $updateColumns, $conflictColumns);
 
         if ($this->isDryRunEnabled()) {
             $this->io->out($sql);
@@ -612,7 +645,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
             $vals = [];
             foreach ($row as $value) {
                 $placeholder = '?';
-                if ($value instanceof Literal || $value instanceof PhinxLiteral) {
+                if ($value instanceof Literal) {
                     $placeholder = (string)$value;
                 }
                 if ($placeholder === '?') {
@@ -626,14 +659,23 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Generates the SQL for an insert.
      *
-     * @param \Migrations\Db\Table\Table $table The table to insert into
+     * @param \Migrations\Db\Table\TableMetadata $table The table to insert into
      * @param array $row The row to insert
+     * @param \Migrations\Db\InsertMode|null $mode Insert mode
+     * @param array<string>|null $updateColumns Columns to update on upsert conflict
+     * @param array<string>|null $conflictColumns Columns that define uniqueness for upsert (unused in MySQL)
      * @return string
      */
-    protected function generateInsertSql(TableMetadata $table, array $row): string
-    {
+    protected function generateInsertSql(
+        TableMetadata $table,
+        array $row,
+        ?InsertMode $mode = null,
+        ?array $updateColumns = null,
+        ?array $conflictColumns = null,
+    ): string {
         $sql = sprintf(
-            'INSERT INTO %s ',
+            '%s INTO %s ',
+            $this->getInsertPrefix($mode),
             $this->quoteTableName($table->getName()),
         );
         $columns = array_keys($row);
@@ -645,23 +687,71 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
             }
         }
 
+        $upsertClause = $this->getUpsertClause($mode, $updateColumns, $conflictColumns);
+
         if ($this->isDryRunEnabled()) {
-            $sql .= ' VALUES (' . implode(', ', array_map($this->quoteValue(...), $row)) . ');';
-
-            return $sql;
-        } else {
-            $values = [];
-            foreach ($row as $value) {
-                $placeholder = '?';
-                if ($value instanceof Literal || $value instanceof PhinxLiteral) {
-                    $placeholder = (string)$value;
-                }
-                $values[] = $placeholder;
-            }
-            $sql .= ' VALUES (' . implode(',', $values) . ')';
-
-            return $sql;
+            return $sql . (' VALUES (' . implode(', ', array_map($this->quoteValue(...), $row)) . ')' . $upsertClause . ';');
         }
+        $values = [];
+        foreach ($row as $value) {
+            $placeholder = '?';
+            if ($value instanceof Literal) {
+                $placeholder = (string)$value;
+            }
+            $values[] = $placeholder;
+        }
+
+        return $sql . (' VALUES (' . implode(',', $values) . ')' . $upsertClause);
+    }
+
+    /**
+     * Get the INSERT prefix based on insert mode and database type.
+     *
+     * @param \Migrations\Db\InsertMode|null $mode Insert mode
+     * @return string
+     */
+    protected function getInsertPrefix(?InsertMode $mode = null): string
+    {
+        if ($mode === InsertMode::IGNORE) {
+            return 'INSERT IGNORE';
+        }
+
+        return 'INSERT';
+    }
+
+    /**
+     * Get the upsert clause for MySQL (ON DUPLICATE KEY UPDATE).
+     *
+     * MySQL's ON DUPLICATE KEY UPDATE applies to all unique key constraints on the table,
+     * so the $conflictColumns parameter is not used. If you pass conflictColumns when using
+     * MySQL, a warning will be triggered.
+     *
+     * @param \Migrations\Db\InsertMode|null $mode Insert mode
+     * @param array<string>|null $updateColumns Columns to update on conflict
+     * @param array<string>|null $conflictColumns Columns that define uniqueness (unused in MySQL)
+     * @return string
+     */
+    protected function getUpsertClause(?InsertMode $mode, ?array $updateColumns, ?array $conflictColumns = null): string
+    {
+        if ($mode !== InsertMode::UPSERT || $updateColumns === null) {
+            return '';
+        }
+
+        if ($conflictColumns !== null && $conflictColumns !== []) {
+            trigger_error(
+                'The $conflictColumns parameter is ignored by MySQL. ' .
+                "MySQL's ON DUPLICATE KEY UPDATE applies to all unique constraints on the table.",
+                E_USER_WARNING,
+            );
+        }
+
+        $updates = [];
+        foreach ($updateColumns as $column) {
+            $quotedColumn = $this->quoteColumnName($column);
+            $updates[] = $quotedColumn . ' = VALUES(' . $quotedColumn . ')';
+        }
+
+        return ' ON DUPLICATE KEY UPDATE ' . implode(', ', $updates);
     }
 
     /**
@@ -680,16 +770,14 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
             return 'null';
         }
 
-        if ($value instanceof Literal || $value instanceof PhinxLiteral) {
+        if ($value instanceof Literal) {
             return (string)$value;
         }
 
         if ($value instanceof DateTime) {
-            return $value->toDateTimeString();
-        }
-
-        if ($value instanceof Date) {
-            return $value->toDateString();
+            $value = $value->toDateTimeString();
+        } elseif ($value instanceof Date) {
+            $value = $value->toDateString();
         }
 
         $driver = $this->getConnection()->getDriver();
@@ -713,9 +801,14 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * @inheritDoc
      */
-    public function bulkinsert(TableMetadata $table, array $rows): void
-    {
-        $sql = $this->generateBulkInsertSql($table, $rows);
+    public function bulkinsert(
+        TableMetadata $table,
+        array $rows,
+        ?InsertMode $mode = null,
+        ?array $updateColumns = null,
+        ?array $conflictColumns = null,
+    ): void {
+        $sql = $this->generateBulkInsertSql($table, $rows, $mode, $updateColumns, $conflictColumns);
 
         if ($this->isDryRunEnabled()) {
             $this->io->out($sql);
@@ -724,10 +817,10 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
             foreach ($rows as $row) {
                 foreach ($row as $v) {
                     $placeholder = '?';
-                    if ($v instanceof Literal || $v instanceof PhinxLiteral) {
+                    if ($v instanceof Literal) {
                         $placeholder = (string)$v;
                     }
-                    if ($placeholder == '?') {
+                    if ($placeholder === '?') {
                         if ($v instanceof DateTime) {
                             $vals[] = $v->toDateTimeString();
                         } elseif ($v instanceof Date) {
@@ -747,46 +840,54 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Generates the SQL for a bulk insert.
      *
-     * @param \Migrations\Db\Table\Table $table The table to insert into
-     * @param array $rows The rows to insert
+     * @param \Migrations\Db\Table\TableMetadata $table The table to insert into
+     * @param array<int, array<string, mixed>> $rows The rows to insert
+     * @param \Migrations\Db\InsertMode|null $mode Insert mode
+     * @param array<string>|null $updateColumns Columns to update on upsert conflict
+     * @param array<string>|null $conflictColumns Columns that define uniqueness for upsert (unused in MySQL)
      * @return string
      */
-    protected function generateBulkInsertSql(TableMetadata $table, array $rows): string
-    {
+    protected function generateBulkInsertSql(
+        TableMetadata $table,
+        array $rows,
+        ?InsertMode $mode = null,
+        ?array $updateColumns = null,
+        ?array $conflictColumns = null,
+    ): string {
         $sql = sprintf(
-            'INSERT INTO %s ',
+            '%s INTO %s ',
+            $this->getInsertPrefix($mode),
             $this->quoteTableName($table->getName()),
         );
-        $current = current($rows);
-        $keys = array_keys($current);
+        $current = (array)current($rows);
+        $keys = array_map(strval(...), array_keys($current));
 
         $sql .= '(' . implode(', ', array_map($this->quoteColumnName(...), $keys)) . ') VALUES ';
 
+        $upsertClause = $this->getUpsertClause($mode, $updateColumns, $conflictColumns);
+
         if ($this->isDryRunEnabled()) {
-            $values = array_map(function ($row) {
+            $values = array_map(function (array $row): string {
                 return '(' . implode(', ', array_map($this->quoteValue(...), $row)) . ')';
             }, $rows);
-            $sql .= implode(', ', $values) . ';';
 
-            return $sql;
-        } else {
-            $queries = [];
-            foreach ($rows as $row) {
-                $values = [];
-                foreach ($row as $v) {
-                    $placeholder = '?';
-                    if ($v instanceof Literal || $v instanceof PhinxLiteral) {
-                        $placeholder = (string)$v;
-                    }
-                    $values[] = $placeholder;
-                }
-                $query = '(' . implode(', ', $values) . ')';
-                $queries[] = $query;
-            }
-            $sql .= implode(',', $queries);
-
-            return $sql;
+            return $sql . (implode(', ', $values) . $upsertClause . ';');
         }
+        $queries = [];
+        foreach ($rows as $row) {
+            $values = [];
+            foreach ($row as $v) {
+                $placeholder = '?';
+                if ($v instanceof Literal) {
+                    $placeholder = (string)$v;
+                }
+                $values[] = $placeholder;
+            }
+            $query = '(' . implode(', ', $values) . ')';
+            $queries[] = $query;
+        }
+
+        return $sql . implode(',', $queries) . $upsertClause;
     }
 
     /**
@@ -800,29 +901,92 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     }
 
     /**
+     * @inheritDoc
+     */
+    public function cleanupMissing(array $missingVersions): void
+    {
+        $storage = $this->migrationsTable();
+
+        $storage->cleanupMissing($missingVersions);
+    }
+
+    /**
+     * Get the migrations table storage implementation.
+     *
+     * Returns either UnifiedMigrationsTableStorage (new cake_migrations table)
+     * or MigrationsTableStorage (legacy phinxlog tables) based on configuration
+     * and autodetection.
+     *
+     * @return \Migrations\Db\Adapter\MigrationsTableStorage|\Migrations\Db\Adapter\UnifiedMigrationsTableStorage
+     * @internal
+     */
+    protected function migrationsTable(): MigrationsTableStorage|UnifiedMigrationsTableStorage
+    {
+        if ($this->isUsingUnifiedTable()) {
+            return new UnifiedMigrationsTableStorage(
+                $this,
+                $this->getOption('plugin'),
+            );
+        }
+
+        return new MigrationsTableStorage(
+            $this,
+            $this->getSchemaTableName(),
+            $this->getOption('plugin'),
+        );
+    }
+
+    /**
+     * Determine if using the unified cake_migrations table.
+     *
+     * Checks configuration and autodetects based on existing legacy tables.
+     *
+     * @return bool True if using unified table, false for legacy phinxlog tables
+     */
+    protected function isUsingUnifiedTable(): bool
+    {
+        $config = Configure::read('Migrations.legacyTables');
+
+        // Explicit configuration takes precedence
+        if ($config === false) {
+            return true;
+        }
+
+        if ($config === true) {
+            return false;
+        }
+
+        // Autodetect mode (config is null or not set)
+        // Check if the main legacy phinxlog table exists
+        if ($this->connection instanceof Connection) {
+            $dialect = $this->connection->getDriver()->schemaDialect();
+            if ($dialect->hasTable('phinxlog')) {
+                return false;
+            }
+        }
+
+        // No legacy phinxlog table found - use unified table
+        return true;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @throws \RuntimeException
      */
     public function getVersionLog(): array
     {
-        $result = [];
-
-        switch ($this->options['version_order']) {
-            case Config::VERSION_ORDER_CREATION_TIME:
-                $orderBy = 'version ASC';
-                break;
-            case Config::VERSION_ORDER_EXECUTION_TIME:
-                $orderBy = 'start_time ASC, version ASC';
-                break;
-            default:
-                throw new RuntimeException('Invalid version_order configuration option');
-        }
+        $orderBy = match ($this->options['version_order']) {
+            Config::VERSION_ORDER_CREATION_TIME => ['version' => 'ASC'],
+            Config::VERSION_ORDER_EXECUTION_TIME => ['start_time' => 'ASC', 'version' => 'ASC'],
+            default => throw new RuntimeException('Invalid version_order configuration option'),
+        };
+        $query = $this->migrationsTable()->getVersions($orderBy);
 
         // This will throw an exception if doing a --dry-run without any migrations as phinxlog
         // does not exist, so in that case, we can just expect to trivially return empty set
         try {
-            $rows = $this->fetchAll(sprintf('SELECT * FROM %s ORDER BY %s', $this->quoteTableName($this->getSchemaTableName()), $orderBy));
+            $rows = $query->execute()->fetchAll('assoc');
         } catch (PDOException $e) {
             if (!$this->isDryRunEnabled()) {
                 throw $e;
@@ -830,6 +994,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
             $rows = [];
         }
 
+        $result = [];
         foreach ($rows as $version) {
             $result[(int)$version['version']] = $version;
         }
@@ -843,35 +1008,10 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     public function migrated(MigrationInterface $migration, string $direction, string $startTime, string $endTime): AdapterInterface
     {
         if (strcasecmp($direction, MigrationInterface::UP) === 0) {
-            // up
-            $sql = sprintf(
-                'INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?);',
-                $this->quoteTableName($this->getSchemaTableName()),
-                $this->quoteColumnName('version'),
-                $this->quoteColumnName('migration_name'),
-                $this->quoteColumnName('start_time'),
-                $this->quoteColumnName('end_time'),
-                $this->quoteColumnName('breakpoint'),
-            );
-            $params = [
-                $migration->getVersion(),
-                substr($migration->getName(), 0, 100),
-                $startTime,
-                $endTime,
-                $this->castToBool(false),
-            ];
-
-            $this->execute($sql, $params);
+            $this->migrationsTable()->recordUp($migration, $startTime, $endTime);
         } else {
             // down
-            $sql = sprintf(
-                'DELETE FROM %s WHERE %s = ?',
-                $this->quoteTableName($this->getSchemaTableName()),
-                $this->quoteColumnName('version'),
-            );
-            $params = [$migration->getVersion()];
-
-            $this->execute($sql, $params);
+            $this->migrationsTable()->recordDown($migration);
         }
 
         return $this;
@@ -882,19 +1022,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     public function toggleBreakpoint(MigrationInterface $migration): AdapterInterface
     {
-        $params = [
-            $migration->getVersion(),
-        ];
-        $this->query(
-            sprintf(
-                'UPDATE %1$s SET %2$s = CASE %2$s WHEN true THEN false ELSE true END, %4$s = %4$s WHERE %3$s = ?;',
-                $this->quoteTableName($this->getSchemaTableName()),
-                $this->quoteColumnName('breakpoint'),
-                $this->quoteColumnName('version'),
-                $this->quoteColumnName('start_time'),
-            ),
-            $params,
-        );
+        $this->migrationsTable()->toggleBreakpoint($migration);
 
         return $this;
     }
@@ -904,15 +1032,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     public function resetAllBreakpoints(): int
     {
-        return $this->execute(
-            sprintf(
-                'UPDATE %1$s SET %2$s = %3$s, %4$s = %4$s WHERE %2$s <> %3$s;',
-                $this->quoteTableName($this->getSchemaTableName()),
-                $this->quoteColumnName('breakpoint'),
-                $this->castToBool(false),
-                $this->quoteColumnName('start_time'),
-            ),
-        );
+        return $this->migrationsTable()->resetAllBreakpoints();
     }
 
     /**
@@ -944,20 +1064,90 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     protected function markBreakpoint(MigrationInterface $migration, bool $state): AdapterInterface
     {
-        $params = [
-            $this->castToBool($state),
-            $migration->getVersion(),
-        ];
-        $this->query(
-            sprintf(
-                'UPDATE %1$s SET %2$s = ?, %3$s = %3$s WHERE %4$s = ?;',
-                $this->quoteTableName($this->getSchemaTableName()),
-                $this->quoteColumnName('breakpoint'),
-                $this->quoteColumnName('start_time'),
-                $this->quoteColumnName('version'),
-            ),
-            $params,
-        );
+        $this->migrationsTable()->markBreakpoint($migration, $state);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSeedLog(): array
+    {
+        $query = $this->getSelectBuilder();
+        $query->select('*')
+            ->from($this->getSeedSchemaTableName())
+            ->orderBy(['executed_at' => 'ASC', 'id' => 'ASC']);
+
+        try {
+            $rows = $query->execute()->fetchAll('assoc');
+        } catch (PDOException $e) {
+            if (!$this->isDryRunEnabled()) {
+                throw $e;
+            }
+            $rows = [];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function seedExecuted(SeedInterface $seed, string $executedTime): AdapterInterface
+    {
+        $plugin = null;
+        $className = $seed::class;
+
+        if (str_contains($className, '\\')) {
+            $parts = explode('\\', $className);
+            $appNamespace = Configure::read('App.namespace', 'App');
+            if (count($parts) > 1 && $parts[0] !== $appNamespace) {
+                $plugin = $parts[0];
+            }
+        }
+
+        $seedName = substr($seed->getName(), 0, 100);
+
+        $query = $this->getInsertBuilder();
+        $query->insert(['plugin', 'seed_name', 'executed_at'])
+            ->into($this->getSeedSchemaTableName())
+            ->values([
+                'plugin' => $plugin,
+                'seed_name' => $seedName,
+                'executed_at' => $executedTime,
+            ]);
+        $this->executeQuery($query);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function removeSeedFromLog(SeedInterface $seed): AdapterInterface
+    {
+        $plugin = null;
+        $className = $seed::class;
+
+        if (str_contains($className, '\\')) {
+            $parts = explode('\\', $className);
+            $appNamespace = Configure::read('App.namespace', 'App');
+            if (count($parts) > 1 && $parts[0] !== $appNamespace) {
+                $plugin = $parts[0];
+            }
+        }
+
+        $seedName = $seed->getName();
+
+        $query = $this->getDeleteBuilder();
+        $query->delete()
+            ->from($this->getSeedSchemaTableName())
+            ->where([
+                'seed_name' => $seedName,
+                'plugin IS' => $plugin,
+            ]);
+        $this->executeQuery($query);
 
         return $this;
     }
@@ -1002,7 +1192,10 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
             'decimal',
             'double',
             'datetime',
+            'datetimefractional',
             'timestamp',
+            'timestampfractional',
+            'timestamptimezone',
             'time',
             'date',
             'blob',
@@ -1035,18 +1228,41 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      */
     protected function getDefaultValueDefinition(mixed $default, ?string $columnType = null): string
     {
+        // SQL functions mapped to their valid column types (ordered longest-first to avoid prefix conflicts)
+        $sqlFunctionTypes = [
+            'CURRENT_TIMESTAMP' => [static::TYPE_DATETIME, static::TYPE_TIMESTAMP, static::TYPE_TIME, static::TYPE_DATE],
+            'CURRENT_DATE' => [static::TYPE_DATE],
+            'CURRENT_TIME' => [static::TYPE_TIME],
+        ];
+
         if ($default instanceof Literal) {
             $default = (string)$default;
-        } elseif (is_string($default) && stripos($default, 'CURRENT_TIMESTAMP') !== 0) {
-            // Ensure a defaults of CURRENT_TIMESTAMP(3) is not quoted.
+        } elseif (is_string($default) && $columnType !== null) {
+            $matched = false;
+            foreach ($sqlFunctionTypes as $function => $validTypes) {
+                // Match function name at start, followed by end of string or opening parenthesis
+                $len = strlen($function);
+                if (
+                    stripos($default, $function) === 0 &&
+                    (strlen($default) === $len || $default[$len] === '(') &&
+                    in_array($columnType, $validTypes, true)
+                ) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if (!$matched) {
+                $default = $this->quoteString($default);
+            }
+        } elseif (is_string($default)) {
             $default = $this->quoteString($default);
         } elseif (is_bool($default)) {
             $default = $this->castToBool($default);
-        } elseif ($default !== null && $columnType === static::PHINX_TYPE_BOOLEAN) {
+        } elseif ($default !== null && $columnType === static::TYPE_BOOLEAN) {
             $default = $this->castToBool((bool)$default);
         }
 
-        return isset($default) ? " DEFAULT $default" : '';
+        return isset($default) ? ' DEFAULT ' . $default : '';
     }
 
     /**
@@ -1059,7 +1275,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     protected function executeAlterSteps(string $tableName, AlterInstructions $instructions): void
     {
         $alter = sprintf('ALTER TABLE %s %%s', $this->quoteTableName($tableName));
-        $instructions->execute($alter, [$this, 'execute']);
+        $instructions->execute($alter, $this->execute(...));
     }
 
     /**
@@ -1074,7 +1290,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Returns the instructions to add the specified column to a database table.
      *
-     * @param \Migrations\Db\Table\Table $table Table
+     * @param \Migrations\Db\Table\TableMetadata $table Table
      * @param \Migrations\Db\Table\Column $column Column
      * @return \Migrations\Db\AlterInstructions
      */
@@ -1148,7 +1364,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Returns the instructions to add the specified index to a database table.
      *
-     * @param \Migrations\Db\Table\Table $table Table
+     * @param \Migrations\Db\Table\TableMetadata $table Table
      * @param \Migrations\Db\Table\Index $index Index
      * @return \Migrations\Db\AlterInstructions
      */
@@ -1191,6 +1407,27 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     abstract protected function getDropIndexByNameInstructions(string $tableName, string $indexName): AlterInstructions;
 
     /**
+     * @inheritDoc
+     */
+    public function hasIndex(string $tableName, string|array $columns): bool
+    {
+        $dialect = $this->getSchemaDialect();
+        $columns = is_array($columns) ? $columns : [$columns];
+
+        return $dialect->hasIndex($tableName, $columns);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasIndexByName(string $tableName, string $indexName): bool
+    {
+        $dialect = $this->getSchemaDialect();
+
+        return $dialect->hasIndex($tableName, [], $indexName);
+    }
+
+    /**
      * @inheritdoc
      */
     public function addForeignKey(TableMetadata $table, ForeignKey $foreignKey): void
@@ -1202,7 +1439,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Returns the instructions to adds the specified foreign key to a database table.
      *
-     * @param \Migrations\Db\Table\Table $table The table to add the constraint to
+     * @param \Migrations\Db\Table\TableMetadata $table The table to add the constraint to
      * @param \Migrations\Db\Table\ForeignKey $foreignKey The foreign key to add
      * @return \Migrations\Db\AlterInstructions
      */
@@ -1239,6 +1476,77 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
      * @return \Migrations\Db\AlterInstructions
      */
     abstract protected function getDropForeignKeyByColumnsInstructions(string $tableName, array $columns): AlterInstructions;
+
+    /**
+     * @inheritDoc
+     */
+    public function hasForeignKey(string $tableName, $columns, ?string $constraint = null): bool
+    {
+        $dialect = $this->getSchemaDialect();
+        $columns = is_array($columns) ? $columns : [$columns];
+
+        return $dialect->hasForeignKey($tableName, $columns, $constraint);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasCheckConstraint(string $tableName, string $constraintName): bool
+    {
+        $constraints = $this->getCheckConstraints($tableName);
+
+        foreach ($constraints as $constraint) {
+            if ($constraint['name'] === $constraintName) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get check constraints for a table.
+     *
+     * @param string $tableName Table name
+     * @return array
+     */
+    abstract protected function getCheckConstraints(string $tableName): array;
+
+    /**
+     * @inheritDoc
+     */
+    public function addCheckConstraint(TableMetadata $table, CheckConstraint $checkConstraint): void
+    {
+        $instructions = $this->getAddCheckConstraintInstructions($table, $checkConstraint);
+        $this->executeAlterSteps($table->getName(), $instructions);
+    }
+
+    /**
+     * Returns the instructions to add the specified check constraint to a database table.
+     *
+     * @param \Migrations\Db\Table\TableMetadata $table The table to add the constraint to
+     * @param \Migrations\Db\Table\CheckConstraint $checkConstraint The check constraint
+     * @return \Migrations\Db\AlterInstructions
+     */
+    abstract protected function getAddCheckConstraintInstructions(TableMetadata $table, CheckConstraint $checkConstraint): AlterInstructions;
+
+    /**
+     * @inheritDoc
+     */
+    public function dropCheckConstraint(string $tableName, string $constraintName): void
+    {
+        $instructions = $this->getDropCheckConstraintInstructions($tableName, $constraintName);
+        $this->executeAlterSteps($tableName, $instructions);
+    }
+
+    /**
+     * Returns the instructions to drop the specified check constraint from a database table.
+     *
+     * @param string $tableName The table name
+     * @param string $constraintName The constraint name
+     * @return \Migrations\Db\AlterInstructions
+     */
+    abstract protected function getDropCheckConstraintInstructions(string $tableName, string $constraintName): AlterInstructions;
 
     /**
      * @inheritdoc
@@ -1287,7 +1595,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Returns the instructions to change the primary key for the specified database table.
      *
-     * @param \Migrations\Db\Table\Table $table Table
+     * @param \Migrations\Db\Table\TableMetadata $table Table
      * @param string|string[]|null $newColumns Column name(s) to belong to the primary key, or null to drop the key
      * @return \Migrations\Db\AlterInstructions
      */
@@ -1305,11 +1613,46 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     /**
      * Returns the instruction to change the comment for the specified database table.
      *
-     * @param \Migrations\Db\Table\Table $table Table
+     * @param \Migrations\Db\Table\TableMetadata $table Table
      * @param string|null $newComment New comment string, or null to drop the comment
      * @return \Migrations\Db\AlterInstructions
      */
     abstract protected function getChangeCommentInstructions(TableMetadata $table, ?string $newComment): AlterInstructions;
+
+    /**
+     * Returns the instructions to create a view.
+     *
+     * @param \Migrations\Db\Table\View $view The view to create
+     * @return \Migrations\Db\AlterInstructions
+     */
+    abstract protected function getCreateViewInstructions(View $view): AlterInstructions;
+
+    /**
+     * Returns the instructions to drop a view.
+     *
+     * @param string $viewName The name of the view to drop
+     * @param bool $materialized Whether this is a materialized view (PostgreSQL only)
+     * @return \Migrations\Db\AlterInstructions
+     */
+    abstract protected function getDropViewInstructions(string $viewName, bool $materialized = false): AlterInstructions;
+
+    /**
+     * Returns the instructions to create a trigger.
+     *
+     * @param string $tableName The name of the table for the trigger
+     * @param \Migrations\Db\Table\Trigger $trigger The trigger to create
+     * @return \Migrations\Db\AlterInstructions
+     */
+    abstract protected function getCreateTriggerInstructions(string $tableName, Trigger $trigger): AlterInstructions;
+
+    /**
+     * Returns the instructions to drop a trigger.
+     *
+     * @param string $tableName The name of the table for the trigger
+     * @param string $triggerName The name of the trigger to drop
+     * @return \Migrations\Db\AlterInstructions
+     */
+    abstract protected function getDropTriggerInstructions(string $tableName, string $triggerName): AlterInstructions;
 
     /**
      * {@inheritDoc}
@@ -1320,6 +1663,12 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
     public function executeActions(TableMetadata $table, array $actions): void
     {
         $instructions = new AlterInstructions();
+
+        // Collect partition actions separately as they need special batching
+        /** @var \Migrations\Db\Table\PartitionDefinition[] $addPartitions */
+        $addPartitions = [];
+        /** @var string[] $dropPartitions */
+        $dropPartitions = [];
 
         foreach ($actions as $action) {
             switch (true) {
@@ -1357,21 +1706,23 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
 
                 case $action instanceof DropForeignKey && $action->getForeignKey()->getName():
                     /** @var \Migrations\Db\Action\DropForeignKey $action */
+                    $fkName = (string)$action->getForeignKey()->getName();
                     $instructions->merge($this->getDropForeignKeyInstructions(
                         $table->getName(),
-                        (string)$action->getForeignKey()->getName(),
+                        $fkName,
                     ));
                     break;
 
-                case $action instanceof DropIndex && $action->getIndex()->getName() !== null:
+                case $action instanceof DropIndex && $action->getIndex()->getName():
                     /** @var \Migrations\Db\Action\DropIndex $action */
+                    $indexName = (string)$action->getIndex()->getName();
                     $instructions->merge($this->getDropIndexByNameInstructions(
                         $table->getName(),
-                        (string)$action->getIndex()->getName(),
+                        $indexName,
                     ));
                     break;
 
-                case $action instanceof DropIndex && $action->getIndex()->getName() == null:
+                case $action instanceof DropIndex && !$action->getIndex()->getName():
                     /** @var \Migrations\Db\Action\DropIndex $action */
                     $instructions->merge($this->getDropIndexByColumnsInstructions(
                         $table->getName(),
@@ -1380,7 +1731,6 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
                     break;
 
                 case $action instanceof DropTable:
-                    /** @var \Migrations\Db\Action\DropTable $action */
                     $instructions->merge($this->getDropTableInstructions(
                         $table->getName(),
                     ));
@@ -1390,7 +1740,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
                     /** @var \Migrations\Db\Action\RemoveColumn $action */
                     $instructions->merge($this->getDropColumnInstructions(
                         $table->getName(),
-                        (string)$action->getColumn()->getName(),
+                        $action->getColumn()->getName(),
                     ));
                     break;
 
@@ -1398,7 +1748,7 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
                     /** @var \Migrations\Db\Action\RenameColumn $action */
                     $instructions->merge($this->getRenameColumnInstructions(
                         $table->getName(),
-                        (string)$action->getColumn()->getName(),
+                        $action->getColumn()->getName(),
                         $action->getNewName(),
                     ));
                     break;
@@ -1427,13 +1777,127 @@ abstract class AbstractAdapter implements AdapterInterface, DirectActionInterfac
                     ));
                     break;
 
+                case $action instanceof AddPartition:
+                    /** @var \Migrations\Db\Action\AddPartition $action */
+                    $addPartitions[] = $action->getPartition();
+                    break;
+
+                case $action instanceof DropPartition:
+                    /** @var \Migrations\Db\Action\DropPartition $action */
+                    $dropPartitions[] = $action->getPartitionName();
+                    break;
+
+                case $action instanceof SetPartitioning:
+                    /** @var \Migrations\Db\Action\SetPartitioning $action */
+                    $instructions->merge($this->getSetPartitioningInstructions(
+                        $table,
+                        $action->getPartition(),
+                    ));
+                    break;
+
+                case $action instanceof CreateView:
+                    /** @var \Migrations\Db\Action\CreateView $action */
+                    $instructions->merge($this->getCreateViewInstructions($action->getView()));
+                    break;
+
+                case $action instanceof DropView:
+                    /** @var \Migrations\Db\Action\DropView $action */
+                    $instructions->merge($this->getDropViewInstructions(
+                        $action->getViewName(),
+                        $action->getMaterialized(),
+                    ));
+                    break;
+
+                case $action instanceof CreateTrigger:
+                    /** @var \Migrations\Db\Action\CreateTrigger $action */
+                    $instructions->merge($this->getCreateTriggerInstructions(
+                        $table->getName(),
+                        $action->getTrigger(),
+                    ));
+                    break;
+
+                case $action instanceof DropTrigger:
+                    /** @var \Migrations\Db\Action\DropTrigger $action */
+                    $instructions->merge($this->getDropTriggerInstructions(
+                        $table->getName(),
+                        $action->getTriggerName(),
+                    ));
+                    break;
+
+                case $action instanceof AddCheckConstraint:
+                    /** @var \Migrations\Db\Action\AddCheckConstraint $action */
+                    $instructions->merge($this->getAddCheckConstraintInstructions(
+                        $table,
+                        $action->getCheckConstraint(),
+                    ));
+                    break;
+
+                case $action instanceof DropCheckConstraint:
+                    /** @var \Migrations\Db\Action\DropCheckConstraint $action */
+                    $instructions->merge($this->getDropCheckConstraintInstructions(
+                        $table->getName(),
+                        $action->getConstraintName(),
+                    ));
+                    break;
+
                 default:
                     throw new InvalidArgumentException(
-                        sprintf("Don't know how to execute action `%s`", get_class($action)),
+                        sprintf("Don't know how to execute action `%s`", $action::class),
                     );
             }
         }
 
+        // Handle batched partition operations
+        if ($addPartitions) {
+            $instructions->merge($this->getAddPartitionsInstructions($table, $addPartitions));
+        }
+        if ($dropPartitions) {
+            $instructions->merge($this->getDropPartitionsInstructions($table->getName(), $dropPartitions));
+        }
+
         $this->executeAlterSteps($table->getName(), $instructions);
+    }
+
+    /**
+     * Get instructions for adding multiple partitions to an existing table.
+     *
+     * This method handles batching multiple partition additions into a single
+     * ALTER TABLE statement where supported by the database.
+     *
+     * @param \Migrations\Db\Table\TableMetadata $table The table
+     * @param array<\Migrations\Db\Table\PartitionDefinition> $partitions The partitions to add
+     * @return \Migrations\Db\AlterInstructions
+     */
+    protected function getAddPartitionsInstructions(TableMetadata $table, array $partitions): AlterInstructions
+    {
+        throw new RuntimeException('Table partitioning is not supported by this adapter');
+    }
+
+    /**
+     * Get instructions for dropping multiple partitions from an existing table.
+     *
+     * This method handles batching multiple partition drops into a single
+     * ALTER TABLE statement where supported by the database.
+     *
+     * @param string $tableName The table name
+     * @param array<string> $partitionNames The partition names to drop
+     * @return \Migrations\Db\AlterInstructions
+     */
+    protected function getDropPartitionsInstructions(string $tableName, array $partitionNames): AlterInstructions
+    {
+        throw new RuntimeException('Table partitioning is not supported by this adapter');
+    }
+
+    /**
+     * Get instructions for adding partitioning to an existing table.
+     *
+     * @param \Migrations\Db\Table\TableMetadata $table The table
+     * @param \Migrations\Db\Table\Partition $partition The partition configuration
+     * @throws \RuntimeException If partitioning is not supported
+     * @return \Migrations\Db\AlterInstructions
+     */
+    protected function getSetPartitioningInstructions(TableMetadata $table, Partition $partition): AlterInstructions
+    {
+        throw new RuntimeException('Adding partitioning to existing tables is not supported by this adapter');
     }
 }

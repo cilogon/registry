@@ -29,9 +29,6 @@ use Migrations\Util\ColumnParser;
  */
 class BakeMigrationCommand extends BakeSimpleMigrationCommand
 {
-    /**
-     * @var string
-     */
     protected string $_name;
 
     /**
@@ -45,10 +42,12 @@ class BakeMigrationCommand extends BakeSimpleMigrationCommand
     /**
      * @inheritDoc
      */
-    public function bake(string $name, Arguments $args, ConsoleIo $io): void
+    protected function bake(string $name, Arguments $args, ConsoleIo $io): void
     {
         EventManager::instance()->on('Bake.initialize', function (Event $event): void {
-            $event->getSubject()->loadHelper('Migrations.Migration');
+            /** @var \Bake\View\BakeView $view */
+            $view = $event->getSubject();
+            $view->loadHelper('Migrations.Migration');
         });
         $this->_name = $name;
 
@@ -60,6 +59,11 @@ class BakeMigrationCommand extends BakeSimpleMigrationCommand
      */
     public function template(): string
     {
+        $style = $this->args->getOption('style') ?? Configure::read('Migrations.style', 'traditional');
+        if ($style === 'anonymous') {
+            return 'Migrations.config/skeleton-anonymous';
+        }
+
         return 'Migrations.config/skeleton';
     }
 
@@ -83,11 +87,12 @@ class BakeMigrationCommand extends BakeSimpleMigrationCommand
         $fields = $columnParser->parseFields($args);
         $indexes = $columnParser->parseIndexes($args);
         $primaryKey = $columnParser->parsePrimaryKey($args);
+        $foreignKeys = $columnParser->parseForeignKeys($args);
 
         $action = $this->detectAction($className);
 
         if (!$action && count($fields)) {
-            $this->io->abort('When applying fields the migration name should start with one of the following prefixes: `Create`, `Drop`, `Add`, `Remove`, `Alter`. See: https://book.cakephp.org/migrations/4/en/index.html#migrations-file-name');
+            $this->io->abort('When applying fields the migration name should start with one of the following prefixes: `Create`, `Drop`, `Add`, `Remove`, `Alter`. See: https://book.cakephp.org/migrations/5/en/index.html#migrations-file-name');
         }
 
         if (!$action) {
@@ -98,7 +103,6 @@ class BakeMigrationCommand extends BakeSimpleMigrationCommand
                 'tables' => [],
                 'action' => null,
                 'name' => $className,
-                'backend' => Configure::read('Migrations.backend', 'builtin'),
             ];
         }
 
@@ -119,8 +123,8 @@ class BakeMigrationCommand extends BakeSimpleMigrationCommand
                 'indexes' => $indexes,
                 'primaryKey' => $primaryKey,
             ],
+            'constraints' => $foreignKeys,
             'name' => $className,
-            'backend' => Configure::read('Migrations.backend', 'builtin'),
         ];
     }
 
@@ -169,16 +173,22 @@ field on the users table.
 
 When describing columns you can use the following syntax:
 
-<warning>{name}:{primary}{type}{nullable}[{length}]:{index}</warning>
+<warning>{name}:{type}{nullable}[{length}]:default[{value}]:{index}:{indexName}</warning>
 
 All sections other than name are optional.
 
 * The types are the abstract database column types in CakePHP.
 * The <warning>?</warning> value indicates if a column is nullable.
-  e.x. <warning>role:string?</warning>.
-* Length option must be enclosed in <warning>[]</warning>, for example: <warning>name:string[100]</warning>.
+  e.g. <warning>role:string?</warning>.
+* Length option must be enclosed in <warning>[]</warning>, for example: <warning>name:string?[100]</warning>.
+* The <warning>default[value]</warning> option sets a default value for the column.
+  Supports booleans (true/false), integers, floats, strings, and null.
+  e.g. <warning>active:boolean:default[true]</warning>, <warning>count:integer:default[0]</warning>.
 * The <warning>index</warning> attribute can define the column as having a unique
   key with <warning>unique</warning> or a primary key with <warning>primary</warning>.
+* Use <warning>references</warning> type to create a foreign key constraint.
+  e.g. <warning>category_id:references</warning> (auto-infers table as 'categories')
+  or <warning>category_id:references:custom_table</warning> to specify the referenced table.
 
 <info>Examples</info>
 
@@ -195,12 +205,55 @@ Create a migration that adds (<warning>name VARCHAR(128)</warning>) to the <warn
 table.
 
 <warning>bin/cake bake migration AddSlugToProjects name:string[128]:unique</warning>
-Create a migration that adds (<warning>name VARCHAR(128)</warning> and a <warning>UNIQUE<.warning index)
+Create a migration that adds (<warning>name VARCHAR(128)</warning> and a <warning>UNIQUE</warning> index)
 to the <warning>projects</warning> table.
+
+<warning>bin/cake bake migration CreatePosts title:string user_id:references</warning>
+Create a migration that creates the <warning>posts</warning> table with a foreign key
+constraint on <warning>user_id</warning> referencing the <warning>users</warning> table.
+
+<warning>bin/cake bake migration AddCategoryIdToArticles category_id:references:categories</warning>
+Create a migration that adds a foreign key column (<warning>category_id</warning>) to the <warning>articles</warning>
+table referencing the <warning>categories</warning> table.
+
+<warning>bin/cake bake migration AddActiveToUsers active:boolean:default[true]</warning>
+Create a migration that adds an <warning>active</warning> column with a default value of <warning>true</warning>.
+
+<warning>bin/cake bake migration AddCountToProducts count:integer:default[0]:unique</warning>
+Create a migration that adds a <warning>count</warning> column with default <warning>0</warning> and a unique index.
+
+<info>Migration Styles</info>
+
+You can generate migrations in different styles:
+
+<warning>bin/cake bake migration --style=anonymous CreatePosts</warning>
+Creates an anonymous class migration with readable file naming (2024_12_08_120000_CreatePosts.php)
+
+<warning>bin/cake bake migration --style=traditional CreatePosts</warning>
+Creates a traditional class-based migration (20241208120000_create_posts.php)
+
+You can set the default style in your configuration:
+<warning>Configure::write('Migrations.style', 'anonymous');</warning>
 
 TEXT;
 
         $parser->setDescription($text);
+
+        return $parser;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    {
+        $parser = parent::buildOptionParser($parser);
+
+        $parser->addOption('style', [
+            'help' => 'Migration style to use (traditional or anonymous).',
+            'default' => null,
+            'choices' => ['traditional', 'anonymous'],
+        ]);
 
         return $parser;
     }

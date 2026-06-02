@@ -26,11 +26,7 @@ class PropertySpacingSniff extends AbstractPropertyConstantAndEnumCaseSpacing
 		return TokenHelper::PROPERTY_MODIFIERS_TOKEN_CODES;
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $pointer
-	 */
-	public function process(File $phpcsFile, $pointer): int
+	public function process(File $phpcsFile, int $pointer): int
 	{
 		$tokens = $phpcsFile->getTokens();
 
@@ -45,7 +41,7 @@ class PropertySpacingSniff extends AbstractPropertyConstantAndEnumCaseSpacing
 			return $nextPointer;
 		}
 
-		// Ignore other class members with same mofidiers
+		// Ignore other class members with same modifiers
 		$propertyPointer = TokenHelper::findNext($phpcsFile, [T_VARIABLE, T_FUNCTION, T_CONST, T_CLASS], $pointer + 1);
 		if (
 			$propertyPointer === null

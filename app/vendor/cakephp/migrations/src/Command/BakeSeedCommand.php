@@ -32,15 +32,15 @@ class BakeSeedCommand extends SimpleBakeCommand
 {
     /**
      * path to Migration directory
-     *
-     * @var string
      */
     public string $pathFragment = 'config/Seeds/';
 
-    /**
-     * @var string
-     */
     protected string $_name;
+
+    /**
+     * Arguments
+     */
+    protected Arguments $args;
 
     /**
      * @inheritDoc
@@ -84,6 +84,11 @@ class BakeSeedCommand extends SimpleBakeCommand
      */
     public function template(): string
     {
+        $style = $this->args->getOption('style') ?? Configure::read('Migrations.style', 'traditional');
+        if ($style === 'anonymous') {
+            return 'Migrations.Seed/seed-anonymous';
+        }
+
         return 'Migrations.Seed/seed';
     }
 
@@ -111,8 +116,7 @@ class BakeSeedCommand extends SimpleBakeCommand
         if ($arguments->getOption('data')) {
             $limit = (int)$arguments->getOption('limit');
 
-            /** @var string $fields */
-            $fields = $arguments->getOption('fields') ?: '*';
+            $fields = (string)$arguments->getOption('fields') ?: '*';
             if ($fields !== '*') {
                 $fields = explode(',', $fields);
             }
@@ -142,15 +146,15 @@ class BakeSeedCommand extends SimpleBakeCommand
             'namespace' => $namespace,
             'records' => $records,
             'table' => $table,
-            'backend' => Configure::read('Migrations.backend', 'builtin'),
         ];
     }
 
     /**
      * @inheritDoc
      */
-    public function bake(string $name, Arguments $args, ConsoleIo $io): void
+    protected function bake(string $name, Arguments $args, ConsoleIo $io): void
     {
+        $this->args = $args;
         /** @var array<string, bool|string|null> $options */
         $options = array_merge($args->getOptions(), ['no-test' => true]);
         $newArgs = new Arguments(
@@ -168,7 +172,7 @@ class BakeSeedCommand extends SimpleBakeCommand
      * @param \Cake\Console\ConsoleOptionParser $parser Option parser to update.
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $parser = parent::buildOptionParser($parser);
 
@@ -185,6 +189,10 @@ class BakeSeedCommand extends SimpleBakeCommand
         ])->addOption('limit', [
             'short' => 'l',
             'help' => 'If including data, max number of rows to select',
+        ])->addOption('style', [
+            'help' => 'Seed style to use (traditional or anonymous).',
+            'default' => null,
+            'choices' => ['traditional', 'anonymous'],
         ]);
 
         return $parser;
@@ -205,6 +213,7 @@ class BakeSeedCommand extends SimpleBakeCommand
         $lines = explode("\n", $content);
 
         $inString = false;
+        $removeKeys = [];
 
         foreach ($lines as $k => &$line) {
             if ($k === 0) {
@@ -228,7 +237,7 @@ class BakeSeedCommand extends SimpleBakeCommand
                     $tabCount--;
                 } elseif (preg_match("/^\d+\s\=\>\s$/", $line)) {
                     // Mark '0 =>' kind of lines to remove
-                    $line = false;
+                    $removeKeys[] = $k;
                     continue;
                 }
 
@@ -241,7 +250,7 @@ class BakeSeedCommand extends SimpleBakeCommand
                 if ($line[$j] === '\\') {
                     // skip character right after an escape \
                     $j++;
-                } elseif ($line[$j] === '\'') {
+                } elseif ($line[$j] === "'") {
                     // check string open/end
                     $inString = !$inString;
                 }
@@ -255,10 +264,9 @@ class BakeSeedCommand extends SimpleBakeCommand
         }
         unset($line);
 
-        // Remove marked lines
-        $lines = array_filter($lines, function ($line) {
-            return $line !== false;
-        });
+        foreach ($removeKeys as $key) {
+            unset($lines[$key]);
+        }
 
         return implode("\n", $lines);
     }

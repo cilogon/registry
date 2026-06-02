@@ -32,13 +32,28 @@ final class ClosureComparator extends Comparator
         assert($expected instanceof Closure);
         assert($actual instanceof Closure);
 
-        /** @phpstan-ignore equal.notAllowed */
-        if ($expected == $actual) {
+        if ($expected === $actual) {
             return;
         }
 
         $expectedReflector = new ReflectionFunction($expected);
         $actualReflector   = new ReflectionFunction($actual);
+
+        if ($this->declarationIsEqual($expectedReflector, $actualReflector) &&
+            $this->bindingIsEqual($expectedReflector, $actualReflector) &&
+            $this->capturedStateIsEqual($expectedReflector, $actualReflector)) {
+            return;
+        }
+
+        $expectedFilename  = $expectedReflector->getFileName();
+        $expectedStartLine = $expectedReflector->getStartLine();
+        $actualFilename    = $actualReflector->getFileName();
+        $actualStartLine   = $actualReflector->getStartLine();
+
+        assert($expectedFilename !== false);
+        assert($expectedStartLine !== false);
+        assert($actualFilename !== false);
+        assert($actualStartLine !== false);
 
         throw new ComparisonFailure(
             $expected,
@@ -47,11 +62,51 @@ final class ClosureComparator extends Comparator
             'Closure Object #' . spl_object_id($actual) . ' ()',
             sprintf(
                 'Failed asserting that closure declared at %s:%d is equal to closure declared at %s:%d.',
-                $expectedReflector->getFileName(),
-                $expectedReflector->getStartLine(),
-                $actualReflector->getFileName(),
-                $actualReflector->getStartLine(),
+                $expectedFilename,
+                $expectedStartLine,
+                $actualFilename,
+                $actualStartLine,
             ),
+            $this->contextLines(),
         );
+    }
+
+    private function declarationIsEqual(ReflectionFunction $expected, ReflectionFunction $actual): bool
+    {
+        return $expected->getName() === $actual->getName() &&
+            $expected->getFileName() === $actual->getFileName() &&
+            $expected->getStartLine() === $actual->getStartLine() &&
+            $expected->getEndLine() === $actual->getEndLine();
+    }
+
+    private function bindingIsEqual(ReflectionFunction $expected, ReflectionFunction $actual): bool
+    {
+        if ($expected->getClosureScopeClass()?->getName() !== $actual->getClosureScopeClass()?->getName()) {
+            return false;
+        }
+
+        return $this->recursivelyEqual(
+            $expected->getClosureThis(),
+            $actual->getClosureThis(),
+        );
+    }
+
+    private function capturedStateIsEqual(ReflectionFunction $expected, ReflectionFunction $actual): bool
+    {
+        return $this->recursivelyEqual(
+            $expected->getClosureUsedVariables(),
+            $actual->getClosureUsedVariables(),
+        );
+    }
+
+    private function recursivelyEqual(mixed $expected, mixed $actual): bool
+    {
+        try {
+            $this->factory()->getComparatorFor($expected, $actual)->assertEquals($expected, $actual);
+        } catch (ComparisonFailure) {
+            return false;
+        }
+
+        return true;
     }
 }

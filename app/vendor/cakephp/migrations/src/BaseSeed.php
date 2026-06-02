@@ -25,31 +25,18 @@ class BaseSeed implements SeedInterface
 {
     /**
      * The Adapter instance
-     *
-     * @var \Migrations\Db\Adapter\AdapterInterface
      */
     protected ?AdapterInterface $adapter = null;
 
     /**
      * The ConsoleIo instance
-     *
-     * @var \Cake\Console\ConsoleIo
      */
     protected ?ConsoleIo $io = null;
 
     /**
      * The config instance.
-     *
-     * @var \Migrations\Config\ConfigInterface
      */
-    protected ?ConfigInterface $config;
-
-    /**
-     * No-op constructor.
-     */
-    public function __construct()
-    {
-    }
+    protected ?ConfigInterface $config = null;
 
     /**
      * {@inheritDoc}
@@ -81,7 +68,7 @@ class BaseSeed implements SeedInterface
      */
     public function getAdapter(): AdapterInterface
     {
-        if (!$this->adapter) {
+        if (!$this->adapter instanceof AdapterInterface) {
             throw new RuntimeException('Adapter not set.');
         }
 
@@ -129,7 +116,12 @@ class BaseSeed implements SeedInterface
      */
     public function getName(): string
     {
-        return static::class;
+        $name = static::class;
+        if (str_starts_with($name, 'Migrations\BaseSeed@anonymous') && preg_match('#[/\\\\](\w+)\.php:#', $name, $matches)) {
+            return $matches[1];
+        }
+
+        return $name;
     }
 
     /**
@@ -177,6 +169,25 @@ class BaseSeed implements SeedInterface
     /**
      * {@inheritDoc}
      */
+    public function insertOrSkip(string $tableName, array $data): void
+    {
+        // convert to table object
+        $table = new Table($tableName, [], $this->getAdapter());
+        $table->insertOrSkip($data)->save();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function insertOrUpdate(string $tableName, array $data, array $updateColumns, array $conflictColumns): void
+    {
+        $table = new Table($tableName, [], $this->getAdapter());
+        $table->insertOrUpdate($data, $updateColumns, $conflictColumns)->save();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function hasTable(string $tableName): bool
     {
         return $this->getAdapter()->hasTable($tableName);
@@ -201,10 +212,20 @@ class BaseSeed implements SeedInterface
     /**
      * {@inheritDoc}
      */
+    public function isIdempotent(): bool
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function call(string $seeder, array $options = []): void
     {
         $io = $this->getIo();
-        assert($io !== null, 'Requires ConsoleIo');
+        if (!$io instanceof ConsoleIo) {
+            throw new RuntimeException('ConsoleIo is required for calling other seeders.');
+        }
         $io->out('');
         $io->out(
             ' ====' .
@@ -238,14 +259,22 @@ class BaseSeed implements SeedInterface
         [$pluginName, $seeder] = pluginSplit($seeder);
         $adapter = $this->getAdapter();
         $connection = $adapter->getConnection()->configName();
+        $config = $this->getConfig();
 
+        $options += [
+            'connection' => $connection,
+            'plugin' => $pluginName ?? ($config instanceof ConfigInterface ? $config['plugin'] : null),
+            'source' => $config instanceof ConfigInterface ? $config['source'] : null,
+        ];
         $factory = new ManagerFactory([
-            'plugin' => $options['plugin'] ?? $pluginName ?? null,
-            'source' => $options['source'] ?? null,
-            'connection' => $options['connection'] ?? $connection,
+            'connection' => $options['connection'],
+            'plugin' => $options['plugin'],
+            'source' => $options['source'],
         ]);
         $io = $this->getIo();
-        assert($io !== null, 'Missing ConsoleIo instance');
+        if (!$io instanceof ConsoleIo) {
+            throw new RuntimeException('ConsoleIo is required for calling other seeders.');
+        }
         $manager = $factory->createManager($io);
         $manager->seed($seeder);
     }

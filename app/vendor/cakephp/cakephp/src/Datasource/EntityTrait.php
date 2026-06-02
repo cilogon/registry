@@ -27,6 +27,8 @@ use function Cake\Core\deprecationWarning;
 /**
  * An entity represents a single result row from a repository. It exposes the
  * methods for retrieving and storing fields associated in this row.
+ *
+ * @require-implements \Cake\Datasource\EntityInterface
  */
 trait EntityTrait
 {
@@ -109,7 +111,7 @@ trait EntityTrait
     /**
      * Map of fields in this entity that can be safely mass assigned, each
      * field name points to a boolean indicating its status. An empty array
-     * means no fields are accessible for mass assigment.
+     * means no fields are accessible for mass assignment.
      *
      * The special field '\*' can also be mapped, meaning that any other field
      * not defined in the map will take its value. For example, `'*' => true`
@@ -151,7 +153,7 @@ trait EntityTrait
      */
     public function &__get(string $field): mixed
     {
-        return $this->get($field);
+        return $this->getRequiredOrFail($field, $this->requireFieldPresence);
     }
 
     /**
@@ -224,7 +226,7 @@ trait EntityTrait
      * @param array<string, mixed> $options Options to be used for setting the field. Allowed option
      * keys are `setter`, `guard` and `asOriginal`
      * @return $this
-     * @throws \InvalidArgumentException
+     * @throws \InvalidArgumentException when an empty field name is provided
      */
     public function set(array|string $field, mixed $value = null, array $options = [])
     {
@@ -365,6 +367,7 @@ trait EntityTrait
 
         if (
             is_object($value)
+            && is_object($existing)
             && !($value instanceof EntityInterface)
             && $existing == $value
         ) {
@@ -380,8 +383,25 @@ trait EntityTrait
      * @param string $field the name of the field to retrieve
      * @return mixed
      * @throws \InvalidArgumentException if an empty field name is passed
+     * @throws \Cake\Datasource\Exception\MissingPropertyException when field does not exist and requireFieldPresence is enabled
      */
     public function &get(string $field): mixed
+    {
+        return $this->getRequiredOrFail($field, false);
+    }
+
+    /**
+     * Get field with option for requireFieldPresence.
+     *
+     * Note: The returned value might be null if the field is set to null.
+     *
+     * @param string $field the name of the field to retrieve
+     * @param bool $requireFieldPresence Whether to throw an exception if the field is not present
+     * @return mixed
+     * @throws \InvalidArgumentException if an empty field name is passed
+     * @throws \Cake\Datasource\Exception\MissingPropertyException If property does not exist and $requireFieldPresence
+     */
+    public function &getRequiredOrFail(string $field, bool $requireFieldPresence = true): mixed
     {
         if ($field === '') {
             throw new InvalidArgumentException('Cannot get an empty field');
@@ -402,7 +422,7 @@ trait EntityTrait
             return $result;
         }
 
-        if (!$fieldIsPresent && $this->requireFieldPresence) {
+        if (!$fieldIsPresent && $requireFieldPresence) {
             throw new MissingPropertyException([
                 'property' => $field,
                 'entity' => $this::class,
@@ -441,7 +461,7 @@ trait EntityTrait
      * @param string $field the name of the field for which original value is retrieved.
      * @param bool $allowFallback whether to allow falling back to the current field value if no original exists
      * @return mixed
-     * @throws \InvalidArgumentException if an empty field name is passed.
+     * @throws \InvalidArgumentException if an empty field name is passed or if the field has no original value and $allowFallback is false
      */
     public function getOriginal(string $field, bool $allowFallback = true): mixed
     {
@@ -531,21 +551,13 @@ trait EntityTrait
      *
      * @param string $field The field to check.
      * @return bool
+     * @deprecated 5.3.0 Use hasValue() instead.
      */
     public function isEmpty(string $field): bool
     {
-        $value = $this->get($field);
-        if (
-            $value === null ||
-            (
-                $value === [] ||
-                $value === ''
-            )
-        ) {
-            return true;
-        }
+        deprecationWarning('5.3.0', 'isEmpty() is deprecated. Use hasValue() instead.');
 
-        return false;
+        return !$this->hasValue($field);
     }
 
     /**
@@ -558,6 +570,7 @@ trait EntityTrait
      * - Any object
      * - Integer, even `0`
      * - Float, even 0.0
+     * - Boolean, both `true` and `false`
      *
      * and false in all other cases.
      *
@@ -566,7 +579,18 @@ trait EntityTrait
      */
     public function hasValue(string $field): bool
     {
-        return !$this->isEmpty($field);
+        $value = $this->get($field);
+        if (
+            $value === null ||
+            (
+                $value === [] ||
+                $value === ''
+            )
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -775,7 +799,7 @@ trait EntityTrait
             return static::$_accessors[$class][$type][$property];
         }
 
-        if (!empty(static::$_accessors[$class])) {
+        if (isset(static::$_accessors[$class])) {
             return static::$_accessors[$class][$type][$property] = '';
         }
 
@@ -1158,6 +1182,13 @@ trait EntityTrait
             $errors = [$errors];
         }
 
+        // Handle dotted field paths by creating nested error structure
+        if (str_contains($field, '.')) {
+            $nested = Hash::insert([], $field, $errors);
+
+            return $this->setErrors($nested, $overwrite);
+        }
+
         return $this->setErrors([$field => $errors], $overwrite);
     }
 
@@ -1357,7 +1388,7 @@ trait EntityTrait
     public function setAccess(array|string $field, bool $set)
     {
         if ($field === '*') {
-            $this->_accessible = array_map(fn($p) => $set, $this->_accessible);
+            $this->_accessible = array_map(fn() => $set, $this->_accessible);
             $this->_accessible['*'] = $set;
 
             return $this;
@@ -1424,7 +1455,7 @@ trait EntityTrait
     }
 
     /**
-     * Returns a string representation of this object in a human readable format.
+     * Returns a string representation of this object in a human-readable format.
      *
      * @return string
      * @deprecated 5.2.0 Casting an entity to string is deprecated. Use json_encode() instead to get a string representation of the entity.

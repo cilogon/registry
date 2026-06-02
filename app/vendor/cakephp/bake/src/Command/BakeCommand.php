@@ -27,6 +27,7 @@ use Cake\Core\Configure;
 use Cake\Core\ConventionsTrait;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Cake\ORM\Locator\TableLocator;
 use InvalidArgumentException;
 use function Cake\Core\pluginSplit;
 
@@ -43,10 +44,24 @@ abstract class BakeCommand extends Command
 
     /**
      * The pathFragment appended to the plugin/app path.
-     *
-     * @var string
      */
     protected string $pathFragment;
+
+    /**
+     * Initialize the command.
+     *
+     * @return void
+     */
+    public function initialize(): void
+    {
+        parent::initialize();
+
+        $locator = $this->getTableLocator();
+        if ($locator instanceof TableLocator) {
+            $locator->allowFallbackClass(true);
+            $this->setTableLocator($locator);
+        }
+    }
 
     /**
      * Get the command name.
@@ -60,7 +75,7 @@ abstract class BakeCommand extends Command
     public static function defaultName(): string
     {
         $name = parent::defaultName();
-        if (strpos($name, 'bake_') === 0) {
+        if (str_starts_with($name, 'bake_')) {
             $name = substr($name, 5);
         }
 
@@ -95,13 +110,14 @@ abstract class BakeCommand extends Command
      */
     protected function getPrefix(Arguments $args): string
     {
+        /** @var string|null $prefix */
         $prefix = $args->getOption('prefix');
         if (!$prefix) {
             return '';
         }
         $parts = explode('/', $prefix);
 
-        return implode('/', array_map([$this, '_camelize'], $parts));
+        return implode('/', array_map($this->_camelize(...), $parts));
     }
 
     /**
@@ -180,7 +196,7 @@ abstract class BakeCommand extends Command
     {
         if (file_exists($path)) {
             unlink($path);
-            $io->out(sprintf('<success>Deleted</success> `%s`', $path), 1, ConsoleIo::NORMAL);
+            $io->out(sprintf('<success>Deleted</success> `%s`', $path));
         }
     }
 
@@ -196,7 +212,7 @@ abstract class BakeCommand extends Command
      */
     protected function isValidColumnName(string $name): bool
     {
-        return (bool)preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $name);
+        return (bool)preg_match('/^[a-zA-Z_]\w*$/', $name);
     }
 
     /**
@@ -208,7 +224,12 @@ abstract class BakeCommand extends Command
     protected function parseFile(string $path): ?ParsedFile
     {
         if (file_exists($path)) {
-            return (new CodeParser())->parseFile(file_get_contents($path));
+            $contents = file_get_contents($path);
+            if ($contents === false) {
+                return null;
+            }
+
+            return (new CodeParser())->parseFile($contents);
         }
 
         return null;

@@ -23,7 +23,6 @@ use Cake\Console\CommandCollection;
 use Cake\Console\CommandCollectionAwareInterface;
 use Cake\Console\ConsoleIo;
 use Cake\Console\Exception\ConsoleException;
-use Cake\Core\Configure;
 
 /**
  * Command that provides help and an entry point to migrations tools.
@@ -32,8 +31,6 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
 {
     /**
      * The command collection to get help on.
-     *
-     * @var \Cake\Console\CommandCollection
      */
     protected CommandCollection $commands;
 
@@ -83,13 +80,10 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
 
         // This is the variance from Command::run()
         if (!$args->getArgumentAt(0) && $args->getOption('help')) {
-            $backend = Configure::read('Migrations.backend', 'builtin');
             $io->out([
                 '<info>Migrations</info>',
                 '',
                 "Migrations provides commands for managing your application's database schema and initial data.",
-                '',
-                "Using <info>{$backend}</info> backend.",
                 '',
             ]);
             $help = $this->getHelp();
@@ -113,7 +107,7 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
         if ($args->hasArgumentAt(0)) {
             $name = $args->getArgumentAt(0);
             $io->err(
-                "<error>Could not find migrations command named `$name`."
+                sprintf('<error>Could not find migrations command named `%s`.', $name)
                 . ' Run `migrations --help` to get a list of commands.</error>',
             );
 
@@ -139,7 +133,7 @@ class EntryCommand extends Command implements CommandCollectionAwareInterface
 
                 // Remove `migrations`
                 array_shift($parts);
-                if (count($parts) === 0) {
+                if ($parts === []) {
                     continue;
                 }
                 $commands[$command] = $class;

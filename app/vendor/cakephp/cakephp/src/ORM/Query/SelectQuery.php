@@ -44,7 +44,7 @@ use Psr\SimpleCache\CacheInterface;
  * into a specific iterator that will be responsible for hydrating results if
  * required.
  *
- * @template TSubject of \Cake\Datasource\EntityInterface|array
+ * @template-covariant TSubject of \Cake\Datasource\EntityInterface|array
  * @extends \Cake\Database\Query\SelectQuery<TSubject>
  */
 class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterface
@@ -94,6 +94,13 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * @var bool
      */
     protected bool $_hydrate = true;
+
+    /**
+     * DTO class for projection instead of entity hydration
+     *
+     * @var class-string|null
+     */
+    protected ?string $dtoClass = null;
 
     /**
      * Whether aliases are generated for fields.
@@ -154,7 +161,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * When set, SelectQuery execution will be bypassed.
      *
      * @var iterable|null
-     * @see \Cake\Datasource\QueryTrait::setResult()
+     * @see \Cake\ORM\Query\SelectQuery::setResult()
      */
     protected ?iterable $_results = null;
 
@@ -227,7 +234,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * iterated without having to call execute() manually, thus making it look like
      * a result set instead of the query itself.
      *
-     * @return \Cake\Datasource\ResultSetInterface<\Cake\Datasource\EntityInterface|array>
+     * @return \Cake\Datasource\ResultSetInterface<array-key, TSubject>
      */
     public function getIterator(): ResultSetInterface
     {
@@ -365,7 +372,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * ResultSetDecorator is a traversable object that implements the methods found
      * on Cake\Collection\Collection.
      *
-     * @return \Cake\Datasource\ResultSetInterface<mixed>
+     * @return \Cake\Datasource\ResultSetInterface<array-key, TSubject>
      */
     public function all(): ResultSetInterface
     {
@@ -390,7 +397,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
     /**
      * Returns an array representation of the results after executing the query.
      *
-     * @return array
+     * @return array<array-key, TSubject>
      */
     public function toArray(): array
     {
@@ -575,7 +582,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * $singleUser = $query->select(['id', 'username'])->first();
      * ```
      *
-     * @return mixed The first result from the ResultSet.
+     * @return TSubject|null The first result from the ResultSet.
      */
     public function first(): mixed
     {
@@ -590,7 +597,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * Get the first result from the executing query or raise an exception.
      *
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When there is no first record.
-     * @return mixed The first result from the ResultSet.
+     * @return TSubject The first result from the ResultSet.
      */
     public function firstOrFail(): mixed
     {
@@ -620,7 +627,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * @see \Cake\Datasource\QueryInterface::applyOptions() to read about the options that will
      * be processed by this class and not returned by this function
      * @return array
-     * @see applyOptions()
+     * @see \Cake\ORM\Query\SelectQuery::applyOptions()
      */
     public function getOptions(): array
     {
@@ -688,7 +695,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      *
      * @param array<string, mixed> $options The options to be applied
      * @return $this
-     * @see getOptions()
+     * @see \Cake\ORM\Query\SelectQuery::getOptions()
      */
     public function applyOptions(array $options)
     {
@@ -725,7 +732,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * Decorates the results iterator with MapReduce routines and formatters
      *
      * @param iterable $result Original results
-     * @return \Cake\Datasource\ResultSetInterface<\Cake\Datasource\EntityInterface|mixed>
+     * @return \Cake\Datasource\ResultSetInterface<array-key, \Cake\Datasource\EntityInterface|mixed>
      */
     protected function _decorateResults(iterable $result): ResultSetInterface
     {
@@ -746,6 +753,17 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
             foreach ($this->_formatters as $formatter) {
                 $result = $formatter($result, $this);
             }
+
+            if (!($result instanceof ResultSetInterface)) {
+                $result = new $resultSetClass($result);
+            }
+        }
+
+        // DTO projection runs AFTER all other formatters so behaviors see arrays/entities
+        if ($this->dtoClass !== null) {
+            // Get the cached hydrator once, avoiding method_exists() check on every row
+            $hydrator = $this->resultSetFactory()->getDtoHydrator($this->dtoClass);
+            $result = $result->map($hydrator);
 
             if (!($result instanceof ResultSetInterface)) {
                 $result = new $resultSetClass($result);
@@ -782,9 +800,9 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * })
      * ```
      *
-     * By default, no fields are selected, if you have an instance of `Cake\ORM\Query` and try to append
-     * fields you should also call `Cake\ORM\Query::enableAutoFields()` to select the default fields
-     * from the table.
+     * By default, no fields are selected, if you have an instance of `Cake\ORM\Query\SelectQuery` and try to
+     * append fields you should also call `Cake\ORM\Query\SelectQuery::enableAutoFields()` to select the
+     * default fields from the table.
      *
      * If you pass an instance of a `Cake\ORM\Table` or `Cake\ORM\Association` class,
      * all the fields in the schema of the table or the association will be added to
@@ -1241,7 +1259,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * @param \Closure|null $builder a function that will receive a pre-made query object
      * that can be used to add custom conditions or selecting some fields
      * @return $this
-     * @see \Cake\ORM\Query\SeletQuery::matching()
+     * @see \Cake\ORM\Query\SelectQuery::matching()
      */
     public function innerJoinWith(string $assoc, ?Closure $builder = null)
     {
@@ -1501,13 +1519,15 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * Disabling hydration will cause array results to be returned for the query
      * instead of entities.
      *
-     * @return $this
+     * @return static<array<string,mixed>>
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
      */
     public function disableHydration()
     {
         $this->_dirty();
         $this->_hydrate = false;
 
+        /** @phpstan-ignore return.type */
         return $this;
     }
 
@@ -1519,6 +1539,43 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
     public function isHydrationEnabled(): bool
     {
         return $this->_hydrate;
+    }
+
+    /**
+     * Project results into a DTO class instead of entities.
+     *
+     * When DTO projection is enabled, results will be hydrated into
+     * the specified DTO class instead of entity objects.
+     *
+     * @param class-string $dtoClass The DTO class name
+     * @return $this
+     */
+    public function projectAs(string $dtoClass)
+    {
+        $this->_dirty();
+        $this->dtoClass = $dtoClass;
+
+        return $this;
+    }
+
+    /**
+     * Get the DTO class for projection.
+     *
+     * @return class-string|null
+     */
+    public function getDtoClass(): ?string
+    {
+        return $this->dtoClass;
+    }
+
+    /**
+     * Check if DTO projection is enabled.
+     *
+     * @return bool
+     */
+    public function isDtoProjectionEnabled(): bool
+    {
+        return $this->dtoClass !== null;
     }
 
     /**
@@ -1579,7 +1636,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
     /**
      * Get result set factory.
      *
-     * @return \Cake\ORM\ResultSetFactory
+     * @return \Cake\ORM\ResultSetFactory<\Cake\Datasource\EntityInterface|array>
      */
     public function resultSetFactory(): ResultSetFactory
     {
@@ -1728,7 +1785,7 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      *
      * Part of JsonSerializable interface.
      *
-     * @return \Cake\Datasource\ResultSetInterface<(\Cake\Datasource\EntityInterface|mixed)> The data to convert to JSON.
+     * @return \Cake\Datasource\ResultSetInterface<array-key, (\Cake\Datasource\EntityInterface|mixed)> The data to convert to JSON.
      */
     public function jsonSerialize(): ResultSetInterface
     {

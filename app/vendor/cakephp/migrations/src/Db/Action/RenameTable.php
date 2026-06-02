@@ -8,24 +8,22 @@ declare(strict_types=1);
 
 namespace Migrations\Db\Action;
 
-use Migrations\Db\Table\Table;
+use Migrations\Db\Table\TableMetadata;
 
 class RenameTable extends Action
 {
     /**
      * The new name for the table
-     *
-     * @var string
      */
     protected string $newName;
 
     /**
      * Constructor
      *
-     * @param \Migrations\Db\Table\Table $table The table to be renamed
+     * @param \Migrations\Db\Table\TableMetadata $table The table to be renamed
      * @param string $newName The new name for the table
      */
-    public function __construct(Table $table, string $newName)
+    public function __construct(TableMetadata $table, string $newName)
     {
         parent::__construct($table);
         $this->newName = $newName;

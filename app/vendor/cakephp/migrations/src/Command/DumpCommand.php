@@ -45,7 +45,6 @@ class DumpCommand extends Command
     /**
      * Extract options for the dump command from another migrations option parser.
      *
-     * @param \Cake\Console\Arguments $args
      * @return array<int|string, mixed>
      */
     public static function extractArgs(Arguments $args): array
@@ -74,7 +73,7 @@ class DumpCommand extends Command
      * @param \Cake\Console\ConsoleOptionParser $parser The option parser to configure
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
         $parser->setDescription([
             'Dumps the current schema of the database to be used while baking a diff',
@@ -112,6 +111,12 @@ class DumpCommand extends Command
         ]);
         $config = $factory->createConfig();
         $path = $config->getMigrationPath();
+
+        if (!is_dir($path)) {
+            $io->verbose('<info>No migrations directory found, skipping dump.</info>');
+
+            return self::CODE_SUCCESS;
+        }
         $connectionName = (string)$config->getConnection();
         $connection = ConnectionManager::get($connectionName);
         assert($connection instanceof Connection);
@@ -127,21 +132,19 @@ class DumpCommand extends Command
         $tables = $finder->getTablesToBake($collection, $options);
 
         $dump = [];
-        if ($tables) {
-            foreach ($tables as $table) {
-                $schema = $collection->describe($table);
-                $dump[$table] = $schema;
-            }
+        foreach ($tables as $table) {
+            $schema = $collection->describe($table);
+            $dump[$table] = $schema;
         }
 
         $filePath = $path . DS . 'schema-dump-' . $connectionName . '.lock';
-        $io->verbose("<info>Writing dump file `{$filePath}`...</info>");
+        $io->verbose(sprintf('<info>Writing dump file `%s`...</info>', $filePath));
         if (file_put_contents($filePath, serialize($dump))) {
-            $io->verbose("<info>Dump file `{$filePath}` was successfully written</info>");
+            $io->verbose(sprintf('<info>Dump file `%s` was successfully written</info>', $filePath));
 
             return self::CODE_SUCCESS;
         }
-        $io->error("An error occurred while writing dump file `{$filePath}`");
+        $io->err(sprintf('<error>An error occurred while writing dump file `%s`</error>', $filePath));
 
         return self::CODE_ERROR;
     }

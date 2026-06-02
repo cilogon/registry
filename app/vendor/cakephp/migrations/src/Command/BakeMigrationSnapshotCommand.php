@@ -35,9 +35,6 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
     use SnapshotTrait;
     use UtilTrait;
 
-    /**
-     * @var string
-     */
     protected string $_name;
 
     /**
@@ -51,7 +48,7 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
     /**
      * @inheritDoc
      */
-    public function bake(string $name, Arguments $args, ConsoleIo $io): void
+    protected function bake(string $name, Arguments $args, ConsoleIo $io): void
     {
         $collection = $this->getCollection($this->connection);
 
@@ -59,7 +56,9 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
         assert($connection instanceof Connection);
 
         EventManager::instance()->on('Bake.initialize', function (Event $event) use ($collection, $connection): void {
-            $event->getSubject()->loadHelper('Migrations.Migration', [
+            /** @var \Bake\View\BakeView $view */
+            $view = $event->getSubject();
+            $view->loadHelper('Migrations.Migration', [
                 'collection' => $collection,
                 'connection' => $connection,
             ]);
@@ -106,6 +105,8 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
             $autoId = !$arguments->getOption('disable-autoid');
         }
 
+        $useChange = (bool)$arguments->getOption('change');
+
         return [
             'plugin' => $this->plugin,
             'pluginPath' => $pluginPath,
@@ -115,7 +116,7 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
             'action' => 'create_table',
             'name' => $this->_name,
             'autoId' => $autoId,
-            'backend' => Configure::read('Migrations.backend', 'builtin'),
+            'useChange' => $useChange,
         ];
     }
 
@@ -176,6 +177,15 @@ class BakeMigrationSnapshotCommand extends BakeSimpleMigrationCommand
         ->addOption('no-lock', [
             'help' => 'If present, no lock file will be generated after baking',
             'boolean' => true,
+        ])
+        ->addOption('generate-only', [
+            'help' => 'Only generate the migration file without marking it as applied',
+            'boolean' => true,
+        ])
+        ->addOption('change', [
+            'help' => 'Use change() method instead of up()/down() methods',
+            'boolean' => true,
+            'default' => false,
         ]);
 
         return $parser;

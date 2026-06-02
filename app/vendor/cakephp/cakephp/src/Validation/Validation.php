@@ -174,7 +174,7 @@ class Validation
     }
 
     /**
-     * Checks that a doesn't contain any alpha numeric characters
+     * Checks that a value doesn't contain any alpha numeric characters
      *
      * This method's definition of letters and integers includes unicode characters.
      * Use `notAsciiAlphaNumeric()` if you want to exclude ascii only.
@@ -203,7 +203,7 @@ class Validation
     }
 
     /**
-     * Checks that a doesn't contain any non-ascii alpha numeric characters
+     * Checks that a value doesn't contain any non-ascii alpha numeric characters
      *
      * @param mixed $check Value to check
      * @return bool Success
@@ -345,7 +345,7 @@ class Validation
     {
         if (
             (!is_numeric($check1) || !is_numeric($check2)) &&
-            !in_array($operator, static::COMPARE_STRING)
+            !in_array($operator, static::COMPARE_STRING, true)
         ) {
             return false;
         }
@@ -593,7 +593,7 @@ class Validation
      *
      * @param mixed $check Value to check
      * @return bool True if the value is valid, false otherwise
-     * @see Regex credits: https://www.myintervals.com/blog/2009/05/20/iso-8601-date-validation-that-doesnt-suck/
+     * @see https://www.myintervals.com/blog/2009/05/20/iso-8601-date-validation-that-doesnt-suck/ for regex credits
      */
     public static function iso8601(mixed $check): bool
     {
@@ -651,9 +651,9 @@ class Validation
      * @param string|int|null $format any format accepted by IntlDateFormatter
      * @return bool Success
      * @throws \InvalidArgumentException when unsupported $type given
-     * @see \Cake\I18n\Time::parseDate()
+     * @see \Cake\I18n\Date::parseDate()
      * @see \Cake\I18n\Time::parseTime()
-     * @see \Cake\I18n\Time::parseDateTime()
+     * @see \Cake\I18n\DateTime::parseDateTime()
      */
     public static function localizedTime(mixed $check, string $type = 'datetime', string|int|null $format = null): bool
     {
@@ -839,7 +839,7 @@ class Validation
     }
 
     /**
-     * Checks that the value is a valid backed enum instance or value.
+     * Checks that the value is backed enum instance or value of one of the provided enum cases.
      *
      * @param mixed $check Value to check
      * @param array<\BackedEnum> $cases Array of enum cases that are valid.
@@ -862,7 +862,7 @@ class Validation
     }
 
     /**
-     * Checks that the value is a valid backed enum instance or value.
+     * Checks that the value is a valid backed enum instance or value except the cases provided.
      *
      * @param mixed $check Value to check
      * @param array<\BackedEnum> $cases Array of enum cases that are not valid.
@@ -932,7 +932,7 @@ class Validation
             $check = (int)$check;
         }
 
-        if (get_debug_type($check) !== (string)$backingType) {
+        if (get_debug_type($check) !== $backingType) {
             return false;
         }
 
@@ -999,7 +999,7 @@ class Validation
     /**
      * Checks that value has a valid file extension.
      *
-     * Supports checking `\Psr\Http\Message\UploadedFileInterface` instances and
+     * Supports checking `\Psr\Http\Message\UploadedFileInterface` instances
      * and arrays with a `name` key.
      *
      * @param mixed $check Value to check
@@ -1053,6 +1053,35 @@ class Validation
         }
 
         return (bool)filter_var($check, FILTER_VALIDATE_IP, ['flags' => $flags]);
+    }
+
+    /**
+     * Validation of an IP address or range (subnet).
+     *
+     * @param mixed $check The string to test.
+     * @param string $type The IP Protocol version to validate against
+     * @return bool Success
+     */
+    public static function ipOrRange(mixed $check, string $type = 'both'): bool
+    {
+        if (!is_string($check)) {
+            return false;
+        }
+
+        if (!str_contains($check, '/')) {
+            return static::ip($check, $type);
+        }
+
+        [$ip, $mask] = explode('/', $check, 2);
+
+        if (in_array($type, ['both', 'ipv4', true]) && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return is_numeric($mask) && $mask >= 0 && $mask <= 32;
+        }
+        if (in_array($type, ['both', 'ipv6', true]) && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            return is_numeric($mask) && $mask >= 0 && $mask <= 128;
+        }
+
+        return false;
     }
 
     /**
@@ -1442,7 +1471,7 @@ class Validation
      *
      * @param mixed $check Value to check.
      * @param string $operator See `Validation::comparison()`.
-     * @param string|int $size Size in bytes or human readable string like '5MB'.
+     * @param string|int $size Size in bytes or human-readable string like '5MB'.
      * @return bool Success
      */
     public static function fileSize(mixed $check, string $operator, string|int $size): bool
@@ -1463,8 +1492,8 @@ class Validation
     /**
      * Checking for upload errors
      *
-     * Supports checking `\Psr\Http\Message\UploadedFileInterface` instances and
-     * and arrays with a `error` key.
+     * Supports checking `\Psr\Http\Message\UploadedFileInterface` instances
+     * and arrays with an `error` key.
      *
      * @param mixed $check Value to check.
      * @param bool $allowNoFile Set to true to allow UPLOAD_ERR_NO_FILE as a pass.
@@ -1700,7 +1729,7 @@ class Validation
     /**
      * Convenience method for longitude validation.
      *
-     * @param mixed $value Latitude as string
+     * @param mixed $value Longitude as string
      * @param array<string, mixed> $options Options for the validation logic.
      * @return bool
      * @link https://en.wikipedia.org/wiki/Longitude

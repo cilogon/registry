@@ -17,23 +17,34 @@ declare(strict_types=1);
 namespace Cake\Collection;
 
 use ArrayIterator;
-use Exception;
 use IteratorIterator;
+use SplFixedArray;
 
 /**
  * A collection is an immutable list of elements with a handful of functions to
  * iterate, group, transform and extract information from it.
  *
- * @template-extends \IteratorIterator<mixed, mixed, \Traversable<mixed>>
+ * @template TKey
+ * @template TValue
+ * @extends \IteratorIterator<TKey, TValue, \Traversable<TKey, TValue>>
+ * @implements \Cake\Collection\CollectionInterface<TKey, TValue>
  */
 class Collection extends IteratorIterator implements CollectionInterface
 {
+    /** @use \Cake\Collection\CollectionTrait<TKey, TValue> */
     use CollectionTrait;
+
+    /**
+     * Whether or not the items in this collection are an array.
+     *
+     * @var bool
+     */
+    protected bool $innerIsArray = false;
 
     /**
      * Constructor. You can provide an array or any traversable object
      *
-     * @param iterable $items Items.
+     * @param iterable<TKey, TValue> $items Items.
      * @throws \InvalidArgumentException If passed incorrect type for items.
      */
     public function __construct(iterable $items)
@@ -42,11 +53,13 @@ class Collection extends IteratorIterator implements CollectionInterface
             $items = new ArrayIterator($items);
         }
 
+        $this->innerIsArray = $items instanceof ArrayIterator || $items instanceof SplFixedArray;
+
         parent::__construct($items);
     }
 
     /**
-     * Returns an array for serializing this of this object.
+     * Returns an array for serializing this object.
      *
      * @return array
      */
@@ -63,6 +76,7 @@ class Collection extends IteratorIterator implements CollectionInterface
      */
     public function __unserialize(array $data): void
     {
+        /** @phpstan-ignore argument.type (unserialize rebuilds from array) */
         $this->__construct($data);
     }
 
@@ -74,14 +88,23 @@ class Collection extends IteratorIterator implements CollectionInterface
      */
     public function __debugInfo(): array
     {
-        try {
-            $count = $this->count();
-        } catch (Exception) {
-            $count = 'An exception occurred while getting count';
+        if ($this->innerIsArray) {
+            $index = $this->key();
+            $items = $this->toArray();
+
+            $this->rewind();
+            while ($this->key() !== $index) {
+                $this->next();
+            }
+
+            return [
+                'count' => count($items),
+                'items' => $items,
+            ];
         }
 
         return [
-            'count' => $count,
+            'innerIterator' => $this->unwrap(),
         ];
     }
 }

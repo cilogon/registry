@@ -44,11 +44,7 @@ class JumpStatementsSpacingSniff extends AbstractControlStructureSpacing
 	/** @var list<string> */
 	public array $jumpStatements = [];
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $jumpStatementPointer
-	 */
-	public function process(File $phpcsFile, $jumpStatementPointer): void
+	public function process(File $phpcsFile, int $jumpStatementPointer): void
 	{
 		$this->linesCountBefore = SniffSettingsHelper::normalizeInteger($this->linesCountBefore);
 		$this->linesCountBeforeFirst = SniffSettingsHelper::normalizeInteger($this->linesCountBeforeFirst);
@@ -188,7 +184,7 @@ class JumpStatementsSpacingSniff extends AbstractControlStructureSpacing
 		$pointerBefore = TokenHelper::findPreviousEffective($phpcsFile, $jumpStatementPointer - 1);
 
 		// check if yield is used in assignment
-		if (in_array($tokens[$pointerBefore]['code'], Tokens::$assignmentTokens, true)) {
+		if (in_array($tokens[$pointerBefore]['code'], Tokens::ASSIGNMENT_TOKENS, true)) {
 			return true;
 		}
 

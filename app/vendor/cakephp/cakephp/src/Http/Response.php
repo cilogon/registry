@@ -20,6 +20,7 @@ use Cake\Core\Configure;
 use Cake\Http\Cookie\CookieCollection;
 use Cake\Http\Cookie\CookieInterface;
 use Cake\Http\Exception\NotFoundException;
+use Cake\I18n\DateTime as CakeDateTime;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
@@ -39,7 +40,7 @@ use function Cake\I18n\__d;
  * There are external packages such as `fig/http-message-util` that provide HTTP
  * status code constants. These can be used with any method that accepts or
  * returns a status code integer. Keep in mind that these constants might
- * include status codes that are now allowed which will throw an
+ * include status codes that are not allowed which will throw an
  * `\InvalidArgumentException`.
  */
 class Response implements ResponseInterface, Stringable
@@ -159,7 +160,7 @@ class Response implements ResponseInterface, Stringable
 
     /**
      * Holds all the cache directives that will be converted
-     * into headers when sending the request
+     * into headers when sending the response
      *
      * @var array<string, mixed>
      */
@@ -222,9 +223,7 @@ class Response implements ResponseInterface, Stringable
         if (isset($options['status'])) {
             $this->_setStatus($options['status']);
         }
-        if (!isset($options['charset'])) {
-            $options['charset'] = Configure::read('App.encoding');
-        }
+        $options['charset'] ??= Configure::read('App.encoding');
         $this->_charset = $options['charset'];
         $type = 'text/html';
         if (isset($options['type'])) {
@@ -247,6 +246,9 @@ class Response implements ResponseInterface, Stringable
     /**
      * Formats the Content-Type header based on the configured contentType and charset
      * the charset will only be set in the header if the response is of type text/*
+     *
+     * Note: Content-Type header will be cleared for 304 and 204 status codes as these
+     * status codes must not have a Content-Type header.
      *
      * @param string $type The type to set.
      * @return void
@@ -361,7 +363,7 @@ class Response implements ResponseInterface, Stringable
      * There are external packages such as `fig/http-message-util` that provide HTTP
      * status code constants. These can be used with any method that accepts or
      * returns a status code integer. However, keep in mind that these constants
-     * might include status codes that are now allowed which will throw an
+     * might include status codes that are not allowed which will throw an
      * `\InvalidArgumentException`.
      *
      * @link https://tools.ietf.org/html/rfc7231#section-6
@@ -567,7 +569,7 @@ class Response implements ResponseInterface, Stringable
     public function withDisabledCache(): static
     {
         return $this->withHeader('Expires', 'Mon, 26 Jul 1997 05:00:00 GMT')
-            ->withHeader('Last-Modified', gmdate(CAKE_DATE_RFC7231))
+            ->withHeader('Last-Modified', CakeDateTime::parse(time())->toRfc7231String())
             ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     }
 
@@ -589,7 +591,7 @@ class Response implements ResponseInterface, Stringable
             }
         }
 
-        return $this->withHeader('Date', gmdate(CAKE_DATE_RFC7231, time()))
+        return $this->withHeader('Date', CakeDateTime::parse(time())->toRfc7231String())
             ->withModified($since)
             ->withExpires($time)
             ->withSharable(true)
@@ -597,7 +599,7 @@ class Response implements ResponseInterface, Stringable
     }
 
     /**
-     * Create a new instace with the public/private Cache-Control directive set.
+     * Create a new instance with the public/private Cache-Control directive set.
      *
      * @param bool $public If set to true, the Cache-Control header will be set as public
      *   if set to false, the response will be set to private.
@@ -700,6 +702,9 @@ class Response implements ResponseInterface, Stringable
     /**
      * Create a new instance with the Expires header set.
      *
+     * Strings without an explicit time zone will be converted
+     * from the default time zone to UTC.
+     *
      * ### Examples:
      *
      * ```
@@ -715,13 +720,14 @@ class Response implements ResponseInterface, Stringable
      */
     public function withExpires(DateTimeInterface|string|int|null $time): static
     {
-        $date = $this->_getUTCDate($time);
-
-        return $this->withHeader('Expires', $date->format(CAKE_DATE_RFC7231));
+        return $this->withHeader('Expires', $this->getRfc7231($time));
     }
 
     /**
      * Create a new instance with the Last-Modified header set.
+     *
+     * Strings without an explicit time zone will be converted
+     * from the default time zone to UTC.
      *
      * ### Examples:
      *
@@ -738,9 +744,7 @@ class Response implements ResponseInterface, Stringable
      */
     public function withModified(DateTimeInterface|string|int $time): static
     {
-        $date = $this->_getUTCDate($time);
-
-        return $this->withHeader('Last-Modified', $date->format(CAKE_DATE_RFC7231));
+        return $this->withHeader('Last-Modified', $this->getRfc7231($time));
     }
 
     /**
@@ -833,10 +837,20 @@ class Response implements ResponseInterface, Stringable
             $result = new DateTime($time ?? 'now');
         }
 
-        /**
-         * @phpstan-ignore-next-line
-         */
+        /** @phpstan-ignore-next-line */
         return $result->setTimezone(new DateTimeZone('UTC'));
+    }
+
+    /**
+     * Converts the time zone to GMT and returns a string in RFC7231 format.
+     * This replaced the deprecated and broken ``DATE_RFC7231`` formatting constant.
+     *
+     * @param \DateTimeInterface|string|int|null $time
+     * @return string
+     */
+    protected function getRfc7231(DateTimeInterface|string|int|null $time = null): string
+    {
+        return $this->_getUTCDate($time)->format('D, d M Y H:i:s \G\M\T');
     }
 
     /**
@@ -1077,7 +1091,7 @@ class Response implements ResponseInterface, Stringable
      * Get a CorsBuilder instance for defining CORS headers.
      *
      * @param \Cake\Http\ServerRequest $request Request object
-     * @return \Cake\Http\CorsBuilder A builder object the provides a fluent interface for defining
+     * @return \Cake\Http\CorsBuilder A builder object that provides a fluent interface for defining
      *   additional CORS headers.
      */
     public function cors(ServerRequest $request): CorsBuilder
@@ -1214,6 +1228,7 @@ class Response implements ResponseInterface, Stringable
 
         preg_match('/^bytes\s*=\s*(\d+)?\s*-\s*(\d+)?$/', $httpRange, $matches);
         if ($matches) {
+            /** @phpstan-ignore offsetAccess.notFound */
             $start = $matches[1];
             $end = $matches[2] ?? '';
         }

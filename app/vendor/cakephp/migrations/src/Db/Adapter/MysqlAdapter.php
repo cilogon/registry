@@ -11,79 +11,126 @@ namespace Migrations\Db\Adapter;
 use Cake\Core\Configure;
 use Cake\Database\Connection;
 use Cake\Database\Exception\QueryException;
+use Cake\Database\Schema\SchemaDialect;
 use Cake\Database\Schema\TableSchema;
 use InvalidArgumentException;
 use Migrations\Db\AlterInstructions;
 use Migrations\Db\Literal;
+use Migrations\Db\Table\CheckConstraint;
 use Migrations\Db\Table\Column;
 use Migrations\Db\Table\ForeignKey;
 use Migrations\Db\Table\Index;
-use Migrations\Db\Table\Table;
+use Migrations\Db\Table\Partition;
+use Migrations\Db\Table\PartitionDefinition;
+use Migrations\Db\Table\TableMetadata;
+use Migrations\Db\Table\Trigger;
+use Migrations\Db\Table\View;
 
 /**
- * Phinx MySQL Adapter.
+ * MySQL Adapter.
  */
 class MysqlAdapter extends AbstractAdapter
 {
     /**
+     * Maximum length for identifiers (table names, column names, constraint names, etc.)
+     */
+    protected const IDENTIFIER_MAX_LENGTH = 64;
+
+    /**
      * @var string[]
      */
     protected static array $specificColumnTypes = [
+        self::TYPE_YEAR,
+        self::TYPE_JSON,
+        self::TYPE_BINARY_UUID,
         self::PHINX_TYPE_ENUM,
         self::PHINX_TYPE_SET,
-        self::PHINX_TYPE_YEAR,
-        self::PHINX_TYPE_JSON,
-        self::PHINX_TYPE_BINARYUUID,
+        self::PHINX_TYPE_BLOB,
         self::PHINX_TYPE_TINYBLOB,
         self::PHINX_TYPE_MEDIUMBLOB,
         self::PHINX_TYPE_LONGBLOB,
-        self::PHINX_TYPE_MEDIUM_INTEGER,
     ];
 
     /**
-     * @var bool[]
+     * @deprecated 5.0.0 Enum column support will be removed in a future release.
      */
-    protected array $signedColumnTypes = [
-        self::PHINX_TYPE_INTEGER => true,
-        self::PHINX_TYPE_TINY_INTEGER => true,
-        self::PHINX_TYPE_SMALL_INTEGER => true,
-        self::PHINX_TYPE_MEDIUM_INTEGER => true,
-        self::PHINX_TYPE_BIG_INTEGER => true,
-        self::PHINX_TYPE_FLOAT => true,
-        self::PHINX_TYPE_DECIMAL => true,
-        self::PHINX_TYPE_DOUBLE => true,
-        self::PHINX_TYPE_BOOLEAN => true,
-    ];
+    public const PHINX_TYPE_ENUM = 'enum';
+
+    /**
+     * @deprecated 5.0.0 Set column support will be removed in a future release.
+     */
+    public const PHINX_TYPE_SET = 'set';
+
+    /**
+     * @deprecated 5.0.0 Use binary type with with no limit instead.
+     */
+    public const PHINX_TYPE_BLOB = 'blob';
+
+    /**
+     * @deprecated 5.0.0 Use binary type with with limit BLOB_SMALL instead.
+     */
+    public const PHINX_TYPE_TINYBLOB = 'tinyblob';
+
+    /**
+     * @deprecated 5.0.0 Use binary type with with limit BLOB_MEDIUM instead.
+     */
+    public const PHINX_TYPE_MEDIUMBLOB = 'mediumblob';
+
+    /**
+     * @deprecated 5.0.0 Use binary type with with limit BLOB_LONG instead.
+     */
+    public const PHINX_TYPE_LONGBLOB = 'longblob';
+
+    /**
+     * @deprecated 5.0.0 Use binary type instead.
+     */
+    public const PHINX_TYPE_VARBINARY = 'varbinary';
 
     // These constants roughly correspond to the maximum allowed value for each field,
     // except for the `_LONG` and `_BIG` variants, which are maxed at 32-bit
     // PHP_INT_MAX value. The `INT_REGULAR` field is just arbitrarily half of INT_BIG
     // as its actual value is its regular value is larger than PHP_INT_MAX. We do this
-    // to keep consistent the type hints for getSqlType and Column::$limit being integers.
+    // to keep consistent the type hints for Column::$limit being integers.
     public const TEXT_TINY = 255;
+
     public const TEXT_SMALL = 255; /* deprecated, alias of TEXT_TINY */
     /** @deprecated Use length of null instead **/
     public const TEXT_REGULAR = 65535;
+
     public const TEXT_MEDIUM = 16777215;
+
     public const TEXT_LONG = 2147483647;
 
     // According to https://dev.mysql.com/doc/refman/5.0/en/blob.html BLOB sizes are the same as TEXT
     public const BLOB_TINY = TableSchema::LENGTH_TINY;
-    public const BLOB_SMALL = TableSchema::LENGTH_TINY; /* deprecated, alias of BLOB_TINY */
+
+    public const BLOB_SMALL = TableSchema::LENGTH_TINY;
+
+     /* deprecated, alias of BLOB_TINY */
     public const BLOB_REGULAR = 65535;
+
     public const BLOB_MEDIUM = TableSchema::LENGTH_MEDIUM;
+
     public const BLOB_LONG = TableSchema::LENGTH_LONG;
 
     public const INT_TINY = 255;
+
     public const INT_SMALL = 65535;
+
     public const INT_MEDIUM = 16777215;
+
     public const INT_REGULAR = 1073741823;
+
     public const INT_BIG = 2147483647;
 
     public const INT_DISPLAY_TINY = 4;
+
     public const INT_DISPLAY_SMALL = 6;
+
     public const INT_DISPLAY_MEDIUM = 8;
+
     public const INT_DISPLAY_REGULAR = 11;
+
     public const INT_DISPLAY_BIG = 20;
 
     public const BIT = 64;
@@ -91,6 +138,83 @@ class MysqlAdapter extends AbstractAdapter
     public const TYPE_YEAR = 'year';
 
     public const FIRST = 'FIRST';
+
+    /**
+     * MySQL ALTER TABLE ALGORITHM options
+     *
+     * These constants control how MySQL performs ALTER TABLE operations:
+     * - ALGORITHM_DEFAULT: Let MySQL choose the best algorithm
+     * - ALGORITHM_INSTANT: Instant operation (no table copy, MySQL 8.0+ / MariaDB 10.3+)
+     * - ALGORITHM_INPLACE: In-place operation (no full table copy)
+     * - ALGORITHM_COPY: Traditional table copy algorithm
+     *
+     * Usage:
+     * ```php
+     * use Migrations\Db\Adapter\MysqlAdapter;
+     *
+     * // ALGORITHM=INSTANT alone (recommended)
+     * $table->addColumn('status', 'string', [
+     *     'null' => true,
+     *     'algorithm' => MysqlAdapter::ALGORITHM_INSTANT,
+     * ]);
+     *
+     * // Or with ALGORITHM=INPLACE and explicit LOCK
+     * $table->addColumn('status', 'string', [
+     *     'algorithm' => MysqlAdapter::ALGORITHM_INPLACE,
+     *     'lock' => MysqlAdapter::LOCK_NONE,
+     * ]);
+     * ```
+     *
+     * Important: ALGORITHM=INSTANT cannot be combined with LOCK=NONE, LOCK=SHARED,
+     * or LOCK=EXCLUSIVE (MySQL restriction). Use ALGORITHM=INSTANT alone or with
+     * LOCK=DEFAULT only.
+     *
+     * Note: ALGORITHM_INSTANT requires MySQL 8.0+ or MariaDB 10.3+ and only works for
+     * compatible operations (adding nullable columns, dropping columns, etc.).
+     * If the operation cannot be performed instantly, MySQL will return an error.
+     *
+     * @see https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
+     * @see https://dev.mysql.com/doc/refman/8.0/en/innodb-online-ddl-operations.html
+     * @see https://mariadb.com/kb/en/alter-table/#algorithm
+     */
+    public const ALGORITHM_DEFAULT = 'DEFAULT';
+
+    public const ALGORITHM_INSTANT = 'INSTANT';
+
+    public const ALGORITHM_INPLACE = 'INPLACE';
+
+    public const ALGORITHM_COPY = 'COPY';
+
+    /**
+     * MySQL ALTER TABLE LOCK options
+     *
+     * These constants control the locking behavior during ALTER TABLE operations:
+     * - LOCK_DEFAULT: Let MySQL choose the appropriate lock level
+     * - LOCK_NONE: Allow concurrent reads and writes (least restrictive)
+     * - LOCK_SHARED: Allow concurrent reads, block writes
+     * - LOCK_EXCLUSIVE: Block all concurrent access (most restrictive)
+     *
+     * Usage:
+     * ```php
+     * use Migrations\Db\Adapter\MysqlAdapter;
+     *
+     * $table->changeColumn('name', 'string', [
+     *     'limit' => 500,
+     *     'algorithm' => MysqlAdapter::ALGORITHM_INPLACE,
+     *     'lock' => MysqlAdapter::LOCK_NONE,
+     * ]);
+     * ```
+     *
+     * @see https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
+     * @see https://mariadb.com/kb/en/alter-table/#lock
+     */
+    public const LOCK_DEFAULT = 'DEFAULT';
+
+    public const LOCK_NONE = 'NONE';
+
+    public const LOCK_SHARED = 'SHARED';
+
+    public const LOCK_EXCLUSIVE = 'EXCLUSIVE';
 
     /**
      * @inheritDoc
@@ -117,11 +241,14 @@ class MysqlAdapter extends AbstractAdapter
      */
     public function hasTable(string $tableName): bool
     {
-        if ($this->hasCreatedTable($tableName)) {
+        // Only use the cache in dry-run mode where tables aren't actually created.
+        // In normal mode, always check the database to handle cases where tables
+        // are dropped via execute() which doesn't update the cache.
+        if ($this->isDryRunEnabled() && $this->hasCreatedTable($tableName)) {
             return true;
         }
 
-        if (strpos($tableName, '.') !== false) {
+        if (str_contains($tableName, '.')) {
             [$schema, $table] = explode('.', $tableName);
             $exists = $this->hasTableWithSchema($schema, $table);
             // Only break here on success, because it is possible for table names to contain a dot.
@@ -143,31 +270,28 @@ class MysqlAdapter extends AbstractAdapter
     protected function hasTableWithSchema(string $schema, string $tableName): bool
     {
         $dialect = $this->getSchemaDialect();
-        [$query, $params] = $dialect->listTablesSql(['database' => $schema]);
 
         try {
-            $statement = $this->query($query, $params);
-        } catch (QueryException $e) {
+            return $dialect->hasTable($tableName, $schema);
+        } catch (QueryException) {
             return false;
         }
-        $tables = [];
-        foreach ($statement->fetchAll() as $row) {
-            $tables[] = $row[0];
-        }
-
-        return in_array($tableName, $tables, true);
     }
 
     /**
      * @inheritDoc
      */
-    public function createTable(Table $table, array $columns = [], array $indexes = []): void
+    public function createTable(TableMetadata $table, array $columns = [], array $indexes = []): void
     {
         // This method is based on the MySQL docs here: https://dev.mysql.com/doc/refman/5.1/en/create-index.html
         $defaultOptions = [
             'engine' => 'InnoDB',
-            'collation' => 'utf8mb4_unicode_ci',
         ];
+
+        $collation = Configure::read('Migrations.default_collation');
+        if ($collation) {
+            $defaultOptions['collation'] = $collation;
+        }
 
         $options = array_merge(
             $defaultOptions,
@@ -176,11 +300,11 @@ class MysqlAdapter extends AbstractAdapter
         );
 
         // Add the default primary key
-        if (!isset($options['id']) || (isset($options['id']) && $options['id'] === true)) {
+        if (!isset($options['id']) || $options['id'] === true) {
             $options['id'] = 'id';
         }
 
-        if (isset($options['id']) && is_string($options['id'])) {
+        if (is_string($options['id'])) {
             $useUnsigned = (bool)Configure::read('Migrations.unsigned_primary_keys');
             // Handle id => "field_name" to support AUTO_INCREMENT
             $column = new Column();
@@ -212,7 +336,7 @@ class MysqlAdapter extends AbstractAdapter
 
         // process table collation
         if (isset($options['collation'])) {
-            $charset = explode('_', $options['collation']);
+            $charset = explode('_', (string)$options['collation']);
             $optionsStr .= sprintf(' CHARACTER SET %s', $charset[0]);
             $optionsStr .= sprintf(' COLLATE %s', $options['collation']);
         }
@@ -231,8 +355,7 @@ class MysqlAdapter extends AbstractAdapter
         $sql = 'CREATE TABLE ';
         $sql .= $this->quoteTableName($table->getName()) . ' (';
         foreach ($columns as $column) {
-            $columnData = $this->mapColumnData($column->toArray());
-            $sql .= $dialect->columnDefinitionSql($columnData) . ', ';
+            $sql .= $this->columnDefinitionSql($dialect, $column) . ', ';
         }
 
         // set the primary key(s)
@@ -259,6 +382,12 @@ class MysqlAdapter extends AbstractAdapter
         $sql .= ') ' . $optionsStr;
         $sql = rtrim($sql);
 
+        // add partitioning
+        $partition = $table->getPartition();
+        if ($partition instanceof Partition) {
+            $sql .= ' ' . $this->getPartitionSqlDefinition($partition);
+        }
+
         // execute the sql
         $this->execute($sql);
 
@@ -269,43 +398,41 @@ class MysqlAdapter extends AbstractAdapter
      * Apply MySQL specific translations between the values using migrations constants/types
      * and the cakephp/database constants. Over time, these can be aligned.
      *
-     * @param array $data The raw column data.
-     * @return array Modified column data.
+     * @param array<string, mixed> $data The raw column data.
+     * @return array<string, mixed> Modified column data.
      */
     protected function mapColumnData(array $data): array
     {
-        if ($data['type'] == self::PHINX_TYPE_TEXT && $data['length'] !== null) {
+        if ($data['type'] == self::TYPE_TEXT && $data['length'] !== null) {
+            // Accept both migrations TEXT_LONG and CakePHP LENGTH_LONG for backward compatibility
+            // with migrations generated before the fix (LENGTH_TINY/MEDIUM are already equal to TEXT_TINY/MEDIUM)
             $data['length'] = match ($data['length']) {
-                self::TEXT_LONG => TableSchema::LENGTH_LONG,
+                self::TEXT_LONG, TableSchema::LENGTH_LONG => TableSchema::LENGTH_LONG,
                 self::TEXT_MEDIUM => TableSchema::LENGTH_MEDIUM,
                 self::TEXT_REGULAR => null,
                 self::TEXT_TINY => TableSchema::LENGTH_TINY,
                 default => null,
             };
         }
-        $binaryTypes = [
+        $blobTypes = [
+            self::TYPE_BINARY,
+            self::PHINX_TYPE_VARBINARY,
             self::PHINX_TYPE_BLOB,
             self::PHINX_TYPE_TINYBLOB,
             self::PHINX_TYPE_MEDIUMBLOB,
             self::PHINX_TYPE_LONGBLOB,
-            self::PHINX_TYPE_VARBINARY,
-            self::PHINX_TYPE_BINARY,
         ];
-        if (in_array($data['type'], $binaryTypes, true)) {
-            if (!isset($data['length'])) {
-                $data['length'] = match ($data['type']) {
-                    self::PHINX_TYPE_TINYBLOB => TableSchema::LENGTH_TINY,
-                    self::PHINX_TYPE_MEDIUMBLOB => TableSchema::LENGTH_MEDIUM,
-                    self::PHINX_TYPE_LONGBLOB => TableSchema::LENGTH_LONG,
-                    default => $data['length'],
-                };
-            }
+        if (in_array($data['type'], $blobTypes, true)) {
             if ($data['length'] === self::BLOB_REGULAR) {
                 $data['type'] = TableSchema::TYPE_BINARY;
                 $data['length'] = null;
             }
             $standardLengths = [TableSchema::LENGTH_TINY, TableSchema::LENGTH_MEDIUM, TableSchema::LENGTH_LONG];
-            if ($data['length'] !== null && !in_array($data['length'], $standardLengths, true)) {
+            if (
+                $data['length'] !== null &&
+                $data['length'] > TableSchema::LENGTH_TINY &&
+                !in_array($data['length'], $standardLengths, true)
+            ) {
                 foreach ($standardLengths as $bucket) {
                     if ($bucket < $data['length']) {
                         continue;
@@ -314,19 +441,62 @@ class MysqlAdapter extends AbstractAdapter
                     break;
                 }
             }
+            if ($data['length'] === null) {
+                $data['length'] = match ($data['type']) {
+                    self::PHINX_TYPE_TINYBLOB => TableSchema::LENGTH_TINY,
+                    self::PHINX_TYPE_MEDIUMBLOB => TableSchema::LENGTH_MEDIUM,
+                    self::PHINX_TYPE_LONGBLOB => TableSchema::LENGTH_LONG,
+                    default => null,
+                };
+            }
             $data['type'] = 'binary';
-        } elseif ($data['type'] === self::PHINX_TYPE_INTEGER) {
+        } elseif ($data['type'] === self::TYPE_INTEGER) {
             if (isset($data['length']) && $data['length'] === self::INT_BIG) {
                 $data['type'] = TableSchema::TYPE_BIGINTEGER;
                 unset($data['length']);
             }
             unset($data['length']);
-        } elseif ($data['type'] == self::PHINX_TYPE_DOUBLE) {
-            $data['type'] = TableSchema::TYPE_FLOAT;
-            $data['length'] = 52;
         }
 
         return $data;
+    }
+
+    /**
+     * Get the SQL fragment for a column definition.
+     *
+     * This method provides backwards compatibility for enum and set types
+     * as userland migrations use those types, but they are not supported
+     * in cakephp/database.
+     *
+     * @param \Cake\Database\Schema\SchemaDialect $dialect The dialect to use.
+     * @param \Migrations\Db\Table\Column $column The column to get the SQL for.
+     * @return string
+     */
+    protected function columnDefinitionSql(SchemaDialect $dialect, Column $column): string
+    {
+        $columnData = $column->toArray();
+        $deprecatedTypes = [self::PHINX_TYPE_ENUM, self::PHINX_TYPE_SET];
+        if (in_array($columnData['type'], $deprecatedTypes, true)) {
+            $sql = $this->quoteColumnName($columnData['name']) . ' ' . $columnData['type'];
+            $values = $column->getValues();
+            if ($values) {
+                $sql .= '(' . implode(', ', array_map(function ($value): string {
+                    // Special case NULL to trigger errors as it isn't allowed
+                    // in enum values.
+                    return $value === null ? 'NULL' : $this->quoteString($value);
+                }, $values)) . ')';
+            }
+
+            $sql .= $column->getEncoding() ? ' CHARACTER SET ' . $column->getEncoding() : '';
+            $sql .= $column->getCollation() ? ' COLLATE ' . $column->getCollation() : '';
+            $sql .= $column->isNull() ? ' NULL' : ' NOT NULL';
+            $sql .= $column->getDefault() ? ' DEFAULT ' . $this->quoteString($column->getDefault()) : '';
+            $sql .= $column->getComment() ? ' COMMENT ' . $this->quoteString($column->getComment()) : '';
+
+            return $sql;
+        }
+
+        return $dialect->columnDefinitionSql($this->mapColumnData($columnData));
     }
 
     /**
@@ -334,7 +504,7 @@ class MysqlAdapter extends AbstractAdapter
      *
      * @throws \InvalidArgumentException
      */
-    protected function getChangePrimaryKeyInstructions(Table $table, $newColumns): AlterInstructions
+    protected function getChangePrimaryKeyInstructions(TableMetadata $table, $newColumns): AlterInstructions
     {
         $instructions = new AlterInstructions();
 
@@ -367,12 +537,12 @@ class MysqlAdapter extends AbstractAdapter
     /**
      * @inheritDoc
      */
-    protected function getChangeCommentInstructions(Table $table, ?string $newComment): AlterInstructions
+    protected function getChangeCommentInstructions(TableMetadata $table, ?string $newComment): AlterInstructions
     {
         $instructions = new AlterInstructions();
 
         // passing 'null' is to remove table comment
-        $newComment = $newComment ?? '';
+        $newComment ??= '';
         $sql = sprintf(' COMMENT=%s ', $this->quoteString($newComment));
         $instructions->addAlter($sql);
 
@@ -419,9 +589,26 @@ class MysqlAdapter extends AbstractAdapter
     }
 
     /**
+     * @inheritDoc
+     */
+    public function disableForeignKeyConstraints(): void
+    {
+        $this->execute('SET FOREIGN_KEY_CHECKS = 0');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function enableForeignKeyConstraints(): void
+    {
+        $this->execute('SET FOREIGN_KEY_CHECKS = 1');
+    }
+
+    /**
      * Convert from cakephp/database conventions to migrations\column
      *
      * - converts datetimefractional -> datetime + length
+     * - converts binary types to mysql blob type constants.
      *
      * @param array $columnData The cakephp/database column data to transform
      * @return array The extracted/converted type and length.
@@ -437,6 +624,43 @@ class MysqlAdapter extends AbstractAdapter
         } elseif ($type === TableSchema::TYPE_TIMESTAMP_FRACTIONAL) {
             $type = 'timestamp';
             $length = $columnData['precision'] ?? $length;
+        } elseif ($type === TableSchema::TYPE_BINARY) {
+            // TODO could rawType be removed? We should be able to use the abstract type and length only.
+            // CakePHP returns BLOB columns as 'binary' with specific lengths
+            // Check the raw MySQL type to distinguish BLOB from BINARY columns
+            $rawType = $columnData['rawType'] ?? '';
+            if (str_contains($rawType, 'blob')) {
+                // Map BLOB columns back to the appropriate BLOB types
+                if (str_contains($rawType, 'tinyblob')) {
+                    $type = static::PHINX_TYPE_TINYBLOB;
+                    $length = static::BLOB_TINY;
+                } elseif (str_contains($rawType, 'mediumblob')) {
+                    $type = static::PHINX_TYPE_MEDIUMBLOB;
+                    $length = static::BLOB_MEDIUM;
+                } elseif (str_contains($rawType, 'longblob')) {
+                    $type = static::PHINX_TYPE_LONGBLOB;
+                    $length = static::BLOB_LONG;
+                } else {
+                    // Regular BLOB
+                    $type = static::PHINX_TYPE_BLOB;
+                    $length = static::BLOB_REGULAR;
+                }
+            }
+            // else: keep as binary or varbinary (actual BINARY/VARBINARY column)
+        } elseif ($type === TableSchema::TYPE_TEXT) {
+            // CakePHP returns TEXT columns as 'text' with specific lengths
+            // Check the raw MySQL type to distinguish TEXT variants
+            $rawType = $columnData['rawType'] ?? '';
+            if (str_contains($rawType, 'tinytext')) {
+                $length = static::TEXT_TINY;
+            } elseif (str_contains($rawType, 'mediumtext')) {
+                $length = static::TEXT_MEDIUM;
+            } elseif (str_contains($rawType, 'longtext')) {
+                $length = static::TEXT_LONG;
+            } else {
+                // Regular TEXT - use null to indicate default TEXT type
+                $length = null;
+            }
         }
 
         return [$type, $length];
@@ -449,8 +673,17 @@ class MysqlAdapter extends AbstractAdapter
     {
         $dialect = $this->getSchemaDialect();
         $columnRecords = $dialect->describeColumns($tableName);
+
+        // Fetch raw column types to distinguish BLOB from BINARY columns
+        $rawTypes = [];
+        $rows = $this->fetchAll(sprintf('SHOW COLUMNS FROM %s', $this->quoteTableName($tableName)));
+        foreach ($rows as $row) {
+            $rawTypes[$row['Field']] = strtolower((string)$row['Type']);
+        }
+
         $columns = [];
         foreach ($columnRecords as $record) {
+            $record['rawType'] = $rawTypes[$record['name']] ?? null;
             [$type, $length] = $this->mapColumnType($record);
 
             $column = (new Column())
@@ -463,14 +696,16 @@ class MysqlAdapter extends AbstractAdapter
                 ->setScale($record['precision'] ?? null)
                 ->setComment($record['comment']);
 
-            if ($record['unsigned'] ?? false) {
-                $column->setSigned(!$record['unsigned']);
-            }
+            // Always set unsigned property based on unsigned flag
+            $column->setUnsigned($record['unsigned'] ?? false);
             if ($record['autoIncrement'] ?? false) {
                 $column->setIdentity(true);
             }
             if ($record['onUpdate'] ?? false) {
                 $column->setUpdate($record['onUpdate']);
+            }
+            if ($record['fixed'] ?? false) {
+                $column->setFixed(true);
             }
 
             $columns[] = $column;
@@ -484,30 +719,34 @@ class MysqlAdapter extends AbstractAdapter
      */
     public function hasColumn(string $tableName, string $columnName): bool
     {
-        $rows = $this->fetchAll(sprintf('SHOW COLUMNS FROM %s', $this->quoteTableName($tableName)));
-        foreach ($rows as $column) {
-            if (strcasecmp($column['Field'], $columnName) === 0) {
-                return true;
-            }
-        }
+        $dialect = $this->getSchemaDialect();
 
-        return false;
+        return $dialect->hasColumn($tableName, $columnName);
     }
 
     /**
      * @inheritDoc
      */
-    protected function getAddColumnInstructions(Table $table, Column $column): AlterInstructions
+    protected function getAddColumnInstructions(TableMetadata $table, Column $column): AlterInstructions
     {
         $dialect = $this->getSchemaDialect();
         $alter = sprintf(
             'ADD %s',
-            $dialect->columnDefinitionSql($this->mapColumnData($column->toArray())),
+            $this->columnDefinitionSql($dialect, $column),
         );
 
         $alter .= $this->afterClause($column);
 
-        return new AlterInstructions([$alter]);
+        $instructions = new AlterInstructions([$alter]);
+
+        if ($column->getAlgorithm() !== null) {
+            $instructions->setAlgorithm($column->getAlgorithm());
+        }
+        if ($column->getLock() !== null) {
+            $instructions->setLock($column->getLock());
+        }
+
+        return $instructions;
     }
 
     /**
@@ -537,24 +776,44 @@ class MysqlAdapter extends AbstractAdapter
      */
     protected function getRenameColumnInstructions(string $tableName, string $columnName, string $newColumnName): AlterInstructions
     {
+        $columns = $this->getColumns($tableName);
+        $targetColumn = null;
+
+        foreach ($columns as $column) {
+            if (strcasecmp((string)$column->getName(), $columnName) === 0) {
+                $targetColumn = $column;
+                break;
+            }
+        }
+
+        if ($targetColumn === null) {
+            throw new InvalidArgumentException(sprintf(
+                "The specified column doesn't exist: %s",
+                $columnName,
+            ));
+        }
+
+        // Fetch raw MySQL column info for the full definition string
         $rows = $this->fetchAll(sprintf('SHOW FULL COLUMNS FROM %s', $this->quoteTableName($tableName)));
 
         foreach ($rows as $row) {
-            if (strcasecmp($row['Field'], $columnName) === 0) {
+            if (strcasecmp((string)$row['Field'], $columnName) === 0) {
                 $null = $row['Null'] === 'NO' ? 'NOT NULL' : 'NULL';
-                $comment = isset($row['Comment']) ? ' COMMENT ' . '\'' . addslashes($row['Comment']) . '\'' : '';
+                $comment = isset($row['Comment']) && $row['Comment'] !== ''
+                    ? ' COMMENT ' . $this->getConnection()->getDriver()->schemaValue($row['Comment'])
+                    : '';
 
                 // create the extra string by also filtering out the DEFAULT_GENERATED option (MySQL 8 fix)
                 $extras = array_filter(
-                    explode(' ', strtoupper($row['Extra'])),
-                    static function ($value) {
+                    explode(' ', strtoupper((string)$row['Extra'])),
+                    static function (string $value): bool {
                         return $value !== 'DEFAULT_GENERATED';
                     },
                 );
                 $extra = ' ' . implode(' ', $extras);
 
                 if (($row['Default'] !== null)) {
-                    $extra .= $this->getDefaultValueDefinition($row['Default']);
+                    $extra .= $this->getDefaultValueDefinition($row['Default'], $targetColumn->getType());
                 }
                 $definition = $row['Type'] . ' ' . $null . $extra . $comment;
 
@@ -585,11 +844,20 @@ class MysqlAdapter extends AbstractAdapter
         $alter = sprintf(
             'CHANGE %s %s%s',
             $this->quoteColumnName($columnName),
-            $dialect->columnDefinitionSql($this->mapColumnData($newColumn->toArray())),
+            $this->columnDefinitionSql($dialect, $newColumn),
             $this->afterClause($newColumn),
         );
 
-        return new AlterInstructions([$alter]);
+        $instructions = new AlterInstructions([$alter]);
+
+        if ($newColumn->getAlgorithm() !== null) {
+            $instructions->setAlgorithm($newColumn->getAlgorithm());
+        }
+        if ($newColumn->getLock() !== null) {
+            $instructions->setLock($newColumn->getLock());
+        }
+
+        return $instructions;
     }
 
     /**
@@ -611,52 +879,14 @@ class MysqlAdapter extends AbstractAdapter
     protected function getIndexes(string $tableName): array
     {
         $dialect = $this->getSchemaDialect();
-        $indexes = $dialect->describeIndexes($tableName);
 
-        return $indexes;
+        return $dialect->describeIndexes($tableName);
     }
 
     /**
      * @inheritDoc
      */
-    public function hasIndex(string $tableName, string|array $columns): bool
-    {
-        if (is_string($columns)) {
-            $columns = [$columns]; // str to array
-        }
-
-        $columns = array_map('strtolower', $columns);
-        $indexes = $this->getIndexes($tableName);
-
-        foreach ($indexes as $index) {
-            if ($columns == $index['columns']) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function hasIndexByName(string $tableName, string $indexName): bool
-    {
-        $indexes = $this->getIndexes($tableName);
-
-        foreach ($indexes as $index) {
-            if ($index['name'] === $indexName) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getAddIndexInstructions(Table $table, Index $index): AlterInstructions
+    protected function getAddIndexInstructions(TableMetadata $table, Index $index): AlterInstructions
     {
         $instructions = new AlterInstructions();
 
@@ -669,6 +899,20 @@ class MysqlAdapter extends AbstractAdapter
                 $this->getIndexSqlDefinition($index),
             );
 
+            // FULLTEXT indexes use post-steps (raw SQL) which executeAlterSteps
+            // does not append algorithm/lock to, so we inline the clause here.
+            // Setting on instructions as well ensures validation still runs.
+            if ($index->getAlgorithm() !== null || $index->getLock() !== null) {
+                if ($index->getAlgorithm() !== null) {
+                    $alter .= ', ALGORITHM=' . strtoupper($index->getAlgorithm());
+                    $instructions->setAlgorithm($index->getAlgorithm());
+                }
+                if ($index->getLock() !== null) {
+                    $alter .= ', LOCK=' . strtoupper($index->getLock());
+                    $instructions->setLock($index->getLock());
+                }
+            }
+
             $instructions->addPostStep($alter);
         } else {
             $alter = sprintf(
@@ -677,6 +921,13 @@ class MysqlAdapter extends AbstractAdapter
             );
 
             $instructions->addAlter($alter);
+
+            if ($index->getAlgorithm() !== null) {
+                $instructions->setAlgorithm($index->getAlgorithm());
+            }
+            if ($index->getLock() !== null) {
+                $instructions->setLock($index->getLock());
+            }
         }
 
         return $instructions;
@@ -694,7 +945,7 @@ class MysqlAdapter extends AbstractAdapter
         }
 
         $indexes = $this->getIndexes($tableName);
-        $columns = array_map('strtolower', $columns);
+        $columns = array_map(strtolower(...), $columns);
 
         foreach ($indexes as $index) {
             if ($columns == $index['columns']) {
@@ -748,11 +999,10 @@ class MysqlAdapter extends AbstractAdapter
 
         if ($constraint) {
             return $primaryKey['name'] === $constraint;
-        } else {
-            $missingColumns = array_diff((array)$columns, (array)$primaryKey['columns']);
-
-            return empty($missingColumns);
         }
+        $missingColumns = array_diff((array)$columns, (array)$primaryKey['columns']);
+
+        return $missingColumns === [];
     }
 
     /**
@@ -779,28 +1029,6 @@ class MysqlAdapter extends AbstractAdapter
     }
 
     /**
-     * @inheritDoc
-     */
-    public function hasForeignKey(string $tableName, $columns, ?string $constraint = null): bool
-    {
-        $foreignKeys = $this->getForeignKeys($tableName);
-        $names = array_map(fn($key) => $key['name'], $foreignKeys);
-        if ($constraint) {
-            return in_array($constraint, $names, true);
-        }
-
-        $columns = array_map('mb_strtolower', (array)$columns);
-
-        foreach ($foreignKeys as $key) {
-            if (array_map('mb_strtolower', $key['columns']) === $columns) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Get an array of foreign keys from a particular table.
      *
      * @param string $tableName Table name
@@ -809,19 +1037,18 @@ class MysqlAdapter extends AbstractAdapter
     protected function getForeignKeys(string $tableName): array
     {
         $dialect = $this->getSchemaDialect();
-        $foreignKeys = $dialect->describeForeignKeys($tableName);
 
-        return $foreignKeys;
+        return $dialect->describeForeignKeys($tableName);
     }
 
     /**
      * @inheritDoc
      */
-    protected function getAddForeignKeyInstructions(Table $table, ForeignKey $foreignKey): AlterInstructions
+    protected function getAddForeignKeyInstructions(TableMetadata $table, ForeignKey $foreignKey): AlterInstructions
     {
         $alter = sprintf(
             'ADD %s',
-            $this->getForeignKeySqlDefinition($foreignKey),
+            $this->getForeignKeySqlDefinition($foreignKey, $table->getName()),
         );
 
         return new AlterInstructions([$alter]);
@@ -849,12 +1076,12 @@ class MysqlAdapter extends AbstractAdapter
     {
         $instructions = new AlterInstructions();
 
-        $columns = array_map('mb_strtolower', $columns);
+        $columns = array_map(mb_strtolower(...), $columns);
 
         $matches = [];
         $foreignKeys = $this->getForeignKeys($tableName);
         foreach ($foreignKeys as $key) {
-            if (array_map('mb_strtolower', $key['columns']) === $columns) {
+            if (array_map(mb_strtolower(...), $key['columns']) === $columns) {
                 $matches[] = $key['name'];
             }
         }
@@ -876,360 +1103,53 @@ class MysqlAdapter extends AbstractAdapter
     }
 
     /**
-     * {@inheritDoc}
+     * Get an array of check constraints from a particular table.
      *
-     * @throws \Migrations\Db\Adapter\UnsupportedColumnTypeException
+     * @param string $tableName Table name
+     * @return array
      */
-    public function getSqlType(Literal|string $type, ?int $limit = null): array
+    protected function getCheckConstraints(string $tableName): array
     {
-        $type = (string)$type;
-        switch ($type) {
-            case static::PHINX_TYPE_FLOAT:
-            case static::PHINX_TYPE_DOUBLE:
-            case static::PHINX_TYPE_DECIMAL:
-            case static::PHINX_TYPE_DATE:
-            case static::PHINX_TYPE_ENUM:
-            case static::PHINX_TYPE_SET:
-            case static::PHINX_TYPE_JSON:
-            // Geospatial database types
-            case static::PHINX_TYPE_GEOMETRY:
-            case static::PHINX_TYPE_POINT:
-            case static::PHINX_TYPE_LINESTRING:
-            case static::PHINX_TYPE_POLYGON:
-                return ['name' => $type];
-            case static::PHINX_TYPE_DATETIME:
-            case static::PHINX_TYPE_TIMESTAMP:
-            case static::PHINX_TYPE_TIME:
-                return ['name' => $type, 'limit' => $limit];
-            case static::PHINX_TYPE_STRING:
-                return ['name' => 'varchar', 'limit' => $limit ?: 255];
-            case static::PHINX_TYPE_CHAR:
-                return ['name' => 'char', 'limit' => $limit ?: 255];
-            case static::PHINX_TYPE_TEXT:
-                if ($limit) {
-                    $sizes = [
-                        // Order matters! Size must always be tested from longest to shortest!
-                        'longtext' => static::TEXT_LONG,
-                        'mediumtext' => static::TEXT_MEDIUM,
-                        'text' => static::TEXT_REGULAR,
-                        'tinytext' => static::TEXT_SMALL,
-                    ];
-                    foreach ($sizes as $name => $length) {
-                        if ($limit >= $length) {
-                            return ['name' => $name];
-                        }
-                    }
-                }
+        $dialect = $this->getSchemaDialect();
 
-                return ['name' => 'text'];
-            case static::PHINX_TYPE_BINARY:
-                if ($limit === null) {
-                    $limit = 255;
-                }
-
-                if ($limit > 255) {
-                    return $this->getSqlType(static::PHINX_TYPE_BLOB, $limit);
-                }
-
-                return ['name' => 'binary', 'limit' => $limit];
-            case static::PHINX_TYPE_BINARYUUID:
-                return ['name' => 'binary', 'limit' => 16];
-            case static::PHINX_TYPE_VARBINARY:
-                if ($limit === null) {
-                    $limit = 255;
-                }
-
-                if ($limit > 255) {
-                    return $this->getSqlType(static::PHINX_TYPE_BLOB, $limit);
-                }
-
-                return ['name' => 'varbinary', 'limit' => $limit];
-            case static::PHINX_TYPE_BLOB:
-                if ($limit !== null) {
-                    // Rework this part as the chosen types were always UNDER the required length
-                    $sizes = [
-                        'tinyblob' => static::BLOB_SMALL,
-                        'blob' => static::BLOB_REGULAR,
-                        'mediumblob' => static::BLOB_MEDIUM,
-                    ];
-
-                    foreach ($sizes as $name => $length) {
-                        if ($limit <= $length) {
-                            return ['name' => $name];
-                        }
-                    }
-
-                    // For more length requirement, the longblob is used
-                    return ['name' => 'longblob'];
-                }
-
-                // If not limit is provided, fallback on blob
-                return ['name' => 'blob'];
-            case static::PHINX_TYPE_TINYBLOB:
-                // Automatically reprocess blob type to ensure that correct blob subtype is selected given provided limit
-                return $this->getSqlType(static::PHINX_TYPE_BLOB, $limit ?: static::BLOB_TINY);
-            case static::PHINX_TYPE_MEDIUMBLOB:
-                // Automatically reprocess blob type to ensure that correct blob subtype is selected given provided limit
-                return $this->getSqlType(static::PHINX_TYPE_BLOB, $limit ?: static::BLOB_MEDIUM);
-            case static::PHINX_TYPE_LONGBLOB:
-                // Automatically reprocess blob type to ensure that correct blob subtype is selected given provided limit
-                return $this->getSqlType(static::PHINX_TYPE_BLOB, $limit ?: static::BLOB_LONG);
-            case static::PHINX_TYPE_BIT:
-                return ['name' => 'bit', 'limit' => $limit ?: 64];
-            case static::PHINX_TYPE_BIG_INTEGER:
-                if ($limit === static::INT_BIG) {
-                    $limit = static::INT_DISPLAY_BIG;
-                }
-
-                return ['name' => 'bigint', 'limit' => $limit ?: 20];
-            case static::PHINX_TYPE_MEDIUM_INTEGER:
-                if ($limit === static::INT_MEDIUM) {
-                    $limit = static::INT_DISPLAY_MEDIUM;
-                }
-
-                return ['name' => 'mediumint', 'limit' => $limit ?: 8];
-            case static::PHINX_TYPE_SMALL_INTEGER:
-                if ($limit === static::INT_SMALL) {
-                    $limit = static::INT_DISPLAY_SMALL;
-                }
-
-                return ['name' => 'smallint', 'limit' => $limit ?: 6];
-            case static::PHINX_TYPE_TINY_INTEGER:
-                if ($limit === static::INT_TINY) {
-                    $limit = static::INT_DISPLAY_TINY;
-                }
-
-                return ['name' => 'tinyint', 'limit' => $limit ?: 4];
-            case static::PHINX_TYPE_INTEGER:
-                if ($limit && $limit >= static::INT_TINY) {
-                    $sizes = [
-                        // Order matters! Size must always be tested from longest to shortest!
-                        'bigint' => static::INT_BIG,
-                        'int' => static::INT_REGULAR,
-                        'mediumint' => static::INT_MEDIUM,
-                        'smallint' => static::INT_SMALL,
-                        'tinyint' => static::INT_TINY,
-                    ];
-                    $limits = [
-                        'tinyint' => static::INT_DISPLAY_TINY,
-                        'smallint' => static::INT_DISPLAY_SMALL,
-                        'mediumint' => static::INT_DISPLAY_MEDIUM,
-                        'int' => static::INT_DISPLAY_REGULAR,
-                        'bigint' => static::INT_DISPLAY_BIG,
-                    ];
-                    foreach ($sizes as $name => $length) {
-                        if ($limit >= $length) {
-                            $def = ['name' => $name];
-                            if (isset($limits[$name])) {
-                                $def['limit'] = $limits[$name];
-                            }
-
-                            return $def;
-                        }
-                    }
-                } elseif (!$limit) {
-                    $limit = static::INT_DISPLAY_REGULAR;
-                }
-
-                return ['name' => 'int', 'limit' => $limit];
-            case static::PHINX_TYPE_BOOLEAN:
-                return ['name' => 'tinyint', 'limit' => 1];
-            case static::PHINX_TYPE_UUID:
-                return ['name' => 'char', 'limit' => 36];
-            case static::PHINX_TYPE_NATIVEUUID:
-                if (!$this->hasNativeUuid()) {
-                    throw new UnsupportedColumnTypeException(
-                        'Column type "' . $type . '" is not supported by this version of MySQL.',
-                    );
-                }
-
-                return ['name' => 'uuid'];
-            case static::PHINX_TYPE_YEAR:
-                if (!$limit || in_array($limit, [2, 4])) {
-                    $limit = 4;
-                }
-
-                return ['name' => 'year', 'limit' => $limit];
-            default:
-                throw new UnsupportedColumnTypeException('Column type "' . $type . '" is not supported by MySQL.');
-        }
+        return $dialect->describeCheckConstraints($tableName);
     }
 
     /**
-     * Returns Phinx type by SQL type
-     *
-     * @internal param string $sqlType SQL type
-     * @param string $sqlTypeDef SQL Type definition
-     * @throws \Migrations\Db\Adapter\UnsupportedColumnTypeException
-     * @return array Phinx type
+     * @inheritDoc
      */
-    public function getPhinxType(string $sqlTypeDef): array
+    protected function getAddCheckConstraintInstructions(TableMetadata $table, CheckConstraint $checkConstraint): AlterInstructions
     {
-        $matches = [];
-        if (!preg_match('/^([\w]+)(\(([\d]+)*(,([\d]+))*\))*(.+)*$/', $sqlTypeDef, $matches)) {
-            throw new UnsupportedColumnTypeException('Column type "' . $sqlTypeDef . '" is not supported by MySQL.');
+        $constraintName = $checkConstraint->getName();
+        if ($constraintName === null) {
+            // Auto-generate constraint name if not provided
+            $constraintName = $table->getName() . '_chk_' . substr(md5($checkConstraint->getExpression()), 0, 8);
         }
 
-        $limit = null;
-        $scale = null;
-        $type = $matches[1];
-        if (count($matches) > 2) {
-            $limit = $matches[3] ? (int)$matches[3] : null;
-        }
-        if (count($matches) > 4) {
-            $scale = (int)$matches[5];
-        }
-        if ($type === 'tinyint' && $limit === 1) {
-            $type = static::PHINX_TYPE_BOOLEAN;
-            $limit = null;
-        }
-        switch ($type) {
-            case 'varchar':
-                $type = static::PHINX_TYPE_STRING;
-                if ($limit === 255) {
-                    $limit = null;
-                }
-                break;
-            case 'char':
-                $type = static::PHINX_TYPE_CHAR;
-                if ($limit === 255) {
-                    $limit = null;
-                }
-                if ($limit === 36) {
-                    $type = static::PHINX_TYPE_UUID;
-                }
-                break;
-            case 'tinyint':
-                $type = static::PHINX_TYPE_TINY_INTEGER;
-                break;
-            case 'smallint':
-                $type = static::PHINX_TYPE_SMALL_INTEGER;
-                break;
-            case 'mediumint':
-                $type = static::PHINX_TYPE_MEDIUM_INTEGER;
-                break;
-            case 'int':
-                $type = static::PHINX_TYPE_INTEGER;
-                break;
-            case 'bigint':
-                $type = static::PHINX_TYPE_BIG_INTEGER;
-                break;
-            case 'bit':
-                $type = static::PHINX_TYPE_BIT;
-                if ($limit === 64) {
-                    $limit = null;
-                }
-                break;
-            case 'blob':
-                $type = static::PHINX_TYPE_BLOB;
-                $limit = static::BLOB_REGULAR;
-                break;
-            case 'tinyblob':
-                $type = static::PHINX_TYPE_TINYBLOB;
-                $limit = static::BLOB_TINY;
-                break;
-            case 'mediumblob':
-                $type = static::PHINX_TYPE_MEDIUMBLOB;
-                $limit = static::BLOB_MEDIUM;
-                break;
-            case 'longblob':
-                $type = static::PHINX_TYPE_LONGBLOB;
-                $limit = static::BLOB_LONG;
-                break;
-            case 'tinytext':
-                $type = static::PHINX_TYPE_TEXT;
-                $limit = static::TEXT_TINY;
-                break;
-            case 'mediumtext':
-                $type = static::PHINX_TYPE_TEXT;
-                $limit = static::TEXT_MEDIUM;
-                break;
-            case 'longtext':
-                $type = static::PHINX_TYPE_TEXT;
-                $limit = static::TEXT_LONG;
-                break;
-            case 'binary':
-                if ($limit === null) {
-                    $limit = 255;
-                }
+        $alter = sprintf(
+            'ADD CONSTRAINT %s CHECK (%s)',
+            $this->quoteColumnName($constraintName),
+            $checkConstraint->getExpression(),
+        );
 
-                if ($limit > 255) {
-                    $type = static::PHINX_TYPE_BLOB;
-                    break;
-                }
+        return new AlterInstructions([$alter]);
+    }
 
-                if ($limit === 16) {
-                    $type = static::PHINX_TYPE_BINARYUUID;
-                }
-                break;
-            case 'uuid':
-                $type = static::PHINX_TYPE_NATIVEUUID;
-                $limit = null;
-                break;
-        }
+    /**
+     * @inheritDoc
+     */
+    protected function getDropCheckConstraintInstructions(string $tableName, string $constraintName): AlterInstructions
+    {
+        // MariaDB uses DROP CONSTRAINT, MySQL uses DROP CHECK
+        $keyword = $this->isMariaDb() ? 'CONSTRAINT' : 'CHECK';
 
-        try {
-            // Call this to check if parsed type is supported.
-            $this->getSqlType($type, $limit);
-        } catch (UnsupportedColumnTypeException $e) {
-            $type = Literal::from($type);
-        }
+        $alter = sprintf(
+            'DROP %s %s',
+            $keyword,
+            $this->quoteColumnName($constraintName),
+        );
 
-        $phinxType = [
-            'name' => $type,
-            'limit' => $limit,
-            'scale' => $scale,
-        ];
-
-        if ($type === static::PHINX_TYPE_ENUM || $type === static::PHINX_TYPE_SET) {
-            $values = trim($matches[6], '()');
-            $phinxType['values'] = [];
-            $opened = false;
-            $escaped = false;
-            $wasEscaped = false;
-            $value = '';
-            $valuesLength = strlen($values);
-            for ($i = 0; $i < $valuesLength; $i++) {
-                $char = $values[$i];
-                if ($char === "'" && !$opened) {
-                    $opened = true;
-                } elseif (
-                    !$escaped
-                    && ($i + 1) < $valuesLength
-                    && (
-                        $char === "'" && $values[$i + 1] === "'"
-                        || $char === '\\' && $values[$i + 1] === '\\'
-                    )
-                ) {
-                    $escaped = true;
-                } elseif ($char === "'" && $opened && !$escaped) {
-                    $phinxType['values'][] = $value;
-                    $value = '';
-                    $opened = false;
-                } elseif (($char === "'" || $char === '\\') && $opened && $escaped) {
-                    $value .= $char;
-                    $escaped = false;
-                    $wasEscaped = true;
-                } elseif ($opened) {
-                    if ($values[$i - 1] === '\\' && !$wasEscaped) {
-                        if ($char === 'n') {
-                            $char = "\n";
-                        } elseif ($char === 'r') {
-                            $char = "\r";
-                        } elseif ($char === 't') {
-                            $char = "\t";
-                        }
-                        if ($values[$i] !== $char) {
-                            $value = substr($value, 0, strlen($value) - 1);
-                        }
-                    }
-                    $value .= $char;
-                    $wasEscaped = false;
-                }
-            }
-        }
-
-        return $phinxType;
+        return new AlterInstructions([$alter]);
     }
 
     /**
@@ -1257,11 +1177,12 @@ class MysqlAdapter extends AbstractAdapter
      */
     public function hasDatabase(string $name): bool
     {
-        $rows = $this->query(
-            'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
-            [$name],
-        )->fetchAll('assoc');
+        $query = $this->getSelectBuilder()
+            ->select(['SCHEMA_NAME'])
+            ->from('INFORMATION_SCHEMA.SCHEMATA')
+            ->where(['SCHEMA_NAME' => $name]);
 
+        $rows = $query->execute()->fetchAll('assoc');
         foreach ($rows as $row) {
             if ($row) {
                 return true;
@@ -1308,7 +1229,7 @@ class MysqlAdapter extends AbstractAdapter
 
         $columnNames = (array)$index->getColumns();
         $order = $index->getOrder() ?? [];
-        $columnNames = array_map(function ($columnName) use ($order) {
+        $columnNames = array_map(function (string $columnName) use ($order): string {
             $ret = $this->quoteColumnName($columnName);
             if (isset($order[$columnName])) {
                 $ret .= ' ' . $order[$columnName];
@@ -1342,14 +1263,13 @@ class MysqlAdapter extends AbstractAdapter
      * Gets the MySQL Foreign Key Definition for an ForeignKey object.
      *
      * @param \Migrations\Db\Table\ForeignKey $foreignKey Foreign key
+     * @param string $tableName Table name for auto-generating constraint name
      * @return string
      */
-    protected function getForeignKeySqlDefinition(ForeignKey $foreignKey): string
+    protected function getForeignKeySqlDefinition(ForeignKey $foreignKey, string $tableName): string
     {
-        $def = '';
-        if ($foreignKey->getName()) {
-            $def .= ' CONSTRAINT ' . $this->quoteColumnName((string)$foreignKey->getName());
-        }
+        $constraintName = $foreignKey->getName() ?: $this->getUniqueForeignKeyName($tableName, $foreignKey->getColumns());
+        $def = ' CONSTRAINT ' . $this->quoteColumnName($constraintName);
         $columnNames = [];
         foreach ($foreignKey->getColumns() as $column) {
             $columnNames[] = $this->quoteColumnName($column);
@@ -1359,7 +1279,11 @@ class MysqlAdapter extends AbstractAdapter
         foreach ($foreignKey->getReferencedColumns() as $column) {
             $refColumnNames[] = $this->quoteColumnName($column);
         }
-        $def .= ' REFERENCES ' . $this->quoteTableName($foreignKey->getReferencedTable()->getName()) . ' (' . implode(',', $refColumnNames) . ')';
+        $referencedTable = $foreignKey->getReferencedTable();
+        if ($referencedTable === null) {
+            throw new InvalidArgumentException('Foreign key must have a referenced table.');
+        }
+        $def .= ' REFERENCES ' . $this->quoteTableName($referencedTable) . ' (' . implode(',', $refColumnNames) . ')';
         $onDelete = $foreignKey->getOnDelete();
         if ($onDelete) {
             $def .= ' ON DELETE ' . $onDelete;
@@ -1373,6 +1297,35 @@ class MysqlAdapter extends AbstractAdapter
     }
 
     /**
+     * Generate a unique foreign key constraint name.
+     *
+     * @param string $tableName Table name
+     * @param array<string> $columns Column names
+     * @return string
+     */
+    protected function getUniqueForeignKeyName(string $tableName, array $columns): string
+    {
+        $baseName = $tableName . '_' . implode('_', $columns);
+        $maxLength = static::IDENTIFIER_MAX_LENGTH - 3;
+        if (strlen($baseName) > $maxLength) {
+            $baseName = substr($baseName, 0, $maxLength);
+        }
+        $existingKeys = $this->getForeignKeys($tableName);
+        $existingNames = array_column($existingKeys, 'name');
+
+        if (!in_array($baseName, $existingNames, true)) {
+            return $baseName;
+        }
+
+        $counter = 2;
+        while (in_array($baseName . '_' . $counter, $existingNames, true)) {
+            $counter++;
+        }
+
+        return $baseName . '_' . $counter;
+    }
+
+    /**
      * Returns MySQL column types (inherited and MySQL specified).
      *
      * @return string[]
@@ -1382,10 +1335,234 @@ class MysqlAdapter extends AbstractAdapter
         $types = array_merge(parent::getColumnTypes(), static::$specificColumnTypes);
 
         if ($this->hasNativeUuid()) {
-            $types[] = self::PHINX_TYPE_NATIVEUUID;
+            $types[] = self::TYPE_NATIVE_UUID;
         }
 
         return $types;
+    }
+
+    /**
+     * Get the default encoding for the current database.
+     *
+     * @return string The default encoding
+     */
+    public function getDefaultCollation(): string
+    {
+        $connection = $this->getConnection();
+        $connectionConfig = $connection->config();
+
+        $query = $this->getSelectBuilder()
+            ->select(['DEFAULT_COLLATION_NAME'])
+            ->from('INFORMATION_SCHEMA.SCHEMATA')
+            ->where(['SCHEMA_NAME' => $connectionConfig['database']]);
+        $row = $query->execute()->fetch('assoc');
+
+        return $row['DEFAULT_COLLATION_NAME'] ?? '';
+    }
+
+    /**
+     * Gets the MySQL Partition Definition SQL.
+     *
+     * @param \Migrations\Db\Table\Partition $partition Partition configuration
+     * @return string
+     */
+    protected function getPartitionSqlDefinition(Partition $partition): string
+    {
+        $type = $partition->getType();
+        $columns = $partition->getColumns();
+
+        // Build column list or expression
+        if ($columns instanceof Literal) {
+            $columnsSql = (string)$columns;
+        } else {
+            $columnsSql = implode(', ', array_map($this->quoteColumnName(...), $columns));
+        }
+
+        $sql = sprintf('PARTITION BY %s (%s)', $type, $columnsSql);
+
+        // For HASH/KEY with count
+        if (in_array($type, [Partition::TYPE_HASH, Partition::TYPE_KEY], true)) {
+            $count = $partition->getCount();
+            if ($count !== null) {
+                $sql .= sprintf(' PARTITIONS %d', $count);
+            }
+
+            return $sql;
+        }
+
+        // For RANGE/LIST with definitions
+        $definitions = $partition->getDefinitions();
+        if ($definitions) {
+            $sql .= ' (';
+            $parts = [];
+            foreach ($definitions as $definition) {
+                $parts[] = $this->getPartitionDefinitionSql($type, $definition);
+            }
+            $sql .= implode(', ', $parts);
+            $sql .= ')';
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Gets the SQL for a single partition definition.
+     *
+     * @param string $type Partition type
+     * @param \Migrations\Db\Table\PartitionDefinition $definition Partition definition
+     * @return string
+     */
+    protected function getPartitionDefinitionSql(string $type, PartitionDefinition $definition): string
+    {
+        $sql = 'PARTITION ' . $this->quoteColumnName($definition->getName());
+
+        $value = $definition->getValue();
+        $isRangeType = in_array($type, [Partition::TYPE_RANGE, Partition::TYPE_RANGE_COLUMNS], true);
+        $isListType = in_array($type, [Partition::TYPE_LIST, Partition::TYPE_LIST_COLUMNS], true);
+
+        if ($isRangeType) {
+            $sql .= ' VALUES LESS THAN ';
+            if ($value === 'MAXVALUE' || $value === Partition::TYPE_RANGE . '_MAXVALUE') {
+                $sql .= 'MAXVALUE';
+            } elseif (is_array($value)) {
+                $sql .= '(' . implode(', ', array_map($this->quotePartitionValue(...), $value)) . ')';
+            } else {
+                $sql .= '(' . $this->quotePartitionValue($value) . ')';
+            }
+        } elseif ($isListType) {
+            $sql .= ' VALUES IN (';
+            if (is_array($value)) {
+                $sql .= implode(', ', array_map($this->quotePartitionValue(...), $value));
+            } else {
+                $sql .= $this->quotePartitionValue($value);
+            }
+            $sql .= ')';
+        }
+
+        if ($definition->getComment()) {
+            $sql .= ' COMMENT = ' . $this->quoteString($definition->getComment());
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Quote a partition boundary value.
+     *
+     * @param mixed $value The value to quote
+     * @return string
+     */
+    protected function quotePartitionValue(mixed $value): string
+    {
+        if ($value === null) {
+            return 'NULL';
+        }
+        if (is_int($value) || is_float($value)) {
+            return (string)$value;
+        }
+        if ($value === 'MAXVALUE') {
+            return 'MAXVALUE';
+        }
+
+        return $this->quoteString((string)$value);
+    }
+
+    /**
+     * Get instructions for adding partitioning to an existing table.
+     *
+     * @param \Migrations\Db\Table\TableMetadata $table The table
+     * @param \Migrations\Db\Table\Partition $partition The partition configuration
+     * @return \Migrations\Db\AlterInstructions
+     */
+    protected function getSetPartitioningInstructions(TableMetadata $table, Partition $partition): AlterInstructions
+    {
+        $sql = $this->getPartitionSqlDefinition($partition);
+
+        return new AlterInstructions([$sql]);
+    }
+
+    /**
+     * Get instructions for adding multiple partitions to an existing table.
+     *
+     * MySQL requires all partitions in a single ADD PARTITION clause:
+     * ADD PARTITION (PARTITION p1 ..., PARTITION p2 ...)
+     *
+     * @param \Migrations\Db\Table\TableMetadata $table The table
+     * @param array<\Migrations\Db\Table\PartitionDefinition> $partitions The partitions to add
+     * @return \Migrations\Db\AlterInstructions
+     */
+    protected function getAddPartitionsInstructions(TableMetadata $table, array $partitions): AlterInstructions
+    {
+        if ($partitions === []) {
+            return new AlterInstructions();
+        }
+
+        $partitionDefs = [];
+        foreach ($partitions as $partition) {
+            $partitionDefs[] = $this->getAddPartitionSql($partition);
+        }
+
+        $sql = 'ADD PARTITION (' . implode(', ', $partitionDefs) . ')';
+
+        return new AlterInstructions([$sql]);
+    }
+
+    /**
+     * Get instructions for dropping multiple partitions from an existing table.
+     *
+     * MySQL allows dropping multiple partitions in a single statement:
+     * DROP PARTITION p1, p2, p3
+     *
+     * @param string $tableName The table name
+     * @param array<string> $partitionNames The partition names to drop
+     * @return \Migrations\Db\AlterInstructions
+     */
+    protected function getDropPartitionsInstructions(string $tableName, array $partitionNames): AlterInstructions
+    {
+        if ($partitionNames === []) {
+            return new AlterInstructions();
+        }
+
+        $quotedNames = array_map($this->quoteColumnName(...), $partitionNames);
+        $sql = 'DROP PARTITION ' . implode(', ', $quotedNames);
+
+        return new AlterInstructions([$sql]);
+    }
+
+    /**
+     * Generate the SQL definition for a single partition when adding to existing table.
+     *
+     * This method is used when adding partitions to an existing table and must
+     * infer the partition type from the value format since we don't have table metadata.
+     *
+     * @param \Migrations\Db\Table\PartitionDefinition $partition The partition definition
+     * @return string
+     */
+    protected function getAddPartitionSql(PartitionDefinition $partition): string
+    {
+        $value = $partition->getValue();
+        $sql = 'PARTITION ' . $this->quoteColumnName($partition->getName());
+
+        // Detect RANGE vs LIST based on value type (simplified heuristic)
+        if ($value === 'MAXVALUE' || is_scalar($value)) {
+            // Likely RANGE
+            if ($value === 'MAXVALUE') {
+                $sql .= ' VALUES LESS THAN MAXVALUE';
+            } else {
+                $sql .= ' VALUES LESS THAN (' . $this->quotePartitionValue($value) . ')';
+            }
+        } elseif (is_array($value)) {
+            // Likely LIST
+            $sql .= ' VALUES IN (';
+            $sql .= implode(', ', array_map($this->quotePartitionValue(...), $value));
+            $sql .= ')';
+        }
+
+        if ($partition->getComment()) {
+            $sql .= ' COMMENT = ' . $this->quoteString($partition->getComment());
+        }
+
+        return $sql;
     }
 
     /**
@@ -1397,12 +1574,176 @@ class MysqlAdapter extends AbstractAdapter
     protected function hasNativeUuid(): bool
     {
         // Prevent infinite connect() loop when MysqlAdapter is used as a stub.
-        if ($this->connection === null || !$this->getOption('connection')) {
+        if (!$this->connection instanceof Connection || !$this->getOption('connection')) {
             return false;
         }
         $connection = $this->getConnection();
         $version = $connection->getDriver()->version();
 
         return version_compare($version, '10.7', '>=');
+    }
+
+    /**
+     * Whether the server is MariaDB (as opposed to MySQL).
+     *
+     * @return bool
+     */
+    protected function isMariaDb(): bool
+    {
+        // Prevent infinite connect() loop when MysqlAdapter is used as a stub.
+        if (!$this->connection instanceof Connection || !$this->getOption('connection')) {
+            return false;
+        }
+        $connection = $this->getConnection();
+        $version = $connection->getDriver()->version();
+
+        return stripos($version, 'mariadb') !== false;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Overridden to support ALGORITHM and LOCK clauses from AlterInstructions.
+     *
+     * @param string $tableName The table name
+     * @param \Migrations\Db\AlterInstructions $instructions The alter instructions
+     * @throws \InvalidArgumentException
+     * @return void
+     */
+    protected function executeAlterSteps(string $tableName, AlterInstructions $instructions): void
+    {
+        $algorithm = $instructions->getAlgorithm();
+        $lock = $instructions->getLock();
+
+        if ($algorithm === null && $lock === null) {
+            parent::executeAlterSteps($tableName, $instructions);
+
+            return;
+        }
+
+        $algorithmLockClause = '';
+        $upperAlgorithm = null;
+        $upperLock = null;
+
+        if ($algorithm !== null) {
+            $upperAlgorithm = strtoupper($algorithm);
+            $validAlgorithms = [
+                self::ALGORITHM_DEFAULT,
+                self::ALGORITHM_INSTANT,
+                self::ALGORITHM_INPLACE,
+                self::ALGORITHM_COPY,
+            ];
+            if (!in_array($upperAlgorithm, $validAlgorithms, true)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid algorithm "%s". Valid options: %s',
+                    $algorithm,
+                    implode(', ', $validAlgorithms),
+                ));
+            }
+            $algorithmLockClause .= ', ALGORITHM=' . $upperAlgorithm;
+        }
+
+        if ($lock !== null) {
+            $upperLock = strtoupper($lock);
+            $validLocks = [
+                self::LOCK_DEFAULT,
+                self::LOCK_NONE,
+                self::LOCK_SHARED,
+                self::LOCK_EXCLUSIVE,
+            ];
+            if (!in_array($upperLock, $validLocks, true)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid lock "%s". Valid options: %s',
+                    $lock,
+                    implode(', ', $validLocks),
+                ));
+            }
+            $algorithmLockClause .= ', LOCK=' . $upperLock;
+        }
+
+        if ($upperAlgorithm === self::ALGORITHM_INSTANT && $upperLock !== null && $upperLock !== self::LOCK_DEFAULT) {
+            throw new InvalidArgumentException(
+                'ALGORITHM=INSTANT cannot be combined with LOCK=NONE, LOCK=SHARED, or LOCK=EXCLUSIVE. ' .
+                'Either use ALGORITHM=INSTANT alone, or use ALGORITHM=INSTANT with LOCK=DEFAULT.',
+            );
+        }
+
+        $alterTemplate = sprintf('ALTER TABLE %s %%s', $this->quoteTableName($tableName));
+
+        if ($instructions->getAlterParts()) {
+            $alter = sprintf($alterTemplate, implode(', ', $instructions->getAlterParts()) . $algorithmLockClause);
+            $this->execute($alter);
+        }
+
+        $state = [];
+        foreach ($instructions->getPostSteps() as $instruction) {
+            if (is_callable($instruction)) {
+                $state = $instruction($state);
+                continue;
+            }
+
+            $this->execute($instruction);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getCreateViewInstructions(View $view): AlterInstructions
+    {
+        $sql = sprintf(
+            'CREATE %sVIEW %s AS %s',
+            $view->getReplace() ? 'OR REPLACE ' : '',
+            $this->quoteTableName($view->getName()),
+            $view->getDefinition(),
+        );
+
+        return new AlterInstructions([], [$sql]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDropViewInstructions(string $viewName, bool $materialized = false): AlterInstructions
+    {
+        $sql = sprintf(
+            'DROP VIEW IF EXISTS %s',
+            $this->quoteTableName($viewName),
+        );
+
+        return new AlterInstructions([], [$sql]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getCreateTriggerInstructions(string $tableName, Trigger $trigger): AlterInstructions
+    {
+        $events = is_array($trigger->getEvent()) ? $trigger->getEvent() : [$trigger->getEvent()];
+        $eventStr = implode(' OR ', $events);
+
+        $sql = sprintf(
+            'CREATE TRIGGER %s %s %s ON %s FOR EACH ROW %s',
+            $this->quoteColumnName($trigger->getName()),
+            $trigger->getTiming(),
+            $eventStr,
+            $this->quoteTableName($tableName),
+            $trigger->getDefinition(),
+        );
+
+        return new AlterInstructions([], [$sql]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDropTriggerInstructions(string $tableName, string $triggerName): AlterInstructions
+    {
+        $sql = sprintf(
+            'DROP TRIGGER IF EXISTS %s',
+            $this->quoteColumnName($triggerName),
+        );
+
+        return new AlterInstructions([], [$sql]);
     }
 }

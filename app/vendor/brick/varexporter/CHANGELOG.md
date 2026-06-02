@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0](https://github.com/brick/varexporter/releases/tag/0.7.0) - 2026-01-06
+
+✨ **New features**
+
+- Added `VarExporter::INLINE_LITERAL_LIST`, similar to `INLINE_SCALAR_LIST` but includes enum values
+
+💥 **BC breaks**
+
+- Minimum PHP version is now `8.2`
+
 ## [0.6.0](https://github.com/brick/varexporter/releases/tag/0.6.0) - 2025-02-20
 
 💥 **BC breaks**

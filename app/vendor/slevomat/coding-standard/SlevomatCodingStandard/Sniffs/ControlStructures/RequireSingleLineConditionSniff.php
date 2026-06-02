@@ -19,11 +19,7 @@ class RequireSingleLineConditionSniff extends AbstractLineCondition
 
 	public bool $alwaysForSimpleConditions = true;
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $controlStructurePointer
-	 */
-	public function process(File $phpcsFile, $controlStructurePointer): void
+	public function process(File $phpcsFile, int $controlStructurePointer): void
 	{
 		$this->maxLineLength = SniffSettingsHelper::normalizeInteger($this->maxLineLength);
 
@@ -56,7 +52,7 @@ class RequireSingleLineConditionSniff extends AbstractLineCondition
 		$lineLength = strlen($lineStart . $condition . $lineEnd);
 		$isSimpleCondition = TokenHelper::findNext(
 			$phpcsFile,
-			Tokens::$booleanOperators,
+			Tokens::BOOLEAN_OPERATORS,
 			$parenthesisOpenerPointer + 1,
 			$parenthesisCloserPointer,
 		) === null;

@@ -8,8 +8,6 @@ use InvalidArgumentException;
 class EnumParser
 {
     /**
-     * @param string|null $casesString
-     * @param bool $int
      * @return array<string, int|string>
      */
     public static function parseCases(?string $casesString, bool $int): array
@@ -23,9 +21,10 @@ class EnumParser
         $definition = [];
         foreach ($enumCases as $k => $enumCase) {
             $case = $value = trim($enumCase);
-            if (str_contains($case, ':')) {
-                $value = trim(mb_substr($case, strpos($case, ':') + 1));
-                $case = mb_substr($case, 0, strpos($case, ':'));
+            $pos = strpos($case, ':');
+            if ($pos !== false) {
+                $value = trim(mb_substr($case, $pos + 1));
+                $case = mb_substr($case, 0, $pos);
             } elseif ($int) {
                 $value = $k;
             }
@@ -33,8 +32,8 @@ class EnumParser
             if (!preg_match('/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*$/', $case)) {
                 throw new InvalidArgumentException(sprintf('`%s` is not a valid enum case', $case));
             }
-            if (is_string($value) && str_contains($value, '\'')) {
-                throw new InvalidArgumentException(sprintf('`%s` value cannot contain `\'` character', $case));
+            if (is_string($value) && str_contains($value, "'")) {
+                throw new InvalidArgumentException(sprintf("`%s` value cannot contain `'` character", $case));
             }
 
             $definition[$case] = $int ? (int)$value : $value;
@@ -46,14 +45,14 @@ class EnumParser
     /**
      * Parses an enum definition from a DB column comment.
      *
-     * @param string $comment
      * @return string
      */
     public static function parseDefinitionString(string $comment): string
     {
         $string = trim(mb_substr($comment, strpos($comment, '[enum]') + 6));
-        if (str_contains($string, ';')) {
-            $string = trim(mb_substr($string, 0, strpos($string, ';')));
+        $pos = strpos($string, ';');
+        if ($pos !== false) {
+            return trim(mb_substr($string, 0, $pos));
         }
 
         return $string;

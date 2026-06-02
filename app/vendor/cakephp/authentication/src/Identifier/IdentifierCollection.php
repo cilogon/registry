@@ -56,7 +56,11 @@ class IdentifierCollection extends AbstractCollection implements IdentifierInter
 
                 return $result;
             }
-            $this->_errors[$name] = $identifier->getErrors();
+
+            $errors = $identifier->getErrors();
+            if ($errors) {
+                $this->_errors[$name] = $identifier->getErrors();
+            }
         }
 
         $this->_successfulIdentifier = null;

@@ -16,6 +16,8 @@ declare(strict_types=1);
  */
 namespace Authentication\Authenticator;
 
+use Authentication\Identifier\IdentifierCollection;
+use Authentication\Identifier\IdentifierInterface;
 use Authentication\Identifier\TokenIdentifier;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -34,6 +36,22 @@ class TokenAuthenticator extends AbstractAuthenticator implements StatelessInter
         'queryParam' => null,
         'tokenPrefix' => null,
     ];
+
+    /**
+     * Gets the identifier, loading a default Token identifier if none configured.
+     *
+     * This is done lazily to allow loadIdentifier() to be called after loadAuthenticator().
+     *
+     * @return \Authentication\Identifier\IdentifierInterface
+     */
+    public function getIdentifier(): IdentifierInterface
+    {
+        if ($this->_identifier instanceof IdentifierCollection && $this->_identifier->isEmpty()) {
+            $this->_identifier->load('Authentication.Token');
+        }
+
+        return $this->_identifier;
+    }
 
     /**
      * Checks if the token is in the headers or a request parameter
@@ -124,12 +142,13 @@ class TokenAuthenticator extends AbstractAuthenticator implements StatelessInter
             return new Result(null, Result::FAILURE_CREDENTIALS_MISSING);
         }
 
-        $user = $this->_identifier->identify([
+        $identifier = $this->getIdentifier();
+        $user = $identifier->identify([
             TokenIdentifier::CREDENTIAL_TOKEN => $token,
         ]);
 
         if (!$user) {
-            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $this->_identifier->getErrors());
+            return new Result(null, Result::FAILURE_IDENTITY_NOT_FOUND, $identifier->getErrors());
         }
 
         return new Result($user, Result::SUCCESS);

@@ -16,8 +16,12 @@ declare(strict_types=1);
  */
 namespace Cake\Cache;
 
+use Cake\Cache\Event\CacheAfterAddEvent;
+use Cake\Cache\Event\CacheBeforeAddEvent;
 use Cake\Cache\Exception\InvalidArgumentException;
 use Cake\Core\InstanceConfigTrait;
+use Cake\Event\EventDispatcherInterface;
+use Cake\Event\EventDispatcherTrait;
 use DateInterval;
 use DateTime;
 use Psr\SimpleCache\CacheInterface;
@@ -25,9 +29,16 @@ use function Cake\Core\triggerWarning;
 
 /**
  * Storage engine for CakePHP caching
+ *
+ * @template TSubject of object
+ * @implements \Cake\Event\EventDispatcherInterface<TSubject>
  */
-abstract class CacheEngine implements CacheInterface, CacheEngineInterface
+abstract class CacheEngine implements CacheInterface, CacheEngineInterface, EventDispatcherInterface
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<TSubject>
+     */
+    use EventDispatcherTrait;
     use InstanceConfigTrait;
 
     /**
@@ -264,7 +275,7 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
      *
      * @param string $key Identifier for the data
      * @param int $offset How much to subtract
-     * @return int|false New incremented value, false otherwise
+     * @return int|false New decremented value, false otherwise
      */
     abstract public function decrement(string $key, int $offset = 1): int|false;
 
@@ -296,9 +307,29 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
     public function add(string $key, mixed $value): bool
     {
         $cachedValue = $this->get($key);
+        $prefixedKey = $this->_key($key);
+        $duration = $this->getConfig('duration');
+
+        $this->_eventClass = CacheBeforeAddEvent::class;
+        $this->dispatchEvent(CacheBeforeAddEvent::NAME, [
+            'key' => $prefixedKey,
+            'value' => $value,
+            'ttl' => $duration,
+        ]);
+
         if ($cachedValue === null) {
-            return $this->set($key, $value);
+            $success = $this->set($key, $value);
+            $this->_eventClass = CacheAfterAddEvent::class;
+            $this->dispatchEvent(CacheAfterAddEvent::NAME, [
+                'key' => $prefixedKey, 'value' => $value, 'success' => $success, 'ttl' => $duration,
+            ]);
+
+            return $success;
         }
+        $this->_eventClass = CacheAfterAddEvent::class;
+        $this->dispatchEvent(CacheAfterAddEvent::NAME, [
+            'key' => $prefixedKey, 'value' => $value, 'success' => false, 'ttl' => $duration,
+        ]);
 
         return false;
     }

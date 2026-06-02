@@ -228,6 +228,7 @@ class HasMany extends Association
             }
 
             if ($foreignKeyReference !== $entity->extract($foreignKey)) {
+                // @phpstan-ignore function.alreadyNarrowedType (patch method available on EntityInterface)
                 if (method_exists($entity, 'patch')) {
                     $entity->patch($foreignKeyReference, ['guard' => false]);
                 } else {
@@ -277,7 +278,7 @@ class HasMany extends Association
      *
      * @param \Cake\Datasource\EntityInterface $sourceEntity the row belonging to the `source` side
      * of this association
-     * @param array $targetEntities list of entities belonging to the `target` side
+     * @param array<\Cake\Datasource\EntityInterface> $targetEntities list of entities belonging to the `target` side
      * of this association
      * @param array<string, mixed> $options list of options to be passed to the internal `save` call
      * @return bool true on success, false otherwise
@@ -288,11 +289,13 @@ class HasMany extends Association
         $this->setSaveStrategy(self::SAVE_APPEND);
         $property = $this->getProperty();
 
+        /** @var array<\Cake\Datasource\EntityInterface> $currentEntities */
         $currentEntities = (array)$sourceEntity->get($property);
         if ($currentEntities === []) {
             $currentEntities = $targetEntities;
         } else {
             $pkFields = (array)$this->getTarget()->getPrimaryKey();
+            /** @var array<\Cake\Datasource\EntityInterface> $currentEntities */
             $targetEntities = (new Collection($targetEntities))
                 ->reject(
                     function (EntityInterface $entity) use ($currentEntities, $pkFields) {
@@ -367,9 +370,9 @@ class HasMany extends Association
      *   If boolean it will be used a value for "cleanProperty" option.
      * @throws \InvalidArgumentException if non persisted entities are passed or if
      * any of them is lacking a primary key value
-     * @return void
+     * @return bool
      */
-    public function unlink(EntityInterface $sourceEntity, array $targetEntities, array|bool $options = []): void
+    public function unlink(EntityInterface $sourceEntity, array $targetEntities, array|bool $options = []): bool
     {
         if (is_bool($options)) {
             $options = [
@@ -379,7 +382,7 @@ class HasMany extends Association
             $options += ['cleanProperty' => true];
         }
         if ($targetEntities === []) {
-            return;
+            return true;
         }
 
         $foreignKey = (array)$this->getForeignKey();
@@ -396,7 +399,10 @@ class HasMany extends Association
                 ->toList(),
         ];
 
-        $this->_unlink($foreignKey, $target, $conditions, $options);
+        $return = $this->_unlink($foreignKey, $target, $conditions, $options);
+        if (!$return) {
+            return false;
+        }
 
         $result = $sourceEntity->get($property);
         if ($options['cleanProperty'] && $result !== null) {
@@ -405,7 +411,7 @@ class HasMany extends Association
                 (new Collection($sourceEntity->get($property)))
                 ->reject(
                     function ($assoc) use ($targetEntities) {
-                        return in_array($assoc, $targetEntities);
+                        return in_array($assoc, $targetEntities, true);
                     },
                 )
                 ->toList(),
@@ -413,6 +419,8 @@ class HasMany extends Association
         }
 
         $sourceEntity->setDirty($property, false);
+
+        return true;
     }
 
     /**
@@ -550,13 +558,15 @@ class HasMany extends Association
                         }
                     }
                 });
+                /** @var \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface> $query */
                 $query = $this->find()->where($conditions);
-                $ok = true;
-                foreach ($query->all() as $assoc) {
-                    $ok = $ok && $target->delete($assoc, $options);
+
+                $return = $target->deleteMany($query->all(), $options);
+                if ($return === false) {
+                    return false;
                 }
 
-                return $ok;
+                return true;
             }
 
             $this->deleteAll($conditions);
@@ -582,11 +592,10 @@ class HasMany extends Association
         return !in_array(
             false,
             array_map(
-                function ($prop) use ($table) {
-                    return $table->getSchema()->isNullable($prop);
-                },
+                $table->getSchema()->isNullable(...),
                 $properties,
             ),
+            true,
         );
     }
 
@@ -617,11 +626,7 @@ class HasMany extends Association
      */
     public function getForeignKey(): array|string|false
     {
-        if (!isset($this->_foreignKey)) {
-            $this->_foreignKey = $this->_modelKey($this->getSource()->getTable());
-        }
-
-        return $this->_foreignKey;
+        return $this->_foreignKey ??= $this->_modelKey($this->getSource()->getTable());
     }
 
     /**

@@ -96,11 +96,7 @@ class ParameterTypeHintSniff implements Sniff
 		];
 	}
 
-	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-	 * @param int $functionPointer
-	 */
-	public function process(File $phpcsFile, $functionPointer): void
+	public function process(File $phpcsFile, int $functionPointer): void
 	{
 		$this->enableObjectTypeHint = SniffSettingsHelper::isEnabledByPhpVersion($this->enableObjectTypeHint, 70200);
 		$this->enableMixedTypeHint = SniffSettingsHelper::isEnabledByPhpVersion($this->enableMixedTypeHint, 80000);
@@ -112,10 +108,6 @@ class ParameterTypeHintSniff implements Sniff
 		);
 
 		if (SuppressHelper::isSniffSuppressed($phpcsFile, $functionPointer, self::NAME)) {
-			return;
-		}
-
-		if (DocCommentHelper::hasInheritdocAnnotation($phpcsFile, $functionPointer)) {
 			return;
 		}
 
@@ -147,6 +139,9 @@ class ParameterTypeHintSniff implements Sniff
 		array $prefixedParametersAnnotations
 	): void
 	{
+		$isInherited = AttributeHelper::hasAttribute($phpcsFile, $functionPointer, '\Override')
+			|| DocCommentHelper::hasInheritdocAnnotation($phpcsFile, $functionPointer);
+
 		$suppressNameAnyTypeHint = self::getSniffName(self::CODE_MISSING_ANY_TYPE_HINT);
 		$isSuppressedAnyTypeHint = SuppressHelper::isSniffSuppressed($phpcsFile, $functionPointer, $suppressNameAnyTypeHint);
 
@@ -180,7 +175,7 @@ class ParameterTypeHintSniff implements Sniff
 
 				$visibilityPointer = TokenHelper::findNextEffective($phpcsFile, $pointerBeforeParameter + 1);
 
-				$isPropertyPromotion = in_array($tokens[$visibilityPointer]['code'], Tokens::$scopeModifiers, true);
+				$isPropertyPromotion = in_array($tokens[$visibilityPointer]['code'], Tokens::SCOPE_MODIFIERS, true);
 			}
 
 			if (
@@ -196,6 +191,10 @@ class ParameterTypeHintSniff implements Sniff
 					continue;
 				}
 
+				if ($isInherited) {
+					continue;
+				}
+
 				$phpcsFile->addError(
 					sprintf(
 						'%s %s() does not have parameter type hint nor @param annotation for its parameter %s.',
@@ -207,10 +206,6 @@ class ParameterTypeHintSniff implements Sniff
 					self::CODE_MISSING_ANY_TYPE_HINT,
 				);
 
-				continue;
-			}
-
-			if (AttributeHelper::hasAttribute($phpcsFile, $functionPointer, '\Override')) {
 				continue;
 			}
 
@@ -367,6 +362,10 @@ class ParameterTypeHintSniff implements Sniff
 				continue;
 			}
 
+			if ($isInherited) {
+				continue;
+			}
+
 			$fix = $phpcsFile->addFixableError(
 				sprintf(
 					'%s %s() does not have native type hint for its parameter %s but it should be possible to add it based on @param annotation "%s".',
@@ -460,6 +459,9 @@ class ParameterTypeHintSniff implements Sniff
 		array $prefixedParametersAnnotations
 	): void
 	{
+		$isInherited = AttributeHelper::hasAttribute($phpcsFile, $functionPointer, '\Override')
+			|| DocCommentHelper::hasInheritdocAnnotation($phpcsFile, $functionPointer);
+
 		$suppressName = self::getSniffName(self::CODE_MISSING_TRAVERSABLE_TYPE_HINT_SPECIFICATION);
 		$isSniffSuppressed = SuppressHelper::isSniffSuppressed($phpcsFile, $functionPointer, $suppressName);
 		$suppressUseless = true;
@@ -494,7 +496,7 @@ class ParameterTypeHintSniff implements Sniff
 			if ($hasTraversableTypeHint && !array_key_exists($parameterName, $parametersAnnotations)) {
 				$suppressUseless = false;
 
-				if (!$isSniffSuppressed) {
+				if (!$isSniffSuppressed && !$isInherited) {
 					$phpcsFile->addError(
 						sprintf(
 							'%s %s() does not have @param annotation for its traversable parameter %s.',
@@ -542,7 +544,7 @@ class ParameterTypeHintSniff implements Sniff
 
 			$suppressUseless = false;
 
-			if ($isSniffSuppressed) {
+			if ($isSniffSuppressed || $isInherited) {
 				continue;
 			}
 

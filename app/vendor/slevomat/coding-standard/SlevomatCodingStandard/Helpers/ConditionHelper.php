@@ -32,9 +32,6 @@ use const T_LOGICAL_AND;
 use const T_LOGICAL_OR;
 use const T_LOGICAL_XOR;
 use const T_OPEN_PARENTHESIS;
-use const T_PARENT;
-use const T_SELF;
-use const T_STATIC;
 use const T_STRING;
 use const T_VARIABLE;
 
@@ -67,8 +64,8 @@ class ConditionHelper
 				$phpcsFile,
 				array_merge(
 					[T_OPEN_PARENTHESIS, T_LESS_THAN, T_GREATER_THAN],
-					Tokens::$booleanOperators,
-					Tokens::$equalityTokens,
+					Tokens::BOOLEAN_OPERATORS,
+					Tokens::EQUALITY_TOKENS,
 				),
 				$actualPointer,
 				$conditionBoundaryEndPointer + 1,
@@ -154,7 +151,7 @@ class ConditionHelper
 		$pointerAfterConditionStart = TokenHelper::findNextEffective($phpcsFile, $conditionBoundaryStartPointer);
 		$booleanPointers = TokenHelper::findNextAll(
 			$phpcsFile,
-			Tokens::$booleanOperators,
+			Tokens::BOOLEAN_OPERATORS,
 			$conditionBoundaryStartPointer,
 			$conditionBoundaryEndPointer + 1,
 		);
@@ -211,7 +208,7 @@ class ConditionHelper
 			}
 		}
 
-		if (in_array($tokens[$pointerAfterConditionStart]['code'], [T_VARIABLE, T_SELF, T_STATIC, T_PARENT], true)) {
+		if (in_array($tokens[$pointerAfterConditionStart]['code'], [T_VARIABLE, ...TokenHelper::CLASS_KEYWORD_CODES], true)) {
 			$identificatorEndPointer = IdentificatorHelper::findEndPointer($phpcsFile, $pointerAfterConditionStart);
 			$pointerAfterIdentificatorEnd = TokenHelper::findNextEffective($phpcsFile, $identificatorEndPointer + 1);
 			if (
@@ -295,7 +292,7 @@ class ConditionHelper
 		do {
 			$actualPointer = TokenHelper::findNext(
 				$phpcsFile,
-				array_merge([T_OPEN_PARENTHESIS, T_CLOSE_PARENTHESIS], Tokens::$booleanOperators),
+				array_merge([T_OPEN_PARENTHESIS, T_CLOSE_PARENTHESIS], Tokens::BOOLEAN_OPERATORS),
 				$actualPointer,
 				$conditionBoundaryEndPointer + 1,
 			);
