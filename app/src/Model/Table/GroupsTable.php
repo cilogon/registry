@@ -1021,14 +1021,11 @@ class GroupsTable extends Table {
   public function marshalProvisioningData(int $id): array {
     $ret = [];
 
-    $ret['data'] = $this->get($id, [
+    $ret['data'] = $this->get($id,
       // We need archives for handling deleted records
-      'archived' => true,
-      'contain' => [
-        'GroupMembers',
-        'Identifiers'
-      ]
-    ]);
+      archived: true,
+      contain: ['GroupMembers', 'Identifiers']
+    );
     
     // Provisioning Eligibility is
     // - Deleted if the changelog deleted flag is true
