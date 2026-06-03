@@ -427,12 +427,12 @@ class UpgradeCommand extends BaseCommand
   {
     $EnvSourcesTable = $this->getTableLocator()->get('EnvSource.EnvSources');
 
-    $this->EnvSourceSpMode = $EnvSourcesTable->find('list', [
-        'keyField' => 'id',
-        'valueField' => 'sp_mode'
-      ])
-      ->applyOptions(['archived' => true])
-      ->toArray();
+    $this->EnvSourceSpMode = $EnvSourcesTable->find('list',
+      keyField: 'id',
+      valueField: 'sp_mode'
+    )
+    ->applyOptions(['archived' => true])
+    ->toArray();
   }
 
   /**
