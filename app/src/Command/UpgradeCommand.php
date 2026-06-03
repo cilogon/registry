@@ -482,7 +482,7 @@ class UpgradeCommand extends BaseCommand
     // as a whole, so we only need to run this once.
 
     $GroupsTable = $this->getTableLocator()->get('Groups');
-    $GroupsTable->recover();
+    $GroupsTable->getBehavior('Tree')->recover();
   }
 
   /**
