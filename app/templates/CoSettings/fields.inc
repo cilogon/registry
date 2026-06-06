@@ -68,7 +68,9 @@ $fields = [
   ],
   'email_smtp_server_id',
   'email_delivery_address_type_id',
-  'authn_events_api_disable'
+  'authn_events_api_disable',
+  'tc_login_mode',
+  'tc_return_url_allowlist'
 ];
 
 if($vv_obj->co->isCOmanageCO()) {

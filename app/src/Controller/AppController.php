@@ -29,6 +29,8 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use App\Lib\Enum\TAndCLoginModeEnum;
+use App\Lib\Enum\TAndCStatusEnum;
 use App\Lib\Enum\TemplateableStatusEnum;
 use App\Lib\Events\ActorEventListener;
 use App\Lib\Events\CoIdEventListener;
@@ -39,8 +41,8 @@ use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Http\Exception\UnauthorizedException;
 use Cake\Event\EventManager;
 use Cake\ORM\TableRegistry;
+use Cake\Routing\Router;
 use Cake\Utility\Hash;
-
 
 /**
  * @property \App\Controller\Component\RegistryAuthComponent $RegistryAuth
@@ -204,6 +206,9 @@ class AppController extends Controller {
         && $this->getCOID() !== null
       ) {
         $this->set('vv_person_id', $this->RegistryAuth->getPersonId($this->getCOID()));
+        
+        // These are the same conditions we need to check for T&C enforcement
+        $this->maybeEnforceTAndCs();
       }
     }
 
@@ -645,6 +650,103 @@ class AppController extends Controller {
     }
     
     return 'index';
+  }
+
+  /**
+   * Check to see if T&Cs are required.
+   * 
+   * @since  COmanage Registry v5.3.0
+   */
+
+  protected function maybeEnforceTAndCs() {
+    // First, if we are processing a request for certain controllers
+    // and actions, skip the check and return
+
+    $modelName = $this->request->getParam('controller');
+    $action = $this->request->getParam('action');
+
+    $bypass = [
+      'EnrollmentFlows' => [
+        'start'
+      ],
+      'Petitions' => [
+        'assign',
+        'continue',
+        'finalize',
+        'provision'
+      ],
+      'TermsAndConditions' => [
+        'agree',
+        'review'
+      ]
+    ];
+
+    if(isset($bypass[$modelName]) && in_array($action, $bypass[$modelName])) {
+      return;
+    }
+
+    // We always allow dispatch (which can exist under any plugin controller)
+
+    if($action == 'dispatch') {
+      return;
+    }
+
+    // Next check the session (keyed on the current CO, since that could
+    // change within a login session) to see if we're already cleared
+
+    $sessionKey = "TAndC.bypass." . $this->getCOID();
+
+    if($this->request->getSession()->read($sessionKey) === true) {
+      return;
+    }
+
+    // If the current user is not a member of the CO (probably because they're
+    // a Platform Admin), don't bother doing any further checks. Note this call
+    // is cached by RegistryAuthComponent, and so is efficient to call again.
+
+    if(!$this->RegistryAuth->isCoMember($this->getCOID())) {
+      return;
+    }
+
+    // Check CoSettings for the current CO
+
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+    $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
+
+    if($settings->tc_login_mode == TAndCLoginModeEnum::NotEnforced) {
+      // Set a session note so we don't have to look this up on every page load
+
+      $this->request->getSession()->write($sessionKey, true);
+      return;
+    }
+
+    // If we've made it this far, retrieve the T&C status for the current Person
+
+    $personID = $this->RegistryAuth->getPersonID($this->getCOID());
+
+    $TermsAndConditions = TableRegistry::getTableLocator()->get('TermsAndConditions');
+
+    $status = $TermsAndConditions->status($personID);
+
+    foreach($status as $s) {
+      // If we find at least one non-current T&C, redirect
+
+      if($s['status'] != TAndCStatusEnum::Agreed) {
+        // Store the current request URL so /review knows where to send the user when they're done
+        $this->request->getSession()->write('TAndC.return', Router::url($this->request->getRequestTarget(), true));
+
+        return $this->redirect([
+          'controller'  => 'terms-and-conditions',
+          'action'      => 'review',
+          '?' => ['co_id' => $this->getCOID()]
+        ]);
+      }
+    }
+
+    // Finally if we make it here the Person is current, and we can set
+    // the session state to bypass since Person is up to date
+
+    $this->request->getSession()->write($sessionKey, true);
   }
   
   /**

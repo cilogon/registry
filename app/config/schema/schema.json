@@ -145,6 +145,8 @@
         "person_picker_email_address_type_id": { "type": "integer" },
         "person_picker_identifier_type_id": { "type": "integer" },
         "person_picker_display_types": { "type": "boolean" },
+        "tc_login_mode": { "type": "string", "size": 2 },
+        "tc_return_url_allowlist": { "type": "text" },
         "platform_env_mfa": { "type": "string", "size": 80 },
         "platform_env_mfa_value": { "type": "string", "size": 80 },
         "platform_env_mfa_enable_eg": { "type": "boolean" }

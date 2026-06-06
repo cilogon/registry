@@ -75,8 +75,9 @@ class TermsAndConditionsTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['proxy', 'revoke']);
+    $this->setAllowLookupPrimaryLink(['agree', 'proxy', 'revoke']);
     $this->setAllowLookupRelatedPrimaryLink(['status' => ['person_id']]);
+    $this->setAllowUnkeyedPrimaryLink(['review']);
 
     $this->setIndexContains([
       'MostlyStaticPages'
@@ -101,19 +102,21 @@ class TermsAndConditionsTable extends Table {
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
+        'agree' =>    ['coMember'],
+        'delete' =>   ['platformAdmin', 'coAdmin'],
+        'edit' =>     ['platformAdmin', 'coAdmin'],
         // We specifically exclude platform admins from proxying because
         // they may not be registered as People in the CO, and we won't be
         // able to record the actor foreign key for audit purposes.
-        'proxy' =>      ['coAdmin'],
-        'revoke' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
+        'proxy' =>    ['coAdmin'],
+        'revoke' =>   ['platformAdmin', 'coAdmin'],
+        'view' =>     ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
         'add' =>      ['platformAdmin', 'coAdmin'],
         'index' =>    ['platformAdmin', 'coAdmin'],
+        'review' =>   ['coMember'],
         'status' =>   ['platformAdmin', 'coAdmin']
       ]
     ]);

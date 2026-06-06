@@ -45,6 +45,7 @@ namespace App\Model\Table;
 use \Cake\ORM\Table;
 use \Cake\ORM\TableRegistry;
 use \Cake\Validation\Validator;
+use \App\Lib\Enum\TAndCLoginModeEnum;
 use \App\Lib\Enum\PermittedNameFieldsEnum;
 use \App\Lib\Enum\PermittedTelephoneNumberFieldsEnum;
 use \App\Lib\Enum\RequiredAddressFieldsEnum;
@@ -192,6 +193,10 @@ class CoSettingsTable extends Table {
       'requiredFieldsNames' => [
         'type' => 'enum',
         'class' => 'RequiredNameFieldsEnum'
+      ],
+      'tcLoginModes' => [
+        'type'  => 'enum',
+        'class' => 'TAndCLoginModeEnum'
       ]
     ]);
 
@@ -244,7 +249,9 @@ class CoSettingsTable extends Table {
       'required_fields_address'              => RequiredAddressFieldsEnum::Street,
       'required_fields_name'                 => RequiredNameFieldsEnum::Given,
       'search_global_limit'                  => DEF_GLOBAL_SEARCH_LIMIT,
-      'search_limited_models'                => false
+      'search_limited_models'                => false,
+      'tc_login_mode'                        => TAndCLoginModeEnum::NotEnforced,
+      'tc_return_url_allow_list'             => null
 // XXX to add new settings, set a default here, then add a validation rule below
 //     also update data model documentation
       // 'disable_expiration'         => false,
@@ -259,7 +266,6 @@ class CoSettingsTable extends Table {
       // 'required_fields_name'       => RequiredNameFieldsEnum::Given,
       // 'sponsor_co_group_id'        => null,
       // 'sponsor_eligibility'        => SponsorEligibilityEnum::CoOrCouAdmin,
-      // 't_and_c_login_mode'         => TAndCLoginModeEnum::NotEnforced,
       // 'enable_empty_cou'           => false,
       // 'theme_stacking'             => SuspendableStatusEnum::Suspended,
       // 'co_theme_id'                => null,
@@ -518,6 +524,17 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => ['comparison', '>', 0]]
     ]);
     $validator->notEmptyString('search_global_limit');
+    
+    $validator->add('tc_login_mode', [
+      'content' => ['rule' => ['inList', TAndCLoginModeEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('tc_login_mode');
+
+    $validator->add('tc_return_url_allowlist', [
+      'filter'  => ['rule'     => ['validateInput'],
+                    'provider' => 'table']
+    ]);
+    $validator->allowEmptyString('tc_return_url_allowlist');
 
     // "platform_" prefixed fields are intended to be available in the COmanage CO only.
     // We do this rather than create a separate table (like "meta") to leverage the existing

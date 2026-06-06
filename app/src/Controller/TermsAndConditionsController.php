@@ -32,7 +32,9 @@ namespace App\Controller;
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use \App\Lib\Enum\ProvisioningContextEnum;
+use \App\Lib\Enum\TAndCStatusEnum;
 
 class TermsAndConditionsController extends StandardController {
   public array $paginate = [
@@ -40,6 +42,44 @@ class TermsAndConditionsController extends StandardController {
       'TermsAndConditions.ordr' => 'asc'
     ]
   ];
+
+  /**
+   * Record an Agreement.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  string  $id Terms and Conditions ID
+   */
+
+  public function agree(string $id) {
+    $personId = $this->RegistryAuth->getPersonID($this->getCOID());
+
+    try {
+      $this->TermsAndConditions->TAndCAgreements->record(
+        termsAndConditionsId: (int)$id,
+        personId: $personId,
+        actorPersonId: $personId,
+        identifier: $this->getRequest()->getSession()->read('Auth.external.user')
+      );
+
+      // Request provisioning on success
+
+      $this->llog('trace', "Requesting provisioning after T&C Agreement for Person " . $personId);
+
+      $People = TableRegistry::getTableLocator()->get('People');
+
+      $People->requestProvisioning(
+        id: (int)$personId,
+        context: ProvisioningContextEnum::Automatic
+      );
+    }
+    catch(\Exception $e) {
+      $this->Flash->error($e->getMessage());
+      return $this->generateRedirect(null);
+    }
+
+    $this->Flash->success(__d('result', 'TermsAndConditions.recorded'));
+    return $this->redirect(['action' => 'review', '?' => ['co_id' => $this->getCOID()]]);
+  }
 
   /**
    * Callback run prior to the request render.
@@ -94,6 +134,71 @@ class TermsAndConditionsController extends StandardController {
 
     $this->Flash->success(__d('result', 'TermsAndConditions.recorded'));
     return $this->redirect(['action' => 'status', '?' => ['person_id' => $personId]]);
+  }
+
+  /**
+   * Generate a review index.
+   * 
+   * @since  COmanage Registry v5.2.0
+   */
+
+  public function review() {
+    // Before we get started, see if a return parameter was requested, and if so if it is permitted.
+    // If so, we'll override any current return URL. We check the return URL here rather than when
+    // we're done because URLs stored by AppController are not subject to the allow list check.
+
+    $returnUrl = $this->request->getQuery('return');
+
+    if(!empty($returnUrl)) {
+      $returnUrl = base64_decode($returnUrl);
+
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+      $settings = $CoSettings->find()->where(['co_id' => $this->getCOID()])->firstOrFail();
+
+      if(!empty($settings->tc_return_url_allowlist)) {
+        foreach(preg_split('/\R/', $settings->tc_return_url_allowlist) as $u) {
+          if(preg_match($u, $returnUrl)) {
+            // The requested URL is permitted, so store it in the session, potentially overriding
+            // the original return URL
+            $this->request->getSession()->write('TAndC.return', $returnUrl);
+            break;
+          }
+        }
+      } else {
+        // No allowed URLs, so ignore redirect
+      }
+    }
+
+    // We get the current user from RegistryAuthComponent and then pass their T&C status to the view.
+
+    $personId = $this->RegistryAuth->getPersonID($this->getCOID());
+
+    if(empty($personId)) {
+      // We shouldn't actually get here without person_id set since getPrimaryLink()
+      // will (eventually) require it.
+      throw new \InvalidArgumentException(__d('error', 'notprov', 'person_id'));
+    }
+
+    $status = $this->TermsAndConditions->status((int)$personId);
+
+    // If there is nothing left to do, redirect to the original request
+    $done = true;
+
+    foreach($status as $s) {
+      if($s['status'] != TAndCStatusEnum::Agreed) {
+        $done = false;
+        break;
+      }
+    }
+
+    if($done) {
+      return $this->redirect($this->request->getSession()->read('TAndC.return'));
+    }
+
+    $this->set('vv_tandc_statuses', $status);
+    $this->set('vv_person_id', (int)$personId);
+    
+    $this->set('vv_title', __d('controller', 'TermsAndConditions', 99));
   }
 
   /**
