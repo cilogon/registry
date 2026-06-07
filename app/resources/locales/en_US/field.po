@@ -53,6 +53,9 @@ msgstr "Area Code"
 msgid "attribute"
 msgstr "Attribute"
 
+msgid "body"
+msgstr "Body"
+
 msgid "changelog.actor_identifier"
 msgstr "Actor Identifier"
 

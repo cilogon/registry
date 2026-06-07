@@ -6,6 +6,7 @@
       "BasicAttributeCollectors",
       "EmailVerifiers",
       "IdentifierCollectors",
+      "InformationRenderers",
       "InvitationAccepters"
     ]
   },
@@ -102,6 +103,17 @@
         "indexes": {
           "identifier_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
           "identifier_collectors_i2": { "needed": false, "columns": [ "type_id" ] }
+        }
+      },
+      "information_renderers": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "title": { "type": "string", "size": 160 },
+          "body": { "type": "text" }
+        },
+        "indexes": {
+          "identifier_renderers_i1": { "columns": [ "enrollment_flow_step_id" ] }
         }
       },
       "invitation_accepters": {

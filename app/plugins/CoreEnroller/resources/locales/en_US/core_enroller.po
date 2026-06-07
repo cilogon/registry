@@ -37,6 +37,9 @@ msgstr "{0,plural,=1{Enrollment Attribute} other{Enrollment Attributes}}"
 msgid "controller.IdentifierCollectors"
 msgstr "{0,plural,=1{Identifier Collector} other{Identifier Collectors}}"
 
+msgid "controller.InformationRenderers"
+msgstr "{0,plural,=1{Information Renderer} other{Information Renderers}}"
+
 msgid "controller.InvitationAccepters"
 msgstr "{0,plural,=1{Invitation Accepter} other{Invitation Accepters}}"
 
@@ -345,6 +348,9 @@ msgstr "Verified email address {0} via {1}"
 
 msgid "result.IdentifierCollector.collected"
 msgstr "Obtained login Identifier {0}"
+
+msgid "result.InformationRenderers.rendered"
+msgstr "Information Rendered"
 
 msgid "result.InvitationAccepters.accepted"
 msgstr "Invitation Accepted at {0}"
