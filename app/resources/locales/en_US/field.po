@@ -513,6 +513,18 @@ msgstr "Limit Global Search Scope"
 msgid "CoSettings.search_global_limited_models.desc"
 msgstr "If true, Global Search will only search Names, Email Addresses, and Identifiers. This may result in faster searches for larger deployments."
 
+msgid "CoSettings.tc_login_mode"
+msgstr "Terms and Conditions Login Enforcement Mode"
+
+msgid "CoSettings.tc_login_mode.desc"
+msgstr "How to handle Terms and Conditions at login, if any are defined"
+
+msgid "CoSettings.tc_return_url_allowlist"
+msgstr "Terms and Conditions Return URL Allow List"
+
+msgid "CoSettings.tc_return_url_allowlist.desc"
+msgstr "Permitted regular expressions (one per line) for <b>tcreturn</b> parameter"
+
 msgid "EnrollmentFlowSteps.actor_type"
 msgstr "Actor Type"
 
