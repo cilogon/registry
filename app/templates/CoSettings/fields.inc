@@ -78,6 +78,11 @@ if($vv_obj->co->isCOmanageCO()) {
   $fields = array_merge($fields, [
     'platform_env_mfa',
     'platform_env_mfa_value',
-    'platform_env_mfa_enable_eg'
+    'platform_env_mfa_enable_eg',
+    'platform_upload_enable',
+    // XXX maybe only show if platform_msr_enable=true?
+    'platform_upload_max_size' => [
+      'default' => 10000000
+    ]
   ]);
 }

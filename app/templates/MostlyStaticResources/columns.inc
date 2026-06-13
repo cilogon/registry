@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Mostly Static Pages Index Columns
+ * COmanage Registry Mostly Static Resources Index Columns
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,7 +21,7 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
@@ -38,20 +38,5 @@ $indexColumns = [
     'type' => 'enum',
     'class' => 'SuspendableStatusEnum',
     'sortable' => true
-  ],
-  'context' => [
-    'type' => 'enum',
-    'class' => 'PageContextEnum',
-    'sortable' => true
-  ]
-];
-
-$rowActions = [
-  [
-    'icon'  => 'arrow_outward',
-    'label' => __d('operation', 'visit.msp'),
-    'callbackUrl' => function($entity) use ($vv_base_url) {
-      return $vv_base_url . $entity->name;
-    }
   ]
 ];

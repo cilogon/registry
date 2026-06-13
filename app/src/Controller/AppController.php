@@ -187,7 +187,7 @@ class AppController extends Controller {
               // We redirect to the CO's Mostly Static Page if we can figure out which CO,
               // otherwise we default to the Platform one.
 
-              return $this->redirect("/" . ($this->getCOID() ?? $mfaConfig['comanage_co_id']) . "/mfa-required");
+              return $this->redirect(StringUtilities::pagesUrl(($this->getCOID() ?? $mfaConfig['comanage_co_id']), "mfa-required"));
             }
           }
         } else {

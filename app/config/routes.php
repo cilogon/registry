@@ -184,6 +184,20 @@ $routes->scope('/', function (RouteBuilder $builder) {
     $builder->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
 
     /**
+     * Registry allows URLs of the form /coid/media/name to deliver a Mostly Static Resource.
+     * 
+     * Note this will effectively route any URL of the form /registry/x, where x consists of
+     * digits, to the Pages controller. We need to filter on digits, or we'll end up taking
+     * over all controllers as well. (The implication is we can't have a controller whose
+     * name consists entirely of digits, but we probably shouldn't...)
+     */
+    $builder->connect(
+      '/{coid}/media/{name}',
+      ['controller' => 'Pages', 'action' => 'deliver' ],
+      ['coid' => '\d+', 'pass' => ['coid', 'name']]
+    );
+
+    /**
      * Registry allows URLs of the form /coid/name to render as a Mostly Static Page.
      * 
      * Note this will effectively route any URL of the form /registry/x, where x consists of
@@ -192,7 +206,7 @@ $routes->scope('/', function (RouteBuilder $builder) {
      * name consists entirely of digits, but we probably shouldn't...)
      */
     $builder->connect(
-      '/{coid}/{name}',
+      '/{coid}/pages/{name}',
       ['controller' => 'Pages', 'action' => 'show' ],
       ['coid' => '\d+', 'pass' => ['coid', 'name']]
     );

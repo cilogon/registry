@@ -238,7 +238,7 @@ class PetitionsController extends StandardController {
         // Redirect to the default Duplicate Landing URL for this CO
         $coId = $this->getCOID();
 
-        return $this->redirect("/$coId/duplicate-landing");
+        return $this->redirect(StringUtilities::pagesUrl($coId, "duplicate-landing"));
       }
     }
     catch(\Exception $e) {
@@ -249,7 +249,7 @@ class PetitionsController extends StandardController {
 
     $coId = $this->getCOID();
 
-    return $this->redirect("/$coId/petition-complete");
+    return $this->redirect(StringUtilities::pagesUrl($coId, "petition-complete"));
   }
 
   /**

@@ -128,7 +128,7 @@ trait EntityMetaTrait {
    */
 
   public function sourceAttributeName() {
-    // There is a similar function in EntityMetaTrait because sometimes we have a Table
+    // There is a similar function in TableMetaTrait because sometimes we have a Table
     // context and sometimes we have an Entity context.
     
     // The class name is something like `\App\Model\Entity\TelephoneNumber', but we

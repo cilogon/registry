@@ -498,6 +498,15 @@ msgstr "MFA Assertion Indicator Value"
 msgid "CoSettings.platform_env_mfa_value.desc"
 msgstr "Expected value of the Environment Variable to indicate that MFA as asserted at login"
 
+msgid "CoSettings.platform_upload_enable"
+msgstr "Enable File Uploads"
+
+msgid "CoSettings.platform_upload_max_size"
+msgstr "File Upload Max Size"
+
+msgid "CoSettings.platform_upload_max_size.desc"
+msgstr "Maximum permitted upload size, in bytes (set to 0 to disable uploads, default is 10MB)"
+
 msgid "CoSettings.required_fields_address"
 msgstr "Address Required Fields"
 
@@ -856,6 +865,15 @@ msgstr "Default Petition Finalization Landing Page"
 
 msgid "MostlyStaticPages.default.pc.body"
 msgstr "This Petition is complete and has been finalized. Please contact your administrator for further instructions."
+
+msgid "MostlyStaticResources.file_content"
+msgstr "File to Upload"
+
+msgid "MostlyStaticResources.name"
+msgstr "Slug"
+
+msgid "MostlyStaticResources.name.desc"
+msgstr "The URL fragment for this Resource, which must be unique and use only lowercase alphanumeric characters and dashes (-)"
 
 msgid "Notifications.actor_person_id"
 msgstr "Actor"

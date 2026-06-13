@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Mostly Static Pages Index Columns
+ * COmanage Registry Mostly Static Resource Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,37 +21,22 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'title' => [
-    'type' => 'link',
-    'sortable' => true
-  ],
-  'name' => [
-    'type' => 'echo',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
-  ],
-  'context' => [
-    'type' => 'enum',
-    'class' => 'PageContextEnum',
-    'sortable' => true
-  ]
-];
+declare(strict_types = 1);
 
-$rowActions = [
-  [
-    'icon'  => 'arrow_outward',
-    'label' => __d('operation', 'visit.msp'),
-    'callbackUrl' => function($entity) use ($vv_base_url) {
-      return $vv_base_url . $entity->name;
-    }
-  ]
-];
+namespace App\Model\Entity;
+
+use Cake\ORM\Entity;
+
+class MostlyStaticResource extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
+  protected array $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false, 
+  ];
+}

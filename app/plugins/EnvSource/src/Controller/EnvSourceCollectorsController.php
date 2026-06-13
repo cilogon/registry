@@ -133,7 +133,7 @@ class EnvSourceCollectorsController extends StandardEnrollerController {
         // Redirect to the default Duplicate Landing URL for this CO
         $coId = $envSource->external_identity_source->co_id;
 
-        return $this->redirect("/$coId/duplicate-landing");
+        return $this->redirect(StringUtilities::pagesUrl($coId, "duplicate-landing"));
       }
     }
     catch(\Exception $e) {

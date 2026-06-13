@@ -251,7 +251,15 @@ class CoSettingsTable extends Table {
       'search_global_limit'                  => DEF_GLOBAL_SEARCH_LIMIT,
       'search_limited_models'                => false,
       'tc_login_mode'                        => TAndCLoginModeEnum::NotEnforced,
-      'tc_return_url_allow_list'             => null
+      'tc_return_url_allow_list'             => null,
+      // Platform configuration defaults
+      'platform_env_mfa'                     => null,
+      'platform_env_mfa_value'               => null,
+      'platform_env_mfa_enable_eg'           => false,
+      'platform_upload_enable'               => false,
+      // In general storing large files in the database is not performant, this number
+      // probably shouldn't be increased.
+      'platform_upload_max_size'             => 10000000
 // XXX to add new settings, set a default here, then add a validation rule below
 //     also update data model documentation
       // 'disable_expiration'         => false,
@@ -369,6 +377,28 @@ class CoSettingsTable extends Table {
     
     return null;
   }
+
+  /**
+   * Get the maximum permitted size for an uploaded file, or false if uploads
+   * are disabled.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @return int|bool     Maximum permitted size (in bytes) or false if uploads are disabled
+   */
+
+  public function getUploadMaxSize(): int|bool {
+    // The Mostly Static Resource configurations are applied at the COmanage CO.
+
+    $COmanageCO = $this->Cos->find('COmanageCO')->firstOrFail();
+
+    $settings = $this->find()->where(['co_id' => $COmanageCO->id])->firstOrFail();
+
+    if($settings->platform_upload_enable && $settings->platform_upload_max_size > 0) {
+      return $settings->platform_upload_max_size;
+    }
+
+    return false;
+  }
   
   /**
    * Reset (disable) the MFA requirement.
@@ -417,6 +447,23 @@ class CoSettingsTable extends Table {
     $count = $this->find('all')->where(['OR' => $orclause])->count();
     
     return (bool)$count;
+  }
+
+  /**
+   * Determine if File Uploads are enabled.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @return bool     true if enabled, false otherwise
+   */
+
+  public function uploadsEnabled(): bool {
+    // The Mostly Static Resource configurations are applied at the COmanage CO.
+
+    $COmanageCO = $this->Cos->find('COmanageCO')->firstOrFail();
+
+    $settings = $this->find()->where(['co_id' => $COmanageCO->id])->firstOrFail();
+    
+    return $settings->platform_upload_enable;
   }
   
   /**
@@ -548,6 +595,19 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => ['boolean']]
     ]);
     $validator->allowEmptyString('platform_env_mfa_enable_eg');
+
+    $validator->add('platform_upload_enable', [
+      'content' => ['rule' => ['boolean']]
+    ]);
+    $validator->allowEmptyString('platform_upload_enable');
+
+    $validator->add('platform_upload_max_size', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->add('platform_upload_max_size', [
+      'value' => ['rule' => ['comparison', '>=', 0]]
+    ]);
+    $validator->allowEmptyString('platform_upload_max_size');
 
     return $validator;
   }

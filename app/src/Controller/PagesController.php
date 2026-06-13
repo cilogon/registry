@@ -23,6 +23,7 @@ use Cake\Http\Response;
 use Cake\ORM\TableRegistry;
 use Cake\View\Exception\MissingTemplateException;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Util\StringUtilities;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
@@ -48,6 +49,49 @@ class PagesController extends AppController
 
         // Configure breadcrumb rendering
         $this->Breadcrumb->skipAll(['/^\/$/']);
+    }
+
+    /**
+     * Deliver a Mostly Static Resource.
+     * 
+     * @since  COmanage Registry v5.3.0
+     * @param  string   $coid   CO ID
+     * @param  string   $name   MSR Name (slug)
+     */
+
+    public function deliver(string $coid, string $name) {
+        // We use PagesController rather than MostlyStaticResourcesController to avoid complexities
+        // with PrimaryLink lookups. We render here rather than redirecting into the MSRController to
+        // reduce URL bar thrashing.
+        
+        // MSRs are only enabled if file uploads are enabled
+        $CoSettings = TableRegistry::getTableLocator()->get("CoSettings");
+
+        if(!$CoSettings->uploadsEnabled()) {
+            $this->Flash->error(__d('error', 'MostlyStaticResources.disabled'));
+            
+            return $this->redirect(StringUtilities::pagesUrl($coId, "error-landing"));
+        }
+
+        $MSRTable = TableRegistry::getTableLocator()->get("MostlyStaticResources");
+
+        $msr = $MSRTable->find()
+                        ->where([
+                            'co_id'     => (int)$coid,
+                            'name'      => $name,
+                            'status'    => SuspendableStatusEnum::Active
+                        ])
+                        ->first();
+        
+        if(empty($msr)) {
+            $this->Flash->error(__d('error', 'notfound', $name));
+
+            return $this->redirect(StringUtilities::pagesUrl($coId, "error-landing"));
+        }
+
+        $fileContent = stream_get_contents($msr->file_content);
+
+        return $this->response->withType($msr->mime_type)->withStringBody($fileContent);
     }
 
     /**
@@ -125,7 +169,7 @@ class PagesController extends AppController
             } else {
                 $this->Flash->error(__d('error', 'notfound', $name));
 
-                return $this->redirect("/$coid/error-landing");
+                return $this->redirect(StringUtilities::pagesUrl($coId, "error-landing"));
             }
         }
 
@@ -175,7 +219,7 @@ class PagesController extends AppController
         // (These are the only two actions we currently support, but better to require
         // an explicit action to add to this list)
 
-        if(in_array($action, ['display', 'show'])) {
+        if(in_array($action, ['deliver', 'display', 'show'])) {
             return 'open';
         }
 

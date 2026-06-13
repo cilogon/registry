@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Mostly Static Pages Index Columns
+ * COmanage Registry Mostly Static Resources Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,37 +21,40 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'title' => [
-    'type' => 'link',
-    'sortable' => true
-  ],
-  'name' => [
-    'type' => 'echo',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
-  ],
-  'context' => [
-    'type' => 'enum',
-    'class' => 'PageContextEnum',
-    'sortable' => true
-  ]
-];
+declare(strict_types = 1);
 
-$rowActions = [
-  [
-    'icon'  => 'arrow_outward',
-    'label' => __d('operation', 'visit.msp'),
-    'callbackUrl' => function($entity) use ($vv_base_url) {
-      return $vv_base_url . $entity->name;
-    }
-  ]
-];
+namespace App\Controller;
+
+// XXX not doing anything with Log yet
+use Cake\Log\Log;
+use App\Lib\Util\StringUtilities;
+
+class MostlyStaticResourcesController extends StandardController {
+  protected array $paginate = [
+    'order' => [
+      'MostlyStaticResources.title' => 'asc'
+    ]
+  ];
+
+  /**
+   * Callback run prior to the request render.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  EventInterface $event Cake Event
+   * @return \Cake\Http\Response   HTTP Response
+   */
+
+  public function beforeRender(\Cake\Event\EventInterface $event) {
+    $this->set('vv_base_url', \Cake\Routing\Router::url(
+      // We use the "/media" path to avoid conflicts with Mostly Static Pages
+      url: StringUtilities::mediaUrl($this->getCOID(), ""),
+      full: true
+    ));
+
+    return parent::beforeRender($event);
+  }
+}

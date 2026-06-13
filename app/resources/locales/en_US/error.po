@@ -319,6 +319,9 @@ msgstr "This page cannot be renamed, suspended, or given a different context"
 msgid "MostlyStaticPages.slug.invalid"
 msgstr "Slug contains invalid characters"
 
+msgid "MostlyStaticResources.disabled"
+msgstr "This feature is not available"
+
 msgid "Names.minimum"
 msgstr "At least one name is required"
 

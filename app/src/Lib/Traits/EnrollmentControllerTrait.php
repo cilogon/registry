@@ -35,6 +35,7 @@ use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\EnrollmentActorEnum;
 use \App\Lib\Enum\PetitionStatusEnum;
 use \App\Lib\Util\DeliveryUtilities;
+use \App\Lib\Util\StringUtilities;
 use \App\Model\Entity\Petition;
 
 trait EnrollmentControllerTrait {
@@ -479,7 +480,7 @@ trait EnrollmentControllerTrait {
         return $this->redirect($stepInfo['step']->redirect_on_handoff);
       } else {
         // Redirect to the default Enrollment Handoff URL for this CO
-        return $this->redirect("/$coId/default-handoff");
+        return $this->redirect(StringUtilities::pagesUrl($coId, "default-handoff"));
       }
     }
   }

@@ -31,6 +31,7 @@ namespace App\Controller;
 
 // XXX not doing anything with Log yet
 use Cake\Log\Log;
+use App\Lib\Util\StringUtilities;
 
 class MostlyStaticPagesController extends StandardController {
   protected array $paginate = [
@@ -49,31 +50,10 @@ class MostlyStaticPagesController extends StandardController {
 
   public function beforeRender(\Cake\Event\EventInterface $event) {
     $this->set('vv_base_url', \Cake\Routing\Router::url(
-      url: "/" . $this->getCOID(),
+      url: StringUtilities::pagesUrl($this->getCOID(), ""),
       full: true
     ));
 
     return parent::beforeRender($event);
-  }
-
-  /**
-   * Indicate whether this Controller will handle some or all authnz.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  EventInterface   $event  Cake event, ie: from beforeFilter
-   * @return string                   "no", "open", "authz", or "yes"
-   */
-
-  public function willHandleAuth(\Cake\Event\EventInterface $event): string {
-    $request = $this->getRequest();
-    $action = $request->getParam('action');
-
-    // We only take over authz for display
-
-    if(in_array($action, ['display'])) {
-      return 'open';
-    }
-
-    return 'no';
   }
 }

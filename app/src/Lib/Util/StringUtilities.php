@@ -465,6 +465,32 @@ class StringUtilities {
   }
 
   /**
+   * Generate a URL fragment for a Mostly Static Resource ("media" resource).
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int|string $coId   CO ID
+   * @param  string     $slug   Resource name or slug
+   * @return string             Relative URL, suitable for redirects
+   */
+
+  public static function mediaUrl(int|string $coId, string $slug) {
+    return "/" . $coId . "/media/" . $slug;
+  }
+
+  /**
+   * Generate a URL fragment for a Mostly Static Page.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int|string $coId   CO ID
+   * @param  string     $slug   Page name or slug
+   * @return string             Relative URL, suitable for redirects
+   */
+
+  public static function pagesUrl(int|string $coId, string $slug) {
+    return "/" . $coId . "/pages/" . $slug;
+  }
+
+  /**
    * Qualifies a model path with its plugin name if not already qualified
    *
    * @param string $modelPath Model path to qualify

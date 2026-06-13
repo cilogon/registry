@@ -89,7 +89,7 @@ class InvitationAcceptersController extends StandardEnrollerController {
 
           $coId = $this->getCOID();
 
-          return $this->redirect("/$coId/petition-complete");          
+        return $this->redirect(StringUtilities::pagesUrl($coId, "petition-complete"));
         }
       }
       catch(\Exception $e) {

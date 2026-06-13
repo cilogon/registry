@@ -22,6 +22,7 @@
       "external_identity_id": { "type": "integer", "foreignkey": { "table": "external_identities", "column": "id" } },
       "external_identity_role_id": { "type": "integer", "foreignkey": { "table": "external_identity_roles", "column": "id" } },
       "external_identity_source_id": { "type": "integer", "foreignkey": { "table": "external_identity_sources", "column": "id" } },
+      "file_content": { "type": "blob" },
       "frozen": { "type": "boolean" },
       "group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" } },
       "id": { "type": "integer", "autoincrement": true, "primarykey": true },
@@ -29,6 +30,7 @@
       "language": { "type": "string", "size": 16 },
       "mail": { "type": "string", "size": 256 },
       "message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" } },
+      "mime_type": { "type": "string", "size": 256 },
       "mostly_static_page_id": { "type": "integer", "foreignkey": { "table": "mostly_static_pages", "column": "id" } },
       "name": { "type": "string", "size": 128, "notnull": true },
       "ordr": { "type": "integer" },
@@ -149,7 +151,9 @@
         "tc_return_url_allowlist": { "type": "text" },
         "platform_env_mfa": { "type": "string", "size": 80 },
         "platform_env_mfa_value": { "type": "string", "size": 80 },
-        "platform_env_mfa_enable_eg": { "type": "boolean" }
+        "platform_env_mfa_enable_eg": { "type": "boolean" },
+        "platform_upload_enable": { "type": "boolean" },
+        "platform_upload_max_size": { "type": "integer" }
       },
       "indexes": {
         "co_settings_i1": { "columns": [ "co_id" ]},
@@ -632,6 +636,22 @@
       },
       "indexes": {
         "mostly_static_pages_i1": { "columns": [ "co_id" ] }
+      }
+    },
+    
+    "mostly_static_resources": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "title": { "type": "string", "size": 256 },
+        "description": {},
+        "status": {},
+        "mime_type": {},
+        "file_content": {}
+      },
+      "indexes": {
+        "mostly_static_resources_i1": { "columns": [ "co_id" ] }
       }
     },
 

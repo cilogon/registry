@@ -32,6 +32,7 @@ namespace App\Controller;
 use App\Lib\Enum\ApplicationStateEnum;
 use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Traits\IndexQueryTrait;
+use Cake\Database\Schema\TableSchemaInterface;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
@@ -65,8 +66,13 @@ class StandardController extends AppController {
     
     if($this->request->is('post')) {
       try {
+        $data = $this->request->getData();
+
+        // Maybe process an uploaded file, if supported by the table
+        $this->processFileUpload($schema, $data);
+
         // Try to save
-        $obj = $table->newEntity($this->request->getData());
+        $obj = $table->newEntity($data);
 
         if($table->save($obj)) {
           $this->Flash->success(__d('result', 'saved'));
@@ -259,7 +265,7 @@ class StandardController extends AppController {
         return $this->redirect(['action' => 'view', $obj->id]);
       }
 
-      // By default, a delete is a soft delete. The exceptions is when
+      // By default, a delete is a soft delete. The exception is when
       // deleting a CO (AR-CO-1). In v4, we permitted a controller level
       // flag to be set, but the only controller this really applies to
       // is CO right now, so we'll skip implementing a flag until we have
@@ -433,7 +439,13 @@ class StandardController extends AppController {
 
         try{
           // Attempt the update the record
-          $table->patchEntity($saveObj, $this->request->getData(), $opts);
+
+          $data = $this->request->getData();
+
+          // Maybe process an uploaded file, if supported by the table
+          $this->processFileUpload($table->getSchema(), $data);
+
+          $table->patchEntity($saveObj, $data, $opts);
 
           // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
           // in afterSave
@@ -732,6 +744,70 @@ class StandardController extends AppController {
     if(method_exists($table, 'getAutoViewVars') && $table->getAutoViewVars()) {
       foreach ($table->calculateAutoViewVars($this->getCOID(), $obj, $this->request->getParam('action')) as $vvar => $value) {
         $this->set($vvar, $value);
+      }
+    }
+  }
+
+  /** 
+   * Process POST data that may have file upload contents so that the file
+   * can be saved directly in the Cake entity.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  TableSchemaInterface $schema Cake TableSchema              
+   * @param  array                $data   Array of data as provided in the Request object
+   */
+
+  protected function processFileUpload(TableSchemaInterface $schema, array &$data) {
+    // We edit $data in place to avoid creating copies of large file objects.
+
+    if($schema->getColumnType('file_content') == 'binary'
+        && $schema->getColumnType('mime_type') == 'string') {
+      // This table supports file uploads, read the data if present,
+      // but first check if file uploads are enabled
+
+      $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+      if($CoSettings->uploadsEnabled()) {
+        $upload = $data['file_content'];
+
+        if(!empty($upload) && $upload->getSize() > 0) {
+          // First verify size is within the configured limit
+
+          $size = $upload->getSize();
+
+          if($size > $CoSettings->getUploadMaxSize()) {
+            throw new \InvalidArgumentException(__d('error', 'upload.maxsize', [$size, $CoSettings->getMsrMaxSize()]));
+          }
+
+          // Next parse the mime-type. We can't rely on the client provided value,
+          // and mime_content_type() only works on files, not streams. While the
+          // upload is backed by a temp file, the PSR interface doesn't allow us
+          // to access that file, and doesn't offer an equivalent to
+          // mime_content_type() (which seems like an oversight). So basically we
+          // have to move the upload to a new temp file and run mime_content_type()
+          // on that file, and then throw it away because we're going to store the
+          // data in the database.
+
+          $tmpname = tempnam("/tmp", "registry-");
+
+          $upload->moveTo($tmpname);
+
+          // Replace the inbound data with the full contents from the stream
+          $data['mime_type'] = mime_content_type($tmpname);
+          $data['file_content'] = file_get_contents($tmpname);
+          // $upload->getStream()->getContents();
+
+          // Toss our temp file (moveTo will have removed the original one)
+          unlink($tmpname);
+        } else {
+          // Remove the fields completely so on edit we don't replace existing values
+          unset($data['mime_type']);
+          unset($data['file_content']);
+        }
+      } else {
+        // Mark the fields as null since the feature is disabled
+        $data['mime_type'] = "disabled"; // mime_type is required
+        $data['file_content'] = null;
       }
     }
   }

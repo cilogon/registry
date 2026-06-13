@@ -161,6 +161,17 @@ class DashboardsController extends StandardController {
       ]
     ];
 
+    // Mostly Static Resources are only enabled if file uploads are permitted
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+    if($CoSettings->uploadsEnabled()) {
+      $configMenuItems[__d('controller', 'MostlyStaticResources', [99])] = [
+        'icon'          => 'perm_media',
+        'controller'    => 'mostly_static_resources',
+        'action'        => 'index'
+      ];
+    }
+
     ksort($configMenuItems);
 
     // Insert CO Settings to the front of the list

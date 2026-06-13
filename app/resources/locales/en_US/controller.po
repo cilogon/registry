@@ -114,6 +114,9 @@ msgstr "{0,plural,=1{Message Template} other{Message Templates}}"
 msgid "MostlyStaticPages"
 msgstr "{0,plural,=1{Mostly Static Page} other{Mostly Static Pages}}"
 
+msgid "MostlyStaticResources"
+msgstr "{0,plural,=1{Mostly Static Resource} other{Mostly Static Resources}}"
+
 msgid "Names"
 msgstr "{0,plural,=1{Name} other{Names}}"
 

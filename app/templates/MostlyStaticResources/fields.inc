@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Mostly Static Pages Fields
+ * COmanage Registry Mostly Static Resources Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,26 +21,19 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.1.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
 $fields = [
   'title',
   'name',
-  'pageUrl' => [
-    'readonly' => true
-  ],
   'description',
   'status',
-  'context',
-  'body' => [
-    'class' => 'big-textarea',
-    'afterField' => 
-      '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
-      '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .
-      '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
-      '</div>'
+  // Not clear if we should render mime type...
+  // 'mime_type',
+  'file_content' => [
+    'type' => 'file'
   ]
 ];
 

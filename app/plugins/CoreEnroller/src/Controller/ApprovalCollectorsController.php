@@ -124,7 +124,7 @@ class ApprovalCollectorsController extends StandardEnrollerController {
             return $this->redirect($cfg->redirect_on_denial);
           } else {
             // Redirect to the default Enrollment Handoff URL for this CO
-            return $this->redirect("/$coId/default-handoff");
+            return $this->redirect(StringUtilities::pagesUrl($coId, "default-handoff"));
           }
         }
 
