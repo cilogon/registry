@@ -492,7 +492,8 @@
         "identifiers_i2": { "columns": [ "identifier", "type_id", "external_identity_id" ] },
         "identifiers_i3": { "columns": [ "type_id" ] },
         "identifiers_i4": { "needed": false, "columns": [ "provisioning_target_id" ] },
-        "identifiers_i5": { "columns": [ "type_id", "person_id" ] }
+        "identifiers_i5": { "columns": [ "type_id", "person_id" ] },
+        "identifiers_i6": { "columns": [ "type_id", "group_id" ] }
       },
       "mvea": [ "person", "external_identity", "group" ],
       "sourced": true
