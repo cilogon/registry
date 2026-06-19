@@ -109,6 +109,7 @@ class EmailAddressesTable extends Table {
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');
+    $this->setSelfRedirectActions(['forceVerify']);
     $this->setAllowLookupPrimaryLink(['forceVerify', 'unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'SourceEmailAddresses', 'Verifications']);
 

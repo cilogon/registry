@@ -55,6 +55,7 @@ class EmailAddressesController extends MVEAController {
       $this->Flash->error($e->getMessage());
     }
     
-    return $this->generateRedirect(null);
+    // return the email entity back to the view
+    return $this->generateRedirect($this->EmailAddresses->get((int)$id));
   }
 }

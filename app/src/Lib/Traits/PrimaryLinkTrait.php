@@ -56,6 +56,9 @@ trait PrimaryLinkTrait {
   // This array is keyed on the action (or "*" for default).
   private $redirectGoal = ['*' => null];
   
+  // The actions that allow self redirects (otherwise index is used).
+  private $selfRedirectActions = ['add', 'copy', 'edit', 'unfreeze'];
+  
   // Accept the current CO ID?
   private $acceptCoId = false;
   protected $curCoId = null;
@@ -288,6 +291,18 @@ trait PrimaryLinkTrait {
   
   public function getRedirectGoal(string $action): ?string {
     return $this->redirectGoal[$action] ?? $this->redirectGoal['*'];
+  }
+
+  /**
+   * Determine if the requested action is a self redirect action.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  string $action Action
+   * @return bool           true if $action is a self redirect action, false otherwise
+   */
+
+  public function isSelfRedirectAction(string $action): bool {
+    return in_array($action, $this->selfRedirectActions);
   }
   
   /**
@@ -572,5 +587,17 @@ trait PrimaryLinkTrait {
     }
     
     $this->redirectGoal[$action] = $goal;
+  }
+
+  /**
+   * Set self redirect actions. Any provided actions will be added to the default set
+   * of actions that redirect to self for this model.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  array   $actions   Actions that redirect to self
+   */
+  
+  public function setSelfRedirectActions(array $actions) {
+    $this->selfRedirectActions = array_merge($this->selfRedirectActions, $actions);
   }
 }

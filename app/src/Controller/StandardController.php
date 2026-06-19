@@ -560,7 +560,8 @@ class StandardController extends AppController {
       return $this->redirect(['action' => 'deleted']);
     } elseif($redirectGoal == 'self'
        && $entity
-       && in_array($this->request->getParam('action'), ['add', 'copy', 'edit', 'unfreeze'])) {
+       && $this->getCurrentTable()->isSelfRedirectAction($this->request->getParam('action'))
+    ) {
       // We typically want to redirect to the edit view of the record,
       // but in some cases (eg: if the record was just frozen) we want to
       // redirect to "view" instead.
