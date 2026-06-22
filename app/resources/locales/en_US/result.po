@@ -232,6 +232,12 @@ msgstr "Petition {0} Step {1} completed"
 msgid "Petitions.terminated"
 msgstr "Petition Terminated"
 
+msgid "Petitions.transitioned.from"
+msgstr "Petition created by transition from Petition {0}"
+
+msgid "Petitions.transitioned.to"
+msgstr "Petition transitionining to Petition {0} on finalization"
+
 msgid "Petitions.viewed.inv"
 msgstr "Invitation Viewed"
 

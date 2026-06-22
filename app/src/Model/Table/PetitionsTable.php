@@ -86,6 +86,14 @@ class PetitionsTable extends Table {
       ->setClassName('People')
       ->setForeignKey('petitioner_person_id')
       ->setProperty('petitioner_person');
+    $this->belongsTo('StartedFromPetitions')
+      ->setClassName('Petitions')
+      ->setForeignKey('started_from_petition_id')
+      ->setProperty('started_from_petition');
+    $this->belongsTo('TransititonedToPetitions')
+      ->setClassName('Petitions')
+      ->setForeignKey('transitioned_to_petition_id')
+      ->setProperty('transitioned_to_petition');
     
     $this->hasMany('PetitionHistoryRecords')
          ->setDependent(true)
@@ -306,8 +314,7 @@ class PetitionsTable extends Table {
     $ret = $IdentifierAssignments->assign(
       entityType: 'People',
       entityId:   $petition->enrollee_person_id,
-      provision:  false,
-// $actorPersonId: XXX
+      provision:  false
     );
 
     if(!empty($ret['assigned'])) {
@@ -316,7 +323,6 @@ class PetitionsTable extends Table {
         enrollmentFlowStepId: null,
         action:               PetitionActionEnum::Finalized,
         comment:              __d('result', 'IdentifierAssignments.assigned.ok', [implode(',', array_keys($ret['assigned']))])
-        // actorPersonId
       );
     }
   }
@@ -411,7 +417,6 @@ class PetitionsTable extends Table {
       enrollmentFlowStepId: null,
       action:               PetitionActionEnum::Finalized,
       comment:              __d('result', 'Petitions.finalized')
-      // actorPersonId
     );
 
     if(!empty($petition->enrollment_flow->finalization_message_template_id)) {
@@ -577,6 +582,31 @@ class PetitionsTable extends Table {
   }
 
   /**
+   * Obtain a Petition's token.
+   * 
+   * @since  COmanage Registry v5.1.0
+   * @param  int  $id   Petition ID
+   * @return string     Petition token
+   */
+
+  public function getToken(int $id): string {
+    // We use this function rather than have the invoking code access the
+    // entity directly so we can allocate the token and persist it if there
+    // isn't yet one.
+
+    $petition = $this->get($id);
+
+    if(empty($petition->token)) {
+      // No token, so allocate one
+      $petition->token = RandomString::generateToken();
+
+      $this->save($petition);
+    }
+
+    return $petition->token;
+  }
+
+  /**
    * Perform Petition hydration.
    * 
    * @since  COmanage Registry v5.1.0
@@ -633,7 +663,7 @@ class PetitionsTable extends Table {
           entity: $person, 
           action: ActionEnum::PersonAddedPetition, 
           comment: __d('result',
-                      'People.added.petition', [
+                       'People.added.petition', [
                         $petition->enrollment_flow->description,
                         $petition->enrollment_flow->id,
                         $petition->id])
@@ -695,7 +725,7 @@ class PetitionsTable extends Table {
 
       $this->PetitionHistoryRecords->record(
         petitionId:           $petition->id, 
-        enrollmentFlowStepId: $e->getCode(),
+        enrollmentFlowStepId: $step->id,
         action:               PetitionActionEnum::Finalized,
         comment:              $e->getMessage()
       );
@@ -703,31 +733,6 @@ class PetitionsTable extends Table {
 
     // We're done, commit the transaction
     $cxn->commit();
-  }
-
-  /**
-   * Obtain a Petition's token.
-   * 
-   * @since  COmanage Registry v5.1.0
-   * @param  int  $id   Petition ID
-   * @return string     Petition token
-   */
-
-  public function getToken(int $id): string {
-    // We use this function rather than have the invoking code access the
-    // entity directly so we can allocate the token and persist it if there
-    // isn't yet one.
-
-    $petition = $this->get($id);
-
-    if(empty($petition->token)) {
-      // No token, so allocate one
-      $petition->token = RandomString::generateToken();
-
-      $this->save($petition);
-    }
-
-    return $petition->token;
   }
 
   /**
@@ -895,6 +900,67 @@ class PetitionsTable extends Table {
   }
 
   /**
+   * Start a new Petition based on an existing Petition.
+   * 
+   * @since  Registry v5.3.0
+   * @param  int      $id               Original Petition ID
+   * @param  int      $enrollmentFlowId Enrollment Flow ID for new Petition
+   * @return Petition                   New Petition
+   */
+
+  public function startFromPetition(int $id, int $enrollmentFlowId): \App\Model\Entity\Petition {
+    // Because we are storing the old Petition ID in the new Petition (and vice versa)
+    // AR-GMR-2 will ensure $id and $enrollmentFlowId are in the same CO.
+
+    $fromPetition = $this->get($id);
+
+    // Create a new Petition. We mostly use the same metadata as the original Petition,
+    // eg the Petitioner and Enrollees are considered the same, even if the last step
+    // of the original flow was run by someone else (eg, an Approver).
+
+    // We specifically do NOT copy the cou_id, since a supported use case is using
+    // the second Enrollment Flow to process a second COU's worth of configuration.
+
+    $newPetition = $this->newEntity([
+      'enrollment_flow_id'        => $enrollmentFlowId,
+      'status'                    => PetitionStatusEnum::Created,
+      'petitioner_identifier'     => $fromPetition->petitioner_identifier,
+      'petitioner_person_id'      => $fromPetition->petitioner_person_id,
+      'enrollee_email'            => $fromPetition->enrollee_email,
+      'enrollee_identifier'       => $fromPetition->enrollee_identifier,
+      'enrollee_person_id'        => $fromPetition->enrollee_person_id,
+      'token'                     => $fromPetition->token,
+      'started_from_petition_id'  => $fromPetition->id
+    ]);
+
+    $this->saveOrFail($newPetition);
+
+    // Link the original Petition to the new one
+
+    $fromPetition->transitioned_to_petition_id = $newPetition->id;
+
+    $this->saveOrFail($fromPetition);
+
+    // Record Petition History that we transitioned from a prior Petition
+
+    $this->PetitionHistoryRecords->record(
+      petitionId:           $newPetition->id,
+      enrollmentFlowStepId: null,
+      action:               PetitionActionEnum::Transitioned,
+      comment:              __d('result', 'Petitions.transitioned.from', [$fromPetition->id])
+    );
+
+    $this->PetitionHistoryRecords->record(
+      petitionId:           $fromPetition->id,
+      enrollmentFlowStepId: null,
+      action:               PetitionActionEnum::Transitioned,
+      comment:              __d('result', 'Petitions.transitioned.to', [$newPetition->id])
+    );
+
+    return $newPetition;
+  }
+
+  /**
    * Terminate a Petition.
    * 
    * @since  COmanage Registry v5.2.0
@@ -959,6 +1025,18 @@ class PetitionsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('petitioner_person_id');
+
+    $validator->add('started_from_petition_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('started_from_petition_id');
+
+    $validator->add('transitioned_to_petition_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('transitioned_to_petition_id');
+
+    $this->registerStringValidation($validator, $schema, 'token', false);
 
     return $validator; 
   }

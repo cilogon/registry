@@ -453,13 +453,15 @@ class PersonRolesTable extends Table {
    *
    * @since  COmanage Registry v5.0.0
    * @param  EntityInterface  $entity         PersonRole Entity
-   * @param  bool             $provision      Whether to run provisioners
    * @param  bool             $personActive   If false, role is not eligible for Active Members Group
    * @throws InvalidArgumentException
    * @throws RuntimeException
    */
 
-  public function reconcileCouMembersGroupMemberships(\Cake\Datasource\EntityInterface $entity, bool $provision=true, bool $personActive=true) {
+  public function reconcileCouMembersGroupMemberships(
+    \Cake\Datasource\EntityInterface $entity,
+    bool $personActive=true
+  ) {
     // First see if there is a COU associated with this Role.
     
     if(!$entity->cou_id) {
@@ -471,10 +473,11 @@ class PersonRolesTable extends Table {
         $oldCouId = $entity->getOriginal('cou_id');
         
         if($oldCouId) {
+          // Similar to PersonTable, we don't want to trigger provisioning here
           $this->llog('rule', "AR-PersonRole-1 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from All Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
-          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $oldCouId, $entity->person_id, false, $provision);
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $oldCouId, $entity->person_id, false, false);
           $this->llog('rule', "AR-PersonRole-2 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from Active Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
-          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $oldCouId, $entity->person_id, false, $provision);
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $oldCouId, $entity->person_id, false, false);
         }
       }
       
@@ -518,9 +521,9 @@ class PersonRolesTable extends Table {
     // Create or remove memberships for the Active and All groups for this COU.
     
     $this->llog('rule', "AR-PersonRole-1 Syncing membership in All Members Group for COU " . $entity->cou_id . " for PersonRole " . $entity->id . " (Person " . $entity->person_id . "), eligibility=" . $allEligible);
-    $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $entity->cou_id, $entity->person_id, $allEligible, $provision);
+    $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $entity->cou_id, $entity->person_id, $allEligible, false);
     $this->llog('rule', "AR-PersonRole-2 Syncing membership in Active Members Group for COU " . $entity->cou_id . " for PersonRole " . $entity->id . " (Person " . $entity->person_id . "), eligibility=" . $activeEligible);
-    $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $entity->cou_id, $entity->person_id, $activeEligible, $provision);
+    $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $entity->cou_id, $entity->person_id, $activeEligible, false);
     
     if(!$entity->isNew()) {
       // Remove group memberships if the COU ID (PersonRole moved) or Person ID
@@ -532,9 +535,9 @@ class PersonRolesTable extends Table {
         
         if($oldCouId) {
           $this->llog('rule', "AR-PersonRole-1 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from All Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
-          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $oldCouId, $entity->person_id, false, $provision);
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $oldCouId, $entity->person_id, false, false);
           $this->llog('rule', "AR-PersonRole-1 Removing PersonRole " . $entity->id . " (Person " . $entity->person_id . ") from All Members Group for COU " . $oldCouId . " due to removal of Person Role from COU");
-          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $oldCouId, $entity->person_id, false, $provision);
+          $this->People->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $oldCouId, $entity->person_id, false, false);
         }
         // else no prior COU ID, nothing to do
       }

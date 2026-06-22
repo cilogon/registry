@@ -506,11 +506,32 @@ msgstr "Finalized"
 msgid "PetitionActionEnum.FD"
 msgstr "Flagged Duplicate"
 
+msgid "PetitionActionEnum.IC"
+msgstr "Invitation Accepted"
+
 msgid "PetitionActionEnum.IV"
 msgstr "Invitation Viewed"
 
+msgid "PetitionActionEnum.PN"
+msgstr "Denied"
+
+msgid "PetitionActionEnum.PX"
+msgstr "Declined"
+
+msgid "PetitionActionEnum.PY"
+msgstr "Approved"
+
 msgid "PetitionActionEnum.SU"
 msgstr "Status Updated"
+
+msgid "PetitionActionEnum.TE"
+msgstr "Terms and Conditions Agreed (Explicit)"
+
+msgid "PetitionActionEnum.TI"
+msgstr "Terms and Conditions Agreed (Implied)"
+
+msgid "PetitionActionEnum.TX"
+msgstr "Transitioned"
 
 msgid "PetitionStatusEnum.A"
 msgstr "Active"

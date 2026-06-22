@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Petition Action Enum
+ * COmanage Registry Petition Password Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,27 +20,32 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Lib\Enum;
+namespace PasswordAuthenticator\Model\Entity;
 
-class PetitionActionEnum extends StandardEnum {
-  const Accepted                = 'IC';  // Previously "Invitation Confirmed"
-  const Approved                = 'PY';
-  const AttributesUpdated       = 'AU';
-  const Declined                = 'PX';
-  const Denied                  = 'PN';
-  const EmailVerified           = 'EV';
-  const Finalized               = 'F';
-  const FlaggedDuplicate        = 'FD';
-  const InvitationViewed        = 'IV';
-  const StatusUpdated           = 'SU';
-  const TCExplicitAgreement     = 'TE';
-  const TCImpliedAgreement      = 'TI';
-  const Transitioned            = 'TX';
+use Cake\ORM\Entity;
+
+class PetitionPassword extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
+  /**
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * Note that when '*' is set to true, this allows all unspecified fields to
+   * be mass assigned. For security purposes, it is advised to set '*' to false
+   * (or remove it), and explicitly make individual fields accessible as needed.
+   *
+   * @var array<string, bool>
+   */
+  protected array $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
+  ];
 }

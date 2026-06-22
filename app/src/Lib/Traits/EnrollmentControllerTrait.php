@@ -232,6 +232,34 @@ trait EnrollmentControllerTrait {
   }
 
   /**
+   * Transition to an Enrollment Flow. $petitionId should be finalized before calling
+   * this function, which will register a new Petition associated with $enrollmentFlowId
+   * and copy appropriate metadata.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int  $petitionId       Petition ID
+   * @param  int  $enrollmentFlowId Enrollment Flow ID
+   * @return Cake\Http\Response     Redirect to new Enrollment Flow or landing page
+   */
+
+  protected function transitionToFlow(int $petitionId, int $enrollmentFlowId) {
+    // We ignore the Petitioner Autherization for $enrollmentFlowId, and also skip the
+    // start step, so what actually matters is the Actor Type for the first Enrollment
+    // Flow Step in the new flow, which will substantially be handled by
+    // transitionToStep(), below.
+
+    $Petitions = TableRegistry::getTableLocator()->get('Petitions');
+
+    $newPetition = $Petitions->startFromPetition($petitionId, $enrollmentFlowId);
+
+    // getCurrentActor() should basically do the right thing in transitionToStep()
+    // since it won't have any cached data for $newPetitionId and so will reconstruct
+    // authz based on the current user.
+
+    return $this->transitionToStep(petitionId: $newPetition->id, start: true);
+  }
+
+  /**
    * Transition to an Enrollment Flow Step. Typically this will be the next step,
    * but this also permits re-entering a flow.
    * 

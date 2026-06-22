@@ -91,7 +91,15 @@ class EnrollmentFlowsTable extends Table {
          ->setClassName('MessageTemplates')
          ->setForeignKey('notification_message_template_id')
          ->setProperty('notification_message_template');
-
+    $this->belongsTo('RodEnrollmentFlows')
+         ->setClassName('EnrollmentFlows')
+         ->setForeignKey('rod_enrollment_flow_id')
+         ->setProperty('rod_enrollment_flow');
+    $this->belongsTo('RofEnrollmentFlows')
+         ->setClassName('EnrollmentFlows')
+         ->setForeignKey('rof_enrollment_flow_id')
+         ->setProperty('rof_enrollment_flow');
+    
     $this->hasMany('Petitions');
     $this->hasMany('EnrollmentFlowSteps')
          ->setDependent(true)
@@ -122,6 +130,14 @@ class EnrollmentFlowsTable extends Table {
         'type' => 'select',
         'model' => 'MessageTemplates',
         'where' => ['context' => \App\Lib\Enum\MessageTemplateContextEnum::EnrollmentStepCompleted]
+      ],
+      'rodEnrollmentFlows' => [
+        'type' => 'select',
+        'model' => 'EnrollmentFlows'
+      ],
+      'rofEnrollmentFlows' => [
+        'type' => 'select',
+        'model' => 'EnrollmentFlows'
       ],
       'statuses' => [
         'type'  => 'enum',
@@ -311,6 +327,16 @@ class EnrollmentFlowsTable extends Table {
       'content' => ['rule' => 'url']
     ]);
     $validator->allowEmptyString('redirect_on_finalize');
+    
+    $validator->add('rod_enrollment_flow_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('rod_enrollment_flow_id');
+
+    $validator->add('rof_enrollment_flow_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('rof_enrollment_flow_id');
     
     $validator->add('finalization_message_template_id', [
       'content' => ['rule' => 'isInteger']

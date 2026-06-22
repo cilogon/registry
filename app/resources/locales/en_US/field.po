@@ -600,6 +600,18 @@ msgstr "Redirect on Duplicate"
 msgid "EnrollmentFlows.redirect_on_finalize"
 msgstr "Redirect on Finalize"
 
+msgid "EnrollmentFlows.rod_enrollment_flow_id"
+msgstr "Next Flow on Duplicate"
+
+msgid "EnrollmentFlows.rod_enrollment_flow_id.desc"
+msgstr "If configured, when a Petition is flagged as a Duplicate the specified Enrollment Flow will be started for the same Enrollee. This setting overrides Redirect on Duplicate."
+
+msgid "EnrollmentFlows.rof_enrollment_flow_id"
+msgstr "Next Flow on Finalize"
+
+msgid "EnrollmentFlows.rof_enrollment_flow_id.desc"
+msgstr "If configured, when a Petition is finalized the specified Enrollment Flow will be started for the same Enrollee. This setting overrides Redirect on Finalize."
+
 msgid "ExternalIdentitySources.hash_source_record"
 msgstr "Hash Source Records"
 
@@ -934,6 +946,12 @@ msgstr "Enrollee"
 
 msgid "Petitions.petitioner_person_id"
 msgstr "Petitioner"
+
+msgid "Petitions.started_from_petition_id"
+msgstr "Started From Petition"
+
+msgid "Petitions.transitioned_to_petition_id"
+msgstr "Transitioned To Petition"
 
 msgid "Pipelines.match_email_address_type_id"
 msgstr "Email Address Type"

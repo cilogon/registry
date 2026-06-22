@@ -366,6 +366,9 @@ msgstr "Global Search"
 msgid "select.prompt"
 msgstr "Please select..."
 
+msgid "skip"
+msgstr "Skip"
+
 msgid "skip_to_content"
 msgstr "Skip to main content"
 

@@ -670,6 +670,8 @@
         "collect_enrollee_email": { "type": "boolean" },
         "redirect_on_duplicate": { "type": "string", "size": 256 },
         "redirect_on_finalize": { "type": "string", "size": 256 },
+        "rod_enrollment_flow_id": { "type": "integer", "foreignkey": { "table": "enrollment_flows", "column": "id" }},
+        "rof_enrollment_flow_id": { "type": "integer", "foreignkey": { "table": "enrollment_flows", "column": "id" }},
         "finalization_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }},
         "notification_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
         "notification_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }}
@@ -680,7 +682,9 @@
         "enrollment_flows_i3": { "needed": false, "columns": [ "authz_group_id" ]},
         "enrollment_flows_i4": { "needed": false, "columns": [ "finalization_message_template_id" ]},
         "enrollment_flows_i5": { "needed": false, "columns": [ "notification_group_id" ]},
-        "enrollment_flows_i6": { "needed": false, "columns": [ "notification_message_template_id" ]}
+        "enrollment_flows_i6": { "needed": false, "columns": [ "notification_message_template_id" ]},
+        "enrollment_flows_i7": { "needed": false, "columns": [ "rod_enrollment_flow_id" ]},
+        "enrollment_flows_i0": { "needed": false, "columns": [ "rof_enrollment_flow_id" ]}
       }
     },
 
@@ -719,13 +723,17 @@
         "enrollee_person_id":  { "type": "integer", "foreignkey": { "table": "people", "column": "id" }},
         "petitioner_identifier": { "type": "string", "size": 256 },
         "petitioner_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" }},
+        "started_from_petition_id": { "type": "integer", "foreignkey": { "table": "petitions", "column": "id"}},
+        "transitioned_to_petition_id": { "type": "integer", "foreignkey": { "table": "petitions", "column": "id"}},
         "token": { "type": "string", "size": 256 }
       },
       "indexes": {
         "petitions_i1": { "columns": [ "enrollment_flow_id" ]},
         "petitions_i2": { "columns": [ "cou_id" ]},
         "petitions_i3": { "columns": [ "enrollee_person_id" ]},
-        "petitions_i4": { "columns": [ "petitioner_person_id" ]}
+        "petitions_i4": { "columns": [ "petitioner_person_id" ]},
+        "petitions_i5": { "needed": false, "columns": [ "started_from_petition_id" ]},
+        "petitions_i6": { "needed": false, "columns": [ "transitioned_to_petition_id" ]}
       }
     },
 

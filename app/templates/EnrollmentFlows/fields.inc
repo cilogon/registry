@@ -36,8 +36,10 @@ $fields = [
   'authz_group_id',
   'collect_enrollee_email',
   'redirect_on_duplicate',
+  'rod_enrollment_flow_id',
   'redirect_on_finalize',
-  'finalization_message_template_id',
+  'rof_enrollment_flow_id',
+  'finalization_message_template_id', 
   'notification_group_id',
   'notification_message_template_id'
 ];
@@ -75,6 +77,18 @@ $subnav = 'petitions';
     } else {
       hideFields(['notification-message-template-id'], isPageLoad);
     }
+
+    var rodFlow = document.getElementById('rod-enrollment-flow-id').value;
+
+    if(rodFlow != '') {
+      document.getElementById('redirect-on-duplicate').value = '';
+    }
+
+    var rofFlow = document.getElementById('rof-enrollment-flow-id').value;
+
+    if(rofFlow != '') {
+      document.getElementById('redirect-on-finalize').value = '';
+    }
   }
 
   $(function() {
@@ -83,7 +97,7 @@ $subnav = 'petitions';
 
     // register onchange events
     // note that underscores in field names above must be represented with hyphens here.
-    $('#authz_type, #notification-group-id').change(function() {
+    $('#authz-type, #notification-group-id, #rod_enrollment-flow-id, #rof-enrollment-flow-id').change(function() {
       updateGadgets();
     });
   });

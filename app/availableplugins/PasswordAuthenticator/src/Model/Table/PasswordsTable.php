@@ -41,7 +41,6 @@ use App\Lib\Enum\ActionEnum;
 use App\Model\Entity\Authenticator;
 use App\Lib\Enum\AuthenticatorStatusEnum;
 use PasswordAuthenticator\Lib\Enum\PasswordEncodingEnum;
-use PasswordAuthenticator\Lib\Enum\PasswordSourceEnum;
 
 class PasswordsTable extends Table {
   use \App\Lib\Traits\AuthenticatorTrait;
@@ -53,6 +52,7 @@ class PasswordsTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
+  use \PasswordAuthenticator\Lib\Traits\PasswordAuthenticatorTrait;
 
   /**
    * Perform Cake Model initialization.
@@ -151,13 +151,10 @@ class PasswordsTable extends Table {
       $pdata = null;
 
       if($cfg->password_authenticator->format_crypt_php) {
-        // We use password_hash, which due to various portability issues with crypt
-        // is really only useful with password_verify.
-
         $pdata = $this->newEntity([
           'password_authenticator_id' => $data['password_authenticator_id'],
           'person_id'                 => $personId,
-          'password'                  => password_hash($data['password'], PASSWORD_DEFAULT),
+          'password'                  => $this->encode($data['password'], PasswordEncodingEnum::Crypt),
           'type'                      => PasswordEncodingEnum::Crypt
         ]);
         
@@ -165,17 +162,10 @@ class PasswordsTable extends Table {
       }
 
       if($cfg->password_authenticator->format_sha1_ldap) {
-        // Salted SHA1 isn't really a great algorithm (and our salt generation
-        // could probably be better), but OpenLDAP doesn't support a better option
-        // out of the box.
-
-        $salt = substr(bin2hex(random_bytes(8)),0,4);
-        $shapwd = base64_encode(sha1($data['password'].$salt, true) . $salt);
-
         $pdata = $this->newEntity([
           'password_authenticator_id' => $data['password_authenticator_id'],
           'person_id'                 => $personId,
-          'password'                  => $shapwd,
+          'password'                  => $this->encode($data['password'], PasswordEncodingEnum::SSHA),
           'type'                      => PasswordEncodingEnum::SSHA
         ]);
         
@@ -363,63 +353,6 @@ class PasswordsTable extends Table {
       'status'  => AuthenticatorStatusEnum::NotSet,
       'comment' => __d('result', 'set.not')
     ];
-  }
-
-  /**
-   * Validate a password change request according to the configuration.
-   * 
-   * @since  COmanage Registry v5.2.0
-   * @param  Authenticator  $cfg      Authenticator configuration
-   * @param  array          $data     Array of data from fields.inc
-   * @throws InvalidArgumentException
-   */
-
-  protected function validateRequest(
-    Authenticator $cfg,
-    array $data
-  ) {
-    // Perform sanity checks on Self Selected passwords only
-    if($cfg->password_authenticator->source_mode == PasswordSourceEnum::SelfSelect) {
-      $minlen = $cfg->password_authenticator->min_length ?: 8;
-      $maxlen = $cfg->password_authenticator->max_length ?: 64;
-
-      // Check minimum length
-      if(strlen($data['password']) < $minlen) {
-        throw new \InvalidArgumentException(__d('password_authenticator', 'error.Passwords.len.min', [$minlen]));
-      }
-
-      // Check maximum length
-      if(strlen($data['password']) > $maxlen) {
-        throw new \InvalidArgumentException(__d('password_authenticator', 'error.Passwords.len.max', [$minlen]));
-      }
-
-      // Check that passwords match
-      if($data['password'] != $data['password2']) {
-        throw new \InvalidArgumentException(__d('password_authenticator', 'error.Passwords.match'));
-      }
-    }
-
-    // If Password Reuse Prevention is enabled (and we're not using hard delete or PTP)
-    // check the Password against the previous ones
-    if($cfg->password_authenticator->prevent_reuse
-       && $cfg->password_authenticator->format_crypt_php
-       && !$cfg->password_authenticator->use_hard_delete
-       && !$cfg->enable_ptp) {
-      $passwords = $this->find('all', archived: true)
-                        ->where([
-                          'password_authenticator_id' => $cfg->password_authenticator->id,
-                          'person_id' => $data['person_id'],
-                          'type' => PasswordEncodingEnum::Crypt
-                        ])
-                        ->all();
-
-      foreach($passwords as $p) {
-        if(password_verify($data['password'], $p->password)) {
-          // The passwords match, throw a validation error
-          throw new \InvalidArgumentException(__d('password_authenticator', 'error.Passwords.reuse'));
-        }
-      }
-    }
   }
 
   /**

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Petition Action Enum
+ * COmanage Registry Password Collector Petition Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,26 +21,33 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
 declare(strict_types = 1);
 
-namespace App\Lib\Enum;
+// We need this to get a continue button
+$this->Field->enableFormEditMode();
 
-class PetitionActionEnum extends StandardEnum {
-  const Accepted                = 'IC';  // Previously "Invitation Confirmed"
-  const Approved                = 'PY';
-  const AttributesUpdated       = 'AU';
-  const Declined                = 'PX';
-  const Denied                  = 'PN';
-  const EmailVerified           = 'EV';
-  const Finalized               = 'F';
-  const FlaggedDuplicate        = 'FD';
-  const InvitationViewed        = 'IV';
-  const StatusUpdated           = 'SU';
-  const TCExplicitAgreement     = 'TE';
-  const TCImpliedAgreement      = 'TI';
-  const Transitioned            = 'TX';
+// We actually don't want to use the same fields.inc file as the PasswordAuthenticator view
+// because it has a bunch of logic in it that only applies to run-time authenticator maanagement.
+
+$fields = [
+  'password',
+  'password2' => [
+    'type' => 'password',
+    'fieldLabel' => __d('password_authenticator', 'field.Passwords.password2')
+  ]
+];
+
+// dispatch gets its own submit, so we don't need the form generator to add one
+$suppress_submit = true;
+
+print $this->element('form/unorderedList', ['vv_fields' => $fields]);
+
+if($vv_config->required == \App\Lib\Enum\RequiredEnum::Optional) {
+  // if our configuration is Optional, render a "Skip" button that POSTs back to the form
+
+  print $this->Form->submit(caption: __d('operation', 'skip'), options: ['name' => 'skip']);
 }

@@ -146,7 +146,6 @@ class IdentifierAssignmentsTable extends Table {
    * @param  string $entityType     Entity Table (eg: "People")
    * @param  int    $entityId       Entity ID
    * @param  bool   $provision      Whether or not to run provisioners after assignment
-   * @param  int    $actorPersonId  Person ID of Actor assigning identifiers
    * @return array                  'already': Identifiers already assigned, keyed by IA description
    *                                'assigned': Identifiers newly assigned, keyed by IA description
    *                                'errors': Errors, keyed by IA description
@@ -155,10 +154,7 @@ class IdentifierAssignmentsTable extends Table {
   public function assign(
     string $entityType,
     int    $entityId,
-    bool   $provision=true,
-// XXX CFM-76 HistoryRecords don't seem to do anything with actorPersonId yet
-//     Also need to update StandardController or something for regular requests
-    ?int    $actorPersonId=null
+    bool   $provision=true
   ): array {
     $ret = [
       'already'   => [],
@@ -277,20 +273,23 @@ class IdentifierAssignmentsTable extends Table {
 
   /**
    * Determine if an identifier of a given type is already assigned to an entity.
-   * Suspended identifiers are considered assigned.
+   * Suspended identifiers are considered assigned. Identifiers created by Pipelines
+   * from External Identity Sources are _not_.
    *
    * IMPORTANT: This function should be called within a transaction to ensure
    * actions taken based on availability are atomic.
    *
    * @since  COmanage Registry v5.0.0
    * @param  IdentifierAssignment $ia     Identifier Assignment
-   * @param  EntityInterface      $entity Entity
+   * @param  EntityInterface      $entity Entity to assign Identifiers for
    * @return bool                         True if an identifier of the specified type is already assigned, false otherwise
    */
 
   public function assigned($ia, $entity): bool {
+    // $entity is, eg, a Person or Group
     $fk = StringUtilities::entityToForeignKey($entity);
 
+    // $className is the MVEA to assign for the $entity
     $className = !empty($ia->email_address_type_id)
                  ? 'EmailAddresses'
                  : 'Identifiers';
@@ -298,12 +297,19 @@ class IdentifierAssignmentsTable extends Table {
     $typeId = !empty($ia->email_address_type_id)
               ? $ia->email_address_type_id
               : $ia->identifier_type_id;
-    $EntityTable = TableRegistry::getTableLocator()->get($className);
+    
+    $TargetTable = TableRegistry::getTableLocator()->get($className);
 
-    $count = $EntityTable->find()
+    // eg: source_email_address_id
+    $sourceFK = $TargetTable->sourceForeignKey();
+
+    $count = $TargetTable->find()
                          ->where([
                             $className . '.' . $fk   => $entity->id,
-                            $className . '.type_id'  => $typeId
+                            $className . '.type_id'  => $typeId,
+                            // AR-IdentifierAssignment-4 Identifier Assignment applies regardless
+                            // of any Identifiers of the same Type created by a Pipeline.
+                            $sourceFK . ' IS NULL'
                          ])
                          ->epilog('FOR UPDATE')
 // We can't use aggregate functions with FOR UPDATE

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Petition Action Enum
+ * COmanage Registry Password Collector Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,26 +21,19 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+$fields = [
+  'authenticator_id',
+  'required'
+];
 
-namespace App\Lib\Enum;
-
-class PetitionActionEnum extends StandardEnum {
-  const Accepted                = 'IC';  // Previously "Invitation Confirmed"
-  const Approved                = 'PY';
-  const AttributesUpdated       = 'AU';
-  const Declined                = 'PX';
-  const Denied                  = 'PN';
-  const EmailVerified           = 'EV';
-  const Finalized               = 'F';
-  const FlaggedDuplicate        = 'FD';
-  const InvitationViewed        = 'IV';
-  const StatusUpdated           = 'SU';
-  const TCExplicitAgreement     = 'TE';
-  const TCImpliedAgreement      = 'TI';
-  const Transitioned            = 'TX';
-}
+$subnav = [
+  'tabs' => ['EnrollmentFlowSteps', 'PasswordAuthenticator.PasswordCollectors'],
+  'action' => [
+    'EnrollmentFlowSteps' => ['edit', 'view'],
+    'PasswordAuthenticator.PasswordCollectors' => ['edit']
+  ],
+];

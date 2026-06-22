@@ -452,8 +452,12 @@ class PeopleTable extends Table {
     //$provision = (isset($options['provision']) ? $options['provision'] : true);
     
     if(!$entity->deleted) {
-      // If the entity was deleted we handled this in beforeDelete, above
-      $this->reconcileCoMembersGroupMemberships($entity);
+      // If the entity was deleted we handled this in beforeDelete, above.
+      // We need to explicitly disable provisioning here since PE does not use
+      // side effect driven provisioning anymore and we don't know the intent of
+      // whatever just called save (but probably it wasn't to trigger provisioning).
+
+      $this->reconcileCoMembersGroupMemberships(entity: $entity);
     }
     
     return true;
@@ -755,7 +759,6 @@ class PeopleTable extends Table {
    *
    * @since  COmanage Registry v5.0.0
    * @param  EntityInterface  $entity         Person Entity
-   * @param  bool             $provision      Whether to run provisioners
    * @param  bool             $deleted        Whether $entity should be treated as deleted
    * @throws InvalidArgumentException
    * @throws RuntimeException
@@ -763,7 +766,6 @@ class PeopleTable extends Table {
 
   public function reconcileCoMembersGroupMemberships(
     \Cake\Datasource\EntityInterface $entity, 
-    bool $provision=true,
     bool $deleted=false
   ) {
     // This is similar to PersonRole::reconcileCouMembersGroupMemberships.
@@ -771,11 +773,13 @@ class PeopleTable extends Table {
     $activeEligible = !$deleted && $entity->isActive();
     $allEligible = !$deleted && ($entity->status != StatusEnum::Archived);
     
-    // Update the automatic CO groups
+    // Update the automatic CO groups. We explicitly don't provision here because we don't
+    // know what context we're being called in. eg During an Enrollment Flow we absolutely
+    // don't want to trigger provisioning.
     $this->llog('rule', "AR-Person-1 Syncing membership in All Members Group for CO " . $entity->co_id . " for Person " . $entity->id . ", eligibility=" . $allEligible);
-    $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, null, $entity->id, $allEligible, $provision);
+    $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, null, $entity->id, $allEligible, false);
     $this->llog('rule', "AR-Person-2 Syncing membership in Active Members Group for CO " . $entity->co_id . " for Person " . $entity->id . ", eligibility=" . $activeEligible);
-    $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, null, $entity->id, $activeEligible, $provision);
+    $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, null, $entity->id, $activeEligible, false);
     
     // Pull the Person Roles for this Person. Note if COUs are not in use this
     // will be a bit of extra work, but probably not worth worrying about.
@@ -794,11 +798,11 @@ class PeopleTable extends Table {
           // times, since it will correctly handle multiple roles in the same COU
           // in a single call.
           
-          $this->PersonRoles->reconcileCouMembersGroupMemberships($role, $provision, $activeEligible);
+          $this->PersonRoles->reconcileCouMembersGroupMemberships($role, $activeEligible);
         } else {
           // Make sure there are no memberships for this COU
-          $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $role->cou_id, $entity->id, false, $provision);
-          $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $role->cou_id, $entity->id, false, $provision);
+          $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::AllMembers, $role->cou_id, $entity->id, false, false);
+          $this->GroupMembers->syncAutomaticMembership(GroupTypeEnum::ActiveMembers, $role->cou_id, $entity->id, false, false);
         }
       }
     }

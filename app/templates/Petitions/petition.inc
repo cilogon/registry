@@ -180,6 +180,54 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
   </div>
 </li>
 
+<?php // Related Petitions ?>
+<?php if(!empty($petitionObj->started_from_petition_id)): ?>
+<li> 
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('field','Petitions.started_from_petition_id') ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?=
+        $this->Html->link(
+          (string)$petitionObj->started_from_petition_id,
+          [
+            'controller' => 'petitions',
+            'action' => 'view',
+            $petitionObj->started_from_petition_id
+          ]
+        )
+      ?>
+    </div>
+  </div>
+</li>
+<?php endif; // started_from_petition_id ?>
+<?php if(!empty($petitionObj->transitioned_to_petition_id)): ?>
+<li> 
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('field','Petitions.transitioned_to_petition_id') ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?=
+        $this->Html->link(
+          (string)$petitionObj->transitioned_to_petition_id,
+          [
+            'controller' => 'petitions',
+            'action' => 'view',
+            $petitionObj->transitioned_to_petition_id
+          ]
+        )
+      ?>
+    </div>
+  </div>
+</li>
+<?php endif; // transitioned_to_petition_id ?>
+
 <li class="form-list-header" id="enrollment-steps-header">
   <h2>
     <?= __d('information', 'enrollment.steps') ?>

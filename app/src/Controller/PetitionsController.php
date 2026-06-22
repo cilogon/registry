@@ -213,8 +213,10 @@ class PetitionsController extends StandardController {
         // since otherwise the Flash error won't render
 
         $petition = $this->Petitions->get((int)$id, contain: ['EnrollmentFlows']);
-
-        if(!empty($petition->enrollment_flow->redirect_on_finalize)) {
+        
+        if(!empty($petition->enrollment_flow->rof_enrollment_flow_id)) {
+          return $this->transitionToFlow((int)$id, $petition->enrollment_flow->rof_enrollment_flow_id);
+        } elseif(!empty($petition->enrollment_flow->redirect_on_finalize)) {
           return $this->redirect($petition->enrollment_flow->redirect_on_finalize);
         }
       } else {
