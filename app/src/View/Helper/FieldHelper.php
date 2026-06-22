@@ -297,7 +297,7 @@ class FieldHelper extends Helper {
 
   public function dateField(string $fieldName,
                             string $dateType = DateTypeEnum::Standard,
-                            array  $fieldArgs = null): string
+                            ?array  $fieldArgs = null): string
   {
     // Initialize
     $dateFormat = $dateType === DateTypeEnum::DateOnly ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:mm:ss';
@@ -422,13 +422,13 @@ class FieldHelper extends Helper {
    * @since  COmanage Registry v5.0.0
    */
   public function formField(string $fieldName,
-                            array  $fieldOptions = null,
-                            string $fieldLabel = null,
+                            ?array  $fieldOptions = null,
+                            ?string $fieldLabel = null,
                             string $fieldPrefix = '',
-                            string $fieldType = null,
-                            array  $fieldSelectOptions = null,
-                            string $fieldNameAlias = null,
-                            bool   $labelIsTextOnly = null): string
+                            ?string $fieldType = null,
+                            ?array  $fieldSelectOptions = null,
+                            ?string $fieldNameAlias = null,
+                            ?bool $labelIsTextOnly = null): string
   {
     $fieldArgs = $fieldOptions ?? [];
     $fieldArgs['label'] = $fieldOptions['label'] ?? false;
@@ -766,7 +766,8 @@ class FieldHelper extends Helper {
       'id',
       'style',
       'checked',
-      'label'
+      'label',
+      'name'
     ];
     
     // Remove the top-level field options that are intended for Cake, and

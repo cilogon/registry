@@ -156,7 +156,7 @@ trait IndexQueryTrait {
     // Initialize the Query Object
     $query = $table->find();
     // Get a pointer to my expression list
-    $newexp = $query->newExpr();
+    $newexp = $query->expr();
     // The searchable attributes can have an AND or an OR conjunction. The first one is used from the filtering block
     // while the second one from the picker vue module.
     $newexp = $newexp->setConjunction($pickerMode ? 'OR' : 'AND');

@@ -295,7 +295,7 @@ class TabHelper extends Helper
    * @return int
    * @since  COmanage Registry v5.0.0
    */
-  public function getCurrentId(string $tabName = null, bool $isNested = false): int
+  public function getCurrentId(?string $tabName = null, bool $isNested = false): int
   {
     $vv_obj = $this->getView()->get('vv_obj');
     $vv_primary_link = $this->getView()->get('vv_primary_link');

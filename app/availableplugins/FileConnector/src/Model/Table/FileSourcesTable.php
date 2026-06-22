@@ -166,9 +166,9 @@ class FileSourcesTable extends Table {
     }
 
     // The first line of a CSV v3 file is our configuration
-    fgetcsv($handle);
+    fgetcsv($handle, escape: '\\');
 
-    while(($data = fgetcsv($handle)) !== false) {
+    while(($data = fgetcsv($handle, escape: '\\')) !== false) {
       // The source key is always the first field in each line, make sure it is not empty
 
       if(!empty($data[0]) && !ctype_space($data[0])) {
@@ -306,9 +306,9 @@ class FileSourcesTable extends Table {
       }
 
       // Ignore the header line
-      fgetcsv($handle);
+      fgetcsv($handle, escape: '\\');
 
-      while(($data = fgetcsv($handle)) !== false) {
+      while(($data = fgetcsv($handle, escape: '\\')) !== false) {
         // Implode the record back together for string comparison purposes.
         // This may not be the same as the original line due to quotes, etc.
         // $data[0] is the SORID
@@ -327,9 +327,9 @@ class FileSourcesTable extends Table {
       }
 
       // Ignore the header line
-      fgetcsv($handle);
+      fgetcsv($handle, escape: '\\');
 
-      while(($data = fgetcsv($handle)) !== false) {
+      while(($data = fgetcsv($handle, escape: '\\')) !== false) {
         // $data[0] is the SORID
         if(array_key_exists($data[0], $knownRecords)) {
           $newData = implode(',', $data);
@@ -445,7 +445,7 @@ class FileSourcesTable extends Table {
     }
 
     // The first line is our configuration
-    $cfg = fgetcsv($handle);
+    $cfg = fgetcsv($handle, escape: '\\');
 
     fclose($handle);
 
@@ -700,13 +700,13 @@ class FileSourcesTable extends Table {
     // If there is more than one record, we'll return the first one we find.
 
     // The first line of a CSV v3 file is our configuration
-    fgetcsv($handle);
+    fgetcsv($handle, escape: '\\');
 
     // Set null defaults in case we don't find a matching record
     $ret['source_record'] = null;
     $ret['entity_data'] = null;
 
-    while(($data = fgetcsv($handle)) !== false) {
+    while(($data = fgetcsv($handle, escape: '\\')) !== false) {
       if($data[0] == $source_key) {
         // This is our record
 
@@ -809,9 +809,9 @@ class FileSourcesTable extends Table {
     }
 
     // The first line of a CSV v3 file is our configuration
-    fgetcsv($handle);
+    fgetcsv($handle, escape: '\\');
 
-    while(($data = fgetcsv($handle)) !== false) {
+    while(($data = fgetcsv($handle, escape: '\\')) !== false) {
       // strtolower, previous behavior was full string only so dupe that
 
       $match = collection($data)

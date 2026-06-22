@@ -265,7 +265,7 @@ class VerificationsTable extends Table {
     int     $codeLength,
     ?string  $codeCharset,
     ?string  $codeRegex,
-    int     $verificationId = null
+    ?int     $verificationId = null
   ): int {
     // First generate a new code
     $code = RandomString::generateToken($codeLength, $codeCharset, $codeRegex);

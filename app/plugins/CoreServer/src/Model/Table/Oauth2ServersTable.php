@@ -107,18 +107,23 @@ class Oauth2ServersTable extends HttpServersTable {
   /**
    * Obtain an OAuth token.
    *
-   * @param Integer $id          Oauth2Server ID
-   * @param String $grantType   OAuth grant type
-   * @param  String|null  $code        Access code returned by call to /oauth/authorize, for authorization_code grant
-   * @param String|null $redirectUri Callback URL used for initial request, for authorization_code grant
-   * @param Boolean $store       If true, store the retrieved tokens in the Oauth2Server configuration
+   * @param int $id          Oauth2Server ID
+   * @param string $grantType   OAuth grant type
+   * @param  string|null  $code        Access code returned by call to /oauth/authorize, for authorization_code grant
+   * @param string|null $redirectUri Callback URL used for initial request, for authorization_code grant
+   * @param bool $store       If true, store the retrieved tokens in the Oauth2Server configuration
    * @return mixed               Object of data as returned by server, including access and refresh token
    * @throws RuntimeException
    *@since  COmanage Registry v5.2.0
    */
 
-  public function obtainToken(int $id, string $grantType, string $code=null, string $redirectUri=null, bool $store=true): mixed
-  {
+  public function obtainToken(
+    int $id,
+    string $grantType,
+    ?string $code=null,
+    ?string $redirectUri=null,
+    bool $store=true)
+  : mixed {
     // Pull our configuration
     $srvr = $this->get($id);
 

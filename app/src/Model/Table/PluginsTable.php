@@ -321,6 +321,12 @@ class PluginsTable extends Table {
   public function pluginPath(\App\Model\Entity\Plugin $plugin, string $file): string {
     $fileName = $this->paths[$plugin->location]['path'] . DS . $plugin->plugin . DS . $file;
 
+    // "tests/" is optional in deployed environments. Return the computed path
+    // without treating absence as an error so callers can probe as needed.
+    if($file === 'tests' || str_starts_with($file, 'tests' . DS)) {
+      return $fileName;
+    }
+
     if(is_readable($fileName)) {
       // This is the plugin we're looking for
       $this->llog('debug', "Found plugin $plugin->plugin in $plugin->location directory");

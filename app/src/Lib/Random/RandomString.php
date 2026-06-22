@@ -98,6 +98,10 @@ class RandomString {
    * a token is not expected to be directly visible or handled by a human, but
    * will (eg) be injected into a URL or a message.
    *
+   * @param int $length Length of token
+   * @param string|null $allowedCharset Allowed characters
+   * @param string|null $regex Regex to match characters
+   *
    * @return string Token
    * @throws RandomException
    * @since  COmanage Registry v5.0.0
@@ -105,8 +109,8 @@ class RandomString {
 
   public static function generateToken(
     int $length = 16,
-    string $allowedCharset = null,
-    string $regex = null, // Permitted
+    ?string $allowedCharset = null,
+    ?string $regex = null, // Permitted
   ): string {
     // Unlike App Keys, tokens don't have restrictions on characters.
 

@@ -238,13 +238,14 @@ class SyncJob {
 
   /**
    * Cache the current run context.
-   * 
+   *
+   * @param JobsTable $JobsTable $JobsTable              JobsTable
+   * @param JobHistoryRecordsTable $JobHistoryRecordsTable $JobHistoryRecordsTable JobHistoryRecordsTable
+   * @param Job $job Current Job
+   * @param array $parameters Job Parameters (from the command line)
+   * @param int|null $eisId External Identity Source ID
+   * @return \StdClass
    * @since  COmanage Registry v5.0.0
-   * @param  JobsTable              $JobsTable              JobsTable
-   * @param  JobHistoryRecordsTable $JobHistoryRecordsTable JobHistoryRecordsTable
-   * @param  Job                    $job                    Current Job
-   * @param  array                  $parameters             Job Parameters (from the command line)
-   * @param  int                    $eisId                  External Identity Source ID
    */
 
   protected function getRunContext(
@@ -252,7 +253,7 @@ class SyncJob {
     \App\Model\Table\JobHistoryRecordsTable $JobHistoryRecordsTable,
     \App\Model\Entity\Job                   $job, 
     array                                   $parameters,
-    int                                     $eisId=null
+    ?int                                    $eisId = null
   ): \StdClass {
     // We use $runContext so we don't have to pass a complicated set of parameters around.
 
@@ -451,7 +452,7 @@ class SyncJob {
       );
 
       if($this->runContext->eis->status == SyncModeEnum::Disabled) {
-        throw new \InvalidArgumentException('core_job', 'Sync.error.disabled');
+        throw new \InvalidArgumentException(__d('core_job', 'Sync.error.disabled'));
       }
 
       if(!empty($parameters['source_keys'])) {
@@ -465,7 +466,7 @@ class SyncJob {
           if(count($keys) == 1) {
             $referenceId = $parameters['reference_id'];
           } else {
-            throw new \InvalidArgumentException('core_job', 'Sync.error.reference_id');
+            throw new \InvalidArgumentException(__d('core_job', 'Sync.error.reference_id'));
           }
         }
 
@@ -516,11 +517,11 @@ class SyncJob {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  string $key          Source Key to process
-   * @param  string $referenceId  Reference ID to link to record, if known
+   * @param  string|null $referenceId  Reference ID to link to record, if known
    * @return bool         True if processing should continue, false otherwise
    */
 
-  protected function syncRecord(string $key, string $referenceId=null): bool {
+  protected function syncRecord(string $key, ?string $referenceId=null): bool {
     // comment and status for HistoryRecords
     $c = "unknown";
     $s = JobStatusEnum::Failed;
@@ -577,9 +578,9 @@ class SyncJob {
     if($this->runContext->JobsTable->isCanceled($this->runContext->job->id)) {
       // The Job was already marked Canceled, but we can optionally add a History Record
       $this->runContext->JobHistoryRecordsTable->record(
-        jobId: $job->id,
+        jobId: $this->runContext->job->id,
         recordKey: "",
-        comment:  __d(
+        comment: __d(
           'core_job',
           'Sync.finish_summary.count',
           [$this->runContext->created, $this->runContext->updated, $this->runContext->errors, $this->runContext->count]

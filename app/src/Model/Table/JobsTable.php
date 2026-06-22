@@ -200,7 +200,7 @@ class JobsTable extends Table {
         __d('error',
             'Jobs.status.invalid', 
             [
-              $jobs->id, 
+              $job->id,
               __d('enumeration', 'JobStatusEnum.Queued'),
               __d('enumeration', 'JobStatusEnum.Assigned'),
               __d('enumeration', 'JobStatusEnum.'.$job->status)
@@ -417,7 +417,7 @@ class JobsTable extends Table {
       // The new job will be substantially the same as the last one...
 
       $this->register(
-        coId: job->co_id,
+        coId: $job->co_id,
         plugin: $job->plugin,
         parameters: json_decode($job->parameters, true),
         registerSummary: $job->register_summary,
@@ -471,7 +471,7 @@ class JobsTable extends Table {
         __d('error',
             'Jobs.status.invalid', 
             [
-              $jobs->id, 
+              $job->id,
               __d('enumeration', 'JobStatusEnum.Assigned'),
               __d('enumeration', 'JobStatusEnum.InProgress'),
               __d('enumeration', 'JobStatusEnum.'.$job->status)
@@ -687,7 +687,7 @@ class JobsTable extends Table {
         __d('error',
             'Jobs.status.invalid',
             [
-              $job->id, 
+              $job->id,
               __d('enumeration', 'JobStatusEnum.Assigned'),
               __d('enumeration', 'JobStatusEnum.InProgress'),
               __d('enumeration', 'JobStatusEnum.'.$job->status)

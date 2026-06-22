@@ -734,10 +734,10 @@ class StandardController extends AppController {
    * Populate any auto view variables, as requested via AutoViewVarsTrait.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  object $obj Current object (eg: from edit), if set
+   * @param  object|null $obj Current object (eg: from edit), if set
    */
 
-  protected function populateAutoViewVars(object $obj=null) {
+  protected function populateAutoViewVars(?object $obj=null) {
     /** var Cake\ORM\Table $table */
     $table = $this->getCurrentTable();
 

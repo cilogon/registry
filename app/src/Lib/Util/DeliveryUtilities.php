@@ -45,15 +45,15 @@ class DeliveryUtilities {
    * an InvalidArgumentException will be thrown.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  int    $coId       CO ID
-   * @param  string $recipient  Recipient email address
-   * @param  string $subject    Message subject
-   * @param  string $body_text  Message body (plain text)
-   * @param  string $body_html  Message body (HTML)
-   * @param  string $cc         Addresses to cc
-   * @param  string $bcc        Addresses to bcc
-   * @param  string $replyTo    Reply-To address to use, instead of the default
-   * @return bool               Returns true if mail was sent
+   * @param  int    $coId          CO ID
+   * @param  string $recipient     Recipient email address
+   * @param  string $subject       Message subject
+   * @param  string $body_text     Message body (plain text)
+   * @param  string $body_html     Message body (HTML)
+   * @param  string|null $cc       Addresses to cc
+   * @param  string|null $bcc      Addresses to bcc
+   * @param  string|null $replyTo  Reply-To address to use, instead of the default
+   * @return bool                  Returns true if mail was sent
    * @throws Cake\Network\Exception\SocketException
    * @throws InvalidArgumentException
    */
@@ -64,9 +64,9 @@ class DeliveryUtilities {
     string  $subject,
     string  $body_text="",
     string  $body_html="",
-    string  $cc="",
-    string  $bcc="",
-    string  $replyTo=""
+    ?string  $cc="",
+    ?string  $bcc="",
+    ?string  $replyTo=""
   ) {
     // We start by trying to pull the CO Outgoing SMTP Server configuration.
     // If one isn't available, we log a warning, but we don't throw an exception
@@ -161,9 +161,9 @@ class DeliveryUtilities {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  MessageTemplate  $template   Message Template
-   * @param  int              $personId   Recipient Person ID
-   * @param  string           $address    Recipient Email Address
-   * @param  int              $groupId    Recipient Group ID
+   * @param  int|null         $personId   Recipient Person ID
+   * @param  string|null      $address    Recipient Email Address
+   * @param  int|null         $groupId    Recipient Group ID
    * @return array                        'recipient': Recipient email address ("to" only, not "cc" or "bcc")
    */
 
@@ -181,9 +181,9 @@ class DeliveryUtilities {
         subject:    $template->getMessagePart('subject'),
         body_text:  $template->getMessagePart('body_text'),
         body_html:  $template->getMessagePart('body_html'),
-        cc:         $template->cc,
-        bcc:        $template->bcc,
-        replyTo:    $template->reply_to
+        cc:         $template->cc ?? '',
+        bcc:        $template->bcc ?? '',
+        replyTo:    $template->reply_to ?? ''
       );
     } else {
       self::sendEmailToAddress(
@@ -192,9 +192,9 @@ class DeliveryUtilities {
         subject:    $template->getMessagePart('subject'),
         body_text:  $template->getMessagePart('body_text'),
         body_html:  $template->getMessagePart('body_html'),
-        cc:         $template->cc,
-        bcc:        $template->bcc,
-        replyTo:    $template->reply_to
+        cc:         $template->cc ?? '',
+        bcc:        $template->bcc ?? '',
+        replyTo:    $template->reply_to ?? ''
       );
 
       return [
@@ -208,14 +208,14 @@ class DeliveryUtilities {
    * and other settings.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  int    $personId   Recipient Person ID
-   * @param  string $subject    Message subject
-   * @param  string $body_text  Message body (plain text)
-   * @param  string $body_html  Message body (HTML)
-   * @param  string $cc         Addresses to cc
-   * @param  string $bcc        Addresses to bcc
-   * @param  string $replyTo    Reply-To address to use, instead of the default
-   * @return array              'recipient': Recipient email address ("to" only, not "cc" or "bcc")
+   * @param  int    $personId     Recipient Person ID
+   * @param  string $subject      Message subject
+   * @param  string $body_text    Message body (plain text)
+   * @param  string $body_html    Message body (HTML)
+   * @param  string|null $cc      Addresses to cc
+   * @param  string|null $bcc     Addresses to bcc
+   * @param  string|null $replyTo Reply-To address to use, instead of the default
+   * @return array                'recipient': Recipient email address ("to" only, not "cc" or "bcc")
    */
 
   public static function sendEmailToPerson(
@@ -223,9 +223,9 @@ class DeliveryUtilities {
     string  $subject,
     string  $body_text="",
     string  $body_html="",
-    string  $cc="",
-    string  $bcc="",
-    string  $replyTo=""
+    ?string  $cc="",
+    ?string  $bcc="",
+    ?string  $replyTo=""
   ): array {
     // Find a deliverable Email Address for $personId
 
