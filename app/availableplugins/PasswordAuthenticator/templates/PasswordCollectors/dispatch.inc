@@ -34,7 +34,9 @@ $this->Field->enableFormEditMode();
 // because it has a bunch of logic in it that only applies to run-time authenticator maanagement.
 
 $fields = [
-  'password',
+  'password' => [
+    'class' => 'focusFirst'
+  ],
   'password2' => [
     'type' => 'password',
     'fieldLabel' => __d('password_authenticator', 'field.Passwords.password2')
@@ -48,6 +50,14 @@ print $this->element('form/unorderedList', ['vv_fields' => $fields]);
 
 if($vv_config->required == \App\Lib\Enum\RequiredEnum::Optional) {
   // if our configuration is Optional, render a "Skip" button that POSTs back to the form
-
-  print $this->Form->submit(caption: __d('operation', 'skip'), options: ['name' => 'skip']);
+  // XXX If adding extra submit buttons becomes a more common need, we should create them from config.
+  // The .submit-extra class will move the button next to the regular submit ("continue") button.
+  print '<div class="submit-extra">';
+  print $this->Form->button(__d('operation', 'skip'), [
+    'type' => 'submit',
+    'name' => 'skip',
+    'value' => 'skip',  
+    'class' => 'spin submit-button btn btn-default',
+  ]);
+  print '</div>';
 }

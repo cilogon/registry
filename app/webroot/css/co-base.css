@@ -2099,6 +2099,14 @@ body.start .submit {
   width: 100%;
   text-align: right;
 }
+/* This is for extra submit buttons in dispatch, currently used only for PasswordCollectors.
+   If this becomes a more common need, we should add extra submit buttons through configuration. */
+body.dispatch .submit-extra {
+  position: relative;
+  top: -4.65em;
+  right: 11.5em;
+  float: right;
+}
 #dispatch-list-container > ul {
   border-top: none;
 }
@@ -2867,11 +2875,6 @@ button, .btn, .btn:hover {
 html.dark-mode .btn-default,
 html.dark-mode .btn-default:active {
   background-color: var(--cmg-color-bg-005);
-}
-.btn-default:hover {
-  background-color: var(--cmg-color-btn-bg-001);
-  color: var(--cmg-color-txt-inverse) !important;
-  text-decoration: none !important;
 }
 .btn-secondary {
   background-color: var(--cmg-color-btn-bg-004);
