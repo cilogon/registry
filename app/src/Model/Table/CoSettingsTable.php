@@ -463,7 +463,7 @@ class CoSettingsTable extends Table {
 
     $settings = $this->find()->where(['co_id' => $COmanageCO->id])->firstOrFail();
     
-    return $settings->platform_upload_enable;
+    return (bool)$settings->platform_upload_enable;
   }
   
   /**
