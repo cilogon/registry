@@ -180,15 +180,22 @@ class TermsAndConditionsTable extends Table {
     // Pull active T&C for the CO/COU $copersonid is a member of. This will NOT include
     // any outdated T&C, we'll pull those separately, below.
 
+    $whereClause = [
+      'co_id' => $person->co_id,
+      'status' => SuspendableStatusEnum::Active
+    ];
+
+    if(!empty($couIds)) {
+      $whereClause['OR'] = [
+        'cou_id IS NULL',
+        'cou_id IN' => array_values($couIds)
+      ];
+    } else {
+      $whereClause[] = 'cou_id IS NULL';
+    }
+
     $tandc = $this->find()
-                  ->where([
-                    'co_id' => $person->co_id,
-                    'status' => SuspendableStatusEnum::Active,
-                    'OR' => [
-                      'cou_id IS NULL',
-                      'cou_id IN' => array_values($couIds)
-                    ]
-                  ])
+                  ->where($whereClause)
                   ->order('ordr ASC')
                   ->all();
     
