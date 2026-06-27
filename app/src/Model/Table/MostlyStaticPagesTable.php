@@ -64,6 +64,7 @@ class MostlyStaticPagesTable extends Table {
     
     // Define associations
     $this->belongsTo('Cos');
+    $this->belongsTo('Themes');
     
     $this->hasMany('TermsAndConditions');
     
@@ -80,6 +81,10 @@ class MostlyStaticPagesTable extends Table {
       'statuses' => [
         'type'  => 'enum',
         'class' => 'SuspendableStatusEnum'
+      ],
+      'themes' => [
+        'type' => 'select',
+        'model' => 'Themes'
       ]
     ]);
     
@@ -174,7 +179,6 @@ class MostlyStaticPagesTable extends Table {
    */
 
   public function buildRules(RulesChecker $rules): RulesChecker {
-// XXX document these in the wiki
     // AR-MostlyStaticPage-1 Two Mostly Static Pages within the same CO cannot share the same name
     $rules->add($rules->isUnique(['name', 'co_id'], __d('error', 'exists', [__d('field', 'MostlyStaticPages.name')])));
 
@@ -190,83 +194,6 @@ class MostlyStaticPagesTable extends Table {
 
     return $rules;
   }
-
-  /**
-   * Generate a message based on a Message Template, using the provided entities to
-   * perform variable substitution.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int          $id             Message Template ID
-   * @param  array        $entryUrl       Entry URL for responding to a handoff or notification
-   * @param  Notification $notification   Notification
-   * @param  Person       $subjectPerson  Subject Person, including Primary Name
-   * @return array                        'subject': Message subject
-   *                                      'body_text': Plaintext message
-   *                                      'body_html': HTML message
-   *
-
-  public function generateMessage(
-    int                             $id,
-    array                           $entryUrl=[],
-    \App\Model\Entity\Notification  $notification=null,
-    \App\Model\Entity\Person        $subjectPerson=null
-  ): array {
-    // We return "" instead of null by default for compatibility with DeliveryUtilities
-    $ret = [
-      'subject'     => "",
-      'body_text'   => "",
-      'body_html'   => ""
-    ];
-
-    // First retrieve the requested template
-    $template = $this->get($id);
-
-    // Next build an array of supported substitutions for which appropriate
-    // entities were provided.
-
-    $substitutions = [];
-
-    // Lookup the CO Name
-    $co = $this->Cos->get($template->co_id);
-
-    $substitutions['CO_NAME'] = $co->name;
-
-    if(!empty($entryUrl)) {
-// debug($entryUrl);
-      $substitutions['ENTRY_URL'] = \Cake\Routing\Router::url(
-        array_merge($entryUrl, ['_full' => true])
-      );
-    }
-
-    if($notification) {
-      $substitutions['NOTIFICATION_COMMENT'] = $notification->comment;
-      $substitutions['NOTIFICATION_SOURCE'] = $notification->source;
-    }
-    
-    if($subjectPerson && !empty($subjectPerson->primary_name)) {
-      $substitutions['SUBJECT_NAME'] = $subjectPerson->primary_name->full_name;
-    }
-
-    // Finally run the substitutions through each of the supported parts
-
-// debug($substitutions);
-    foreach(array_keys($ret) as $part) {
-      if(!empty($template->$part)) {
-        // Process the (@SUBSTITUTIONS) for this part
-        $searchKeys = [];
-        $replaceVals = [];
-
-        foreach(array_keys($substitutions) as $k) {
-          $searchKeys[] = "(@" . $k . ")";
-          $replaceVals[] = $substitutions[$k] ?? "(?)";
-        }
-
-        $ret[$part] = str_replace($searchKeys, $replaceVals, $template->$part);
-      }
-    }
-
-    return $ret;
-  }*/
 
   /**
    * Application Rule to determine if the current entity is a default Page.
@@ -352,6 +279,11 @@ class MostlyStaticPagesTable extends Table {
     ]);
     $validator->allowEmptyString('body');
 
+    $validator->add('theme_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('theme_id');
+    
     return $validator; 
   }
 }

@@ -122,6 +122,7 @@ class CoSettingsTable extends Table {
       ->setClassName('Types')
       ->setForeignKey('person_picker_identifier_type_id')
       ->setProperty('person_picker_identifier_type');
+    $this->belongsTo('Themes');
 
     $this->setDisplayField('co_id');
     
@@ -197,6 +198,10 @@ class CoSettingsTable extends Table {
       'tcLoginModes' => [
         'type'  => 'enum',
         'class' => 'TAndCLoginModeEnum'
+      ],
+      'themes' => [
+        'type' => 'select',
+        'model' => 'Themes'
       ]
     ]);
 
@@ -252,6 +257,7 @@ class CoSettingsTable extends Table {
       'search_limited_models'                => false,
       'tc_login_mode'                        => TAndCLoginModeEnum::NotEnforced,
       'tc_return_url_allow_list'             => null,
+      'theme_id'                             => null,
       // Platform configuration defaults
       'platform_env_mfa'                     => null,
       'platform_env_mfa_value'               => null,
@@ -275,8 +281,6 @@ class CoSettingsTable extends Table {
       // 'sponsor_co_group_id'        => null,
       // 'sponsor_eligibility'        => SponsorEligibilityEnum::CoOrCouAdmin,
       // 'enable_empty_cou'           => false,
-      // 'theme_stacking'             => SuspendableStatusEnum::Suspended,
-      // 'co_theme_id'                => null,
     ];
 
     // Check if we already have Settings for this CO
@@ -376,6 +380,45 @@ class CoSettingsTable extends Table {
     }
     
     return null;
+  }
+  
+  /**
+   * Get the Themes in use for the requested CO. This will return an array of up to two
+   * Themes, one for the requested CO and one for the COmanage CO (if $coId is not the
+   * COmanage CO).
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int $coId    CO ID, or if null the Platform Theme will be requested
+   * @return array        Array of Themes, with keys "platform" (if $coId is not the COmanage CO) and "co"
+   */
+
+  public function getThemes(?int $coId): array {
+    $ret = [
+      'platform'  => null,
+      'co'        => null
+    ];
+
+    if($coId) {
+      $cocfg = $this->find()->where(['CoSettings.co_id' => $coId])->contain(['Themes'])->firstOrFail();
+
+      if(!empty($cocfg->theme)) {
+        $ret['co'] = $cocfg->theme;
+      }
+    }
+
+    $COmanageCO = $this->Cos->find('COmanageCO')->firstOrFail();
+
+    if(!$coId || $COmanageCO->id != $coId) {
+      // Retrieve the Platform Theme separately
+
+      $cmpcfg = $this->find()->where(['CoSettings.co_id' => $COmanageCO->id])->contain(['Themes'])->firstOrFail();
+
+      if(!empty($cmpcfg->theme)) {
+        $ret['platform'] = $cmpcfg->theme;
+      }
+    }
+
+    return $ret;
   }
 
   /**
@@ -586,6 +629,11 @@ class CoSettingsTable extends Table {
     // "platform_" prefixed fields are intended to be available in the COmanage CO only.
     // We do this rather than create a separate table (like "meta") to leverage the existing
     // infrastructure and not have to fight Cake to maintain a table with a single row.
+    
+    $validator->add('theme_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('theme_id');
 
     $this->registerStringValidation($validator, $schema, 'platform_env_mfa', false);
 

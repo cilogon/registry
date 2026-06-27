@@ -70,7 +70,8 @@ $fields = [
   'email_delivery_address_type_id',
   'authn_events_api_disable',
   'tc_login_mode',
-  'tc_return_url_allowlist'
+  'tc_return_url_allowlist',
+  'theme_id'
 ];
 
 if($vv_obj->co->isCOmanageCO()) {

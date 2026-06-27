@@ -41,7 +41,8 @@ $fields = [
   'rof_enrollment_flow_id',
   'finalization_message_template_id', 
   'notification_group_id',
-  'notification_message_template_id'
+  'notification_message_template_id',
+  'theme_id'
 ];
 
 $subnav = 'petitions';

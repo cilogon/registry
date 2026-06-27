@@ -244,6 +244,28 @@ class StandardEnrollerController extends StandardPluginController {
   }
 
   /**
+   * Determine if there is a Theme associated with the current request.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @return Theme|null       Theme if configured, null otherwise
+   */
+
+  public function getSpecificTheme(): \App\Model\Entity\Theme|null {
+    if($this->request->getParam('action') == 'dispatch') {
+      // We use the Petition to get the Enrollment Flow configuration to avoid
+      // having to (re)parse the URL
+
+      $EnrollmentFlows = TableRegistry::getTableLocator()->get('EnrollmentFlows');
+
+      $flow = $EnrollmentFlows->get($this->petition->enrollment_flow_id, contain: ['Themes']);
+
+      return $flow->theme;
+    }
+
+    return null;    
+  }
+  
+  /**
    * Indicate whether this Controller will handle some or all authnz.
    * 
    * @since  COmanage Registry v5.1.0

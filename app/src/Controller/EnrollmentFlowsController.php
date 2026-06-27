@@ -130,6 +130,27 @@ class EnrollmentFlowsController extends StandardController {
   }
 
   /**
+   * Determine if there is a Theme associated with the current request.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @return Theme|null       Theme if configured, null otherwise
+   */
+
+  public function getSpecificTheme(): \App\Model\Entity\Theme|null {
+    if($this->request->getParam('action') == 'start') {
+      $efid = $this->request->getParam('pass.0');
+
+      if($efid) {
+        $flow = $this->EnrollmentFlows->get($efid, contain: ['Themes']);
+
+        return $flow->theme;
+      }
+    }
+
+    return null;    
+  }
+  
+  /**
    * Determine if MFA, if otherwise required, is not required for this action.
    *
    * @since  COmanage Registry v5.2.0

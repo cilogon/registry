@@ -154,6 +154,11 @@ class DashboardsController extends StandardController {
         'controller'    => 'terms_and_conditions',
         'action'        => 'index'
       ],
+      __d('controller', 'Themes', [99]) => [
+        'icon'          => 'colors',
+        'controller'    => 'themes',
+        'action'        => 'index'
+      ],
       __d('controller', 'Types', [99]) => [
         'icon'          => 'widgets',
         'controller'    => 'types',

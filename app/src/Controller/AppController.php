@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use App\Lib\Enum\SuspendableStatusEnum;
 use App\Lib\Enum\TAndCLoginModeEnum;
 use App\Lib\Enum\TAndCStatusEnum;
 use App\Lib\Enum\TemplateableStatusEnum;
@@ -240,6 +241,9 @@ class AppController extends Controller {
 
     // Generate a nonce for use in JavaScript tags with the Content-Security-Policy script-src directive
     $this->set('vv_js_nonce', base64_encode(random_bytes(16)));
+
+    // Determine the current Theme
+    $this->getTheme();
 
     return parent::beforeRender($event);
   }
@@ -653,6 +657,46 @@ class AppController extends Controller {
     }
     
     return 'index';
+  }
+
+  /**
+   * Get the current theme based on the request context.
+   * 
+   * @since  COmanage Registry v5.3.0
+   */
+
+  protected function getTheme() {
+    // We look for Themes in the reverse order vs the documented priority
+    // initially so that the most specific Theme gets applied, but also
+    // if/when we support theme stacking we have the themes in the correct order.
+
+    $Themes = TableRegistry::getTableLocator()->get('Themes');
+    $modelName = $this->request->getParam('controller');
+
+    $theme = null;
+
+    // Ask CoSettings for the current CO and/or Platform Theme
+
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+    $cothemes = $CoSettings->getThemes($this->getCOID());
+
+    if(!empty($cothemes['co'])) {
+      // CO-specific Theme takes precedence over Platform Theme
+      $theme = $cothemes['co'];
+    } elseif(!empty($cothemes['platform'])) {
+      $theme = $cothemes['platform'];
+    }
+
+    // We put the getSpecificTheme() in the controller rather than the model
+    // because we don't necessarily know what information a model-specific Theme
+    // is based on.
+
+    if(method_exists($this, "getSpecificTheme")) {
+      $theme = $this->getSpecificTheme();
+    }
+
+    $this->set('vv_theme', $theme);
   }
 
   /**

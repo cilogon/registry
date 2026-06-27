@@ -466,12 +466,6 @@ msgstr "Type {0} is in use as a default (via CO Settings)"
 msgid "Types.unique"
 msgstr "The requested value {0} is already in use by Type ID {1}"
 
-msgid "unknown"
-msgstr "Unknown value \"{0}\""
-
-msgid "unknown.identifier"
-msgstr "Unknown Identifier \"{0}\""
-
 msgid "ug.task.checkGroupNames.invalid"
 msgstr "Found {0} Group(s) with colons in their names or named 'CO', these Groups must be renamed before continuing"
 
@@ -489,6 +483,15 @@ msgstr "Current and target versions are the same"
 
 msgid "ug.version.unknown"
 msgstr "Unknown version \"{0}\""
+
+msgid "unknown"
+msgstr "Unknown value \"{0}\""
+
+msgid "unknown.identifier"
+msgstr "Unknown Identifier \"{0}\""
+
+msgid "upload.maxsize"
+msgstr "File size {0} exceeds maximum permitted {1}"
 
 msgid "Verifications.already"
 msgstr "Email Address is already verified"

@@ -41,7 +41,8 @@ $fields = [
       '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .
       '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
       '</div>'
-  ]
+  ],
+  'theme_id'
 ];
 
 // Top Links

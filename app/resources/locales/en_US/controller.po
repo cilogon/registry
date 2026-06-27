@@ -162,6 +162,9 @@ msgstr "{0,plural,=1{Terms and Conditions Agreement} other{Terms and Conditions 
 msgid "TermsAndConditions"
 msgstr "{0,plural,=1{Terms and Conditions} other{Terms and Conditions}}"
 
+msgid "Themes"
+msgstr "{0,plural,=1{Theme} other{Themes}}"
+
 msgid "TrafficDetours"
 msgstr "{0,plural,=1{Traffic Detour} other{Traffic Detours}}"
 

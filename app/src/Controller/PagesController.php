@@ -137,6 +137,31 @@ class PagesController extends AppController
     }
 
     /**
+     * Determine if there is a Theme associated with the current request.
+     * 
+     * @since  COmanage Registry v5.3.0
+     * @return Theme|null       Theme if configured, null otherwise
+     */
+
+    public function getSpecificTheme(): \App\Model\Entity\Theme|null {
+        if($this->request->getParam('action') == 'show') {
+            $MSPTable = TableRegistry::getTableLocator()->get("MostlyStaticPages");
+
+            $msp = $MSPTable->find()->where([
+                'MostlyStaticPages.co_id'   => $this->request->getParam('coid'),
+                'MostlyStaticPages.name'    => $this->request->getParam('name'),
+                'MostlyStaticPages.status'  => SuspendableStatusEnum::Active
+            ])->contain(['Themes'])->first();
+
+            if(!empty($msp->theme)) {
+                return $msp->theme;
+            }
+        }
+
+        return null;    
+    }
+
+    /**
      * Render a Mostly Static Page.
      * 
      * @since  COmanage Registry v5.1.0

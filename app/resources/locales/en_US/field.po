@@ -155,6 +155,9 @@ msgstr "Enrollee Identifier"
 msgid "extension"
 msgstr "Extension"
 
+msgid "footer"
+msgstr "Footer"
+
 msgid "frozen"
 msgstr "Frozen"
 
@@ -178,6 +181,9 @@ msgstr "Given Name"
 
 msgid "group_membership"
 msgstr "{0} Membership in {1}"
+
+msgid "header"
+msgstr "Header"
 
 msgid "hidden"
 msgstr "Hidden"
@@ -353,6 +359,9 @@ msgstr "(Jr, III, etc)"
 
 msgid "tag"
 msgstr "Tag"
+
+msgid "theme_id"
+msgstr "Theme"
 
 msgid "timestamp"
 msgstr "Timestamp"
@@ -1094,6 +1103,15 @@ msgstr "T&C via URL"
 
 msgid "TermsAndConditions.url.desc"
 msgstr "URL to web page holding Terms and Conditions<br/>(this or Mostly Static Page must be specified)"
+
+msgid "Themes.css"
+msgstr "CSS"
+
+msgid "Themes.hide_footer_logo"
+msgstr "Hide Footer Logo"
+
+msgid "Themes.hide_title"
+msgstr "Hide Title Banner"
 
 msgid "Types.case_insensitive"
 msgstr "Case Insensitive"

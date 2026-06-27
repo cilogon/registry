@@ -46,6 +46,7 @@
       "server_id": { "type": "integer", "foreignkey": { "table": "servers", "column": "id" }, "notnull": true },
       "sor_label": { "type": "string", "size": 40 },
       "status": { "type": "string", "size": 2 },
+      "theme_id": { "type": "integer", "foreignkey": { "table": "themes", "column": "id" }},
       "traffic_detour_id": { "type": "integer", "foreignkey": { "table": "traffic_detours", "column": "id" }, "notnull": true },
       "type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" }, "notnull": true },
       "username": { "type": "string", "size": 128 },
@@ -124,6 +125,22 @@
       "clonable": true
     },
 
+    "themes": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "hide_title": { "type": "boolean" },
+        "hide_footer_logo": { "type": "boolean" },
+        "css": { "type": "text" },
+        "header": { "type": "text" },
+        "footer": { "type": "text" }
+      },
+      "indexes": {
+        "themes_i1": { "columns": [ "co_id"] }
+      }
+    },
+
     "co_settings": {
       "columns": {
         "id": {},
@@ -149,6 +166,7 @@
         "person_picker_display_types": { "type": "boolean" },
         "tc_login_mode": { "type": "string", "size": 2 },
         "tc_return_url_allowlist": { "type": "text" },
+        "theme_id": {},
         "platform_env_mfa": { "type": "string", "size": 80 },
         "platform_env_mfa_value": { "type": "string", "size": 80 },
         "platform_env_mfa_enable_eg": { "type": "boolean" },
@@ -172,7 +190,8 @@
         "co_settings_i7": { "columns": [ "default_telephone_number_type_id" ] },
         "co_settings_i8": { "columns": [ "default_url_type_id" ] },
         "co_settings_i9": { "columns": [ "email_delivery_address_type_id" ] },
-        "co_settings_i10": { "columns": [ "email_smtp_server_id" ] }
+        "co_settings_i10": { "columns": [ "email_smtp_server_id" ] },
+        "co_settings_i11": { "needed": false, "columns": [ "theme_id" ]}
       }
     },
     
@@ -633,10 +652,12 @@
         "description": {},
         "status": {},
         "context": {},
-        "body": { "type": "text" }
+        "body": { "type": "text" },
+        "theme_id": {}
       },
       "indexes": {
-        "mostly_static_pages_i1": { "columns": [ "co_id" ] }
+        "mostly_static_pages_i1": { "columns": [ "co_id" ] },
+        "mostly_static_pages_i2": { "needed": false, "columns": [ "theme_id" ]}
       }
     },
     
@@ -674,7 +695,8 @@
         "rof_enrollment_flow_id": { "type": "integer", "foreignkey": { "table": "enrollment_flows", "column": "id" }},
         "finalization_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }},
         "notification_group_id": { "type": "integer", "foreignkey": { "table": "groups", "column": "id" }},
-        "notification_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }}
+        "notification_message_template_id": { "type": "integer", "foreignkey": { "table": "message_templates", "column": "id" }},
+        "theme_id": {}
       },
       "indexes": {
         "enrollment_flows_i1": { "columns": [ "co_id" ]},
@@ -684,7 +706,8 @@
         "enrollment_flows_i5": { "needed": false, "columns": [ "notification_group_id" ]},
         "enrollment_flows_i6": { "needed": false, "columns": [ "notification_message_template_id" ]},
         "enrollment_flows_i7": { "needed": false, "columns": [ "rod_enrollment_flow_id" ]},
-        "enrollment_flows_i0": { "needed": false, "columns": [ "rof_enrollment_flow_id" ]}
+        "enrollment_flows_i0": { "needed": false, "columns": [ "rof_enrollment_flow_id" ]},
+        "enrollment_flows_i9": { "needed": false, "columns": [ "theme_id" ]}
       }
     },
 

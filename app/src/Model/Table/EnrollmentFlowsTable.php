@@ -99,6 +99,7 @@ class EnrollmentFlowsTable extends Table {
          ->setClassName('EnrollmentFlows')
          ->setForeignKey('rof_enrollment_flow_id')
          ->setProperty('rof_enrollment_flow');
+    $this->belongsTo('Themes');
     
     $this->hasMany('Petitions');
     $this->hasMany('EnrollmentFlowSteps')
@@ -142,6 +143,10 @@ class EnrollmentFlowsTable extends Table {
       'statuses' => [
         'type'  => 'enum',
         'class' => 'TemplateableStatusEnum'
+      ],
+      'themes' => [
+        'type' => 'select',
+        'model' => 'Themes'
       ]
     ]);
     
@@ -353,6 +358,11 @@ class EnrollmentFlowsTable extends Table {
     ]);
     $validator->allowEmptyString('notification_message_template_id');
 
+    $validator->add('theme_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('theme_id');
+    
     return $validator; 
   }
 }
