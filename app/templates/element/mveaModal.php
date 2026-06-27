@@ -34,7 +34,7 @@ $vueHelper = $this->loadHelper('Vue');
 // Create a modal for handling MVEA adds/edits via iframe. XXX We may rename to a generic modal at some point.
 ?>
 
-<script type="module">
+<script type="module" nonce="<?= $vv_js_nonce ?>">
   <?php if(Cake\Core\Configure::read('debug')): ?>
     import Modal from "<?= $this->Url->script('comanage/components/common/modal.js') ?>?time=<?= time() ?>";
   <?php else: ?>

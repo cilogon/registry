@@ -60,7 +60,7 @@ $label = __d('operation','apply');
 
 ?>
 
-<script type="module">
+<script type="module" nonce="<?= $vv_js_nonce ?>">
   <?php if(Cake\Core\Configure::read('debug')): ?>
   import BulkActions from "<?= $this->Url->script('comanage/components/bulk/bulk-actions.js') ?>?time=<?= time() ?>";
   <?php else: ?>

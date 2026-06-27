@@ -96,7 +96,7 @@
 
 <?php if(empty($vv_obj['frozen'])): // skip for frozen fields ?>
   
-  <script type="module">
+  <script type="module" nonce="<?= $vv_js_nonce ?>">
     <?php if(Cake\Core\Configure::read('debug')): ?>
     import AutocompletePeople
       from "<?= $this->Url->script('comanage/components/autocomplete/cm-autocomplete-people.js') ?>?time=<?= time() ?>";

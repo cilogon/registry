@@ -47,7 +47,7 @@ $relativeUrl = "core-enroller/email-verifiers/resend/$vv_config->id"
 
 ?>
 
-<script type="module">
+<script type="module" nonce="<?= $vv_js_nonce ?>">
   import MiniLoader from "<?= $this->Url->script('comanage/components/common/mini-loader.js')?>?time=<?= time() ?>";
   
   const app = Vue.createApp({

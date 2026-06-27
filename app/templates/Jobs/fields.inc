@@ -63,7 +63,7 @@ if($vv_action == 'add') {
            </div>
          </div>',
       'afterField' =>
-        '<script>
+        '<script nonce="' . $vv_js_nonce . '">
            parametersValue = $("#parameters").val();
            parametersJSON = JSON.parse(parametersValue);
             $("#format-toggle").click(function() {

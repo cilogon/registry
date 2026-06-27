@@ -27,7 +27,7 @@
  */
 ?>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   $(function() {
     // Focus any designated form element
     $('.focusFirst').focus();

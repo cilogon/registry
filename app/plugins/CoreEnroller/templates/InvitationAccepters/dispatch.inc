@@ -52,7 +52,7 @@ if($vv_action == 'dispatch') {
       ]
   ]]);
 ?>
-  <script>
+  <script nonce="<?= $vv_js_nonce ?>">
     $('#accepted-1').click(function() {
       $(this).closest('label').addClass('is-selected');
       $("label[for='accepted-0']").removeClass('is-selected');

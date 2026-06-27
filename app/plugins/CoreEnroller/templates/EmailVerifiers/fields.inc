@@ -43,8 +43,8 @@ $beforeField = <<<OTHER
 </div>
 OTHER;
 
-$afterField = <<<'JS'
-<script>
+$afterField = <<<JS
+<script nonce="$vv_js_nonce">
 document.addEventListener('DOMContentLoaded', function() {
     var checkbox = document.getElementById('other-toggle');
     var select = document.getElementById('verification-code-regex');

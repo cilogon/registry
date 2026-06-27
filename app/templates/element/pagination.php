@@ -103,7 +103,7 @@ $appStateId = $this->ApplicationState->getId(ApplicationStateEnum::PaginationLim
           'options' => [25 => 25, 50 => 50, 75 => 75, 100 => 100]
         ]);
         ?>
-        <script>
+        <script nonce="<?= $vv_js_nonce ?>">
           $(function() {
             $('#set-pagination-form').on('submit', function(event) {
               event.preventDefault()

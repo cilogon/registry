@@ -414,7 +414,7 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
 <?php endif; ?>
 </ul>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   // Toggle All button for Enrollment Flow Steps
   // We click all the fields that have an associated accordion just to set the arrow state. 
   $('button.enrollment-steps-toggle-all-button').click(function() {

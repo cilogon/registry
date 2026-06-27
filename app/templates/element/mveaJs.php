@@ -44,7 +44,7 @@ $vueHelper = $this->loadHelper('Vue');
 // Create an MVEA component - typically this is represented as a card on a canvas page
 ?>
 
-<script type="module">
+<script type="module" nonce="<?= $vv_js_nonce ?>">
   <?php if(Cake\Core\Configure::read('debug')): ?>
     import Mveas from "<?= $this->Url->script('comanage/components/mvea/mveas.js') ?>?time=<?= time() ?>";
     import FailedMveas from "<?= $this->Url->script('comanage/components/mvea/failed-mveas.js') ?>?time=<?= time() ?>";

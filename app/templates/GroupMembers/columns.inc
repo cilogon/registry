@@ -165,7 +165,7 @@ if ($this->request->getQuery('group_id') !== null) {
   // Do not show the normal add link here
   $suppressAddLink = true;
 ?>
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   $(function() {
     // XXX On the user-centric Groups view, hide filtering until it can be configured in the view (rather than the model)
     $('#top-filters-form').hide();

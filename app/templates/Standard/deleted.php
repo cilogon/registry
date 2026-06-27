@@ -43,7 +43,7 @@ $targetWindow = $vv_target_window ?? 'self';
 
 <?php if($targetWindow == 'top'): // reload the top window. ?>
   
-  <script>
+  <script nonce="<?= $vv_js_nonce ?>">
     window.parent.hideCmModal();
   </script>
 

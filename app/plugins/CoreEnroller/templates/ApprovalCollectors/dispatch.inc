@@ -91,7 +91,7 @@ $this->Field->enableFormEditMode();
   ]]);
 ?>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   $('#approved-y').click(function() {
     $(this).closest('label').addClass('is-selected');
     $("label[for='approved-n']").removeClass('is-selected');

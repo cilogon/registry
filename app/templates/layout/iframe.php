@@ -72,7 +72,8 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
         sprintf(
           'var csrfToken = %s;',
           json_encode($this->request->getAttribute('csrfToken'), JSON_THROW_ON_ERROR)
-        )
+        ),
+        ['nonce' => $vv_js_nonce]
       );
     } catch (JsonException $e) {
       // do nothing
@@ -130,7 +131,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
 
     <!-- Get timezone detection -->
     <?= $this->Html->script('jstimezonedetect/jstz.min.js') ?>
-    <script>
+    <script nonce="<?= $vv_js_nonce ?>">
       // Determines the time zone of the browser client
       var tz = jstz.determine();
       // This won't be available for the first delivered page, but after that the
@@ -153,7 +154,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
     <?php print $this->element('javascript'); ?>
   
     <!-- COmanage iframe-specific JavaScript -->
-    <script>
+    <script nonce="<?= $vv_js_nonce ?>">
       $(function() {
         $(document).keyup(function(e) {
           if (e.key === "Escape") {

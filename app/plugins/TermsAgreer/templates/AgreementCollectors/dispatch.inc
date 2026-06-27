@@ -101,7 +101,7 @@ print $this->Form->create(null, [
 </table>
 
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   // Iterate over our T&Cs to see if they're all checked.
   function checkAgreements(mode) {
     let allAgreed = true;

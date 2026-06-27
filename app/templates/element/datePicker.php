@@ -46,7 +46,7 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
 
 ?>
 
-<script type="module">
+<script type="module" nonce="<?= $vv_js_nonce ?>">
   import CmDateTimePicker from "<?= $this->Url->script('comanage/components/datepicker/cm-datetimepicker.js') ?>";
 
   const app = Vue.createApp({
@@ -128,7 +128,7 @@ $pickerDateMax = ''; // If empty, the date picker will default to +10 years.
 <div id="<?= $pickerTarget ?>-msg" class="datepicker-message invalid-feedback">
   <?= $pickerType == 'dateonly' ? __d('field','datepicker.enterDate') : __d('field','datepicker.enterDateTime') ?>
 </div>
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   // Validate on blur for handling keyboard input.
   $('#<?= $pickerTarget ?>').blur(function() {
     const regExPattern = $(this).attr('pattern');

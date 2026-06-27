@@ -26,18 +26,59 @@
    */
 
   // As a general rule, all Registry pages are post-login and so shouldn't be cached
-  header("Expires: Thursday, 10-Jan-69 00:00:00 GMT");
   header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate");
-  header("Pragma: no-cache");
+
+  // CakePHP adds inline event handlers ("oninput" and "oninvalid") to fields as part of FormHelper.
+  // So as not to throw CSP errors, we must include "script-src-attr 'unsafe-inline'".
+  // To use VueJS as we do, we must also include "script-src 'unsafe-eval'" 
+  $csp = implode('; ', [
+    "default-src 'self'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "frame-ancestors 'self'",
+    "script-src 'self' 'nonce-$vv_js_nonce' 'unsafe-eval'",
+    "script-src-attr 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+  ]);
+  header("Content-Security-Policy: $csp");
   
-  header("Content-Security-Policy: object-src 'none'; base-uri 'none'; frame-ancestors 'self'");
+  $permissionsPolicy = implode(', ', [
+    'accelerometer=()',
+    'autoplay=()',
+    'camera=()',
+    'cross-origin-isolated=()',
+    'display-capture=()',
+    'encrypted-media=()',
+    'fullscreen=()',
+    'geolocation=()',
+    'gyroscope=()',
+    'keyboard-map=()',
+    'magnetometer=()',
+    'microphone=()',
+    'midi=()',
+    'payment=()',
+    'picture-in-picture=()',
+    'publickey-credentials-get=()',
+    'screen-wake-lock=()',
+    'sync-xhr=(self)',
+    'usb=()',
+    'web-share=()',
+    'xr-spatial-tracking=()',
+    'gamepad=()',
+    'hid=()',
+    'idle-detection=()',
+    'interest-cohort=()',
+    'serial=()',
+  ]);
+  header("Permissions-Policy: $permissionsPolicy");
   header("X-Content-Type-Options: nosniff");
-  header("Permissions-Policy: accelerometer=(),autoplay=(),camera=(),cross-origin-isolated=(),display-capture=(),encrypted-media=(),fullscreen=(),geolocation=(),gyroscope=(),keyboard-map=(),magnetometer=(),microphone=(),midi=(),payment=(),picture-in-picture=(),publickey-credentials-get=(),screen-wake-lock=(),sync-xhr=(self),usb=(),web-share=(),xr-spatial-tracking=(),gamepad=(),hid=(),idle-detection=(),interest-cohort=(),serial=()");
   header("Cross-Origin-Opener-Policy: same-origin");
+  header("Cross-Origin-Embedder-Policy: require-corp");
   header("X-Permitted-Cross-Domain-Policies: none");
+  header("Referrer-Policy: strict-origin-when-cross-origin");
 
-  // Add X-UA-Compatible header for IE
-  if (isset($_SERVER['HTTP_USER_AGENT']) && (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false)) {
-    header('X-UA-Compatible: IE=edge,chrome=1');
-  }
-
+  // Note that Strict-Transport-Security is not included here because Registry is so typically
+  // served behind a reverse proxy which will handle SSL termination. If not behind a proxy,
+  // you may wish to include this header once you have HTTPS in place:
+  // header("Strict-Transport-Security: max-age=31536000");

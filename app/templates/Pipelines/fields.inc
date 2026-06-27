@@ -58,7 +58,7 @@ $topLinks[] = [
 ];
 ?>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state
     var strategy = document.getElementById('match-strategy').value;

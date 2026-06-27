@@ -56,7 +56,7 @@ if($vv_action == 'edit') {
 }
 ?>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   function setPageUrl() {
     var baseurl = "<?= $vv_base_url ?>";
     var slug = document.getElementById('name').value;

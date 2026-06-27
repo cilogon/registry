@@ -48,7 +48,7 @@ $subnav = [
 $ptp = $vv_bc_parent_obj?->enable_ptp ? "PTP" : "NO";
 ?>
   
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   // JS specific to these fields
   function updateGadgets(isPageLoad) {
     // Hide or show gadgets according to current state

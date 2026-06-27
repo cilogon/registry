@@ -55,7 +55,7 @@ $jsonDelimiterMap = json_encode($phpDelimiterMap);
 
 
 $afterField = <<<JS
-<script>
+<script nonce="$vv_js_nonce">
 document.addEventListener('DOMContentLoaded', function() {
     var select = document.getElementById('mva_delimiter_default');
     var textbox = document.getElementById('mva_delimiter');

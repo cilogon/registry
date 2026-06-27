@@ -44,7 +44,7 @@ $subnav = 'steps';
 
 ?>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   // JS specific to these fields
 
   function updateGadgets(isPageLoad) {

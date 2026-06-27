@@ -238,6 +238,9 @@ class AppController extends Controller {
       $this->set('vv_user_roles', $this->RegistryAuth->getApplicationUserRoles($this->getCOID()));
     }
 
+    // Generate a nonce for use in JavaScript tags with the Content-Security-Policy script-src directive
+    $this->set('vv_js_nonce', base64_encode(random_bytes(16)));
+
     return parent::beforeRender($event);
   }
   

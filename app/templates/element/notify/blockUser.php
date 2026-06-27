@@ -75,7 +75,7 @@ $retrySeconds = pow($vv_attempts_count, 2);
   </div>
 </div>
 
-<script>
+<script nonce="<?= $vv_js_nonce ?>">
   const reloadUrl = '<?= $currentUrl ?>';
   let countdown = <?= $retrySeconds ?>;
   let initialCountdown = <?= $retrySeconds ?>;
