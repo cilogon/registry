@@ -63,7 +63,7 @@ class PagesController extends AppController
         // We use PagesController rather than MostlyStaticResourcesController to avoid complexities
         // with PrimaryLink lookups. We render here rather than redirecting into the MSRController to
         // reduce URL bar thrashing.
-        
+
         // MSRs are only enabled if file uploads are enabled
         $CoSettings = TableRegistry::getTableLocator()->get("CoSettings");
 
@@ -86,7 +86,7 @@ class PagesController extends AppController
         if(empty($msr)) {
             $this->Flash->error(__d('error', 'notfound', $name));
 
-            return $this->redirect(StringUtilities::pagesUrl($coId, "error-landing"));
+            return $this->redirect(StringUtilities::pagesUrl($coid, "error-landing"));
         }
 
         $fileContent = stream_get_contents($msr->file_content);
@@ -194,7 +194,7 @@ class PagesController extends AppController
             } else {
                 $this->Flash->error(__d('error', 'notfound', $name));
 
-                return $this->redirect(StringUtilities::pagesUrl($coId, "error-landing"));
+                return $this->redirect(StringUtilities::pagesUrl($coid, "error-landing"));
             }
         }
 
