@@ -33,6 +33,7 @@
       "mime_type": { "type": "string", "size": 256 },
       "mostly_static_page_id": { "type": "integer", "foreignkey": { "table": "mostly_static_pages", "column": "id" } },
       "name": { "type": "string", "size": 128, "notnull": true },
+      "normalization_id": { "type": "integer", "foreignkey": { "table": "normalizations", "column": "id" } },
       "ordr": { "type": "integer" },
       "password": { "type": "string", "size": 400 },
       "person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
@@ -1073,6 +1074,19 @@
       "indexes": {
         "t_and_c_agreements_i1": { "columns": [ "terms_and_conditions_id" ]},
         "t_and_c_agreements_i2": { "columns": [ "person_id" ]}
+      }
+    },
+
+    "normalizations": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "plugin": {},
+        "status": {},
+        "ordr": {}
+      },
+      "indexes": {
+        "normalizations_i1": { "columns": [ "co_id"] }
       }
     }
   },

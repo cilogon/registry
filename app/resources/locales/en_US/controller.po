@@ -120,6 +120,9 @@ msgstr "{0,plural,=1{Mostly Static Resource} other{Mostly Static Resources}}"
 msgid "Names"
 msgstr "{0,plural,=1{Name} other{Names}}"
 
+msgid "Normalizations"
+msgstr "{0,plural,=1{Normalization} other{Normalizations}}"
+
 msgid "Notifications"
 msgstr "{0,plural,=1{Notification} other{Notifications}}"
 

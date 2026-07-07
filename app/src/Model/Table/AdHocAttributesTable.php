@@ -57,6 +57,7 @@ class AdHocAttributesTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -83,6 +84,12 @@ class AdHocAttributesTable extends Table {
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');
     $this->setAllowLookupPrimaryLink(['unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'ExternalIdentityRoles', 'SourceAdHocAttributes']);
+
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'tag'
+      ]
+    ]);
 
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)

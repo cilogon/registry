@@ -10,6 +10,7 @@ return [
         'CoreAssigner' => $baseDir . '/plugins/CoreAssigner/',
         'CoreEnroller' => $baseDir . '/plugins/CoreEnroller/',
         'CoreJob' => $baseDir . '/plugins/CoreJob/',
+        'CoreNormalizer' => $baseDir . '/plugins/CoreNormalizer/',
         'CoreServer' => $baseDir . '/plugins/CoreServer/',
         'DebugKit' => $baseDir . '/vendor/cakephp/debug_kit/',
         'EnvSource' => $baseDir . '/plugins/EnvSource/',

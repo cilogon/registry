@@ -104,6 +104,10 @@ class UpgradeCommand extends BaseCommand
         'installMostlyStaticPages',
         'assignEnvSourceMvaDelimiter',
       ]
+    ],
+    "5.3.0" => [
+      'block' => false,
+      'post' => ['setupNormalizations']
     ]
   ];
   
@@ -111,13 +115,14 @@ class UpgradeCommand extends BaseCommand
   // to make them easier to use regardless of context (pre/post/manual).
 
   protected $taskParams = [
+    'assignEnvSourceMvaDelimiter' => ['global' => true],
     'assignUuids' => ['global' => true],
     'buildGroupTree' => ['global' => true],
+    'cacheEnvSourcespMode' => ['global' => true],
     'checkGroupNames' => ['global' => true],
     'createDefaultGroups' => ['perCO' => true, 'perCOU' => true],
     'installMostlyStaticPages' => ['perCO' => true],
-    'cacheEnvSourcespMode' => ['global' => true],
-    'assignEnvSourceMvaDelimiter' => ['global' => true]
+    'setupNormalizations' => ['perCO' => true]
   ];
 
   /**
@@ -546,6 +551,19 @@ class UpgradeCommand extends BaseCommand
     $MspsTable = $this->getTableLocator()->get('MostlyStaticPages');
 
     $MspsTable->addDefaults($coId);
+  }
+
+  /**
+   * Configure the default Normalizations.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int  $coId   CO ID
+   */
+
+  protected function setupNormalizations(int $coId) {
+    $NormalizationsTable = $this->getTableLocator()->get('Normalizations');
+
+    $NormalizationsTable->syncNormalizationIndex(coId: $coId, active: true);
   }
 
   /**

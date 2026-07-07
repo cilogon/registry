@@ -67,9 +67,9 @@ class UrlsTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -101,6 +101,12 @@ class UrlsTable extends Table {
       'types' => [
         'type' => 'type',
         'attribute' => 'Urls.type'
+      ]
+    ]);
+    
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'url'
       ]
     ]);
     

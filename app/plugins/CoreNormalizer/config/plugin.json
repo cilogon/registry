@@ -1,0 +1,44 @@
+{
+  "types": {
+    "normalization": [
+      "CaseMixers",
+      "PunctuationRemovers",
+      "WhitespaceTrimmers"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "case_mixers": {
+        "columns": {
+          "id": {},
+          "normalization_id": {},
+          "mix_addresses": { "type": "boolean" },
+          "mix_names": { "type": "boolean" },
+          "mix_person_roles": { "type": "boolean" }
+        },
+        "indexes": {
+          "whitespace_mixers_i1": { "columns": [ "normalization_id" ]}
+        }
+      },
+      "punctuation_removers": {
+        "columns": {
+          "id": {},
+          "normalization_id": {}
+        },
+        "indexes": {
+          "punctuation_removers_i1": { "columns": [ "normalization_id" ]}
+        }
+      },
+      "whitespace_trimmers": {
+        "columns": {
+          "id": {},
+          "normalization_id": {},
+          "trim_intermedial": { "type": "boolean" }
+        },
+        "indexes": {
+          "whitespace_trimmers_i1": { "columns": [ "normalization_id" ]}
+        }
+      }
+    }
+  }
+}

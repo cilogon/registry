@@ -17,7 +17,8 @@
         "league/container": "^5.1",
         "mobiledetect/mobiledetectlib": "^4.8.03",
         "psr/log": "^3.0",
-        "symfony/html-sanitizer": "^7.4.13"
+        "symfony/html-sanitizer": "^7.4.13",
+        "tamtamchik/namecase": "^3.0"
     },
     "require-dev": {
         "cakephp/bake": "^3.6",

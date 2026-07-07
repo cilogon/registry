@@ -82,6 +82,7 @@ class EmailAddressesTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -117,6 +118,12 @@ class EmailAddressesTable extends Table {
       'types' => [
         'type' => 'type',
         'attribute' => 'EmailAddresses.type'
+      ]
+    ]);
+    
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'mail'
       ]
     ]);
     

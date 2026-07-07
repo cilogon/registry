@@ -41,6 +41,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
+        'de4a84082744effd5c6fe9baaf7d7d10' => __DIR__ . '/..' . '/tamtamchik/namecase/src/function.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -49,6 +50,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
             'Twig\\Extra\\Markdown\\' => 20,
             'Twig\\' => 5,
             'TermsAgreer\\' => 12,
+            'Tamtamchik\\NameCase\\' => 20,
         ),
         'S' =>
         array (
@@ -138,6 +140,7 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         array (
             'CoreServer\\Test\\' => 16,
             'CoreServer\\' => 11,
+            'CoreNormalizer\\' => 15,
             'CoreJob\\Test\\' => 13,
             'CoreJob\\' => 8,
             'CoreEnroller\\Test\\' => 18,
@@ -186,6 +189,10 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'TermsAgreer\\' =>
         array (
             0 => __DIR__ . '/../..' . '/plugins/TermsAgreer/src',
+        ),
+        'Tamtamchik\\NameCase\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/tamtamchik/namecase/src',
         ),
         'Symfony\\Polyfill\\Php84\\' =>
         array (
@@ -425,6 +432,10 @@ class ComposerStaticInitb25f76eec921984aa94dcf4015a4846e
         'CoreServer\\' =>
         array (
             0 => __DIR__ . '/../..' . '/plugins/CoreServer/src',
+        ),
+        'CoreNormalizer\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/plugins/CoreNormalizer/src',
         ),
         'CoreJob\\Test\\' =>
         array (

@@ -1029,6 +1029,15 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'tamtamchik/namecase' => array(
+            'pretty_version' => '3.0.0',
+            'version' => '3.0.0.0',
+            'reference' => 'f963f321a3afbde83f1bb1bda1d53b848c7015dd',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../tamtamchik/namecase',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'theseer/tokenizer' => array(
             'pretty_version' => '2.0.1',
             'version' => '2.0.1.0',

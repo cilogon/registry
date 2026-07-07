@@ -77,6 +77,7 @@ class GroupsTable extends Table {
     $this->addBehavior('Changelog');
     $this->addBehavior('Clonable');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     $this->addBehavior('Tree');
     
@@ -206,6 +207,12 @@ class GroupsTable extends Table {
             'for' => 'co'
           ]
         ]
+      ]
+    ]);
+
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'name'
       ]
     ]);
 

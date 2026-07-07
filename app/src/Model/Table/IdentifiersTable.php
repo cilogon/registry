@@ -90,6 +90,7 @@ class IdentifiersTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -130,6 +131,12 @@ class IdentifiersTable extends Table {
       'provisioningTargets' => [
         'type' => 'select',
         'model' => 'ProvisioningTargets'
+      ]
+    ]);
+    
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'identifier'
       ]
     ]);
     

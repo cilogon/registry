@@ -74,6 +74,7 @@ class AddressesTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -112,6 +113,22 @@ class AddressesTable extends Table {
       'types' => [
         'type' => 'type',
         'attribute' => 'Addresses.type'
+      ]
+    ]);
+
+    $this->setNormalizableFields([
+      'CoreNormalizer.CaseMixers' => [
+        'street',
+        'locality',
+        'state',
+        'country'
+      ],
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'street',
+        'locality',
+        'state',
+        'postal_code',
+        'country'
       ]
     ]);
 

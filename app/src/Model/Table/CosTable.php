@@ -90,6 +90,9 @@ class CosTable extends Table {
     $this->hasMany('MostlyStaticPages')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('Normalizations')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('People')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -488,6 +491,9 @@ class CosTable extends Table {
 
     // Set up the default settings
     $this->CoSettings->addDefaults($id);
+    
+    // Configure default Normalizers
+    $this->Normalizations->syncNormalizationIndex(coId: $id, active: true);
     
     return true;
   }

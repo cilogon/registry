@@ -70,9 +70,9 @@ class TelephoneNumbersTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -103,11 +103,25 @@ class TelephoneNumbersTable extends Table {
     $this->setAllowLookupPrimaryLink(['unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'ExternalIdentityRoles', 'SourceTelephoneNumbers']);
 
-
     $this->setAutoViewVars([
       'types' => [
         'type' => 'type',
         'attribute' => 'TelephoneNumbers.type'
+      ]
+    ]);
+    
+    $this->setNormalizableFields([
+      'CoreNormalizer.PunctuationRemovers' => [
+        'country_code',
+        'area_code',
+        'number',
+        'extension'
+      ],
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'country_code',
+        'area_code',
+        'number',
+        'extension'
       ]
     ]);
     

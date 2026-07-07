@@ -81,9 +81,9 @@ class PersonRolesTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     $this->addBehavior('Timezone');
     
@@ -172,6 +172,19 @@ class PersonRolesTable extends Table {
       'types' => [
         'type' => 'auxiliary',
         'model' => 'Types'
+      ]
+    ]);
+
+    $this->setNormalizableFields([
+      'CoreNormalizer.CaseMixers' => [
+        'department',
+        'organization',
+        'title'
+      ],
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'department',
+        'organization',
+        'title'
       ]
     ]);
 

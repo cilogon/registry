@@ -68,6 +68,7 @@ class PronounsTable extends Table {
     // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -102,6 +103,12 @@ class PronounsTable extends Table {
       'types' => [
         'type' => 'type',
         'attribute' => 'Pronouns.type'
+      ]
+    ]);
+    
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'pronouns'
       ]
     ]);
     

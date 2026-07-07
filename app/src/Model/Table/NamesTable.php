@@ -78,7 +78,7 @@ class NamesTable extends Table {
   public function initialize(array $config): void {
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
-    // Timestamp behavior handles created/modified updates
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
@@ -115,6 +115,23 @@ class NamesTable extends Table {
       'types' => [
         'type' => 'type',
         'attribute' => 'Names.type'
+      ]
+    ]);
+
+    $this->setNormalizableFields([
+      'CoreNormalizer.CaseMixers' => [
+        'honorific',
+        'given',
+        'middle',
+        'family',
+        'suffix'
+      ],
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'honorific',
+        'given',
+        'middle',
+        'family',
+        'suffix'
       ]
     ]);
     

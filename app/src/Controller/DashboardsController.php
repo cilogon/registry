@@ -132,6 +132,12 @@ class DashboardsController extends StandardController {
         'controller'    => 'mostly_static_pages',
         'action'        => 'index'
       ],
+      __d('controller', 'Normalizations', [99]) => [
+        'icon'          => 'text_format',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'normalizations',
+        'action'        => 'index'
+      ],
       __d('controller', 'Pipelines', [99]) => [
         'icon'          => 'valve',
         'controller'    => 'pipelines',

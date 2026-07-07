@@ -61,6 +61,7 @@ class ApiUsersTable extends Table {
   public function initialize(array $config): void {
     $this->addBehavior('Changelog');
     $this->addBehavior('Clonable');
+    $this->addBehavior('Normalization');
     $this->addBehavior('Timestamp');
     $this->addBehavior('Timezone');
     
@@ -81,6 +82,12 @@ class ApiUsersTable extends Table {
       'statuses' => [
         'type' => 'enum',
         'class' => 'SuspendableStatusEnum'
+      ]
+    ]);
+
+    $this->setNormalizableFields([
+      'CoreNormalizer.WhitespaceTrimmers' => [
+        'username'
       ]
     ]);
 
