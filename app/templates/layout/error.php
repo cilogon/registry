@@ -52,7 +52,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
     <!-- Load CSS -->
     <?= $this->Html->css([
       'bootstrap/bootstrap.min',
-      'co-color',
+      'co-variables',
       'co-base',
       'co-responsive'
     ]) . PHP_EOL ?>

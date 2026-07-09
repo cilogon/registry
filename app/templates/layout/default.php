@@ -60,7 +60,7 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
       'bootstrap/bootstrap.min',
       'datatables/datatables-2.0.7.net.min',
       'datatables/dataTables.bootstrap5',
-      'co-color',
+      'co-variables',
       'co-base',
       'co-responsive',
     ]) . PHP_EOL ?>
