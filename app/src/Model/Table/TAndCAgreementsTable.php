@@ -40,6 +40,7 @@ class TAndCAgreementsTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
   use \App\Lib\Traits\ChangelogBehaviorTrait;
   use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
@@ -65,8 +66,28 @@ class TAndCAgreementsTable extends Table {
     
     $this->setDisplayField('agreement_time');
     
-    $this->setPrimaryLink('terms_and_conditions_id');
+    $this->setPrimaryLink(['terms_and_conditions_id', 'person_id']);
     $this->setRequiresCO(true);
+
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
+
+    // There is no direct UI for T&C Agreements, these Permissions are
+    // for the REST API. Only read operations are supported, write
+    // operations are via TermsAndConditions.
+    $this->setPermissions([
+      // Actions that operate over an entity (ie: require an $id)
+      'entity' => [
+        'delete' =>   false,
+        'edit' =>     false,
+        'view' =>     ['platformAdmin', 'coAdmin']
+      ],
+      // Actions that operate over a table (ie: do not require an $id)
+      'table' => [
+        'add' =>      false,
+        'index' =>    ['platformAdmin', 'coAdmin']
+      ]
+    ]);
   }
   
   /**

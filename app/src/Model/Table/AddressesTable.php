@@ -132,6 +132,9 @@ class AddressesTable extends Table {
       ]
     ]);
 
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
+    
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [

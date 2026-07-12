@@ -128,27 +128,29 @@ class CaseMixersTable extends Table {
 
       if($enabled) {
         foreach($supportedFields as $field) {
-          // For addresses, if $field is state or country and the length is 3 or shorter,
-          // convert to upper case, since we're almost certainly dealing with an abbreviation.
-          // (As of this writing, there do not appear to be any countries or US states
-          // with English names of less than 4 characters. This may not hold true for
-          // non-US states.)
+          if(!empty($data[$field])) {
+            // For addresses, if $field is state or country and the length is 3 or shorter,
+            // convert to upper case, since we're almost certainly dealing with an abbreviation.
+            // (As of this writing, there do not appear to be any countries or US states
+            // with English names of less than 4 characters. This may not hold true for
+            // non-US states.)
 
-          if(($field == 'state' || $field == 'country')
-            && strlen($data[$field]) <= 3) {
-            if(function_exists('mb_strtoupper')) {
-              $data[$field] = mb_strtoupper($data[$field]);
+            if(($field == 'state' || $field == 'country')
+              && strlen($data[$field]) <= 3) {
+              if(function_exists('mb_strtoupper')) {
+                $data[$field] = mb_strtoupper($data[$field]);
+              } else {
+                $data[$field] = strtoupper($data[$field]);
+              }
+            } elseif($field == 'family') {
+              // https://github.com/tamtamchik/namecase
+              $data[$field] = str_name_case($data[$field]);
             } else {
-              $data[$field] = strtoupper($data[$field]);
-            }
-          } elseif($field == 'family') {
-            // https://github.com/tamtamchik/namecase
-            $data[$field] = str_name_case($data[$field]);
-          } else {
-            if(function_exists('mb_convert_case')) {
-              $data[$field] = mb_convert_case($data[$field], MB_CASE_TITLE);
-            } else {
-              $data[$field] = ucwords(strtolower($data[$field]));
+              if(function_exists('mb_convert_case')) {
+                $data[$field] = mb_convert_case($data[$field], MB_CASE_TITLE);
+              } else {
+                $data[$field] = ucwords(strtolower($data[$field]));
+              }
             }
           }
         }

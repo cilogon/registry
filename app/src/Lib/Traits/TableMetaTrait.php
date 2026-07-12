@@ -40,6 +40,19 @@ trait TableMetaTrait {
   // What type of Table is this?
   private $tableType = null;
 
+  // Is the Model Specific REST API enabled for this Table?
+  private $msrApiEnabled = false;
+
+  /**
+   * Enable the Model Specific REST API for this Table.
+   * 
+   * @since  COmanage Registry v5.3.0
+   */
+
+  protected function enableMsrApi() {
+    $this->msrApiEnabled = true;
+  }
+
   /**
    * Filter the metadata attributes from an entity in a manner suitable for copy (duplicate).
    * 
@@ -412,6 +425,17 @@ trait TableMetaTrait {
   
   public function isConfigurationTable() {
     return $this->tableType === TableTypeEnum::Configuration;
+  }
+
+  /**
+   * Determine if the Model Specific REST API is enabled for this Table.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @return bool True if the Model Specific REST API is enabled, false otherwise.
+   */
+
+  public function isMsrApiEnabled(): bool {
+    return $this->msrApiEnabled;
   }
 
   /**

@@ -378,7 +378,11 @@ class PipelinesTable extends Table {
 
     $newPerson = [
       'co_id'   => $pipeline->co_id,
-      'status'  => $pipeline->sync_status_on_create ?? StatusEnum::Pending
+      // Don't use ?? here because that just tests for not null, which won't
+      // work if the field value is ''
+      'status'  => !empty($pipeline->sync_status_on_create)
+                   ? $pipeline->sync_status_on_create
+                   : StatusEnum::Pending
     ];
 
     if(!empty($mappedAttributes['date_of_birth'])) {

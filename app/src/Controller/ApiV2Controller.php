@@ -419,10 +419,48 @@ class ApiV2Controller extends AppController {
 
     $Table->requestProvisioning(
       id: $entityId,
-      context: \App\Lib\Enum\ProvisioningContextEnum::Manual,
+      context: ProvisioningContextEnum::Manual,
       provisioningTargetId: (int)$id
     );
     
+    // Let the view render
+    $this->viewBuilder()->setLayout('rest');
+    $this->render('/Standard/api/v2/json/add-edit');
+  }
+
+  /**
+   * Record a Terms and Conditions Agreement.
+   * 
+   * @since  COmange Registry v5.3.0
+   * @param  String $id Terms And Conditions ID
+   */
+
+  public function recordTAndC(string $id) {
+    // We operate on TermsAndConditions rather than TAndCAgreements
+    // for consistency with the UI.
+
+    $json = $this->request->getData(); // Parsed by BodyParserMiddleware
+
+    if(empty($json['personId']) || empty($json['actorPersonId']) || empty($json['identifier'])) {
+      throw new \InvalidArgumentException(__d('error', 'invalid.request'));
+    }
+
+    $TAndCAgreements = TableRegistry::getTableLocator()->get('TAndCAgreements');
+
+    $agreement = $TAndCAgreements->record(
+      termsAndConditionsId: (int)$id,
+      personId: $json['personId'],
+      actorPersonId: $json['actorPersonId'],
+      identifier: $json['identifier']
+    );
+
+    $TAndCAgreements->People->requestProvisioning(
+      id: $json['personId'],
+      context: ProvisioningContextEnum::Automatic
+    );
+
+    $this->set('vv_results', ['id' => $agreement->id]);
+
     // Let the view render
     $this->viewBuilder()->setLayout('rest');
     $this->render('/Standard/api/v2/json/add-edit');
@@ -481,7 +519,17 @@ class ApiV2Controller extends AppController {
     $request = $this->getRequest();
     $reqAction = $request->getParam('action');
     $session = $request->getSession();
+    $Table = $this->fetchTable();
+
+    // Default behavior is to not handle Auth
     $mode = 'no';
+    
+    // We require Models to explicitly turn on Model Specific API support
+    // in order to ensure the API behavior is documented and works as expected.
+
+    if(!method_exists($Table, "isMsrApiEnabled") || !$Table->isMsrApiEnabled()) {
+      return 'notauth';
+    }
 
     $auth = $session->read('Auth');
 

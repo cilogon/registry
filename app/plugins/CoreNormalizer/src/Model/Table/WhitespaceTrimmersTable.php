@@ -114,13 +114,15 @@ class WhitespaceTrimmersTable extends Table {
 
     if(!empty($supportedFields)) {
       foreach($supportedFields as $field) {
-        // In all cases, remove leading and trailing whitespace
-        $data[$field] = trim($data[$field]);
+        if(!empty($data[$field])) {
+          // In all cases, remove leading and trailing whitespace
+          $data[$field] = trim($data[$field]);
 
-        // Trim intermedial whitespace, if configured
-        if(isset($normalization->whitespace_trimmer->trim_intermedial) 
-           && $normalization->whitespace_trimmer->trim_intermedial) {
-          $data[$field] = preg_replace('/\s+/', ' ', $data[$field]);
+          // Trim intermedial whitespace, if configured
+          if(isset($normalization->whitespace_trimmer->trim_intermedial) 
+            && $normalization->whitespace_trimmer->trim_intermedial) {
+            $data[$field] = preg_replace('/\s+/', ' ', $data[$field]);
+          }
         }
       }
     }

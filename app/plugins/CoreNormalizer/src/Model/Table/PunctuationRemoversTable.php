@@ -114,10 +114,12 @@ class PunctuationRemoversTable extends Table {
 
     if(!empty($supportedFields)) {
       foreach($supportedFields as $field) {
-        // Following E.123 format, we only use spaces in telephone numbers
-        // (the + and extension label get added by _getFormattedNumber at rendering time)
+        if(!empty($data[$field])) {
+          // Following E.123 format, we only use spaces in telephone numbers
+          // (the + and extension label get added by _getFormattedNumber at rendering time)
 
-        $data[$field] = preg_replace("/[^[:alnum:]]+/", " ", $data[$field]);
+          $data[$field] = preg_replace("/[^[:alnum:]]+/", " ", $data[$field]);
+        }
       }
     }
   }

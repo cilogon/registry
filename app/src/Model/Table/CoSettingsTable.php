@@ -205,6 +205,9 @@ class CoSettingsTable extends Table {
       ]
     ]);
 
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
+    
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id). Since each CO's
       // CoSetting is created during CO Setup, admins can only edit.

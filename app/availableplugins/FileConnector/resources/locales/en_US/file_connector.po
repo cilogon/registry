@@ -53,7 +53,7 @@ msgid "error.header.invalid"
 msgstr "\"{0}\" is not a valid field"
 
 msgid "error.header.sorid"
-msgstr "Did not find SORID as first defined column, check file header definition"
+msgstr "Did not find SORID as first defined column, check file header definition (or found invalid single token column name)"
 
 msgid "field.FileProvisioners.filename"
 msgstr "File Name"

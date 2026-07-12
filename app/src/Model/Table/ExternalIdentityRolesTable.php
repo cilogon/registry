@@ -119,6 +119,9 @@ class ExternalIdentityRolesTable extends Table {
       ]
     ]);
 
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
+    
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126

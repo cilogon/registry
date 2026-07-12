@@ -51,6 +51,9 @@ $routes->setRouteClass(DashedRoute::class);
 
 //// API routes
 $routes->scope('/api/v2', function (RouteBuilder $builder) {
+  // Do not enable CSRF for the REST API, it will break standard (non-AJAX) clients
+  //  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware(['httponly' => true]));
+  
   // BodyParserMiddleware will automatically parse JSON bodies, but we only
   // want that for API transactions, so we only apply it to the /api scope.
   $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
@@ -58,6 +61,8 @@ $routes->scope('/api/v2', function (RouteBuilder $builder) {
    * Apply a middleware to the current route scope.
    * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
    */
+  // Do not enable CSRF for the REST API, it will break standard (non-AJAX) clients
+  //  $builder->applyMiddleware('csrf');
   $builder->setExtensions(['json']);
   $builder->applyMiddleware('bodyparser');
   // Use setPass to make parameter show up as function parameter
@@ -74,6 +79,11 @@ $routes->scope('/api/v2', function (RouteBuilder $builder) {
   $builder->post(
     '/provisioning_targets/provision/{id}',
     ['controller' => 'ApiV2', 'action' => 'provision', 'model' => 'provisioning_targets'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
+  $builder->post(
+    '/terms_and_conditions/record/{id}',
+    ['controller' => 'ApiV2', 'action' => 'recordTAndC', 'model' => 'terms_and_conditions'])
     ->setPass(['id'])
     ->setPatterns(['id' => '[0-9]+']);
   // These establish the usual CRUD options on all models:

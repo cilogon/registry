@@ -69,13 +69,16 @@ class TermsAndConditionsTable extends Table {
     $this->belongsTo('Cos');
     $this->belongsTo('Cous');
     $this->belongsTo('MostlyStaticPages');
-    $this->hasMany('TAndCAgreements');
+
+    $this->hasMany('TAndCAgreements')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     
     $this->setDisplayField('description');
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
-    $this->setAllowLookupPrimaryLink(['agree', 'proxy', 'revoke']);
+    $this->setAllowLookupPrimaryLink(['agree', 'proxy', 'recordTAndC', 'revoke']);
     $this->setAllowLookupRelatedPrimaryLink(['status' => ['person_id']]);
     $this->setAllowUnkeyedPrimaryLink(['review']);
 
@@ -99,18 +102,23 @@ class TermsAndConditionsTable extends Table {
       ]
     ]);
     
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
+
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
       'entity' => [
-        'agree' =>    ['coMember'],
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
+        'agree' =>        ['coMember'],
+        'delete' =>       ['platformAdmin', 'coAdmin'],
+        'edit' =>         ['platformAdmin', 'coAdmin'],
         // We specifically exclude platform admins from proxying because
         // they may not be registered as People in the CO, and we won't be
         // able to record the actor foreign key for audit purposes.
-        'proxy' =>    ['coAdmin'],
-        'revoke' =>   ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
+        'proxy' =>        ['coAdmin'],
+        // 'recordTAndC' is used by ApiV2Controller
+        'recordTAndC' =>  ['platformAdmin', 'coAdmin'],
+        'revoke' =>       ['platformAdmin', 'coAdmin'],
+        'view' =>         ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [

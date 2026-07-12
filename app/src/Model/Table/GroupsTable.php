@@ -216,6 +216,9 @@ class GroupsTable extends Table {
       ]
     ]);
 
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
+    
     $this->setPermissions([
   // XXX update for couAdmins, etc
       // Actions that operate over an entity (ie: require an $id)
