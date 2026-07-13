@@ -151,6 +151,9 @@ class PeopleTable extends Table {
     $this->hasMany('ProvisioningHistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('TAndCAgreements')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('TelephoneNumbers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
