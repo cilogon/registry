@@ -31,17 +31,20 @@
   // CakePHP adds inline event handlers ("oninput" and "oninvalid") to fields as part of FormHelper.
   // So as not to throw CSP errors, we must include "script-src-attr 'unsafe-inline'".
   // To use VueJS as we do, we must also include "script-src 'unsafe-eval'" 
-  $csp = implode('; ', [
-    "default-src 'self'",
-    "object-src 'none'",
-    "base-uri 'none'",
-    "frame-ancestors 'self'",
-    "script-src 'self' 'nonce-$vv_js_nonce' 'unsafe-eval'",
-    "script-src-attr 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
-  ]);
-  header("Content-Security-Policy: $csp");
+  if (!\Cake\Core\Plugin::isLoaded('DebugKit')) {
+    // This CSP will block Debug Kit functionality, so skip it when DebugKit is enabled.
+    $csp = implode('; ', [
+      "default-src 'self'",
+      "object-src 'none'",
+      "base-uri 'none'",
+      "frame-ancestors 'self'",
+      "script-src 'self' 'nonce-$vv_js_nonce' 'unsafe-eval'",
+      "script-src-attr 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data:",
+    ]);
+    header("Content-Security-Policy: $csp");
+  }
   
   $permissionsPolicy = implode(', ', [
     'accelerometer=()',
@@ -74,7 +77,10 @@
   header("Permissions-Policy: $permissionsPolicy");
   header("X-Content-Type-Options: nosniff");
   header("Cross-Origin-Opener-Policy: same-origin");
-  header("Cross-Origin-Embedder-Policy: require-corp");
+  if(!\Cake\Core\Plugin::isLoaded('DebugKit')) {
+    // This COEP will block the Debug Kit iframe, so skip it when in DebugKit is loaded. 
+    header("Cross-Origin-Embedder-Policy: require-corp");
+  }
   header("X-Permitted-Cross-Domain-Policies: none");
   header("Referrer-Policy: strict-origin-when-cross-origin");
 
