@@ -60,14 +60,11 @@ class ServersTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Clonable');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
 
-    // XXX This is set to be a primary table. Nevertheless we access it via the configuration view
-    // and when clicked we do not get the configuration breadcrumb.???
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Primary);
     
     // Define associations
@@ -98,6 +95,9 @@ class ServersTable extends Table {
         'class' => 'SuspendableStatusEnum'
       ]
     ]);
+    
+    // Enable the Model Specific REST API for this Table
+    $this->enableMsrApi();
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
