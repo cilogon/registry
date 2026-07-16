@@ -116,7 +116,7 @@ class AddressesTable extends Table {
       ]
     ]);
 
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.CaseMixers' => [
         'street',
         'locality',

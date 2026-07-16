@@ -110,7 +110,7 @@ class TelephoneNumbersTable extends Table {
       ]
     ]);
     
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.PunctuationRemovers' => [
         'country_code',
         'area_code',

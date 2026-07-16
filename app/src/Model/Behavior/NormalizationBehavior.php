@@ -39,7 +39,7 @@ use ArrayObject;
 class NormalizationBehavior extends Behavior 
 {
   // Supported Plugins and fields for normalization, as set by the Table using NormalizationBehavior
-  protected $supportedPlugins = [];
+  protected $supportedFields = [];
 
   /**
    * Run configured normalization on $data.

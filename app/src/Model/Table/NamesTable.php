@@ -118,7 +118,7 @@ class NamesTable extends Table {
       ]
     ]);
 
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.CaseMixers' => [
         'honorific',
         'given',

@@ -31,6 +31,7 @@ namespace EnvSource\Controller;
 
 use App\Controller\StandardEnrollerController;
 use App\Lib\Enum\PetitionActionEnum;
+use App\Lib\Util\StringUtilities;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 use Cake\ORM\TableRegistry;

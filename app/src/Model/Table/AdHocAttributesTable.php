@@ -85,7 +85,7 @@ class AdHocAttributesTable extends Table {
     $this->setAllowLookupPrimaryLink(['unfreeze']);
     $this->setEditContains(['ExternalIdentities', 'ExternalIdentityRoles', 'SourceAdHocAttributes']);
 
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.WhitespaceTrimmers' => [
         'tag'
       ]

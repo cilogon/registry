@@ -175,7 +175,7 @@ class PersonRolesTable extends Table {
       ]
     ]);
 
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.CaseMixers' => [
         'department',
         'organization',

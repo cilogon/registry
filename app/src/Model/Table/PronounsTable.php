@@ -106,7 +106,7 @@ class PronounsTable extends Table {
       ]
     ]);
     
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.WhitespaceTrimmers' => [
         'pronouns'
       ]

@@ -85,7 +85,7 @@ class ApiUsersTable extends Table {
       ]
     ]);
 
-    $this->setNormalizableFields([
+    $this->getBehavior('Normalization')->setNormalizableFields([
       'CoreNormalizer.WhitespaceTrimmers' => [
         'username'
       ]
