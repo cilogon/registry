@@ -89,14 +89,12 @@ $addMenuLinks = [
   [
     'controller' => 'ad_hoc_attributes',
     'action' => 'add',
-    'icon' => 'user_attributes',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => 'user_attributes'
   ],
   [
     'controller' => 'addresses',
     'action' => 'add',
-    'icon' => 'contact_mail',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => 'contact_mail'
   ],
   [
     'controller' => 'telephone_numbers',

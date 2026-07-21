@@ -143,14 +143,12 @@ $addMenuLinks = [
   [
     'controller' => 'names',
     'action' => 'add',
-    'icon' => 'account_box',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => 'account_box'
   ],
   [
     'controller' => 'email_addresses',
     'action' => 'add',
-    'icon' => 'email',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => 'email'
   ],
   [
     'controller' => 'identifiers',
@@ -160,14 +158,12 @@ $addMenuLinks = [
   [
     'controller' => 'ad_hoc_attributes',
     'action' => 'add',
-    'icon' => 'user_attributes',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => 'user_attributes'
   ],
   [
     'controller' => 'addresses',
     'action' => 'add',
-    'icon' => 'contact_mail',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => 'contact_mail'
   ],
   [
     'controller' => 'history_records',
@@ -177,8 +173,7 @@ $addMenuLinks = [
   [
     'controller' => 'pronouns',
     'action' => 'add',
-    'icon' => '3p',
-    'iconClass' => 'material-symbols-outlined'
+    'icon' => '3p'
   ],
   [
     'controller' => 'telephone_numbers',

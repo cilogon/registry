@@ -86,7 +86,6 @@ $rowActions = [
     'action'      => 'view',
     'class'       => '',
     'icon'        => 'visibility',
-    'iconClass'   => 'material-symbols-outlined',
     'label'       => __d('operation', 'view')
   ],
   [

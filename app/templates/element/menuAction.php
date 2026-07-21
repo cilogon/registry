@@ -87,7 +87,7 @@ $actionsIconClass = !empty($vv_actions_icon_class) ? $vv_actions_icon_class : 'm
         <?php if(empty($action['confirm'])): ?>
           <a class="<?= $actionCssClass; ?>" href="<?= $actionUrl ?>"<?= !(empty($actionDataAttrs)) ? $actionDataAttrs : '' ?>>
             <?php if(!empty($action['icon'])): ?>
-              <em class="<?= !empty($action['iconClass']) ? $action['iconClass'] : 'material-symbols'; ?>" aria-hidden="true">
+              <em class="<?= !empty($action['iconClass']) ? $action['iconClass'] : 'material-symbols-outlined'; ?>" aria-hidden="true">
                 <?= $action['icon']; ?>
               </em>
             <?php endif; ?>
