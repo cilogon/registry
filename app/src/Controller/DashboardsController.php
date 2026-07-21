@@ -353,7 +353,7 @@ class DashboardsController extends StandardController {
 
       $this->Flash->information(__d('result',
                                     'search.exact',
-                                    [filter_var($this->request->getData('q'), FILTER_SANITIZE_SPECIAL_CHARS),
+                                    [h($this->request->getData('q')),
                                       __d('controller', $matchClass, [1])]));
 
       // Redirect to the matchClass controller
@@ -369,7 +369,7 @@ class DashboardsController extends StandardController {
 
       $this->Flash->information(__d('result',
                                     'search.exact',
-                                    [filter_var($this->request->getData('q'), FILTER_SANITIZE_SPECIAL_CHARS),
+                                    [h($this->request->getData('q')),
                                      'uuid']));
 
       return $this->redirect([

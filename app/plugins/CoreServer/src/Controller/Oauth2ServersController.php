@@ -176,7 +176,7 @@ class Oauth2ServersController extends StandardPluginController
       $target['plugin'] = 'CoreServer';
       $target['controller'] = 'Oauth2Servers';
       $target['action'] = 'edit';
-      $target[] = filter_var($this->getRequest()->getParam('pass')[0], FILTER_SANITIZE_SPECIAL_CHARS);
+      $target[] = h($this->getRequest()->getParam('pass')[0]);
     } else {
       $target['controller'] = 'Servers';
       $target['action'] = 'index';

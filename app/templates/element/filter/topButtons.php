@@ -79,7 +79,7 @@ $filter_title = $this->Filter->buildFilterButtonTitle(
   <span class="top-filters-active-filter-title"><?= $filter_title ?></span>
   <?php if($vv_searchable_attributes[$key]['type'] != 'boolean'): ?>
   <span class="top-filters-active-filter-value">
-    <?= filter_var($button_label, FILTER_SANITIZE_SPECIAL_CHARS) ?>
+    <?= h($button_label) ?>
   </span>
   <?php endif; ?>
 </button>

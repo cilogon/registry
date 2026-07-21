@@ -69,8 +69,8 @@ print $this->Form->create(null, [
 // Hidden Form fields
 foreach($this->Filter->getHiddenFields() as $param => $value) {
   print $this->Form->hidden(
-      filter_var($param, FILTER_SANITIZE_SPECIAL_CHARS),
-      array('default' => filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS))) . PHP_EOL;
+      h($param),
+      array('default' => h($value))) . PHP_EOL;
 }
 
 ?>

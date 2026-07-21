@@ -144,7 +144,7 @@
                       <?= $displayString ?>
                     </div>
                     <div class="search-result-match-info">
-                      <?= filter_var($matchInfo, FILTER_SANITIZE_SPECIAL_CHARS) ?>
+                      <?= h($matchInfo) ?>
                     </div>
                   </a>
                 </li>
@@ -181,7 +181,7 @@
                     <?= $displayString ?>
                   </div>
                   <div class="search-result-match-info">
-                    <?= filter_var($matchInfo, FILTER_SANITIZE_SPECIAL_CHARS) ?>
+                    <?= h($matchInfo) ?>
                   </div>
                 </a>
               </li>

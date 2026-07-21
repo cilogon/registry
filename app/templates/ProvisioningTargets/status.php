@@ -99,12 +99,12 @@ use App\Lib\Util\StringUtilities;
           ?>
           </div>
         </td>
-        <td><?= filter_var($p['target']->description, FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
+        <td><?= h($p['target']->description) ?></td>
         <td><?= __d('enumeration', 'ProvisioningStatusEnum.'.$p['status']); ?></td>
-        <td><?= filter_var($p['comment'], FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
+        <td><?= h($p['comment']) ?></td>
         <td><?= __d('enumeration', 'ProvisioningStatusEnum.'.$p['laststatus']); ?></td>
-        <td><?= filter_var($p['lastcomment'], FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
-        <td><?= filter_var($p['identifier'] ?? "", FILTER_SANITIZE_SPECIAL_CHARS); ?></td>
+        <td><?= h($p['lastcomment']) ?></td>
+        <td><?= h($p['identifier'] ?? "") ?></td>
         <td><?= !empty($p['timestamp']) ? $this->Time->nice($p['timestamp'], $vv_tz) : ""; ?></td>
       </tr>
       <?php endforeach; ?>

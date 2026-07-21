@@ -340,7 +340,7 @@ use \Cake\Utility\Inflector;
     <div id="source-record-raw">
       <?php if(!empty($vv_eis_record['source_record'])): ?>
         <code class="source-record">
-          <?= filter_var($vv_eis_record['source_record'], FILTER_SANITIZE_SPECIAL_CHARS) ?>
+          <?= h($vv_eis_record['source_record']) ?>
         </code>
       <?php else: ?>
         <div class="alert alert-info co-alert" role="alert">

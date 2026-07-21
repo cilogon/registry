@@ -62,7 +62,7 @@
       </div>
       <div class="col collab-desc">
   <!-- XXX need to add "Not a Member" tag, maybe as a separate column instead of part of the link -->
-        <?= filter_var($co->description, FILTER_SANITIZE_SPECIAL_CHARS); ?>
+        <?= h($co->description); ?>
       </div>
     </div>
     <?php endforeach; // vv_available_cos ?>
