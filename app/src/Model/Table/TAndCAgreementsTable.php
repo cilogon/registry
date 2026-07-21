@@ -110,7 +110,7 @@ class TAndCAgreementsTable extends Table {
     int     $termsAndConditionsId,
     int     $personId,
     int     $actorPersonId,
-    string  $identifier=null,
+    ?string $identifier=null,
     ?int    $agreementTime=null,
     ?int    $petitionId=null
   ): \App\Model\Entity\TAndCAgreement {
