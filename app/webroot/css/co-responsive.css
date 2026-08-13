@@ -159,21 +159,6 @@
   #co-hamburger {
     display: none;
   }
-  /* CONTENT LAYOUT */
-  #comanage-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-  #main-wrapper {
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-  }
-  #main {
-    flex-basis: 100%;
-    padding-bottom: 66px; /* offset for footer logo height */
-  }
   /* HEADER */
   #logo {
     margin-top: 8px;
@@ -264,11 +249,21 @@
   }
   /* MAIN MENU */
   #navigation-drawer {
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: relative;
     top: unset;
     z-index: unset;
     border-bottom: none;
+  }
+  #navigation {
+    flex: 1 1 auto;
+  }
+  #navigation-bottom {
+    position: sticky;
+    bottom: 0;
+    flex: 0 0 auto;
+    z-index: 100;
   }
   #main-menu {
     text-align: center;
@@ -623,25 +618,13 @@
     gap: 1em;
   }
   /* FOOTER */
-  #co-footer {
-    position: static;
+  #comanage-logo {
     text-align: right;
-    padding: 0;
-    margin-top: -72px;
-    transform: unset;
+    padding: 0 0 1em;
   }
   .poweredByComanage {
     display: inline-block;
-    padding: 1em 2em 2em 0;
-  }
-  body.logged-out #co-footer {
-    position: fixed;
-    float: none;
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    left: unset;
-    transform: unset;
+    padding: 1em 2em 1em 0;
   }
 }
 
@@ -718,21 +701,19 @@
 }
 
 /* SPECIAL */
-@media only screen and (min-height: 556px) and (min-width: 768px) {
-  #navigation-drawer.closed #navigation-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 2px;
-    width: auto;
-    margin-top: 0;
+@media only screen and (max-height: 696px) and (min-width: 768px){
+  #navigation-drawer.open #navigation {
+    flex: 0 0 auto;
+  }
+  #navigation-drawer.open #navigation-bottom {
+    position: static;
   }
 }
-@media only screen and (min-height: 728px) and (min-width: 768px){
-  #navigation-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 8px;
-    width: auto;
-    margin-top: 0;
+@media only screen and (max-height: 540px) and (min-width: 768px) {
+  #navigation-drawer.closed #navigation {
+    flex: 0 0 auto;
+  }
+  #navigation-drawer.closed #navigation-bottom {
+    position: static;
   }
 }

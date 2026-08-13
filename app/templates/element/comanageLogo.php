@@ -1,6 +1,6 @@
 <?php
 /*
- * COmanage Registry Footer
+ * COmanage Registry Logo (for bottom of content area)
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -26,7 +26,7 @@
  */
 ?>
 
-<div class="footer">
+<div id="comanage-logo">
   <div class="poweredByComanage">
     <span class="poweredText"><?= __('registry.meta.powered'); ?></span>
     <?= $this->Html->image('COmanage-Logo-LG-onWhite.png', array('alt' => 'COmanage', 'height' => 30)); ?>

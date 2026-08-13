@@ -36,7 +36,7 @@ $fields = [
   ],
   'body_html' => [
     'afterField' => 
-      '<div class="alert alert-info small p-2 d-flex gap-1" role="alert">' .
+      '<div class="alert alert-info small p-2 d-flex gap-1 big-text-area-message" role="alert">' .
       '  <em class="material-symbols-outlined" aria-hidden="true">info</em>' .  
       '  <span class="alert-text">' . __d('information','html.sanitization') . '</span>' .
       '</div>',

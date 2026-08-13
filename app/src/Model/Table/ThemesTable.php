@@ -68,6 +68,8 @@ class ThemesTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
+    // Return to the form on save to make theme development easier.
+    $this->setRedirectGoal('self');
     
     $this->setPermissions([
       // Actions that operate over an entity (ie: require an $id)
@@ -114,9 +116,9 @@ class ThemesTable extends Table {
 
     $this->registerStringValidation($validator, $schema, 'css', false);
 
-    $this->registerStringValidation($validator, $schema, 'header', false);
+    $this->registerHtmlValidation($validator, $schema, 'header');
 
-    $this->registerStringValidation($validator, $schema, 'footer', false);
+    $this->registerHtmlValidation($validator, $schema, 'footer');
 
     return $validator; 
   }

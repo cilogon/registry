@@ -44,6 +44,8 @@ use Cake\Event\EventManager;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 use Cake\Utility\Hash;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 /**
  * @property \App\Controller\Component\RegistryAuthComponent $RegistryAuth
@@ -692,8 +694,26 @@ class AppController extends Controller {
     // because we don't necessarily know what information a model-specific Theme
     // is based on.
 
-    if(method_exists($this, "getSpecificTheme")) {
-      $theme = $this->getSpecificTheme();
+    if(method_exists($this, 'getSpecificTheme')) {
+      $specificTheme = $this->getSpecificTheme();
+
+      // Even if the method exists, be sure it doesn't return null.
+      if(isset($specificTheme)) {
+        $theme = $specificTheme;
+      }
+    }
+
+    if(isset($theme)) {
+      $htmlSanitizer = new HtmlSanitizer(
+        // Allow all elements from the W3C Sanitizer API. This is more permissive than "allowSafeElements()".
+        // See: https://github.com/symfony/symfony/blob/7.2/src/Symfony/Component/HtmlSanitizer/Reference/W3CReference.php
+        (new HtmlSanitizerConfig())->allowStaticElements()
+      );
+
+      $theme->set([
+        'sanitized_header' => $htmlSanitizer->sanitize($theme->header),
+        'sanitized_footer' => $htmlSanitizer->sanitize($theme->footer)
+      ]);
     }
 
     $this->set('vv_theme', $theme);

@@ -151,11 +151,7 @@ class MessageTemplatesTable extends Table {
     ]);
     $validator->allowEmptyString('body_text');
 
-    $validator->add('body_html', [
-      'filter'  => ['rule'     => ['validateInput',['type' => 'html']],
-                    'provider' => 'table']
-    ]);
-    $validator->allowEmptyString('body_html');
+    $this->registerHtmlValidation($validator, $schema, 'body_html');
 
     $this->registerStringValidation($validator, $schema, 'cc', false);
 

@@ -37,6 +37,17 @@ body {
   -webkit-overflow-scrolling: touch; /* for dialog boxes */
   font-size: 14px; /* base font size */
 }
+#comanage-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+#comanage-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}
 h1,h2,h3,h4,h5 {
   color: var(--cmg-color-headings);
 }
@@ -483,6 +494,15 @@ ul.form-list li.alert-banner .co-alert {
 /* MAIN NAVIGATION and CONTENT */
 #main-wrapper {
   position: relative;
+  display: flex;
+  flex-direction: row;
+  flex: 1 0 auto;
+}
+#main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 /* NAVIGATION / SIDE DRAWER */
 #navigation-drawer {
@@ -1723,6 +1743,10 @@ ul.form-list textarea {
 }
 ul.form-list textarea.big-textarea {
   height: 24em;
+}
+ul.form-list .big-text-area-message {
+  border-radius: 0;
+  margin-top: -2px;
 }
 ul.form-list li.field-stack textarea {
   margin: 0;
@@ -3080,7 +3104,8 @@ html.density-large .field-data {
   align-items: center;
 }
 /* FOOTER */
-footer {
+#comanage-logo {
   text-align: center;
-  padding: 2em 2em 1em;
+  padding: 0 0 2em;
+  margin-top: auto;
 }

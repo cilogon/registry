@@ -605,6 +605,8 @@
                 <em class="material-symbols-outlined" aria-hidden="true">email</em>
                 <span class="menu-panel-link-text"><?= __d('controller', 'MessageTemplates', [99]) ?></span>
               </a>
+            </li>
+            <li>
               <?php
                 $menuUrl = $this->Url->build(
                   ['plugin'       => null,
@@ -620,9 +622,24 @@
                 <span class="menu-panel-link-text"><?= __d('controller', 'MostlyStaticPages', [99]) ?></span>
               </a>
             </li>
+            <li>
+              <?php
+                $menuUrl = $this->Url->build(
+                  ['plugin'       => null,
+                   'controller'   => 'themes',
+                   'action'       => 'index',
+                   '?'            => [
+                     'co_id' => $vv_cur_co->id
+                   ]]
+                );
+              ?>
+              <a href="<?= $menuUrl ?>">
+                <em class="material-symbols" aria-hidden="true">colors</em>
+                <span class="menu-panel-link-text"><?= __d('controller', 'Themes', [99]) ?></span>
+              </a>
+            </li>
             <?php /* More placeholders:
             <li><a href="#"><em class="material-symbols" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
-            <li><a href="#"><em class="material-symbols" aria-hidden="true">wallpaper</em> Themes</a></li>
             * / ? >
           </ul>
         </li>

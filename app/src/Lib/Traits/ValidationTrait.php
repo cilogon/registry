@@ -64,6 +64,33 @@ trait ValidationTrait {
   }
 
   /**
+   * Register validation rules for the provided field, as HTML.
+   *
+   * @since  COmanage Registry v5.0.0
+   * @param  Validator            $validator Cake Validator
+   * @param  TableSchemaInterface $schema    Cake Schema
+   * @param  string               $field     Field name
+   * @return Validator             Cake Validator
+   */
+
+  public function registerHtmlValidation(
+    Validator             $validator,
+    TableSchemaInterface  $schema,
+    string                $field
+  ): Validator {
+    $validator->add($field, [
+      'filter' => ['rule'     => ['validateInput', ['type' => 'html']],
+                   'provider' => 'table'],
+      'size'   => ['rule'     => ['validateMaxLength', ['column' => $schema->getColumn($field)]],
+                   'provider' => 'table']
+    ]);
+
+    $validator->allowEmptyString($field);
+
+    return $validator;
+  }
+
+  /**
    * Register validation rules for the primary link key(s) associated with this table.
    * 
    * @since  COmanage Registry v5.0.0

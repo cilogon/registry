@@ -273,11 +273,7 @@ class MostlyStaticPagesTable extends Table {
     ]);
     $validator->notEmptyString('context');
 
-    $validator->add('body', [
-      'filter'  => ['rule'     => ['validateInput', ['type' => 'html']],
-                    'provider' => 'table']
-    ]);
-    $validator->allowEmptyString('body');
+    $this->registerHtmlValidation($validator, $schema, 'body');
 
     $validator->add('theme_id', [
       'content' => ['rule' => 'isInteger']

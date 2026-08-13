@@ -59,35 +59,61 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
   </head>
   <body>
     <div id="comanage-wrapper">
-      <header id="banner">
-        <div id="logo-title-wrapper">
-          <div id="logo">
-            <?=
-              $this->Html->image(
-                "COmanage-Gears.svg",
-                array(
-                  'alt' => __('registry.meta.logo')
-                )
-              );
-            ?>
-          </div>
-          <div id="siteTitle">
-            <?= __('registry.meta.registry') ?>
-          </div>
-        </div>
-      </header>
-      <div id="main-wrapper">
-        <main id="main">
-          <div id="content">
-            <div id="content-inner">
-              <div class="error-container">
-                <?= $this->Flash->render() ?>
-                <?= $this->fetch('content') ?>
+      <div id="comanage-content-wrapper">
+
+        <?php if(!empty($vv_theme?->sanitized_header)):
+          // Include sanitized custom header ?>
+          <header id="custom-header">
+            <?= $vv_theme->sanitized_header ?>
+          </header>
+        <?php endif; ?>
+        
+        <?php if(!$vv_theme?->hide_title):
+          // Display title bar unless hidden by theme setting ?>
+          <header id="banner">
+            <div id="logo-title-wrapper">
+              <div id="logo">
+                <?=
+                  $this->Html->image(
+                    "COmanage-Gears.svg",
+                    array(
+                      'alt' => __('registry.meta.logo')
+                    )
+                  );
+                ?>
+              </div>
+              <div id="siteTitle">
+                <?= __('registry.meta.registry') ?>
               </div>
             </div>
-          </div>
-        </main>
-      </div>  
-    </div>  
+          </header>
+        <?php endif; ?>
+        
+        <div id="main-wrapper">
+          <main id="main">
+            <div id="content">
+              <div id="content-inner">
+                <div class="error-container">
+                  <?= $this->Flash->render() ?>
+                  <?= $this->fetch('content') ?>
+                </div>
+              </div>
+            </div>
+            <?php if(!$vv_theme?->hide_footer_logo):
+              // Display footer logo unless hidden by theme setting ?>
+              <?= $this->element('comanageLogo') ?>
+            <?php endif; ?>
+          </main>
+        </div>
+        
+      </div>
+
+      <?php if(!empty($vv_theme?->sanitized_footer)):
+        // include sanitized custom footer ?>
+        <footer id="custom-footer">
+          <?= $vv_theme->sanitized_footer ?>
+        </footer>
+      <?php endif; ?>
+    </div>
   </body>
 </html>

@@ -98,6 +98,12 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
     <?= $this->fetch('script') ?>
+
+    <?php if(!empty($vv_theme?->css)): // we have theme CSS ?>
+      <style>
+        <?= h($vv_theme->css) ?>
+      </style>
+    <?php endif; ?>
   </head>
 
   <?php
@@ -131,115 +137,127 @@ $densityState = $this->ApplicationState->getValue(ApplicationStateEnum::ProfileD
 
     <!-- Primary layout -->
     <div id="comanage-wrapper">
-      <!-- Include custom header -->
-      <?php if(!empty($vv_theme_header)): ?>
-        <header id="customHeader">
-          <div class="contentWidth">
-            <?php print $vv_theme_header ?>
-          </div>
-        </header>
-      <?php endif; ?>
+      <div id="comanage-content-wrapper">
+        
+        <?php if(!empty($vv_theme?->sanitized_header)): 
+          // Include sanitized custom header ?>
+          <header id="custom-header">
+            <?= $vv_theme->sanitized_header ?>
+          </header>
+        <?php endif; ?>
 
-      <header id="banner">
-        <div id="logo-title-wrapper">
-          <?php if($generateHomeLink): ?> 
-            <?php
-              // wrap the logo and the title in the home link
-              $cmHomeLink = $this->Url->build([
-                'plugin'       => null,
-                'controller'   => 'Dashboards',
-                'action'       => 'dashboard',
-                '?' => ['co_id' => $vv_cur_co->id]],
-                ['escape' => false]
-              );
-            ?>
-            <a href="<?= $cmHomeLink ?>">
-          <?php endif; ?>
-          <div id="logo">
-            <?=
-              $this->Html->image(
-                "COmanage-Gears.svg",
-                array(
-                  'alt' => __('registry.meta.logo')
-                )
-              );
-            ?>
-          </div>
-          <div id="siteTitle">
-            <?php if($generateHomeLink): ?>
-              <?= h($vv_cur_co['name']) ?>
-            <?php else: ?>
-              <?= __('registry.meta.registry') ?>
-            <?php endif; ?>          
-          </div>
-          <?php if($generateHomeLink): ?>
-            </a>
-          <?php endif; ?>
-        </div>
-        <!-- Custom Navigation Links -->
-        <?php if(!empty($vv_NavLinks) || !empty($vv_CoNavLinks)): ?>
-          <div id="user-defined-links-top">
-            <?php print $this->element('links') // XXX allow user to set this location (e.g. top or side) ?>
-          </div>
-        <?php endif ?>
-      </header>
-      
-      <?php if(!$isActivePetition): ?>
-        <div id="top-bar" role="region" aria-label="<?= __d('menu','aria.label.search') ?>">
-          <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
-            <div id="top-controls">
-              <div id="co-hamburger"><em class="material-symbols">menu</em></div>
-              <?= $this->element('searchGlobal') ?>
-            </div>
-          <?php endif; // vv_user ?>
-          <div id="top-menu">
-            <?= $this->element('menuTop') ?>
-          </div>
-        </div>
-      <?php endif; ?>
-      
-      <?php if($isPlatformCO): ?>
-        <?php
-        $platformConfigUrl = $this->Url->build([
-          'plugin'       => null,
-          'controller'   => 'dashboards',
-          'action'       => 'configuration',
-          '?'            => [
-            'co_id' => 1
-          ]]);
-        ?>
-        <div id="platform-notice">
-          <?= __d('information','cmp.co.notice', [$platformConfigUrl]) ?>
-        </div>
-      <?php endif; ?>
-
-      <div id="main-wrapper">
-        <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView && !$isActivePetition): ?>
-          <?= $this->element('menuMain') ?>
-        <?php endif ?>
-
-        <main id="main" aria-label="main content">
-          <div id="content">
-            <div id="content-inner">
-              <?php if(!$isActivePetition): ?>
-                <div id="breadcrumbs">
-                  <?= $this->element('breadcrumbs') ?>
-                </div>
+        <?php if(!$vv_theme?->hide_title):
+          // Display title bar unless hidden by theme setting ?>
+          <header id="banner">
+            <div id="logo-title-wrapper">
+              <?php if($generateHomeLink): ?> 
+                <?php
+                  // wrap the logo and the title in the home link
+                  $cmHomeLink = $this->Url->build([
+                    'plugin'       => null,
+                    'controller'   => 'Dashboards',
+                    'action'       => 'dashboard',
+                    '?' => ['co_id' => $vv_cur_co->id]],
+                    ['escape' => false]
+                  );
+                ?>
+                <a href="<?= $cmHomeLink ?>">
               <?php endif; ?>
-
-              <!-- insert the anchor that is the target of accessible "skip to content" link -->
-              <a id="content-start"></a>
-
-              <!-- insert the page internal content -->
-              <?= $this->fetch('content') ?>
+              <div id="logo">
+                <?=
+                  $this->Html->image(
+                    "COmanage-Gears.svg",
+                    array(
+                      'alt' => __('registry.meta.logo')
+                    )
+                  );
+                ?>
+              </div>
+              <div id="siteTitle">
+                <?php if($generateHomeLink): ?>
+                  <?= h($vv_cur_co['name']) ?>
+                <?php else: ?>
+                  <?= __('registry.meta.registry') ?>
+                <?php endif; ?>          
+              </div>
+              <?php if($generateHomeLink): ?>
+                </a>
+              <?php endif; ?>
+            </div>
+            <!-- Custom Navigation Links -->
+            <?php if(!empty($vv_NavLinks) || !empty($vv_CoNavLinks)): ?>
+              <div id="user-defined-links-top">
+                <?php print $this->element('links') // XXX allow user to set this location (e.g. top or side) ?>
+              </div>
+            <?php endif ?>
+          </header>
+        <?php endif; ?>
+        
+        <?php if(!$isActivePetition): ?>
+          <div id="top-bar" role="region" aria-label="<?= __d('menu','aria.label.search') ?>">
+            <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView): ?>
+              <div id="top-controls">
+                <div id="co-hamburger"><em class="material-symbols">menu</em></div>
+                <?= $this->element('searchGlobal') ?>
+              </div>
+            <?php endif; // vv_user ?>
+            <div id="top-menu">
+              <?= $this->element('menuTop') ?>
             </div>
           </div>
-        </main>
-      </div>
+        <?php endif; ?>
+        
+        <?php if($isPlatformCO): ?>
+          <?php
+          $platformConfigUrl = $this->Url->build([
+            'plugin'       => null,
+            'controller'   => 'dashboards',
+            'action'       => 'configuration',
+            '?'            => [
+              'co_id' => 1
+            ]]);
+          ?>
+          <div id="platform-notice">
+            <?= __d('information','cmp.co.notice', [$platformConfigUrl]) ?>
+          </div>
+        <?php endif; ?>
+  
+        <div id="main-wrapper">
+          <?php if(!empty($vv_user) && !empty($vv_cur_co) && !$isCoSelectView && !$isActivePetition): ?>
+            <?= $this->element('menuMain') ?>
+          <?php endif ?>
+  
+          <main id="main" aria-label="main content">
+            <div id="content">
+              <div id="content-inner">
+                <?php if(!$isActivePetition): ?>
+                  <div id="breadcrumbs">
+                    <?= $this->element('breadcrumbs') ?>
+                  </div>
+                <?php endif; ?>
+  
+                <!-- insert the anchor that is the target of accessible "skip to content" link -->
+                <a id="content-start"></a>
+  
+                <!-- insert the page internal content -->
+                <?= $this->fetch('content') ?>
+              </div>
+            </div>
+            <?php if(!$vv_theme?->hide_footer_logo):
+              // Display footer logo unless hidden by theme setting ?>
+              <?= $this->element('comanageLogo') ?>
+            <?php endif; ?>
+          </main>
+        </div>
+        
+      </div>  
 
-      <footer id="co-footer">
-        <?= $this->element('footer') ?>
-      </footer>
+      <?php if(!empty($vv_theme?->sanitized_footer)):
+        // include sanitized custom footer ?>
+        <footer id="custom-footer">
+          <?= $vv_theme->sanitized_footer ?>
+        </footer>
+      <?php endif; ?>
     </div>
 
     <!-- loading animation -->

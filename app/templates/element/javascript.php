@@ -53,7 +53,7 @@
           false
         );
       }
-      $('#navigation-drawer').toggleClass('closed');
+      $('#navigation-drawer').toggleClass('closed open');
     });
 
     $('#co-hamburger').click(function() {
