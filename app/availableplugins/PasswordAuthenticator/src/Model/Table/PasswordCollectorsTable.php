@@ -72,6 +72,23 @@ class PasswordCollectorsTable extends Table {
 
     $this->hasMany('PasswordAuthenticator.PetitionPasswords');
 
+    $this->hasManyPlugins([
+      'Authenticators' => [
+        [
+          'targetModel' => 'PasswordCollectors.PasswordCollectors'
+        ]
+      ],
+      'Petitions' => [
+        [
+          'targetModel' => 'PasswordCollectors.PetitionPasswords',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

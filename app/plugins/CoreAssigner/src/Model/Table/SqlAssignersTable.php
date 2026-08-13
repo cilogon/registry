@@ -69,6 +69,19 @@ class SqlAssignersTable extends Table {
     $this->belongsTo('Servers');
     $this->belongsTo('Types');
     
+    $this->hasManyPlugins([
+      'Servers' => [
+        [
+          'targetModel' => 'CoreAssigner.SqlAssigners'
+        ]
+      ],
+      'Types' => [
+        [
+          'targetModel' => 'CoreAssigner.SqlAssigners'
+        ]
+      ]
+    ]);
+        
     $this->setDisplayField('source_table');
 
     $this->setPrimaryLink('identifier_assignment_id');

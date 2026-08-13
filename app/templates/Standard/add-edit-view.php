@@ -186,20 +186,35 @@ if (
 
       // Delete
       if(in_array($vv_action, ['edit','view']) && !empty($vv_obj->id) && $vv_permissions['delete']) {
-        $action_args['vv_actions'][] = [
-          'order' => $this->Menu->getMenuOrder('Delete'),
-          'icon' => $this->Menu->getMenuIcon('Delete'),
-          'iconClass' => 'material-symbols-outlined',
-          'url' => ['action' => 'delete', $vv_obj->id],
-          'label' => __d('operation', 'delete'),
-          'class' => 'deletebutton',
-          'confirm' => [
-            'method' => 'post',
-            'dg_title' => __d('operation', 'delete'),
-            'dg_body_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
-            'dg_confirm_btn' => __d('operation', 'delete')
-          ]
-        ];
+        if(isset($useDeleteSplashPage) && $useDeleteSplashPage) {
+          // This controller uses a confirmation splash page rather than a dialog
+
+          $action_args['vv_actions'][] = [
+            'order' => $this->Menu->getMenuOrder('Delete'),
+            'icon' => $this->Menu->getMenuIcon('Delete'),
+            'iconClass' => 'material-symbols-outlined',
+            'url' => ['action' => 'confirmDelete', $vv_obj->id],
+            'label' => __d('operation', 'delete'),
+            'class' => 'deletebutton'
+          ];
+        } else {
+          // Default delete action
+
+          $action_args['vv_actions'][] = [
+            'order' => $this->Menu->getMenuOrder('Delete'),
+            'icon' => $this->Menu->getMenuIcon('Delete'),
+            'iconClass' => 'material-symbols-outlined',
+            'url' => ['action' => 'delete', $vv_obj->id],
+            'label' => __d('operation', 'delete'),
+            'class' => 'deletebutton',
+            'confirm' => [
+              'method' => 'post',
+              'dg_title' => __d('operation', 'delete'),
+              'dg_body_txt' => __d('operation', 'delete.confirm', [$vv_obj->id]),
+              'dg_confirm_btn' => __d('operation', 'delete')
+            ]
+          ];
+        }
       }
 
       if(!empty($action_args['vv_actions'])) {

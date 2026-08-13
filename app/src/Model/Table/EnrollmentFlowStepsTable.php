@@ -81,7 +81,7 @@ class EnrollmentFlowStepsTable extends Table {
          ->setProperty('notification_message_template');
     $this->hasMany('PetitionStepResults');
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
 
     $this->setDisplayField('description');
     

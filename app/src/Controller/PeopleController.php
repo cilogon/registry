@@ -117,4 +117,38 @@ class PeopleController extends StandardController {
     
     return parent::beforeRender($event);
   }
+
+  /**
+   * Render a confirmation page before performing a delete.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  string $id Person ID
+   */
+
+  public function confirmDelete(string $id) {
+    // Pull the information the view needs to render. Note the confirmation simply POSTs
+    // back to delete.
+
+    $contain = [
+      'PrimaryName',
+      'Cos',
+      'PersonRoles' => ['Cous', 'Types'],
+      'ManagerPersonRoles',
+      'SponsorPersonRoles',
+      'ExternalIdentities' => ['ExtIdentitySourceRecords' => 'ExternalIdentitySources'],
+      'ActorHistoryRecords',
+      'JobHistoryRecords',
+      'ActorNotifications',
+      'RecipientNotifications',
+      'ResolverNotifications',
+      // We don't include SubjectNotifications since if we're deleting the Subject we don't
+      // need to keep the Notifications around
+      'PetitionerPetitions',
+      'PetitionHistoryRecords'
+    ];
+
+    $this->set('vv_person', $this->People->get((int)$id, contain: $contain));
+    
+    $this->set('vv_title', __d('operation', 'delete.confirm.title'));
+  }
 }

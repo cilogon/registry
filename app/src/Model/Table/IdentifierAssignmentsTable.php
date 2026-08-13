@@ -86,7 +86,7 @@ class IdentifierAssignmentsTable extends Table {
          ->setForeignKey('identifier_type_id')
          ->setProperty('identifier_type');
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     

@@ -70,6 +70,18 @@ class SshKeyAuthenticatorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->hasManyPlugins([
+      'People' => [
+        [
+          'targetModel' => 'SshKeyAuthenticator.SshKeys',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('authenticator_id');

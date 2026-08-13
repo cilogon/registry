@@ -63,6 +63,14 @@ class IdentifierMappersTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->hasManyPlugins([
+      'Types' => [
+        [
+          'targetModel' => 'PipelineToolkit.LoginIdentifierTypes'
+        ]
+      ]
+    ]);
+    
     $this->setDisplayField('id');
     
     $this->setPrimaryLink(['flange_id']);

@@ -63,6 +63,33 @@ class PersonRoleMappersTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->hasManyPlugins([
+      'Cous' => [
+        [
+          'targetModel' => 'PipelineToolkit.PersonRoleMappings',
+          'config' => [
+            'foreignKey' => 'target_cou_id'
+          ]
+        ]
+      ],
+      'Types' => [
+        [
+          'alias' => 'RoleMappingsAffiliationTypes',
+          'targetModel' => 'PipelineToolkit.PersonRoleMappings',
+          'config' => [
+            'foreignKey' => 'affiliation_type_id'
+          ]
+        ],
+        [
+          'alias' => 'RoleTargetsAffiliationTypes',
+          'targetModel' => 'PipelineToolkit.PersonRoleMappings',
+          'config' => [
+            'foreignKey' => 'target_affiliation_type_id'
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('attribute');
     
     $this->setPrimaryLink(['flange_id']);

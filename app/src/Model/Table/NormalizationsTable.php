@@ -61,7 +61,7 @@ class NormalizationsTable extends Table {
     // Define associations
     $this->belongsTo('Cos');
     
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
 
     $this->setDisplayField('plugin');
     

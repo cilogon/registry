@@ -102,6 +102,65 @@ class SqlSourcesTable extends Table {
          ->setForeignKey('url_type_id')
          ->setProperty('url_type');
     
+    $this->hasManyPlugins([
+      'Servers' => [      
+        [
+          'targetModel' => 'SqlConnector.SqlSources'
+        ]
+      ],
+      'Types' => [
+        [
+          'alias' => 'SqlSourceAddressTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'address_type_id'
+          ]
+        ],
+        [
+          'alias' => 'SqlSourceEmailAddressTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'email_address_type_id'
+          ]
+        ],
+        [
+          'alias' => 'SqlSourceIdentifierTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'identifier_type_id'
+          ]
+        ],
+        [
+          'alias' => 'SqlSourceNameTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'name_type_id'
+          ]
+        ],
+        [
+          'alias' => 'SqlSourcePronounsTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'pronouns_type_id'
+          ]
+        ],
+        [
+          'alias' => 'SqlSourceTelephoneTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'telephone_number_type_id'
+          ]
+        ],
+        [
+          'alias' => 'SqlSourceUrlTypes',
+          'targetModel' => 'SqlConnector.SqlSources',
+          'config' => [
+            'foreignKey' => 'url_type_id'
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('server_id');
     
     $this->setPrimaryLink(['external_identity_source_id']);

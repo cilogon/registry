@@ -30,13 +30,13 @@
 
 // Top Links
 $topLinks = [
-  // Note we don't need an 'if' test for cancel or resume because the generalized permission
-  // calculation will call isReadOnly() (and not insert these items when true) which is sufficient.
   [
     'icon'  => 'cancel',
     'order' => 'Default',
     // We localize the text as "terminate" to make the confirmation dialog less confusing
     'label' => __d('operation', 'terminate'),
+    // We reuse isResumable because it's basically the same test
+    'if' => 'isResumable',
     'link'  => [
       'action' => 'terminate',
       $vv_obj->id
@@ -50,6 +50,7 @@ $topLinks = [
     'icon'  => 'resume',
     'order' => 'Default',
     'label' => __d('operation', 'resume'),
+    'if' => 'isResumable',
     'link'  => [
       'action' => 'resume',
       $vv_obj->id

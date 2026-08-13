@@ -84,6 +84,93 @@ trait PluggableModelTrait {
   }
 
   /**
+   * Set up hasMany relations for active plugin models.
+   * 
+   * @since  COmanage Registry v5.0.0
+   */
+
+  protected function bindPluggableRelations() {
+    // We originally queried the configurations for the pluggable model to see which
+    // plugins were in use, but that doesn't work when cloning, when the Target CO
+    // is empty and has no active plugins. The alternate approach is to look at each
+    // Plugin and query it for available plugins, and it turns out we already have
+    // utility functions that will do that for us...
+
+    // Under certain circumstances (eg: CloneCommand) we may not be using the
+    // default datasource
+    $datasource = $this->getConnection()->configName();
+
+    $Plugins = TableUtilities::getTableWithDataSource(
+      tableName: "Plugins",
+      connectionName: $datasource
+    );
+
+    $models = $Plugins->getActivePluginModels($this->getPluggableModelType());
+
+    foreach($models as $plugin) {
+      // Derive association alias from "Plugin.Model"
+      [$pluginName, $modelAlias] = explode('.', $plugin, 2);
+
+      if($datasource != 'default') {
+        // Add the aliasPrefix
+
+        $modelAlias = Inflector::camelize($datasource) . $modelAlias;
+      }
+
+      if ($this->associations()->has($modelAlias)) {
+        // Association already defined elsewhere; don't rebind
+        $this->llog('debug', "Association '{$modelAlias}' already exists, skipping plugin relation '{$plugin}'");
+        continue;
+      }
+
+      // In general, a model with a "plugin" field has a 1-1 relation
+      // with the instantiated plugin configuration. eg: One instance
+      // of a Server has exactly one SqlServer associated with it.
+      // Bind by alias and explicitly set the className.
+
+      // We also explicitly set the foreign key because creating a table alias (as for example
+      // done by CloneCommand) will create a default foreign key of the alias (eg: target_server_id)
+      // instead of the physical table name.
+
+      $assn = $this->hasOne($modelAlias)
+        ->setClassName($plugin)
+        ->setDependent(true)
+        ->setForeignKey(StringUtilities::tableToForeignKey($this))
+        ->setCascadeCallbacks(true);
+      
+      if($datasource != 'default') {
+        // We can't just set the connection on getTarget or we'll clobber the datasource.
+        // We have to create a new Table attached to the alternate datasource.
+        // (Strictly speaking we don't need to test for default, in which case we'd just
+        // re-set the same target table that hasOne would have used by default.)
+
+        $targetTable = TableUtilities::getTableWithDataSource(
+          // aliasPrefix: Inflector::camelize($datasource),  // XXX was Remote?`
+          tableName: $plugin,
+          connectionName: $datasource
+        );
+
+        $assn->setTarget($targetTable);
+      }
+
+      // Cache the list of entry points that we found (avoid duplicates)
+      if (!in_array($plugin, $this->_pluginModels, true)) {
+        $this->_pluginModels[] = $plugin;
+      }
+    }
+
+    // isArtifactTable() might not be the exact right test here...
+    // for now, we only want to exclude Jobs (since there's nothing
+    // to configure) but this may change. Also, Traffic Detours don't
+    // have a primary link.
+
+    if(!$this->isArtifactTable() 
+       && method_exists($this, 'setAllowLookupPrimaryLink')) {
+      $this->setAllowLookupPrimaryLink(['configure']);
+    }
+  }
+
+  /**
    * Check for any dependencies that must be in place before cloning begins.
    * 
    * @since  COmanage Registry v5.2.0
@@ -263,107 +350,5 @@ trait PluggableModelTrait {
     return $this->find()
                 ->where(['plugin LIKE' => $plugin . ".%"])
                 ->all();
-  }
-
-  /**
-   * Obtain the Plugin Model from an entity ID.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $id       Entity ID
-   * @param  array  $options  Options, as supported by get()
-   */
-
-  public function pluginModelForEntityId(int $id, array $options=[]) {
-    $entity = $this->get($id, ...$options);
-    $pModel = StringUtilities::pluginModel($entity->plugin);
-
-    return $this->$pModel;
-  }
-  
-  /**
-   * Set up hasMany relations for instantiated plugin models.
-   * 
-   * @since  COmanage Registry v5.0.0
-   */
-
-  protected function setPluginRelations() {
-    // We originally queried the configurations for the pluggable model to see which
-    // plugins were in use, but that doesn't work when cloning, when the Target CO
-    // is empty and has no active plugins. The alternate approach is to look at each
-    // Plugin and query it for available plugins, and it turns out we already have
-    // utility functions that will do that for us...
-
-    // Under certain circumstances (eg: CloneCommand) we may not be using the
-    // default datasource
-    $datasource = $this->getConnection()->configName();
-
-    $Plugins = TableUtilities::getTableWithDataSource(
-      tableName: "Plugins",
-      connectionName: $datasource
-    );
-
-    $models = $Plugins->getActivePluginModels($this->getPluggableModelType());
-
-    foreach($models as $plugin) {
-      // Derive association alias from "Plugin.Model"
-      [$pluginName, $modelAlias] = explode('.', $plugin, 2);
-
-      if($datasource != 'default') {
-        // Add the aliasPrefix
-
-        $modelAlias = Inflector::camelize($datasource) . $modelAlias;
-      }
-
-      if ($this->associations()->has($modelAlias)) {
-        // Association already defined elsewhere; don't rebind
-        $this->llog('debug', "Association '{$modelAlias}' already exists, skipping plugin relation '{$plugin}'");
-        continue;
-      }
-
-      // In general, a model with a "plugin" field has a 1-1 relation
-      // with the instantiated plugin configuration. eg: One instance
-      // of a Server has exactly one SqlServer associated with it.
-      // Bind by alias and explicitly set the className.
-
-      // We also explicitly set the foreign key because creating a table alias (as for example
-      // done by CloneCommand) will create a default foreign key of the alias (eg: target_server_id)
-      // instead of the physical table name.
-
-      $assn = $this->hasOne($modelAlias)
-        ->setClassName($plugin)
-        ->setDependent(true)
-        ->setForeignKey(StringUtilities::tableToForeignKey($this))
-        ->setCascadeCallbacks(true);
-      
-      if($datasource != 'default') {
-        // We can't just set the connection on getTarget or we'll clobber the datasource.
-        // We have to create a new Table attached to the alternate datasource.
-        // (Strictly speaking we don't need to test for default, in which case we'd just
-        // re-set the same target table that hasOne would have used by default.)
-
-        $targetTable = TableUtilities::getTableWithDataSource(
-          // aliasPrefix: Inflector::camelize($datasource),  // XXX was Remote?`
-          tableName: $plugin,
-          connectionName: $datasource
-        );
-
-        $assn->setTarget($targetTable);
-      }
-
-      // Cache the list of entry points that we found (avoid duplicates)
-      if (!in_array($plugin, $this->_pluginModels, true)) {
-        $this->_pluginModels[] = $plugin;
-      }
-    }
-
-    // isArtifactTable() might not be the exact right test here...
-    // for now, we only want to exclude Jobs (since there's nothing
-    // to configure) but this may change. Also, Traffic Detours don't
-    // have a primary link.
-
-    if(!$this->isArtifactTable() 
-       && method_exists($this, 'setAllowLookupPrimaryLink')) {
-      $this->setAllowLookupPrimaryLink(['configure']);
-    }
   }
 }

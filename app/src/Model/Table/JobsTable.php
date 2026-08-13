@@ -79,7 +79,7 @@ class JobsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('id');
     

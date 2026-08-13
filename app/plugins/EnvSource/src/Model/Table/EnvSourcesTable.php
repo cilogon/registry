@@ -92,6 +92,55 @@ class EnvSourcesTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
+    $this->hasManyPlugins([
+      'Petitions' => [      
+        [
+          'targetModel' => 'EnvSource.PetitionEnvIdentities',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ],
+      'Types' => [
+        [
+          'alias' => 'EnvSourceAffiliationTypes',
+          'targetModel' => 'EnvSource.EnvSources',
+          'config' => [
+            'foreignKey' => 'default_affiliation_type_id'
+          ]
+        ],
+        [
+          'alias' => 'EnvSourceAddressTypes',
+          'targetModel' => 'EnvSource.EnvSources',
+          'config' => [
+            'foreignKey' => 'address_type_id'
+          ]
+        ],
+        [
+          'alias' => 'EnvSourceEmailAddressTypes',
+          'targetModel' => 'EnvSource.EnvSources',
+          'config' => [
+            'foreignKey' => 'email_address_type_id'
+          ]
+        ],
+        [
+          'alias' => 'EnvSourceNameTypes',
+          'targetModel' => 'EnvSource.EnvSources',
+          'config' => [
+            'foreignKey' => 'name_type_id'
+          ]
+        ],
+        [
+          'alias' => 'EnvSourceTelephoneTypes',
+          'targetModel' => 'EnvSource.EnvSources',
+          'config' => [
+            'foreignKey' => 'telephone_number_type_id'
+          ]
+        ]
+      ]
+    ]);
+ 
     $this->setDisplayField('id');
     
     $this->setPrimaryLink(['external_identity_source_id']);

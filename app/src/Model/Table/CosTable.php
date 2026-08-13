@@ -239,9 +239,12 @@ class CosTable extends Table {
     foreach($associations->getByType(['HasOne', 'HasMany']) as $a) {
       $targetTable = $a->getTarget();
 
-      if(method_exists($targetTable, "getPluggableModelType")) {
-        $pluggable[ $a->getClassName() ] = $targetTable;
-      } elseif($targetTable->isConfigurationTable()) {
+      // We no longer treat pluggable models specially since dynamic binding of related
+      // models should handle associations correctly.
+      // if(method_exists($targetTable, "getPluggableModelType")) {
+      //   $pluggable[ $a->getClassName() ] = $targetTable;
+      // } else
+      if($targetTable->isConfigurationTable()) {
         // eg: CoSettings
         $targetAssociations = $a->associations();
 
@@ -271,12 +274,6 @@ class CosTable extends Table {
     }
 
     $this->llog('trace', "Beginning deletion of CO " . $entity->id);
-
-    // First, delete plugin related models
-    // XXX unclear that we need to do anything here... PluggableModelTrait will
-    // automatically bind instantiated Entry Point Models when a Pluggable Table object
-    // is initialized, so plugin related models should be automatically deleted when
-    // the Pluggable Model is deleted.
 
     // Delete any Configuration Object that references a Primary Object or other
     // Configuration Objects (such as Types)

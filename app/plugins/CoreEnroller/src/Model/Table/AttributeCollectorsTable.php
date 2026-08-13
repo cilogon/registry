@@ -76,6 +76,28 @@ class AttributeCollectorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
+    $this->hasManyPlugins([
+      'Petitions' => [
+        [
+          'targetModel' => 'CoreEnroller.PetitionAttributes',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ],
+      'Types' => [
+        [
+          'alias' => 'EnrollmentAttributeType',
+          'targetModel' => 'CoreEnroller.EnrollmentAttributes',
+          'config' => [
+            // XXX this should be attribute_type_id
+            'foreignKey' => 'attribute_type'
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

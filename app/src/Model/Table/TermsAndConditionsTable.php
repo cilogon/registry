@@ -73,7 +73,9 @@ class TermsAndConditionsTable extends Table {
     $this->hasMany('TAndCAgreements')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    
+
+    $this->bindPluginRelations();
+
     $this->setDisplayField('description');
     
     $this->setPrimaryLink('co_id');

@@ -32,5 +32,6 @@ namespace App\Lib\Enum;
 class ProvisioningEligibilityEnum extends StandardEnum {
   const Deleted     = 'D';
   const Eligible    = 'Y';
+  const Expunged    = 'X';
   const Ineligible  = 'N';
 }

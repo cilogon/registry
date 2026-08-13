@@ -71,6 +71,23 @@ class IdentifierCollectorsTable extends Table {
     // is that if an admin instantiates the plugin multiple times the second instance
     // will refuse to do anything.
 
+    $this->hasManyPlugins([
+      'Petitions' => [      
+        [
+          'targetModel' => 'CoreEnroller.PetitionIdentifiers',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ],
+      'Types' => [
+        [
+          'targetModel' => 'CoreEnroller.IdentifierCollectors'
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

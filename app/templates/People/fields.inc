@@ -56,6 +56,8 @@ if($vv_action == 'add') {
   ];
 } elseif($vv_action == 'edit') {
   $a = $vv_obj->extract(['person_role_id', 'person_id']);
+  
+  $useDeleteSplashPage = true;
 }
 
 $fields = array_merge($fields, [

@@ -50,10 +50,11 @@ if($link) {
         ['class' => 'btn btn-sm btn-primary inline-form-button']
       );
   } else {
-    // Make $status the link
+    // Make $status the link, but make sure to cast it to a string
+    // in case it's an integer (record ID)
 
     $linkHtml = $this->Html->link(
-      $status,
+      (string)$status,
       $link['url']
     );
   }

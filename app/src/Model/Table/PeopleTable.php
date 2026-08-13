@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Model\Table;
 
 use App\Model\Entity\Person;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -39,6 +40,7 @@ use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\AuthenticatorStatusEnum;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
@@ -117,22 +119,22 @@ class PeopleTable extends Table {
     $this->hasMany('HistoryRecords')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('ActorHistoryRecords')
+         ->setClassName('HistoryRecords')
+         ->setForeignKey('actor_person_id');
     $this->hasMany('Identifiers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    $this->hasMany('JobHistoryRecords')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
+    $this->hasMany('JobHistoryRecords');
     $this->hasMany('ActorNotifications')
          ->setClassName('Notifications')
-         ->setForeignKey('actor_person_id')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
+         ->setForeignKey('actor_person_id');
+    $this->hasMany('RecipientNotifications')
+         ->setClassName('Notifications')
+         ->setForeignKey('recipient_person_id');
     $this->hasMany('ResolverNotifications')
          ->setClassName('Notifications')
-         ->setForeignKey('resolver_person_id')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
+         ->setForeignKey('resolver_person_id');
     $this->hasMany('SubjectNotifications')
          ->setClassName('Notifications')
          ->setForeignKey('subject_person_id')
@@ -141,10 +143,26 @@ class PeopleTable extends Table {
     $this->hasMany('PersonRoles')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    // We specifically do not want to setDependent on the Manager and Sponsor
+    // Person Roles since we don't want to delete those if this Person is deleted.
+    // (We'll clean up these links in beforeDelete.)
+    $this->hasMany('ManagerPersonRoles')
+         ->setClassName('PersonRoles')
+         ->setForeignKey('manager_person_id')
+         ->setProperty('manager_person_roles');
+    $this->hasMany('SponsorPersonRoles')
+         ->setClassName('PersonRoles')
+         ->setForeignKey('sponsor_person_id')
+         ->setProperty('sponsor_person_roles');
+    $this->hasMany('PetitionHistoryRecords')
+         ->setForeignKey('actor_person_id');
     $this->hasMany('Petitions')
          ->setDependent(true)
          ->setCascadeCallbacks(true)
          ->setForeignKey('enrollee_person_id');
+    $this->hasMany('PetitionerPetitions')
+         ->setClassName('Petitions')
+         ->setForeignKey('petitioner_person_id');
     $this->hasMany('Pronouns')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -161,13 +179,15 @@ class PeopleTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->bindPluginRelations();
+    
 // XXX can we change this to Name?
     $this->setDisplayField('id');
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
-    $this->setAllowLookupPrimaryLink(['provision']);
+    $this->setAllowLookupPrimaryLink(['confirmDelete', 'provision']);
     $this->setAllowUnkeyedPrimaryLink(['pick']);
     
 // XXX does some of this stuff really belong in the controller?
@@ -270,12 +290,11 @@ class PeopleTable extends Table {
       // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
       'entity' => [
-        'delete'    => ['platformAdmin', 'coAdmin'],
-        'edit'      => ['platformAdmin', 'coAdmin'],
-        'provision' => ['platformAdmin', 'coAdmin'],
-        // selfMember removed pending further discussion around permissions
-        // 'view'      => ['platformAdmin', 'coAdmin', 'selfMember']
-        'view'      => ['platformAdmin', 'coAdmin']
+        'confirmDelete' => ['platformAdmin', 'coAdmin'],
+        'delete'        => ['platformAdmin', 'coAdmin'],
+        'edit'          => ['platformAdmin', 'coAdmin'],
+        'provision'     => ['platformAdmin', 'coAdmin'],
+        'view'          => ['platformAdmin', 'coAdmin']
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [
@@ -318,46 +337,14 @@ class PeopleTable extends Table {
    */
   
   public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
-// XXX we are effectively reimplementing expunge logic here, maybe move it to
-//     a new protected PeopleTable::expunge() function (called only from here)?
     // If we were only dealing with hard delete, we wouldn't need implementedEvents()
     // below, because ChangelogBehavior ignores hard deletes.
 
-    // Whether soft or hard deleting, we need to remove Automatic Group Memberships
-    // before we delete the Person, or lookups performed while managing those
-    // group memberships will fail.
-
-    $this->reconcileCoMembersGroupMemberships(entity: $entity, deleted: true);
-
-    if(isset($options['useHardDelete']) 
-       && $options['useHardDelete']
-       && $entity->id > 0) {
-      // Hard delete, so clear out any foreign keys pointing to this Person.
-      // This will also clear foreign keys from archived changelog records.
-      
-      $this->PersonRoles->updateAll(
-        [ 'manager_person_id' => null ],
-        [ 'manager_person_id' => $entity->id ]
-      );
-
-      $this->PersonRoles->updateAll(
-        [ 'sponsor_person_id' => null ],
-        [ 'sponsor_person_id' => $entity->id ]
-      );
-
-      // Manually delete any names, since the validation rules will fail on cascade.
-      $this->Names->deleteAll(
-        [ 'person_id' => $entity->id ]
-      );
-    } else {
-      // Manually delete any names, since the validation rules will fail on cascade.
-      // Since this isn't a hard delete we can't use deleteAll since we need
-      // ChangelogBehavior to fire.
-
-      $names = $this->Names->find()->where(['person_id' => $entity->id])->all();
-
-      foreach($names as $n) {
-        $this->Names->delete($n, ['checkRules' => false]);
+    if($entity->id > 0) {
+      if(isset($options['useHardDelete']) && $options['useHardDelete']) {
+        $this->prepareHardDelete($entity);
+      } else {
+        $this->prepareSoftDelete($entity);
       }
     }
 
@@ -622,7 +609,7 @@ class PeopleTable extends Table {
 
         if($status->status == AuthenticatorStatusEnum::Active) {
           // Now ask the Plugin for the Provisioning data. Note a given Plugin may be
-          // instantiated more than once, in which case we'll call marshallProvisioningData
+          // instantiated more than once, in which case we'll call marshalProvisioningData
           // more than once (with different configuration information). We'll need to
           // merge the results together.
 
@@ -641,7 +628,7 @@ class PeopleTable extends Table {
         }
 
         if(empty($entityData)) {
-          // There is no password authenticator in the marshaled data, which can happen if
+          // There is no authenticator in the marshaled data, which can happen if
           // none has been set, or if we are in Pass Through mode but not in a context
           // where the authenticator value is available (eg: lock, unlock, reprovision).
           // Create a placeholder for Authenticator Status.
@@ -691,6 +678,208 @@ class PeopleTable extends Table {
     }
 
     return $ret;
+  }
+
+  /**
+   * Prepare to hard delete a Person.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  Entity   $entity   Person  
+   */
+
+  public function prepareHardDelete($entity) {
+    // For a hard delete, we need to ensure there are no foreign keys pointing to this Person
+    // anywhere in the database.
+
+    // We start by performing the soft delete preparations, since we want some of the business
+    // logic to run. For example, soft delete will reset Sponsor and Manager fields and then
+    // reprovision the related People (as well as update History). It's easier to let that run
+    // before we null out the foreign keys.
+
+    $this->prepareSoftDelete($entity);
+
+    // From this point on we use updateAll to handle Changelog records since in
+    // general we neither need nor want callbacks to run.
+    // (GMR-7 If an active or deleted record is hard deleted, any associated archive
+    // records are also hard deleted.)
+    
+    $this->PersonRoles->updateAll(
+      [ 'manager_person_id' => null ],
+      [ 'manager_person_id' => $entity->id ]
+    );
+
+    $this->PersonRoles->updateAll(
+      [ 'sponsor_person_id' => null ],
+      [ 'sponsor_person_id' => $entity->id ]
+    );
+
+    // Clear out History Record actor foreign keys
+
+    $this->HistoryRecords->updateAll(
+      [ 'actor_person_id' => null ],
+      [ 'actor_person_id' => $entity->id ]
+    );
+
+    // Clear out Job History Record foreign keys
+
+    $this->JobHistoryRecords->updateAll(
+      [ 'person_id' => null ],
+      [ 'person_id' => $entity->id ]
+    );
+
+    // Clear out Notification foreign keys
+
+    $this->ActorNotifications->updateAll(
+      [ 'actor_person_id' => null ],
+      [ 'actor_person_id' => $entity->id ]
+    );
+
+    $this->RecipientNotifications->updateAll(
+      [ 'recipient_person_id' => null ],
+      [ 'recipient_person_id' => $entity->id ]
+    );
+
+    $this->ResolverNotifications->updateAll(
+      [ 'resolver_person_id' => null ],
+      [ 'resolver_person_id' => $entity->id ]
+    );
+
+    // Clear out Petition actor and petitioner foreign keys
+
+    $this->Petitions->updateAll(
+      [ 'petitioner_person_id' => null ],
+      [ 'petitioner_person_id' => $entity->id ]
+    );
+
+    $this->PetitionHistoryRecords->updateAll(
+      [ 'actor_person_id' => null ],
+      [ 'actor_person_id' => $entity->id ]
+    );
+  }
+
+  /**
+   * Prepare to soft delete a Person.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  Entity   $entity   Person  
+   */
+
+  public function prepareSoftDelete($entity) {
+    // For a soft delete, we are primarily concerned with cleaning up operational references.
+    // This will leave the original Person foreign keys in the Changelog history but remove
+    // the Person from normal visibility.
+
+    // We need to remove Automatic Group Memberships before we delete the Person, or lookups
+    // performed while managing those group memberships will fail.
+
+    $this->reconcileCoMembersGroupMemberships(entity: $entity, deleted: true);
+
+    // Unset any Sponsor or Manager foreign keys, since a deleted Person cannot be
+    // a Sponsor or Manager. Since this is a soft delete we just perform a standard
+    // ORM request to update any active records. A Person that is deleted shouldn't
+    // really have very many sponsor or manager records, so we don't bothep with
+    // Paginated iteration here. We want all non-deleted Roles regardless of Status.
+
+    foreach(['manager_person_id', 'sponsor_person_id'] as $key) {
+      $roles = $this->PersonRoles->find()->where([$key => $entity->id])->contain(['People'])->all();
+
+      foreach($roles as $role) {
+        $this->llog('trace', "Unsetting $key from Person Role " . $role->id . " and reprovisioning Person " . $role->person_id);
+
+        $role->$key = null;
+        $this->PersonRoles->saveOrFail($role);
+
+        // Record history
+        $this->recordHistory(
+          entity:   $role->person,
+          // We use MVEAEdited for consistency with recordHistory(), though arguably
+          // it's not exactly right
+          action:   ActionEnum::MVEAEdited,
+          comment:  __d('result', 
+                        'PersonRoles.personfk.removed', 
+                        [__d('field', ($key == 'manager_person_id' ? 'manager' : 'sponsor')),
+                        $entity->id])
+        );
+
+        // Reprovisioning the Person associated with the Person Role
+        $this->requestProvisioning($role->person_id, ProvisioningContextEnum::Automatic);
+      }
+    }
+
+    // Unset any History Records where this Person is an Actor.
+
+    $records = $this->HistoryRecords->find()->where(['actor_person_id' => $entity->id])->all();
+
+    foreach($records as $r) {
+      $this->llog('trace', "Unsetting actor_person_id from History Record " . $r->id . " for Person " . $r->person_id);
+
+      $r->actor_person_id = null;
+      $this->HistoryRecords->saveOrFail($r);
+
+      // No need to reprovision
+    }
+    
+    // Update any Job History Records for this Person.
+
+    $records = $this->JobHistoryRecords->find()->where(['person_id' => $entity->id])->all();
+
+    foreach($records as $r) {
+      $this->llog('trace', "Unsetting person_id from Job History Record " . $r->id . " for Job " . $r->job_id);
+
+      $r->person_id = null;
+      $this->JobHistoryRecords->saveOrFail($r);
+
+      // No need to reprovision
+    }
+
+    // Unset most Notification foreign keys, except Subject since it's OK to delete those.
+    
+    foreach(['actor_person_id', 'recipient_person_id', 'resolver_person_id'] as $key) {
+      $notifications = $this->ActorNotifications->find()->where([$key => $entity->id])->all();
+
+      foreach($notifications as $n) {
+        $this->llog('trace', "Unsetting $key from Notification " . $n->id);
+
+        $n->$key = null;
+        $this->ActorNotifications->saveOrFail($n);
+      }
+    }
+
+    // Unset any Petition Petitioner and Actor keys.
+
+    $petitions = $this->Petitions->find()->where(['petitioner_person_id' => $entity->id])->all();
+
+    foreach($petitions as $p) {
+      $this->llog('trace', "Unsetting Petitioner from Petition " . $p->id);
+
+      $p->petitioner_person_id = null;
+      $this->Petitions->save($p);
+
+      $this->Petitions->PetitionHistoryRecords->record(
+        petitionId:           $p->id,
+        enrollmentFlowStepId: null,
+        action:               PetitionActionEnum::AttributesUpdated,
+        comment:              __d('result', 'PetitionHistoryRecords.actor.removed', [$entity->id])
+      );
+    }
+
+    $records = $this->PetitionHistoryRecords->find()->where(['actor_person_id' => $entity->id])->all();
+
+    foreach($records as $r) {
+      $this->llog('trace', "Unsetting Actor from Petition History Record " . $r->id);
+
+      $r->actor_person_id = null;
+      $this->PetitionHistoryRecords->save($r);
+    }
+
+    // Manually delete any names, since the validation rules will fail on cascade.
+    // We don't use deleteAll since we need ChangelogBehavior to fire.
+
+    $names = $this->Names->find()->where(['person_id' => $entity->id])->all();
+
+    foreach($names as $n) {
+      $this->Names->delete($n, ['checkRules' => false]);
+    }
   }
 
   /**

@@ -46,7 +46,8 @@ class Petition extends Entity {
 
   /**
    * Determine if this Petition is complete, ie in a state where no further changes
-   * are permitted.
+   * are permitted, except that the Petition can be deleted (so isComplete() is not
+   * used to calculate isReadOnly()).
    * 
    * @since  COmanage Registry v5.0.0
    * @return bool     True if this Petition is complete, false otherwise
@@ -82,13 +83,14 @@ class Petition extends Entity {
    * @since  COmanage Registry v5.0.0
    * @param  Entity  $entity Cake Entity
    * @return bool            true if the entity is read only, false otherwise
-   */
+   *
 
   public function isReadOnly(): bool {
-    // Completed petitions are read only, along with the usual stuff
-    
+    // Completed Petitions are no longer considered "Read Only" because we want the
+    // "Delete" button to render.
+
     return $this->isComplete() || $this->traitIsReadOnly();
-  }
+  }*/
 
   /**
    * Determine whether or not a token should be used to authenticate this Petition

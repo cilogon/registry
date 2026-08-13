@@ -78,7 +78,7 @@ class ServersTable extends Table {
     $this->hasMany('Pipelines')
          ->setForeignKey('match_server_id');
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     

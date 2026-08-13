@@ -74,6 +74,14 @@ class EnvSourceCollectorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
+    $this->hasManyPlugins([
+      'ExternalIdentitySources' => [
+        [
+          'targetModel' => 'EnvSource.EnvSourceCollectors'
+        ]
+      ]
+    ]);
+    
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

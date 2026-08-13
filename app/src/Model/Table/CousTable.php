@@ -101,6 +101,8 @@ class CousTable extends Table {
          ->setClassName('Pipelines')
          ->setForeignKey('sync_replace_cou_id');
     
+    $this->bindPluginRelations();
+    
     $this->setDisplayField('name');
     
     $this->setPrimaryLink('co_id');

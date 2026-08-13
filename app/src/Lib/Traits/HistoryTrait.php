@@ -61,9 +61,10 @@ trait HistoryTrait {
     // Use the entity's visible field list to start from
     $diffFields = array_diff($entity->getVisible(), $skipFields);
     
-    // Remove all _id fields, except type_id
+    // Remove most _id fields
     foreach($diffFields as $i => $f) {
-      if($f != 'type_id' && preg_match('/_id$/', $f)) {
+      if(!in_array($f, ['manager_person_id', 'sponsor_person_id', 'type_id'])
+         && preg_match('/_id$/', $f)) {
         unset($diffFields[$i]);
       }
     }
@@ -74,7 +75,8 @@ trait HistoryTrait {
     if($entity->isNew() || $entity->deleted) {
       // Generate a changeset of non-empty fields
       foreach($diffFields as $field) {
-        if($field != 'type_id' && !is_string($field)) {
+        if(!in_array($f, ['manager_person_id', 'sponsor_person_id', 'type_id'])
+           && !is_string($field)) {
           // This is a related model, skip
           continue;
         }

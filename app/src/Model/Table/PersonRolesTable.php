@@ -119,9 +119,8 @@ class PersonRolesTable extends Table {
     $this->hasMany('TelephoneNumbers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    $this->hasMany('HistoryRecords')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
+    // Deleting a Person Role should not delete its corresponding history records.
+    $this->hasMany('HistoryRecords');
     
     $this->setDisplayField('title');
     

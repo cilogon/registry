@@ -270,7 +270,7 @@ class PluginsTable extends Table {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  Plugin $plugin Cake Plugin object
-   * @param  string $type   Plugin type
+   * @param  string $type   Plugin type, or the special type 'all'
    * @return array          Array of Entry Point Models
    */
   
@@ -279,21 +279,35 @@ class PluginsTable extends Table {
     // into each type. The index for this configuration is maintained in the plugin's
     // src/config/plugin.json file.
 
+    $ret = [];
+
     $pConfig = $this->readPluginConfig(plugin: $plugin, key: "types");
 
     if(!empty($pConfig)) {
-      if(isset($pConfig->$type) && is_array($pConfig->$type)) {
-        return $pConfig->$type;
+      if($type == 'all') {
+        // There can be zero or more types per plugin, just add them all to $ret
+
+        $entryPoints = get_object_vars($pConfig);
+
+        foreach($entryPoints as $ptype => $pmodels) {
+          $ret = array_merge($ret, $pmodels);
+        }
       } else {
-        // This plugin does not implement the requested type. Don't log here since it'll
-        // cause noise and confusion in the logs.
-        // $this->llog('debug', "Plugin $plugin->plugin does not have a valid types configuration");
+        // Just return the requested type
+
+        if(isset($pConfig->$type) && is_array($pConfig->$type)) {
+          $ret = $pConfig->$type;
+        } else {
+          // This plugin does not implement the requested type. Don't log here since it'll
+          // cause noise and confusion in the logs.
+          // $this->llog('debug', "Plugin $plugin->plugin does not have a valid types configuration");
+        }
       }
     } else {
       $this->llog('debug', "Plugin $plugin->plugin does not have a plugin.json file");
     }
 
-    return [];
+    return $ret;
   }
 
   /**

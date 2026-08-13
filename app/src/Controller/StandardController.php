@@ -33,10 +33,12 @@ use App\Lib\Enum\ApplicationStateEnum;
 use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Traits\IndexQueryTrait;
 use Cake\Database\Schema\TableSchemaInterface;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 use \App\Lib\Enum\ProvisioningContextEnum;
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Util\StringUtilities;
 
 class StandardController extends AppController {
@@ -265,18 +267,9 @@ class StandardController extends AppController {
         return $this->redirect(['action' => 'view', $obj->id]);
       }
 
-      // By default, a delete is a soft delete. The exception is when
-      // deleting a CO (AR-CO-1). In v4, we permitted a controller level
-      // flag to be set, but the only controller this really applies to
-      // is CO right now, so we'll skip implementing a flag until we have
-      // another use case.
-
-      $useHardDelete = ($modelsName == "Cos");
-
-      $table->deleteOrFail($obj, ['useHardDelete' => $useHardDelete]);
-      $msgid = 'deleted';
-
-      // Use the display field to generate the flash message
+      // Use the display field to generate the flash message. Make sure to do this
+      // _before_ the record is deleted. (On error we'll throw an Exception and not
+      // use this message.)
       // TODO: This needs to be moved to its own function. Keeping for now while we confirm
       //       everything is working correctly
       $field = $table->getDisplayField();
@@ -288,12 +281,12 @@ class StandardController extends AppController {
           id:(int)$obj->id,
           options: ['archived' => true],
         )->full_name;
-        $message = "$personName ($obj->id)";
+        $message = __d('field', 'idpair', [$personName, $obj->id]);
       } elseif (in_array('person_id', $primaryLinks)) {
         $Names = TableRegistry::getTableLocator()->get('Names');
         $personName = $Names->primaryName((int)$obj->person_id)->full_name;
         $displayValue = !empty($obj->$field) ? $obj->$field : $modelsName;
-        $message = "$personName/$displayValue ($obj->id)";
+        $message = __d('field', 'idpair', [$personName/$displayValue, $obj->id]);
       } elseif(!empty($obj->$field)) {
         $displayValue = !empty($obj->$field) ? $obj->$field : $modelsName;
         $message = $displayValue;
@@ -301,18 +294,83 @@ class StandardController extends AppController {
 
       // By default, we pass the empty msgid. Then one with no placeholder.
       // If we have a message use the text rich one.
+      $msgid = "deleted";
       if (!empty($message)) {
-        $msgid = "$msgid.a";
+        $msgid = "deleted.a";
       }
 
+      // By default, a delete is a soft delete. The exception is when deleting
+      // a CO (AR-CO-1). As of v5.3.0, we support passing a hard-delete flag in
+      // the POST for hard delete of a Person record, it may be plausible to use
+      // this more generally for other Primary Objects.
+
+      $useHardDelete = ($modelsName == "Cos");
+
+      // $data is the response from the confirm-delete form
+      $data = $this->request->getData();
+
+      // $pdata is cached provisioning data (for hard deletes only)
+      $pdata = null;
+      
+      if(isset($data['hard-delete']) && $data['hard-delete']) {
+        $useHardDelete = true;
+
+        // For Primary Objects, we need to trigger provisioning prior to running the delete,
+        // since the record will no longer be available by the time provisioning runs.
+        // If instead we retrieve and cache the record prior to the hard delete, the provisioning
+        // infrastructure will expect valid foreign key references that will no longer be
+        // available, and plugins will be unable to pull related data they might need.
+        // Requiring a soft delete first is not an alternative since there is not currently
+        // a way to retrieve the soft deleted record to convert it to a hard deletion (CO-2999).
+
+        // In an edge case, this provisioning action might be triggered multiple times
+        // (if the delete fails for some reason), but the alternatives are all much moro
+        // complicated.
+        
+        if(method_exists($table, "requestProvisioning")) {
+          $this->llog('rule', "AR-GMR-5 Requesting provisioning for expunged entity $modelsName " . $obj->id);
+
+          $table->requestProvisioning(
+            id: (int)$id,
+            context: ProvisioningContextEnum::Expunge
+          );
+        }
+      }
+
+      // We'll wrap deleteOrFail in a transaction because various cascading deletes
+      // might fail for one reason or another (in particular during a hard delete
+      // if a foreign key isn't correctly cleared).
+
+      $cxn = ConnectionManager::get('default');
+      $cxn->begin();
+
+      try {
+        // When useHardDelete is requested, we also skip rule checking since we're in
+        // the process of purging the record anyway.
+        $table->deleteOrFail($obj, ['useHardDelete' => $useHardDelete, 'checkRules' => !$useHardDelete]);
+      }
+      catch(\Exception $e) {
+        $cxn->rollback();
+
+        throw $e;
+      }
+
+      $cxn->commit();
+      
       $this->Flash->success(__d('result', $msgid, [$message]));
 
-      // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-      // In general, tables should check that they were passed a deleted
-      // record and martial data/set eligibility appropriately
-      if(method_exists($table, "requestProvisioning")) {
-        $this->llog('rule', "AR-GMR-5 Requesting provisioning for deleted entity $modelsName " . $obj->id);
-        $table->requestProvisioning(id: (int)$id, context: ProvisioningContextEnum::Automatic);
+      if(!$useHardDelete) {
+        // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+        // In general, tables should check that they were passed a deleted
+        // record and martial data/set eligibility appropriately
+        if(method_exists($table, "requestProvisioning")) {
+          $this->llog('rule', "AR-GMR-5 Requesting provisioning for deleted entity $modelsName " . $obj->id);
+
+          $table->requestProvisioning(
+            id: (int)$id,
+            context: ProvisioningContextEnum::Automatic
+          );
+        }
       }
 
       // Return to index since there is no delete view

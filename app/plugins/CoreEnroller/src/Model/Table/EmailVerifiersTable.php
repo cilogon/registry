@@ -72,12 +72,31 @@ class EmailVerifiersTable extends Table {
     // Define associations
     $this->belongsTo('EnrollmentFlowSteps');
     $this->belongsTo('MessageTemplates');
-    // $this->belongsTo('Types');
-
-    // We intentionally don't hasMany PetitionIdentifiers since there should only be one
-    // collector per Petition, and the net result of not having the direct foreign key
-    // is that if an admin instantiates the plugin multiple times the second instance
-    // will refuse to do anything.
+    
+    // Similar to PetitionIdentifiers, We don't hasMany PetitionVerifications since
+    // there should probably only be one Verification step per Petition.
+    
+    $this->hasManyPlugins([
+      'MessageTemplates' => [
+        [
+          'targetModel' => 'CoreEnroller.EmailVerifiers'
+        ]
+      ],
+      'Petitions' => [      
+        [
+          'targetModel' => 'CoreEnroller.PetitionVerifications',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ],
+      'Verifications' => [
+        [
+          'targetModel' => 'CoreEnroller.PetitionVerifications'
+        ]
+      ]
+    ]);
 
     $this->setDisplayField('id');
 

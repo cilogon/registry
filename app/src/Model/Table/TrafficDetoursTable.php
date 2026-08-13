@@ -61,7 +61,7 @@ class TrafficDetoursTable extends Table {
     
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
 
     $this->setDisplayField('description');
     

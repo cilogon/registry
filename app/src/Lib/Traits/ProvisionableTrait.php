@@ -31,6 +31,8 @@ namespace App\Lib\Traits;
 
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use \App\Lib\Enum\ProvisioningContextEnum;
+use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Util\StringUtilities;
 use \App\Model\Entity\Job;
 
@@ -86,6 +88,12 @@ trait ProvisionableTrait {
 
       // Invocation of the plugins is handled by the Pluggable table
       $ProvisioningTargets = TableRegistry::getTableLocator()->get('ProvisioningTargets');
+
+      // On Expunge (hard delete) we override the eligibility so that the Provisioning Target is
+      // aware of the context and can act accordingly.
+      if($context == ProvisioningContextEnum::Expunge) {
+        $data['eligibility'] = ProvisioningEligibilityEnum::Expunged;
+      }
 
       $ProvisioningTargets->provision(
         data: $data['data'], 

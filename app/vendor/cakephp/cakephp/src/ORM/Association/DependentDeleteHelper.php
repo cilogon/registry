@@ -38,6 +38,11 @@ class DependentDeleteHelper
      */
     public function cascadeDelete(Association $association, EntityInterface $entity, array $options = []): bool
     {
+        // CO-2997 When we're cascading a hard delete, we need the find() below to
+        // pull archived (soft deleted) records as well, or the database will throw
+        // an error when the parent object (eg: person) is finally deleted.
+        $archived = isset($options['useHardDelete']) && $options['useHardDelete'];
+
         if (!$association->getDependent()) {
             return true;
         }
@@ -54,7 +59,7 @@ class DependentDeleteHelper
 
         if ($association->getCascadeCallbacks()) {
             /** @var \Cake\Datasource\EntityInterface $related */
-            foreach ($association->find()->where($conditions)->toArray() as $related) {
+            foreach ($association->find(archived: $archived)->where($conditions)->toArray() as $related) {
                 $success = $table->delete($related, $options);
                 if (!$success) {
                     return false;

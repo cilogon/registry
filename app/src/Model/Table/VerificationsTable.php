@@ -71,6 +71,8 @@ class VerificationsTable extends Table {
     $this->belongsTo('EmailAddresses');
     $this->belongsTo('Petitions');
 
+    $this->bindPluginRelations();
+    
     // Verifications aren't generally going to be directly rendered or managed
     $this->setDisplayField('id');
     

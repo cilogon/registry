@@ -66,6 +66,18 @@ class OrcidSourceCollectorsTable extends Table {
         $this->belongsTo('EnrollmentFlowSteps');
         $this->belongsTo('ExternalIdentitySources');
 
+        $this->hasMany('OrcidSource.PetitionOrcids')
+             ->setDependent(true)
+             ->setCascadeCallbacks(true);
+
+        $this->hasManyPlugins([
+            'ExternalIdentitySources' => [
+                [
+                    'targetModel' => 'OrcidSource.OrcidSourceCollectors'
+                ]
+            ]
+        ]);
+
         $this->setDisplayField('id');
 
         $this->setPrimaryLink('enrollment_flow_step_id');

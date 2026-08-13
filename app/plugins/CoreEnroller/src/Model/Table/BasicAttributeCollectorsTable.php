@@ -85,6 +85,46 @@ class BasicAttributeCollectorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
+    $this->hasManyPlugins([
+      'Cous' => [
+        [
+          'targetModel' => 'CoreEnroller.BasicAttributeCollectors'
+        ]
+      ],
+      'Petitions' => [
+        [
+          'targetModel' => 'CoreEnroller.PetitionBasicAttributeSets',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ],
+      'Types' => [
+        [
+          'alias' => 'CoreEnrollerAffiliationTypes',
+          'targetModel' => 'CoreEnroller.BasicAttributeCollectors',
+          'config' => [
+            'foreignKey' => 'affiliation_type_id'
+          ]
+        ],
+        [
+          'alias' => 'CoreEnrollerEmailAddressTypes',
+          'targetModel' => 'CoreEnroller.BasicAttributeCollectors',
+          'config' => [
+            'foreignKey' => 'email_address_type_id'
+          ]
+        ],
+        [
+          'alias' => 'CoreEnrollerNameTypes',
+          'targetModel' => 'CoreEnroller.BasicAttributeCollectors',
+          'config' => [
+            'foreignKey' => 'name_type_id'
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

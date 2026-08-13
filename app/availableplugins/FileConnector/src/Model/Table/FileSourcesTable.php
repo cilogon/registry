@@ -920,10 +920,10 @@ class FileSourcesTable extends Table {
   public function validationDefault(Validator $validator): Validator {
     $schema = $this->getSchema();
     
-    $validator->add('external_source_identity_id', [
+    $validator->add('external_identity_source_id', [
       'content' => ['rule' => 'isInteger']
     ]);
-    $validator->notEmptyString('external_source_identity_id');
+    $validator->notEmptyString('external_identity_source_id');
     
     $this->registerStringValidation($validator, $schema, 'filename', true);
 

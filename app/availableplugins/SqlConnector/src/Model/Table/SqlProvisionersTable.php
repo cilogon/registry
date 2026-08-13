@@ -257,6 +257,14 @@ reference data mode.
     $this->belongsTo('ProvisioningTargets');
     $this->belongsTo('Servers');
     
+    $this->hasManyPlugins([
+      'Servers' => [
+        [
+          'targetModel' => 'SqlConnector.SqlProvisioners'
+        ]
+      ]
+    ]);
+    
     $this->setDisplayField('server_id');
     
     $this->setPrimaryLink(['provisioning_target_id']);

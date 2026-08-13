@@ -76,6 +76,35 @@ class ApprovalCollectorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->hasManyPlugins([
+      'MessageTemplates' => [
+        [
+          'targetModel' => 'CoreEnroller.ApprovalCollectors',
+          'config' => [
+            'foreignKey' => 'denial_message_template_id'
+          ]
+        ]
+      ],
+      'People' => [
+        [
+          'alias' => 'CoreEnrollerApprovers',
+          'targetModel' => 'CoreEnroller.PetitionApprovals',
+          'config' => [
+            'foreignKey' => 'approver_person_id'
+          ]
+        ]
+      ],
+      'Petitions' => [
+        [
+          'targetModel' => 'CoreEnroller.PetitionApprovals',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

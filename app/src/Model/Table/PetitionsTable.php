@@ -33,6 +33,7 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
@@ -101,13 +102,12 @@ class PetitionsTable extends Table {
     $this->hasMany('PetitionStepResults')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
-    $this->hasMany('CoreEnroller.PetitionAttributes')
-         ->setDependent(true)
-         ->setCascadeCallbacks(true);
 
     $this->hasOne('Verifications')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    
+    $this->bindPluginRelations();
 
     $this->setDisplayField('id');
     
@@ -211,7 +211,7 @@ class PetitionsTable extends Table {
           // 'assign' => true,
           // We handle continue authorization in the Controller
           'continue' => true,
-          'delete' =>   false,
+          'delete' =>   ['platformAdmin', 'coAdmin'],
           'edit' =>     false,
           // We handle finalize authorization in the Controller
           'finalize' => true,

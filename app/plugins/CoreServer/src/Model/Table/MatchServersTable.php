@@ -65,6 +65,14 @@ class MatchServersTable extends HttpServersTable {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
+    $this->hasManyPlugins([
+      'Types' => [
+        [
+          'targetModel' => 'CoreServer.MatchServerAttributes'
+        ]
+      ],
+    ]);
+
     $this->setDisplayField('hostname');
 
     $this->setPrimaryLink('server_id');

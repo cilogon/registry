@@ -110,6 +110,8 @@ class TypesTable extends Table {
     $this->hasMany('TelephoneNumbers');
     $this->hasMany('Urls');
     
+    $this->bindPluginRelations();
+    
     $this->setDisplayField('display_name');
     
     $this->setPrimaryLink('co_id');

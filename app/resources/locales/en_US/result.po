@@ -72,6 +72,9 @@ msgstr "Deleted"
 msgid "deleted.a"
 msgstr "{0} deleted"
 
+msgid "deleted.hard"
+msgstr "{0} expunged"
+
 msgid "deleted.mvea"
 msgstr "{0} {1} deleted: {2}"
 
@@ -214,11 +217,17 @@ msgstr "Created new Person via Pipeline {0} ({1}) using Source {2} ({3}) Key {4}
 msgid "People.status.recalculated"
 msgstr "Person status recalculated from {0} to {1}"
 
+msgid "PersonRoles.personfk.removed"
+msgstr "{0} {1} removed from Person Role due to deletion"
+
 msgid "PersonRoles.relinked.from"
 msgstr "Person Role moved from Person {0}"
 
 msgid "PersonRoles.status.recalculated"
 msgstr "Person Role status recalculated from {0} to {1}"
+
+msgid "PetitionHistoryRecords.actor.removed"
+msgstr "Actor Person ID {0} removed from Petition due to deletion"
 
 msgid "Petitions.finalized"
 msgstr "Petition Finalized"

@@ -106,6 +106,8 @@ class EnrollmentFlowsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->bindPluginRelations();
+    
     $this->setDisplayField('name');
     
     $this->setPrimaryLink('co_id');

@@ -67,7 +67,7 @@ class ApisTable extends Table {
     $this->belongsTo('ApiUsers');
     $this->belongsTo('Cos');
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     

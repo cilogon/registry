@@ -58,7 +58,6 @@ class MessageTemplatesTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
@@ -71,6 +70,8 @@ class MessageTemplatesTable extends Table {
     $this->hasMany('EnrollmentFlowStepNotifications')
          ->setForeignKey('notification_message_template_id');
     $this->hasMany('Notifications');
+    
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     

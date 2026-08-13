@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Provisioning Context Enum
+ * COmanage Registry Sync Jobs Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,19 +20,45 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Lib\Enum;
+namespace CoreEnroller\Model\Table;
 
-class ProvisioningContextEnum extends StandardEnum {
-  const Automatic   = 'A';  // Triggered by code intent, eg by StandardController
-  const Enrollment  = 'E';  // Triggered during enrollment
-  const Expunge     = 'X';  // Triggered on hard delete
-  const Manual      = 'M';  // Triggered by request of an admin
-  const Queue       = 'Q';  // Triggered by ProvisionerJob processing the queue
+use Cake\ORM\Table;
+
+// We don't really need a SyncJobsTable since Jobs don't have an MVC interface,
+// but we need to declare our foreign keys.
+
+class SyncJobsTable extends Table {
+  use \App\Lib\Traits\TableMetaTrait;
+
+  /**
+   * Perform Cake Model initialization.
+   *
+   * @since  COmanage Registry v5.1.0
+   * @param  array  $config Configuration options passed to constructor
+   */
+
+  public function initialize(array $config): void {
+    parent::initialize($config);
+
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
+
+    // Define associations
+    $this->belongsTo('ExternalIdentitySources');
+    $this->belongsTo('Jobs');
+    
+    $this->hasManyPlugins([
+      'Jobs' => [
+        [
+          'targetModel' => 'CoreEnroller.BasicAttributeCollectors'
+        ]
+      ]
+    ]);
+  }
 }

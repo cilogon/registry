@@ -73,7 +73,7 @@ class AuthenticatorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     

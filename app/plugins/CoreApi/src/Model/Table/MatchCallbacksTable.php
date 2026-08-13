@@ -56,7 +56,6 @@ class MatchCallbacksTable extends Table {
 
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Timestamp');
 
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
@@ -64,6 +63,19 @@ class MatchCallbacksTable extends Table {
     // Define associations
     $this->belongsTo('Apis');
     $this->belongsTo('Servers');
+
+    $this->hasManyPlugins([
+      'Apis' => [
+        [
+          'targetModel' => 'CoreApi.MatchCallbacks'
+        ]
+      ],
+      'Servers' => [
+        [
+          'targetModel' => 'CoreApi.MatchCallbacks'
+        ]
+      ]
+    ]);
 
     $this->setDisplayField('api_id');
 

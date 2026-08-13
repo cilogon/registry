@@ -65,7 +65,7 @@ class FlangesTable extends Table {
     // Define associations
     $this->belongsTo('Pipelines');
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     

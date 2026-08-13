@@ -43,6 +43,62 @@ trait TableMetaTrait {
   // Is the Model Specific REST API enabled for this Table?
   private $msrApiEnabled = false;
 
+  // hasMany relations from Core Models to Plugin Models
+  private $hasManyPlugins = [];
+
+  /**
+   * Determine which Plugins have declared relation to the current Table and dynamically add
+   * relations. This is intended for core models (not Pluggable models) where a Plugin
+   * might declare a foreign key, eg SshKeys belongsTo People.
+   * 
+   * @since  COmanage Registry v5.3.0
+   */
+
+  public function bindPluginRelations() {
+    // We need our underlying class name and not the alias it is registered as,
+    // eg "Petitions" not "StartedFromPetitions".
+    $tableName = StringUtilities::classPathClassName($this->getEntityClass());
+
+    // Pluggable models have a special function to bind associated Entry Point Models.
+    // If the function exists, call it first.
+    if(method_exists($this, "bindPluggableRelations")) {
+      $this->bindPluggableRelations();
+    }
+
+    // We now need the list of active Plugin Entry Point Models. This could be a somewhat
+    // long list, but most plugins are unlikely to point to most models. For now we won't
+    // optimize this, but we might need to eventually.
+    $Plugins = TableRegistry::getTableLocator()->get('Plugins');
+
+    $activeModels = $Plugins->getActivePluginModels('all');
+
+    foreach(array_keys($activeModels) as $entryPointModelName) {
+      $PluginTable = TableRegistry::getTableLocator()->get($entryPointModelName);
+
+      // Not all Entry Point Models are Tables (eg: Jobs).
+
+      if(method_exists($PluginTable, 'getHasManyPluginRelations')) {
+        $pluginRelations = $PluginTable->getHasManyPluginRelations($tableName);
+
+        foreach($pluginRelations as $r) {
+          // We allow an alias to be configured in order to define more than one relation
+          // to the same Table
+
+          // targetModel is (eg) 'CoreEnroller.BasicAttributeCollectors
+          // alias is (eg) 'EmailAddressTypes'
+          $alias = $r['alias'] ?? $r['targetModel'];
+          $config = $r['config'] ?? [];
+
+          if($alias != $r['targetModel']) {
+            $config['className'] = $r['targetModel'];
+          }
+
+          $this->hasMany($alias, $config);
+        }
+      }
+    }
+  }
+
   /**
    * Enable the Model Specific REST API for this Table.
    * 
@@ -403,6 +459,40 @@ trait TableMetaTrait {
     }
 
     return $clone;
+  }
+
+  /**
+   * Obtain the hasManyPlugins configuration.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  string   $modelName  Model Name (eg: People, not an alias) to obtain relations for
+   * @return array                Arroy of hasManyPlugns configuration
+   */
+
+  public function getHasManyPluginRelations(string $modelName): array {
+    if(!empty($this->hasManyPlugins[$modelName])) {
+      return $this->hasManyPlugins[$modelName];
+    }
+
+    return [];
+  }
+  
+  /**
+   * Declaration by Plugin Models of hasMany relations from the perspective of the Core model.
+   * This is intended to allow Core models to figure out which plugins have created relations
+   * for them. Tho configuration array is keyed on the Core model and contains a list of
+   * arrays of dependency informatian. See
+   *  https://spaces.at.internet2.edu/spaces/COmanage/pages/250251876/Writing+Registry+PE+Plugins#WritingRegistryPEPlugins-PluginModelstoCoreModels
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  array  $config   Array of relation configurations
+   */
+
+  public function hasManyPlugins(array $config) {
+    // For now we assume we get the whole configuration from a Plugin's Entry Point Model
+    // all at once, so we don't try to merge the configuration together.
+
+    $this->hasManyPlugins = $config;
   }
   
   /**

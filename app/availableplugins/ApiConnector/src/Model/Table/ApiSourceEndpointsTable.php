@@ -62,6 +62,14 @@ class ApiSourceEndpointsTable extends Table {
     $this->belongsTo('ExternalIdentitySources');
     $this->belongsTo('Apis');
     
+    $this->hasManyPlugins([
+      'ExternalIdentitySources' => [
+        [
+          'targetModel' => 'ApiConnector.ApiSourceEndpoints'
+        ]
+      ],
+    ]);
+    
     $this->setDisplayField('api_id');
     
     $this->setPrimaryLink(['api_id']);

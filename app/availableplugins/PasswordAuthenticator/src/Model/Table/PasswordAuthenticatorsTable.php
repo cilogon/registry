@@ -76,6 +76,18 @@ class PasswordAuthenticatorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->hasManyPlugins([
+      'People' => [
+        [
+          'targetModel' => 'PasswordCollectors.Passwords',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('authenticator_id');

@@ -105,6 +105,51 @@ class OrcidSourcesTable extends Table {
             ->setDependent(true)
             ->setCascadeCallbacks(true);
 
+        $this->hasManyPlugins([
+            'Servers' => [
+                [
+                    'targetModel' => 'OrcidSource.OrcidSources'
+                ]
+            ],
+            'Types' => [
+                [
+                    'alias' => 'OrcidSourceAffiliationTypes',
+                    'targetModel' => 'OrcidSource.OrcidSources',
+                    'config' => [
+                        'foreignKey' => 'default_affiliation_type_id'
+                    ]
+                ],
+                [
+                    'alias' => 'OrcidSourceAddressTypes',
+                    'targetModel' => 'OrcidSource.OrcidSources',
+                    'config' => [
+                        'foreignKey' => 'address_type_id'
+                    ]
+                ],
+                [
+                    'alias' => 'OrcidSourceEmailAddressTypes',
+                    'targetModel' => 'OrcidSource.OrcidSources',
+                    'config' => [
+                        'foreignKey' => 'email_address_type_id'
+                    ]
+                ],
+                [
+                    'alias' => 'OrcidSourceNameTypes',
+                    'targetModel' => 'OrcidSource.OrcidSources',
+                    'config' => [
+                        'foreignKey' => 'name_type_id'
+                    ]
+                ],
+                [
+                    'alias' => 'OrcidSourceTelephoneTypes',
+                    'targetModel' => 'OrcidSource.OrcidSources',
+                    'config' => [
+                        'foreignKey' => 'telephone_number_type_id'
+                    ]
+                ]
+            ]
+        ]);
+
         $this->setDisplayField('id');
 
         $this->setPrimaryLink(['external_identity_source_id']);

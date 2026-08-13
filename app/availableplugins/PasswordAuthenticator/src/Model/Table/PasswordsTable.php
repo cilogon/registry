@@ -98,6 +98,65 @@ class PasswordsTable extends Table {
   }
 
   /**
+   * Callback before model delete.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  CakeEventEvent $event   The beforeDelete event
+   * @param                 $entity  Entity
+   * @param  ArrayObject    $options Options
+   * @return boolean                 True on success
+   */
+  
+  public function beforeDelete(\Cake\Event\Event $event, $entity, \ArrayObject $options) {
+    // If we were only dealing with hard delete, we wouldn't need implementedEvents()
+    // below, because ChangelogBehavior ignores hard deletes.
+
+    // We might be called via manage(), below, or we might be called via a cascade of a
+    // Person delete. For the latter, if we are in a soft delete we need to check if the
+    // PasswordAuthenticator configuration requires a hard delete instead, however when
+    // we are called by manage() below we've already figured this out, so we'll accept
+    // an additional flag so we know not to check again.
+
+    if(empty($options['useHardDelete']) || !$options['useHardDelete']) {
+      // Pull the PasswordAuthenticator configuration and see if we need to upgrade this
+      // to a hard delete.
+
+      $cfg = $options['pwdAuthCfg'] ??    // We accept this from manage() to avoid another lookup
+             $this->PasswordAuthenticators
+                  ->find()
+                  ->where(['PasswordAuthenticator.id' => $entity->password_authenticator_id])
+                  ->firstOrFail();
+      
+      if($cfg->use_hard_delete) {
+        // Note we are modifying a parameter array in place, which works because of how
+        // ArrayObjects work. It's unclear if Cake intends this to operate as call by reference.
+        $options['useHardDelete'] = true;
+      }
+    }
+    // else useHardDelete is specified, so we don't have to do anything else
+
+    $event->setResult(true);
+  }
+
+  /**
+   * Define the table's implemented events.
+   *
+   * @since  COmanage Registry v5.3.0
+   */
+
+  public function implementedEvents(): array {
+    $events = parent::implementedEvents();
+
+    // We need to adjust our beforeDelete priority to run before ChangelogBehavior's.
+    $events['Model.beforeDelete'] = [
+      'callable' => 'beforeDelete',
+      'priority' => 1
+    ];
+
+    return $events;
+  }
+
+  /**
    * Handle an Authenticator update from a manage() request.
    * 
    * @since  COmanage Registry v5.2.0
@@ -138,7 +197,12 @@ class PasswordsTable extends Table {
         // kept as an archive. This would allow us to eventually support Password
         // policies (eg to prevent reuse).
 
-        $this->delete($password, ['useHardDelete' => $cfg->password_authenticator->use_hard_delete]);
+        $this->delete($password, [
+          'useHardDelete' => $cfg->password_authenticator->use_hard_delete,
+          // We pass the Password Authenticator configuration so beforeDelete doesn't have to
+          // pull it again
+          'pwdAuthCfg' => $cfg->password_authenticator
+        ]);
       }
 
       // We'll store one entry per hashing type. We always store CRYPT

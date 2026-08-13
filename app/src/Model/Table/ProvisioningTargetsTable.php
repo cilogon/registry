@@ -87,7 +87,7 @@ class ProvisioningTargetsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
 
-    $this->setPluginRelations();
+    $this->bindPluginRelations();
     
     $this->setDisplayField('description');
     
@@ -192,10 +192,11 @@ class ProvisioningTargetsTable extends Table {
                      ->all();
     
     foreach($targets as $t) {
-      // Compare our $context against the target's $status. There are four possible
+      // Compare our $context against the target's $status. There are five possible
       // contexts, with their corresponding provisionable statuses:
       // Automatic:   Immediate, Queue, QuueOnError
       // Enrollment:  Enrollment, Immediate, Queue, QueueOnError
+      // Expunge:     Immediate, QueueOnError
       // Manual:      Enrollment, Immediate, Manual, Queue, QueueOnError
       // Queue:       Enrollment, Immediate, Manual, Queue, QueueOnError
 
@@ -214,6 +215,18 @@ class ProvisioningTargetsTable extends Table {
         case ProvisioningContextEnum::Enrollment:
           if($t->status == ProvisionerModeEnum::Manual) {
             $this->llog('trace', "Skipping Provisioning Target " . $t->id . " with mode " . $t->status . " (enrollment context)", $t->id);
+            continue 2;
+          }
+          break;
+        case ProvisioningContextEnum::Expunge:
+          // Expunge does not support Queue mode because when the Job runs the physical record will
+          // almost certainly have been removed from the database. (This is also true for QueueOnError,
+          // but in most cases the record will have been successfully deprovisioned the first time.)
+          if(!in_array($t->status, [
+            ProvisionerModeEnum::Immediate,
+            ProvisionerModeEnum::QueueOnError
+          ])) {
+            $this->llog('trace', "Skipping Provisioning Target " . $t->id . " with mode " . $t->status . " (expunge context", $t->id);
             continue 2;
           }
           break;

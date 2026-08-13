@@ -70,6 +70,23 @@ class AgreementCollectorsTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     
+    $this->hasManyPlugins([
+      'Petitions' => [      
+        [
+          'targetModel' => 'TermsAgreer.PetitionAgreements',
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
+        ]
+      ],
+      'TermsAndConditions' => [
+        [
+          'targetModel' => 'TermsAgreer.PetitionAgreements'
+        ]
+      ]
+    ]);
+
     $this->setDisplayField('id');
 
     $this->setPrimaryLink('enrollment_flow_step_id');

@@ -75,6 +75,19 @@ class KerberosProvisionersTable extends Table {
     $this->belongsTo('Servers');
     $this->belongsTo('Types');
     
+    $this->hasManyPlugins([
+      'Servers' => [
+        [
+          'targetModel' => 'KerberosConnector.KerberosProvisioners'
+        ]
+      ],
+      'Types' => [
+        [
+          'targetModel' => 'KerberosConnector.KerberosProvisioners'
+        ]
+      ]
+    ]);
+    
     $this->setDisplayField('server_id');
     
     $this->setPrimaryLink(['provisioning_target_id']);
@@ -221,6 +234,11 @@ class KerberosProvisionersTable extends Table {
 
       $action = 'lock';
       // $action = 'remove';
+    } elseif($eligibility == ProvisioningEligibilityEnum::Expunged) {
+      // We'll remove the principal for the Expunged record since there shouldn't
+      // be a need or reason to keep it around.
+
+      $action = 'remove';
     }
 
     // Before we perform any action, retrieve the current state of the principal
@@ -256,6 +274,13 @@ class KerberosProvisionersTable extends Table {
           'status' => ProvisioningStatusEnum::Provisioned,
           'comment' => __d('kerberos_connector', 'result.locked-p', [$principal]),
           'identifier' => $principal
+        ];
+      } elseif($action == 'remove') {
+        $curprinc->delete();
+
+        return [
+          'status' => ProvisioningStatusEnum::NotProvisioned,
+          'comment' => __d('kerberos_connector', 'result.notprov', [$principal])
         ];
       } elseif($action == 'unlock') {
         // We only end up here if Pass Through Provisioning is enabled, in which case
