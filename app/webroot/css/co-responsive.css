@@ -110,7 +110,7 @@
   }
   .petition-attrs > ul > li {
     break-inside: avoid;
-    padding: 0.75em 1.5em;
+    padding: 0.75em;
   }
   #dispatch-list-container ul#view_Petitions .field {
     display: grid;

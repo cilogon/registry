@@ -2431,9 +2431,13 @@ ul.petiton-step-plugin-meta li {
   background-color: var(--cmg-color-bg-001);
 }
 .petition-attrs {
-  padding: 0;
+  padding: 1em;
   border: 1px solid var(--cmg-color-bg-005);
   font-style: italic;
+}
+.petition-attr-value {
+  font-style: normal;
+  font-size: 0.95rem;
 }
 #dispatch-list-container .petition-attrs {
   margin: 0 0 1rem;
