@@ -308,6 +308,7 @@ class PeopleTable extends Table {
           'Addresses',
           'AdHocAttributes',
           'AuthenticatorStatuses',
+          'Clusters',
           'Names',
           'EmailAddresses',
           'ExternalIdentities',
@@ -645,6 +646,43 @@ class PeopleTable extends Table {
           $ret['data']->$entityKey = array_merge($ret['data']->$entityKey, $entityData);
         } else {
           $ret['data']->$entityKey = $entityData;
+        }
+      }
+
+      // Now do mostly the same thing but for Cluster Plugins. This is a bit simpler.
+
+      $Clusters = TableRegistry::getTableLocator()->get('Clusters');
+
+      $clusters = $Clusters->find()
+                           ->where([
+                            'co_id' => $ret['data']->co_id,
+                            'status' => SuspendableStatusEnum::Active
+                           ])
+                           // Plugins expect their configuration as part of
+                           // the marshal call
+                           ->contain($Clusters->getPluginRelations())
+                           ->all();
+      
+      foreach($clusters as $cluster) {
+        $CPlugin = TableRegistry::getTableLocator()->get($cluster->plugin);
+
+        // Unlike Authenticators, Clusters do not have a required naming convention.
+        // We use the returned entity name as its key in the provisioned data.
+        
+        $pluginData = $CPlugin->marshalProvisioningData($cluster, $id);
+        
+        if(!empty($pluginData)) {
+          foreach($pluginData as $pluginModelName => $entityData) {
+            $entityKey = Inflector::tableize($pluginModelName);
+
+            if(!empty($ret['data']->$entityKey)) {
+              // We already have data from a previous instantiation of the same plugin,
+              // merge the results together
+              $ret['data']->$entityKey = array_merge($ret['data']->$entityKey, $entityData);
+            } else {
+              $ret['data']->$entityKey = $entityData;
+            }
+          }
         }
       }
     } else {

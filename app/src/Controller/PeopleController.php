@@ -150,5 +150,8 @@ class PeopleController extends StandardController {
     $this->set('vv_person', $this->People->get((int)$id, contain: $contain));
     
     $this->set('vv_title', __d('operation', 'delete.confirm.title'));
+
+    // We pull cluster information separately because it can't be contain'd
+    $this->set('vv_person_cluster_status', $this->People->Cos->Clusters->status((int)$id));
   }
 }

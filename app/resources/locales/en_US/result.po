@@ -57,6 +57,12 @@ msgstr "Authenticator {0} Unlocked"
 msgid "clone.actor"
 msgstr "Cloned from CO {0}"
 
+msgid "Clusters.assigned"
+msgstr "Clusters Assigned ({0})"
+
+msgid "Clusters.assigned.already"
+msgstr "Clusters Already Assigned ({0})"
+
 msgid "completed"
 msgstr "Completed"
 

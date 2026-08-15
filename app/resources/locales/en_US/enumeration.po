@@ -57,6 +57,18 @@ msgstr "False"
 msgid "BooleanEnum.1"
 msgstr "True"
 
+msgid "ClusterStatusEnum.A"
+msgstr "Active"
+
+msgid "ClusterStatusEnum.L"
+msgstr "Locked"
+
+msgid "ClusterStatusEnum.NC"
+msgstr "Not Created"
+
+msgid "ClusterStatusEnum.XP"
+msgstr "Expired"
+
 msgid "ComparisonEnum.CTS"
 msgstr "Contains"
 

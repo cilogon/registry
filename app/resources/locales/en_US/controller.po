@@ -45,6 +45,9 @@ msgstr "{0,plural,=1{Authenticator Status} other{Authenticator Statuses}}"
 msgid "Authenticators"
 msgstr "{0,plural,=1{Authenticator} other{Authenticators}}"
 
+msgid "Clusters"
+msgstr "{0,plural,=1{Cluster} other{Clusters}}"
+
 msgid "CoSettings"
 msgstr "{0,plural,=1{CO Setting} other{CO Settings}}"
 

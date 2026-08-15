@@ -13,6 +13,7 @@
       "api_id": { "type": "integer", "foreignkey": { "table": "apis", "column": "id" } },
       "api_user_id": { "type": "integer", "foreignkey": { "table": "api_users", "column": "id" } },
       "authenticator_id": { "type": "integer", "foreignkey": { "table": "authenticators", "column": "id" }, "notnull": true },
+      "cluster_id": { "type": "integer", "foreignkey": { "table": "clusters", "column": "id" }, "notnull": true },
       "co_id": { "type": "integer", "foreignkey": { "table": "cos", "column": "id" }, "notnull": true },
       "comment": { "type": "string", "size": 256 },
       "context": { "type": "string", "size": 2 },
@@ -1040,6 +1041,19 @@
         "authenticator_statuses_i1": { "columns": [ "authenticator_id", "person_id" ] },
         "authenticator_statuses_i2": { "needed": false, "columns": [ "authenticator_id"] },
         "authenticator_statuses_i3": { "needed": false, "columns": [ "person_id"] }
+      }
+    },
+
+    "clusters": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "description": {},
+        "plugin": {},
+        "status": {}
+      },
+      "indexes": {
+        "clusters_i1": { "columns": [ "co_id" ] }
       }
     },
 

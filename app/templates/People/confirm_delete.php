@@ -74,18 +74,31 @@ declare(strict_types = 1);
   <?php if(!empty($vv_person->external_identities)): ?>
   <ul>
     <?php foreach($vv_person->external_identities as $ei): ?>
-    <li><?= __d(
-      'information',
-      'People.delete.ei',
-      [
-        $ei->id,
-        $ei->ext_identity_source_record->external_identity_source->description,
-        $ei->ext_identity_source_record->source_key
-      ]
-    ) ?></li>
+    <li><?=
+      !empty($ei->ext_identity_source_record)
+      ? __d(
+          'information',
+          'People.delete.ei',
+          [
+            $ei->id,
+            $ei->ext_identity_source_record->external_identity_source->description,
+            $ei->ext_identity_source_record->source_key
+          ]
+        )
+      // Legacy External Identities do not have Source Records
+      : __d('information', 'People.delete.ei.legacy', [$ei->id])
+      ?></li>
     <?php endforeach; // external_identities ?>
   </ul>
   <?php endif; // external_identities ?>
+
+  <?php if(!empty($vv_person_cluster_status)): ?>
+  <ul>
+    <?php foreach($vv_person_cluster_status as $cs): ?>
+    <li><?= __d('information', 'People.delete.cluster', [$cs['cluster']->description]) ?></li>
+    <?php endforeach; ?>
+  </ul>
+  <?php endif; // vv_person_cluster_status ?>
 
   <?php if(!empty($vv_person->sponsor_person_roles)): ?>
   <li><?= __d('information', 'People.delete.roles.sponsor', [count($vv_person->sponsor_person_roles)]) ?>

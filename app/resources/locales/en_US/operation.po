@@ -279,6 +279,9 @@ msgstr "Login"
 msgid "logout"
 msgstr "Logout"
 
+msgid "manage"
+msgstr "Manage"
+
 msgid "manage.a"
 msgstr "Manage {0}"
 

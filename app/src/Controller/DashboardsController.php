@@ -97,6 +97,11 @@ class DashboardsController extends StandardController {
         'controller'    => 'authenticators',
         'action'        => 'index'
       ],
+      __d('controller', 'Clusters', [99]) => [
+        'icon'          => 'host',
+        'controller'    => 'clusters',
+        'action'        => 'index'
+      ],
       __d('controller', 'Cous', [99]) => [
         'icon'          => 'people_outline',
         'controller'    => 'cous',

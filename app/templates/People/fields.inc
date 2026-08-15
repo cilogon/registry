@@ -141,6 +141,19 @@ $topLinks = [
     'class' => ''
   ],
   [
+    'icon' => 'host',
+    'order' => 'Default',
+    'label' => __d('controller', 'Clusters', [99]),
+    'link' => [
+      'controller' => 'clusters',
+      'action' => 'status',
+      '?' => [
+        'person_id' => $vv_obj->id
+      ]
+    ],
+    'class' => ''
+  ],
+  [
     'icon' => 'notifications',
     'order' => 'Default',
     'label' => __d('controller', 'Notifications', [99]),

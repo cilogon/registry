@@ -72,6 +72,9 @@ class CosTable extends Table {
     $this->hasMany('ApiUsers')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('Clusters')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Cous')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
