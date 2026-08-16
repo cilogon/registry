@@ -292,6 +292,12 @@ msgstr "removed"
 msgid "result"
 msgstr "Result"
 
+msgid "test.ok"
+msgstr "Connection OK"
+
+msgid "test.na"
+msgstr "Connection Test NOT Supported"
+
 msgid "saved"
 msgstr "Saved"
 
@@ -367,3 +373,4 @@ msgstr "Verified"
 
 msgid "verified.not"
 msgstr "Not Verified"
+

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Servers Index Columns
+ * COmanage Registry LDAP Servers Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,36 +21,36 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'description' => [
-    'type' => 'link',
-    'sortable' => true
-  ],
-  'plugin' => [
-    'type' => 'echo',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
-  ]
-];
+declare(strict_types=1);
 
-// $rowActions appear as row-level menu items in the index view gear icon
-$rowActions = [
-  [
-    'action'  => 'configure',
-    'label'   => __d('operation', 'configure.plugin'),
-    'icon'    => 'electrical_services'
-  ],
-  [
-    'action'  => 'test',
-    'label'   => __d('operation', 'test.connection'),
-    'icon'    => 'fact_check'
-  ],
-];
+namespace CoreServer\Model\Entity;
+
+use Cake\ORM\Entity;
+
+class LdapServer extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+
+  /**
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * @var array<string, bool>
+   */
+  protected array $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
+  ];
+
+  /**
+   * Fields that are excluded from JSON versions of the entity.
+   *
+   * @var array
+   */
+  protected array $_hidden = [
+    'password'
+  ];
+}

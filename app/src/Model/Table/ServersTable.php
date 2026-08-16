@@ -84,6 +84,9 @@ class ServersTable extends Table {
     
     $this->setPrimaryLink('co_id');
     $this->setRequiresCO(true);
+    $this->setAllowLookupPrimaryLink(['test']);
+    // We need to calculate the redirect URL for sync ourselves (in the controller)
+    $this->setRedirectGoal(goal: 'special', action: 'test');
 
     $this->setAutoViewVars([
       'plugins' => [
@@ -105,7 +108,8 @@ class ServersTable extends Table {
         'configure' =>  ['platformAdmin', 'coAdmin'],
         'delete' =>     ['platformAdmin', 'coAdmin'],
         'edit' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
+        'view' =>       ['platformAdmin', 'coAdmin'],
+        'test' =>  ['platformAdmin', 'coAdmin'],
       ],
       // Actions that operate over a table (ie: do not require an $id)
       'table' => [

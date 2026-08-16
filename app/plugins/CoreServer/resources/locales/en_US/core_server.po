@@ -73,6 +73,15 @@ msgstr "Oracle"
 msgid "enumeration.RdbmsTypeEnum.PG"
 msgstr "Postgres"
 
+msgid "error.LdapServers.connect"
+msgstr "Failed to connect to LDAP server {0}"
+
+msgid "error.LdapServers.credentials"
+msgstr "Missing authentication credentials for LDAP server {0}"
+
+msgid "error.LdapServers.serverurl.valid"
+msgstr "Please enter a valid ldap or ldaps URL (e.g., ldaps://server:port)"
+
 msgid "error.MatchServers.attr.none"
 msgstr "No valid attributes assembled for Match request"
 
@@ -162,3 +171,33 @@ msgstr "RDBMS Type"
 
 msgid "result.MatchServers.match.accepted"
 msgstr "Match request requires administrator intervention, Match Request ID: {0}"
+
+msgid "field.LdapServers.serverurl"
+msgstr "Server URL"
+
+msgid "field.LdapServers.serverurl.desc"
+msgstr "LDAP server URL, e.g. ldap://ldap.example.org or ldaps://ldap.example.org"
+
+msgid "field.LdapServers.binddn"
+msgstr "Bind DN"
+
+msgid "field.LdapServers.binddn.desc"
+msgstr "DN to authenticate as to manage entries"
+
+msgid "field.LdapServers.password"
+msgstr "Password"
+
+msgid "field.LdapServers.password.desc"
+msgstr "Password to use for authentication"
+
+msgid "field.LdapServers.basedn"
+msgstr "People Base DN"
+
+msgid "field.LdapServers.basedn.desc"
+msgstr "Base DN to search/provision People under"
+
+msgid "field.LdapServers.group_basedn"
+msgstr "Group Base DN"
+
+msgid "field.LdapServers.group_basedn.desc"
+msgstr "Base DN to provision Group entries under (requires groupOfNames objectclass)"

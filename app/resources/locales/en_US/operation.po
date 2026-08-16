@@ -390,6 +390,9 @@ msgstr "Switch To This CO"
 msgid "terminate"
 msgstr "Terminate"
 
+msgid "test.connection"
+msgstr "Test Connection"
+
 msgid "TermsAndConditions.agree.confirm"
 msgstr "Are you sure you wish to accept these Terms and Conditions?"
 

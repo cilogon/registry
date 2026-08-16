@@ -418,6 +418,9 @@ msgstr "The Primary Link key cannot be changed once set"
 msgid "primary_link.mismatch"
 msgstr "All records must have the same Primary Link"
 
+msgid "test.connection"
+msgstr "Connection Error"
+
 msgid "rule.ValidateCo.errorField"
 msgstr "errorField not set in ruleValidateCO"
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Servers Index Columns
+ * COmanage Registry LDAP Common Codes Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,37 +20,21 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'description' => [
-    'type' => 'link',
-    'sortable' => true
-  ],
-  'plugin' => [
-    'type' => 'echo',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
-  ]
-];
+declare(strict_types = 1);
 
-// $rowActions appear as row-level menu items in the index view gear icon
-$rowActions = [
-  [
-    'action'  => 'configure',
-    'label'   => __d('operation', 'configure.plugin'),
-    'icon'    => 'electrical_services'
-  ],
-  [
-    'action'  => 'test',
-    'label'   => __d('operation', 'test.connection'),
-    'icon'    => 'fact_check'
-  ],
-];
+namespace CoreServer\Lib\Enum;
+
+use App\Lib\Enum\StandardEnum;
+
+class LdapCommonCodesEnum extends StandardEnum
+{
+  const int LDAP_NO_SUCH_OBJECT = 0x20; // 32
+  const int LDAP_ENTRY_ALREADY_EXISTS = 0x44; // 68
+  // Application/internal code (not from ldap_errno()):
+  const int LDAP_CONNECT_ERROR = 0x5b; // 91 (internal)
+}

@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Servers Index Columns
+ * COmanage Registry LDAP Servers Controller
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,36 +21,41 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'description' => [
-    'type' => 'link',
-    'sortable' => true
-  ],
-  'plugin' => [
-    'type' => 'echo',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
-  ]
-];
+declare(strict_types=1);
 
-// $rowActions appear as row-level menu items in the index view gear icon
-$rowActions = [
-  [
-    'action'  => 'configure',
-    'label'   => __d('operation', 'configure.plugin'),
-    'icon'    => 'electrical_services'
-  ],
-  [
-    'action'  => 'test',
-    'label'   => __d('operation', 'test.connection'),
-    'icon'    => 'fact_check'
-  ],
-];
+namespace CoreServer\Controller;
+
+use Cake\Event\EventInterface;
+use App\Controller\StandardPluginController;
+
+class LdapServersController extends StandardPluginController {
+  protected array $paginate = [
+    'order' => [
+      'LdapServers.serverurl' => 'asc'
+    ]
+  ];
+
+  
+  /**
+   * Callback run prior to the request render.
+   *
+   * @param   EventInterface  $event  Cake Event
+   * @return  \Cake\Http\Response|null|void
+   * @since         COmanage Registry v5.3.0
+   */
+  public function beforeRender(EventInterface $event) {
+    $link = $this->getPrimaryLink(true);
+
+    if(!empty($link->value)) {
+      $this->set('vv_bc_parent_obj', $this->LdapServers->Servers->get($link->value));
+      $this->set('vv_bc_parent_displayfield', $this->LdapServers->Servers->getDisplayField());
+      $this->set('vv_bc_parent_primarykey', $this->LdapServers->Servers->getPrimaryKey());
+    }
+
+    return parent::beforeRender($event);
+  }
+}

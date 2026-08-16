@@ -2,6 +2,7 @@
   "types": {
     "server": [
       "HttpServers",
+      "LdapServers",
       "MatchServers",
       "Oauth2Servers",
       "SmtpServers",
@@ -51,6 +52,20 @@
           "match_server_attributes_i2": { "needed": false, "columns": [ "type_id" ]}
         },
         "clone_relation": true
+      },
+      "ldap_servers": {
+        "columns": {
+          "id": {},
+          "server_id": {},
+          "serverurl": { "type": "string", "size": 256 },
+          "binddn": { "type": "string", "size": 256 },
+          "password": { "type": "string", "size": 256 },
+          "basedn": { "type": "string", "size": 256 },
+          "group_basedn": { "type": "string", "size": 256 }
+        },
+        "indexes": {
+          "ldap_servers_i1": { "columns": [ "server_id" ] }
+        }
       },
       "oauth2_servers": {
         "columns": {

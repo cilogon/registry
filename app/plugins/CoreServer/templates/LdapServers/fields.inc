@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Servers Index Columns
+ * COmanage Registry LDAP Servers Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,36 +21,38 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-$indexColumns = [
-  'description' => [
-    'type' => 'link',
-    'sortable' => true
+// $topLinks appear as an upper right menu
+$topLinks = [
+  [
+    'icon'  => 'fact_check',
+    'order' => 'Default',
+    'label' => __d('operation', 'test.connection'),
+    'url'  => [
+      'plugin'                  => null,
+      'controller'              => 'Servers',
+      'action'                  => 'test',
+      $vv_obj?->server_id
+    ],
+    'class' => '',
   ],
-  'plugin' => [
-    'type' => 'echo',
-    'sortable' => true
-  ],
-  'status' => [
-    'type' => 'enum',
-    'class' => 'SuspendableStatusEnum',
-    'sortable' => true
-  ]
 ];
 
-// $rowActions appear as row-level menu items in the index view gear icon
-$rowActions = [
-  [
-    'action'  => 'configure',
-    'label'   => __d('operation', 'configure.plugin'),
-    'icon'    => 'electrical_services'
-  ],
-  [
-    'action'  => 'test',
-    'label'   => __d('operation', 'test.connection'),
-    'icon'    => 'fact_check'
-  ],
+$fields = [
+  'serverurl',
+  'binddn',
+  'password',
+  'basedn',
+  'group_basedn'
+];
+
+$subnav = [
+  'tabs' => ['Servers', 'CoreServer.LdapServers'],
+  'action' => [
+    'Servers' => ['edit'],
+    'CoreServer.LdapServers' => ['edit']
+  ]
 ];

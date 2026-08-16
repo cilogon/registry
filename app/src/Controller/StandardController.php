@@ -40,6 +40,7 @@ use Cake\Utility\Inflector;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Util\StringUtilities;
+use Cake\Datasource\EntityInterface;
 
 class StandardController extends AppController {
   use IndexQueryTrait;
