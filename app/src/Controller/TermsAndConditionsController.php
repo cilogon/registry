@@ -44,6 +44,24 @@ class TermsAndConditionsController extends StandardController {
   ];
 
   /**
+   * Perform Controller initialization.
+   *
+   * @since  COmanage Registry v5.3.0
+   */
+
+  public function initialize(): void {
+    parent::initialize();
+
+    // Configure breadcrumb rendering
+    $this->Breadcrumb->skipConfig(['/^\/terms-and-conditions\/status/']);
+    $this->Breadcrumb->skipParents(['/^\/terms-and-conditions\/status/']);
+
+    $this->Breadcrumb->configureQueryPrimaryLinks([
+      'status' => ['person_id']
+    ]);
+  }
+
+  /**
    * Record an Agreement.
    * 
    * @since  COmanage Registry v5.3.0
