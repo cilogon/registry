@@ -30,7 +30,9 @@ declare(strict_types = 1);
 namespace Transmogrify\Lib\Traits;
 
 use App\Lib\Enum\PetitionStatusEnum;
+use App\Lib\Enum\StatusEnum;
 use App\Lib\Enum\SyncModeEnum;
+use App\Lib\Enum\PageContextEnum;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
@@ -998,5 +1000,100 @@ trait TypeMapperTrait
       $this->findCoId($row),
       $type
     );
+  }
+
+
+  /**
+   * Create a static page record based on provided row data.
+   *
+   * If the 'body' field is empty in the provided row, the method returns null.
+   * Otherwise, a new entry in the 'mostly_static_pages' table is created using
+   * the data in the row where a default context and title are assigned if unspecified.
+   *
+   * @param array $row Row data containing fields like 'body', 'description', etc.
+   * @return int|null ID of the newly created static page or null if 'body' is empty.
+   * @since COmanage Registry v5.3.0
+   */
+  protected function mapToStaticPage(array $row): ?int
+  {
+    if (empty($row['body'])) {
+      return null;
+    }
+
+    $coId = $this->findCoId($row);
+
+    // Qualified table names
+    $mostlyStaticPagesTable  = $this->outconn->qualifyTableName('mostly_static_pages');
+
+    // For changelog rows, terms_and_conditions_id points at the "current" row.
+    // For the current row, we use id.
+    $logicalTandcId = $row['terms_and_conditions_id'] ?? $row['id'] ?? null;
+
+    if ($logicalTandcId === null) {
+      // Can't safely de-dup without a stable logical identifier
+      return null;
+    }
+
+    // Reuse if already created for this logical T&C in this CO (regardless of current vs changelog row)
+    $cached = $this->cache['tandc_static_pages'][(int)$coId][(int)$logicalTandcId] ?? null;
+    if ($cached !== null) {
+      $cachedId = (int)$cached;
+
+      // If we later encounter the current (non-changelog) row, refresh the page content
+      // to match the canonical/current record (but keep the original stable 'name').
+      if (empty($row['terms_and_conditions_id'])) {
+        $update = [
+          'title'       => $row['description'] ?? 'Untitled - transmogrified',
+          'description' => $row['description'] ?? '',
+          'body'        => $row['body'],
+          'modified'    => $this->mapNow($row),
+        ];
+
+        $this->populateChangelogDefaults('mostly_static_pages', $update, true);
+        $this->normalizeBooleanFieldsForDb('mostly_static_pages', $update);
+
+        $this->outconn->update($mostlyStaticPagesTable, $update, ['id' => $cachedId]);
+      }
+
+      return $cachedId;
+    }
+
+    $title = $row['description'] ?? 'Untitled - transmogrified';
+
+    // Make name stable and collision-resistant within a CO
+    $slug = preg_replace('/[^a-z0-9-]+/i', '-', strtolower($title));
+    $slug = trim((string)$slug, '-');
+    if ($slug === '') {
+      $slug = 'untitled';
+    }
+
+    $page = [
+      'co_id' => $coId,
+      'title' => $title,
+      'name' => sprintf('tac-%s-%d', $slug, (int)$logicalTandcId),
+      'description' => $row['description'] ?? '',
+      'body' => $row['body'],
+      'context' => PageContextEnum::TermsAndConditions,
+      'status' => StatusEnum::Active,
+      'created' => $now = $this->mapNow($row),
+      'modified' => $now,
+    ];
+
+    $this->populateChangelogDefaults('mostly_static_pages', $page, true);
+    $this->normalizeBooleanFieldsForDb('mostly_static_pages', $page);
+    $this->outconn->insert($mostlyStaticPagesTable, $page);
+
+    $id = $this->outconn->lastInsertId();
+
+    if ($id === false) {
+      return null;
+    }
+
+    $id = (int)$id;
+
+    // Cache so revisions don’t create duplicates (and so changelog/current rows share the same page)
+    $this->cache['tandc_static_pages'][(int)$coId][(int)$logicalTandcId] = $id;
+
+    return $id;
   }
 }

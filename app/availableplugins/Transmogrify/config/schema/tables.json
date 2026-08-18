@@ -67,6 +67,8 @@
             "global_search_limit": "search_global_limit",
             "required_fields_addr": "required_fields_address",
             "permitted_fields_telephone_number": "&populateCoSettingsPhone",
+            "t_and_c_login_mode": "tc_login_mode",
+            "t_and_c_return_url_allowlist": "tc_return_url_allowlist",
             "enable_nsf_demo": null,
             "disable_expiration": null,
             "disable_ois_sync": null,
@@ -75,7 +77,6 @@
             "enable_normalization": null,
             "enable_empty_cou": null,
             "invitation_validity": null,
-            "t_and_c_login_mode": null,
             "sponsor_eligibility": null,
             "sponsor_co_group_id": null,
             "theme_stacking": null,
@@ -87,7 +88,6 @@
             "person_picker_identifier_type": null,
             "person_picker_display_types": null,
             "group_create_admin_only": null,
-            "t_and_c_return_url_allowlist": null,
             "population_hide": null
         },
         "dependencies": ["cos"]
@@ -944,5 +944,29 @@
         },
         "addChangelog": true,
         "dependencies": ["groups", "people", "provisioning_targets"]
+    },
+    "terms_and_conditions": {
+        "source": "cm_co_terms_and_conditions",
+        "displayField": "description",
+        "plugin": null,
+        "booleans": [
+            "agree_to_updates"
+        ],
+        "cache": ["co_id", "cou_id"],
+        "fieldMap": {
+            "co_terms_and_conditions_id": "terms_and_conditions_id",
+            "mostly_static_page_id": "&mapToStaticPage",
+            "body": null
+        },
+        "dependencies": ["co_id", "cou_id"]
+    },
+    "t_and_c_agreements": {
+        "source": "cm_co_t_and_c_agreements",
+        "displayField": "id",
+        "fieldMap": {
+            "co_terms_and_conditions_id": "terms_and_conditions_id",
+            "co_person_id": "person_id"
+        },
+        "dependencies": ["terms_and_conditions", "people"]
     }
 }
