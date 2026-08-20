@@ -34,7 +34,10 @@
 session_name("REGISTRYPECAKEPHP");
 session_start();
 
+// Reset authn indicators
 unset($_SESSION['Auth']);
+// Reset bypass cache
+unset($_SESSION['TAndC']);
 
 $re = '/(.*)\/auth\/logout\/logout(?:.php)?(.*)/m';
 $subst = '$1$2';

@@ -497,7 +497,7 @@ class StandardController extends AppController {
         $saveObj = $table->findById($id)->firstOrFail();
 
         try{
-          // Attempt the update the record
+          // Attempt to update the record
 
           $data = $this->request->getData();
 
@@ -506,9 +506,17 @@ class StandardController extends AppController {
 
           $table->patchEntity($saveObj, $data, $opts);
 
+          $saveOptions = [];
+
+          // See if the Table specifies any related models to be relinked
+          // to the archive record when ChangelogBehavior creates it.
+          if(method_exists($table, "getRelinkToArchive")) {
+            $saveOptions['relinkToArchive'] = $table->getRelinkToArchive();
+          }
+
           // This throws \Cake\ORM\Exception\RolledbackTransactionException if aborted
           // in afterSave
-          if($table->save($saveObj)) {
+          if($table->save($saveObj, $saveOptions)) {
             $this->Flash->success(__d('result', 'saved'));
             
             // Give the controller an opportunity to set additional Flash messages

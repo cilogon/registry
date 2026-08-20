@@ -231,6 +231,9 @@ msgstr "Report for "
 msgid "table.list"
 msgstr "{0} List"
 
+msgid "TermsAndConditions.desc.old"
+msgstr "{0} (Agreement is to an older definition)"
+
 msgid "ug.tasks.post"
 msgstr "Executing post-database tasks for version {0}"
 

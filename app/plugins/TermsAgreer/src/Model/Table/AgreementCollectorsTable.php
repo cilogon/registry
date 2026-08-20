@@ -82,7 +82,14 @@ class AgreementCollectorsTable extends Table {
       ],
       'TermsAndConditions' => [
         [
-          'targetModel' => 'TermsAgreer.PetitionAgreements'
+          'targetModel' => 'TermsAgreer.PetitionAgreements',
+          // If a T&C is deleted, any pending Petition Agreements should also
+          // be deleted (though this may have happened already if the delete
+          // cascades to the Agreement Collector first).
+          'config' => [
+            'dependent' => true,
+            'cascadeCallbacks' => true
+          ]
         ]
       ]
     ]);

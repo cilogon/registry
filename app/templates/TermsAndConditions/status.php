@@ -110,8 +110,34 @@ use App\Lib\Util\StringUtilities;
             }
           ?>
           </div>
-            <?= $t['tandc']->description; ?>
-          </div>
+          <?php
+            if(!empty($t['oldtandc'])) {
+              // If this Agreement is to an older definition of the T&C, use that
+              // older definition and provide an advisory.
+
+              print $this->Html->link(
+                // There might be a more elegant way to render this than appending
+                // it to the URL label...
+                __d('information', 'TermsAndConditions.desc.old', [$t['oldtandc']->description]),
+                [
+                  'controller' => 'terms_and_conditions',
+                  // We can only view archive records, not edit
+                  'action' => 'view',
+                  $t['oldtandc']->id
+                ]
+              );
+            } else {
+              print $this->Html->link(
+                $t['tandc']->description,
+                [
+                  'controller' => 'terms_and_conditions',
+                  'action' => 'edit',
+                  $t['tandc']->id
+                ]
+              );
+            }
+          ?>
+        </div>
         </td>
         <td><?= __d('enumeration', 'TAndCStatusEnum.'.$t['status']); ?></td>
         <td><?= $t['agreement']->identifier ?? "" ?></td>

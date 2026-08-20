@@ -46,6 +46,9 @@ trait TableMetaTrait {
   // hasMany relations from Core Models to Plugin Models
   private $hasManyPlugins = [];
 
+  // When saving an entity, which related models to relink to archive (ChangelogBehavior)
+  private $relinkToArchive = [];
+
   /**
    * Determine which Plugins have declared relation to the current Table and dynamically add
    * relations. This is intended for core models (not Pluggable models) where a Plugin
@@ -476,6 +479,18 @@ trait TableMetaTrait {
 
     return [];
   }
+
+  /**
+   * Obtain the set of related models to relink to the archive copy of the
+   * parent record when saving (via ChangelogBehavior).
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @return array          Array of relations, in standard Cake notation
+   */
+
+  public function getRelinkToArchive(): array {
+    return $this->relinkToArchive;
+  }
   
   /**
    * Declaration by Plugin Models of hasMany relations from the perspective of the Core model.
@@ -563,6 +578,18 @@ trait TableMetaTrait {
     $cloneForeignEntity = $TargetTable->getByUuid($originalForeignEntity->uuid, $targetCoId);
         
     return $cloneForeignEntity->id;
+  }
+
+  /**
+   * Set the related models that will be relinked to the archived parent record
+   * when saving (via ChangelogBehavior).
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  array  $relations  Array of relations, in standard Cake notation
+   */
+
+  public function relinkToArchive(array $relations) {
+    $this->relinkToArchive = $relations;
   }
   
   /**

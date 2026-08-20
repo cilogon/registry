@@ -292,7 +292,10 @@ class RegistryAuthComponent extends Component
             // Permission denied
             throw new ForbiddenException(__d('error', 'perm'));
           }
+          
           $controller->Flash->error("Authorization Failed (RegistryAuthComponent)");
+          $this->llog('debug', "calculatePermission return false for action=" . $request->getParam('action') . ", id=" . $id);
+
           $event->setResult($controller->redirect("/"));
           return;
         }

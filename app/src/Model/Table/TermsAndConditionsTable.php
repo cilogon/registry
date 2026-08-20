@@ -32,6 +32,7 @@ namespace App\Model\Table;
 use Cake\I18n\DateTime;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
@@ -57,7 +58,6 @@ class TermsAndConditionsTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
     $this->addBehavior('Orderable');
@@ -73,6 +73,11 @@ class TermsAndConditionsTable extends Table {
     $this->hasMany('TAndCAgreements')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+
+    // AR-TermsAndConditions-1 If a Terms And Conditions definition is updated,
+    // all Terms And Conditions Agreements that point to it will be updated to
+    // point to the Changelog archive copy.
+    $this->relinkToArchive(['TAndCAgreements']);
 
     $this->bindPluginRelations();
 
@@ -222,11 +227,22 @@ class TermsAndConditionsTable extends Table {
                                           // that were in effect when the Agreement was made,
                                           // even if it is now outdated
                                           ->contain([
-                                            'TermsAndConditions' => [
-                                              // Cake appears to incorrectly inflects the 
-                                              // foreign key for the contain
-                                              'foreignKey' => 'terms_and_conditions_id',
-                                            ]])
+                                              'TermsAndConditions' => [
+                                                // Cake appears to incorrectly inflects the 
+                                                // foreign key for the contain
+                                                'foreignKey' => 'terms_and_conditions_id',
+                                                // We need to pass the Changelog flag to the
+                                                // contained model so it will pull archived
+                                                // T&C, since AR-TermsAndConditions-1 If a Terms
+                                                // And Conditions definition is updated, all 
+                                                // Terms And Conditions Agreements that point to
+                                                // it will be updated to point to the Changelog
+                                                // archive copy.
+                                                'queryBuilder' => function (SelectQuery $q) {
+                                                  return $q->find('all', ['archived' => true]);
+                                                }
+                                              ],
+                                            ])
                                           ->all();
 
       // Walk through each T&C and merge in any existing agreements. There's probably
@@ -280,10 +296,13 @@ class TermsAndConditionsTable extends Table {
             // sufficient or not depends on the configuration on the _current_ T&C.
 
             $r['agreement'] = $a;
-            $r['oldtandc'] = $a->terms_and_conditions;
+            // Note use of "incorrect" property name
+            $r['oldtandc'] = $a->terms_and_condition;
 
             if($t->agree_to_updates) {
-              // This Agreement is _not_ sufficient
+              // This Agreement is _not_ sufficient - note we are checking the
+              // _current_ T&C to determine if agree_to_updates is required, even if
+              // we are looking at an _archived_ T&C for this agreement
               $r['status'] = TAndCStatusEnum::Outdated;
             } else {
               // Agreement is to a previous version of the current T&C, which is sufficient

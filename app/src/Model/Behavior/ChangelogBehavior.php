@@ -35,6 +35,7 @@ use Cake\ORM\Behavior;
 use Cake\ORM\Query;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use \App\Lib\Util\StringUtilities;
 
 class ChangelogBehavior extends Behavior 
 {
@@ -223,23 +224,33 @@ class ChangelogBehavior extends Behavior
 
       $archiveOptions = [
         'checkRules' => false,
-        'archive' => false
+        'archive' => false,
+        // By default, we don't want to also create archives of associated models
+        // when we create an archive record
+        'associated' => false
       ];
 
-      // Are we relinking associated models to the archive copy?
-
-      $relinkToArchive = isset($options['relinkToArchive']) && $options['relinkToArchive'];
-
-      if(!$relinkToArchive) {
-        // We don't want to save associated models by default since
-        // it will rekey them to the new archive copy.
-
-        $archiveOptions['associated'] = false;
-      } else {
-        // This means relink to archive is simple to implement
-      }
-
       $subject->saveOrFail($archive, $archiveOptions);
+
+      if(!empty($options['relinkToArchive'])) {
+        // We've been provided an array of related models. Use updateAll
+        // to relink them to the archive copy of the parent object.
+        // We currently only support one level of associations because it's
+        // not exactly clear how we should handle deeper relations.
+
+        foreach($options['relinkToArchive'] as $relatedTableName) {
+          $RelatedTable = TableRegistry::getTableLocator()->get($relatedTableName);
+
+          // updateAll won't trigger callbacks which is good because we don't
+          // want ChangelogBehavior or anything else to run. Note updateQuery
+          // is functionally the same as running updateAll, it's just clearer.
+
+          $RelatedTable->updateQuery()
+                       ->set([$parentfk => $archive->id])
+                       ->where([$parentfk => $entity->id])
+                       ->execute();
+        }
+      }
       
       return;
     }
