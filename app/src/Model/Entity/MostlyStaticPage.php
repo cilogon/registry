@@ -30,6 +30,7 @@ declare(strict_types = 1);
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
+use App\Lib\Util\StringUtilities;
 
 class MostlyStaticPage extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
@@ -71,5 +72,27 @@ class MostlyStaticPage extends Entity {
       'mfa-required',
       'petition-complete'
     ]);
+  }
+  
+  /**
+   * Get the URL for this Mostly Static Page.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @return string   URL
+   */
+  
+  protected function _getUrl(): ?string {
+    // Note this only works once the entity has been persisted, so it's suitable
+    // for lookup from other contexts (eg: SqlProvisioner), and not for the MSP fields.inc
+    // template, since we need to dynamically recalculate the URL there.
+
+    if(!empty($this->name)) {
+      return \Cake\Routing\Router::url(
+        url: StringUtilities::pagesUrl($this->co_id, $this->name),
+        full: true
+      );
+    }
+
+    return null;
   }
 }

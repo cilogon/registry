@@ -48,3 +48,30 @@ $fields = [
   'agree_to_updates',
   'ordr'
 ];
+
+?>
+<script nonce="<?= $vv_js_nonce ?>">
+  // If both an MSP and URL are specified, the documentation says the URL
+  // takes precedence, but it's less confusing just to blank the other one
+  // out if an admin edits these fields.
+
+  function clearMsp() {
+    document.getElementById('mostly-static-page-id').value = "";
+  }
+
+  function clearUrl() {
+    document.getElementById('url').value = "";
+  }
+
+  $(function() {
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#mostly-static-page-id').change(function() {
+      clearUrl();
+    });
+
+    $('#url').change(function() {
+      clearMsp();
+    });
+  });
+</script>

@@ -7,8 +7,14 @@ use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
+use Cake\Datasource\FactoryLocator;
+use Cake\Event\EventInterface;
 use Cake\Http\MiddlewareQueue;
+use Cake\Log\Log;
+use Cake\ORM\TableRegistry;
 use Cake\Routing\RouteBuilder;
+use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Util\StringUtilities;
 
 /**
  * Plugin for SqlConnector
@@ -26,6 +32,62 @@ class SqlConnectorPlugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
+        // PAR-SqlProvisioner-5 When data in a reference table is updated,
+        // Reference Data is resynced.
+
+        // The SQL Provisioner Event Listener updates Reference Data for
+        // reference models that are not otherwise provisionable.
+        // We register here rather than in events() or eventListeners()
+        // so we can just attach to the event managers of the tables we
+        // care about, rather than every table in the application.
+        
+        foreach(['ExternalIdentitySources', 'TermsAndConditions'] as $t) {
+            FactoryLocator::get('Table')->get($t)->getEventManager()->on(
+                'Model.afterSave',
+                function(EventInterface $event, $entity) {
+                    // Note we'll get called twice for each save, once for the active
+                    // record and once for the (newly created) Changelog archive record.
+                    // We only care about the active record.
+
+                    $clkey = $entity->changelogAttributeName();
+
+                    if($entity->$clkey == null) {
+                        // This is the active record, find the CO and see if there
+                        // are any SqlProvisioners that need to have their reference
+                        // data resynced.
+
+                        $Table = $event->getSubject();
+                        $coId = $Table->calculateCoForRecord($entity);
+
+                        $ProvisioningTargetsTable = TableRegistry::getTableLocator()->get(
+                            'ProvisioningTargets'
+                        );
+
+                        $cfgs = $ProvisioningTargetsTable->find()
+                                                         ->where([
+                                                            'plugin' => 'SqlConnector.SqlProvisioners',
+                                                            'co_id' => $coId,
+                                                            'status' => SuspendableStatusEnum::Active
+                                                         ])
+                                                         ->contain(['SqlProvisioners'])
+                                                         ->all();
+
+                        // We now have the (possible empty) set of SQL Provisioners
+                        // in the same CO as the $entity of interest.
+
+                        foreach($cfgs as $cfg) {
+                            Log::info(
+                                "PAR-SqlProvisioner-5 Resyncing SqlProvisioner " . $cfg->sql_provisioner->id . " reference data after save of " . StringUtilities::entityToClassName($entity) . " " . $entity->id,
+                                ['scope' => ['rule']]
+                            );
+
+                            $ProvisioningTargetsTable->SqlProvisioners
+                                                     ->syncReferenceData($cfg->sql_provisioner->id);    
+                        }
+                    }
+                }
+            );
+        }
     }
 
     /**

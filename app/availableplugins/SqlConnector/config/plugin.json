@@ -52,14 +52,6 @@
     }
   },
   "target-schema": {
-    "not-yet-implemented-tables": {
-      "terms_and_conditions": "CFM-200",
-      "external_identity_sources": {
-        "JIRA": "CFM-265",
-        "fk from": [ "names" ]
-      }
-    },
-
     "tables": {
       "types": {
         "columns": {
@@ -84,6 +76,36 @@
         },
         "indexes": {
           "cous_i3": { "columns": [ "parent_id" ] }
+        },
+        "changelog": false
+      },
+
+      "external_identity_sources": {
+        "columns": {
+          "id": {},
+          "description": {},
+          "plugin": {},
+          "status": {},
+          "sor_label": { "type": "string", "size": 40 }
+        },
+        "indexes": {
+        },
+        "changelog": false
+      },
+
+      "terms_and_conditions": {
+        "columns": {
+          "id": {},
+          "description": {},
+          "url": { "type": "url" },
+          "cou_id": {},
+          "status": {},
+          "ordr": {},
+          "agreement_duration": { "type": "integer" },
+          "agree_to_updates": { "type": "boolean" }
+        },
+        "indexes": {
+          "terms_and_conditions_i1": { "needed": false, "columns": [ "cou_id" ] }
         },
         "changelog": false
       },
@@ -114,14 +136,16 @@
           "manager_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
           "sponsor_person_id": { "type": "integer", "foreignkey": { "table": "people", "column": "id" } },
           "valid_from": {},
-          "valid_through": {}
+          "valid_through": {},
+          "external_identity_source_id": {}
         },
         "indexes": {
           "person_roles_i1": { "columns": [ "person_id" ] },
           "person_roles_i2": { "columns": [ "sponsor_person_id" ] },
           "person_roles_i3": { "columns": [ "cou_id" ] },
           "person_roles_i4": { "columns": [ "affiliation_type_id" ] },
-          "person_roles_i5": { "columns": [ "manager_person_id" ] }
+          "person_roles_i5": { "columns": [ "manager_person_id" ] },
+          "person_roles_i6": { "columns": [ "external_identity_source_id" ] }
         },
         "changelog": false
       },
@@ -146,9 +170,11 @@
         "columns": {
           "id": {},
           "tag": { "type": "string", "size": 128 },
-          "value": { "type": "string", "size": 256 }
+          "value": { "type": "string", "size": 256 },
+          "external_identity_source_id": {}
         },
         "indexes": {
+          "ad_hoc_attributes_i1": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person", "person_role" ],
         "changelog": false
@@ -165,10 +191,12 @@
           "country": { "type": "string", "size": 128 },
           "description": {},
           "type_id": {},
-          "language": {}
+          "language": {},
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "addresses_i1": { "columns": [ "type_id" ] }
+          "addresses_i1": { "columns": [ "type_id" ] },
+          "addresses_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person", "person_role" ],
         "changelog": false
@@ -180,10 +208,12 @@
           "mail": { "type": "string", "size": 256 },
           "description": {},
           "type_id": {},
-          "verified": { "type": "boolean" }
+          "verified": { "type": "boolean" },
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "email_addresses_i3": { "columns": [ "type_id" ] }
+          "email_addresses_i1": { "columns": [ "type_id" ] },
+          "email_addresses_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person" ],
         "changelog": false
@@ -195,10 +225,12 @@
           "identifier": { "type": "string", "size": 512 },
           "type_id": {},
           "login": { "type": "boolean" },
-          "status": {}
+          "status": {},
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "identifiers_i3": { "columns": [ "type_id" ] }
+          "identifiers_i1": { "columns": [ "type_id" ] },
+          "identifiers_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person", "group" ],
         "changelog": false
@@ -215,10 +247,12 @@
           "type_id": {},
           "language": {},
           "primary_name": { "type": "boolean" },
-          "display_name": { "type": "string", "size": 256 }
+          "display_name": { "type": "string", "size": 256 },
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "names_i1": { "columns": [ "type_id" ] }
+          "names_i1": { "columns": [ "type_id" ] },
+          "names_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person" ],
         "changelog": false
@@ -229,10 +263,12 @@
           "id": {},
           "pronouns": { "type": "string", "size": 64 },
           "language": {},
-          "type_id": {}
+          "type_id": {},
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "pronouns_i1": { "columns": [ "type_id" ] }
+          "pronouns_i1": { "columns": [ "type_id" ] },
+          "pronouns_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person" ],
         "changelog": false
@@ -246,10 +282,12 @@
           "number": { "type": "string", "size": 64 },
           "extension": { "type": "string", "size": 16 },
           "description": {},
-          "type_id": {}
+          "type_id": {},
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "telephone_numbers_i1": { "columns": [ "type_id" ] }
+          "telephone_numbers_i1": { "columns": [ "type_id" ] },
+          "telephone_numbers_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person", "person_role" ],
         "changelog": false
@@ -260,10 +298,12 @@
           "id": {},
           "url": { "type": "string", "size": 256 },
           "description": {},
-          "type_id": {}
+          "type_id": {},
+          "external_identity_source_id": {}
         },
         "indexes": {
-          "urls_i1": { "columns": [ "type_id" ] }
+          "urls_i1": { "columns": [ "type_id" ] },
+          "urls_i2": { "columns": [ "external_identity_source_id" ] }
         },
         "mvea": [ "person" ],
         "changelog": false
@@ -285,6 +325,7 @@
       },
 
       "group_owners": {
+        "comment": "This table is no longer used (replaced with Owners Groups) and should be removed in v6",
         "columns": {
           "id": {},
           "group_id": {},
@@ -293,6 +334,21 @@
         "indexes": {
           "group_owners_i1": { "columns": [ "group_id" ]},
           "group_owners_i2": { "columns": [ "person_id" ]}
+        },
+        "changelog": false
+      },
+
+      "t_and_c_agreements": {
+        "columns": {
+          "id": {},
+          "terms_and_conditions_id": { "type": "integer", "foreignkey": { "table": "terms_and_conditions", "column": "id" } },
+          "person_id": {},
+          "agreement_time": { "type": "datetime" },
+          "identifier": { "type": "string", "size": 512 }
+        },
+        "indexes": {
+          "t_and_c_agreements_i1": { "columns": [ "terms_and_conditions_id" ]},
+          "t_and_c_agreements_i2": { "columns": [ "person_id" ]}
         },
         "changelog": false
       }

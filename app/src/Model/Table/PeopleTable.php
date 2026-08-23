@@ -506,6 +506,7 @@ class PeopleTable extends Table {
           'Types'
         ],
         'Pronouns',
+        'TAndCAgreements',
         'TelephoneNumbers' => [ 'Types' ],
         'Urls' => [ 'Types' ]
       ]

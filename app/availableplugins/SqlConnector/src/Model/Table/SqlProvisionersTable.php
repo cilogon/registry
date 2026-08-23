@@ -72,6 +72,7 @@ class SqlProvisionersTable extends Table {
         'Names',
         'PersonRoles',
         'Pronouns',
+        'TAndCAgreements',
         'TelephoneNumbers',
         'Urls'
       ]
@@ -178,6 +179,13 @@ class SqlProvisionersTable extends Table {
       'source_table' => 'pronouns',
       'related' => []
     ],
+    'TAndCAgreements' => [
+      'table'   => 't_and_c_agreements',
+      'name'    => 'SpTAndCAgreements',
+      'source'  => 'TAndCAgreements',
+      'source_table' => 't_and_c_agreements',
+      'related' => []
+    ],
     'TelephoneNumbers' => [
       'table'   => 'telephone_numbers',
       'name'    => 'SpTelephoneNumbers',
@@ -195,6 +203,8 @@ class SqlProvisionersTable extends Table {
   ];
 
   // Models holding reference data
+  // Reference Models that are also provisionable require nothing further.
+  // However, non-provisionable models must be added to SqlConnectorPlugin::bootstrap.
   protected $referenceModels = [
     'Cous' => [
       'table'  => 'cous',
@@ -205,6 +215,24 @@ class SqlProvisionersTable extends Table {
 // - if we need it to, that'll break Groups
       'related' => []
     ],
+    'ExternalIdentitySources' => [
+      'table'  => 'external_identity_sources',
+      'name'   => 'SpExternalIdentitySources',
+      'source' => 'ExternalIdentitySources',
+      'source_table' => 'external_identity_sources',
+      'related' => []
+    ],
+    'TermsAndConditions' => [
+      'table'  => 'terms_and_conditions',
+      // Ordinarily we'd call this SpTermsAndConditions, but it's not worth
+      // fighting cake's inflector
+      'name'   => 'SpTermsAndCondition',
+      'source' => 'TermsAndConditions',
+      'source_table' => 'terms_and_conditions',
+      'related' => [],
+      'archives' => true,
+      'callback' => 'processTAndC'
+    ],
     'Types' => [
       'table'  => 'types',
       'name'   => 'SpTypes',
@@ -212,30 +240,6 @@ class SqlProvisionersTable extends Table {
       'source_table' => 'types',
       'related' => []
     ]
-/* XXX not yet implemented  
-
-Note that all currently supported reference data (Cous, Types, and Groups,
-which are treated like reference data) are also provisionable, meaning we
-don't need to jump through special hoops to detect when they have changed.
-If we add additional reference models that are not provisionable, then we
-will need to implement something like v4's Reference Data Event Listener,
-which would call syncReferenceData() on model.afterSave for the appropriate
-reference data mode.
-
-    [
-      'table'  => 'co_terms_and_conditions',
-      // Ordinarily we'd call this SpCoTermsAndConditions, but it's not worth
-      // fighting cake's inflector
-      'name'   => 'SpCoTermsAndCondition',
-      'source' => 'CoTermsAndConditions',
-      'source_table' => 'co_terms_and_conditions'
-    ],
-    [
-      'table'  => 'org_identity_sources',
-      'name'   => 'SpOrgIdentitySource',
-      'source' => 'OrgIdentitySource',
-      'source_table' => 'org_identity_sources'
-    ]*/
   ];
 
   /**
@@ -246,7 +250,6 @@ reference data mode.
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Log');
     $this->addBehavior('Timestamp');
@@ -367,6 +370,28 @@ reference data mode.
     }
 
     return true;
+  }
+
+  /**
+   * Process T&C for export, by converting Mostly Static Pages to their URLs.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  array $row   Result row from query
+   */
+
+  protected function processTAndC(array $row) {
+    if(!empty($row['mostly_static_page_id'])
+        // If both a URL and MSP are specified, the URL takes precedence
+        && empty($row['url'])) {
+      // Map the MSP to its URL and include that instead
+      $MSPTable = TableRegistry::getTableLocator()->get("MostlyStaticPages");
+
+      $msp = $MSPTable->get($row['mostly_static_page_id']);
+
+      $row['url'] = $msp->url;
+    }
+
+    return $row;
   }
 
   /**
@@ -670,15 +695,23 @@ reference data mode.
 // (test with job shell - maybe this is an RFE for Reprovision All)
       $SrcTable = TableRegistry::getTableLocator()->get($m['source']);
 
+      $query = $SrcTable->find()
+                        ->where(['co_id' => $spcfg->provisioning_target->co_id]);
+
+      // See if the source model also exports Changelog archives (needed eg for T&C
+      // where T&C Agreements gets relinked to the archive version, AR-TermsAndConditions-1).
+
+      if(isset($m['archives']) && $m['archives']) {
+        $query = $query->applyOptions(['archived' => true]);
+      }
+
       // Pull the source records and then sync them to the target table.
       // We expect reference data to be no larger than O(100) or maybe
       // O(1000) so we don't bother with PaginatedSqlIterator here.
 
       $srcRecords = [];
       
-      foreach($SrcTable->find()
-                       ->where(['co_id' => $spcfg->provisioning_target->co_id])
-                       ->toArray() as $r) {
+      foreach($query->toArray() as $r) {
         // We shouldn't have to manually convert the entities to arrays
         // but toArray() is returning an array of objects instead of an
         // array of arrays... (and we only need this because the second
@@ -687,6 +720,13 @@ reference data mode.
 
         // We key on record ID for use in delete, below
         $srcRecords[$r->id] = $r->toArray();
+
+        // Apply the callback to process the results, if configured
+        if(!empty($m['callback'])) {
+          $callback = $m['callback'];
+
+          $srcRecords[$r->id] = $this->$callback($srcRecords[$r->id]);
+        }
       }
 
       // Pull the current target records
@@ -763,6 +803,35 @@ reference data mode.
 
     foreach($parentData->$relatedTable as $r) {
       $srcEntities[$r->id] = $r->toArray();
+
+      // Check for a source_X_id key, and if set map it to the
+      // external_identity_source_id, which is the column that
+      // SQL Provisioner provides.
+
+      $eisField = $r->sourceAttributeName();
+      $eisTableName = $relatedEntityName;
+      
+      if(!empty($srcEntities[$r->id][$eisField])) {
+        // We have (eg) a source name_id, which we look up in the related table
+        // (eg: Names). Note $relatedTable is just a string, so we need to get the
+        // Table (from the source dataSource, not the target). Because we're not
+        // using a special table alias we can just use the standard TableRegistry call.
+
+        if($eisField == 'source_external_identity_role_id') {
+          // For PersonRoles the source table is ExternalIdentityRoles
+
+          $eisTableName = 'ExternalIdentityRoles';
+        }
+        
+        $SourceTable = TableRegistry::getTableLocator()->get($eisTableName);
+
+        $eisSourceEntity = $SourceTable->get($srcEntities[$r->id][$eisField],
+                                              contain: ['ExternalIdentities' => 'ExtIdentitySourceRecords']);
+        
+        if(!empty($eisSourceEntity->external_identity->ext_identity_source_record->external_identity_source_id)) {
+          $srcEntities[$r->id]['external_identity_source_id'] = $eisSourceEntity->external_identity->ext_identity_source_record->external_identity_source_id;
+        }
+      }
     }
 
     // Pull the current provisioned data
@@ -791,7 +860,7 @@ reference data mode.
     // We have to do this once per instance of the parent related model.
     // eg: If we're currently syncing parent model People and related model
     // PersonRoles, we need to syncRelatedEntities on PersonRoles once for
-    // _each_ roles attached to the Person.
+    // _each_ role attached to the Person.
 
     if(!empty($mconfig['related'])) {
       // Process related models

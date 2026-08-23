@@ -423,12 +423,11 @@ class SchemaManager {
     }
     catch(\Exception $e) {
       if($this->io) $this->io->out($e->getMessage());
-      else throw new \RuntimeException($e->getMessage());
+      else throw $e;
     }
     
     // We might run bin/cake schema_cache clear or
     // bin/cake schema_cache build --connection default
     // but so far we don't have an example indicating it's needed.
   }
-
 }
