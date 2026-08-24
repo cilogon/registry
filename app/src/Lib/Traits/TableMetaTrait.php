@@ -96,7 +96,11 @@ trait TableMetaTrait {
             $config['className'] = $r['targetModel'];
           }
 
-          $this->hasMany($alias, $config);
+          // When $alias is of Plugin.Model form, Cake only uses the Model for the alias
+          if(!$this->associations()->has(StringUtilities::pluginModel($alias))) {
+            $this->hasMany($alias, $config);
+          }
+          // else no need to rebind the same association
         }
       }
     }
