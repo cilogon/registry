@@ -5,6 +5,9 @@
     ],
     "external_identity_source": [
       "ApiSources"
+    ],
+    "provisioning_target": [
+      "ApiProvisioners"
     ]
   },
   "schema": {
@@ -27,6 +30,21 @@
         "indexes": {
           "api_source_endpoints_i1": { "columns": [ "api_id" ] },
           "api_source_endpoints_i2": { "columns": [ "external_identity_source_id" ] }
+        }
+      },
+      "api_provisioners": {
+        "columns": {
+          "id": {},
+          "provisioning_target_id": {},
+          "server_id": { "notnull": false },
+          "type_id": { "notnull": false },
+          "include_attributes": { "type": "boolean" },
+          "mode": { "type": "string", "size": 2 }
+        },
+        "indexes": {
+          "api_provisioners_i1": { "columns": [ "provisioning_target_id" ]},
+          "api_provisioners_i2": { "needed": false, "columns": [ "server_id" ]},
+          "api_provisioners_i3": { "needed": false, "columns": [ "type_id" ]}
         }
       },
       "api_source_records": {

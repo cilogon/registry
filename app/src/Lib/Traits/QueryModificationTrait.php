@@ -67,7 +67,7 @@ trait QueryModificationTrait {
   public function checkValidity(Query $query): QueryExpression {
     $fieldModelPrefix = Inflector::pluralize(substr($this->getEntityClass(), strrpos($this->getEntityClass(), '\\')+1));
 
-    $exp = $query->newExpr();
+    $exp = $query->expr();
     $orValidFromConditions = $exp->or(
       fn(QueryExpression $or) => $or->isNull($fieldModelPrefix . '.valid_from')
                                     ->lt($fieldModelPrefix . '.valid_from', date('Y-m-d H:i:s'))

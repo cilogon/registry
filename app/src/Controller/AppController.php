@@ -710,7 +710,7 @@ class AppController extends Controller {
         (new HtmlSanitizerConfig())->allowStaticElements()
       );
 
-      $theme->set([
+      $theme->patch([
         'sanitized_header' => $htmlSanitizer->sanitize($theme->header),
         'sanitized_footer' => $htmlSanitizer->sanitize($theme->footer)
       ]);
@@ -1065,7 +1065,7 @@ class AppController extends Controller {
     
     if($this->getCurrentTable()->behaviors()->has('Timezone')) {
       // Tell TimezoneBehavior what the current timezone is
-      $this->getCurrentTable()->setTimeZone($tz);
+      $this->getCurrentTable()->getBehavior('Timezone')->setTimeZone($tz);
     }
   }
 }

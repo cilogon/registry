@@ -220,14 +220,36 @@ class IdentifiersTable extends Table {
   }
   
   /**
+   * Look up an Identifier of a specific Type for the requested Person.
+   * If more than one Identifier is found, it is non-deterministic as to
+   * which one will be returned.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $typeId
+   * @param  int    $personId
+   * @return string
+   */
+
+  public function lookupForPerson(int $typeId, int $personId): ?string {
+    $id = $this->find()
+               ->where([
+                'type_id'   => $typeId,
+                'person_id' => $personId,
+                'status'    => SuspendableStatusEnum::Active
+               ])
+               ->first();
+    
+    return $id->identifier ?? null;
+  }
+  
+  /**
    * Look up a Group ID from an identifier and identifier type ID.
    * Only active Identifiers can be used for lookups.
    *
-   * @param   int       $typeId      Identifier Type ID
-   * @param   string    $identifier  Identifier
-   *
-   * @return int                     Group ID
    * @since  COmanage Registry v5.2.0
+   * @param  int       $typeId      Identifier Type ID
+   * @param  string    $identifier  Identifier
+   * @return int                    Group ID
    */
 
   public function lookupGroup(int $typeId, string $identifier): int {
@@ -248,11 +270,10 @@ class IdentifiersTable extends Table {
    * Look up a Person ID from an identifier and identifier type ID.
    * Only active Identifiers can be used for lookups.
    *
-   * @param   int       $typeId      Identifier Type ID
-   * @param   string    $identifier  Identifier
-   *
-   * @return int                Person ID
    * @since  COmanage Registry v5.0.0
+   * @param  int       $typeId      Identifier Type ID
+   * @param  string    $identifier  Identifier
+   * @return int                    Person ID
    */
 
   public function lookupPerson(int $typeId, string $identifier): int {

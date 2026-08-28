@@ -22,12 +22,39 @@
 # @since         COmanage Registry v5.0.0
 # @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
+msgid "controller.ApiProvisioners"
+msgstr "{0,plural,=1{API Provisioner} other{API Provisioners}}"
+
 msgid "controller.ApiSources"
-#msgstr "{0,plural,=1{API Source} other{API Sources}}"
+msgstr "{0,plural,=1{API Source} other{API Sources}}"
+
+msgid "enumeration.ApiProvisionerModeEnum.PO"
+msgstr "HTTP POST"
+
+msgid "enumeration.ApiProvisionerModeEnum.PU"
+msgstr "HTTP PUT"
+
+msgid "error.ApiProvisioners.identifier"
+msgstr "Configured Identifier type not found in provisioning data"
 
 # XXX this should autodetect and use the controller key?
 msgid "field.api_source_id"
 msgstr "API Source"
+
+msgid "field.ApiProvisioners.include_attributes"
+msgstr "Include Attributes"
+
+msgid "field.ApiProvisioners.include_attributes.desc"
+msgstr "If true, all attributes will be included in the message, otherwise only a URL to the subject is included"
+
+msgid "field.ApiProvisioners.mode"
+msgstr "Protocol Mode"
+
+msgid "field.ApiProvisioners.type_id"
+msgstr "Identifier Type"
+
+msgid "field.ApiProvisioners.type_id.desc"
+msgstr "The value of this Identifier on the provisioned record will be sent as the primary key"
 
 msgid "field.ApiSourceEndpoints.external_identity_source_id"
 msgstr "API Source"
@@ -37,3 +64,6 @@ msgstr "Push Mode"
 
 msgid "information.endpoint.push"
 msgstr "The API endpoint for using this plugin in Push Mode is {0}"
+
+msgid "result.ApiProvisioners.response"
+msgstr "Endpoint returned status code {0}"
