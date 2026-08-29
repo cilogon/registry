@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.internet2.edu/COmanage/registry/tree/5.0.0/app/resources/schema/apisource-message.json",
+  "$id": "https://github.internet2.edu/COmanage/registry/blob/5.0.0/app/availableplugins/ApiConnector/resources/schemas/apisource-message.json",
   "title": "COmanage Registry API Source Message Format",
   "description": "COmanage Registry API Source Message Format",
   

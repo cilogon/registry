@@ -35,6 +35,11 @@
           "type": "integer",
           "minimum": 0
         },
+        "url": {
+          "description": "A URL to an API endpoint for more information about this object",
+          "type": "string",
+          "format": "uri"
+        },
         "uuid": {
           "description": "The UUID assigned to this object",
           "type": "string",
