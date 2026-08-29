@@ -2014,9 +2014,12 @@ class PipelinesTable extends Table {
     // wasn't one at the start of the process).
 
     // First handle attributes stored directly on the Person, which currently consists
-    // solely of date_of_birth.
+    // solely of date_of_birth. The only thing we'll do with a DoB for the moment
+    // is populate one on the Person if we didn't already hae one, and one is
+    // available on the External Identity. Logic beyond that probably requires
+    // implementation of Attribute Election Strategies (CO-1351).
 
-    if(!empty($externalIdentity->date_of_birth) || !empty($person->date_of_birth)) {
+    if(!empty($externalIdentity->date_of_birth) && empty($person->date_of_birth)) {
       $person->date_of_birth = $externalIdentity->date_of_birth;
 
       $this->Cos->People->saveOrFail($person, ['associated' => false]);
