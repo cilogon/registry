@@ -520,6 +520,8 @@ class PipelinesTable extends Table {
       $newdata['manager_identifier'],
       $newdata['sponsor_identifier'],
       $newdata['modified'],
+      // AR-Name-5 Primary status may only be designated on a Name attached
+      // to a Person. External Identities may not assert Primary Names.
       $newdata['primary_name'],
       $newdata['revision'],
       $newdata['role_key'],
@@ -2128,7 +2130,12 @@ class PipelinesTable extends Table {
             }
 
             if($model == 'Names' && $found->primary_name) {
-              // Preserve the primary name flag, if set
+              // Preserve the primary name flag, if set. Note this is not a
+              // violation of AR-Name-5 because this flag can only get set by
+              // an admin after the initial sync (duplicateFilterEntityData will
+              // clear the flag if set by the EIS backend), and there is no
+              // rule prohibiting a Primary flag from being set on a Name
+              // on a Person created by a Pipeline from an External Identity.
               $newdata['primary_name'] = true;
             }
 

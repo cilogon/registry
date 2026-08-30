@@ -165,16 +165,20 @@ class NamesTable extends Table {
    * @param  EventInterface  $event   beforeMarshal event
    * @param  ArrayObject     $data    Entity data
    * @param  ArrayObject     $options Callback options
-   */
+   *
 
   public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
   {
     if(!empty($data['source_name_id'])) {
       // Source records may not assert primary name on the Person copy.
-// XXX this implies an EIS name cannot be a primary name - document as an AR 
-      $data['primary_name'] = false;
+      // The has been removed as of Registry v5.3.0 because it prevents the
+      // Primary flag from being assigned to a Name that was created by a
+      // Pipeline from an External Identity. (The Pipeline correctly resets
+      // the flag but then we clear it here.) Enforcement of AR-Names-5
+      // belongs in the Pipeline, not here.
+//      $data['primary_name'] = false;
     }
-  }
+  }*/
 
   /**
    * Define business rules.
