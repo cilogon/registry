@@ -213,6 +213,10 @@ body.cos.select #top-bar {
   border: 1px solid var(--cmg-color-bg-006);
   color: var(--cmg-color-body-txt);
 }
+#global-search #q::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
 #global-search-button {
   background-color: var(--cmg-color-btn-bg-001);
   color: white;
