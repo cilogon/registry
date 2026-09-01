@@ -481,6 +481,7 @@ body.cos.select #top-bar {
   margin-right: 0.25em;
 }
 .co-alert a {
+  color: var(--cmg-color-link-darker);
   text-decoration: underline;
 }
 /* Alerts in the add-edit form: */
@@ -1489,6 +1490,36 @@ a.cm-row-button:focus {
   border: 1px solid var(--cmg-color-btn-bg-001);
   color: var(--cmg-color-txt-inverse) !important;
 }
+#person-confirm-delete {
+  margin-left: 1em;
+}
+#person-confirm-delete .alert {
+  display: inline-block;
+}
+ul.delete-info-list {
+  margin: 0 1rem 1.5rem;
+  padding: 0;
+}
+ul.delete-info-list li {
+  margin-top: 1rem;
+  line-height: 1.75rem;
+  list-style: none;
+  font-family: var(--cmg-font-semibold);
+}
+ul.delete-info-list li:first-child {
+  margin-top: 0;
+}
+ul.delete-info-list li li {
+  margin-top: 0;
+  font-weight: 400;
+  list-style: circle;
+  font-family: var(--cmg-font-regular);
+}
+#content ul.delete-info-list .material-symbols-outlined {
+  font-size: 1.5rem;
+  margin-top: -4px;
+  vertical-align: middle;
+}
 /* DATA LISTS */
 ul.data-list {
   padding-left: 0;
@@ -1591,6 +1622,11 @@ ul.form-list li.fields-submit {
 }
 ul.form-list li.fields-submit .field:hover {
   background-color: var(--cmg-color-body-bg);
+}
+.submit-with-flags {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 ul.form-list .field-name {
   display: block;

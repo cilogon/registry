@@ -54,7 +54,7 @@ if($vv_action == 'add') {
     // The initial name must be primary
     'names.0.primary_name' => true
   ];
-} elseif($vv_action == 'edit') {
+} else {
   $a = $vv_obj->extract(['person_role_id', 'person_id']);
   
   $useDeleteSplashPage = true;

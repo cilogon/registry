@@ -192,6 +192,9 @@ msgstr "Decline"
 msgid "delete"
 msgstr "Delete"
 
+msgid "delete.a"
+msgstr "Delete {0}?"
+
 msgid "delete.confirm"
 msgstr "Are you sure you want to delete this record ({0})?"
 
@@ -199,6 +202,9 @@ msgid "delete.confirm.title"
 msgstr "Confirm Deletion"
 
 msgid "delete.hard"
+msgstr "Hard Delete"
+
+msgid "delete.hard.perform"
 msgstr "Perform Hard Delete"
 
 msgid "delete.queue"

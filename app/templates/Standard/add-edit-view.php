@@ -153,8 +153,22 @@ if (
             $perm = $vv_permissions[$linkModel][$t['link']['action']];
           }
 
-          // Inject a link to the current object ID
-          $t['link']['?'][\App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj)] = $vv_obj->id;
+          // This fixes the link in the gear icon in the Person Canvas view.
+          // Inject a link to the current object ID, unless an equivalent specific foreign key
+          // (like subject_person_id) is already provided in the query arguments.
+          $fk = \App\Lib\Util\StringUtilities::entityToForeignKey($vv_obj);
+          $hasFk = false;
+          if(!empty($t['link']['?'])) {
+            foreach($t['link']['?'] as $k => $v) {
+              if($v === $vv_obj->id && (str_ends_with($k, '_' . $fk) || $k === $fk)) {
+                $hasFk = true;
+                break;
+              }
+            }
+          }
+          if(!$hasFk) {
+            $t['link']['?'][$fk] = $vv_obj->id;
+          }
         } else {
           $perm = $vv_permissions[$t['link']['action']];
 

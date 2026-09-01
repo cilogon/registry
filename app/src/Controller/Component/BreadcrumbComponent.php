@@ -295,10 +295,10 @@ class BreadcrumbComponent extends Component {
       $linkTable = \Cake\ORM\TableRegistry::getTableLocator()->get($linkModelFqn);
       $contain   = $this->resolveContainList($linkTable, $mappedAction);
 
-      // Normalize attr (people_id → id when the attr matches the model’s own foreign key)
+      // Use the table alias for query building (avoid plugin-qualified names in SQL)
       $modelAlias = $linkTable->getAlias();
-      $foreignKey = StringUtilities::classNameToForeignKey($modelAlias);
-      $linkAttr   = ($link->attr === $foreignKey) ? 'id' : $link->attr;
+
+      $linkAttr = (string)$linkTable->getPrimaryKey();
 
       // Fetch the linked entity; if not found, handle gracefully
       $linkedEntity = $linkTable

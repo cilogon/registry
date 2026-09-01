@@ -147,9 +147,17 @@ class PeopleController extends StandardController {
       'PetitionHistoryRecords'
     ];
 
-    $this->set('vv_person', $this->People->get((int)$id, contain: $contain));
+    $person = $this->People->get((int)$id, contain: $contain);
+    $this->set('vv_person', $person);
+
+    $this->Breadcrumb->injectTitleLink(
+      table: $this->People,
+      entity: $person,
+      action: 'edit',
+      label: $this->People->generateDisplayField($person)
+    );
     
-    $this->set('vv_title', __d('operation', 'delete.confirm.title'));
+    $this->set('vv_title', __d('operation', 'delete.a',[$person->primary_name->full_name]));
 
     // We pull cluster information separately because it can't be contain'd
     $this->set('vv_person_cluster_status', $this->People->Cos->Clusters->status((int)$id));

@@ -46,6 +46,7 @@
   /* Links (primary) */
   --cmg-color-link: #06c;            /* primary hyperlink color (blue); accessible on backgrounds down to #e7e7e7 */
   --cmg-color-link-hover: #115791;   /* primary hyperlink hover color (blue); accessible on backgrounds down to #c9c9c9 */
+  --cmg-color-link-darker: #005EBD;  /* slightly darker hyperlink color for use on alert backgrounds */
 
   /* Buttons */
   --cmg-color-btn-bg-001: #115791;   /* primary button background color (blue), submit buttons, .btn-primary, pagination */

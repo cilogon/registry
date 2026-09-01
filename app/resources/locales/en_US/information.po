@@ -142,16 +142,16 @@ msgid "People.delete.cluster"
 msgstr "Account on {0}"
 
 msgid "People.delete.hard"
-msgstr "Performing a <a href=\"https://spaces.at.internet2.edu/x/ZwnfF\">hard delete</a> will physically remove all records from the database, including all <a href=\"https://spaces.at.internet2.edu/x/bwnfF\">Changelog Entries</a>. This operation cannot be undone, except by restoring from a backup."
+msgstr "Performing a <a href=\"https://spaces.at.internet2.edu/x/ZwnfF\">hard delete</a> will physically remove the Person and associated records from the database, including all <a href=\"https://spaces.at.internet2.edu/x/bwnfF\">Changelog Entries</a>. This operation cannot be undone except by restoring from a backup."
 
 msgid "People.delete.history.actor"
-msgstr "{0} History Records(s) for which this Person is an Actor will be updated to have no Actor"
+msgstr "{0} History Records(s) for which this Person is an Actor will be updated to have no Actor."
 
 msgid "People.delete.history.job"
-msgstr "{0} Job History Records(s) related to this Person will be updated to remove the link"
+msgstr "{0} Job History Records(s) related to this Person will be updated to remove the link."
 
 msgid "People.delete.person"
-msgstr "Deleting this record will delete the complete Person record for <a href=\"{0}\">{1}</a> (Person ID {2}), including <a href=\"{3}\">history</a>"
+msgstr "Deleting this record will delete the complete Person record for <a href=\"{0}\">{1}</a> (Person ID {2}), including <a href=\"{3}\">history</a>."
 
 msgid "People.delete.ei"
 msgstr "External Identity {0} from {1} (Source Key: {2})"
@@ -160,28 +160,28 @@ msgid "People.delete.ei.legacy"
 msgstr "Legacy External Identity {0}"
 
 msgid "People.delete.notifications.actor"
-msgstr "{0} Notification(s) for which this Person is an Actor will be updated to have no Actor"
+msgstr "{0} Notification(s) for which this Person is an Actor will be updated to have no Actor."
 
 msgid "People.delete.notifications.recipient"
-msgstr "{0} Notification(s) for which this Person is a Recipient will be updated"
+msgstr "{0} Notification(s) for which this Person is a Recipient will be updated."
 
 msgid "People.delete.notifications.resolver"
-msgstr "{0} Notification(s) for which this Person is the Resolver will be updated to have no Resolver"
+msgstr "{0} Notification(s) for which this Person is the Resolver will be updated to have no Resolver."
 
 msgid "People.delete.petitions.history.actor"
-msgstr "{0} Petition History Records(s) for which this Person is an Actor will be updated to have no Actor"
+msgstr "{0} Petition History Records(s) for which this Person is an Actor will be updated to have no Actor."
 
 msgid "People.delete.petitions.petitioner"
-msgstr "{0} Petitions(s) for which this Person is the Petitioner will be updated to have no Petitioner"
+msgstr "{0} Petitions(s) for which this Person is the Petitioner will be updated to have no Petitioner."
 
 msgid "People.delete.role"
 msgstr "Person Role {0}: (COU: {1}, Affiliation: {2}, Title: {3})"
 
 msgid "People.delete.roles.manager"
-msgstr "{0} Person Role(s) for which this Person is a Manager will be updated to have no Manager"
+msgstr "{0} Person Role(s) for which this Person is a Manager will be updated to have no Manager."
 
 msgid "People.delete.roles.sponsor"
-msgstr "{0} Person Role(s) for which this Person is a Sponsor will be updated to have no Sponsor"
+msgstr "{0} Person Role(s) for which this Person is a Sponsor will be updated to have no Sponsor."
 
 msgid "petition.history"
 msgstr "Petition History"
