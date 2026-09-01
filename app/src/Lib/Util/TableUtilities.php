@@ -262,6 +262,14 @@ class TableUtilities {
           // qualify the FK using the requester table we're currently traversing
           // but compare against the physical table name in the database.
           $fkQualifiedModel = StringUtilities::foreignKeyToQualifiedModelName($col, $primaryLinkModelName);
+          
+          // Don't re-enter a model already recorded (e.g. Groups.parent_id -> Groups.id)
+          // so that we don't clobber an entity's own ID with its parent's.
+          // We will only ever have one instance of a model in a subnavigation tab listing.
+          if (array_key_exists($fkQualifiedModel, $results)) {
+            continue;
+          }
+          
           $fkTargetTable = TableRegistry::getTableLocator()->get($fkQualifiedModel);
 
           $fk_table = $fkTargetTable->getTable();
@@ -326,6 +334,13 @@ class TableUtilities {
           // qualify the FK using the requester table we're currently traversing
           // but compare against the physical table name in the database.
           $fkQualifiedModel = StringUtilities::foreignKeyToQualifiedModelName($col, $modelName);
+
+          // Same guard as treeTraversalFromPrimaryKey — don't re-enter a model we've already recorded.
+          // We will only ever have one instance of a model in a subnavigation tab listing.
+          if (array_key_exists($fkQualifiedModel, $results)) {
+            continue;
+          }
+          
           $fkTargetTable = TableRegistry::getTableLocator()->get($fkQualifiedModel);
 
           $fk_table = $fkTargetTable->getTable();
