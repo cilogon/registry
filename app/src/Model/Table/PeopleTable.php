@@ -506,6 +506,11 @@ class PeopleTable extends Table {
           'Types'
         ],
         'Pronouns',
+        // TAndCAgreements are provisionable sub-objects, but TermsAndConditions
+        // and MostlyStaticPages are configuration and are not provisionable.
+        // We do not contain TermsAndConditions => MostlyStaticPages here to maintain
+        // loose coupling and avoid synchronization/ownership issues; provisioners
+        // can resolve the T&C URL via the TAndCAgreement virtual field or reference data.
         'TAndCAgreements',
         'TelephoneNumbers' => [ 'Types' ],
         'Urls' => [ 'Types' ]

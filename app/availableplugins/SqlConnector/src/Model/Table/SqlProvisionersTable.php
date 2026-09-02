@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace SqlConnector\Model\Table;
 
+use App\Model\Entity\ProvisioningTarget;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -230,8 +231,7 @@ class SqlProvisionersTable extends Table {
       'source' => 'TermsAndConditions',
       'source_table' => 'terms_and_conditions',
       'related' => [],
-      'archives' => true,
-      'callback' => 'processTAndC'
+      'archives' => true
     ],
     'Types' => [
       'table'  => 'types',
@@ -373,38 +373,15 @@ class SqlProvisionersTable extends Table {
   }
 
   /**
-   * Process T&C for export, by converting Mostly Static Pages to their URLs.
-   * 
-   * @since  COmanage Registry v5.3.0
-   * @param  array $row   Result row from query
-   */
-
-  protected function processTAndC(array $row) {
-    if(!empty($row['mostly_static_page_id'])
-        // If both a URL and MSP are specified, the URL takes precedence
-        && empty($row['url'])) {
-      // Map the MSP to its URL and include that instead
-      $MSPTable = TableRegistry::getTableLocator()->get("MostlyStaticPages");
-
-      $msp = $MSPTable->get($row['mostly_static_page_id']);
-
-      $row['url'] = $msp->url;
-    }
-
-    return $row;
-  }
-
-  /**
    * Provision object data to the provisioning target.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  ProvisioningTarget           $provisioningTarget SqlProvisioner configuration
-   * @param  string                       $className          Class name of primary object being provisioned
-   * @param  object                       $data               Provisioning data in Entity format (eg: \App\Model\Entity\Person)
-   * @param  ProvisioningEligibilityEnum  $eligibility        Provisioning Eligibility Enum
+   *
+   * @param ProvisioningTarget $provisioningTarget SqlProvisioner configuration
+   * @param string $className Class name of primary object being provisioned
+   * @param object $data Provisioning data in Entity format (eg: \App\Model\Entity\Person)
+   * @param string $eligibility Provisioning Eligibility Enum
    * @return array                                            Array of status, comment, and optional identifier
+   * @since  COmanage Registry v5.0.0
    */
-
   public function provision(
     \App\Model\Entity\ProvisioningTarget $provisioningTarget,
     string $className,
@@ -494,12 +471,12 @@ class SqlProvisionersTable extends Table {
    * Sync an entity to the target database schema.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  SqlProvisioner               $SqlProvisioner     SqlProvisioner configuration
-   * @param  string                       $entityName         Entity name of primary object being provisioned
-   * @param  object                       $data               Provisioning data in Entity format (eg: \App\Model\Entity\Person)
-   * @param  ProvisioningEligibilityEnum  $eligibility        Provisioning Eligibility Enum
-   * @param  string                       $dataSource         Datasource to provision to
-   * @return array                                            Array of status, comment, and optional identifier
+   * @param  \SqlConnector\Model\Entity\SqlProvisioner  $SqlProvisioner     SqlProvisioner configuration
+   * @param  string                                     $entityName         Entity name of primary object being provisioned
+   * @param  object                                     $data               Provisioning data in Entity format (eg: \App\Model\Entity\Person)
+   * @param  string                                     $eligibility        Provisioning Eligibility Enum
+   * @param  string                                     $dataSource         Datasource to provision to
+   * @return array                                      Array of status, comment, and optional identifier
    */
   
   protected function syncEntity(
@@ -759,12 +736,12 @@ class SqlProvisionersTable extends Table {
    * Sync related entities to the target database schema.
    * 
    * @since  COmanage Registry v5.0.0
-   * @param  SqlProvisioner               $SqlProvisioner     SqlProvisioner configuration
-   * @param  string                       $parentEntityName   Entity name of primary object being provisioned
-   * @param  string                       $relatedEntityName  Entity name of related object being provisioned
-   * @param  object                       $parentData         Provisioning data in Entity format (eg: \App\Model\Entity\Person) for parent
-   * @param  ProvisioningEligibilityEnum  $eligibility        Provisioning Eligibility Enum
-   * @param  string                       $dataSource         Datasource to provision to
+   * @param  \SqlConnector\Model\Entity\SqlProvisioner  $SqlProvisioner     SqlProvisioner configuration
+   * @param  string                                     $parentEntityName   Entity name of primary object being provisioned
+   * @param  string                                     $relatedEntityName  Entity name of related object being provisioned
+   * @param  object                                     $parentData         Provisioning data in Entity format (eg: \App\Model\Entity\Person) for parent
+   * @param  string                                     $eligibility        Provisioning Eligibility Enum
+   * @param  string                                     $dataSource         Datasource to provision to
    */
 
   protected function syncRelatedEntities(

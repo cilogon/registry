@@ -253,7 +253,7 @@ ServerRequest::addDetector('tablet', function ($request) {
 \Cake\Utility\Inflector::rules('uninflected', ['cous' => 'cous']);
 \Cake\Utility\Inflector::rules('irregular', ['meta' => 'meta']);
 // \Cake\Utility\Inflector::rules('irregular', ['terms_and_condition' => 'terms_and_conditions']);
-\Cake\Utility\Inflector::rules('uninflected', ['terms_and_conditions' => 'terms_and_conditions']);
+\Cake\Utility\Inflector::rules('uninflected', ['TermsAndConditions', 'terms_and_conditions']);
 
 /*
  * Define some constants

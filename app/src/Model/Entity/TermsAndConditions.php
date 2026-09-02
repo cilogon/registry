@@ -29,14 +29,53 @@ declare(strict_types = 1);
 
 namespace App\Model\Entity;
 
+use Cake\Core\Configure;
 use Cake\ORM\Entity;
+use Cake\ORM\TableRegistry;
 
 class TermsAndConditions extends Entity {
   use \App\Lib\Traits\EntityMetaTrait;
-  
+  use \App\Lib\Traits\LabeledLogTrait;
+
   protected array $_accessible = [
     '*' => true,
     'id' => false,
     'slug' => false, 
   ];
+
+  /**
+   * Get the URL for this Terms and Conditions as a virtual field.
+   *
+   * @param string|null $url Existing URL field value
+   * @return string|null      URL
+   * @throws \Exception
+   * @since  COmanage Registry v5.3.0
+   */
+  protected function _getUrl(?string $url = null): ?string {
+    if(!empty($url)) {
+      return $url;
+    }
+
+    if(!empty($this->mostly_static_page?->url)) {
+      return $this->mostly_static_page->url;
+    }
+
+    if(!empty($this->mostly_static_page_id)) {
+      try {
+        $MSPTable = TableRegistry::getTableLocator()->get('MostlyStaticPages');
+        $msp = $MSPTable->get($this->mostly_static_page_id);
+        return $msp->url;
+      } catch(\Exception $e) {
+        // We will rethrow here to facilitate debugging
+        if (Configure::read('debug')) {
+          throw $e;
+        }
+
+        $this->llog('error', $e->getMessage());
+        return null;
+      }
+    }
+
+    return null;
+  }
 }

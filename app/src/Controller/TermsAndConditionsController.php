@@ -99,22 +99,6 @@ class TermsAndConditionsController extends StandardController {
     return $this->redirect(['action' => 'review', '?' => ['co_id' => $this->getCOID()]]);
   }
 
-  /**
-   * Callback run prior to the request render.
-   *
-   * @since  COmanage Registry v5.1.0
-   * @param  EventInterface $event Cake Event
-   * @return \Cake\Http\Response   HTTP Response
-   */
-
-  public function beforeRender(\Cake\Event\EventInterface $event) {
-    $this->set('vv_base_url', \Cake\Routing\Router::url(
-      url: "/" . $this->getCOID(),
-      full: true
-    ));
-
-    return parent::beforeRender($event);
-  }
 
   /**
    * Proxy an Agreement on behalf of a Person.
