@@ -70,7 +70,7 @@ class PagesController extends AppController
         if(!$CoSettings->uploadsEnabled()) {
             $this->Flash->error(__d('error', 'MostlyStaticResources.disabled'));
             
-            return $this->redirect(StringUtilities::pagesUrl($coId, "error-landing"));
+            return $this->redirect(StringUtilities::pagesUrl($coid, "error-landing"));
         }
 
         $MSRTable = TableRegistry::getTableLocator()->get("MostlyStaticResources");
