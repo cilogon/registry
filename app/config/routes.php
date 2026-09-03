@@ -208,7 +208,7 @@ $routes->scope('/', function (RouteBuilder $builder) {
     );
 
     /**
-     * Registry allows URLs of the form /coid/name to render as a Mostly Static Page.
+     * Registry allows URLs of the form /coid/pages/name to render as a Mostly Static Page.
      * 
      * Note this will effectively route any URL of the form /registry/x, where x consists of
      * digits, to the Pages controller. We need to filter on digits, or we'll end up taking
