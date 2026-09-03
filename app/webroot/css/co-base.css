@@ -507,7 +507,6 @@ ul.form-list li.alert-banner .co-alert {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  overflow: hidden;
 }
 /* NAVIGATION / SIDE DRAWER */
 #navigation-drawer {
