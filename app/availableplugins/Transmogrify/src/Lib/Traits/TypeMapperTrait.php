@@ -40,6 +40,7 @@ use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Transmogrify\Lib\Util\RawSqlQueries;
 use App\Lib\Enum\MatchStrategyEnum;
+use EnvSource\Lib\Enum\EnvSourceSpModeEnum;
 
 /**
  * Encapsulates all type mapping logic and helpers (map_type + specific wrappers).
@@ -943,6 +944,31 @@ trait TypeMapperTrait
     return match ($algorithm) {
       'R', 'S' => 'CoreAssigner.FormatAssigners',
       default  => null,
+    };
+  }
+
+
+    /**
+     * Map v4 SP type to v5 attribute separator character.
+     *
+     * Converts EnvSource SP mode enum to the appropriate delimiter:
+     * - Shibboleth uses semicolon (;)
+     * - SimpleSamlPhp uses comma (,)
+     * - Other/default uses semicolon (;)
+     *
+     * @param array $row Row data containing 'sp_type' from cm_env_sources
+     * @return string|null Delimiter character (';' or ',')
+     * @since COmanage Registry v5.3.0
+     */
+    protected function mapFromSpType(array $row): ?string
+  {
+    $spType = $row['sp_type'] ?? null;
+
+    // Default to ';' (matching the UpgradeCommand behavior for legacy Other modes)
+    return match ($spType) {
+      EnvSourceSpModeEnum::Shibboleth    => ';',
+      EnvSourceSpModeEnum::SimpleSamlPhp => ',',
+      default  => ';',
     };
   }
 

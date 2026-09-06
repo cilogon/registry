@@ -498,6 +498,22 @@ class TransmogrifyCommand extends BaseCommand {
           }
           $this->cmdPrinter->warning("Skipping $t record " . (string)$rowIdLabel . ": " . $e->getMessage());
 //          $this->cmdPrinter->pause();
+        } catch (\Doctrine\DBAL\Exception\NotNullConstraintViolationException $e) {
+          $this->cache['error'] += 1;
+          if (isset($row['id'])) {
+            $this->cache['rejected'][$outboundQualifiedTableName][$row['id']] = $row;
+          }
+          $rowIdLabel = $row['id'] ?? ($this->tables[$t]['displayField'] ?? 'n/a');
+          $this->cmdPrinter->error("Missing required field for $t record " . (string)$rowIdLabel . ". DB Error: " . $e->getMessage());
+          $this->cmdPrinter->pause();
+        } catch (\Doctrine\DBAL\Exception\InvalidFieldNameException $e) {
+          $this->cache['error'] += 1;
+          if (isset($row['id'])) {
+            $this->cache['rejected'][$outboundQualifiedTableName][$row['id']] = $row;
+          }
+          $rowIdLabel = $row['id'] ?? ($this->tables[$t]['displayField'] ?? 'n/a');
+          $this->cmdPrinter->error("Schema mapping mismatch for $t. A mapped column doesn't exist. DB Error: " . $e->getMessage());
+          $this->cmdPrinter->pause();
         } catch (\Exception $e) {
           $this->cache['error'] += 1;
           if (isset($row['id'])) {
@@ -570,15 +586,16 @@ class TransmogrifyCommand extends BaseCommand {
     // Display total execution time
     $executionTime = microtime(true) - $this->startTime;
 
-    $hours = floor($executionTime / 3600);
-    $minutes = floor(($executionTime % 3600) / 60);
-    $seconds = $executionTime % 60;
+    $executionTimeInt = (int)$executionTime;
+    $hours = (int)floor($executionTimeInt / 3600);
+    $minutes = (int)floor(($executionTimeInt % 3600) / 60);
+    $seconds = $executionTimeInt % 60;
 
     $formatted = sprintf(
       '%02d:%02d:%02d',
-      (int)$hours,
-      (int)$minutes,
-      (int)$seconds
+      $hours,
+      $minutes,
+      $seconds
     );
 
     $this->cmdPrinter->out(sprintf('Total execution time: %s (HH:MM:SS)', $formatted));

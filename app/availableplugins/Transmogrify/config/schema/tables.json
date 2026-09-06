@@ -285,7 +285,7 @@
         "fieldMap": {
             "org_identity_source_id": "external_identity_source_id",
             "redirect_on_duplicate": "redirect_on_duplicate",
-            "sp_type": "sp_mode",
+            "mva_delimiter": "&mapFromSpType",
             "default_affiliation_type_id": "&mapAffiliationType",
             "address_type_id": "&mapToDefaultAddressTypeId",
             "email_address_type_id": "&mapToDefaultEmailAddressTypeId",
@@ -305,7 +305,8 @@
             "env_identifier_sorid_login": null,
             "env_identifier_network_login": null,
             "duplicate_mode": null,
-            "default_affiliation": null
+            "default_affiliation": null,
+            "sp_type": null
         },
         "dependencies": ["external_identity_sources", "types"]
     },
