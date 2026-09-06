@@ -80,11 +80,12 @@ class AddressesTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
-    $this->belongsTo('People');
-    $this->belongsTo('PersonRoles');
+    $this->belongsTo('Departments');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
-    $this->belongsTo('Types');
+    $this->belongsTo('Organizations');
+    $this->belongsTo('People');
+    $this->belongsTo('PersonRoles');
     $this->belongsTo('SourceAddresses')
          ->setClassName('Addresses')
          ->setForeignKey('source_address_id')
@@ -93,10 +94,18 @@ class AddressesTable extends Table {
          ->setClassName('Addresses')
          ->setForeignKey('source_address_id')
          ->setProperty('pipelined_address');
+    $this->belongsTo('Types');
         
     $this->setDisplayField('street');
     
-    $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
+    $this->setPrimaryLink([
+      'department_id',
+      'external_identity_id',
+      'external_identity_role_id',
+      'organization_id',
+      'person_id',
+      'person_role_id'
+    ]);
     $this->setRequiresCO(true);
     // Models that AcceptCoId should be explicitly added to AppController::beforeFilter()
     $this->setAcceptsCoId(true);

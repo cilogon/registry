@@ -78,10 +78,12 @@ class TelephoneNumbersTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
-    $this->belongsTo('People');
-    $this->belongsTo('PersonRoles');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
+    $this->belongsTo('Departments');
+    $this->belongsTo('Organizations');
+    $this->belongsTo('People');
+    $this->belongsTo('PersonRoles');
     $this->belongsTo('Types');
     $this->belongsTo('SourceTelephoneNumbers')
          ->setClassName('TelephoneNumbers')
@@ -94,7 +96,14 @@ class TelephoneNumbersTable extends Table {
 
     $this->setDisplayField('number');
     
-    $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
+    $this->setPrimaryLink([
+      'department_id',
+      'external_identity_id',
+      'external_identity_role_id',
+      'organization_id',
+      'person_id',
+      'person_role_id'
+    ]);
     $this->setRequiresCO(true);
     // Models that AcceptCoId should be explicitly added to AppController::beforeFilter()
     $this->setAcceptsCoId(true);

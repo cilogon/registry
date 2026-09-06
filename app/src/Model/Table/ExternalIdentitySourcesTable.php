@@ -50,9 +50,6 @@ class ExternalIdentitySourcesTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
-  // Cache of the EIS configuration, keyed on id
-  protected $eisCache = null;
-  
   /**
    * Perform Cake Model initialization.
    *
@@ -205,7 +202,7 @@ class ExternalIdentitySourcesTable extends Table {
     int $lastStart,
     int $curStart
   ): array|bool {
-    $source = $this->getEIS($id);
+    $source = $this->getPluginConfiguration($id);
 
     // We directly retrieve the table object here rather than use $this->$model
     // because the latter is actually an instance of \Cake\ORM\Association\HasOne,
@@ -217,25 +214,6 @@ class ExternalIdentitySourcesTable extends Table {
     }
 
     return false;
-  }
-
-  /**
-   * Get an EIS configuration, possibly via the cache.
-   * 
-   * @since  COmanage Registry v5.0.0
-   * @param  int    $id         External Identity Source ID
-   * @return ExternalIdentitySource
-   */
-
-  protected function getEIS(int $id) {
-    // We want to pull the plugin configuration along with the EIS, to make
-    // the query simpler we contain all possible relations, which will
-    // usually only be a small number.
-    if(empty($this->eisCache[$id])) {
-      $this->eisCache[$id] = $this->get($id, contain: $this->getPluginRelations());
-    }
-    
-    return $this->eisCache[$id];
   }
 
   /**
@@ -273,7 +251,7 @@ class ExternalIdentitySourcesTable extends Table {
   public function inventory(
     int $id,
   ): array|bool {
-    $source = $this->getEIS($id);
+    $source = $this->getPluginConfiguration($id);
 
     $pModel = StringUtilities::pluginModel($source->plugin);
 
@@ -290,7 +268,7 @@ class ExternalIdentitySourcesTable extends Table {
    */
 
   public function retrieve(int $id, string $sourceKey): array {
-    $source = $this->getEIS($id);
+    $source = $this->getPluginConfiguration($id);
 
     $pModel = StringUtilities::pluginModel($source->plugin);
 
@@ -320,7 +298,7 @@ class ExternalIdentitySourcesTable extends Table {
    */
 
   public function search(int $id, array $attrs): array {
-    $source = $this->getEIS($id);
+    $source = $this->getPluginConfiguration($id);
 
     $pModel = StringUtilities::pluginModel($source->plugin);
 
@@ -335,9 +313,7 @@ class ExternalIdentitySourcesTable extends Table {
    */
 
   public function searchableAttributes(int $id) {
-    $pModel = $this->pluginModelForEntityId($id);
-
-    return $pModel->searchableAttributes();
+    return $this->getPluginModel($id)->searchableAttributes();
   }
 
   /**
@@ -363,7 +339,7 @@ class ExternalIdentitySourcesTable extends Table {
   ): string {
     // All work is actually handled by the Pipeline, but we need our configuration
     // to know which Pipeline.
-    $source = $this->getEIS($id);
+    $source = $this->getPluginConfiguration($id);
 
     // Also get the current record from the Backend, which might have been deleted
     $eisBackendRecord = $this->retrieve($id, $sourceKey);

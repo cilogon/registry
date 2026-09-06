@@ -29,6 +29,14 @@
 # When adding entries to this file, group non-model specific translations at the top,
 # then model specific translations alphabetically by model.
 
+# "listpair" is a special localization intended to handle output of the form
+# "key: value" in a view. Hardcoding the colon in the view breaks RTL localization,
+# use of "listpair" allows a localizer to flip the rendering order. (Note that tables and
+# other UI elements have an inherent LTR bias, so this is more a patch than a fix.)
+msgid "listpair"
+msgstr "{0}: {1}"
+
+
 msgid "action"
 msgstr "Action"
 
@@ -221,6 +229,9 @@ msgstr "Locality"
 msgid "login"
 msgstr "Login"
 
+msgid "logo_url"
+msgstr "Logo URL"
+
 msgid "mail"
 msgstr "Email Address"
 
@@ -288,6 +299,9 @@ msgstr "Privileged"
 msgid "pronouns"
 msgstr "Preferred Pronouns"
 
+msgid "public_description"
+msgstr "Public Description"
+
 msgid "reference_identifier"
 msgstr "Reference Identifier"
 
@@ -305,6 +319,9 @@ msgstr "Role Key"
 
 msgid "room"
 msgstr "Room"
+
+msgid "saml_scope"
+msgstr "SAML Scope"
 
 msgid "search.global"
 msgstr "Global search"
@@ -432,6 +449,12 @@ msgstr "Enable Pass Through Provisioning"
 msgid "Authenticators.message_template_id.desc"
 msgstr "If set, when an Authenticator is updated the associated Person will be sent a message using this Template"
 
+msgid "Contacts.company"
+msgstr "Company / Organization"
+
+msgid "Contacts.number"
+msgstr "Telephone Number"
+
 msgid "Cos.member.not"
 msgstr "{0} (Not a Member)"
 
@@ -542,6 +565,24 @@ msgstr "Terms and Conditions Return URL Allow List"
 
 msgid "CoSettings.tc_return_url_allowlist.desc"
 msgstr "Permitted regular expressions (one per line) for <b>tcreturn</b> parameter"
+
+msgid "Departments.administrative_group_id"
+msgstr "Administrative Group"
+
+msgid "Departments.administrative_group_id.desc"
+msgstr "Group containing the Department administrators"
+
+msgid "Departments.leadership_group_id"
+msgstr "Leadership Group"
+
+msgid "Departments.leadership_group_id.desc"
+msgstr "Group containing the Department leadership (Chair/s, PI/s, VP/s, etc)"
+
+msgid "Departments.support_group_id"
+msgstr "Support Group"
+
+msgid "Departments.support_group_id.desc"
+msgstr "Group containing the Department support personne"
 
 msgid "EnrollmentFlowSteps.actor_type"
 msgstr "Actor Type"

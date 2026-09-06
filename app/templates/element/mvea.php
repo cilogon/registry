@@ -126,6 +126,9 @@ $title = __d('controller', $mveaController, [99]);
                       break;
                     case 'pronouns':
                       break;
+                    case 'contacts':
+                      $linkTitle = $mvea['given'];
+                      break;
                   }
                 ?>
                 <?php if($mveaType == 'addresses'): ?>

@@ -49,6 +49,7 @@ class ServersTable extends Table {
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PluggableModelTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
+  use \App\Lib\Traits\QueryModificationTrait;
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   
@@ -75,6 +76,9 @@ class ServersTable extends Table {
     // first. (For deleting a CO, the dependent objects should be deleted first.)
     $this->hasMany('CoSettings')
          ->setForeignKey('email_smtp_server_id');
+    $this->hasMany('Identifiers')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Pipelines')
          ->setForeignKey('match_server_id');
 
@@ -87,6 +91,13 @@ class ServersTable extends Table {
     $this->setAllowLookupPrimaryLink(['test']);
     // We need to calculate the redirect URL for sync ourselves (in the controller)
     $this->setRedirectGoal(goal: 'special', action: 'test');
+
+    $this->setEditContains([
+      'Identifiers'
+    ]);
+    $this->setViewContains([
+      'Identifiers'
+    ]);
 
     $this->setAutoViewVars([
       'plugins' => [
@@ -144,9 +155,31 @@ class ServersTable extends Table {
   }
 
   /**
+   * Request provisioning.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int                      $id                   This table's entity ID to provision
+   * @param  ProvisioningContextEnum  $context              Context in which provisioning is being requested
+   * @param  int                      $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
+   * @param  Job                      $job                  If called from a Job, the current Job entity
+   * @param  array                    $passThroughData      Additional data to merge into the marshalled provisioning data
+   * @throws InvalidArgumentException
+   */
+
+  public function requestProvisioning(
+    int     $id,
+    string  $context,
+    ?int    $provisioningTargetId=null,
+    ?Job    $job=null,
+    ?array  $passThroughData=null
+  ) {
+    return;
+  }
+
+  /**
    * Application Rule to determine if the server is in use.
    *
-   * @since  COmanage Registyr v5.0.0
+   * @since  COmanage Registry v5.0.0
    * @param  Entity  $entity  Entity to be validated
    * @param  array   $options Application rule options
    * @return boolean          true if the Rule check passes, false otherwise
@@ -156,6 +189,42 @@ class ServersTable extends Table {
     // XXX CFM-281 we need to do something here
 
     return true;
+  }
+
+  /**
+   * Perform a keyword search.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $coId   CO ID to constrain search to
+   * @param  string $q      String to search for
+   * @param  int    $limit  Search limit
+   * @return Array          Array of search results, as from find('all')
+   */
+
+  public function search(int $coId, string $q, int $limit) {
+    // Tokenize $q on spaces
+    $tokens = explode(" ", $q);
+
+    // We take two loops through, the first time we only do a prefix search
+    // (foo%). If that doesn't reach the search limit, we'll do an infix search
+    // the second time around.
+
+    $whereClause = [];
+
+    foreach($tokens as $t) {
+      $whereClause['AND'][] = [
+        'OR' => [
+          'LOWER(Servers.description) LIKE' => '%' . strtolower($t) . '%'
+        ]
+      ];
+    }
+
+    return $this->find()
+                ->where($whereClause)
+                ->andWhere(['Servers.co_id' => $coId])
+                ->orderBy(['Servers.description'])
+                ->limit($limit)
+                ->all();
   }
   
   /**

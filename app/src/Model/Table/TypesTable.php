@@ -51,21 +51,24 @@ class TypesTable extends Table {
   use \App\Lib\Traits\UpsertTrait;
   use \App\Lib\Traits\ValidationTrait;
   
-// XXX note not all models are implemented yet...
-//     - uncomment attribute here
-//     - add relation to initialize()
-//     - implement Table::defaultTypes
-//     - update CFM-56 (Types)
-  protected $testVar = "123";
+  /**
+   * To add additional supported attributes:
+   * 
+   * (1) Add the model and field to the list below
+   * (2) Add a hasMany relation to initialize() below
+   * (3) Implement defaultTypes() in the model's Table
+   * (4) The model's Table should use TypeTrait
+   */
 
   protected $supportedAttributes = [
     'Addresses.type',
-//    'Departments.type',
+    'Contacts.type',
+    'Departments.type',
     'PersonRoles.affiliation_type',
     'EmailAddresses.type',
     'Identifiers.type',
     'Names.type',
-//    'Organizations.type',
+    'Organizations.type',
     'Pronouns.type',
     'TelephoneNumbers.type',
     'Urls.type'
@@ -79,7 +82,6 @@ class TypesTable extends Table {
    */
   
   public function initialize(array $config): void {
-    // Timestamp behavior handles created/modified updates
     $this->addBehavior('Changelog');
     $this->addBehavior('Clonable');
     $this->addBehavior('Log');
@@ -92,9 +94,12 @@ class TypesTable extends Table {
     $this->hasMany('CoSettings')
          ->setForeignKey('default_name_type_id');
     $this->hasMany('Addresses');
+    $this->hasMany('Contacts');
+    $this->hasMany('Departments');
     $this->hasMany('EmailAddresses');
     $this->hasMany('Identifiers');
     $this->hasMany('Names');
+    $this->hasMany('Organizations');
     $this->hasMany('PersonRoles')
          ->setForeignKey('affiliation_type_id');
     $this->hasMany('PipelineMatchTypes')

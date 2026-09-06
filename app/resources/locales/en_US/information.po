@@ -135,6 +135,9 @@ msgstr "Additional History Records may be available via Petitions and Provisioni
 msgid "html.sanitization"
 msgstr "HTML input will be sanitized on output, and &lt;script&gt; tags are disallowed."
 
+msgid "Organizations.source"
+msgstr "This Organization was created from {0}."
+
 msgid "pagination.format"
 msgstr "Page {{page}} of {{pages}}, Viewing {{start}}-{{end}} of {{count}}"
 

@@ -214,6 +214,9 @@ msgstr "Notification {0} delivered to {1}"
 msgid "Notifications.resent"
 msgstr "Notification resent"
 
+msgid "OrganizationSources.synced"
+msgstr "Organization Source sync complete"
+
 msgid "People.added.petition"
 msgstr "Created new Person via Enrollment Flow {0} ({1}), Petition {2}"
 

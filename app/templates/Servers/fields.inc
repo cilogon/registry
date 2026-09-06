@@ -49,3 +49,22 @@ if($vv_obj['plugin'] == 'CoreServer.MatchServers') {
   // Otherwise, servers get the standard subnavigation treatment.
   $subnav = 'standard';  
 }
+
+// List the MVEAs that may be shown on the mveaCanvas
+// When this array exists, the mveaCanvas.php element will render  
+$mveas = [
+  'identifiers'
+];
+
+// Name the MVEAs Entity Type
+$mveasEntityType = "server";
+
+// $addMenuLinks is also given slightly different treatment from the typical $topLinks found in most views: 
+// it is a page-global menu used for adding MVEAs and is given special treatment in element/mveaCanvas.php.
+$addMenuLinks = [
+  [
+    'controller' => 'identifiers',
+    'action' => 'add',
+    'icon' => 'fingerprint'
+  ]
+];

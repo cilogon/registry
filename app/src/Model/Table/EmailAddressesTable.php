@@ -88,8 +88,11 @@ class EmailAddressesTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
-    $this->belongsTo('People');
+    $this->belongsTo('Departments');
     $this->belongsTo('ExternalIdentities');
+    $this->belongsTo('Groups');
+    $this->belongsTo('Organizations');
+    $this->belongsTo('People');
     $this->belongsTo('Types');
     $this->belongsTo('SourceEmailAddresses')
          ->setClassName('EmailAddresses')
@@ -105,7 +108,13 @@ class EmailAddressesTable extends Table {
 
     $this->setDisplayField('mail');
     
-    $this->setPrimaryLink(['external_identity_id', 'person_id']);
+    $this->setPrimaryLink([
+      'department_id',
+      'external_identity_id',
+      'group_id',
+      'organization_id',
+      'person_id'
+    ]);
     $this->setAllowLookupPrimaryLink(['primary']);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
@@ -326,10 +335,20 @@ class EmailAddressesTable extends Table {
     return $this->find()
                 ->where([
                   'LOWER(EmailAddresses.mail)' => strtolower($q),
-                  'People.co_id' => $coId
+                  'OR' => [
+                    'Departments.co_id' => $coId,
+                    'Groups.co_id' => $coId,
+                    'Organizations.co_id' => $coId,
+                    'People.co_id' => $coId
+                  ]
                 ])
                 ->limit($limit)
-                ->contain(['People' => 'PrimaryName'])
+                ->contain([
+                  'Departments',
+                  'Groups',
+                  'Organizations',
+                  'People' => 'PrimaryName'
+                ])
                 ->all();
   }
 

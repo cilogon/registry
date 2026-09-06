@@ -98,6 +98,7 @@ trait AutoViewVarsTrait {
           }
 
           $generatedValue = $class::getLocalizedConsts();
+          asort($generatedValue);
           break;
         case 'hash':
           // Like 'array' but we assume we are passed key/value pairs

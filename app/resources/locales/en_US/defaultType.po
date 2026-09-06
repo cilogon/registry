@@ -36,6 +36,30 @@ msgstr "Office"
 msgid "Addresses.type.postal"
 msgstr "Postal"
 
+msgid "Contacts.type.administrative"
+msgstr "Administrative"
+
+msgid "Contacts.type.billing"
+msgstr "Billing"
+
+msgid "Contacts.type.other"
+msgstr "Other"
+
+msgid "Contacts.type.support"
+msgstr "Support"
+
+msgid "Contacts.type.technical"
+msgstr "Technical"
+
+msgid "Departments.type.department"
+msgstr "Department"
+
+msgid "Departments.type.researchinstitute"
+msgstr "Research Institute"
+
+msgid "Departments.type.vo"
+msgstr "Virtual Organization"
+
 msgid "EmailAddresses.type.delivery"
 msgstr "Delivery"
 
@@ -63,6 +87,9 @@ msgstr "Badge"
 msgid "Identifiers.type.enterprise"
 msgstr "Enterprise"
 
+msgid "Identifiers.type.entityid"
+msgstr "Entity ID"
+
 msgid "Identifiers.type.eppn"
 msgstr "ePPN"
 
@@ -77,6 +104,9 @@ msgstr "GID"
 
 msgid "Identifiers.type.mail"
 msgstr "Mail"
+
+msgid "Identifiers.type.name"
+msgstr "Name"
 
 msgid "Identifiers.type.national"
 msgstr "National"
@@ -127,6 +157,33 @@ msgstr "Official"
 
 msgid "Names.type.preferred"
 msgstr "Preferred"
+
+msgid "Organizations.type.archive"
+msgstr "Archive"
+
+msgid "Organizations.type.com"
+msgstr "Commercial"
+
+msgid "Organizations.type.edu"
+msgstr "Academic"
+
+msgid "Organizations.type.facility"
+msgstr "Facility"
+
+msgid "Organizations.type.funder"
+msgstr "Funder"
+
+msgid "Organizations.type.gov"
+msgstr "Government"
+
+msgid "Organizations.type.health"
+msgstr "Health Care"
+
+msgid "Organizations.type.nonprofit"
+msgstr "Non Profit"
+
+msgid "Organizations.type.other"
+msgstr "Other"
 
 msgid "PersonRoles.affiliation_type.affiliate"
 msgstr "Affiliate"

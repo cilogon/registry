@@ -87,6 +87,7 @@ class CousTable extends Table {
          // _id suffix to match Cake's default pattern.
          ->setProperty('parent');
     
+    $this->hasMany('Departments');
     $this->hasMany('EnrollmentFlows');
     // AR-COU-6 If a COU is deleted, the special groups associated with the COU will also be deleted.
     $this->hasMany('Groups')

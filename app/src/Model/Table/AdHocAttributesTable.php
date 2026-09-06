@@ -63,10 +63,12 @@ class AdHocAttributesTable extends Table {
     $this->setTableType(\App\Lib\Enum\TableTypeEnum::Secondary);
     
     // Define associations
-    $this->belongsTo('People');
-    $this->belongsTo('PersonRoles');
+    $this->belongsTo('Departments');
     $this->belongsTo('ExternalIdentities');
     $this->belongsTo('ExternalIdentityRoles');
+    $this->belongsTo('Organizations');
+    $this->belongsTo('People');
+    $this->belongsTo('PersonRoles');
     $this->belongsTo('SourceAdHocAttributes')
          ->setClassName('AdHocAttributes')
          ->setForeignKey('source_ad_hoc_attribute_id')
@@ -78,7 +80,14 @@ class AdHocAttributesTable extends Table {
     
     $this->setDisplayField('tag');
     
-    $this->setPrimaryLink(['external_identity_id', 'external_identity_role_id', 'person_id', 'person_role_id']);
+    $this->setPrimaryLink([
+      'department_id',
+      'external_identity_id',
+      'external_identity_role_id',
+      'organization_id',
+      'person_id',
+      'person_role_id'
+    ]);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');

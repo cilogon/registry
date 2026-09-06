@@ -51,6 +51,8 @@ class SearchUtilities {
   // To add a new backend to search:
   //  (1) Implement $model->search($id, $q, $limit)
   //  (2) Add the model to $models here, and define which roles can query it
+  //      "searchLimited" means "if 'Limit Global Search Scope' is enabled in CO Settings
+  //      then search this model"
   //  (3) Update documentation at https://spaces.at.internet2.edu/pages/viewpage.action?pageId=243078053
 
   static protected $globalSearchModels = [
@@ -60,8 +62,19 @@ class SearchUtilities {
       'displayField'  => 'street',
       'searchLimited' => false
     ],
+    'Departments' => [
+      'parent'        => ['Cos' => 'co_id'],
+      'roles'         => ['platformAdmin', 'coAdmin'],
+      'displayField'  => 'name',
+      'searchLimited' => false
+    ],
     'EmailAddresses' => [
-      'parent'        => ['People' => 'person_id'],
+      'parent'        => [
+        'Departments' => 'department_id',
+        'Groups' => 'group_id',
+        'Organizations' => 'organization_id',
+        'People' => 'person_id'
+      ],
       'roles'         => ['platformAdmin', 'coAdmin'],
       'displayField'  => 'mail',
       'searchLimited' => true
@@ -73,7 +86,13 @@ class SearchUtilities {
       'searchLimited' => false
     ],
     'Identifiers' => [
-      'parent'        => ['Groups' => 'group_id', 'People' => 'person_id'],
+      'parent'        => [
+        'Departments' => 'department_id',
+        'Groups' => 'group_id',
+        'Organizations' => 'organization_id',
+        'People' => 'person_id',
+        'Servers' => 'server_id'
+      ],
       'roles'         => ['platformAdmin', 'coAdmin'],
       'displayField'  => 'identifier',
       'searchLimited' => true
@@ -84,10 +103,22 @@ class SearchUtilities {
       'displayField'  => 'full_name',
       'searchLimited' => true
     ],
+    'Organizations' => [
+      'parent'        => ['Cos' => 'co_id'],
+      'roles'         => ['platformAdmin', 'coAdmin'],
+      'displayField'  => 'name',
+      'searchLimited' => false
+    ],
     'PersonRoles' => [
       'parent'        => ['People' => 'person_id'],
       'roles'         => ['platformAdmin', 'coAdmin'],
       'displayField'  => 'title',
+      'searchLimited' => false
+    ],
+    'Servers' => [
+      'parent'        => ['Cos' => 'co_id'],
+      'roles'         => ['platformAdmin', 'coAdmin'],
+      'displayField'  => 'description',
       'searchLimited' => false
     ],
     'TelephoneNumbers' => [
@@ -171,8 +202,11 @@ class SearchUtilities {
     // $results tracks the per-model backend results
     $results = [
       'Cos'           => [],
+      'Departments'   => [],
       'Groups'        => [],
+      'Organizations' => [],
       'People'        => [],
+      'Servers'       => [],
       // If we matched on a UUID
       'uuid'          => null,
       // If we matched on a CRN
@@ -221,8 +255,8 @@ class SearchUtilities {
               // We force any Groups matches into the parent key format.
               $results['Groups'][$r->id]['Groups'] = $r;
             } elseif($pmodel == 'Cos') {
-              // This will look something like $results['Cos']['Departments'][] = $entity
-              $results[$pmodel][$m][] = $r;
+              // This will look something like $results['Departments'][] = $entity
+              $results[$m][$r->id][$m] = $r;
             } elseif($pmodel == 'PersonRoles') {
               // Although we matched on a PersonRole we're really interested in the Person
               $results['People'][$r->person_role->person_id][$m] = $r->person_role;

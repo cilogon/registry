@@ -42,6 +42,9 @@ trait PluggableModelTrait {
   // The set of plugin entry point models used in configurations for this model
   protected $_pluginModels = [];
 
+  // Plugin configuration cache, keyed on id
+  protected $_cfgCache = null;
+
   /**
    * Callback after data is marshaled into an entity.
    *
@@ -286,6 +289,43 @@ trait PluggableModelTrait {
 
   public function getPluggableModelType(): string {
     return Inflector::underscore(StringUtilities::tableToEntityName($this));
+  }
+
+  /**
+   * Perform a cached lookup of the Plugin configuration, returning the Pluggable Model with the
+   * instantiated configuration as a related model.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $id Pluggable Model ID
+   * @return Entity     Pluggable Model
+   */
+
+  public function getPluginConfiguration(int $id): \Cake\ORM\Entity {
+    // To make the query simpler we contain all possible relations, which will
+    // usually only be a small number.
+
+    if(empty($this->_cfgCache[$id])) {
+      $this->_cfgCache[$id] = $this->get($id, contain: $this->getPluginRelations());
+    }
+
+    return $this->_cfgCache[$id];
+  }
+
+  /**
+   * Perform a cached lookup of the instantiated Plugin model.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $id Pluggable Model ID
+   * @return Entity     Pluggable Model
+   */
+
+  // Note what is actually returned is "Cake\ORM\Assocation\HasOne", but documenting that is
+  // more confusing than just not documenting the return type
+  public function getPluginModel(int $id) {
+    $pluggableCfg = $this->getPluginConfiguration($id);
+    $pModel = StringUtilities::pluginModel($pluggableCfg->plugin);
+
+    return $this->$pModel;
   }
 
   /**

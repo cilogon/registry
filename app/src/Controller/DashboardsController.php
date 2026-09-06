@@ -143,6 +143,12 @@ class DashboardsController extends StandardController {
         'controller'    => 'normalizations',
         'action'        => 'index'
       ],
+      __d('controller', 'OrganizationSources', [99]) => [
+        'icon'          => 'cloud_sync',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'organization_sources',
+        'action'        => 'index'
+      ],
       __d('controller', 'Pipelines', [99]) => [
         'icon'          => 'valve',
         'controller'    => 'pipelines',
@@ -233,10 +239,22 @@ class DashboardsController extends StandardController {
 
     $this->set('vv_platform_menu_items', $platformMenuItems);
     $registryMenuItems = [
+      __d('controller', 'Departments', [99]) => [
+        'icon'          => 'castle',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'departments',
+        'action'        => 'index'
+      ],
       __d('controller', 'Groups', [99]) => [
         'icon'          => 'people',
         'iconClass'     => 'material-symbols-outlined',
         'controller'    => 'groups',
+        'action'        => 'index'
+      ],
+      __d('controller', 'Organizations', [99]) => [
+        'icon'          => 'location_city',
+        'iconClass'     => 'material-symbols-outlined',
+        'controller'    => 'organizations',
         'action'        => 'index'
       ],
       __d('controller', 'People', [99]) => [
@@ -338,17 +356,18 @@ class DashboardsController extends StandardController {
 
     // It's a single match if there is a single person or person role result,
     // or if there is a single result overall, redirect to that result.
-    if((count($results['Cos']) == 0
-        && (count($results['People']) + count($results['Groups'])) == 1)
-       ||
-       (count($results['Cos']) == 1
-        && (count($results['People']) + count($results['Groups'])) == 0)) {
+    if(count($results['Cos'])
+             + count($results['Departments'])
+             + count($results['Groups'])
+             + count($results['Organizations'])
+             + count($results['People'])
+             + count($results['Servers']) == 1) {
       // Figure out which model matched, as well as the target model to redirect to
       $matchClass = null;
       $targetClass = null;
       $targetRecordId = null;
 
-      foreach(['Cos', 'Groups', 'People'] as $m) {
+      foreach(['Cos', 'Departments', 'Groups', 'Organizations', 'People', 'Servers'] as $m) {
         if(!empty($results[$m])) {
           $targetClass = $m;
           $targetRecordId = array_key_first($results[$m]);
@@ -384,8 +403,11 @@ class DashboardsController extends StandardController {
       ]);
     } elseif(!empty($results['cri'])) {
     } elseif(count($results['Cos'])
+             + count($results['Departments'])
+             + count($results['Groups'])
+             + count($results['Organizations'])
              + count($results['People'])
-             + count($results['Groups']) == 0) {
+             + count($results['Servers']) == 0) {
       $this->Flash->information(__d('result', 'search.none'));
     }
 

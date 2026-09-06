@@ -311,7 +311,7 @@ use \Cake\Utility\Inflector;
                 foreach($m as $field => $value) {
                   if($field == 'type') continue;
 
-                  print "<li>" . $field . ": " . $value . "</li>\n";
+                  print "<li>" . __d('field', 'listpair', [$field, $value]) . "</li>\n";
                 }
                 print "</ul></td>\n";
                 print "</tr>\n";

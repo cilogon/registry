@@ -77,6 +77,7 @@ if($vv_action != 'add') {
 // List the MVEAs that may be shown on the mveaCanvas
 // When this array exists, the mveaCanvas.php element will render  
 $mveas = [
+  'email_addresses',
   'identifiers'
 ];
 
@@ -192,6 +193,12 @@ if(!$vv_obj->isOwners()) {
 
 if(!$vv_obj->isOwners()) {
   $addMenuLinks = [
+    [
+      'controller' => 'email_addresses',
+      'action' => 'add',
+      'icon' => 'email',
+      'iconClass' => 'material-symbols-outlined'
+    ],
     [
       'controller' => 'identifiers',
       'action' => 'add',

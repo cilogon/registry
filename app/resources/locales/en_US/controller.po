@@ -48,6 +48,9 @@ msgstr "{0,plural,=1{Authenticator} other{Authenticators}}"
 msgid "Clusters"
 msgstr "{0,plural,=1{Cluster} other{Clusters}}"
 
+msgid "Contacts"
+msgstr "{0,plural,=1{Contact} other{Contacts}}"
+
 msgid "CoSettings"
 msgstr "{0,plural,=1{CO Setting} other{CO Settings}}"
 
@@ -59,6 +62,9 @@ msgstr "{0,plural,=1{COU} other{COUs}}"
 
 msgid "Dashboards"
 msgstr "{0,plural,=1{Dashboard} other{Dashboards}}"
+
+msgid "Departments"
+msgstr "{0,plural,=1{Department} other{Departments}}"
 
 msgid "EmailAddresses"
 msgstr "{0,plural,=1{Email Address} other{Email Addresses}}"
@@ -128,6 +134,15 @@ msgstr "{0,plural,=1{Normalization} other{Normalizations}}"
 
 msgid "Notifications"
 msgstr "{0,plural,=1{Notification} other{Notifications}}"
+
+msgid "Organizations"
+msgstr "{0,plural,=1{Organization} other{Organizations}}"
+
+msgid "OrganizationSourceRecords"
+msgstr "{0,plural,=1{Organization Source Record} other{Organization Source Records}}"
+
+msgid "OrganizationSources"
+msgstr "{0,plural,=1{Organization Source} other{Organization Sources}}"
 
 msgid "People"
 msgstr "{0,plural,=1{Person} other{People}}"

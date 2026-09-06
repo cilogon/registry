@@ -114,6 +114,18 @@ class GroupsTable extends Table {
     $this->hasMany('ChildGroups')
          ->setClassName('Groups')
          ->setForeignKey('parent_id');
+    $this->hasMany('DepartmentAdministators')
+         ->setClassName('Departments')
+         ->setForeignKey('administrative_group_id');
+    $this->hasMany('DepartmentLeaderss')
+         ->setClassName('Departments')
+         ->setForeignKey('leadership_group_id');
+    $this->hasMany('DepartmentSupporters')
+         ->setClassName('Departments')
+         ->setForeignKey('support_group_id');
+    $this->hasMany('EmailAddresses')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('EnrollmentFlowSteps')
          ->setForeignKey('notification_group_id');
     $this->hasMany('GroupMembers')
@@ -142,6 +154,7 @@ class GroupsTable extends Table {
     
     $this->setEditContains([
       'ChildGroups',
+      'EmailAddresses',
       'Identifiers',
       // For an Owners Group, the group it manages owners for
       'OwnersForGroup',
@@ -152,6 +165,7 @@ class GroupsTable extends Table {
 
     $this->setViewContains([
       'ChildGroups',
+      'EmailAddresses',
       'Identifiers',
       // For an Owners Group, the group it manages owners for
       'OwnersForGroup',
@@ -1609,7 +1623,7 @@ class GroupsTable extends Table {
    * @param  int    $coId   CO ID to constrain search to
    * @param  string $q      String to search for
    * @param  int    $limit  Search limit
-   * @return Array          Array of search results, as from find('all)
+   * @return Array          Array of search results, as from find('all')
    */
 
   public function search(int $coId, string $q, int $limit) {

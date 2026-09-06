@@ -81,6 +81,9 @@ class CosTable extends Table {
     $this->hasMany('Dashboards')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
+    $this->hasMany('Departments')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
     $this->hasMany('Groups')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
@@ -94,6 +97,12 @@ class CosTable extends Table {
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('Normalizations')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('Organizations')
+         ->setDependent(true)
+         ->setCascadeCallbacks(true);
+    $this->hasMany('OrganizationSources')
          ->setDependent(true)
          ->setCascadeCallbacks(true);
     $this->hasMany('People')

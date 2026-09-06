@@ -59,11 +59,13 @@ class IdentifiersTable extends Table {
     'type' => [
       'badge',
       'enterprise',
+      'entityid',
       'eppn',
       'eptid',
       'epuid',
       'gid',
       'mail',
+      'name',
       'national',
       'network',
       'oidcsub',
@@ -97,9 +99,12 @@ class IdentifiersTable extends Table {
     
     // Define associations
     $this->belongsTo('ExternalIdentities');
+    $this->belongsTo('Departments');
     $this->belongsTo('Groups');
+    $this->belongsTo('Organizations');
     $this->belongsTo('People');
     $this->belongsTo('ProvisioningTargets');
+    $this->belongsTo('Servers');
     $this->belongsTo('Types');
     $this->belongsTo('SourceIdentifiers')
          ->setClassName('Identifiers')
@@ -112,7 +117,14 @@ class IdentifiersTable extends Table {
 
     $this->setDisplayField('identifier');
     
-    $this->setPrimaryLink(['external_identity_id', 'group_id', 'person_id']);
+    $this->setPrimaryLink([
+      'department_id',
+      'external_identity_id',
+      'group_id',
+      'organization_id',
+      'person_id',
+      'server_id'
+    ]);
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setRedirectGoal(action: 'delete', goal: 'deleted');
@@ -429,12 +441,21 @@ class IdentifiersTable extends Table {
                 ->where([
                   'Identifiers.identifier' => $q,
                   'OR' => [
+                    'Departments.co_id' => $coId,
+                    'Groups.co_id' => $coId,
+                    'Organizations.co_id' => $coId,
                     'People.co_id' => $coId,
-                    'Groups.co_id' => $coId
+                    'Servers.co_id' => $coId
                   ]
                 ])
                 ->limit($limit)
-                ->contain(['People' => 'PrimaryName', 'Groups'])
+                ->contain([
+                  'Departments',
+                  'Groups',
+                  'Organizations',
+                  'People' => 'PrimaryName',
+                  'Servers'
+                ])
                 ->all();
   }
   

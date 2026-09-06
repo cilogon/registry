@@ -295,5 +295,17 @@ export default {
         </span>
       </td>
     </tr>
+    <!-- Contacts -->
+    <tr class="field-data-container linked-row" v-if="this.core.mveaType == 'contacts'" @click="followRowLink">
+      <td class="field-data">
+        <div class="force-wrap with-hover-button">
+          <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.given }}</a>
+          <copy-value-button :txt="this.txt" :valueToCopy="this.mvea.given"></copy-value-button>
+        </div>
+      </td>
+      <td class="field-data data-label">
+        <span class="mvea-type">{{ this.mvea.type.display_name }}</span>
+      </td>
+    </tr>
   `
 }

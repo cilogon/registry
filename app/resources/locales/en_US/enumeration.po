@@ -434,6 +434,21 @@ msgstr "Resolved"
 msgid "NotificationStatusEnum.X"
 msgstr "Canceled"
 
+msgid "OrgSyncModeEnum.A"
+msgstr "Accrual"
+
+msgid "OrgSyncModeEnum.F"
+msgstr "Full"
+
+msgid "OrgSyncModeEnum.M"
+msgstr "Manual"
+
+msgid "OrgSyncModeEnum.U"
+msgstr "Update"
+
+msgid "OrgSyncModeEnum.X"
+msgstr "Disabled"
+
 msgid "PageContextEnum.EH"
 msgstr "Enrollment Handoff"
 

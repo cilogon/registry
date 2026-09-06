@@ -38,8 +38,7 @@
   ];
 
   $resultsCount = 0;
-  // Count only People and Groups for now. Other models can come later.
-  foreach(['People', 'Groups', 'Cos'] as $pm) {
+  foreach(['People', 'Groups', 'Cos', 'Departments', 'Organizations', 'Servers'] as $pm) {
     $resultsCount += count($vv_results[$pm]);
   }
 
@@ -75,7 +74,7 @@
     <nav id="cm-searchresults-subnav-tabs" class="cm-subnav-tabs" aria-label="<?= __d('menu','aria.label.subnavigation') ?>">
       <ul class="nav nav-tabs" role="tablist">
         <?php $isFirstTab = true; ?>
-        <?php foreach(['People', 'Groups'] as $i=>$pm): ?>
+        <?php foreach(['People', 'Groups', 'Servers', 'Departments', 'Organizations'] as $i=>$pm): ?>
           <?php if(!empty($vv_results[$pm])): ?>
             <li class="nav-item" role="presentation">
               <button class="nav-link search-result-tab<?= $isFirstTab ? ' active' : '' ?>" 
@@ -100,7 +99,7 @@
     </nav>
     <div  id="search-results-tab-content ?>" class="search-results-group-container tab-content">
     <?php $isFirstTab = true; ?>
-    <?php foreach(['People', 'Groups', 'Cos'] as $i=>$pm): ?>
+    <?php foreach(['People', 'Groups', 'Cos', 'Servers', 'Departments', 'Organizations'] as $i=>$pm): ?>
       <?php if(!empty($vv_results[$pm])): ?>
         <div id="search-results-<?= strtolower($pm) ?>" 
              class="tab-pane fade<?= $isFirstTab ? ' show active' : '' ?>" 

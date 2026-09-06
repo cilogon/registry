@@ -132,7 +132,7 @@ trait HistoryTrait {
    * @return int             HistoryRecord ID
    */
   
-  public function recordHistory($entity, ?string $action=null, ?string $comment=null): int {
+  public function recordHistory($entity, ?string $action=null, ?string $comment=null): ?int {
     $laction = $action;
     $lcomment = $comment;
     
@@ -180,7 +180,12 @@ trait HistoryTrait {
         $lcomment,
         $personId
       );
-    } else {
+    }
+    
+    // We need one of the HistoryRecord-enabled primary keys to proceed.
+    // (ie: We don't record History for Departments and Organizations.)
+
+    if($personId || $personRoleId || $externalIdentityId || $externalIdentityRoleId) {
       return $HistoryRecords->recordForPerson(
         $personId,
         $laction,
@@ -190,5 +195,7 @@ trait HistoryTrait {
         $externalIdentityRoleId
       );
     }
+
+    return null;
   }
 }

@@ -1,0 +1,23 @@
+{
+  "types": {
+    "organization_source": [
+      "FederationSources"
+    ]
+  },
+  "schema": {
+    "tables": {
+      "federation_sources": {
+        "columns": {
+          "id": {},
+          "organization_source_id": {},
+          "server_id": { "notnull": false, "comment": "required for initial configuration creation" },
+          "protocol": { "type": "enum" }
+        },
+        "indexes": {
+          "federation_sources_i1": { "columns": [ "organization_source_id" ] },
+          "federation_sources_i2": { "columns": [ "server_id" ] }
+        }
+      }
+    }
+  }
+}
