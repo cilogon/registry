@@ -61,7 +61,7 @@ $appStateId = $this->ApplicationState->getId(ApplicationStateEnum::PaginationLim
             class="pagination-form"
             method="get"
             onsubmit="gotoPage(this.pageNum.value,
-              <?= $this->Paginator->counter('{{pages}}') ?>,
+              <?= $this->Paginator->total() ?>,
               '<?= __d('error', 'pagenum.nan') ?>',
               '<?= __d('error', 'pagenum.exceeded', [$this->Paginator->counter('{{pages}}')]) ?>',
               '<?= $this->Paginator->generateUrl() ?>');
@@ -71,7 +71,7 @@ $appStateId = $this->ApplicationState->getId(ApplicationStateEnum::PaginationLim
         <input type="submit" value="<?= __d('operation', 'go') ?>"/>
       </form>
 
-      <?php if($this->Paginator->counter('{{count}}') > 20): ?>
+      <?php if(($this->Paginator->param('totalCount') ?? 0) > 20): ?>
         <?= $this->Form->create(null, [ 'type' => 'get', 'id' => 'set-pagination-form', 'class' => 'pagination-form' ]) ?>
         <?php
         // Provide a form for setting the page limit.
