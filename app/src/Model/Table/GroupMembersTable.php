@@ -329,7 +329,9 @@ class GroupMembersTable extends Table {
   ) {
     // For GroupMembers we need to request provisioning on both the Group and the Person.
 
-    $gm = $this->get($id);
+    // When a GroupMember is deleted, we need to retrieve the deleted
+    // record to find the Person and Group to reprovision.
+    $gm = $this->get($id, archived: true);
 
     $this->People->requestProvisioning(
       id: $gm->person_id,
