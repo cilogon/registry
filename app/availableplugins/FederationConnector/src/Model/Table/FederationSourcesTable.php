@@ -33,7 +33,7 @@ use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
-use Cake\Utility\XML;
+use Cake\Utility\Xml;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\LanguageEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;

@@ -731,6 +731,18 @@
       }
     },
 
+    "dashboards": {
+      "columns": {
+        "id": {},
+        "co_id": {},
+        "name": {},
+        "description": {}
+      },
+      "indexes": {
+        "dashboards_i1": { "columns": [ "co_id"] }
+      }
+    },
+
     "enrollment_flows": {
       "columns": {
         "id": {},
