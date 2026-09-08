@@ -76,9 +76,12 @@ trait TableMetaTrait {
     $activeModels = $Plugins->getActivePluginModels('all');
 
     foreach(array_keys($activeModels) as $entryPointModelName) {
-      $PluginTable = TableRegistry::getTableLocator()->get($entryPointModelName);
+      // Not all Entry Point Models are Tables (eg: Jobs), so make sure we don't get an Auto-Table.
+      if(!\Cake\Core\App::className($entryPointModelName, 'Model/Table', 'Table')) {
+        continue;
+      }
 
-      // Not all Entry Point Models are Tables (eg: Jobs).
+      $PluginTable = TableRegistry::getTableLocator()->get($entryPointModelName);
 
       if(method_exists($PluginTable, 'getHasManyPluginRelations')) {
         $pluginRelations = $PluginTable->getHasManyPluginRelations($tableName);
@@ -487,7 +490,7 @@ trait TableMetaTrait {
   /**
    * Obtain the set of related models to relink to the archive copy of the
    * parent record when saving (via ChangelogBehavior).
-   * 
+   *
    * @since  COmanage Registry v5.3.0
    * @return array          Array of relations, in standard Cake notation
    */
@@ -495,14 +498,18 @@ trait TableMetaTrait {
   public function getRelinkToArchive(): array {
     return $this->relinkToArchive;
   }
-  
+
   /**
    * Declaration by Plugin Models of hasMany relations from the perspective of the Core model.
    * This is intended to allow Core models to figure out which plugins have created relations
    * for them. Tho configuration array is keyed on the Core model and contains a list of
-   * arrays of dependency informatian. See
+   * arrays of dependency information. See
    *  https://spaces.at.internet2.edu/spaces/COmanage/pages/250251876/Writing+Registry+PE+Plugins#WritingRegistryPEPlugins-PluginModelstoCoreModels
    * 
+   * Note: Core models that use PluggableModelTrait automatically create hasOne relationships
+   * to matching plugin entry point models. Do not include them in this configuration to
+   * avoid duplicate association alias exceptions.
+   *
    * @since  COmanage Registry v5.3.0
    * @param  array  $config   Array of relation configurations
    */
@@ -587,7 +594,7 @@ trait TableMetaTrait {
   /**
    * Set the related models that will be relinked to the archived parent record
    * when saving (via ChangelogBehavior).
-   * 
+   *
    * @since  COmanage Registry v5.3.0
    * @param  array  $relations  Array of relations, in standard Cake notation
    */
@@ -595,7 +602,7 @@ trait TableMetaTrait {
   public function relinkToArchive(array $relations) {
     $this->relinkToArchive = $relations;
   }
-  
+
   /**
    * Set the type of this Table.
    * 
