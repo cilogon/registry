@@ -316,7 +316,7 @@ class FederationSourcesTable extends Table {
       // XXX There might be more information in $response->body, we should bubble that up
       // or log it
 
-      throw new \RuntimeException($response->reasonPhrase);
+      throw new \RuntimeException($response->getReasonPhrase());
     }
   }
 
