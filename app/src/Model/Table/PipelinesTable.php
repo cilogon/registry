@@ -726,14 +726,20 @@ class PipelinesTable extends Table {
       } else {
         // (5) Assign Identifiers
 
-        // We can basically ignore the results from assign() since we don't
-        // directly report them anywhere.
+        // We need to see if any Identifier Assignments failed, and if so we'll
+        // fail the Pipeline since this might cause an inconsistent state.
+        // We only look at the 'errors' key, since Identifiers being already assigned
+        // (or successfully assigned) are not currently of interest here.
 
-        $this->Cos->IdentifierAssignments->assign(
+        $assigned = $this->Cos->IdentifierAssignments->assign(
           entityType:     'People',
           entityId:       $person->id,
           provision:      false
         );
+
+        if(!empty($assigned['errors'])) {
+          throw new \RuntimeException(implode(',', $results['errors']));
+        }
 
         // (6) Update Person Status
         // - We no longer need to do anything here since status recalculation
