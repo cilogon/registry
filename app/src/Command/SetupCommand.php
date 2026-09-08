@@ -140,15 +140,21 @@ class SetupCommand extends BaseCommand
     // Add the first CMP Administrator.
     
     $io->out(__d('command', 'se.db.cmpadmin'));
+
+    // We must pass the CO ID so models can validate correctly against CoSettings
+    $coTable->People->Names->setCurCoId($co_id);
+    $coTable->People->Identifiers->setCurCoId($co_id);
+    $coTable->People->PersonRoles->setCurCoId($co_id);
+    $coTable->People->GroupMembers->setCurCoId($co_id);
     
-    // We disable validation here because there may be dependencies on
+    // We disable validation in the following because there may be dependencies on
     // validation aspects that aren't set up yet or aren't available here
     
     $person = $coTable->People->newEntity([
       'co_id'   => $co_id,
       'status'  => SuspendableStatusEnum::Active
     ],
-    ['validate' => false]);
+    ['validate' => false, 'skipNormalization' => true]);
     
     $person->names = [$coTable->People->Names->newEntity([
       'type_id'       => $coTable->Types->getTypeId(coId:       $co_id, 
@@ -158,7 +164,7 @@ class SetupCommand extends BaseCommand
       'family'        => $sn,
       'primary_name'  => true
     ],
-    ['validate' => false])];
+    ['validate' => false, 'skipNormalization' => true])];
     
     $person->identifiers = [$coTable->People->Identifiers->newEntity([
       'type_id'       => $coTable->Types->getTypeId(coId:       $co_id, 
@@ -168,7 +174,7 @@ class SetupCommand extends BaseCommand
       'login'         => true,
       'status'        => SuspendableStatusEnum::Active
     ],
-    ['validate' => false])];
+    ['validate' => false, 'skipNormalization' => true])];
     
     $person->person_roles = [$coTable->People->PersonRoles->newEntity([
       'affiliation_type_id'   => $coTable->Types->getTypeId(coId:       $co_id, 
@@ -177,18 +183,18 @@ class SetupCommand extends BaseCommand
       'title'                 => __d('command', 'se.person_role.title'),
       'status'                => SuspendableStatusEnum::Active
     ],
-    ['validate' => false])];
+    ['validate' => false, 'skipNormalization' => true])];
     
     $g = $coTable->Groups->find('adminGroup', co_id: $co_id)->firstOrFail();
 
     $person->group_members = [
       $coTable->People->GroupMembers->newEntity(
         ['group_id' => $g->id],
-        ['validate' => false]
+        ['validate' => false, 'skipNormalization' => true]
       ),
       $coTable->People->GroupMembers->newEntity(
         ['group_id' => $g->owners_group_id],
-        ['validate' => false]
+        ['validate' => false, 'skipNormalization' => true]
       )
     ];
     

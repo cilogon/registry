@@ -90,7 +90,7 @@ class Application extends BaseApplication
                 $this->addPlugin($p->plugin);
             }
         }
-        catch(\Cake\Database\Exception\DatabaseException $e) {
+        catch(\Cake\Database\Exception\QueryException | \Cake\Database\Exception\DatabaseException $e) {
             // Most likely we are performing the initial database setup and
             // the plugins table is missing.
         }

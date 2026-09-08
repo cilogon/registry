@@ -64,9 +64,11 @@ class NormalizationBehavior extends Behavior
 
     // We need the CO for the record in order to find the appropriate configuration(s) to use,
     // but for that we need $data in entity form.
-
     // This will recurse, so make sure to break the loop
-    $entity = $Table->newEntity((array)$data, options: ['skipNormalization' => true]);
+    $entity = $Table->newEntity(
+      (array)$data,
+      options: [...$options, 'skipNormalization' => true]
+    );
 
     $coId = $Table->calculateCoForRecord($entity);
 
