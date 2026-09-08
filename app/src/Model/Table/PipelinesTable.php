@@ -738,7 +738,7 @@ class PipelinesTable extends Table {
         );
 
         if(!empty($assigned['errors'])) {
-          throw new \RuntimeException(implode(',', $results['errors']));
+          throw new \RuntimeException(implode(',', $assigned['errors']));
         }
 
         // (6) Update Person Status
