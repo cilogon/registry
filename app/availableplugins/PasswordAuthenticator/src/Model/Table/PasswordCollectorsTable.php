@@ -75,12 +75,12 @@ class PasswordCollectorsTable extends Table {
     $this->hasManyPlugins([
       'Authenticators' => [
         [
-          'targetModel' => 'PasswordCollectors.PasswordCollectors'
+          'targetModel' => 'PasswordAuthenticator.PasswordCollectors'
         ]
       ],
       'Petitions' => [
         [
-          'targetModel' => 'PasswordCollectors.PetitionPasswords',
+          'targetModel' => 'PasswordAuthenticator.PetitionPasswords',
           'config' => [
             'dependent' => true,
             'cascadeCallbacks' => true
