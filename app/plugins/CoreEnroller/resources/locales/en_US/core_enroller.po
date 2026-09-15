@@ -43,6 +43,9 @@ msgstr "{0,plural,=1{Information Renderer} other{Information Renderers}}"
 msgid "controller.InvitationAccepters"
 msgstr "{0,plural,=1{Invitation Accepter} other{Invitation Accepters}}"
 
+msgid "controller.PersonSelectors"
+msgstr "{0,plural,=1{Person Selector} other{Person Selectors}}"
+
 msgid "controller.PetitionAcceptances"
 msgstr "{0,plural,=1{Petition Acceptance} other{Petition Acceptances}}"
 
@@ -57,6 +60,30 @@ msgstr "{0,plural,=1{Petition Identifier} other{Petition Identifiers}}"
 
 msgid "controller.PetitionVerifications"
 msgstr "{0,plural,=1{Petition Verification} other{Petition Verifications}}"
+
+msgid "enumeration.PersonSelectorConfirmationModeEnum.A"
+msgstr "All Person Attributes"
+
+msgid "enumeration.PersonSelectorConfirmationModeEnum.F"
+msgstr "All Person Attributes and Roles"
+
+msgid "enumeration.PersonSelectorConfirmationModeEnum.IE"
+msgstr "Names, Identifiers and Email Addresses"
+
+msgid "enumeration.PersonSelectorConfirmationModeEnum.N"
+msgstr "Names Only"
+
+msgid "enumeration.PersonSelectorConfirmationModeEnum.R"
+msgstr "Names and Roles"
+
+msgid "enumeration.PersonSelectorConfirmationModeEnum.X"
+msgstr "Skip Confirmation"
+
+msgid "enumeration.PersonSelectorModeEnum.P"
+msgstr "Select"
+
+msgid "enumeration.PersonSelectorModeEnum.S"
+msgstr "Self"
 
 msgid "enumeration.VerificationDefaultsEnum.234679CDFGHJKLMNPQRTVWXZ"
 msgstr "DefaultCharset"
@@ -142,6 +169,9 @@ msgstr "New code sent"
 msgid "information.EmailVerifiers.abort"
 msgstr "Abort"
 
+msgid "information.PersonSelectors.review"
+msgstr "To confirm this selection, click Continue. To search for another candidate, page back."
+
 msgid "field.ApprovalCollectors.denial_message_template_id"
 msgstr "Denial Message Template"
 
@@ -165,9 +195,6 @@ msgstr "If set, the Approver must add a comment when approving or denying Petiti
 
 msgid "field.AttributeCollectors.valid_through.default.after.desc"
 msgstr "Days After Finalization"
-
-msgid "field.AttributeCollectors.enable_person_find"
-msgstr "Enable People Picker for Unauthenticated Enrollments"
 
 msgid "field.AttributeCollectors.enable_person_find.desc"
 msgstr "Enable people picker for self-service enrollments, see <a target=\"_top\" href=\"https://spaces.at.internet2.edu/display/COmanage/Attribute+Collector+Enroller+Plugin\">Attribute Collector documentation</a> for privacy considerations"
@@ -319,6 +346,24 @@ msgstr "Time in minutes before the invitation expires, default is 1440 (1 day)"
 msgid "field.InvitationAccepters.welcome_message"
 msgstr "Welcome Message"
 
+msgid "field.PersonSelectors.confirmation_page_mode"
+msgstr "Confirmation Page Mode"
+
+msgid "field.PersonSelectors.mode"
+msgstr "Person Selection Mode"
+
+msgid "field.PersonSelectors.roe_enrollment_flow_id"
+msgstr "Next Flow on Empty"
+
+msgid "field.PersonSelectors.roe_enrollment_flow_id.desc"
+msgstr "If no Person is selected from this Step, transition to the configured Enrollment Flow"
+
+msgid "operation.terminate"
+msgstr "Terminate this Petition"
+
+msgid "operation.transition"
+msgstr "Transition to {0}"
+
 msgid "result.accept.accepted"
 msgstr "Invitation Accepted"
 
@@ -360,6 +405,15 @@ msgstr "Invitation Declined at {0}"
 
 msgid "result.InvitationAccepters.none"
 msgstr "No response to invitation yet"
+
+msgid "result.PersonSelectors.attached"
+msgstr "Person {0} attached using {1} mode"
+
+msgid "result.PersonSelectors.confirm"
+msgstr "Please review the selected Enrollee and confirm, or search for a new Person below"
+
+msgid "result.PersonSelectors.none"
+msgstr "No Person selection found"
 
 msgid "op.EmailVerifiers.verify"
 msgstr "Verify Email"

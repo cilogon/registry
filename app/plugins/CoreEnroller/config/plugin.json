@@ -7,7 +7,8 @@
       "EmailVerifiers",
       "IdentifierCollectors",
       "InformationRenderers",
-      "InvitationAccepters"
+      "InvitationAccepters",
+      "PersonSelectors"
     ]
   },
   "schema": {
@@ -29,8 +30,7 @@
         "columns": {
           "id": {},
           "enrollment_flow_step_id": {},
-          "description": { "temporary": true, "type": "string", "size": 80 },
-          "enable_person_find": { "type": "boolean" }
+          "description": { "temporary": true, "type": "string", "size": 80 }
         },
         "indexes": {
           "attribute_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] }
@@ -125,6 +125,19 @@
         },
         "indexes": {
           "invitation_accepters_i1": { "columns": [ "enrollment_flow_step_id" ] }
+        }
+      },
+      "person_selectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "mode": { "type": "string", "size": 2 },
+          "confirmation_page_mode": { "type": "string", "size": 2 },
+          "roe_enrollment_flow_id": { "type": "integer", "foreignkey": { "table": "enrollment_flows", "column": "id" }}
+        },
+        "indexes": {
+          "person_selectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "person_selectors_i2": { "needed": false, "columns": [ "roe_enrollment_flow_id" ] }
         }
       },
       "petition_acceptances": {

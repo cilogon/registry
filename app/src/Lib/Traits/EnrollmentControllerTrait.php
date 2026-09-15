@@ -394,7 +394,9 @@ trait EnrollmentControllerTrait {
       $nextActorType = $stepInfo['step']->actor_type;
     }
 
-    if(in_array($nextActorType, $actorInfo['roles'])) {
+    if(in_array($nextActorType, $actorInfo['roles'])
+       // To match StandardEnrollerController::calculatePermission, we always allow platform admins
+       || in_array('cmpadmin', $actorInfo['roles'])) {
       // The current actor is eligible to perform the next step, so simply redirect.
       // Note we will need to re-insert the token if currently in use.
 

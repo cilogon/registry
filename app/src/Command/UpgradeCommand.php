@@ -107,7 +107,10 @@ class UpgradeCommand extends BaseCommand
     ],
     "5.3.0" => [
       'block' => false,
-      'post' => ['setupNormalizations']
+      'post' => [
+        'setDefaultPickerAuthz',
+        'setupNormalizations'
+      ]
     ]
   ];
   
@@ -122,6 +125,7 @@ class UpgradeCommand extends BaseCommand
     'checkGroupNames' => ['global' => true],
     'createDefaultGroups' => ['perCO' => true, 'perCOU' => true],
     'installMostlyStaticPages' => ['perCO' => true],
+    'setDefaultPickerAuthz' => ['perCO' => true],
     'setupNormalizations' => ['perCO' => true]
   ];
 
@@ -551,6 +555,29 @@ class UpgradeCommand extends BaseCommand
     $MspsTable = $this->getTableLocator()->get('MostlyStaticPages');
 
     $MspsTable->addDefaults($coId);
+  }
+
+  /**
+   * Configure the default Person Picker authorization for each CO.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int  $coId   CO ID
+   */
+
+  protected function setDefaultPickerAuthz(int $coId) {
+    // The default Person Picker authorization is CoOrCouAdmin, even for the COmanage CO.
+    // We could do this via updateAll, but then we won't get changelog history of when
+    // the defaults were set.
+
+    $CoSettingsTable = $this->getTableLocator()->get('CoSettings');
+
+    $settings = $CoSettingsTable->find()->where([ 'co_id' => $coId ])->first();
+
+    if($settings && empty($settings->person_picker_authz)) {
+      $settings->person_picker_authz = \App\Lib\Enum\PeoplePickerAuthzEnum::CoOrCouAdmin;
+
+      $CoSettingsTable->saveOrFail($settings);
+    }
   }
 
   /**

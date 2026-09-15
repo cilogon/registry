@@ -46,6 +46,7 @@ use \Cake\ORM\Table;
 use \Cake\ORM\TableRegistry;
 use \Cake\Validation\Validator;
 use \App\Lib\Enum\TAndCLoginModeEnum;
+use \App\Lib\Enum\PeoplePickerAuthzEnum;
 use \App\Lib\Enum\PermittedNameFieldsEnum;
 use \App\Lib\Enum\PermittedTelephoneNumberFieldsEnum;
 use \App\Lib\Enum\RequiredAddressFieldsEnum;
@@ -171,6 +172,10 @@ class CoSettingsTable extends Table {
         'model' => 'Servers',
         'where' => ['plugin' => 'CoreServer.SmtpServers']
       ],
+      'personPickerAuthzs' => [
+        'type' => 'enum',
+        'class' => 'PeoplePickerAuthzEnum'
+      ],
       'permittedFieldsNames' => [
         'type' => 'enum',
         'class' => 'PermittedNameFieldsEnum'
@@ -254,6 +259,7 @@ class CoSettingsTable extends Table {
       'person_picker_email_address_type_id'  => null,
       'person_picker_identifier_type_id'     => null,
       'person_picker_display_types'          => true,
+      'person_picker_authz'                  => PeoplePickerAuthzEnum::CoOrCouAdmin,
       'required_fields_address'              => RequiredAddressFieldsEnum::Street,
       'required_fields_name'                 => RequiredNameFieldsEnum::Given,
       'search_global_limit'                  => DEF_GLOBAL_SEARCH_LIMIT,
@@ -597,6 +603,11 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => 'isInteger']
     ]);
     $validator->allowEmptyString('person_picker_identifier_type_id');
+
+    $validator->add('person_picker_authz', [
+      'content' => ['rule' => ['inList', PeoplePickerAuthzEnum::getConstValues()]]
+    ]);
+    $validator->notEmptyString('person_picker_unauth');
 
     $validator->add('required_fields_address', [
       'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]

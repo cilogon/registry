@@ -129,6 +129,19 @@ class RegistryAuthComponent extends Component
     if(!empty($passed[0])) {
       $id = (int)$passed[0];
     }
+
+    // Do we have an authenticated user session? We perform this check here
+    // in case the Controller is handling auth but wants to call into RegistryAuthComponent
+    // for authorization checks (like isCoOrCouAdmin).
+
+    // Note we don't stuff anything into the session anymore, the only attribute
+    // is the username, which is actually loaded by login.php.
+
+    $auth = $session->read('Auth');
+
+    if(empty($this->authenticatedUser) && !empty($auth['external']['user'])) {
+      $this->authenticatedUser = $auth['external']['user'];
+    }
     
     // Perform authorization check
 
@@ -175,13 +188,6 @@ class RegistryAuthComponent extends Component
           break;
       }
     }
-
-    // Do we have an authenticated user session?
-
-    // Note we don't stuff anything into the session anymore, the only attribute
-    // is the username, which is actually loaded by login.php.
-
-    $auth = $session->read('Auth');
 
     // Registry UI is now a hybrid implementation of VUE and CAKEPHP MVC.
     // In order to allow a logged-in user to reach out to the backend without
@@ -711,25 +717,29 @@ class RegistryAuthComponent extends Component
    */
 
   public function getPersonID(int $coId): ?int {
-    // We first need an authenticated Identifier, and it can't be for an API user.
+    if(!isset($this->cache['personId'][$coId])) {
+      // We first need an authenticated Identifier, and it can't be for an API user.
 
-    if(empty($this->authenticatedUser)) {
-      throw new \RuntimeException("RegistryAuthComponent:getPersonID No authenticated user");
+      if(empty($this->authenticatedUser)) {
+        throw new \RuntimeException("RegistryAuthComponent:getPersonID No authenticated user");
+      }
+
+      if($this->authenticatedApiUser) {
+        throw new \RuntimeException("RegistryAuthComponent::getPersonID Current user is an API user");
+      }
+
+      $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
+
+      try {
+        $personId = (int)$Identifiers->lookupPersonByLogin($coId, $this->authenticatedUser);
+      } catch(RecordNotFoundException) {
+        $personId = null;
+      } finally {
+        $this->cache['personId'][$coId] = $personId;
+      }
     }
 
-    if($this->authenticatedApiUser) {
-      throw new \RuntimeException("RegistryAuthComponent::getPersonID Current user is an API user");
-    }
-
-    $Identifiers = TableRegistry::getTableLocator()->get('Identifiers');
-
-    try {
-      $personId = (int)$Identifiers->lookupPersonByLogin($coId, $this->authenticatedUser);
-    } catch(RecordNotFoundException) {
-      $personId = null;
-    } finally {
-      return $personId;
-    }
+    return $this->cache['personId'][$coId];
   }
   
   /**
@@ -956,7 +966,50 @@ class RegistryAuthComponent extends Component
     
     return $this->cache['isCoMember'][$coId];
   }
+  /**
+   * Determine if the current user is a CO or COU Administrator within a CO.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int  $coId CO ID
+   * @return bool       True if the current user is a CO or COU Administrator for the specified CO
+   */
   
+  public function isCoOrCouAdmin(int $coId): bool {
+    // First check if the current user is a CO Admin
+
+    if($this->isCoAdmin($coId)) {
+      return true;
+    }
+
+    // If not, pull the set of COUs within $coId (order and hierarchy doesn't matter
+    // since we're going to loop through all of them) and then see if the current
+    // user is a member of any of them.
+
+    $personId = $this->getPersonId($coId);
+    
+    if($personId) {
+      $CousTable = TableRegistry::getTableLocator()->get('Cous');
+
+      $cous = $CousTable->find()->where(['co_id' => $coId])->all();
+
+      foreach($cous as $cou) {
+        // Find the Admin Group ID for this COU. This will throw an Exception if
+        // the Admin Group isn't found, but there should always be an Admin Group.
+        $gid = $CousTable->Groups->getAdminGroupId(coId: $coId, couId: $cou->id);
+
+        // See if this Person is a member of the Admin Group
+        if($CousTable->Groups->GroupMembers->isMember(
+          groupId: $gid, 
+          personId: $personId
+        )) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   /**
    * Determine if an identifier represents an administrator in the specified CO.
    *
@@ -970,7 +1023,7 @@ class RegistryAuthComponent extends Component
     $Cos = TableRegistry::getTableLocator()->get('Cos');
     
     // First see if this Identifier is a login Identifier in the requested CO
-    // This is similar to CosTable::getCosForIdentifier
+    // This is similar to CosTable::getCosForIdentifier, see also getPersonId above
     $identifiers = $Cos->People
                        ->Identifiers
                        ->find('all')

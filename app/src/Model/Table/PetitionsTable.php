@@ -658,6 +658,13 @@ class PetitionsTable extends Table {
         
         // Save here in case any plugin tries to reload petition info
         $this->saveOrFail($petition);
+
+        $this->PetitionHistoryRecords->record(
+          petitionId:           $id, 
+          enrollmentFlowStepId: null,
+          action:               PetitionActionEnum::PersonAttached,
+          comment:              __d('result', 'Petitions.person.attached.finalization', [$person->id])
+        );
         
         $People->recordHistory(
           entity: $person, 
@@ -976,7 +983,14 @@ class PetitionsTable extends Table {
 
     $petition->status = PetitionStatusEnum::Terminated;
 
-    $this->save($petition);
+    $this->saveOrFail($petition);
+
+    $this->PetitionHistoryRecords->record(
+      petitionId:           $petition->id,
+      enrollmentFlowStepId: null,
+      action:               PetitionActionEnum::Terminated,
+      comment:              __d('result', 'Petitions.terminated')
+    );
   }
 
   /**

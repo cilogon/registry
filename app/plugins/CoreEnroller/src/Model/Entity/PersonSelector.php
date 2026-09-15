@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Enrollment Authorization Enum
+ * COmanage Registry Person Selector Entity
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,25 +20,32 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace App\Lib\Enum;
+namespace CoreEnroller\Model\Entity;
 
-// Note these values don't necessarily line up with their v4 equivalents.
-// Since Enrollment Flows aren't being transmogrified, this shouldn't matter.
-class EnrollmentAuthzEnum extends StandardEnum {
-  const AuthUser      = 'AU';
-  const CoAdmin       = 'CA';
-  const CoOrCouAdmin  = 'A';
-/* CFM-31 not yet implemented
-  const CouAdmin      = 'UA';
-  const CouPerson     = 'UP';
-  const GroupMember   = 'GM';*/
-  const Person        = 'CP';
-  // const None          = 'N';
+use Cake\ORM\Entity;
+
+class PersonSelector extends Entity {
+  use \App\Lib\Traits\EntityMetaTrait;
+  
+  /**
+   * Fields that can be mass assigned using newEntity() or patchEntity().
+   *
+   * Note that when '*' is set to true, this allows all unspecified fields to
+   * be mass assigned. For security purposes, it is advised to set '*' to false
+   * (or remove it), and explicitly make individual fields accessible as needed.
+   *
+   * @var array<string, bool>
+   */
+  protected array $_accessible = [
+    '*' => true,
+    'id' => false,
+    'slug' => false,
+  ];
 }

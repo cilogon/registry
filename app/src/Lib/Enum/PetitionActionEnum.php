@@ -39,8 +39,10 @@ class PetitionActionEnum extends StandardEnum {
   const Finalized               = 'F';
   const FlaggedDuplicate        = 'FD';
   const InvitationViewed        = 'IV';
+  const PersonAttached          = 'PA';
   const StatusUpdated           = 'SU';
   const TCExplicitAgreement     = 'TE';
   const TCImpliedAgreement      = 'TI';
+  const Terminated              = 'CX';
   const Transitioned            = 'TX';
 }

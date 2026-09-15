@@ -727,17 +727,24 @@ class GroupsTable extends Table {
    *
    * @since  COmanage Registry v5.0.0
    * @param  \Cake\ORM\Query $query   Query
-   * @param  array           $options Options: co_id (required)
+   * @param  array           $options Options: co_id (required), cou_id (optional)
    * @return \Cake\ORM\Query          Query
    */
   
   public function findAdminGroup(Query $query, array $options): Query {
-    return $query->where([
+    $whereClause = [
       'co_id'       => $options['co_id'],
-      'cou_id IS'   => null,
       'status'      => SuspendableStatusEnum::Active,
       'group_type'  => GroupTypeEnum::Admins
-    ]);
+    ];
+
+    if(!empty($options['cou_id'])) {
+      $whereClause['cou_id'] = $options['cou_id'];
+    } else {
+      $whereClause['cou_id IS'] = null;
+    }
+
+    return $query->where($whereClause);
   }
   
   /**
@@ -794,12 +801,13 @@ class GroupsTable extends Table {
    * Get the Admin Group for a CO.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int $coId CO ID
-   * @return int       Group ID
+   * @param  int $coId  CO ID
+   * @param  int $couId COU ID
+   * @return int        Group ID
    */
   
-  public function getAdminGroupId(int $coId): int {
-    $g = $this->find('adminGroup', co_id: $coId)->firstOrFail();
+  public function getAdminGroupId(int $coId, ?int $couId=null): int {
+    $g = $this->find('adminGroup', co_id: $coId, cou_id: $couId)->firstOrFail();
 
     return $g->id;
   }

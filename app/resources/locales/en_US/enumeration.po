@@ -461,6 +461,21 @@ msgstr "General"
 msgid "PageContextEnum.TC"
 msgstr "Terms and Conditions"
 
+msgid "PeoplePickerAuthzEnum.A"
+msgstr "CO or COU Admin"
+
+msgid "PeoplePickerAuthzEnum.AU"
+msgstr "Any Authenticated User"
+
+msgid "PeoplePickerAuthzEnum.CA"
+msgstr "CO Administrator"
+
+msgid "PeoplePickerAuthzEnum.CP"
+msgstr "Person"
+
+msgid "PeoplePickerAuthzEnum.N"
+msgstr "None"
+
 msgid "PermittedCharactersEnum.AL"
 msgstr "Any"
 
@@ -524,6 +539,9 @@ msgstr "Country Code, Area Code, Number, Extension"
 msgid "PetitionActionEnum.AU"
 msgstr "Attributes Updated"
 
+msgid "PetitionActionEnum.CX"
+msgstr "Terminated"
+
 msgid "PetitionActionEnum.EV"
 msgstr "Email Verified"
 
@@ -538,6 +556,9 @@ msgstr "Invitation Accepted"
 
 msgid "PetitionActionEnum.IV"
 msgstr "Invitation Viewed"
+
+msgid "PetitionActionEnum.PA"
+msgstr "Person Attached"
 
 msgid "PetitionActionEnum.PN"
 msgstr "Denied"

@@ -244,6 +244,9 @@ msgstr "Petition Finalized"
 msgid "Petitions.flaggedduplicate"
 msgstr "Petition flagged as Duplicate"
 
+msgid "Petitions.person.attached.finalization"
+msgstr "New Person {0} created during finalization"
+
 msgid "Petitions.step.completed"
 msgstr "Petition {0} Step {1} completed"
 

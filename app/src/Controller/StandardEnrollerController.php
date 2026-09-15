@@ -188,6 +188,7 @@ class StandardEnrollerController extends StandardPluginController {
       }
 
       // As a special case, we allow the Platform adminstrator to perform all actions.
+      // EnrollmentControllerTrait::transitionToStep has a similar exception.
       if(in_array('cmpadmin', $actorInfo['roles'])) {
         $this->llog('trace', "Authorizing access to petition " . $petitionId . " step " . $stepConfig->enrollment_flow_step_id) . " for platform administrator";
         return true;

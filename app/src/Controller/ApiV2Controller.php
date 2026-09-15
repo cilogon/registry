@@ -36,7 +36,7 @@ use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 use InvalidArgumentException;
-use \App\Lib\Enum\EnrollmentAuthzEnum;
+use \App\Lib\Enum\PeoplePickerAuthzEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
 
@@ -533,36 +533,53 @@ class ApiV2Controller extends AppController {
 
     $auth = $session->read('Auth');
 
-    // Calculate people picker permissions on the fly for an enrollment flow/petition
+    // Calculate people picker permissions on the fly
     if(
       $this->name == 'People'
       && $reqAction == 'pick'
       && !empty($request->getQuery('petition_id'))
     ) {
-      $petitionId = (int)$request->getQuery('petition_id');
-      // We need to check if this is part of an Enrollment Flow
-      $Petitions = $this->fetchTable('Petitions');
+      // While this check is primarily intended for the Attribute Collection
+      // steps of an Enrollment Flow, we use a global configuration because
+      // (1) it's simpler to implement and (2) once any part of the application
+      // requires an unathenticated People Picker, it is effectively available
+      // for the entire CO regardless of context.
 
-      // Pull the Petition to find its CO
-      $petition = $Petitions->get(
-        $petitionId,
-        contain: ['EnrollmentFlows' => ['EnrollmentFlowSteps']]
-      );
+      $coId = $this->getCOID();
 
-      // We need to check the Petitioner Authorization.
-      $hasAuthorizedUser = $petition->enrollment_flow->authz_type == EnrollmentAuthzEnum::AuthUser
-        ? !empty($auth['external']['user']) : true;
+      if($coId) {
+        $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
 
-      foreach ($petition->enrollment_flow->enrollment_flow_steps as $step) {
-        if ($step->plugin == 'CoreEnroller.AttributeCollectors') {
-          $AttributeCollectors = $this->fetchTable('CoreEnroller.AttributeCollectors');
-          $attributeCollectorsRecord =  $AttributeCollectors->find()
-            ->where(['enrollment_flow_step_id' => $step->id])
-            ->contain(['EnrollmentAttributes'])
-            ->first();
+        $settings = $CoSettings->find()->where(['co_id' => $coId])->firstOrFail();
 
-          $mode = $hasAuthorizedUser && $attributeCollectorsRecord->enable_person_find ? 'yes' : 'no';
+        switch($settings->person_picker_authz) {
+          case PeoplePickerAuthzEnum::AuthUser:
+            if(!empty($auth['external']['user'])) {
+              return 'yes';
+            }
+            break;
+          case PeoplePickerAuthzEnum::CoAdmin:
+            if($this->RegistryAuth->isCoAdmin($coId)) {
+              return 'yes';
+            }
+            break;
+          case PeoplePickerAuthzEnum::CoOrCouAdmin:
+            if($this->RegistryAuth->isCoOrCouAdmin($coId)) {
+              return 'yes';
+            }
+            break;
+          case PeoplePickerAuthzEnum::None:
+            // Person Picker is open, eg for unauthenticated enrollments
+            return 'open';
+            break;
+          case PeoplePickerAuthzEnum::Person:
+            if($this->RegistryAuth->isCoMember($coId)) {
+              return 'yes';
+            }
+            break;
         }
+
+        return 'notauth';
       }
     }
 

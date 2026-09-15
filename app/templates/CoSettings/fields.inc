@@ -66,6 +66,7 @@ $fields = [
       ]
     ],
   ],
+  'person_picker_authz',
   'email_smtp_server_id',
   'email_delivery_address_type_id',
   'authn_events_api_disable',

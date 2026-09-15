@@ -36,6 +36,15 @@
 msgid "listpair"
 msgstr "{0}: {1}"
 
+# "idpair" is similar to listpair, but intended for a record ID being appended to
+# another string, eg "Pat Lee (id: 273)"
+msgid "idpair"
+msgstr "{0} (id: {1})"
+
+# "typepair" is also similar, but intended for a type or other parenthentical to
+# be rendered, eg "212-555-1212 (mobile)"
+msgid "typepair"
+msgstr "{0} ({1})"
 
 msgid "action"
 msgstr "Action"
@@ -511,6 +520,12 @@ msgstr "This determines what fields to display alongside the person name when us
 
 msgid "CoSettings.person_picker_display_types"
 msgstr "Display field types in the picker"
+
+msgid "CoSettings.person_picker_authz"
+msgstr "Person Picker Authorization"
+
+msgid "CoSettings.person_picker_authz.desc"
+msgstr "See the <a href='XXX'>documentation</a> for considerations before changing this setting"
 
 msgid "CoSettings.platform_env_mfa"
 msgstr "MFA Assertion Indicator"

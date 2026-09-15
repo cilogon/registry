@@ -205,7 +205,9 @@ class IdentifierAssignmentsTable extends Table {
     
     foreach($ias as $ia) {
 // XXX CFM-57 If not group eligible skip this (but log that we skipped it)
-      // We'll create a transaction for each Identifier Assignment
+      // We'll create a transaction for each Identifier Assignment.
+      // Transaction management is a bit tricky here because there may be other
+      // transactions above or below us.
 
       $cxn = $this->getConnection();
       $cxn->begin();
@@ -229,14 +231,33 @@ class IdentifierAssignmentsTable extends Table {
 
           // The plugin is expected to throw InvalidArgumentException on
           // unsupported context, or RuntimeException on some other error.
-          $ret['assigned'][$ia->description] = $Plugin->assign($ia, $entity);
+          $result = $Plugin->assign($ia, $entity);
           
-          $this->llog('trace', "New Identifier '".$ia->description."' assigned (".$ret['assigned'][$ia->description].") for $entityType $entityId");
+          $this->llog('trace', "New Identifier '".$ia->description."' assigned ($result) for $entityType $entityId");
 
-          $this->attachIdentifier($ia, $entity, $ret['assigned'][$ia->description]);
+          $this->attachIdentifier($ia, $entity, $result);
+
+          $cxn->commit();
+
+          // Make sure we commit successfully before recording the result
+          $ret['assigned'][$ia->description] = $result;
         }
-        catch(\Exception $e) {
+        catch(\Cake\ORM\Exception\PersistenceFailedException $e) {
+          // This is probably the uniqueness check in attachIdentifier failing,
+          // in which case a validation rule probably already triggered a rollback,
+          // closing our transaction. As such, we don't explicitly commit() or
+          // rollback() here to avoid generating another Exception.
+
           $this->llog('debug', "Identifier '".$ia->description."' assignment failed for $entityType $entityId: " . $e->getMessage());
+          $ret['errors'][$ia->description] = $e->getMessage();
+
+          // $cxn->commit();
+        }
+        catch(\InvalidArgumentException | \RuntimeException $e) {
+          // InvalidArgumentException: Requested entity type is not supported
+          // RuntimeException: Plugin could not assign an Identifier
+
+          $this->llog('debug', "Identifier '".$ia->description."' assignment failed for $entityType $entityId due to plugin: " . $e->getMessage());
           $ret['errors'][$ia->description] = $e->getMessage();
 
           if(isset($ia->allow_empty) && $ia->allow_empty) {
@@ -244,27 +265,38 @@ class IdentifierAssignmentsTable extends Table {
             // but we'll report it in the error set since we don't have another place
             // to put it
             $this->llog('debug', "Identifier '".$ia->description."' assignment allow_empty is true, will not rollback");
+
+            $cxn->commit();
           } else {
             // Failure of this Identifier Assignment will cause (eg) a Pipeline to fail
+
             $cxn->rollback();
           }
+        }
+        catch(\Exception $e) {
+          $this->llog('debug', "Identifier '".$ia->description."' assignment failed for $entityType $entityId: " . $e->getMessage());
+          $ret['errors'][$ia->description] = $e->getMessage();
+
+          $cxn->rollback();
         }
       } else {
         $this->llog('trace', "Identifier '".$ia->description."' already assigned for $entityType $entityId");
         $ret['already'][$ia->description] = true; // XXX maybe return the identifier?
         // We can't rollback here because it will cause parent transactions
-        // (eg: Pipelines) to fail
-//        $cxn->rollback();
+        // (eg: Pipelines) to fail, so we commit to close the open transacation
+        $cxn->commit();
       }
-
-      $cxn->commit();
     }
 
     if($provision) {
-      // Trigger provisioning, letting errors bubble up (AR-GMR-5)
-      if(method_exists($EntityTable, "requestProvisioning") && !empty($entity->id)) {
-        $this->llog('rule', "AR-GMR-5 Requesting provisioning for $entityType " . $entity->id);
-        $EntityTable->requestProvisioning(id: $entity->id, context: ProvisioningContextEnum::Automatic);
+      // We only want to provision if we did something
+
+      if(!empty($ret['assigned'])) {
+        // Trigger provisioning, letting errors bubble up (AR-GMR-5)
+        if(method_exists($EntityTable, "requestProvisioning") && !empty($entity->id)) {
+          $this->llog('rule', "AR-GMR-5 Requesting provisioning for $entityType " . $entity->id);
+          $EntityTable->requestProvisioning(id: $entity->id, context: ProvisioningContextEnum::Automatic);
+        }
       }
     }
 

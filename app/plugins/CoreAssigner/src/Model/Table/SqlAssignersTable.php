@@ -146,7 +146,7 @@ class SqlAssignersTable extends Table {
       return $identifier->identifier;
     }
 
-    throw new \InvalidArgumentException(__d('core_assigner', 'error.SqlAssigners.failed'));
+    throw new \RuntimeException(__d('core_assigner', 'error.SqlAssigners.failed'));
   }
 
   /**

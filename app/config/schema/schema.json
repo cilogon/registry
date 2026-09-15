@@ -173,6 +173,7 @@
         "person_picker_email_address_type_id": { "type": "integer" },
         "person_picker_identifier_type_id": { "type": "integer" },
         "person_picker_display_types": { "type": "boolean" },
+        "person_picker_authz": { "type": "string", "size": 2 },
         "tc_login_mode": { "type": "string", "size": 2 },
         "tc_return_url_allowlist": { "type": "text" },
         "theme_id": {},

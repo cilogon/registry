@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Enrollment Authorization Enum
+ * COmanage Registry Person Selector Confirmation Mode Enum
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -20,25 +20,28 @@
  * limitations under the License.
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
- * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @package       registry-plugins
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
 declare(strict_types = 1);
 
-namespace App\Lib\Enum;
+namespace CoreEnroller\Lib\Enum;
 
-// Note these values don't necessarily line up with their v4 equivalents.
-// Since Enrollment Flows aren't being transmogrified, this shouldn't matter.
-class EnrollmentAuthzEnum extends StandardEnum {
-  const AuthUser      = 'AU';
-  const CoAdmin       = 'CA';
-  const CoOrCouAdmin  = 'A';
-/* CFM-31 not yet implemented
-  const CouAdmin      = 'UA';
-  const CouPerson     = 'UP';
-  const GroupMember   = 'GM';*/
-  const Person        = 'CP';
-  // const None          = 'N';
+use App\Lib\Enum\StandardEnum;
+
+class PersonSelectorConfirmationModeEnum extends StandardEnum {
+  // All MVEAS, but no Roles
+  const Attributes  = 'A';
+  // All MVEAS and Roles
+  const Full        = 'F';
+  // Names, Identifiers, and Email Addresses
+  const Identifiers = 'IE';
+  // Only Names
+  const Name        = 'N';
+  // Names, Identifiers, Email Addresses, and Roles
+  const Roles       = 'R';
+  // Skip the confirmation page
+  const Skip        = 'X';
 }

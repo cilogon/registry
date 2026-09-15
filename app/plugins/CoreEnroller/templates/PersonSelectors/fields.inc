@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Attribute Collector Fields
+ * COmanage Registry Person Selectors Fields
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -21,34 +21,49 @@
  *
  * @link          https://www.internet2.edu/comanage COmanage Project
  * @package       registry
- * @since         COmanage Registry v5.0.0
+ * @since         COmanage Registry v5.3.0
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  */
 
-declare(strict_types = 1);
+use \CoreEnroller\Lib\Enum\PersonSelectorModeEnum;
 
 $fields = [
-];
-
-// Top Links
-$topLinks[] = [
-  'icon'  => 'edit_attributes',
-  'order' => 'Default',
-  'label' => __d('core_enroller', 'controller.EnrollmentAttributes', [99]),
-  'link'  => [
-    'plugin'                  => 'CoreEnroller',
-    'controller'              => 'enrollment_attributes',
-    'action'                  => 'index',
-    'attribute_collector_id'  => $vv_obj->id
-  ],
-  'class' => ''
+  'mode',
+  'confirmation_page_mode',
+  'roe_enrollment_flow_id'
 ];
 
 $subnav = [
-  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.AttributeCollectors', 'EnrollmentFlowSteps.Hierarchy'],
+  'tabs' => ['EnrollmentFlowSteps', 'CoreEnroller.PersonSelectors'],
   'action' => [
     'EnrollmentFlowSteps' => ['edit', 'view'],
-    'CoreEnroller.AttributeCollectors' => ['edit'],
-    'EnrollmentFlowSteps.Hierarchy' => ['index']
+    'CoreEnroller.PersonSelectors' => ['edit']
   ],
 ];
+?>
+
+<script nonce="<?= $vv_js_nonce ?>">
+  // JS specific to these fields
+
+  function updateGadgets(isPageLoad) {
+    // Hide or show gadgets according to current state
+    var mode = document.getElementById('mode').value;
+
+    if(mode == "<?= PersonSelectorModeEnum::Select ?>") {
+      showFields(['confirmation-page-mode'], isPageLoad);
+    } else {
+      hideFields(['confirmation-page-mode'], isPageLoad);
+    }
+  }
+
+  $(function() {
+    // run on first load
+    updateGadgets(true);
+
+    // register onchange events
+    // note that underscores in field names above must be represented with hyphens here.
+    $('#mode').change(function() {
+      updateGadgets();
+    });
+  });
+</script>

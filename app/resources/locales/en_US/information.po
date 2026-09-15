@@ -258,6 +258,9 @@ msgstr "Current version: {0}"
 msgid "ug.version.target"
 msgstr "Target version: {0}"
 
+msgid "ug.tasks.assignEnvSourceMvaDelimiter"
+msgstr "Mapping EnvSource SP modes to multi-value delimiters"
+
 msgid "ug.tasks.assignEnvSourceMvaDelimiter.co"
 msgstr "Map the EnvSource SP Mode to Multi Value Delimitier for CO {0}"
 
@@ -270,6 +273,9 @@ msgstr "{0} records for {1}..."
 msgid "ug.tasks.buildGroupTree"
 msgstr "Recovering Group tree"
 
+msgid "ug.tasks.cacheEnvSourcespMode"
+msgstr "Caching EnvSource SP modes"
+
 msgid "ug.tasks.checkGroupNames"
 msgstr "Verifying Group names"
 
@@ -281,6 +287,9 @@ msgstr "Creating new Default Groups for COU {0}"
 
 msgid "ug.tasks.installMostlyStaticPages.co"
 msgstr "Installing default Mostly Static Pages for CO {0}"
+
+msgid "ug.tasks.setDefaultPickerAuthz.co"
+msgstr "Setting default Person Picker Authorization for CO {0}"
 
 msgid "value.copied"
 msgstr "Value copied to clipboard."

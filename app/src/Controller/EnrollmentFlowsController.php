@@ -75,6 +75,9 @@ class EnrollmentFlowsController extends StandardController {
         case EnrollmentAuthzEnum::CoAdmin:
           $authorized = $this->RegistryAuth->isCoAdmin($flow->co_id);
           break;
+        case EnrollmentAuthzEnum::CoOrCouAdmin:
+          $authorized = $this->RegistryAuth->isCoOrCouAdmin($flow->co_id);
+          break;
 // CFM-31 implement these (and enable in EnrollmentAuthzEnum, and possibly start() below
 //        and fields.inc)
 /*
@@ -91,7 +94,7 @@ class EnrollmentFlowsController extends StandardController {
 // XXX
           break;
         case EnrollmentAuthzEnum::Person:
-// XXX
+          $authorized = (bool)$this->RegistryAuth->getPersonID($flow->co_id);
           break;
         case EnrollmentAuthzEnum::None:
 // XXX willHandleAuth needs to check for this mode and then return 'open' if set
