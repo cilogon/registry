@@ -318,11 +318,15 @@
     border-right: 1px solid var(--cmg-color-bg-006);
     border-bottom: 1px solid var(--cmg-color-bg-006);
   }
+  #menu-panel-config {
+    padding-bottom: 3rem;
+  }
   .menu-panel-content {
     display: flex;
-    gap: 4em;
+    column-gap: 4em;
     justify-content: left;
     margin-top: 1.5em;
+    flex-wrap: wrap;
   }
   .menu-panel-links {
     flex: 1;

@@ -388,50 +388,6 @@
   <?php if($panel == 'config'): ?>
     <h2><?= __d('menu','co.configuration.panel.title') ?></h2>
     <div class="menu-panel-content">
-      <?php if($vv_cur_co->isCOmanageCO()): ?>
-        <?php
-          $platformMenuItems = [
-            __d('controller', 'Cos', [99]) => [
-              'icon'          => 'home',
-              'controller'    => 'cos',
-              'action'        => 'index'
-            ],
-            __d('controller', 'Plugins', [99]) => [
-              'icon'          => 'electrical_services',
-              'controller'    => 'plugins',
-              'action'        => 'index'
-            ],
-            __d('controller', 'TrafficDetours', [99]) => [
-              'icon'          => 'fork_right',
-              'controller'    => 'traffic_detours',
-              'action'        => 'index'
-            ]
-          ];
-        ?>
-        <ul id="config-panel-platform-menu" class="menu-panel-links">
-          <li>
-            <h3><?= __d('menu','co.configuration.panel.platform') ?></h3>
-            <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.platform.desc') ?></p>
-            <ul class="menu-panel-links-inner">
-              <?php foreach($platformMenuItems as $label => $cfg): ?>
-                <li>
-                  <?php
-                    $linkContent =  '<em class="material-symbols" aria-hidden="true">' . $cfg['icon'] . '</em>'
-                      . '<span class="menu-panel-link-text">' . $label . '</span>';
-                    print $this->Html->link(
-                      $linkContent,
-                      ['plugin'     => null,
-                       'controller' => $cfg['controller'],
-                       'action'     => $cfg['action']],
-                      ['escape' => false]
-                    );
-                  ?>
-                </li>
-              <?php endforeach; // $vv_configuration_menu_items ?>
-            </ul>
-          </li>
-        </ul>
-      <?php endif; // $vv_platform_menu_items ?>
       <ul class="menu-panel-links">
         <li>
           <h3><?= __d('menu','co.configuration.title') ?></h3>
@@ -578,7 +534,6 @@
       <?php /* XXX Most "Personalization" links are disabled until needed, but we will leave them in the code to 
                provide hints to where they belong. The description ('co.configuration.panel.personalization.desc')
                reads "Dashboards, custom text, and theming". When such things are ready, place them here. */ ?>
- 
       <ul class="menu-panel-links">
         <li>
           <h3><?= __d('menu','co.configuration.panel.personalization') ?></h3>
@@ -640,11 +595,55 @@
             </li>
             <?php /* More placeholders:
             <li><a href="#"><em class="material-symbols" aria-hidden="true">room_service</em> Self Service Permissions</a></li>
-            * / ? >
+            */?>
           </ul>
         </li>
       </ul>
-      */ ?>
+
+      <?php if($vv_cur_co->isCOmanageCO()): ?>
+        <?php
+        $platformMenuItems = [
+          __d('controller', 'Cos', [99]) => [
+            'icon'          => 'home',
+            'controller'    => 'cos',
+            'action'        => 'index'
+          ],
+          __d('controller', 'Plugins', [99]) => [
+            'icon'          => 'electrical_services',
+            'controller'    => 'plugins',
+            'action'        => 'index'
+          ],
+          __d('controller', 'TrafficDetours', [99]) => [
+            'icon'          => 'fork_right',
+            'controller'    => 'traffic_detours',
+            'action'        => 'index'
+          ]
+        ];
+        ?>
+        <ul id="config-panel-platform-menu" class="menu-panel-links">
+          <li>
+            <h3><?= __d('menu','co.configuration.panel.platform') ?></h3>
+            <p class="menu-panel-links-desc"><?= __d('menu','co.configuration.panel.platform.desc') ?></p>
+            <ul class="menu-panel-links-inner">
+              <?php foreach($platformMenuItems as $label => $cfg): ?>
+                <li>
+                  <?php
+                    $linkContent =  '<em class="material-symbols" aria-hidden="true">' . $cfg['icon'] . '</em>'
+                      . '<span class="menu-panel-link-text">' . $label . '</span>';
+                    print $this->Html->link(
+                      $linkContent,
+                      ['plugin'     => null,
+                       'controller' => $cfg['controller'],
+                       'action'     => $cfg['action']],
+                      ['escape' => false]
+                    );
+                  ?>
+                </li>
+              <?php endforeach; // $vv_configuration_menu_items ?>
+            </ul>
+          </li>
+        </ul>
+      <?php endif; // $vv_platform_menu_items ?>
     </div>
     <?php if($vv_cur_co->id != 1 && $vv_user_roles['platform']): ?>
       <?php
