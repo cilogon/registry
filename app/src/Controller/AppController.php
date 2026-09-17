@@ -146,6 +146,9 @@ class AppController extends Controller {
 
       $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
 
+      // Provide CoSettings  to the view for various tests
+      $this->set('vv_co_settings', $CoSettings);
+
       $mfaConfig = $CoSettings->getMfaIndicator();
 
       if(!empty($mfaConfig['indicator']) && !empty($mfaConfig['value'])) {

@@ -577,6 +577,24 @@
                 <span class="menu-panel-link-text"><?= __d('controller', 'MostlyStaticPages', [99]) ?></span>
               </a>
             </li>
+            <?php if($vv_co_settings->uploadsEnabled()): ?>
+              <li>
+                <?php
+                  $menuUrl = $this->Url->build(
+                    ['plugin'       => null,
+                     'controller'   => 'mostly_static_resources',
+                     'action'       => 'index',
+                     '?'            => [
+                       'co_id' => $vv_cur_co->id
+                     ]]
+                  );
+                ?>
+                <a href="<?= $menuUrl ?>">
+                  <em class="material-symbols-outlined" aria-hidden="true">perm_media</em>
+                  <span class="menu-panel-link-text"><?= __d('controller', 'MostlyStaticResources', [99]) ?></span>
+                </a>
+              </li>
+            <?php endif; ?>
             <li>
               <?php
                 $menuUrl = $this->Url->build(
