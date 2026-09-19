@@ -39,6 +39,7 @@ use InvalidArgumentException;
 use \App\Lib\Enum\PeoplePickerAuthzEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\SuspendableStatusEnum;
+use \App\Lib\Util\SearchUtilities;
 
 // This controller is a bit of a special case in that it combines the functionality
 // of StandardController (add, edit, view) with model specific functionality
@@ -386,6 +387,44 @@ class ApiV2Controller extends AppController {
   }
 
   /**
+   * Pick a set of Standard Objects.
+   *
+   * @since  COmanage Registry v5.0.0
+   */
+
+  public function pick() {
+    // CFM-524 Refactored to use Global Search backends. Leaving this here commented out
+    // for historical purposes since the previous code has not been un-refactored.
+    // $this->dispatchIndex(mode: 'picker');
+
+    $coId = $this->getRequest()->getQuery('co_id');
+    $q = $this->getRequest()->getQuery('q');
+    $groupId = $this->getRequest()->getQuery('group_id');
+
+    $ret = [];
+
+    // We require at least two characters to complete a search.
+    // The frontend can further restrict this before.
+
+    if((int)$coId > 0 && strlen($q) >= 2) {
+      // We don't currently validate CO ID since the authorization checks should have
+      // done that already
+
+      $ret = SearchUtilities::pickerSearch(
+        (int)$coId,
+        (string)$q,
+        $groupId ? (int)$groupId : null
+      );
+    }
+
+    $this->set('people', $ret);
+
+    // Let the view render
+    $this->viewBuilder()->setLayout('rest');
+    $this->render('/Standard/api/v2/json/index');
+  }
+
+  /**
    * Provision an entity.
    *
    * @since  COmanage Registry v5.2.0
@@ -495,16 +534,6 @@ class ApiV2Controller extends AppController {
     // Let the view render
     $this->viewBuilder()->setLayout('rest');
     $this->render('/Standard/api/v2/json/index');
-  }
-
-  /**
-   * Pick a set of Standard Objects.
-   *
-   * @since  COmanage Registry v5.0.0
-   */
-
-  public function pick() {
-    $this->dispatchIndex(mode: 'picker');
   }
 
   /**

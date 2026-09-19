@@ -260,6 +260,7 @@ class CoSettingsTable extends Table {
       'person_picker_identifier_type_id'     => null,
       'person_picker_display_types'          => true,
       'person_picker_authz'                  => PeoplePickerAuthzEnum::CoOrCouAdmin,
+      'person_picker_limit'                  => 10,
       'required_fields_address'              => RequiredAddressFieldsEnum::Street,
       'required_fields_name'                 => RequiredNameFieldsEnum::Given,
       'search_global_limit'                  => DEF_GLOBAL_SEARCH_LIMIT,
@@ -608,6 +609,11 @@ class CoSettingsTable extends Table {
       'content' => ['rule' => ['inList', PeoplePickerAuthzEnum::getConstValues()]]
     ]);
     $validator->notEmptyString('person_picker_unauth');
+
+    $validator->add('person_picker_limit', [
+      'content' => ['rule' => ['comparison', '>', 0]]
+    ]);
+    $validator->notEmptyString('person_picker_limit');
 
     $validator->add('required_fields_address', [
       'content' => ['rule' => ['inList', RequiredAddressFieldsEnum::getConstValues()]]

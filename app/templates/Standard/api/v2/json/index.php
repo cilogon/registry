@@ -32,13 +32,14 @@ $responseMeta = [
   'version' => '2'
 ];
 
-if(in_array($this->request->getParam('action'), ['index', 'pick'])) {
+if($this->request->getParam('action') == 'index') {
   $responseMeta['totalResults'] = $this->Paginator->counter('{{count}}');
   $responseMeta['startIndex'] = $this->Paginator->counter('{{start}}');
   $responseMeta['itemsPerPage'] = $this->Paginator->counter('{{current}}'); // confusingly this is different than ->current()
   $responseMeta['currentPage'] = $this->Paginator->current();
   $responseMeta['pageCount'] = $this->Paginator->total();
 }
+// else the Person Picker does not (need to) support pagination
 
 $metaAttrs = [
   // Timestamp

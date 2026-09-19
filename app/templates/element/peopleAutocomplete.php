@@ -129,7 +129,9 @@
             fieldName: '<?= $fieldName ?>', // This property hold the form input id
             type: '<?= $type ?>',
             personType: '<?= $personType ?>',
-            minLength: 3, // XXX probably should be set by config
+            // XXX probably should be set by config, note the backend (ApiV2Controller::pick)
+            // has a hard coded minimum of 2
+            minLength: 3,
             htmlId: '<?= $htmlId ?>', // This property holds the vuejs input id
             actionUrl: '<?= $constructedActionUrl ?>',
             inputValue: '<?= $inputValue ?>',

@@ -527,6 +527,9 @@ msgstr "Person Picker Authorization"
 msgid "CoSettings.person_picker_authz.desc"
 msgstr "See the <a href='XXX'>documentation</a> for considerations before changing this setting"
 
+msgid "CoSettings.person_picker_limit"
+msgstr "Person Picker Search Limit"
+
 msgid "CoSettings.platform_env_mfa"
 msgstr "MFA Assertion Indicator"
 

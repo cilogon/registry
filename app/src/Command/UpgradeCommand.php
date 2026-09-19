@@ -573,8 +573,15 @@ class UpgradeCommand extends BaseCommand
 
     $settings = $CoSettingsTable->find()->where([ 'co_id' => $coId ])->first();
 
-    if($settings && empty($settings->person_picker_authz)) {
-      $settings->person_picker_authz = \App\Lib\Enum\PeoplePickerAuthzEnum::CoOrCouAdmin;
+    if($settings) {
+      if(empty($settings->person_picker_authz)) {
+        $settings->person_picker_authz = \App\Lib\Enum\PeoplePickerAuthzEnum::CoOrCouAdmin;
+      }
+
+      if(empty($settings->person_picker_limit)) {
+        // While we're here, set the default search limit too
+        $settings->person_picker_limit = 10;
+      }
 
       $CoSettingsTable->saveOrFail($settings);
     }

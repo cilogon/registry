@@ -288,6 +288,86 @@ class SearchUtilities {
 
     return $results;
   }
+  
+  /**
+   * Perform a Picker Search, ie: a search from the Person Picker.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $coId     CO ID
+   * @param  string $q        Query string
+   * @param  int    $groupId  Group ID context, if appropriate
+   * @return array            Array of search results, in a format suitable for the Person Picker API
+   */
+
+  public static function pickerSearch(int $coId, string $q, ?int $groupId=null): array {
+    // pickerSearch is similar to globalSearch, but we simplify and streamline a few things.
+
+    // $results tracks backend results on a Person basis
+    $results = [];
+
+    // Pull our search configuration
+    $CoSettings = TableRegistry::getTableLocator()->get('CoSettings');
+
+    $settings = $CoSettings->find()->where(['co_id' => $coId])->firstOrFail();
+
+    $searchLimit = $settings->person_picker_limit;
+
+    // We could configure the searchable models the same was as for Clonable and
+    // Global Search, but for now it's only used here so we'll just define them here.
+    // We specifically try EmailAddresses and Identifiers first because they should only
+    // ever find one record, so we don't want them to get drowned out by Names noise.
+    $models = [
+      'EmailAddresses',
+      'Identifiers',
+      'Names'
+    ];
+
+    $displayModels = [
+      // Note because we search on Name but return Primary Name only, it's possible for
+      // a search to hit on a Name that doesn't then get rendered
+      'PrimaryName',
+      'EmailAddresses',
+      'Identifiers'
+    ];
+
+    // Search the Picker Search models
+
+    $People = TableRegistry::getTableLocator()->get('People');
+
+    foreach($models as $m) {
+      $Table = TableRegistry::getTableLocator()->get($m);
+
+      $searchResults = $Table->search(coId: $coId, q: $q, limit: $searchLimit);
+
+      if($searchResults->count() > 0) {
+        foreach($searchResults as $r) {
+          // We might get multiple hits for the same Person, especially (eg) from Name tokens
+          if(empty($results[$r->person_id])) {
+            // Re-get the record with the associated models the Picker needs
+
+            $results[$r->person_id] = $People->get($r->person_id, contain: $displayModels);
+
+            if($groupId) {
+              // If this Person is a member of the requested Group, pass a flag so the
+              // Picker knows to disable it
+
+              $results[$r->person_id]->is_group_member = $People->GroupMembers->isMember(
+                $groupId,
+                $r->person_id
+              );
+            }
+          }
+
+          if(count($results) >= $searchLimit) {
+            // Search limit reached, exit both loops
+            break 2;
+          }
+        }
+      }
+    }
+
+    return $results;
+  }
 
   /**
    * Perform a search across all objects that support UUIDs.

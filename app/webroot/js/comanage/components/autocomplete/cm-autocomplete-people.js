@@ -66,21 +66,14 @@ export default {
       const url = new URL(urlString);
       let queryParams = url.searchParams;
       // Query parameters
-      queryParams.append('identifier', query)
-      queryParams.append('mail', query)
-      queryParams.append('given', query)
-      queryParams.append('middle', query)
-      queryParams.append('family', query)
+      queryParams.append('q', query)
       if(this.api.viewConfigParameters.groupId != undefined) {
         queryParams.append('group_id', this.api.viewConfigParameters.groupId)
       }
-      // Pagination
-      // XXX Move this to configuration
-      queryParams.append('limit', this.limit)
-      queryParams.append('page', this.page)
-      // Even though this is the default I will add it here
-      // XXX Move this to configuration
-      queryParams.append('direction', 'desc')
+      // Pagination - The pick API no longer supports pagination, and no longer needs to.
+      // Search limit is enforced via SearchUtilities::pickerSearch, which also orders the
+      // results. Pagination itself doesn't make sense in the picker context.
+      // queryParams.append('limit', this.limit)
 
       // AJAX Request
       const request = new Request(url, {
@@ -188,7 +181,8 @@ export default {
           "identifier": this.filterByIdentifierType(item?.identifiers),
           "identifierPretty": this.shortenString(this.constructIdentifierCsv(this.filterByIdentifierType(item?.identifiers))),
           "identifierLabel": this.txt['controller.Identifiers'] + ": ",
-          "isMember": !!item?._matchingData?.GroupMembers?.id && !item?._matchingData?.GroupMembers?.group_nesting_id
+          // is_group_member is a calculated attribute injected by SearchUtilities::pickerSearch
+          "isMember": item?.is_group_member
         }
       })
     },
