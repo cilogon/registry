@@ -148,6 +148,16 @@ class ExternalIdentitiesTable extends Table {
         'type' => 'enum',
 // XXX maybe this (and EIRoles) should be SuspendableStatusEnum?
         'class' => 'StatusEnum'
+      ],
+      // Required for peoplePicker (for re-linking)
+      'cosettings' => [
+        'type' => 'auxiliary',
+        'model' => 'CoSettings'
+      ],
+      // Required for peoplePicker (for re-linking)
+      'types' => [
+        'type' => 'auxiliary',
+        'model' => 'Types'
       ]
     ]);
     

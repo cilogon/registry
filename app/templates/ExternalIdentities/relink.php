@@ -43,9 +43,32 @@ declare(strict_types = 1);
   ]);
 
   print $this->Form->hidden('external_identity_id', ['default' => $vv_external_identity->id]);
-// This label isn't localized, but it should go away when the UX is fixed
-  print $this->Form->control('target_person_id', ['type' => 'integer', 'label' => 'Target Person ID']);
+?>
+  <ul id="edit_ei-relink" class="fields form-list">
+<?php
+  $vv_autocomplete_arguments = [
+    'fieldName' => 'target_person_id',
+    'fieldLabel' => __d('field', 'target_person_id'),
+    'autocomplete' => [
+      'configuration' => [
+        'action' => 'GET',
+        'for' => 'co'
+      ]
+    ]
+  ];
+  print $this->element('form/listItem', ['arguments' => $vv_autocomplete_arguments]);
+  
+?>
+    <li class="fields-submit">
+      <div class="field">
+        <div class="field-name">
+        </div>
+        <div class="field-info">
+          <?= $this->Form->submit() ?>              
+        </div>
+      </div>
+    </li>
+  </ul>
 
-  print $this->Form->submit();
-
+<?php
   print $this->Form->end();

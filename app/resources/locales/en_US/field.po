@@ -1126,6 +1126,9 @@ msgstr "Last Status"
 msgid "ProvisioningTargets.status.live"
 msgstr "Live Status"
 
+msgid "target_person_id"
+msgstr "Destination Person"
+
 msgid "TelephoneNumbers.formatted_number"
 msgstr "Telephone Number"
 

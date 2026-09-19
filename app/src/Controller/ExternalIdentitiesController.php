@@ -129,6 +129,7 @@ class ExternalIdentitiesController extends MVEAController {
     }
 
     // Fall through to the view to render a People Picker
+    $this->populateAutoViewVars(); // provides CO settings to the picker
 
     $this->set('vv_title', __d('operation', 'relink.a', [__d('controller', 'ExternalIdentities', [1])]));
 

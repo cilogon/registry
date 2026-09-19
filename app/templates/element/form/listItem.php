@@ -29,7 +29,7 @@
 declare(strict_types = 1);
 
 // Make the element configuration available downstream
-// XXX Unfortunately CAKEPHP doe not create a viewvar space for the element
+// XXX Unfortunately CAKEPHP does not create a viewvar space for the element
 //     parameters. As a result we do not know which one is which unless we:
 //     - add a prefix and create a namespace
 //     - wrap them in an array.
