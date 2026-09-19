@@ -38,8 +38,14 @@ if($this->request->getParam('action') == 'index') {
   $responseMeta['itemsPerPage'] = $this->Paginator->counter('{{current}}'); // confusingly this is different than ->current()
   $responseMeta['currentPage'] = $this->Paginator->current();
   $responseMeta['pageCount'] = $this->Paginator->total();
+} else {
+  // else the Person Picker does not (need to) support pagination, but inject the metadata for consistency
+  $responseMeta['totalResults'] = count($$vv_table_name);
+  $responseMeta['startIndex'] = 1;
+  $responseMeta['itemsPerPage'] = $responseMeta['totalResults'];
+  $responseMeta['currentPage'] = 1;
+  $responseMeta['pageCount'] = 1;
 }
-// else the Person Picker does not (need to) support pagination
 
 $metaAttrs = [
   // Timestamp
