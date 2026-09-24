@@ -34,6 +34,7 @@ use App\Lib\Traits\ApplicationStatesTrait;
 use App\Lib\Traits\IndexQueryTrait;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\ConnectionManager;
+use Cake\I18n\Number;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
@@ -838,13 +839,33 @@ class StandardController extends AppController {
       if($CoSettings->uploadsEnabled()) {
         $upload = $data['file_content'];
 
-        if(!empty($upload) && $upload->getSize() > 0) {
-          // First verify size is within the configured limit
+        if(!empty($upload) && $upload->getError() !== UPLOAD_ERR_NO_FILE) {
+          // First ensure that the file upload didn't produce a PHP error, starting with upload_max_filesize.
+          if($upload->getError() === UPLOAD_ERR_INI_SIZE || $upload->getError() === UPLOAD_ERR_FORM_SIZE) {
+            throw new \InvalidArgumentException(
+              __d('error', 'upload.php.uploadmaxfilesize', [
+                ini_get('upload_max_filesize')
+              ])
+            );
+          }
+          
+          // Any other PHP failure? partial upload, etc.
+          if($upload->getError() !== UPLOAD_ERR_OK) {
+            throw new \InvalidArgumentException(
+              __d('error', 'upload.failed')
+            );
+          }
 
+          // Now verify that the file size is within the CO Settings configured limit
           $size = $upload->getSize();
 
           if($size > $CoSettings->getUploadMaxSize()) {
-            throw new \InvalidArgumentException(__d('error', 'upload.maxsize', [$size, $CoSettings->getMsrMaxSize()]));
+            throw new \InvalidArgumentException(
+              __d('error', 'upload.maxsize', [
+                Number::toReadableSize($size),
+                Number::toReadableSize($CoSettings->getUploadMaxSize())
+              ])
+            );
           }
 
           // Next parse the mime-type. We can't rely on the client provided value,

@@ -25,9 +25,6 @@
    * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
    */
 
-  // As a general rule, all Registry pages are post-login and so shouldn't be cached
-  header("Cache-Control: no-store, no-cache, max-age=0, must-revalidate");
-
   // CakePHP adds inline event handlers ("oninput" and "oninvalid") to fields as part of FormHelper.
   // So as not to throw CSP errors, we must include "script-src-attr 'unsafe-inline'".
   // To use VueJS as we do, we must also include "script-src 'unsafe-eval'" 

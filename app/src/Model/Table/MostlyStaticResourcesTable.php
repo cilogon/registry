@@ -125,10 +125,10 @@ class MostlyStaticResourcesTable extends Table {
     $this->registerStringValidation($validator, $schema, 'name', true);
 
     // AR-MostlyStaticResource-2 A Mostly Static Resource name may consist only of
-    // lowercase alphanumeric characters and dashes
+    // lowercase alphanumeric characters, dashes, and periods (for allowing extensions)
     $validator->add('name', [
       'slugfilter' => [
-        'rule' => ['custom', '/^[a-z0-9-]+$/'],
+        'rule' => ['custom', '/^[a-z0-9.\-]+$/'],
         'message' => __d('error', 'MostlyStaticPages.slug.invalid')
       ]
     ]);

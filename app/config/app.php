@@ -522,7 +522,13 @@ return [
         'defaults' => 'php',
         // Switch cookie name to avoid conflict with older versions of Registry
         // Note this name must match the name used in webroot/auth/*/*
-        'cookie' => 'REGISTRYPECAKEPHP'
+        'cookie' => 'REGISTRYPECAKEPHP',
+        // Prevent PHP's session handling from forcing no-cache headers onto every
+        // response, so actions like MostlyStaticResourcesController::deliver()
+        // can set their own explicit HTTP caching headers (since v5.3.0).
+        'ini' => [
+          'session.cache_limiter' => '',
+        ],
     ],
 
     /**

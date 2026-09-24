@@ -60,7 +60,7 @@ if($vv_action == 'edit') {
 <script nonce="<?= $vv_js_nonce ?>">
   function setPageUrl() {
     var baseurl = "<?= $vv_base_url ?>";
-    var slug = document.getElementById('name').value;
+    var slug = $('#name').value;
 
     var fullurl = "";
 
@@ -68,7 +68,7 @@ if($vv_action == 'edit') {
       fullurl = baseurl + slug;
     }
 
-    document.getElementById('pageurl').value = fullurl;
+    $('#pageurl').value = fullurl;
   }
 
   $(function() {

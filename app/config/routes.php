@@ -47,16 +47,31 @@ use Cake\Routing\Router;
 /** @var \Cake\Routing\RouteBuilder $routes */
 $routes->setRouteClass(DashedRoute::class);
 
-// Registry API routes
+/*
+ * Register all Middleware available to the routes 
+ */
+
+// CSRF Token Protection  
+$routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
+  'httponly' => true,
+  'secure' => true,
+  'cookieName' => 'csrfToken',
+  'accessibleHeaders' => ['X-CSRF-Token'],
+]));  
+  
+// BodyParserMiddleware will automatically parse JSON bodies, but we only
+// want that for API transactions, so we only apply it to the /api scope.
+$routes->registerMiddleware('bodyparser', new BodyParserMiddleware());
+
+// postMaxSizeCheck is used with the /mostly-static-resources route.
+$routes->registerMiddleware('postMaxSizeCheck', new \App\Middleware\PostMaxSizeCheckMiddleware());
+
+/*
+ * Registry routes
+ */ 
 
 //// API routes
-$routes->scope('/api/v2', function (RouteBuilder $builder) {
-  // Do not enable CSRF for the REST API, it will break standard (non-AJAX) clients
-  //  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware(['httponly' => true]));
-  
-  // BodyParserMiddleware will automatically parse JSON bodies, but we only
-  // want that for API transactions, so we only apply it to the /api scope.
-  $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
+$routes->scope('/api/v2', function (RouteBuilder $builder) {  
   /*
    * Apply a middleware to the current route scope.
    * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
@@ -109,21 +124,10 @@ $routes->scope('/api/v2', function (RouteBuilder $builder) {
     ->setPatterns(['id' => '[0-9]+']);
 });
 
-
 //// API Ajax routes
 $routes->scope('/api/ajax/v2',
                ['_namePrefix' => 'apiAjaxV2:'],
                function (RouteBuilder $builder) {
-  // Register scoped middleware for in scopes.
-  $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware([
-    'httponly' => true,
-    'secure' => true,
-    'cookieName' => 'csrfToken',
-    'accessibleHeaders' => ['X-CSRF-Token'],
-  ]));
-  // BodyParserMiddleware will automatically parse JSON bodies, but we only
-  // want that for API transactions, so we only apply it to the /api scope.
-  $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
   /*
    * Apply a middleware to the current route scope.
    * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
@@ -166,15 +170,6 @@ $routes->scope('/api/ajax/v2',
 
 // Main application routes
 $routes->scope('/', function (RouteBuilder $builder) {
-    // Register scoped middleware for in scopes.
-    $builder->registerMiddleware('csrf', new CsrfProtectionMiddleware([
-        'httponly' => true,
-    ]));
-    
-    // BodyParserMiddleware will automatically parse JSON bodies, but we only
-    // want that for API transactions, so we only apply it to the /api scope.
-    $builder->registerMiddleware('bodyparser', new BodyParserMiddleware());
-
     /*
      * Apply a middleware to the current route scope.
      * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
@@ -235,6 +230,23 @@ $routes->scope('/', function (RouteBuilder $builder) {
      * routes you want in your application.
      */
     $builder->fallbacks();
+});
+
+/**
+ * Mostly Static Resources need a postMaxSizeCheck when uploading files (add/edit).
+ * Check for post_max_size overage first: PHP wipes the POST data when the threshold is crossed
+ * and will cause a CSRF failure if not caught (because the crsf token will be missing from the POST).
+ */
+$routes->scope('/mostly-static-resources', function (RouteBuilder $builder) {
+  $builder->applyMiddleware('postMaxSizeCheck', 'csrf');
+  $builder->connect(
+    '/add', 
+    ['controller' => 'MostlyStaticResources', 'action' => 'add']);
+  $builder->connect(
+    '/edit/{id}',
+    ['controller' => 'MostlyStaticResources', 'action' => 'edit'],
+    ['id' => '\d+', 'pass' => ['id']]
+  );
 });
 
 /*

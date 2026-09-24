@@ -2555,7 +2555,7 @@ body.termsandconditions ul.form-list li.fields-url {
 .tc-agree-dialog .modal-body h6 {
   margin-bottom: 0.5em;
 }
-/* MOSTLY STATIC PAGES */
+/* MOSTLY STATIC PAGES and RESOURCES */
 body.pages.logged-out #top-bar,
 body.pages.logged-out #breadcrumbs {
   display: none;
@@ -2565,6 +2565,25 @@ body.pages.logged-out .page-title-container {
 }
 .page-body {
   margin-top: 1em;
+}
+#msr-image {
+  max-width: 100%;
+  height: auto;
+}
+#msr-image-container {
+  margin-bottom: 1rem;
+}
+#msr-url-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.field.msr-media-field {
+  border-left: 1px solid var(--cmg-color-bg-005);
+  border-right: 1px solid var(--cmg-color-bg-005);
+}
+.field.msr-media-image-field {
+  border-top: 1px solid var(--cmg-color-bg-005);
 }
 /* GENERAL */
 .hidden,

@@ -317,7 +317,7 @@ msgid "MostlyStaticPages.default.modify"
 msgstr "This page cannot be renamed, suspended, or given a different context"
 
 msgid "MostlyStaticPages.slug.invalid"
-msgstr "Slug contains invalid characters"
+msgstr "Slug may only contain lowercase alphanumeric characters, dashes, and periods."
 
 msgid "MostlyStaticResources.disabled"
 msgstr "This feature is not available"
@@ -493,8 +493,17 @@ msgstr "Unknown value \"{0}\""
 msgid "unknown.identifier"
 msgstr "Unknown Identifier \"{0}\""
 
+msgid "upload.failed"
+msgstr "File upload failed"
+
 msgid "upload.maxsize"
-msgstr "File size {0} exceeds maximum permitted {1}"
+msgstr "File size {0} exceeds maximum permitted by CO Settings: {1}"
+
+msgid "upload.php.uploadmaxfilesize"
+msgstr "File size exceeds maximum permitted by PHP settings (maximum upload size is {0})"
+
+msgid "upload.php.postmaxsize"
+msgstr "The file size you attempted to upload is too large for this server to accept (maximum POST size is {0})."
 
 msgid "Verifications.already"
 msgstr "Email Address is already verified"

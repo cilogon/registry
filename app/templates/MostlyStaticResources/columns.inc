@@ -38,5 +38,9 @@ $indexColumns = [
     'type' => 'enum',
     'class' => 'SuspendableStatusEnum',
     'sortable' => true
+  ],
+  'mime_type' => [
+    'type' => 'echo',
+    'sortable' => true
   ]
 ];

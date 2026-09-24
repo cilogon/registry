@@ -85,7 +85,7 @@ if($vv_obj->co->isCOmanageCO()) {
     'platform_upload_enable',
     // XXX maybe only show if platform_msr_enable=true?
     'platform_upload_max_size' => [
-      'default' => 10000000
+      'default' => 10485760 // 10MB in bytes
     ]
   ]);
 }

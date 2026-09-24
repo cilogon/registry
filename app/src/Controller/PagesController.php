@@ -57,13 +57,14 @@ class PagesController extends AppController
      * @since  COmanage Registry v5.3.0
      * @param  string   $coid   CO ID
      * @param  string   $name   MSR Name (slug)
+     * @return \Cake\Http\Response|null
      */
 
     public function deliver(string $coid, string $name) {
         // We use PagesController rather than MostlyStaticResourcesController to avoid complexities
         // with PrimaryLink lookups. We render here rather than redirecting into the MSRController to
         // reduce URL bar thrashing.
-
+        
         // MSRs are only enabled if file uploads are enabled
         $CoSettings = TableRegistry::getTableLocator()->get("CoSettings");
 
@@ -74,8 +75,10 @@ class PagesController extends AppController
         }
 
         $MSRTable = TableRegistry::getTableLocator()->get("MostlyStaticResources");
-
+        
+        // Begin by pulling only the necessary data to determine if the resource was changed.
         $msr = $MSRTable->find()
+                        ->select(['id','mime_type','modified'])
                         ->where([
                             'co_id'     => (int)$coid,
                             'name'      => $name,
@@ -83,15 +86,36 @@ class PagesController extends AppController
                         ])
                         ->first();
         
+        // Return an error if not found.
         if(empty($msr)) {
             $this->Flash->error(__d('error', 'notfound', $name));
 
             return $this->redirect(StringUtilities::pagesUrl($coid, "error-landing"));
         }
+        
+        // Generate an etag based on the id and modified date.
+        $etag = $msr->id . '-' . $msr->modified->getTimestamp();
 
-        $fileContent = stream_get_contents($msr->file_content);
+        $response = $this->response
+          ->withType($msr->mime_type)
+          ->withEtag($etag, true)
+          ->withCache($msr->modified->getTimestamp(), '+1 year');
 
-        return $this->response->withType($msr->mime_type)->withStringBody($fileContent);
+        // If there are no modifications, just return the response without pulling the file content. 
+        if ($response->isNotModified($this->request)) {
+          return $response->withNotModified();
+        }
+
+        // There are modifications - get the content.
+        $msrContent = $MSRTable->find()
+          ->select(['file_content'])
+          ->where(['id' => $msr->id])
+          ->first();
+
+        $fileContent = stream_get_contents($msrContent->file_content);
+        fclose($msrContent->file_content);
+
+        return $response->withStringBody($fileContent);
     }
 
     /**

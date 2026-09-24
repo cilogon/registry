@@ -220,6 +220,12 @@ class AppController extends Controller {
 
     $this->getAppPrefs();
 
+    // Authenticated pages are not cached. Placing this here allows us to override
+    // caching in other contexts, such as for Mostly Static Resources. Cache-control
+    // was once a static header in the element/httpHeaders.php template file.
+    // This replaces that approach as of v5.3.0.
+    $this->response = $this->response->withDisabledCache();
+
     parent::beforeFilter($event);
   }
   
@@ -709,8 +715,10 @@ class AppController extends Controller {
     if(isset($theme)) {
       $htmlSanitizer = new HtmlSanitizer(
         // Allow all elements from the W3C Sanitizer API. This is more permissive than "allowSafeElements()".
+        // Also allow relative references, such as image src attributes to Mostly Static Resources.
+        // Also allow relative links, such as server-relative links to a specific CO Dashboard.
         // See: https://github.com/symfony/symfony/blob/7.2/src/Symfony/Component/HtmlSanitizer/Reference/W3CReference.php
-        (new HtmlSanitizerConfig())->allowStaticElements()
+        (new HtmlSanitizerConfig())->allowStaticElements()->allowRelativeMedias()->allowRelativeLinks()
       );
 
       $theme->patch([

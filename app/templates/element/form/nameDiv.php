@@ -90,8 +90,6 @@ if(isset($groupedControls)) {
            ):
       ?>
       <?= $this->Form->label($fn, $label) ?>
-    <!-- We print the login checkbox along with the Identifier type. -->
-    <!-- As a result, the label is redundant -->
     <?php elseif($fieldName != 'login'): ?>
       <?= $label ?>
     <?php endif; ?>

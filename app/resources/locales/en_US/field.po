@@ -256,6 +256,9 @@ msgstr "Metadata"
 msgid "middle"
 msgstr "Middle"
 
+msgid "mime_type"
+msgstr "Mime Type"
+
 msgid "modifiable"
 msgstr "Modifiable"
 
@@ -949,11 +952,17 @@ msgstr "This Petition is complete and has been finalized. Please contact your ad
 msgid "MostlyStaticResources.file_content"
 msgstr "File to Upload"
 
+msgid "MostlyStaticResources.image"
+msgstr "Image"
+
 msgid "MostlyStaticResources.name"
 msgstr "Slug"
 
 msgid "MostlyStaticResources.name.desc"
-msgstr "The URL fragment for this Resource, which must be unique and use only lowercase alphanumeric characters and dashes (-)"
+msgstr "The URL fragment for this Resource, which must be unique and use only lowercase alphanumeric characters, dashes (-), and periods (.)"
+
+msgid "MostlyStaticResources.url"
+msgstr "Resource URL"
 
 msgid "Notifications.actor_person_id"
 msgstr "Actor"

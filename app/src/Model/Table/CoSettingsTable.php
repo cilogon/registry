@@ -274,8 +274,8 @@ class CoSettingsTable extends Table {
       'platform_env_mfa_enable_eg'           => false,
       'platform_upload_enable'               => false,
       // In general storing large files in the database is not performant, this number
-      // probably shouldn't be increased.
-      'platform_upload_max_size'             => 10000000
+      // probably shouldn't be increased. This is 10MB in bytes.
+      'platform_upload_max_size'             => 10485760
 // XXX to add new settings, set a default here, then add a validation rule below
 //     also update data model documentation
       // 'disable_expiration'         => false,
