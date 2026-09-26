@@ -149,7 +149,7 @@ trait BreadcrumbsTrait {
     $parents = [];
 
     // 1) People index
-    if ($includePeopleIndex && empty($vv_bc_parents['cos:' . $this->getCOID()])) {
+    if ($includePeopleIndex && empty($vv_bc_parents['cos:' . $this->getCOID()]) && empty($vv_bc_parents['people:index'])) {
       $parents['cos:' . $this->getCOID()] = [
         'label'  => __d('controllers', 'People', [99]),
         'target' => [

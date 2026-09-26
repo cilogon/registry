@@ -47,10 +47,6 @@ class MVEAController extends StandardController {
    */
   
   public function beforeFilter(\Cake\Event\EventInterface $event) {
-    /** var string $modelsName */
-    $modelsName = $this->getName();
-    $table = $this->getCurrentTable();
-
     if(!$this->request->is('restful') && $this->request->getParam('action') != 'deleted') {
       // Provide additional hints to BreadcrumbsComponent. This needs to be here
       // and not in beforeRender because the component beforeRender will run first.
@@ -61,64 +57,6 @@ class MVEAController extends StandardController {
       $primaryLink = $this->getPrimaryLink(true);
 
       $this->Breadcrumb->injectPrimaryLink($primaryLink);
-      
-      // Set up the supertitle and links for subnavigation
-      if(!empty($primaryLink->value)) {
-        $this->set('vv_primary_link_attr', $primaryLink->attr);
-        $this->set('vv_primary_link_id', $primaryLink->value);
-    
-        $Names = $this->getTableLocator()->get('Names');
-    
-        switch($primaryLink->attr) {
-          case 'external_identity_role_id':
-            $ExternalIdentityRoles = $this->getTableLocator()->get('ExternalIdentityRoles');
-            $roleEntity = $ExternalIdentityRoles->findById((int)$primaryLink->value)->firstOrFail();
-        
-            // Note this is a string, but vv_person_name is an entity
-            $this->set('vv_ei_role', $ExternalIdentityRoles->generateDisplayField($roleEntity));
-            $this->set('vv_ei_role_id', $primaryLink->value);
-          // fall through
-          case 'external_identity_id':
-            $ExternalIdentity = $this->getTableLocator()->get('ExternalIdentities');
-        
-            // What's the Person ID for the ExternalIdentity?
-            $eiId = isset($roleEntity) ? $roleEntity->external_identity_id : $primaryLink->value;
-        
-            $externalIdentity = $ExternalIdentity->findById($eiId)->firstOrFail();
-        
-            // What's the primary name for the External Identity? The first name found...
-            $this->set('vv_ei_name', $Names->primaryName($externalIdentity->id, 'external_identity'));
-            $this->set('vv_ei_id', $externalIdentity->id);
-        
-            // What's the primary name of the Person?
-            $personName = $Names->primaryName($externalIdentity->person_id);
-            $this->set('vv_person_name', $personName);
-            $this->set('vv_supertitle', $personName->full_name);
-            $this->set('vv_mvea_person_id', $externalIdentity->person_id);
-            break;
-          case 'person_role_id':
-            $PersonRoles = $this->getTableLocator()->get('PersonRoles');
-            $roleEntity = $PersonRoles->findById((int)$primaryLink->value)->firstOrFail();
-            // Note this is a string, but vv_person_name is an entity
-            $this->set('vv_person_role', $PersonRoles->generateDisplayField($roleEntity));
-            $this->set('vv_person_role_id', $primaryLink->value);
-        
-            // Also set a name
-            $personName = $Names->primaryName($roleEntity->person_id);
-            $this->set('vv_person_name', $personName);
-            $this->set('vv_supertitle', $personName->full_name);
-            $this->set('vv_mvea_person_id', $roleEntity->person_id);
-            break;
-          case 'person_id':
-            $personName = $Names->primaryName((int)$primaryLink->value);
-            $this->set('vv_person_name', $personName);
-            $this->set('vv_supertitle', $personName->full_name);
-            $this->set('vv_mvea_person_id', $primaryLink->value);
-            break;
-          default;
-            break;
-        }
-      }
     }
     
     parent::beforeFilter($event);
@@ -153,6 +91,29 @@ class MVEAController extends StandardController {
       $this->set('vv_default_type', $settings->$defaultTypeField);
     }
 
+    // Set up the supertitle and links for subnavigation
+    $primaryLink = $this->getPrimaryLink(true);
+    if(!empty($primaryLink->value)) {
+      $this->set('vv_primary_link_attr', $primaryLink->attr);
+      $this->set('vv_primary_link_id', $primaryLink->value);
+
+      $personId = match($primaryLink->attr) {
+        'external_identity_role_id' => $this->setupExternalIdentityRolePrimaryLink((int)$primaryLink->value),
+        'external_identity_id'      => $this->setupExternalIdentityPrimaryLink((int)$primaryLink->value),
+        'person_role_id'            => $this->setupPersonRolePrimaryLink((int)$primaryLink->value),
+        'person_id'                 => (int)$primaryLink->value,
+        default                     => null,
+      };
+
+      if(!empty($personId)) {
+        $Names = $this->getTableLocator()->get('Names');
+        $personName = $Names->primaryName($personId);
+        $this->set('vv_person_name', $personName);
+        $this->set('vv_supertitle', $personName->full_name);
+        $this->set('vv_mvea_person_id', $personId);
+      }
+    }
+
 
     // Person Breadcrumb link
     // Get current breadcrumb parents
@@ -171,10 +132,88 @@ class MVEAController extends StandardController {
     }
 
     if (!empty($mveaBreadcrumb)) {
-      $this->set('vv_bc_parents', [...$mveaBreadcrumb, ...$vv_bc_parents]);
+      $vv_bc_parents = [...$mveaBreadcrumb, ...$vv_bc_parents];
     }
 
+    // Disambiguate External Identity crumb when displayed alongside Person breadcrumbs
+    $hasPersonCrumb = false;
+    foreach ($vv_bc_parents as $key => $crumb) {
+      if (str_starts_with((string)$key, 'people:') || str_starts_with((string)$key, 'cos:')) {
+        $hasPersonCrumb = true;
+        break;
+      }
+    }
+
+    if ($hasPersonCrumb) {
+      foreach ($vv_bc_parents as $key => &$crumb) {
+        if (str_starts_with((string)$key, 'external_identities:')) {
+          $eiLabel = StringUtilities::localizeController('ExternalIdentities', null, false);
+          if (!str_starts_with($crumb['label'], $eiLabel)) {
+            $crumb['label'] = sprintf('%s (%s)', $eiLabel, $crumb['label']);
+          }
+        }
+      }
+      unset($crumb);
+    }
+
+    $this->set('vv_bc_parents', $vv_bc_parents);
+
     return parent::beforeRender($event);
+  }
+
+  /**
+   * Set up view variables for an External Identity Role primary link.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int $roleId External Identity Role ID
+   * @return int         Person ID
+   */
+  protected function setupExternalIdentityRolePrimaryLink(int $roleId): int {
+    $ExternalIdentityRoles = $this->getTableLocator()->get('ExternalIdentityRoles');
+    $roleEntity = $ExternalIdentityRoles->findById($roleId)->firstOrFail();
+
+    // Note this is a string, but vv_person_name is an entity
+    $this->set('vv_ei_role', $ExternalIdentityRoles->generateDisplayField($roleEntity));
+    $this->set('vv_ei_role_id', $roleId);
+
+    return $this->setupExternalIdentityPrimaryLink((int)$roleEntity->external_identity_id);
+  }
+
+  /**
+   * Set up view variables for an External Identity primary link.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int $externalIdentityId External Identity ID
+   * @return int                     Person ID
+   */
+  protected function setupExternalIdentityPrimaryLink(int $externalIdentityId): int {
+    $ExternalIdentity = $this->getTableLocator()->get('ExternalIdentities');
+    $externalIdentity = $ExternalIdentity->findById($externalIdentityId)->firstOrFail();
+
+    $Names = $this->getTableLocator()->get('Names');
+    // What's the primary name for the External Identity? The first name found...
+    $this->set('vv_ei_name', $Names->primaryName($externalIdentity->id, 'external_identity'));
+    $this->set('vv_ei_id', $externalIdentity->id);
+
+    return (int)$externalIdentity->person_id;
+  }
+
+  /**
+   * Set up view variables for a Person Role primary link.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int $roleId Person Role ID
+   * @return int         Person ID
+   */
+  protected function setupPersonRolePrimaryLink(int $roleId): int {
+    $PersonRoles = $this->getTableLocator()->get('PersonRoles');
+    $roleEntity = $PersonRoles->findById($roleId)->firstOrFail();
+
+    // Note this is a string, but vv_person_name is an entity
+    $this->set('vv_person_role', $PersonRoles->generateDisplayField($roleEntity));
+    $this->set('vv_person_role_id', $roleId);
+
+    return (int)$roleEntity->person_id;
   }
 
   /**

@@ -349,7 +349,11 @@ class BreadcrumbComponent extends Component {
             $parentIndexTarget['?'] = ['co_id' => (int)$parentLink->co_id];
           }
 
-          $this->injectParents[strtolower($parentController) . ':index'] = [
+          $parentIndexKey = ($parentController === 'People' && !empty($parentLink->co_id))
+            ? 'cos:' . (int)$parentLink->co_id
+            : strtolower($parentController) . ':index';
+
+          $this->injectParents[$parentIndexKey] = [
             'target' => $parentIndexTarget,
             'label'  => StringUtilities::localizeController(
               controllerName: $parentController,
@@ -361,7 +365,14 @@ class BreadcrumbComponent extends Component {
           // A2) Parent ENTITY crumb (specific display label)
           // Example:
           //   "LDEV LDAP Provisioner" -> /provisioning-targets/edit/19
-          $parentEntity = $parentTable->get((int)$parentLink->value);
+          $parentContain = method_exists($parentTable, 'getViewContains')
+            ? $parentTable->getViewContains()
+            : [];
+          if ($parentController === 'People' && !in_array('PrimaryName', $parentContain, true)) {
+            $parentContain[] = 'PrimaryName';
+          }
+
+          $parentEntity = $parentTable->get((int)$parentLink->value, contain: $parentContain);
 
           // Prefer a table-provided display generator when available (lets tables compute a friendly label)
           // Fallback to Cake's displayField, then to the raw ID.
@@ -380,7 +391,7 @@ class BreadcrumbComponent extends Component {
             $parentDisplay = (string)$parentLink->value;
           }
 
-          $this->injectParents[strtolower($parentController) . ':entity'] = [
+          $this->injectParents[$this->composeEntityKey($parentTable->getTable(), (int)$parentLink->value)] = [
             'target' => [
               'plugin'     => null,
               'controller' => $parentController,
@@ -398,7 +409,11 @@ class BreadcrumbComponent extends Component {
         // Example:
         //   "Email Addresses" -> /email-addresses?co_id=2
         else {
-          $this->injectParents[strtolower($linkModelFqn) . ':index'] = [
+          $linkIndexKey = ($linkModelFqn === 'People' && !empty($parentLink->value))
+            ? 'cos:' . (int)$parentLink->value
+            : strtolower($linkModelFqn) . ':index';
+
+          $this->injectParents[$linkIndexKey] = [
             'target' => [
               'plugin'      => $parentLink->plugin ?? StringUtilities::blankToNull(StringUtilities::pluginPlugin($linkModelFqn)) ?? null,
               'controller'  => StringUtilities::pluginModel($linkModelFqn),
