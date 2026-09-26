@@ -31,11 +31,10 @@ namespace CoreServer\Controller;
 
 use App\Controller\StandardPluginController;
 use App\Lib\Util\StringUtilities;
+use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 
 class MatchServerAttributesController extends StandardPluginController {
-  use \App\Lib\Traits\BreadcrumbsTrait;
-
   protected array $paginate = [
     'order' => [
       'MatchServerAttributes.attribute' => 'asc'
@@ -47,26 +46,25 @@ class MatchServerAttributesController extends StandardPluginController {
    *
    * @since  COmanage Registry v5.2.0
    * @param  EventInterface $event Cake Event
-   * @return \Cake\Http\Response   HTTP Response
+   * @return \Cake\Http\Response|void|null
    */
 
   public function beforeRender(\Cake\Event\EventInterface $event)
   {
     $link = $this->getPrimaryLink(true);
+    $matchServer = null;
 
     if(!empty($link->value)) {
-      $this->set('vv_bc_parent_obj', $this->MatchServerAttributes->MatchServers->get($link->value));
+      $matchServer = $this->MatchServerAttributes->MatchServers->get($link->value, contain: ['Servers']);
+      $this->set('vv_bc_parent_obj', $matchServer);
       $this->set('vv_bc_parent_displayfield', $this->MatchServerAttributes->MatchServers->getDisplayField());
       $this->set('vv_bc_parent_primarykey', $this->MatchServerAttributes->MatchServers->getPrimaryKey());
     }
-    
-    // Build standard server breadcrumbs from *_server_id
-    $customParents = $this->buildServerParamBreadcrumbs();
 
+    $customParents = $this->buildServerBreadcrumbs($matchServer);
     if (!empty($customParents)) {
       $vv_bc_parents = (array)$this->viewBuilder()->getVar('vv_bc_parents');
-      $vv_bc_parents = [...$customParents, ...$vv_bc_parents];
-      $this->set('vv_bc_parents', $vv_bc_parents);
+      $this->set('vv_bc_parents', [...$customParents, ...$vv_bc_parents]);
     }
 
     $title = __d('core_server', 'controller.MatchServerAttributes', [99]);
@@ -77,5 +75,56 @@ class MatchServerAttributesController extends StandardPluginController {
     $this->set('vv_title', $title);
 
     return parent::beforeRender($event);
+  }
+
+  /**
+   * Build breadcrumb parents for match server attribute views.
+   *
+   * @param EntityInterface|null $matchServer MatchServer entity with contained Server
+   * @return array<string,array{label:string,target:array}> Breadcrumb parents
+   * @since  COmanage Registry v5.3.0
+   */
+  protected function buildServerBreadcrumbs(?EntityInterface $matchServer = null): array
+  {
+    if (!$matchServer || empty($matchServer->server)) {
+      return [];
+    }
+
+    $server = $matchServer->server;
+    [$configureTitle] = StringUtilities::entityAndActionToTitle(
+      $matchServer,
+      'CoreServer.MatchServers',
+      'configure'
+    );
+
+    return [
+      'servers:index' => [
+        'label'  => StringUtilities::localizeController('Servers', null, true),
+        'target' => [
+          'plugin'     => null,
+          'controller' => 'Servers',
+          'action'     => 'index',
+          '?'          => ['co_id' => $server->co_id ?? $this->getCOID()],
+        ],
+      ],
+      'servers:' . $server->id => [
+        'label' => !empty($server->description)  ? $server->description : __d('core_server', 'controller.MatchServers', [1]) . " #{$server->id}",
+        'target' => [
+          'plugin'     => null,
+          'controller' => 'Servers',
+          'action'     => 'edit',
+          $server->id,
+        ],
+      ],
+      'match_servers:' . $matchServer->id => [
+        'label'  => $configureTitle,
+        'target' => [
+          'plugin'     => 'CoreServer',
+          'controller' => 'MatchServers',
+          'action'     => 'edit',
+          $matchServer->id,
+        ],
+      ],
+    ];
   }
 }

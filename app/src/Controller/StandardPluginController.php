@@ -61,7 +61,8 @@ class StandardPluginController extends StandardController {
       $this->Breadcrumb->skipParents(['/^\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\/edit\//']);
 
       if(!empty($primaryLink->attr)) {
-        if($primaryLink->attr == 'server_id') {
+        if($primaryLink->attr == 'server_id'
+           || str_ends_with($primaryLink->attr, '_server_id')) {
           // Servers shouldn't show up as configuration, so automatically hide it
           // eg for server plugins
           $this->Breadcrumb->skipConfig(['/^\//']);
