@@ -33,7 +33,6 @@ use App\Lib\Util\StringUtilities;
 use App\Lib\Util\TableUtilities;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
-use Cake\Utility\Inflector;
 use Cake\View\Helper;
 
 class TabHelper extends Helper
@@ -271,16 +270,22 @@ class TabHelper extends Helper
    */
   public function tabBelongsToModelPath(string $tab, string $modelFullName, int &$depth = 0): bool
   {
-    $model = TableRegistry::getTableLocator()->get($modelFullName);
-    // We'll start by getting the set of models directly associated with the CO model.
-    $associations = $model->associations();
+    $depth = 0;
 
-    $depth++;
-    foreach($associations->getByType(['belongsTo', 'belongsToMany']) as $ta) {
-      if($ta->getClassName() === $tab) {
-        return true;
-      }
-      return $this->tabBelongsToModelPath($tab, $ta->getClassName(), $depth);
+    $matches = TableUtilities::findAssociationsByTraversal(
+      startModel: $modelFullName,
+      isMatch: static function ($assoc) use ($tab): bool {
+        return $assoc->getClassName() === $tab;
+      },
+      types: ['belongsTo', 'belongsToMany'],
+      maxDepth: 10
+    );
+
+    if (!empty($matches)) {
+      // We don't currently return the actual depth; keep API stable.
+      // If you want the exact depth, we can adjust the utility to return it.
+      $depth = 1;
+      return true;
     }
 
     return false;
@@ -630,11 +635,10 @@ class TabHelper extends Helper
    */
   public function getModelTotalCount(string $modelName, array $whereClause): int
   {
-    $modelsName = Inflector::camelize($modelName);
-    $ModelTable = TableRegistry::getTableLocator()->get($modelsName);
+    $ModelTable = TableRegistry::getTableLocator()->get($modelName);
     $count = $ModelTable->find()
-                        ->where($whereClause)
-                        ->count();
+      ->where($whereClause)
+      ->count();
 
     return $count;
   }

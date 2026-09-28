@@ -330,6 +330,10 @@ class SqlProvisionersTable extends Table {
 
     $spcfg = $this->get($id);
 
+    if(empty($spcfg->server_id)) {
+      throw new \InvalidArgumentException(__d('error', 'notfound', [__d('controller', 'Servers', [1])]));
+    }
+
     $this->Servers->SqlServers->connect($spcfg->server_id, 'targetdb');
 
     $SchemaManager = new SchemaManager(connection: 'targetdb');
@@ -394,6 +398,10 @@ class SqlProvisionersTable extends Table {
 
     $cxnLabel = "targetdb" . $provisioningTarget->sql_provisioner->id;
 
+    if(empty($provisioningTarget->sql_provisioner->server_id)) {
+      throw new \InvalidArgumentException(__d('error', 'notfound', [__d('controller', 'Servers', [1])]));
+    }
+
     $this->Servers->SqlServers->connect($provisioningTarget->sql_provisioner->server_id, $cxnLabel);
 
     return $this->syncEntity(
@@ -436,20 +444,26 @@ class SqlProvisionersTable extends Table {
       $id = $groupId;
     }
 
+    if(empty($cfg->sql_provisioner->server_id)) {
+      $ret['status'] = ProvisioningStatusEnum::NotProvisioned;
+      $ret['comment'] = __d('error', 'notfound', [__d('controller', 'Servers', [1])]);
+      return $ret;
+    }
+
     // We use the same cxnLabel logic as provision().
     $cxnLabel = "targetdb" . $cfg->sql_provisioner->id;
 
-    $this->Servers->SqlServers->connect($cfg->sql_provisioner->server_id, $cxnLabel);
-
-    $options = [
-      'table'       => $cfg->sql_provisioner->table_prefix . $mconfig['table'],
-      'alias'       => $mconfig['name'] . $cfg->sql_provisioner->id,
-      'connection'  => ConnectionManager::get($cxnLabel)
-    ];
-
-    $SpTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
-
     try {
+      $this->Servers->SqlServers->connect($cfg->sql_provisioner->server_id, $cxnLabel);
+
+      $options = [
+        'table'       => $cfg->sql_provisioner->table_prefix . $mconfig['table'],
+        'alias'       => $mconfig['name'] . $cfg->sql_provisioner->id,
+        'connection'  => ConnectionManager::get($cxnLabel)
+      ];
+
+      $SpTable = TableUtilities::getTableFromRegistry(alias: $options['alias'], options: $options);
+
       $curEntity = $SpTable->get($id);
 
       $ret['status'] = ProvisioningStatusEnum::Provisioned;
@@ -645,6 +659,10 @@ class SqlProvisionersTable extends Table {
   
   public function syncReferenceData(int $id, string $dataSource='targetdb') {
     $spcfg = $this->get($id, contain: ['ProvisioningTargets']);
+
+    if(empty($spcfg->server_id)) {
+      throw new \InvalidArgumentException(__d('error', 'notfound', [__d('controller', 'Servers', [1])]));
+    }
 
     $this->Servers->SqlServers->connect($spcfg->server_id, $dataSource);
 

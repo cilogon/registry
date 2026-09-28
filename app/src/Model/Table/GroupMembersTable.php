@@ -655,10 +655,10 @@ class GroupMembersTable extends Table {
    * @param array $fields An array of fields to update, where each field
    *                        includes an enrollment attribute and its value.
    *
-   * @return GroupMember The saved entity representing the person's role.
+   * @return GroupMember|null The saved entity representing the person's role.
    *
    */
-  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): GroupMember
+  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): ?GroupMember
   {
     $member = [
       'person_id'     => $personId,

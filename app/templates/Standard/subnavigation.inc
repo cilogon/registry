@@ -62,10 +62,10 @@ $subnavConfig = [
   // plugin fields.inc config as $subnav = [the tab definition array]
   // as described above.
   'standard' => [
-    'tabs' => [$modelsName, $modelsName . '.Plugin'],
+    'tabs' => [$fullModelsName, $fullModelsName . '.Plugin'],
     'action' => [
-      $modelsName => ['edit'],
-      $modelsName . '.Plugin' => ['edit']
+      $fullModelsName => ['edit'],
+      $fullModelsName . '.Plugin' => ['edit']
     ]
   ],
   

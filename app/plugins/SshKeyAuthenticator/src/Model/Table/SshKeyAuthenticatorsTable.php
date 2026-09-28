@@ -123,6 +123,20 @@ class SshKeyAuthenticatorsTable extends Table {
 
   /**
    * Assemble Authenticator data for provisioning.
+   *
+   * Example return:
+   * <code>
+   * [
+   *   [
+   *     'id' => 1501,
+   *     'ssh_key_authenticator_id' => 2,
+   *     'person_id' => 101,
+   *     'type' => 'ssh-ed25519',
+   *     'skey' => 'AAAAC3NzaC1lZDI1NTE5AAAAIGx...',
+   *     'comment' => 'jdoe@workstation'
+   *   ]
+   * ]
+   * </code>
    * 
    * @since  COmanage Registry v5.2.0
    * @param  Authenticator  $cfg      Authenticator Configuration

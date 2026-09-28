@@ -149,6 +149,10 @@ class KerberosProvisionersTable extends Table {
     // We need to have an Identifier of the configured type and a Password associated
     // with the configured Authenticator.
 
+    if(empty($provisioningTarget->kerberos_provisioner->server_id)) {
+      throw new \InvalidArgumentException(__d('error', 'notfound', [__d('controller', 'Servers', [1])]));
+    }
+
     // We need the Kerberos Server configuration for the realm
     $server = $this->Servers->get(
       $provisioningTarget->kerberos_provisioner->server_id,
@@ -394,12 +398,24 @@ class KerberosProvisionersTable extends Table {
                                ])
                                ->firstOrFail();
 
+      if(empty($cfg->kerberos_provisioner->server_id)) {
+        $ret['status'] = ProvisioningStatusEnum::NotProvisioned;
+        $ret['comment'] = __d('error', 'notfound', [__d('controller', 'Servers', [1])]);
+        return $ret;
+      }
+
       // Establish a connection to kadmin
 
-      $cxn = $this->Servers->KerberosServers->connect(
-        serverId: $cfg->kerberos_provisioner->server_id,
-        admin: true
-      );
+      try {
+        $cxn = $this->Servers->KerberosServers->connect(
+          serverId: $cfg->kerberos_provisioner->server_id,
+          admin: true
+        );
+      }
+      catch(\Exception $e) {
+        $ret['comment'] = $e->getMessage();
+        return $ret;
+      }
 
       // Look for the principal
       

@@ -160,9 +160,10 @@ class LdapServersTable extends Table {
 
 
   /**
-   * Retrieve (and if necessary establish) an LDAP connection for the specified server.
+   * Return an active LDAP connection handle for the given Server ID.
    *
-   * This method returns a cached LDAP connection for the given server ID. If no
+   * This method acts as the public entry point for callers needing to perform
+   * operations against the LDAP directory configured for $serverId. If no
    * connection is currently cached, it will attempt to connect and bind by invoking
    * connect($serverId), which is expected to populate the internal connection cache.
    *
@@ -264,6 +265,7 @@ class LdapServersTable extends Table {
    * @param string $dn DN of the entry to create.
    * @param array<string,mixed> $attributes LDAP attributes to set on the new entry.
    * @return void
+   * @throws \InvalidArgumentException On LDAP object class violation/modification prohibited.
    * @throws \RuntimeException On LDAP add failure.
    * @since COmanage Registry v5.3.0
    */
@@ -276,6 +278,16 @@ class LdapServersTable extends Table {
     error_reporting($currentErrorReporting);
 
     if (!$ok) {
+      $errno = ldap_errno($cxn);
+
+      if (
+        $errno === LdapCommonCodesEnum::LDAP_OBJECT_CLASS_MODS_PROHIBITED
+        || $errno === LdapCommonCodesEnum::LDAP_OBJECT_CLASS_VIOLATION
+      ) {
+        // The handler will log the error and throw an exception. Execution stops here.
+        $this->handleObjectClassError($cxn, 'ldap_add', $dn, $attributes, $errno);
+      }
+
       $this->logLdapError($cxn, 'ldap_add', [
         'dn' => $dn,
         'attribute_keys' => $attrKeys,
@@ -357,6 +369,7 @@ class LdapServersTable extends Table {
    * @param string $dn DN of the entry to modify.
    * @param array<string,mixed> $attributes LDAP attributes to replace.
    * @return void
+   * @throws \InvalidArgumentException On LDAP object class violation/modification prohibited.
    * @throws \RuntimeException On LDAP modify failure.
    * @since COmanage Registry v5.3.0
    */
@@ -366,6 +379,15 @@ class LdapServersTable extends Table {
     error_reporting($currentErrorReporting);
 
     if (!$ok) {
+      $errno = ldap_errno($cxn);
+
+      if (
+        $errno === LdapCommonCodesEnum::LDAP_OBJECT_CLASS_MODS_PROHIBITED
+        || $errno === LdapCommonCodesEnum::LDAP_OBJECT_CLASS_VIOLATION
+      ) {
+        $this->handleObjectClassError($cxn, 'ldap_mod_replace', $dn, $attributes, $errno);
+      }
+
       $attrKeys = array_keys($attributes);
 
       $this->logLdapError($cxn, 'ldap_mod_replace', [
@@ -396,7 +418,7 @@ class LdapServersTable extends Table {
    * @param \LDAP\Connection $cxn Active LDAP connection (already connected and bound).
    * @param string $oldDn Current (full) DN of the entry.
    * @param string $newRdn New RDN (relative distinguished name) for the entry.
-   * @param string|null $newParentDn New parent DN, or null to keep the same parent.
+   * @param string $newParentDn New parent DN, or an empty string to keep the same parent.
    * @param bool $deleteOldRdn Whether to delete the old RDN value from the entry.
    * @return void
    * @throws \RuntimeException On LDAP rename failure.
@@ -406,7 +428,7 @@ class LdapServersTable extends Table {
     \LDAP\Connection $cxn,
     string $oldDn,
     string $newRdn,
-    ?string $newParentDn = null,
+    string $newParentDn = '',
     bool $deleteOldRdn = true
   ): void {
     $currentErrorReporting = error_reporting(0);
@@ -465,7 +487,7 @@ class LdapServersTable extends Table {
    * @param array $attributes
    * @return array{action:string,dn:string}
    */
-  protected function addOrModifyAt(\LDAP\Connection $cxn, string $dn, array $attributes): array {
+  public function addOrModifyAt(\LDAP\Connection $cxn, string $dn, array $attributes): array {
     try {
       $this->modReplace($cxn, $dn, $attributes);
       return ['action' => 'modify', 'dn' => $dn];
@@ -495,7 +517,7 @@ class LdapServersTable extends Table {
    * Performs a case-insensitive suffix match. If $baseDn is empty or not a suffix
    * of $newDn, returns $newDn unchanged.
    */
-  protected function removeBaseDnSuffix(string $newDn, string $baseDn): string {
+  public function removeBaseDnSuffix(string $newDn, string $baseDn): string {
     if ($baseDn === '') {
       return $newDn;
     }
@@ -509,6 +531,7 @@ class LdapServersTable extends Table {
 
     return $newDn;
   }
+
 
   /**
    * Disconnect (unbind) an LDAP connection for a given server ID.
@@ -582,6 +605,50 @@ class LdapServersTable extends Table {
     $this->alog('error', [
         'message' => __METHOD__ . "::LDAP error during $functionName"
       ] + $context);
+  }
+
+  /**
+   * Handle object class violation or modification prohibited errors.
+   *
+   * Logs detailed failure information with full stack trace, then throws an
+   * InvalidArgumentException with a meaningful diagnostic message for the UI.
+   *
+   * @param \LDAP\Connection $cxn Active LDAP connection.
+   * @param string $operation Operation label (e.g., 'ldap_mod_replace' or 'ldap_add').
+   * @param string $dn Target DN.
+   * @param array<string,mixed> $attributes Attributes payload.
+   * @param int $errno LDAP error code.
+   * @return void
+   * @throws \InvalidArgumentException
+   * @since COmanage Registry v5.3.0
+   */
+  protected function handleObjectClassError(
+    \LDAP\Connection $cxn,
+    string           $operation,
+    string           $dn,
+    array            $attributes,
+    int              $errno
+  ): void {
+    $attrKeys = array_keys($attributes);
+    $trace = (new \Exception())->getTraceAsString();
+
+    // Single structured log containing full payload and stack trace
+    $this->logLdapError($cxn, $operation, [
+      'dn' => $dn,
+      'attribute_keys' => $attrKeys,
+      'attributes' => $attributes,
+      'stack_trace' => $trace,
+    ]);
+
+    // Extract human-readable diagnostics for UI provisioning comment
+    $diag = '';
+    ldap_get_option($cxn, LDAP_OPT_DIAGNOSTIC_MESSAGE, $diag);
+    $diag = is_string($diag) ? trim($diag) : '';
+    $serverMsg = ldap_error($cxn);
+
+    $meaningfulComment = !empty($diag) ? "$serverMsg: $diag" : "$serverMsg (code $errno)";
+
+    throw new \InvalidArgumentException($meaningfulComment, $errno);
   }
 
   /**

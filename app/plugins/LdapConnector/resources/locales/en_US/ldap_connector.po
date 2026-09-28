@@ -1,0 +1,515 @@
+# COmanage Registry Localizations (sql_connector domain)
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @link          https://www.internet2.edu/comanage COmanage Project
+# @package       registry
+# @since         COmanage Registry v5.3.0
+# @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+msgid "controller.LdapProvisioners"
+msgstr "{0,plural,=1{LDAP Provisioner} other{LDAP Provisioners}}"
+
+msgid "controller.LdapSchemas"
+msgstr "{0,plural,=1{LDAP Schema} other{LDAP Schemas}}"
+
+msgid "information.LdapSchemas.all_used"
+msgstr "All available LDAP Schemas are already configured"
+
+msgid "operation.resync"
+msgstr "Resync Data"
+
+msgid "result.prov.added"
+msgstr "New record published"
+
+msgid "result.prov.deleted"
+msgstr "Record deleted"
+
+msgid "result.prov.ineligible"
+msgstr "Record is not eligible for provisioning"
+
+msgid "result.prov.updated"
+msgstr "Record updated"
+
+msgid "result.resync.ok"
+msgstr "Data Synced"
+
+msgid "schema.attributes"
+msgstr "Schema Attributes"
+
+msgid "types.all"
+msgstr "All Types"
+
+msgid "disabled"
+msgstr "(Disabled)"
+
+msgid "checkbox.disable"
+msgstr "Disable {0} Export"
+
+# Common schema fields
+msgid "field.address_type_id"
+msgstr "Address Type"
+
+msgid "field.cn"
+msgstr "Common Name"
+
+msgid "field.sn"
+msgstr "Surname"
+
+msgid "field.description"
+msgstr "Description"
+
+msgid "field.room_number"
+msgstr "Room Number"
+
+msgid "field.member_uid"
+msgstr "Member UID"
+
+msgid "field.gid_number"
+msgstr "GID Number"
+
+msgid "field.uid_number"
+msgstr "UID Number"
+
+msgid "field.home_directory"
+msgstr "Home Directory"
+
+msgid "field.login_shell"
+msgstr "Login Shell"
+
+msgid "field.gecos"
+msgstr "GECOS"
+
+msgid "field.ssh_public_key"
+msgstr "SSH Public Key"
+
+# Controller localizations
+msgid "controller.EduMemberSchemas"
+msgstr "{0,plural,=1{eduMember Schema} other{eduMember Schemas}}"
+
+msgid "controller.EduPersonSchemas"
+msgstr "{0,plural,=1{eduPerson Schema} other{eduPerson Schemas}}"
+
+msgid "controller.GroupOfNamesSchemas"
+msgstr "{0,plural,=1{groupOfNames Schema} other{groupOfNames Schemas}}"
+
+msgid "controller.InetOrgPersonSchemas"
+msgstr "{0,plural,=1{inetOrgPerson Schema} other{inetOrgPerson Schemas}}"
+
+msgid "controller.LdapPublicKeySchemas"
+msgstr "{0,plural,=1{ldapPublicKey Schema} other{ldapPublicKey Schemas}}"
+
+msgid "controller.OrganizationalPersonSchemas"
+msgstr "{0,plural,=1{organizationalPerson Schema} other{organizationalPerson Schemas}}"
+
+msgid "controller.PersonSchemas"
+msgstr "{0,plural,=1{person Schema} other{person Schemas}}"
+
+msgid "controller.PosixAccountSchemas"
+msgstr "{0,plural,=1{posixAccount Schema} other{posixAccount Schemas}}"
+
+msgid "controller.PosixGroupSchemas"
+msgstr "{0,plural,=1{posixGroup Schema} other{posixGroup Schemas}}"
+
+msgid "controller.VoPersonSchemas"
+msgstr "{0,plural,=1{voPerson Schema} other{voPerson Schemas}}"
+
+msgid "controller.VoPosixAccountSchemas"
+msgstr "{0,plural,=1{voPosixAccount Schema} other{voPosixAccount Schemas}}"
+
+msgid "controller.VoPosixGroupSchemas"
+msgstr "{0,plural,=1{voPosixGroup Schema} other{voPosixGroup Schemas}}"
+
+# PersonSchemas
+msgid "field.PersonSchemas.cn"
+msgstr "Canonical Name"
+
+msgid "field.PersonSchemas.sn"
+msgstr "Surname"
+
+msgid "field.PersonSchemas.user_password"
+msgstr "User Password"
+
+msgid "field.PersonSchemas.pwd_account_locked_time"
+msgstr "Password Account Locked Time"
+
+# OrganizationalPersonSchemas
+msgid "field.OrganizationalPersonSchemas.title"
+msgstr "Title"
+
+msgid "field.OrganizationalPersonSchemas.ou"
+msgstr "Organizational Unit"
+
+msgid "field.OrganizationalPersonSchemas.telephone_number"
+msgstr "Telephone Number"
+
+msgid "field.OrganizationalPersonSchemas.telephone_number_type_id"
+msgstr "Telephone Number Type"
+
+msgid "field.OrganizationalPersonSchemas.facsimile_telephone_number"
+msgstr "Facsimile Telephone Number"
+
+msgid "field.OrganizationalPersonSchemas.facsimile_telephone_number_type_id"
+msgstr "Facsimile Telephone Number Type"
+
+msgid "field.OrganizationalPersonSchemas.address_type_id"
+msgstr "Address Type"
+
+msgid "field.OrganizationalPersonSchemas.street"
+msgstr "Street"
+
+msgid "field.OrganizationalPersonSchemas.l"
+msgstr "Locality"
+
+msgid "field.OrganizationalPersonSchemas.st"
+msgstr "State"
+
+msgid "field.OrganizationalPersonSchemas.postal_code"
+msgstr "Postal Code"
+
+# InetOrgPersonSchemas
+msgid "field.InetOrgPersonSchemas.given_name"
+msgstr "Given Name"
+
+msgid "field.InetOrgPersonSchemas.given_name_type_id"
+msgstr "Given Name Type"
+
+msgid "field.InetOrgPersonSchemas.display_name_type_id"
+msgstr "Display Name"
+
+msgid "field.InetOrgPersonSchemas.o"
+msgstr "Organization"
+
+msgid "field.InetOrgPersonSchemas.labeled_uri"
+msgstr "Labeled URI"
+
+msgid "field.InetOrgPersonSchemas.labeled_uri_type_id"
+msgstr "Labeled URI Type"
+
+msgid "field.InetOrgPersonSchemas.mail"
+msgstr "Mail"
+
+msgid "field.InetOrgPersonSchemas.mail_type_id"
+msgstr "Mail Type"
+
+msgid "field.InetOrgPersonSchemas.mobile"
+msgstr "Mobile"
+
+msgid "field.InetOrgPersonSchemas.mobile_type_id"
+msgstr "Mobile Type"
+
+msgid "field.InetOrgPersonSchemas.employee_number_type_id"
+msgstr "Employee Number"
+
+msgid "field.InetOrgPersonSchemas.employee_type"
+msgstr "Employee Type"
+
+msgid "field.InetOrgPersonSchemas.address_type_id"
+msgstr "Address Type"
+
+msgid "field.InetOrgPersonSchemas.room_number"
+msgstr "Room Number"
+
+msgid "field.InetOrgPersonSchemas.uid"
+msgstr "UID"
+
+msgid "field.InetOrgPersonSchemas.uid_type_id"
+msgstr "UID Type"
+
+# PosixGroupSchemas
+msgid "field.PosixGroupSchemas.cn"
+msgstr "Common Name"
+
+msgid "field.PosixGroupSchemas.gid_number"
+msgstr "GID Number"
+
+msgid "field.PosixGroupSchemas.member_uid"
+msgstr "Member UID"
+
+# PosixAccountSchemas
+msgid "field.PosixAccountSchemas.cn"
+msgstr "Common Name"
+
+msgid "field.PosixAccountSchemas.uid"
+msgstr "UID"
+
+msgid "field.PosixAccountSchemas.uid_number"
+msgstr "UID Number"
+
+msgid "field.PosixAccountSchemas.gid_number"
+msgstr "GID Number"
+
+msgid "field.PosixAccountSchemas.home_directory"
+msgstr "Home Directory"
+
+msgid "field.PosixAccountSchemas.login_shell"
+msgstr "Login Shell"
+
+msgid "field.PosixAccountSchemas.gecos"
+msgstr "GECOS"
+
+# LdapPublicKeySchemas
+msgid "field.LdapPublicKeySchemas.ssh_public_key"
+msgstr "SSH Public Key"
+
+# GroupOfNamesSchemas
+msgid "field.GroupOfNamesSchemas.cn"
+msgstr "Common Name"
+
+msgid "field.GroupOfNamesSchemas.member"
+msgstr "Member"
+
+msgid "field.GroupOfNamesSchemas.owner"
+msgstr "Owner"
+
+msgid "field.GroupOfNamesSchemas.description"
+msgstr "Description"
+
+# VoPosixGroupSchemas
+msgid "field.VoPosixGroupSchemas.cn"
+msgstr "Common Name"
+
+msgid "field.VoPosixGroupSchemas.vo_posix_account_gid_number"
+msgstr "VO POSIX Account GID Number"
+
+msgid "field.VoPosixGroupSchemas.member_uid"
+msgstr "Member UID"
+
+# VoPosixAccountSchemas
+msgid "field.VoPosixAccountSchemas.cn"
+msgstr "Common Name"
+
+msgid "field.VoPosixAccountSchemas.uid"
+msgstr "UID"
+
+msgid "field.VoPosixAccountSchemas.vo_posix_account_uid_number"
+msgstr "VO POSIX Account UID Number"
+
+msgid "field.VoPosixAccountSchemas.vo_posix_account_gid_number"
+msgstr "VO POSIX Account GID Number"
+
+msgid "field.VoPosixAccountSchemas.vo_posix_account_home_directory"
+msgstr "VO POSIX Account Home Directory"
+
+msgid "field.VoPosixAccountSchemas.vo_posix_account_login_shell"
+msgstr "VO POSIX Account Login Shell"
+
+msgid "field.VoPosixAccountSchemas.vo_posix_account_gecos"
+msgstr "VO POSIX Account GECOS"
+
+# EduMemberSchemas
+msgid "field.EduMemberSchemas.is_member_of"
+msgstr "Is Member Of"
+
+msgid "field.EduMemberSchemas.is_member_of.desc"
+msgstr "Applies to Person"
+
+msgid "field.EduMemberSchemas.has_member_type_id"
+msgstr "Has Member"
+
+msgid "field.EduMemberSchemas.has_member_type_id.desc"
+msgstr "Applies to Group"
+
+# EduPersonSchemas
+msgid "field.EduPersonSchemas.edu_person_affiliation"
+msgstr "Edu Person Affiliation"
+
+msgid "field.EduPersonSchemas.edu_person_entitlement"
+msgstr "Edu Person Entitlement"
+
+msgid "field.EduPersonSchemas.edu_person_nickname"
+msgstr "Edu Person Nickname"
+
+msgid "field.EduPersonSchemas.edu_person_nickname_type_id"
+msgstr "Edu Person Nickname Type"
+
+msgid "field.EduPersonSchemas.edu_person_orcid"
+msgstr "Edu Person ORCID"
+
+msgid "field.EduPersonSchemas.edu_person_principal_name_type_id"
+msgstr "Edu Person Principal Name"
+
+msgid "field.EduPersonSchemas.edu_person_principal_name_prior"
+msgstr "Edu Person Principal Name Prior"
+
+msgid "field.EduPersonSchemas.edu_person_principal_name_prior_type_id"
+msgstr "Edu Person Principal Name Prior Type"
+
+msgid "field.EduPersonSchemas.edu_person_scoped_affiliation"
+msgstr "Edu Person Scoped Affiliation"
+
+msgid "field.EduPersonSchemas.edu_person_unique_id"
+msgstr "Edu Person Unique ID"
+
+msgid "field.EduPersonSchemas.edu_person_unique_id_export"
+msgstr "Edu Person Unique ID"
+
+msgid "field.EduPersonSchemas.edu_person_unique_id_type_id"
+msgstr "Edu Person Unique ID Type"
+
+# VoPersonSchemas
+msgid "field.VoPersonSchemas.vo_person_affiliation"
+msgstr "VO Person Affiliation"
+
+msgid "field.VoPersonSchemas.vo_person_application_password"
+msgstr "VO Person Application Password"
+
+msgid "field.VoPersonSchemas.vo_person_application_uid"
+msgstr "VO Person Application UID"
+
+msgid "field.VoPersonSchemas.vo_person_application_uid_type_id"
+msgstr "VO Person Application UID Type"
+
+msgid "field.VoPersonSchemas.vo_person_author_name"
+msgstr "VO Person Author Name"
+
+msgid "field.VoPersonSchemas.vo_person_author_name_type_id"
+msgstr "VO Person Author Name Type"
+
+msgid "field.VoPersonSchemas.vo_person_certificate_dn"
+msgstr "VO Person Certificate DN"
+
+msgid "field.VoPersonSchemas.vo_person_certificate_issuer_dn"
+msgstr "VO Person Certificate Issuer DN"
+
+msgid "field.VoPersonSchemas.vo_person_external_id"
+msgstr "VO Person External ID"
+
+msgid "field.VoPersonSchemas.vo_person_external_id_export"
+msgstr "VO Person External ID"
+
+msgid "field.VoPersonSchemas.vo_person_external_id_type_id"
+msgstr "VO Person External ID Type"
+
+msgid "field.VoPersonSchemas.vo_person_id"
+msgstr "VO Person ID"
+
+msgid "field.VoPersonSchemas.vo_person_id_export"
+msgstr "VO Person ID"
+
+msgid "field.VoPersonSchemas.vo_person_id_type_id"
+msgstr "VO Person ID Type"
+
+msgid "field.VoPersonSchemas.vo_person_policy_agreement"
+msgstr "VO Person Policy Agreement"
+
+msgid "field.VoPersonSchemas.vo_person_sorid"
+msgstr "VO Person SoRID"
+
+msgid "field.VoPersonSchemas.vo_person_sorid_type_id"
+msgstr "VO Person SoRID Type"
+
+msgid "field.VoPersonSchemas.vo_person_status"
+msgstr "VO Person Status"
+
+msgid "field.VoPersonSchemas.vo_person_token"
+msgstr "VO Person Token"
+
+msgid "field.LdapConnector.telephoneNumber_type_id"
+msgstr "Telephone Number Type"
+
+msgid "field.LdapConnector.facsimileTelephoneNumber_type_id"
+msgstr "Facsimile Telephone Number Type"
+
+msgid "field.LdapConnector.person.cn"
+msgstr "Canonical Name"
+
+msgid "field.LdapConnector.person.sn"
+msgstr "Surname"
+
+msgid "field.LdapConnector.organizationalPerson.title"
+msgstr "Title"
+
+msgid "field.LdapConnector.organizationalPerson.ou"
+msgstr "Organizational Unit"
+
+msgid "field.LdapConnector.organizationalPerson.telephoneNumber"
+msgstr "Telephone Number"
+
+msgid "field.LdapConnector.organizationalPerson.facsimileTelephoneNumber"
+msgstr "Facsimile Telephone Number"
+
+msgid "field.LdapConnector.organizationalPerson.street"
+msgstr "Street"
+
+msgid "field.LdapConnector.organizationalPerson.l"
+msgstr "Locality"
+
+msgid "field.LdapConnector.organizationalPerson.st"
+msgstr "State"
+
+msgid "field.LdapConnector.organizationalPerson.postalCode"
+msgstr "Postal Code"
+
+msgid "field.LdapConnector.eduMember.isMemberOf"
+msgstr "Applies to Person"
+
+msgid "field.LdapConnector.eduMember.hasMember"
+msgstr "Applies to Group"
+
+msgid "field.LdapConnector.eduPerson.use_org_value"
+msgstr "Use value from External Identity Source"
+
+msgid "field.LdapConnector.eduPerson.use_org_value.desc"
+msgstr "When enabled, the exported value is taken from the person’s External Identity Source record."
+
+msgid "field.LdapConnector.inetOrgPerson.use_org_value"
+msgstr "Use value from External Identity Source"
+
+msgid "field.LdapConnector.inetOrgPerson.use_org_value.desc"
+msgstr "When enabled, the exported value is taken from the person’s External Identity Source record."
+
+msgid "field.LdapProvisioners.dn_identifier_type_id"
+msgstr "People DN Identifier Type"
+
+msgid "field.LdapProvisioners.dn_identifier_type_id.desc"
+msgstr "When constructing People DNs, use the value associated with this identifier type as the value for the unique component (If multiple values are available for the attribute, the value selected is non-deterministic)"
+
+msgid "field.LdapProvisioners.dn_attribute_name"
+msgstr "People DN Attribute Name"
+
+msgid "field.LdapProvisioners.dn_attribute_name.desc"
+msgstr "When constructing People DNs, use this attribute name for the unique component"
+
+msgid "field.LdapProvisioners.scope_suffix"
+msgstr "Attribute Scope"
+
+msgid "field.LdapProvisioners.scope_suffix.desc"
+msgstr "For attributes requiring scope, the scope to append (not including @)"
+
+msgid "field.LdapProvisioners.attr_opts"
+msgstr "Enable LDAP Attribute Options"
+
+msgid "field.LdapProvisioners.attr_opts.desc"
+msgstr "When enabled, the LDAP provisioner may emit attribute option variants (eg ;lang-, ;role-, ;scope-, ;time-, ;type-, ;app-). Your LDAP server must be configured to accept attribute options. Used by schemas such as voPerson where applicable."
+
+# Validation and rule error messages
+msgid "error.schema.duplicate"
+msgstr "Duplicate schema definition for this LDAP Schema"
+
+msgid "error.LdapSchemas.plugin.exists"
+msgstr "This LDAP Schema is already configured for this Provisioning Target"
+
+msgid "error.LdapProvisionerDns.person_xor_group"
+msgstr "Exactly one of person_id or group_id must be provided"
+
+msgid "error.LdapProvisionerDns.person.exists"
+msgstr "DN mapping already exists for this person and provisioner"
+
+msgid "error.LdapProvisionerDns.group.exists"
+msgstr "DN mapping already exists for this group and provisioner"

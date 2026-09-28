@@ -91,7 +91,7 @@ class TableUtilities {
     $m = self::getTableFromRegistry($modelName, $mergedOptions);
 
     // Relabel associations with $prefix. Some will already be correctly set up, in particular
-    // dynamic plugin associations created via PluggableModelTrait::setPluginRelations, so we
+    // dynamic plugin associations created via PluggableModelTrait::bindPluggableRelations, so we
     // check for and skip those. (We're actually doing something similar to that code, here.)
 
     $assns = $m->associations();
@@ -259,6 +259,7 @@ class TableUtilities {
           && $col !== $primaryLinkKey
           && str_ends_with($col, '_id')
         ) {
+
           // qualify the FK using the requester table we're currently traversing
           // but compare against the physical table name in the database.
           $fkQualifiedModel = StringUtilities::foreignKeyToQualifiedModelName($col, $primaryLinkModelName);

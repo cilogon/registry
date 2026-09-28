@@ -428,8 +428,8 @@ class FieldHelper extends Helper {
                             ?string $fieldType = null,
                             ?array  $fieldSelectOptions = null,
                             ?string $fieldNameAlias = null,
-                            ?bool $labelIsTextOnly = null): string
-  {
+                            ?bool $labelIsTextOnly = null,
+  ): string {
     $fieldArgs = $fieldOptions ?? [];
     $fieldArgs['label'] = $fieldOptions['label'] ?? false;
     $fieldArgs['readonly'] = !$this->editable
@@ -456,9 +456,7 @@ class FieldHelper extends Helper {
                           || (isset($fieldOptions['empty']) && !empty($fieldOptions['empty']));
 
     // Check if the empty option comes with a value
-    if($fieldArgs['empty']
-       && isset($fieldOptions['empty'])
-       && \is_bool($fieldOptions['empty'])) {
+    if(isset($fieldOptions['empty'])) {
       $fieldArgs['empty'] = $fieldOptions['empty'];
     }
 
@@ -489,6 +487,9 @@ class FieldHelper extends Helper {
     // Checkbox labels need special handling
     if($fieldType == 'boolean') {
       [$cbLabel] = $this->calculateLabelAndDescription($fieldName);
+      if(empty($fieldLabel) && !empty($fieldOptions['label'])) {
+        $fieldLabel = $fieldOptions['label'];
+      }
       $fieldLabel = $fieldLabel ?? $cbLabel;
     }
     

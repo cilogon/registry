@@ -146,6 +146,8 @@ class GroupsTable extends Table {
     $this->hasMany('ProvisioningTargets')
          ->setForeignKey('provisioning_group_id');
 
+    $this->bindPluginRelations();
+
     $this->setDisplayField('name');
     
     $this->setPrimaryLink('co_id');
@@ -1044,6 +1046,56 @@ class GroupsTable extends Table {
   
   /**
    * Marshal object data for provisioning.
+   *
+   * Example return:
+   * <code>
+   * [
+   *   'eligibility' => 'E', // ProvisioningEligibilityEnum::Eligible ('E'), Deleted ('D'), Ineligible ('I')
+   *   'data' => [
+   *     'id' => 57,
+   *     'co_id' => 2,
+   *     'cou_id' => null,
+   *     'owners_group_id' => 58,
+   *     'name' => 'Faculty Council',
+   *     'description' => 'Elected faculty governance committee',
+   *     'open' => false,
+   *     'status' => 'A', // SuspendableStatusEnum::Active ('A') or Suspended ('S')
+   *     'group_type' => 'S', // GroupTypeEnum::Standard ('S') or Owners ('O')
+   *     'deleted' => false,
+   *
+   *     // Group Members (GroupMembers) - Only valid records retained if eligible; cleared if deleted/ineligible
+   *     'group_members' => [
+   *       [
+   *         'id' => 703,
+   *         'group_id' => 57,
+   *         'person_id' => 101,
+   *         'group_nesting_id' => null,
+   *         'valid_from' => null,
+   *         'valid_through' => null
+   *       ],
+   *       [
+   *         'id' => 704,
+   *         'group_id' => 57,
+   *         'person_id' => 134,
+   *         'group_nesting_id' => null,
+   *         'valid_from' => null,
+   *         'valid_through' => null
+   *       ]
+   *     ],
+   *
+   *     // Identifiers (Identifiers) - Only Active records retained
+   *     'identifiers' => [
+   *       [
+   *         'id' => 310,
+   *         'group_id' => 57,
+   *         'type_id' => 25,
+   *         'identifier' => 'council-faculty',
+   *         'status' => 'A'
+   *       ]
+   *     ]
+   *   ]
+   * ]
+   * </code>
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int $id  Entity ID

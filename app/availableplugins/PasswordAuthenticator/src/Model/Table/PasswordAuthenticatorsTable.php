@@ -142,6 +142,19 @@ class PasswordAuthenticatorsTable extends Table {
 
   /**
    * Assemble Authenticator data for provisioning.
+   *
+   * Example return:
+   * <code>
+   * [
+   *   [
+   *     'id' => 1301,
+   *     'password_authenticator_id' => 1,
+   *     'person_id' => 101,
+   *     'password' => '7sK29a...SSHA_HASH...',
+   *     'type' => 'SH' // PasswordEncodingEnum::SSHA ('SH'), Crypt ('CR'), PlainText ('PL')
+   *   ]
+   * ]
+   * </code>
    * 
    * @since  COmanage Registry v5.2.0
    * @param  Authenticator  $cfg      Authenticator Configuration

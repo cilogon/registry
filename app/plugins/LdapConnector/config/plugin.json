@@ -1,0 +1,489 @@
+{
+    "_comment": "TODO: Add PosixGroupSchemas, PosixAccountSchemas, VoPosixGroupSchemas, and VoPosixAccountSchemas to types.ldap_schema after the Unix Cluster Plugin is implemented.",
+    "types": {
+        "provisioning_target": [
+            "LdapProvisioners"
+        ],
+        "ldap_schema": [
+            "PersonSchemas",
+            "OrganizationalPersonSchemas",
+            "InetOrgPersonSchemas",
+            "LdapPublicKeySchemas",
+            "GroupOfNamesSchemas",
+            "EduMemberSchemas",
+            "EduPersonSchemas",
+            "VoPersonSchemas"
+        ]
+    },
+    "schema": {
+        "tables": {
+            "ldap_provisioners": {
+                "columns": {
+                    "id": {},
+                    "provisioning_target_id": {},
+                    "server_id": { "notnull": false },
+                    "dn_attribute_name": { "type": "string", "size": 32, "notnull": false },
+                    "scope_suffix": { "type": "string", "size": 128 },
+                    "attr_opts": { "type": "boolean"},
+                    "dn_identifier_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" },
+                        "notnull": false
+                    }
+                },
+                "indexes": {
+                    "ldap_provisioners_i1": { "columns": [ "provisioning_target_id" ] },
+                    "ldap_provisioners_i2": { "columns": [ "server_id" ] },
+                    "ldap_provisioners_i3": { "columns": [ "dn_identifier_type_id" ] }
+                }
+            },
+
+
+            "ldap_provisioner_dns": {
+                "columns": {
+                    "id": {},
+                    "ldap_provisioner_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_provisioners", "column": "id" },
+                        "notnull": true
+                    },
+                    "person_id": {},
+                    "group_id": {},
+                    "dn": { "type": "string", "size": 256, "notnull": true }
+                },
+                "indexes": {
+                    "ldap_provisioner_dns_i1": {
+                        "columns": [ "ldap_provisioner_id" ]
+                    },
+                    "ldap_provisioner_dns_i2": {
+                        "columns": [ "person_id" ]
+                    },
+                    "ldap_provisioner_dns_i3": {
+                        "columns": [ "group_id" ]
+                    }
+                }
+            },
+
+
+            "ldap_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_provisioner_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_provisioners", "column": "id" }
+                    },
+                    "plugin": {},
+                    "status": {},
+                    "description": {}
+                },
+                "indexes": {
+                    "ldap_schemas_i1": { "columns": [ "ldap_provisioner_id" ] }
+                }
+            },
+
+
+            "person_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "cn": { "type": "boolean" },
+                    "sn": { "type": "boolean" },
+                    "user_password": { "type": "boolean" },
+                    "pwd_account_locked_time": { "type": "boolean" }
+                },
+                "indexes": {
+                    "person_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "organizational_person_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "title": { "type": "boolean" },
+                    "ou": { "type": "boolean" },
+                    "telephone_number": { "type": "boolean" },
+                    "telephone_number_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "facsimile_telephone_number": { "type": "boolean" },
+                    "facsimile_telephone_number_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "address_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "street": { "type": "boolean" },
+                    "l": { "type": "boolean" },
+                    "st": { "type": "boolean" },
+                    "postal_code": { "type": "boolean" }
+                },
+                "indexes": {
+                    "organizational_person_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    },
+                    "organizational_person_schemas_i2": {
+                        "columns": [ "telephone_number_type_id" ]
+                    },
+                    "organizational_person_schemas_i3": {
+                        "columns": [ "facsimile_telephone_number_type_id" ]
+                    },
+                    "organizational_person_schemas_i4": {
+                        "columns": [ "address_type_id" ]
+                    }
+                }
+            },
+
+
+            "inet_org_person_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "given_name": { "type": "boolean" },
+                    "given_name_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "display_name_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "o": { "type": "boolean" },
+                    "labeled_uri": { "type": "boolean" },
+                    "labeled_uri_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "mail": { "type": "boolean" },
+                    "mail_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "mobile": { "type": "boolean" },
+                    "mobile_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "employee_number_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "employee_type": { "type": "boolean" },
+                    "address_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "room_number": { "type": "boolean" },
+                    "uid": { "type": "boolean" },
+                    "uid_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    }
+                },
+                "indexes": {
+                    "inet_org_person_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    },
+                    "inet_org_person_schemas_i2": {
+                        "columns": [ "given_name_type_id" ]
+                    },
+                    "inet_org_person_schemas_i3": {
+                        "columns": [ "display_name_type_id" ]
+                    },
+                    "inet_org_person_schemas_i4": {
+                        "columns": [ "labeled_uri_type_id" ]
+                    },
+                    "inet_org_person_schemas_i5": {
+                        "columns": [ "mail_type_id" ]
+                    },
+                    "inet_org_person_schemas_i6": {
+                        "columns": [ "mobile_type_id" ]
+                    },
+                    "inet_org_person_schemas_i7": {
+                        "columns": [ "employee_number_type_id" ]
+                    },
+                    "inet_org_person_schemas_i8": {
+                        "columns": [ "address_type_id" ]
+                    },
+                    "inet_org_person_schemas_i9": {
+                        "columns": [ "uid_type_id" ]
+                    }
+                }
+            },
+
+
+            "posix_group_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "cn": { "type": "boolean" },
+                    "gid_number": { "type": "boolean" },
+                    "member_uid": { "type": "boolean" }
+                },
+                "indexes": {
+                    "posix_group_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "posix_account_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "cn": { "type": "boolean" },
+                    "uid": { "type": "boolean" },
+                    "uid_number": { "type": "boolean" },
+                    "gid_number": { "type": "boolean" },
+                    "home_directory": { "type": "boolean" },
+                    "login_shell": { "type": "boolean" },
+                    "gecos": { "type": "boolean" }
+                },
+                "indexes": {
+                    "posix_account_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "ldap_public_key_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "ssh_public_key": { "type": "boolean" }
+                },
+                "indexes": {
+                    "ldap_public_key_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "group_of_names_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "cn": { "type": "boolean" },
+                    "member": { "type": "boolean" },
+                    "owner": { "type": "boolean" },
+                    "description": { "type": "boolean" }
+                },
+                "indexes": {
+                    "group_of_names_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "vo_posix_group_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "cn": { "type": "boolean" },
+                    "vo_posix_account_gid_number": { "type": "boolean" },
+                    "member_uid": { "type": "boolean" }
+                },
+                "indexes": {
+                    "vo_posix_group_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "vo_posix_account_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "cn": { "type": "boolean" },
+                    "uid": { "type": "boolean" },
+                    "vo_posix_account_uid_number": { "type": "boolean" },
+                    "vo_posix_account_gid_number": { "type": "boolean" },
+                    "vo_posix_account_home_directory": { "type": "boolean" },
+                    "vo_posix_account_login_shell": { "type": "boolean" },
+                    "vo_posix_account_gecos": { "type": "boolean" }
+                },
+                "indexes": {
+                    "vo_posix_account_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    }
+                }
+            },
+
+
+            "edu_member_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "is_member_of": { "type": "boolean" },
+                    "has_member_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    }
+                },
+                "indexes": {
+                    "edu_member_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    },
+                    "edu_member_schemas_i2": {
+                        "columns": [ "has_member_type_id" ]
+                    }
+                }
+            },
+
+
+            "edu_person_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "edu_person_affiliation": { "type": "boolean" },
+                    "edu_person_entitlement": { "type": "boolean" },
+                    "edu_person_nickname": { "type": "boolean" },
+                    "edu_person_nickname_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "edu_person_orcid": { "type": "boolean" },
+                    "edu_person_principal_name_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "edu_person_principal_name_prior": { "type": "boolean" },
+                    "edu_person_principal_name_prior_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "edu_person_scoped_affiliation": { "type": "boolean" },
+                    "edu_person_unique_id_export": { "type": "boolean" },
+                    "edu_person_unique_id_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    }
+                },
+                "indexes": {
+                    "edu_person_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    },
+                    "edu_person_schemas_i2": {
+                        "columns": [ "edu_person_nickname_type_id" ]
+                    },
+                    "edu_person_schemas_i3": {
+                        "columns": [ "edu_person_principal_name_type_id" ]
+                    },
+                    "edu_person_schemas_i4": {
+                        "columns": [ "edu_person_principal_name_prior_type_id" ]
+                    },
+                    "edu_person_schemas_i5": {
+                        "columns": [ "edu_person_unique_id_type_id" ]
+                    }
+                }
+            },
+
+
+            "vo_person_schemas": {
+                "columns": {
+                    "id": {},
+                    "ldap_schema_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "ldap_schemas", "column": "id" }
+                    },
+                    "vo_person_affiliation": { "type": "boolean" },
+                    "vo_person_application_password": { "type": "boolean" },
+                    "vo_person_application_uid": { "type": "boolean" },
+                    "vo_person_application_uid_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "vo_person_author_name": { "type": "boolean" },
+                    "vo_person_author_name_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "vo_person_certificate_dn": { "type": "boolean" },
+                    "vo_person_certificate_issuer_dn": { "type": "boolean" },
+                    "vo_person_external_id_export": { "type": "boolean" },
+                    "vo_person_external_id_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "vo_person_id_export": { "type": "boolean" },
+                    "vo_person_id_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "vo_person_policy_agreement": { "type": "boolean" },
+                    "vo_person_sorid": { "type": "boolean" },
+                    "vo_person_sorid_type_id": {
+                        "type": "integer",
+                        "foreignkey": { "table": "types", "column": "id" }
+                    },
+                    "vo_person_status": { "type": "boolean" },
+                    "vo_person_token": { "type": "boolean" }
+                },
+                "indexes": {
+                    "vo_person_schemas_i1": {
+                        "columns": [ "ldap_schema_id" ]
+                    },
+                    "vo_person_schemas_i2": {
+                        "columns": [ "vo_person_application_uid_type_id" ]
+                    },
+                    "vo_person_schemas_i3": {
+                        "columns": [ "vo_person_author_name_type_id" ]
+                    },
+                    "vo_person_schemas_i4": {
+                        "columns": [ "vo_person_external_id_type_id" ]
+                    },
+                    "vo_person_schemas_i5": {
+                        "columns": [ "vo_person_id_type_id" ]
+                    },
+                    "vo_person_schemas_i6": {
+                        "columns": [ "vo_person_sorid_type_id" ]
+                    }
+                }
+            }
+        }
+    }
+}

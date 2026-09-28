@@ -41,7 +41,22 @@ $fields = [
 
 $fields = array_merge($fields, include(ROOT . DS . 'templates' . DS . 'Standard/metadata.inc'));
 
-$subnav = 'standard';
+// LdapConnector Provisioner has special subnavigation treatment (they have an extra tab for LdapSchemas).
+if(!empty($vv_obj['plugin'])) {
+  $subnav = [
+    'tabs' => ['ProvisioningTargets', 'ProvisioningTargets.Plugin', 'ProvisioningTargets.Hierarchy'],
+    'action' => [
+      'ProvisioningTargets' => ['edit'],
+      'ProvisioningTargets.Plugin' => ['edit'],
+      'ProvisioningTargets.Hierarchy' => ['index']
+    ],
+    'counter' => ['ProvisioningTargets.Hierarchy'],
+  ];
+} else {
+  // Otherwise, provisioning targets get the standard subnavigation treatment.
+  $subnav = 'standard';
+}
+
 
 ?>
 

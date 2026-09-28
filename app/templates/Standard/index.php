@@ -138,8 +138,36 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
       // Check to see if the model names a specific layout
       if(method_exists($modelsTable, 'getLayout')) {
         $action_configuration['class'] = 'cm-modal-link nospin'; // launch this in a modal
+        $modalTitle = '';
+        if(!empty($supertitle)) {
+          $modalTitle = $supertitle;
+        } elseif(!empty($vv_bc_parent_obj)) {
+          $parentTable = $this->Tab->getModelTableReference($vv_bc_parent_obj->getSource());
+          if(method_exists($parentTable, 'generateDisplayField')) {
+            $modalTitle = $parentTable->generateDisplayField($vv_bc_parent_obj) ?? '';
+          }
+          if(empty($modalTitle) && !empty($vv_bc_parent_displayfield) && !empty($vv_bc_parent_obj->$vv_bc_parent_displayfield)) {
+            $modalTitle = (string)$vv_bc_parent_obj->$vv_bc_parent_displayfield;
+          }
+          if(empty($modalTitle)) {
+            $modalTitle = \App\Lib\Util\StringUtilities::localizeController(
+              controllerName: $vv_bc_parent_obj->getSource(),
+              pluginName: $this->getPlugin(),
+              plural: false
+            );
+          }
+        }
+
+        if(empty($modalTitle)) {
+          $modalTitle = \App\Lib\Util\StringUtilities::localizeController(
+            controllerName: $modelsName,
+            pluginName: $this->getPlugin(),
+            plural: false
+          );
+        }
+
         $action_configuration['dataAttrs'] = [
-          ['data-cm-modal-title', __d('operation', 'EnrollmentAttributes', 1)]
+          ['data-cm-modal-title', $modalTitle]
         ];
       }
 
@@ -324,6 +352,10 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
                   'action' => $a['action'],
                   '?' => [$tableFK => $entity->id]
                 ];
+              }
+
+              if (!empty($a['plugin'])) {
+                $actionUrl['plugin'] = $a['plugin'];
               }
 
               if(!empty($a['query'])) {

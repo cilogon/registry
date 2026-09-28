@@ -248,6 +248,23 @@ class CousTable extends Table {
   
   /**
    * Marshal object data for provisioning.
+   *
+   * Example return:
+   * <code>
+   * [
+   *   'eligibility' => 'E', // ProvisioningEligibilityEnum::Eligible ('E') or Deleted ('D')
+   *   'data' => [
+   *     'id' => 5,
+   *     'co_id' => 2,
+   *     'parent_id' => null,
+   *     'name' => 'Computer Science',
+   *     'description' => 'Department of Computer Science',
+   *     'deleted' => false,
+   *     'created' => '2025-01-10 09:00:00',
+   *     'modified' => '2025-01-10 09:00:00'
+   *   ]
+   * ]
+   * </code>
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int $id  Entity ID

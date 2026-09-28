@@ -48,10 +48,10 @@ trait ProvisionableTrait {
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int                      $id                   This table's entity ID to provision
-   * @param  ProvisioningContextEnum  $context              Context in which provisioning is being requested
-   * @param  int                      $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
-   * @param  Job                      $job                  If called from a Job, the current Job entity
-   * @param  array                    $passThroughData      Additional data to merge into the marshalled provisioning data
+   * @param  string                   $context              Context in which provisioning is being requested
+   * @param  int|null                 $provisioningTargetId If set, the Provisioning Target ID to request provisioning for (otherwise all)
+   * @param  Job|null                 $job                  If called from a Job, the current Job entity
+   * @param  array|null               $passThroughData      Additional data to merge into the marshalled provisioning data
    * @throws InvalidArgumentException
    */
 
@@ -61,7 +61,7 @@ trait ProvisionableTrait {
     ?int    $provisioningTargetId=null,
     ?Job    $job=null,
     ?array  $passThroughData=null
-  ) {
+  ): void {
     if(method_exists($this, 'marshalProvisioningData')) {
       // The model specific marshalProvisioningData implementations are expected
       // to properly handle deleted records.

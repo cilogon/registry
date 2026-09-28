@@ -460,6 +460,277 @@ class PeopleTable extends Table {
   
   /**
    * Marshal object data for provisioning.
+   *
+   * Example return:
+   * <code>
+   * [
+   *   'eligibility' => 'E', // ProvisioningEligibilityEnum::Eligible ('E'), Deleted ('D'), Ineligible ('I')
+   *   'data' => [
+   *     'id' => 101,
+   *     'co_id' => 2,
+   *     'status' => 'A', // StatusEnum::Active ('A'), Suspended ('S'), Expired ('X'), etc.
+   *     'timezone' => 'America/New_York',
+   *     'date_of_birth' => '1990-05-15',
+   *     'deleted' => false,
+   *
+   *     // Primary Name (PrimaryName => ['Types'])
+   *     'primary_name' => [
+   *       'id' => 201,
+   *       'person_id' => 101,
+   *       'type_id' => 10,
+   *       'primary_name' => true,
+   *       'honorific' => 'Dr.',
+   *       'given' => 'Jane',
+   *       'middle' => 'A.',
+   *       'family' => 'Doe',
+   *       'suffix' => null,
+   *       'language' => 'en',
+   *       'type' => [
+   *         'id' => 10,
+   *         'attribute' => 'Names.type',
+   *         'value' => 'official',
+   *         'display_name' => 'Official'
+   *       ]
+   *     ],
+   *
+   *     // All Names (Names => ['Types'])
+   *     'names' => [
+   *       [
+   *         'id' => 201,
+   *         'person_id' => 101,
+   *         'type_id' => 10,
+   *         'primary_name' => true,
+   *         'given' => 'Jane',
+   *         'family' => 'Doe',
+   *         'type' => ['id' => 10, 'value' => 'official']
+   *       ],
+   *       [
+   *         'id' => 202,
+   *         'person_id' => 101,
+   *         'type_id' => 11,
+   *         'primary_name' => false,
+   *         'given' => 'Janey',
+   *         'family' => 'Doe',
+   *         'type' => ['id' => 11, 'value' => 'preferred']
+   *       ]
+   *     ],
+   *
+   *     // Identifiers (Identifiers => ['Types']) - Only Active are retained
+   *     'identifiers' => [
+   *       [
+   *         'id' => 301,
+   *         'person_id' => 101,
+   *         'type_id' => 20,
+   *         'identifier' => 'jdoe@example.org',
+   *         'status' => 'A', // SuspendableStatusEnum::Active
+   *         'type' => [
+   *           'id' => 20,
+   *           'attribute' => 'Identifiers.type',
+   *           'value' => 'eppn',
+   *           'display_name' => 'eduPersonPrincipalName'
+   *         ]
+   *       ],
+   *       [
+   *         'id' => 302,
+   *         'person_id' => 101,
+   *         'type_id' => 21,
+   *         'identifier' => 'jdoe',
+   *         'status' => 'A',
+   *         'type' => [
+   *           'id' => 21,
+   *           'attribute' => 'Identifiers.type',
+   *           'value' => 'uid',
+   *           'display_name' => 'UID'
+   *         ]
+   *       ]
+   *     ],
+   *
+   *     // Email Addresses (EmailAddresses => ['Types'])
+   *     'email_addresses' => [
+   *       [
+   *         'id' => 401,
+   *         'person_id' => 101,
+   *         'type_id' => 30,
+   *         'mail' => 'jane.doe@example.org',
+   *         'verified' => true,
+   *         'type' => ['id' => 30, 'value' => 'official']
+   *       ]
+   *     ],
+   *
+   *     // Telephone Numbers (TelephoneNumbers => ['Types'])
+   *     'telephone_numbers' => [
+   *       [
+   *         'id' => 501,
+   *         'person_id' => 101,
+   *         'type_id' => 40,
+   *         'number' => '+1 555 0100',
+   *         'type' => ['id' => 40, 'value' => 'mobile']
+   *       ]
+   *     ],
+   *
+   *     // Addresses (Addresses => ['Types'])
+   *     'addresses' => [
+   *       [
+   *         'id' => 601,
+   *         'person_id' => 101,
+   *         'type_id' => 50,
+   *         'street' => '100 Main Street',
+   *         'locality' => 'Anytown',
+   *         'state' => 'CA',
+   *         'postal_code' => '90210',
+   *         'country' => 'US',
+   *         'type' => ['id' => 50, 'value' => 'office']
+   *       ]
+   *     ],
+   *
+   *     // Person Roles (PersonRoles with nested Types, Cous, Addresses, TelephoneNumbers) - Only valid are retained
+   *     'person_roles' => [
+   *       [
+   *         'id' => 701,
+   *         'person_id' => 101,
+   *         'cou_id' => 5,
+   *         'status' => 'A',
+   *         'title' => 'Associate Professor',
+   *         'department' => 'Computer Science',
+   *         'organization' => 'University of Example',
+   *         'affiliation_type_id' => 60,
+   *         'valid_from' => '2024-01-01 00:00:00',
+   *         'valid_through' => null,
+   *         // Eagerly loaded association to Types for affiliation
+   *         'affiliation_type' => [
+   *           'id' => 60,
+   *           'attribute' => 'PersonRoles.affiliation_type',
+   *           'value' => 'faculty',
+   *           'edupersonaffiliation' => 'faculty'
+   *         ],
+   *         'cou' => [
+   *           'id' => 5,
+   *           'name' => 'Computer Science'
+   *         ],
+   *         'addresses' => [
+   *           [
+   *             'id' => 602,
+   *             'person_role_id' => 701,
+   *             'type_id' => 50,
+   *             'street' => '200 Science Lab',
+   *             'locality' => 'Anytown',
+   *             'state' => 'CA',
+   *             'postal_code' => '90210',
+   *             'type' => ['id' => 50, 'value' => 'office']
+   *           ]
+   *         ],
+   *         'telephone_numbers' => [
+   *           [
+   *             'id' => 502,
+   *             'person_role_id' => 701,
+   *             'type_id' => 41,
+   *             'number' => '+1 555 0199',
+   *             'type' => ['id' => 41, 'value' => 'office']
+   *           ]
+   *         ],
+   *         'manager_person' => null,
+   *         'sponsor_person' => null
+   *       ]
+   *     ],
+   *
+   *     // Group Memberships (GroupMembers => ['Groups']) - Only valid are retained
+   *     'group_members' => [
+   *       [
+   *         'id' => 801,
+   *         'person_id' => 101,
+   *         'group_id' => 57,
+   *         'valid_from' => null,
+   *         'valid_through' => null,
+   *         'group' => [
+   *           'id' => 57,
+   *           'name' => 'Faculty Council',
+   *           'status' => 'A',
+   *           'group_type' => 'S' // Standard
+   *         ]
+   *       ]
+   *     ],
+   *
+   *     // Pronouns
+   *     'pronouns' => [
+   *       [
+   *         'id' => 901,
+   *         'person_id' => 101,
+   *         'pronoun' => 'she/her'
+   *       ]
+   *     ],
+   *
+   *     // URLs (Urls => ['Types'])
+   *     'urls' => [
+   *       [
+   *         'id' => 1001,
+   *         'person_id' => 101,
+   *         'type_id' => 70,
+   *         'url' => 'https://example.org/~jdoe',
+   *         'type' => ['id' => 70, 'value' => 'official']
+   *       ]
+   *     ],
+   *
+   *     // Ad Hoc Attributes
+   *     'ad_hoc_attributes' => [
+   *       [
+   *         'id' => 1101,
+   *         'person_id' => 101,
+   *         'tag' => 'customAttribute',
+   *         'value' => 'customValue'
+   *       ]
+   *     ],
+   *
+   *     // Terms and Conditions Agreements
+   *     't_and_c_agreements' => [
+   *       [
+   *         'id' => 1201,
+   *         'person_id' => 101,
+   *         'terms_and_conditions_id' => 1,
+   *         'agreement_time' => '2024-01-05 10:20:30',
+   *         'identifier' => 'jdoe@example.org',
+   *         'url' => 'https://example.org/tc/acceptable-use' // Resolved via virtual getter
+   *       ]
+   *     ],
+   *
+   *     // Dynamically injected by PasswordAuthenticator plugins (if configured & active)
+   *     'passwords' => [
+   *       [
+   *         'id' => 1301,
+   *         'password_authenticator_id' => 1,
+   *         'person_id' => 101,
+   *         'password' => '7sK2...hash...',
+   *         'type' => 'SH', // SSHA
+   *         'authenticator_status' => [
+   *           'id' => 1401,
+   *           'authenticator_id' => 1,
+   *           'person_id' => 101,
+   *           'status' => 'A', // AuthenticatorStatusEnum::Active
+   *           'locked' => false
+   *         ]
+   *       ]
+   *     ],
+   *
+   *     // Dynamically injected by SshKeyAuthenticator plugins (if configured & active)
+   *     'ssh_keys' => [
+   *       [
+   *         'id' => 1501,
+   *         'ssh_key_authenticator_id' => 2,
+   *         'person_id' => 101,
+   *         'type' => 'ssh-ed25519',
+   *         'skey' => 'AAAAC3NzaC1lZDI1NTE5AAAAIG...',
+   *         'comment' => 'jdoe@laptop',
+   *         'authenticator_status' => [
+   *           'id' => 1402,
+   *           'authenticator_id' => 2,
+   *           'person_id' => 101,
+   *           'status' => 'A',
+   *           'locked' => false
+   *         ]
+   *       ]
+   *     ]
+   *   ]
+   * ]
+   * </code>
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int $id  Entity ID

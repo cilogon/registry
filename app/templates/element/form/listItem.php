@@ -34,7 +34,6 @@ declare(strict_types = 1);
 //     - add a prefix and create a namespace
 //     - wrap them in an array.
 //     We choose the latter.
-use App\Lib\Util\StringUtilities;
 
 $this->set('fieldName', $arguments['fieldName']);
 $fieldName = $arguments['fieldName'];

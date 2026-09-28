@@ -299,6 +299,24 @@ class TypesTable extends Table {
   
   /**
    * Marshal object data for provisioning.
+   *
+   * Example return:
+   * <code>
+   * [
+   *   'eligibility' => 'E', // ProvisioningEligibilityEnum::Eligible ('E'), Deleted ('D'), or Ineligible ('I')
+   *   'data' => [
+   *     'id' => 97,
+   *     'co_id' => 2,
+   *     'attribute' => 'TelephoneNumbers.type',
+   *     'display_name' => 'Mobile',
+   *     'value' => 'mobile',
+   *     'edupersonaffiliation' => null,
+   *     'case_insensitive' => false,
+   *     'status' => 'A', // SuspendableStatusEnum::Active
+   *     'deleted' => false
+   *   ]
+   * ]
+   * </code>
    * 
    * @since  COmanage Registry v5.0.0
    * @param  int $id  Entity ID

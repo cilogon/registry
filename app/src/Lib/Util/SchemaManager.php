@@ -248,6 +248,26 @@ class SchemaManager {
                                           $tablePrefix.$tName . "_" . $cName . "_fkey");
         }
       }
+
+      // Default is to insert timestamp and changelog fields, unless disabled
+
+      if(!isset($tCfg->timestamps) || $tCfg->timestamps) {
+        // Insert Cake metadata fields
+        $table->addColumn("created", "datetime");
+        $table->addColumn("modified", "datetime", ['notnull' => false]);
+      }
+
+      if(!isset($tCfg->changelog) || $tCfg->changelog) {
+        // Insert ChangelogBehavior metadata fields
+        $clColumn = \Cake\Utility\Inflector::singularize($tName) . "_id";
+        $table->addColumn($clColumn, "integer", ['notnull' => false]);
+        $table->addColumn("revision", "integer", ['notnull' => false]);
+        $table->addColumn("deleted", "boolean", ['notnull' => false]);
+        $table->addColumn("actor_identifier", "string", ['length' => 256, 'notnull' => false]);
+
+        $table->addForeignKeyConstraint($table, [$clColumn], ['id'], [], $tName . "_" . $clColumn . "_fkey");
+        $table->addIndex([$clColumn], $tablePrefix.$tName . "_icl", [], []);
+      }
       
       if(isset($tCfg->clonable) && $tCfg->clonable) {
         // Duplicatable objects get uuid and cri fields
@@ -354,26 +374,6 @@ class SchemaManager {
         $table->addIndex(["lft"], $tablePrefix.$tName."_it2");
 
         $table->addColumn("rght", "integer", ['notnull' => false]);
-      }
-      
-      // Default is to insert timestamp and changelog fields, unless disabled
-      
-      if(!isset($tCfg->timestamps) || $tCfg->timestamps) {
-        // Insert Cake metadata fields
-        $table->addColumn("created", "datetime");
-        $table->addColumn("modified", "datetime", ['notnull' => false]);
-      }
-      
-      if(!isset($tCfg->changelog) || $tCfg->changelog) {
-        // Insert ChangelogBehavior metadata fields
-        $clColumn = \Cake\Utility\Inflector::singularize($tName) . "_id";
-        $table->addColumn($clColumn, "integer", ['notnull' => false]);
-        $table->addColumn("revision", "integer", ['notnull' => false]);
-        $table->addColumn("deleted", "boolean", ['notnull' => false]);
-        $table->addColumn("actor_identifier", "string", ['length' => 256, 'notnull' => false]);
-        
-        $table->addForeignKeyConstraint($table, [$clColumn], ['id'], [], $tName . "_" . $clColumn . "_fkey");
-        $table->addIndex([$clColumn], $tablePrefix.$tName . "_icl", [], []);
       }
     }
     

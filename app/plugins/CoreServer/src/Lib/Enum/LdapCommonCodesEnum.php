@@ -33,8 +33,28 @@ use App\Lib\Enum\StandardEnum;
 
 class LdapCommonCodesEnum extends StandardEnum
 {
+  /**
+   * The requested LDAP entry (DN) does not exist in the directory.
+   */
   const int LDAP_NO_SUCH_OBJECT = 0x20; // 32
+
+  /**
+   * The entry violates schema definitions (e.g. missing required attributes or disallowed attributes for the object class).
+   */
+  const int LDAP_OBJECT_CLASS_VIOLATION = 0x41; // 65
+
+  /**
+   * The add or rename operation failed because an entry with the target DN already exists.
+   */
   const int LDAP_ENTRY_ALREADY_EXISTS = 0x44; // 68
-  // Application/internal code (not from ldap_errno()):
+
+  /**
+   * The modification of the entry's objectClass attribute is prohibited by the directory server.
+   */
+  const int LDAP_OBJECT_CLASS_MODS_PROHIBITED = 0x45; // 69
+
+  /**
+   * Connection to the LDAP server could not be established (internal application code, not from ldap_errno()).
+   */
   const int LDAP_CONNECT_ERROR = 0x5b; // 91 (internal)
 }

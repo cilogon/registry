@@ -50,9 +50,8 @@ trait LabeledLogTrait {
    * Print formatted cli percentage
    *
    * @since  COmanage Registry v5.0.0
-   * @param  int    $done      Number of iterations completed
-   * @param  string $total     Total number of iterations
-   * @return string            Formated string with line return offset
+   * @param  int $done      Number of iterations completed
+   * @param  int $total     Total number of iterations
    */
 
   public function cliLogPercentage(int $done, int $total): void {
