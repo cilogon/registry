@@ -52,7 +52,18 @@ class HistoricPetitionViewersTable extends Table {
     $this->setTableType(TableTypeEnum::Configuration);
 
     // Define associations
-    $this->belongsTo('EnrollmnetFlowSteps');
+    $this->belongsTo('EnrollmentFlowSteps');
+
+    $this->hasManyPlugins([
+      'Petitions' => [
+        [
+          'targetModel' => 'HistoricPetitionViewer.HistoricPetitionAttributes'
+        ],
+        [
+          'targetModel' => 'HistoricPetitionViewer.HistoricPetitionMetadataRecords'
+        ]
+      ]
+    ]);
 
     $this->setDisplayField('id');
 

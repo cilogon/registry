@@ -1,5 +1,9 @@
 {
-    "types": {},
+    "types": {
+        "enrollment_flow_step": [
+            "HistoricPetitionViewers"
+        ]
+    },
     "schema": {
         "tables": {
             "petition_hist_attrs": {
