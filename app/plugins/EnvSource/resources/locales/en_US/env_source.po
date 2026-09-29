@@ -106,6 +106,9 @@ msgstr "Identifier (Network)"
 msgid "field.EnvSources.env_identifier_oidcsub"
 msgstr "Identifier (OIDC sub)"
 
+msgid "field.EnvSources.env_identifier_orcid"
+msgstr "Identifier (ORCID)"
+
 msgid "field.EnvSources.env_identifier_samlpairwiseid"
 msgstr "Identifier (SAML pairwise-id)"
 

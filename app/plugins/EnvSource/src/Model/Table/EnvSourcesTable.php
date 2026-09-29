@@ -360,6 +360,7 @@ class EnvSourcesTable extends Table {
       'env_identifier_epuid' => 'epuid',
       'env_identifier_network' => 'network',
       'env_identifier_oidcsub' => 'oidcsub',
+      'env_identifier_orcid' => 'orcid',
       'env_identifier_samlpairwiseid' => 'pairwiseid',
       'env_identifier_samlsubjectid' => 'subjectid'
       // We don't include source_key (sorid) because the Pipeline will automatically insert it
@@ -527,6 +528,7 @@ class EnvSourcesTable extends Table {
       'env_identifier_epuid',
       'env_identifier_network',
       'env_identifier_oidcsub',
+      'env_identifier_orcid',
       'env_identifier_samlpairwiseid',
       'env_identifier_samlsubjectid',
       'env_mail',

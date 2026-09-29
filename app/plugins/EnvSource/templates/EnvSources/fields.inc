@@ -144,6 +144,7 @@ $defaultNames = [
   'env_identifier_epuid' => 'ENV_EPUID',
   'env_identifier_network' => 'ENV_NETWORK',
   'env_identifier_oidcsub' => 'ENV_OIDCSUB',
+  'env_identifier_orcid' => 'ENV_ORCID',
   'env_identifier_samlpairwiseid' => 'ENV_SAMLPAIRWISE',
   'env_identifier_samlsubjectid' => 'ENV_SAMLSUBJECT',
   'env_mail' => 'ENV_MAIL',
@@ -159,7 +160,9 @@ $defaultNames = [
 
 foreach($defaultNames as $field => $envName) {
   $fields[$field] = [
-    'default' => $envName
+    // We only populate default values on add, so if we add a new supported attribute
+    // existing configurations will show a blank value instead of a default-but-not-saved value
+    'default' => ($vv_action == 'add' ? $envName : '')
   ];
 }
 

@@ -48,6 +48,7 @@
           "env_identifier_epuid": { "type": "string", "size": "80" },
           "env_identifier_network": { "type": "string", "size": "80" },
           "env_identifier_oidcsub": { "type": "string", "size": "80" },
+          "env_identifier_orcid": { "type": "string", "size": "80" },
           "env_identifier_samlpairwiseid": { "type": "string", "size": "80" },
           "env_identifier_samlsubjectid": { "type": "string", "size": "80" },
           "env_identifier_sourcekey": { "type": "string", "size": "80" },
