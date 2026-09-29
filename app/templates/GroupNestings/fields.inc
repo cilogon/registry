@@ -67,9 +67,18 @@ $fields[] = 'negate';
 if($vv_action == 'add') {
   // Allow the admin to request background creation of the Nesting
   $fields['queue'] = [
+    // We will expose the checkbox in groupedControls to ensure proper styling because this is not a
+    // model field with a type (boolean) and will therefore not render correctly otherwise.
     'fieldLabel' => __d('operation', 'add.queue', [__d('controller', 'GroupNestings', [1])]),
-    'type' => 'checkbox',
-    'checked' => ''
+    'labelIsTextOnly' => true,
+    'fieldDescription' => __d('operation','add.queue.desc'),
+    'groupedControls' =>  [
+      'queue' => [
+        'type' => 'checkbox',
+        'label' => __d('operation', 'queue.job'),
+        'class' => 'form-check-input'
+      ]
+    ]
   ];
 }
 

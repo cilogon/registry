@@ -54,6 +54,9 @@ msgstr "Add member: "
 msgid "add.queue"
 msgstr "Queue Job to Add {0}"
 
+msgid "add.queue.desc"
+msgstr "If checked, this update will not take effect immediately. It will be scheduled as a Job and applied when the Job runs. This can be helpful when nesting large groups."
+
 msgid "adopt"
 msgstr "Adopt"
 
@@ -341,6 +344,9 @@ msgstr "Provisioning Status"
 
 msgid "ProvisioningTargets.provision.all"
 msgstr "Reprovision All"
+
+msgid "queue.job"
+msgstr "Queue Job"
 
 msgid "Types.restore"
 msgstr "Add/Restore Default Types"
