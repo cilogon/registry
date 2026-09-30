@@ -194,6 +194,9 @@ export default {
     </tr>
     <!-- Ad Hoc Attributes -->
     <tr class="field-data-container linked-row" v-if="this.core.mveaType == 'ad_hoc_attributes'" @click="followRowLink">
+      <td v-if="this.mvea.tag != ''" class="field-data data-label">
+        <span class="mvea-tag">{{ this.mvea.tag }}</span>
+      </td>
       <td class="field-data">
         <div class="force-wrap with-hover-button">
           <a :href="mveaLink" class="row-link" @click.prevent>{{ this.mvea.value != '' ? this.mvea.value :
@@ -201,9 +204,6 @@ export default {
           <copy-value-button v-if="this.mvea.value != ''" :txt="this.txt"
             :valueToCopy="this.mvea.value"></copy-value-button>
         </div>
-      </td>
-      <td v-if="this.mvea.tag != ''" class="field-data data-label">
-        <span class="mvea-tag">{{ this.mvea.tag }}</span>
       </td>
       <td class="field-data data-eis" v-if="hasEis">
         <span v-if="getEisDescription(this.mvea?.source_ad_hoc_attribute?.external_identity_id)" 

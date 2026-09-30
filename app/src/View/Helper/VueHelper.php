@@ -61,6 +61,7 @@ class VueHelper extends Helper {
       'datepicker.minute',
       'source',
       'status',
+      'tag',
       'type',
       'unverified',
       'value'

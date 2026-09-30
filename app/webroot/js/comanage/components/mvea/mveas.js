@@ -68,8 +68,8 @@ export default {
       </mvea-item>
       <thead>
         <tr>
-          <th>{{ this.txt['field.value'] }}</th>
-          <th>{{ this.core.mveaType == 'ad_hoc_attributes' ? this.txt['field.key'] : this.txt['field.type'] }}</th>
+          <th>{{ this.core.mveaType == 'ad_hoc_attributes' ? this.txt['field.tag'] : this.txt['field.value'] }}</th>
+          <th>{{ this.core.mveaType == 'ad_hoc_attributes' ? this.txt['field.value'] : this.txt['field.type'] }}</th>
           <th v-if="hasEis">{{ this.txt['field.source'] }}</th>
         </tr>
       </thead>
