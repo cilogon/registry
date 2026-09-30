@@ -1301,8 +1301,9 @@ html.dark-mode #pagination {
   margin: 0;
   padding: 2px;
   font-size: 0.9em;
-  background-color: var(--cmg-color-bg-004);
-  border: 1px solid var(--cmg-color-bg-004);
+  color: var(--cmg-color-body-txt);
+  background-color: var(--cmg-color-body-bg);
+  border: 1px solid var(--cmg-color-bg-007);
   border-radius: 0.25rem;
   text-align: center;
 }
