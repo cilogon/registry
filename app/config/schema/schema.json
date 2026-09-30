@@ -273,7 +273,7 @@
         "co_id": {},
         "cou_id": {},
         "name": {},
-        "type_id": {},
+        "type_id": { "notnull": false },
         "description": {},
         "public_description": {},
         "saml_scope": {},
@@ -297,7 +297,7 @@
         "id": {},
         "co_id": {},
         "name": {},
-        "type_id": {},
+        "type_id": { "notnull": false },
         "description": {},
         "saml_scope": {},
         "logo_url": {}
