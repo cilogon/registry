@@ -284,11 +284,11 @@ class StandardController extends AppController {
           options: ['archived' => true],
         )->full_name;
         $message = __d('field', 'idpair', [$personName, $obj->id]);
-      } elseif (in_array('person_id', $primaryLinks)) {
+      } elseif (in_array('person_id', $primaryLinks) && !empty($obj->person_id)) {
         $Names = TableRegistry::getTableLocator()->get('Names');
         $personName = $Names->primaryName((int)$obj->person_id)->full_name;
         $displayValue = !empty($obj->$field) ? $obj->$field : $modelsName;
-        $message = __d('field', 'idpair', [$personName/$displayValue, $obj->id]);
+        $message = __d('field', 'idpair', ["$personName/$displayValue", $obj->id]);
       } elseif(!empty($obj->$field)) {
         $displayValue = !empty($obj->$field) ? $obj->$field : $modelsName;
         $message = $displayValue;
