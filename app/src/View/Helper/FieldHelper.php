@@ -276,6 +276,18 @@ class FieldHelper extends Helper {
         $vueElementProperties['inputValue'] = $matchesValue[0][1];
       }
 
+      // Parse Person Picker configuration
+      $regexId = '/pickerTargetKey="(.*?)"/m';
+      preg_match_all($regexId, $element, $matchesPTK, PREG_SET_ORDER, 0);
+
+      $regexId = '/pickerTargetValue="(.*?)"/m';
+      preg_match_all($regexId, $element, $matchesPTV, PREG_SET_ORDER, 0);
+
+      if(!empty($matchesPTK[0][1]) && !empty($matchesPTV[0][1])) {
+        $vueElementProperties['targetKey'] = $matchesPTK[0][1];
+        $vueElementProperties['targetValue'] = $matchesPTV[0][1];
+      }
+
       return $this->getView()->element($vueElementName, $vueElementProperties);
     }
 

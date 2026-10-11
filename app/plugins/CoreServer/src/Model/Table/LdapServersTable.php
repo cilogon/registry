@@ -79,15 +79,17 @@ class LdapServersTable extends Table {
     $this->setRequiresCO(true);
 
     $this->setPermissions([
-      'entity' => [
-        'delete' =>   false, // Delete the pluggable object instead
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'test' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        'entity' => [
+          'delete' =>   false, // Delete the pluggable object instead
+          'edit' =>     ['platformAdmin', 'coAdmin'],
+          'test' =>     ['platformAdmin', 'coAdmin'],
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

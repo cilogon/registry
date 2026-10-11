@@ -72,18 +72,20 @@ class HistoricPetitionViewersTable extends Table {
     $this->setAllowLookupPrimaryLink(['display']);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   false,
-        'dispatch' => false,
-        'display' =>  true,
-        'edit' =>     true,
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'dispatch' => false,
+          'display' =>  true,
+          'edit' =>     true,
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

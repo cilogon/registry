@@ -143,27 +143,39 @@ class JobsTable extends Table {
       'RequeuedFromJobs'
     ]);
 
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'cancel' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>  false,//   ['platformAdmin', 'coAdmin'],
-        'edit' =>    false,//   ['platformAdmin', 'coAdmin'],
-        'view' =>    ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,  // generic add of jobs via the UI is not yet supported
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ],
-      'readOnly' => ['cancel'],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'cancel' =>  ['platformAdmin', 'coAdmin'],
+          'delete' =>  false,//   ['platformAdmin', 'coAdmin'],
+          'edit' =>    false,//   ['platformAdmin', 'coAdmin'],
+          'view' =>    ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
         'table' => [
-          'JobHistoryRecords'
+          'add' =>      false,  // generic add of jobs via the UI is not yet supported
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ],
+        'readOnly' => ['cancel'],
+        // Related models whose permissions we'll need, typically for table views
+        'related' => [
+          'table' => [
+            'JobHistoryRecords'
+          ]
+        ],
+      ],
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     false,
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platform', 'privileged']
         ]
       ]
     ]);

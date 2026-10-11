@@ -161,45 +161,59 @@ class ExternalIdentitiesTable extends Table {
       ]
     ]);
     
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
 // XXX need to add couAdmin, eventually
-      'entity' => [
-        // Note the inverse operation for adoption, annulment, is handled by
-        // External Identity Sources since there is no longer an External Identity
-        'adopt' =>    ['platformAdmin', 'coAdmin'],
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'relink' =>   ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin', 'selfMember']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin', 'selfMember']
-      ],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
         'entity' => [
-          'ExtIdentitySourceRecords',
+          // Note the inverse operation for adoption, annulment, is handled by
+          // External Identity Sources since there is no longer an External Identity
+          'adopt' =>    ['platformAdmin', 'coAdmin'],
+          'delete' =>   ['platformAdmin', 'coAdmin'],
+          'edit' =>     ['platformAdmin', 'coAdmin'],
+          'relink' =>   ['platformAdmin', 'coAdmin'],
+          'view' =>     ['platformAdmin', 'coAdmin']
         ],
+        // Actions that operate over a table (ie: do not require an $id)
         'table' => [
-          'Names',
-          'Addresses',
-          'AdHocAttributes',
-          'EmailAddresses',
-          'ExternalIdentityRoles',
-          'HistoryRecords',
-          'Identifiers',
-          'JobHistoryRecords',
-          'Pronouns',
-          'TelephoneNumbers',
-          'Urls'
+// CFM-8 It's not clear that it should be possible for anyone (via ui or API) to add or
+// edit an External Identity (or its related MVEAs)
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
         ],
+        // Related models whose permissions we'll need, typically for table views
+        'related' => [
+          'entity' => [
+            'ExtIdentitySourceRecords',
+          ],
+          'table' => [
+            'Names',
+            'Addresses',
+            'AdHocAttributes',
+            'EmailAddresses',
+            'ExternalIdentityRoles',
+            'HistoryRecords',
+            'Identifiers',
+            'JobHistoryRecords',
+            'Pronouns',
+            'TelephoneNumbers',
+            'Urls'
+          ],
+        ]
+      ],
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   ['platform', 'privileged'],
+          'edit' =>     ['platform', 'privileged'],
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
     ]);
   }

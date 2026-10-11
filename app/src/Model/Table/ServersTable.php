@@ -110,22 +110,34 @@ class ServersTable extends Table {
       ]
     ]);
     
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'configure' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin'],
-        'test' =>  ['platformAdmin', 'coAdmin'],
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'configure' =>  ['platformAdmin', 'coAdmin'],
+          'delete' =>     ['platformAdmin', 'coAdmin'],
+          'edit' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>       ['platformAdmin', 'coAdmin'],
+          'test' =>  ['platformAdmin', 'coAdmin'],
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   ['platform', 'privileged'],
+          'edit' =>     ['platform', 'privileged'],
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
     ]);
   }

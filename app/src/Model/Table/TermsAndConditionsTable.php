@@ -109,30 +109,51 @@ class TermsAndConditionsTable extends Table {
       ]
     ]);
     
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'agree' =>        ['coMember'],
-        'delete' =>       ['platformAdmin', 'coAdmin'],
-        'edit' =>         ['platformAdmin', 'coAdmin'],
-        // We specifically exclude platform admins from proxying because
-        // they may not be registered as People in the CO, and we won't be
-        // able to record the actor foreign key for audit purposes.
-        'proxy' =>        ['coAdmin'],
-        // 'recordTAndC' is used by ApiV2Controller
-        'recordTAndC' =>  ['platformAdmin', 'coAdmin'],
-        'revoke' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>         ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'agree' =>        ['coMember'],
+          'delete' =>       ['platformAdmin', 'coAdmin'],
+          'edit' =>         ['platformAdmin', 'coAdmin'],
+          // We specifically exclude platform admins from proxying because
+          // they may not be registered as People in the CO, and we won't be
+          // able to record the actor foreign key for audit purposes.
+          'proxy' =>        ['coAdmin'],
+          'revoke' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>         ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>          ['platformAdmin', 'coAdmin'],
+          'index' =>        ['platformAdmin', 'coAdmin'],
+          'review' =>       ['coMember'],
+          'status' =>       ['platformAdmin', 'coAdmin']
+        ],
       ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        'review' =>   ['coMember'],
-        'status' =>   ['platformAdmin', 'coAdmin']
+      'api-ajax' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          // Actions by coMember are further restricted by ApiV2Controller::recordTAndC
+          'recordTAndC' =>  ['platform', 'privileged', 'coMember']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+        ]
+      ],
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>       ['platform', 'privileged'],
+          'edit' =>         ['platform', 'privileged'],
+          'recordTAndC' =>  ['platform', 'privileged'],
+          'view' =>         ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
     ]);
   }

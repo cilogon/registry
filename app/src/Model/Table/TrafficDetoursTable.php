@@ -79,17 +79,19 @@ class TrafficDetoursTable extends Table {
     ]);
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'configure' =>  ['platformAdmin'],
-        'delete' =>     ['platformAdmin'],
-        'edit' =>       ['platformAdmin'],
-        'view' =>       ['platformAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin'],
-        'index' =>    ['platformAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'configure' =>  ['platformAdmin'],
+          'delete' =>     ['platformAdmin'],
+          'edit' =>       ['platformAdmin'],
+          'view' =>       ['platformAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin'],
+          'index' =>    ['platformAdmin']
+        ]
       ]
     ]);
   }

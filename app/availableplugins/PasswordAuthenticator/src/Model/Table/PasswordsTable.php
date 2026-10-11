@@ -82,17 +82,19 @@ class PasswordsTable extends Table {
     $this->setAllowUnkeyedPrimaryLink(['manage']);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   false, // Delete the pluggable object instead
-        'edit' =>     false, // use manage instead ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false, //['platformAdmin', 'coAdmin'],
-        'manage' =>   ['platformAdmin', 'coAdmin'],
-        'index' =>    false  // ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false, // Delete the pluggable object instead
+          'edit' =>     false, // use manage instead ['platformAdmin', 'coAdmin'],
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false, //['platformAdmin', 'coAdmin'],
+          'manage' =>   ['platformAdmin', 'coAdmin'],
+          'index' =>    false  // ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

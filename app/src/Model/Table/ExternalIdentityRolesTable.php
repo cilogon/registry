@@ -119,22 +119,34 @@ class ExternalIdentityRolesTable extends Table {
       ]
     ]);
 
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
 // XXX need to add couAdmin, eventually
-      'entity' => [
-        'delete' =>   false,
-        'edit' =>     false,
-        'view' =>     ['platformAdmin', 'coAdmin', 'selfMember']
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     false,
+          'view' =>     ['platformAdmin', 'coAdmin', 'selfMember']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platformAdmin', 'coAdmin', 'selfMember']
+        ]
       ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin', 'selfMember']
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   ['platform', 'privileged'],
+          'edit' =>     ['platform', 'privileged'],
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
     ]);
   }

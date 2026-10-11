@@ -99,16 +99,18 @@ class SqlAssignersTable extends Table {
     ]);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   false, // Delete the pluggable object instead
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false, // This is added by the parent model
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false, // Delete the pluggable object instead
+          'edit' =>     ['platformAdmin', 'coAdmin'],
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false, // This is added by the parent model
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

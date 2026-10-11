@@ -188,7 +188,8 @@ class PeopleTable extends Table {
     $this->setRequiresCO(true);
     $this->setRedirectGoal('self');
     $this->setAllowLookupPrimaryLink(['confirmDelete', 'provision']);
-    $this->setAllowUnkeyedPrimaryLink(['pick']);
+    // The Person Picker doesn't attach to an entity ID and so does not need a Primary Link
+    $this->setAllowEmptyPrimaryLink(['pick']);
     
 // XXX does some of this stuff really belong in the controller?
     $this->setEditContains([
@@ -283,47 +284,66 @@ class PeopleTable extends Table {
       ],
     ]);
 
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
 // See also CFM-126
-      'entity' => [
-        'confirmDelete' => ['platformAdmin', 'coAdmin'],
-        'delete'        => ['platformAdmin', 'coAdmin'],
-        'edit'          => ['platformAdmin', 'coAdmin'],
-        'provision'     => ['platformAdmin', 'coAdmin'],
-        'view'          => ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        // Note authorization for pick is enforced in ApiV2Controller::willHandleAuth()
-        'pick' =>     ['platformAdmin', 'coAdmin', 'coMember'],
-      ],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
-        'table' => [
-          'Addresses',
-          'AdHocAttributes',
-          'AuthenticatorStatuses',
-          'Clusters',
-          'Names',
-          'EmailAddresses',
-          'ExternalIdentities',
-          'HistoryRecords',
-          'IdentifierAssignments',
-          'Identifiers',
-          'Notifications',
-          'PersonRoles',
-          'Petitions',
-          'ProvisioningTargets',
-          'TelephoneNumbers',
-          'TermsAndConditions',
-          'Urls'
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'confirmDelete' => ['platformAdmin', 'coAdmin'],
+          'delete'        => ['platformAdmin', 'coAdmin'],
+          'edit'          => ['platformAdmin', 'coAdmin'],
+          'provision'     => ['platformAdmin', 'coAdmin'],
+          'view'          => ['platformAdmin', 'coAdmin']
         ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ],
+        // Related models whose permissions we'll need, typically for table views
+        'related' => [
+          'table' => [
+            'Addresses',
+            'AdHocAttributes',
+            'AuthenticatorStatuses',
+            'Clusters',
+            'Names',
+            'EmailAddresses',
+            'ExternalIdentities',
+            'HistoryRecords',
+            'IdentifierAssignments',
+            'Identifiers',
+            'Notifications',
+            'PersonRoles',
+            'Petitions',
+            'ProvisioningTargets',
+            'TelephoneNumbers',
+            'TermsAndConditions',
+            'Urls'
+          ]
+        ]
+      ],
+      'api-ajax' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     false,
+          'view' =>     false,
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    false,
+          // Note authorization for pick is enforced in ApiV2Controller::willHandleAuth()
+          'pick' =>     ['platformAdmin', 'coAdmin', 'coMember'] 
+        ]
+      ],
+      'api-ms' => [
+        'add' =>          ['platform', 'privileged'],
+        'delete' =>       ['platform', 'privileged'],
+        'edit' =>         ['platform', 'privileged'],
+        'index' =>        ['platform', 'privileged'],
+        'view' =>         ['platform', 'privileged']
       ]
     ]);
   }

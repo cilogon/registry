@@ -104,21 +104,34 @@ class HistoryRecordsTable extends Table {
       'Groups'
     ]);
     
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   false,
-        'edit' =>     false,
-        'view' =>     ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     false,
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     false,
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
+
     ]);
   }
   

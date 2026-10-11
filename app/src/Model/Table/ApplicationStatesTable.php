@@ -37,6 +37,7 @@ use Cake\Validation\Validator;
 
 class ApplicationStatesTable extends Table {
   use \App\Lib\Traits\ChangelogBehaviorTrait;
+  use \App\Lib\Traits\CoLinkTrait;
   use \App\Lib\Traits\PermissionsTrait;
   use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
@@ -63,24 +64,25 @@ class ApplicationStatesTable extends Table {
     
     $this->setDisplayField('tag');
     $this->setPrimaryLink(['co_id', 'person_id']);
-
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
+    $this->setRequiresCO(true);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   true,
-        'edit' =>     true,
-        'unfreeze' => true,
-        'view' =>     true
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      true,
-        'index' =>    true,
-        'deleted' =>  true
-      ],
+      // In its current implementation, ApplicationStates are retrieved on initial page delivery
+      // by the backend code, the AJAX API is only used to PUT updates (ie, 'edit'), and there is
+      // not currently functionality to completely remove a value
+      'api-ajax' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     ['self'],
+          'view' =>     ['self']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    false
+        ]
+      ]
     ]);
   }
   

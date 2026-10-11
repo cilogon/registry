@@ -136,21 +136,23 @@ class NotificationsTable extends Table {
     ]);
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'acknowledge' =>  ['platformAdmin', 'coAdmin'],
-        'cancel' =>       ['platformAdmin', 'coAdmin'],
-        'delete' =>       false,
-        'edit' =>         false,
-        'resend' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>         ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ],
-      'readOnly' => ['acknowledge', 'cancel', 'resend']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'acknowledge' =>  ['platformAdmin', 'coAdmin'],
+          'cancel' =>       ['platformAdmin', 'coAdmin'],
+          'delete' =>       false,
+          'edit' =>         false,
+          'resend' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>         ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ],
+        'readOnly' => ['acknowledge', 'cancel', 'resend']
+      ]
     ]);
   }
   

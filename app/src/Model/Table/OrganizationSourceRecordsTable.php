@@ -85,16 +85,18 @@ class OrganizationSourceRecordsTable extends Table {
     ]);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>     false,
-        'edit' =>       false,
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>     false,
+          'edit' =>       false,
+          'view' =>       ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

@@ -91,15 +91,17 @@ class LdapProvisionerDnsTable extends Table
     $this->setPrimaryLink(['LdapConnector.ldap_provisioner_id']);
 
     $this->setPermissions([
-      'entity' => [
-        'delete' => ['platformAdmin', 'coAdmin'],
-        'edit'   => ['platformAdmin', 'coAdmin'],
-        'view'   => ['platformAdmin', 'coAdmin'],
-      ],
-      'table' => [
-        'add'   => ['platformAdmin', 'coAdmin'],
-        'index' => ['platformAdmin', 'coAdmin'],
-      ],
+      'ui' => [
+        'entity' => [
+          'delete' => ['platformAdmin', 'coAdmin'],
+          'edit'   => ['platformAdmin', 'coAdmin'],
+          'view'   => ['platformAdmin', 'coAdmin'],
+        ],
+        'table' => [
+          'add'   => ['platformAdmin', 'coAdmin'],
+          'index' => ['platformAdmin', 'coAdmin'],
+        ]
+      ]
     ]);
   }
 

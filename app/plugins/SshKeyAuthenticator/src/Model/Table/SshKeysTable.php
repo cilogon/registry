@@ -76,20 +76,22 @@ class SshKeysTable extends Table {
     $this->setRedirectGoal('index');
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        // Following the v4 pattern, SSH Keys cannot be edited
-        'edit' =>     false,
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      // SSH Entities are readOnly but permit delete, so we need to re-enable the action
-      'readOnly' =>   ['delete'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   ['platformAdmin', 'coAdmin'],
+          // Following the v4 pattern, SSH Keys cannot be edited
+          'edit' =>     false,
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that are permitted on readonly entities (besides view)
+        // SSH Entities are readOnly but permit delete, so we need to re-enable the action
+        'readOnly' =>   ['delete'],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

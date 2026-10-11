@@ -394,9 +394,20 @@ trait EnrollmentControllerTrait {
       $nextActorType = $stepInfo['step']->actor_type;
     }
 
+    // If the current Actor does not have a role of the next Actor type, we initiate
+    // a handoff. A complication here is that we want Platform Administrators to be
+    // able to run any step (as implemented in StandardEnrollerController::calculatePermission),
+    // but in most such cases the Platform Admin is probably trying to "unstick" a step,
+    // and we want to return at some point to the configured Actor types. In its most
+    // flexible form, this would take the place of an option presented to the admin
+    // to decide whether to continue or hand back, but for now instead of implementing
+    // that complicated solution we simply allow a change in Actor type to trigger a
+    // handoff notification, even if the current Actor is a Platform Admin. (The Admin
+    // can always choose to manually run the post-handoff Step.)
+
     if(in_array($nextActorType, $actorInfo['roles'])
-       // To match StandardEnrollerController::calculatePermission, we always allow platform admins
-       || in_array('cmpadmin', $actorInfo['roles'])) {
+       || (in_array('cmpadmin', $actorInfo['roles'])
+           && $nextActorType == $stepInfo['lastStep']->actor_type)) {
       // The current actor is eligible to perform the next step, so simply redirect.
       // Note we will need to re-insert the token if currently in use.
 

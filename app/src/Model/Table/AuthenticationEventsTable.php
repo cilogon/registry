@@ -79,39 +79,48 @@ class AuthenticationEventsTable extends Table {
       ]
     ]);
 
-    $this->setPermissions(function (\Cake\Http\ServerRequest $r, \App\Controller\Component\RegistryAuthComponent $auth, ?int $id): array {
-      // We're going to be called a bunch of times (once per row on the index view)
-      // so we want to cache the result of the permission check on the requested identifier
-      // (since all rows will be for the same identifier, at least for now).
-      
-      $targetIdentifier = $r->getQuery('authenticated_identifier');
-      $manages = false;
+    $this->setPermissions(function (
+      \Cake\Http\ServerRequest $r, 
+      \App\Controller\Component\RegistryAuthComponent $auth, 
+      ?int $id,
+      string $context
+    ): array {
+      if($context == 'ui') {
+        // We're going to be called a bunch of times (once per row on the index view)
+        // so we want to cache the result of the permission check on the requested identifier
+        // (since all rows will be for the same identifier, at least for now).
+        
+        $targetIdentifier = $r->getQuery('authenticated_identifier');
+        $manages = false;
 
-      if($targetIdentifier) {
-        $targetIdentifier = \App\Lib\Util\StringUtilities::urlbase64decode($targetIdentifier);
+        if($targetIdentifier) {
+          $targetIdentifier = \App\Lib\Util\StringUtilities::urlbase64decode($targetIdentifier);
+          
+          $manages = $auth->isPlatformAdmin() || $auth->isAdminForIdentifier($targetIdentifier);
+        } else {
+          // We set $manages = true here because we need to return index
+          // permission for related models calculation in identifiers?person_id=X
+          // (so the link to Authentication Events renders). However, in
+          // getIndexFilter below we will reject requests without a $targetIdentifier
+          // for non-platform admins.
+          
+          $manages = true;
+        }
         
-        $manages = $auth->isPlatformAdmin() || $auth->isAdminForIdentifier($targetIdentifier);
-      } else {
-        // We set $manages = true here because we need to return index
-        // permission for related models calculation in identifiers?person_id=X
-        // (so the link to Authentication Events renders). However, in
-        // getIndexFilter below we will reject requests without a $targetIdentifier
-        // for non-platform admins.
-        
-        $manages = true;
+        return [
+          'entity' => [
+            'delete'  => false,
+            'edit'    => false,
+            'view'    => false
+          ],
+          'table' => [
+            'add'     => false,
+            'index'   => $manages
+          ]
+        ];
       }
-      
-      return [
-        'entity' => [
-          'delete'  => false,
-          'edit'    => false,
-          'view'    => false
-        ],
-        'table' => [
-          'add'     => false,
-          'index'   => $manages
-        ]
-      ];
+
+      return [];
     });
 
     $this->setIndexFilter(function (\Cake\Http\ServerRequest $r): array {

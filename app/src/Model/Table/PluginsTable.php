@@ -81,22 +81,24 @@ class PluginsTable extends Table {
     $this->setDisplayField('plugin');
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'activate'    => ['platformAdmin'],
-        'applySchema' => ['platformAdmin'],
-        'deactivate'  => ['platformAdmin'],
-        'delete'      => false,
-        'edit'        => false,
-        'view'        => false
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>    ['applySchema'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        // Plugins are added automatically
-        'add' =>       false,
-        'index' =>     ['platformAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'activate'    => ['platformAdmin'],
+          'applySchema' => ['platformAdmin'],
+          'deactivate'  => ['platformAdmin'],
+          'delete'      => false,
+          'edit'        => false,
+          'view'        => false
+        ],
+        // Actions that are permitted on readonly entities (besides view)
+        'readOnly' =>    ['applySchema'],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          // Plugins are added automatically
+          'add' =>       false,
+          'index' =>     ['platformAdmin']
+        ]
       ]
     ]);
   }

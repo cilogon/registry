@@ -98,8 +98,11 @@ $routes->scope('/api/v2', function (RouteBuilder $builder) {
     ->setPatterns(['id' => '[0-9]+']);
   $builder->post(
     '/terms_and_conditions/record/{id}',
-    ['controller' => 'ApiV2', 'action' => 'recordTAndC', 'model' => 'terms_and_conditions'])
-    ->setPass(['id'])
+    // The standard API effectively acts as a CO Administrator (AR-ApiUser-2), and so we
+    // allow the client to assert both the subject and actor for T&C Agreement. This is NOT
+    // true for the AJAX API, below.
+    ['controller' => 'ApiV2', 'action' => 'recordTAndC', 'model' => 'terms_and_conditions', 'trusted' => true])
+    ->setPass(['id', 'trusted'])
     ->setPatterns(['id' => '[0-9]+']);
   // These establish the usual CRUD options on all models:
   $builder->delete(
@@ -137,14 +140,14 @@ $routes->scope('/api/ajax/v2',
   $builder->applyMiddleware('bodyparser');
   // Use setPass to make parameter show up as function parameter
   // Model specific actions, which will usually have more specific URLs:
-  $builder->post(
-    '/api_users/generate/{id}',
-    ['controller' => 'ApiV2', 'action' => 'generateApiKey', 'model' => 'api_users'])
-    ->setPass(['id'])
-    ->setPatterns(['id' => '[0-9]+']);
   $builder->get(
     '/people/pick',
     ['controller' => 'ApiV2', 'action' => 'pick', 'model' => 'people']);
+  $builder->post(
+    '/terms_and_conditions/record/{id}',
+    ['controller' => 'ApiV2', 'action' => 'recordTAndC', 'model' => 'terms_and_conditions'])
+    ->setPass(['id'])
+    ->setPatterns(['id' => '[0-9]+']);
   // These establish the usual CRUD options on all models:
   $builder->delete(
     '/{model}/{id}', ['controller' => 'ApiV2', 'action' => 'delete'])

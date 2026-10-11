@@ -80,16 +80,18 @@ class EnvSourceDetoursTable extends Table {
     $this->setSupportedDetourContext('postlogin');
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   false, // Delete the pluggable object instead
-        'edit' =>     ['platformAdmin'],
-        'view' =>     ['platformAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false, //['platformAdmin'],
-        'index' =>    ['platformAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false, // Delete the pluggable object instead
+          'edit' =>     ['platformAdmin'],
+          'view' =>     ['platformAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false, //['platformAdmin'],
+          'index' =>    ['platformAdmin']
+        ]
       ]
     ]);
   }

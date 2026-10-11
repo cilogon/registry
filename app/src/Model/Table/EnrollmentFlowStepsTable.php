@@ -124,23 +124,25 @@ class EnrollmentFlowStepsTable extends Table {
     ]);
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'configure' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        // We handle dispatch authorization in the Controller
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        'deleted' =>  ['platformAdmin', 'coAdmin']
-      ],
-      'related' => [
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'configure' =>  ['platformAdmin', 'coAdmin'],
+          'delete' =>     ['platformAdmin', 'coAdmin'],
+          // We handle dispatch authorization in the Controller
+          'edit' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>       ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
         'table' => [
-          'EnrollmentFlowSteps'
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin'],
+          'deleted' =>  ['platformAdmin', 'coAdmin']
+        ],
+        'related' => [
+          'table' => [
+            'EnrollmentFlowSteps'
+          ]
         ]
       ]
     ]);

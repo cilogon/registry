@@ -86,6 +86,11 @@ if(str_ends_with($attr->attribute, '_id')) {
     $formArguments['fieldType'] = 'select';
     $formArguments['fieldSelectOptions'] = $this->get($defaultValuesPopulated);
   }
+
+  // We need to pass in context to the People Picker. The component fields are apparently
+  // extracted from the form arguments, so we wedge them in the same way.
+  $options['pickerTargetKey'] = 'petition_id';
+  $options['pickerTargetValue'] = $vv_petition->id;
 }
 
 // READ-ONLY

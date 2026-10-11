@@ -99,26 +99,28 @@ class AuthenticatorsTable extends Table {
     ]);
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'configure' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      // Note because of how parameters are passed to Authenticators many actions here
-      // are "table" rather than "entity" actions
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        'lock' =>     ['platformAdmin', 'coAdmin'],
-        // 'manage' will just issue a redirect based on the query params, but we still
-        // require authz since there's no reason to leave it fully open
-        'manage' =>   ['platformAdmin', 'coAdmin'],
-        'reset' =>    ['platformAdmin', 'coAdmin'],
-        // 'status' =>   ['platformAdmin', 'coAdmin']
-        'unlock' =>   ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'configure' =>  ['platformAdmin', 'coAdmin'],
+          'delete' =>     ['platformAdmin', 'coAdmin'],
+          'edit' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>       ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        // Note because of how parameters are passed to Authenticators many actions here
+        // are "table" rather than "entity" actions
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin'],
+          'lock' =>     ['platformAdmin', 'coAdmin'],
+          // 'manage' will just issue a redirect based on the query params, but we still
+          // require authz since there's no reason to leave it fully open
+          'manage' =>   ['platformAdmin', 'coAdmin'],
+          'reset' =>    ['platformAdmin', 'coAdmin'],
+          // 'status' =>   ['platformAdmin', 'coAdmin']
+          'unlock' =>   ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

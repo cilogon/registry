@@ -84,7 +84,7 @@ class BasicAttributeCollectorsCell extends Cell
     $vv_petition_basic_attribute_set = $this->fetchTable('PetitionBasicAttributeSets')
       ->find()
       ->where(['PetitionBasicAttributeSets.petition_id' => $this->vv_obj->id])
-      ->firstOrFail();
+      ->first();
 
     $this->set('vv_petition_basic_attribute_set', $vv_petition_basic_attribute_set);
     $this->set('vv_obj', $this->vv_obj);

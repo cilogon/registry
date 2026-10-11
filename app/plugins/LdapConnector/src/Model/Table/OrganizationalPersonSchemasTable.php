@@ -130,16 +130,18 @@ class OrganizationalPersonSchemasTable extends Table
     ]);
 
     $this->setPermissions([
-      'entity' => [
-        'delete' => ['platformAdmin', 'coAdmin'],
-        'edit'   => ['platformAdmin', 'coAdmin'],
-        'view'   => ['platformAdmin', 'coAdmin'],
-      ],
-      'table' => [
-        'add'     => ['platformAdmin', 'coAdmin'],
-        'index'   => ['platformAdmin', 'coAdmin'],
-        'deleted' => ['platformAdmin', 'coAdmin'],
-      ],
+      'ui' => [
+        'entity' => [
+          'delete' => ['platformAdmin', 'coAdmin'],
+          'edit'   => ['platformAdmin', 'coAdmin'],
+          'view'   => ['platformAdmin', 'coAdmin'],
+        ],
+        'table' => [
+          'add'     => ['platformAdmin', 'coAdmin'],
+          'index'   => ['platformAdmin', 'coAdmin'],
+          'deleted' => ['platformAdmin', 'coAdmin'],
+        ]
+      ]
     ]);
   }
 

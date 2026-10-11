@@ -123,18 +123,20 @@ class IdentifierAssignmentsTable extends Table {
     ]);
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'configure' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'assign' =>   ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'configure' =>  ['platformAdmin', 'coAdmin'],
+          'delete' =>     ['platformAdmin', 'coAdmin'],
+          'edit' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>       ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'assign' =>   ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

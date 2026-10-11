@@ -232,42 +232,54 @@ class GroupsTable extends Table {
       ]
     ]);
 
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
+      'ui' => [
   // XXX update for couAdmins, etc
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'provision' =>  ['platformAdmin', 'coAdmin'],
-        'reconcile' =>  ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>    ['reconcile'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        // Note that self service Group creation will be implemented via
-        // a Dashboard widget (CFM-316) and NOT via this index page
-        'index' =>    ['platformAdmin', 'coAdmin']
-      ],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
-        'table' => [
-// XXX As a first pass, this (combined with the implementation in AppController::calculatePermissions)
-//     will render a link to group-members?group_id=X for all groups in the index view
-//     groups?co_id=2. This may or may not be right in the long term, eg for private
-//     groups. Maybe it's OK for now, since all groups are visible to all members of the CO.
-          'GroupMembers',
-          'GroupNestings',
-          'HistoryRecords',
-          'IdentifierAssignments',
-          'Identifiers',
-          'ProvisioningTargets'
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>     ['platformAdmin', 'coAdmin'],
+          'edit' =>       ['platformAdmin', 'coAdmin'],
+          'provision' =>  ['platformAdmin', 'coAdmin'],
+          'reconcile' =>  ['platformAdmin', 'coAdmin'],
+          'view' =>       ['platformAdmin', 'coAdmin']
         ],
+        // Actions that are permitted on readonly entities (besides view)
+        'readOnly' =>    ['reconcile'],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          // Note that self service Group creation will be implemented via
+          // a Dashboard widget (CFM-316) and NOT via this index page
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ],
+        // Related models whose permissions we'll need, typically for table views
+        'related' => [
+          'table' => [
+  // XXX As a first pass, this (combined with the implementation in AppController::calculatePermissions)
+  //     will render a link to group-members?group_id=X for all groups in the index view
+  //     groups?co_id=2. This may or may not be right in the long term, eg for private
+  //     groups. Maybe it's OK for now, since all groups are visible to all members of the CO.
+            'GroupMembers',
+            'GroupNestings',
+            'HistoryRecords',
+            'IdentifierAssignments',
+            'Identifiers',
+            'ProvisioningTargets'
+          ],
+        ]
+      ],
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   ['platform', 'privileged'],
+          'edit' =>     ['platform', 'privileged'],
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
     ]);
   }

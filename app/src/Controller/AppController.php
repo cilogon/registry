@@ -80,6 +80,17 @@ class AppController extends Controller {
       return ($request->is('json') || $request->is('xml'));
     });
     
+    // Add a detector to distinguish AJAX REST calls from standard calls.
+    // We don't use $request->is('ajax') since that relies on client header
+    // assertions, instead we check the requested URL.
+    $request->addDetector('ajax-api', function($request) {
+      // AJAX requests are routed via /api/ajax/...
+
+      $requestPath = $request->getUri()->getPath();
+
+      return strncmp($requestPath, "/api/ajax/", 10)==0;
+    });
+    
     // COmanage specific component that handles authn/z processintg
     $this->loadComponent('RegistryAuth');
 

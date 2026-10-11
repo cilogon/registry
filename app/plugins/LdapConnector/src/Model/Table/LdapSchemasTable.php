@@ -80,17 +80,19 @@ class LdapSchemasTable extends Table {
     ]);
 
     $this->setPermissions([
-      'entity' => [
-        'configure' => ['platformAdmin', 'coAdmin'],
-        'delete' => false,
-        'edit' => ['platformAdmin', 'coAdmin'],
-        'view' => ['platformAdmin', 'coAdmin']
-      ],
-      'table' => [
-        'add' => false,
-        'index'   => ['platformAdmin', 'coAdmin'],
-        'save'    => ['platformAdmin', 'coAdmin'],
-        'deleted' => ['platformAdmin', 'coAdmin'],
+      'ui' => [
+        'entity' => [
+          'configure' => ['platformAdmin', 'coAdmin'],
+          'delete' => false,
+          'edit' => ['platformAdmin', 'coAdmin'],
+          'view' => ['platformAdmin', 'coAdmin']
+        ],
+        'table' => [
+          'add' => false,
+          'index'   => ['platformAdmin', 'coAdmin'],
+          'save'    => ['platformAdmin', 'coAdmin'],
+          'deleted' => ['platformAdmin', 'coAdmin'],
+        ]
       ]
     ]);
   }

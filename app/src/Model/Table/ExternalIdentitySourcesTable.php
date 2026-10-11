@@ -100,26 +100,28 @@ class ExternalIdentitySourcesTable extends Table {
     ]);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'annul' =>      ['platformAdmin', 'coAdmin'],
-        'configure' =>  ['platformAdmin', 'coAdmin'],
-        'delete' =>     ['platformAdmin', 'coAdmin'],
-        'edit' =>       ['platformAdmin', 'coAdmin'],
-        'retrieve' =>   ['platformAdmin', 'coAdmin'],
-        'search' =>     ['platformAdmin', 'coAdmin'],
-        'sync' =>       ['platformAdmin', 'coAdmin'],
-        'view' =>       ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        'status' =>   ['platformAdmin', 'coAdmin']
-      ],
-      'related' => [
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'annul' =>      ['platformAdmin', 'coAdmin'],
+          'configure' =>  ['platformAdmin', 'coAdmin'],
+          'delete' =>     ['platformAdmin', 'coAdmin'],
+          'edit' =>       ['platformAdmin', 'coAdmin'],
+          'retrieve' =>   ['platformAdmin', 'coAdmin'],
+          'search' =>     ['platformAdmin', 'coAdmin'],
+          'sync' =>       ['platformAdmin', 'coAdmin'],
+          'view' =>       ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
         'table' => [
-          'ExtIdentitySourceRecords'
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin'],
+          'status' =>   ['platformAdmin', 'coAdmin']
+        ],
+        'related' => [
+          'table' => [
+            'ExtIdentitySourceRecords'
+          ]
         ]
       ]
     ]);

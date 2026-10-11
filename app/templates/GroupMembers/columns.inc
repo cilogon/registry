@@ -114,9 +114,8 @@ if ($this->request->getQuery('group_id') !== null) {
   // Page options
   $peoplePicker = [
     'label' => __d('operation', 'add.member'),
-    'viewConfigParameters' => [
-      'groupId' => $this->getRequest()?->getQuery('group_id')
-    ],
+    'targetKey' => 'group_id',
+    'targetValue' => $this->getRequest()?->getQuery('group_id'),
     'actionUrl' => [
       'plugin' => null,
       'controller' => 'GroupMembers',

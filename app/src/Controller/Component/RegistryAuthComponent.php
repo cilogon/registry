@@ -350,7 +350,20 @@ class RegistryAuthComponent extends Component
    */
   
   protected function calculatePermissions(?int $id=null): array {
+    // There are, broadly, three types of authnz scenarios:
+    //  (1) Standard web request and web server brokered authentication
+    //  (2) Standard REST API request, using Registry managed API Keys
+    //  (3) AJAX REST API request, used by the web frontend to access the REST API
+    //      using the session cookie for authentication
+
     $controller = $this->getController();
+
+    // What's our request context?
+    $context = $controller->getRequest()->is('ajax-api')
+               ? 'api-ajax'
+               : ($controller->getRequest()->is('restful')
+                  ? 'api-ms'
+                  : 'ui');
 
     $ret = [];
     
@@ -365,20 +378,38 @@ class RegistryAuthComponent extends Component
     /** var Cake\ORM\Table $table */
     $table = $controller->getTableLocator()->get($modelsName);
     
-    // Do we have an authenticated user?
-    $authenticatedUser = (bool)$this->getAuthenticatedUser();
 
-    // Is this user a Platform Administrator?
-    $platformAdmin = $this->isPlatformAdmin();
-    
-    // Is this user a CO Administrator?
-    $coAdmin = $this->isCoAdmin($controller->getCOID());
-    
-    // Is this user a CO Member?
-    $coMember = $this->isCoMember($controller->getCOID());
+    // Determine the characteristics of the current user, which map to authorizations
+    $currentAuthz = [
+      // Do we have an authenticated user? This could be a regular user or an API User.
+      'authenticatedUser' => (bool)$this->getAuthenticatedUser(),
 
-    // Is this me?
-    $selfMember = $this->isSelf($controller->getCOID(), $id);
+      // Is this a regular user who is a Platform Administrator?
+      'platformAdmin' => $this->isPlatformAdmin(),
+
+      // Is this a regular user who is a CO Administrator?
+      'coAdmin' => $this->isCoAdmin($controller->getCOID()),
+
+      // Is this a regular user who is a CO Member?
+      'coMember' => $this->isCoMember($controller->getCOID()),
+
+      // Is this regular user an Approver? (Calculated below)
+      'approver' => false,
+
+      // Is this regular user attempting to manipulate their own record?
+      'self' => $this->isSelf($controller->getCOID(), $id),
+
+      // Is this an API User that a Platform-level Privileged API User?
+      'platform' => $this->isPlatformApiUser(),
+
+      // Is this an API User that is Privileged in the current CO?
+      'privileged' => $this->isPrivilegedApiUser($controller->getCOID()),
+
+      // Is this an API User, regardless of level of privilege?
+      'unprivileged' => ($this->authenticatedApiUser
+                         && !empty($this->cache['api_user']['co_id'])
+                         && $this->cache['api_user']['co_id'] == $controller->getCOID())
+    ];
 
     // Is the user an approver for the current Petition?
     // In order to calculate this we need to have a Petition ID. This will primarily
@@ -396,7 +427,7 @@ class RegistryAuthComponent extends Component
       $petitionId = $controller->getRequest()->getQuery('petition_id');
     }
 
-    $approver = !empty($petitionId) ? $this->isApprover((int)$petitionId) : false;
+    $currentAuthz['approver'] = !empty($petitionId) ? $this->isApprover((int)$petitionId) : false;
     
     // Is this record read only?
     $readOnly = false;
@@ -405,7 +436,9 @@ class RegistryAuthComponent extends Component
     $canDelete = true;
     
     // Pull the table's permission definitions
-    $permissions = $this->getTablePermissions($table, $id);
+    $permissions = $this->getTablePermissions($table, $id, $context);
+
+    // Use the standard (web UI) definitions
     
     if($id) {
       $readOnlyActions = ['view'];
@@ -457,7 +490,7 @@ class RegistryAuthComponent extends Component
             // current user has any
             foreach($roles as $role) {
               // eg: $role = "platformAdmin", which corresponds to the variables set, above
-              if($$role) {
+              if(isset($currentAuthz[$role]) && $currentAuthz[$role]) {
                 $ok = true;
                 break;
               }
@@ -508,7 +541,7 @@ class RegistryAuthComponent extends Component
                 // current user has any
                 foreach($roles as $role) {
                   // eg: $role = "platformAdmin", which corresponds to the variables set, above
-                  if($$role) {
+                  if(isset($currentAuthz[$role]) && $currentAuthz[$role]) {
                     $ok = true;
                     break;
                   }
@@ -537,7 +570,7 @@ class RegistryAuthComponent extends Component
               // current user has any
               foreach($roles as $role) {
                 // eg: $role = "platformAdmin", which corresponds to the variables set, above
-                if($$role) {
+                if(isset($currentAuthz[$role]) && $currentAuthz[$role]) {
                   $ok = true;
                   break;
                 }
@@ -551,8 +584,7 @@ class RegistryAuthComponent extends Component
           }
         }
       }
-
-    } else { // No $id
+    } else {
       // Permissions for actions that operate over tables
       
       foreach($permissions['table'] as $action => $roles) {
@@ -563,7 +595,7 @@ class RegistryAuthComponent extends Component
           // current user has any
           foreach($roles as $role) {
             // eg: $role = "platformAdmin", which corresponds to the variables set, above
-            if($$role) {
+            if(isset($currentAuthz[$role]) && $currentAuthz[$role]) {
               $ok = true;
               break;
             }
@@ -746,21 +778,22 @@ class RegistryAuthComponent extends Component
    * Obtain the set of permissions as provided by the table.
    *
    * @since  COmanage Registry v5.0.0
-   * @param  table  $table  Cake Table
-   * @param  int    $id     Entity ID, if applicable
-   * @return array          Table permissions
+   * @param  table  $table    Cake Table
+   * @param  int    $id       Entity ID, if applicable
+   * @param  string $context  Request context: ui, api-ajax, api-ms
+   * @return array            Table permissions
    */
   
-  public function getTablePermissions($table, ?int $id): array {
+  public function getTablePermissions($table, ?int $id, string $context='ui'): array {
     $p = $table->getPermissions();
     
     if(is_callable($p)) {
       $controller = $this->getController();
       $request = $controller->getRequest();
       
-      return $p($request, $this, $id);
+      return $p($request, $this, $id, $context);
     } else {
-      return $p;
+      return $p[$context];
     }
   }
   
@@ -838,7 +871,7 @@ class RegistryAuthComponent extends Component
     if(!isset($this->cache['isApprover'][$petitionId])) {
       $this->cache['isApprover'][$petitionId] = false;
 
-      if(!empty($this->authenticatedUser)) {
+      if(!$this->isApiUser() && $this->isAuthenticatedUser()) {
         // We need to map the authenticated user to a Person in the same CO as the Petition
 
         $Petitions = TableRegistry::getTableLocator()->get('Petitions');
@@ -899,16 +932,8 @@ class RegistryAuthComponent extends Component
     if(!isset($this->cache['isCoAdmin'][$coId])) {
       $this->cache['isCoAdmin'][$coId] = false;
       
-      if($this->authenticatedApiUser) {
-        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
-        
-        $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
-        
-        $this->cache['isCoAdmin'][$coId] = ($priv === true || $priv === $coId);
-      } else {
-        if(!empty($this->authenticatedUser)) {
-          $this->cache['isCoAdmin'][$coId] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $coId);
-        }
+      if(!$this->isApiUser() && $this->isAuthenticatedUser()) {
+        $this->cache['isCoAdmin'][$coId] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $coId);
       }
     }
     
@@ -918,9 +943,9 @@ class RegistryAuthComponent extends Component
   /**
    * Determine if the current user is a member of the specified CO.
    *
-   * @param int|null $coId CO ID
-   * @return bool       True if the current user is a CO Administrator
    * @since  COmanage Registry v5.0.0
+   * @param  int|null $coId CO ID
+   * @return bool     true if the current user is a CO Administrator
    */
   
   public function isCoMember(?int $coId): bool {
@@ -934,33 +959,12 @@ class RegistryAuthComponent extends Component
     if(!isset($this->cache['isCoMember'][$coId])) {
       $this->cache['isCoMember'][$coId] = false;
       
-      if($this->authenticatedApiUser) {
-        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+      if(!$this->isApiUser() && $this->isAuthenticatedUser()) {
+        $Cos = TableRegistry::getTableLocator()->get('Cos');
         
-        $apiUser = $ApiUsers->find()
-                            ->where([
-                              'ApiUsers.username' => $this->authenticatedUser,
-                              'ApiUsers.co_id'    => $coId,
-                              'ApiUsers.status'   => SuspendableStatusEnum::Active
-                            ])
-                            ->first();
+        $memberCos = $Cos->getCosForIdentifier($this->authenticatedUser);
         
-        if($apiUser) {
-          $now = Chronos::now();
-          
-          if((!$apiUser->valid_from || $now->gt($apiUser->valid_from))
-             && (!$apiUser->valid_through || $now->gt($apiUser->valid_through))) {
-            $this->cache['isCoMember'][$coId] = true;
-          }
-        }
-      } else {
-        if(!empty($this->authenticatedUser)) {
-          $Cos = TableRegistry::getTableLocator()->get('Cos');
-          
-          $memberCos = $Cos->getCosForIdentifier($this->authenticatedUser);
-          
-          $this->cache['isCoMember'][$coId] = isset($memberCos[$coId]);
-        }
+        $this->cache['isCoMember'][$coId] = isset($memberCos[$coId]);
       }
     }
     
@@ -1066,25 +1070,67 @@ class RegistryAuthComponent extends Component
     if(!isset($this->cache['isPlatformAdmin'])) {
       $this->cache['isPlatformAdmin'] = false;
       
-      if($this->authenticatedApiUser) {
-        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+      if(!$this->isApiUser() && $this->isAuthenticatedUser()) {
+        $Cos = TableRegistry::getTableLocator()->get('Cos');
         
-        $this->cache['isPlatformAdmin'] = ($ApiUsers->getUserPrivilege($this->authenticatedUser) === true);
-      } else {
-        if(!empty($this->authenticatedUser)) {
-          $Cos = TableRegistry::getTableLocator()->get('Cos');
-          
-          // Find the COmanage CO
-          $COmanageCO = $Cos->find('COmanageCO')->firstOrFail();
-          
-          $this->cache['isPlatformAdmin'] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $COmanageCO->id);
-        }
+        // Find the COmanage CO
+        $COmanageCO = $Cos->find('COmanageCO')->firstOrFail();
+        
+        $this->cache['isPlatformAdmin'] = $this->isIdentifierAdmin(identifier: $this->authenticatedUser, coId: $COmanageCO->id);
       }
     }
     
     return $this->cache['isPlatformAdmin'];
   }
 
+  /**
+   * Determine if the current user is a Platform-level Privileged API User.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @return bool True if the current user is a Platform-wide Privileged API User
+   */
+  
+  public function isPlatformApiUser(): bool {
+    if(!isset($this->cache['isPlatformApi'])) {
+      $this->cache['isPlatformApi'] = false;
+      
+      if($this->isApiUser()) {
+        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+        
+        $this->cache['isPlatformApi'] = ($ApiUsers->getUserPrivilege($this->authenticatedUser) === true);
+      }
+    }
+    
+    return $this->cache['isPlatformApi'];
+  }
+
+  /**
+   * Determine if the current user is a Privileged API User in the specified CO.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int  $coId CO ID
+   * @return bool       True if the current user is a Platform Administrator
+   */
+  
+  public function isPrivilegedApiUser(?int $coId): bool {
+    if(!$coId) {
+      return false;
+    }
+
+    if(!isset($this->cache['isPrivilegedApi'][$coId])) {
+      $this->cache['isPrivilegedApi'][$coId] = false;
+      
+      if($this->isApiUser()) {
+        $ApiUsers = TableRegistry::getTableLocator()->get('ApiUsers');
+
+        $priv = $ApiUsers->getUserPrivilege($this->authenticatedUser);
+        
+        $this->cache['isPrivilegedApi'][$coId] = ($priv === true || $priv === $coId);
+      }
+    }
+    
+    return $this->cache['isPrivilegedApi'][$coId];
+  }
 
   /**
    * Determine if the current user is acting as themselves within the specified CO.
@@ -1114,60 +1160,30 @@ class RegistryAuthComponent extends Component
 
       $this->cache['isSelf'][$coId] = false;
 
-      $controller = $this->getController();
-      $request = $controller->getRequest();
-      $controllerName = $controller->getName();
+      $Table = $this->getController()->getCurrentTable();
       $personId = $this->getPersonID($coId);
 
-      /* EDIT/VIEW */
+      // Our initial use case only supportes ApplicationStates, so we require $id
 
-      if ($request->getParam('action') == 'view' && $id !== null) {
-        $modelTable = TableRegistry::getTableLocator()->get($controllerName);
-        // We need to allow archived gets for viewing archived records
-        $modelEntity = $modelTable->get($id, ['archived' => true]);
-        // Associated Models, e.g. MVEAs
-        $primaryLinks = $modelTable->getPrimaryLinks();
+      if($id) {
+        // Find the person_id associated with the requested record. For now we require
+        // a direct foreign key to person_id, ultimately we'll need to extend this to
+        // person_role_id.
 
-        if (in_array('person_id', $primaryLinks) && $modelEntity->person_id !== null) {
-          $this->cache['isSelf'][$coId] = $personId == $modelEntity->person_id;
-          return $this->cache['isSelf'][$coId];
-        } elseif (in_array('external_identity_id', $primaryLinks) && $modelEntity->external_identity_id !== null) {
-          $externalIdentityId = $modelEntity->external_identity_id;
-          $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
-          $extIdentEntity = $extIdentTable->get($externalIdentityId);
-          $extIdentityPersonId = $extIdentEntity->person_id;
-          $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
-          return $this->cache['isSelf'][$coId];
+        // We don't set archived => true here since we don't currently have a use case
+        // for retrieving archive records.
+        $entity = $Table->get($id);
+
+        if(!empty($entity->person_id) && $entity->person_id == $personId) {
+          $this->cache['isSelf'][$coId] = true;
         }
-      }
-
-      /*    INDEX VIEWS     */
-      // View self or filter by the person_id
-      $queryPersonIdParam = $request->getQuery('person_id');
-      // Associated Model for External Identity Link to Person
-      $externalIdentityIdParam = $request->getQuery('external_identity_id');
-
-      if (!empty($externalIdentityIdParam)) {
-        $extIdentTable = TableRegistry::getTableLocator()->get('ExternalIdentities');
-        $extIdentEntity = $extIdentTable->get($externalIdentityIdParam);
-        $extIdentityPersonId = $extIdentEntity->person_id;
-        $this->cache['isSelf'][$coId] = $personId == $extIdentityPersonId;
-        return $this->cache['isSelf'][$coId];
-      }
-
-      if (
-        // Canvas page
-        ($controllerName == 'People' && $id == $personId)
-        // Any page that we query with the person_id
-        || (isset($queryPersonIdParam) && $queryPersonIdParam == $personId)
-        ) {
-        $this->cache['isSelf'][$coId] = true;
       }
 
       return $this->cache['isSelf'][$coId];
     }
     catch(\Exception $e) {
       // Generic catchall since, eg, $modelTable doesn't know how to handle plugins
+      $this->llog('error', $e->getMessage());
       
       return false;
     }

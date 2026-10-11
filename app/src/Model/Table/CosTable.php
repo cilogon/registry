@@ -131,30 +131,42 @@ class CosTable extends Table {
       ]
     ]);
     
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>    ['platformAdmin'],
-        'duplicate' => ['platformAdmin'],
-        'edit' =>      ['platformAdmin'],
-        'switch' =>    ['platformAdmin'],
-        'view' =>      ['platformAdmin']
-      ],
-      // Actions that are permitted on readonly entities (besides view)
-      'readOnly' =>    ['duplicate'],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>       ['platformAdmin'],
-        'index' =>     ['platformAdmin'],
-        'select' =>    ['authenticatedUser']
-      ],
-      // Related models whose permissions we'll need, typically for table views
-      'related' => [
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>    ['platformAdmin'],
+          'duplicate' => ['platformAdmin'],
+          'edit' =>      ['platformAdmin'],
+          'switch' =>    ['platformAdmin'],
+          'view' =>      ['platformAdmin']
+        ],
+        // Actions that are permitted on readonly entities (besides view)
+        'readOnly' =>    ['duplicate'],
+        // Actions that operate over a table (ie: do not require an $id)
         'table' => [
-          'Dashboards'
+          'add' =>       ['platformAdmin'],
+          'index' =>     ['platformAdmin'],
+          'select' =>    ['authenticatedUser']
+        ],
+        // Related models whose permissions we'll need, typically for table views
+        'related' => [
+          'table' => [
+            'Dashboards'
+          ]
+        ]
+      ],
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   ['platform', 'privileged'],
+          'edit' =>     ['platform', 'privileged'],
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platform', 'privileged'],
+          'index' =>    ['platform', 'privileged']
         ]
       ]
     ]);

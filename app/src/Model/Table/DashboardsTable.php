@@ -68,23 +68,25 @@ class DashboardsTable extends Table {
     );
     
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-  /*
-        'delete' =>   ['platformAdmin', 'coAdmin'],
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']*/
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'artifacts'     => ['platformAdmin', 'coAdmin'],
-        'configuration' => ['platformAdmin', 'coAdmin'],
-        // XXX CFM-230 This needs to be updated for actual Dashboard permissions
-        'dashboard'     => ['platformAdmin', 'coAdmin', 'coMember'],
-        'registries'    => ['platformAdmin', 'coAdmin'],
-        'search'        => ['platformAdmin', 'coAdmin']
-  /*      'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin']*/
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+    /*
+          'delete' =>   ['platformAdmin', 'coAdmin'],
+          'edit' =>     ['platformAdmin', 'coAdmin'],
+          'view' =>     ['platformAdmin', 'coAdmin']*/
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'artifacts'     => ['platformAdmin', 'coAdmin'],
+          'configuration' => ['platformAdmin', 'coAdmin'],
+          // XXX CFM-230 This needs to be updated for actual Dashboard permissions
+          'dashboard'     => ['platformAdmin', 'coAdmin', 'coMember'],
+          'registries'    => ['platformAdmin', 'coAdmin'],
+          'search'        => ['platformAdmin', 'coAdmin']
+    /*      'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin']*/
+        ]
       ]
     ]);
   }

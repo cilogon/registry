@@ -170,12 +170,41 @@ class ApiV2Controller extends AppController {
    */
 
   public function calculateRequestedCOID(): ?int {
-    if($this->request->getQuery('group_id') !== null) {
-      $groupId = $this->request->getQuery('group_id');
-      $Group = TableRegistry::getTableLocator()->get('Groups');
+    if($this->getRequest()->getParam('action') == 'pick') {
+      // The People Picker requires special logic to resolve the CO,
+      // depending on how the Picker is called. Note at most one
+      // query key may be provided, providing more than one is an error.
 
-      $groupRecord = $Group->get($groupId);
-      return $groupRecord->co_id;
+      // We currently support the following contexts:
+      // (1) Sponsor/Manager on Person Role (uses default URL)
+      //     /people/pick?co_id=x&q=y
+      // (2) Group Member Picker
+      //     /people/pick?group_id=x&q=y
+      // (3) Enrollment Flow Pickers, via Person Selector or Attribute Collector
+      //     While these provide petition_id, strictly speaking they could just use co_id
+      //     /people/pick?petition_id=x&q=y
+
+      $groupId = (int)$this->getRequest()->getQuery('group_id');
+      $petitionId = (int)$this->getRequest()->getQuery('petition_id');
+
+      if($groupId && $petitionId) {
+        $this->llog('error', "Person Picker called with invalid arguments");
+        throw new BadRequestException(__d('error', 'invalid.request'));
+      }
+
+      if($groupId) {
+        $Groups = TableRegistry::getTableLocator()->get('Groups');
+
+        return $Groups->findCoForRecord($groupId);
+      } elseif($petitionId) {
+        $Petitions = TableRegistry::getTableLocator()->get('Petitions');
+
+        return $Petitions->findCoForRecord($petitionId);
+      } else {
+        // If there is no other key that we need to look up, we accept an unkeyed CO ID
+
+        return (int)$this->getRequest()->getQuery('co_id');
+      }
     }
 
     return null;
@@ -227,18 +256,6 @@ class ApiV2Controller extends AppController {
   }
 
   protected function dispatchIndex(string $mode = 'default') {
-    // There are use cases where we will pass co_id and another model_id as a query parameter. The co_id might be
-    // required for the primary link calculations while the foreign key for filtering. Since we are using the
-    // most constrained identifier to calculate the co_id, we then check if the two parameters match. If not,
-    // the request should fail, so as to prevent any security holes.
-    if($this->request->getQuery('co_id') !== null
-      && $this->getCOID() !== null
-      && (int)$this->getCOID() !== (int)$this->request->getQuery('co_id')) {
-      $this->llog('error', 'CO Id calculated from Group ID does not match CO Id query parameter');
-      // Mask this with a generic UnauthorizedException
-      throw new UnauthorizedException(__d('error', 'perm'));
-    }
-
     /** var Cake\ORM\Table $table */
     $table = $this->getCurrentTable();
 
@@ -397,8 +414,9 @@ class ApiV2Controller extends AppController {
     // for historical purposes since the previous code has not been un-refactored.
     // $this->dispatchIndex(mode: 'picker');
 
-    $coId = $this->getRequest()->getQuery('co_id');
     $q = $this->getRequest()->getQuery('q');
+
+    $coId = $this->getCOID();
     $groupId = $this->getRequest()->getQuery('group_id');
 
     $ret = [];
@@ -471,30 +489,62 @@ class ApiV2Controller extends AppController {
    * Record a Terms and Conditions Agreement.
    * 
    * @since  COmange Registry v5.3.0
-   * @param  String $id Terms And Conditions ID
+   * @param  string $id       Terms And Conditions ID
+   * @param  bool   $trusted  If true, allow the request to assert Actor and Subject
    */
 
-  public function recordTAndC(string $id) {
+  public function recordTAndC(string $id, bool $trusted=false) {
     // We operate on TermsAndConditions rather than TAndCAgreements
     // for consistency with the UI.
 
+    $coId = $this->getCOID();
+
+    if(!$coId) {
+      throw new \InvalidArgumentException(__d('error', 'invalid.request'));
+    }
+
+    $actorPersonId = null;
+    $subjectPersonId = null;
+    $identifier = null;
+
     $json = $this->request->getData(); // Parsed by BodyParserMiddleware
 
-    if(empty($json['personId']) || empty($json['actorPersonId']) || empty($json['identifier'])) {
-      throw new \InvalidArgumentException(__d('error', 'invalid.request'));
+    if($trusted) {
+      // The client may (must) specify both the actor and the subject
+
+      if(empty($json['personId']) || empty($json['actorPersonId']) || empty($json['identifier'])) {
+        throw new \InvalidArgumentException(__d('error', 'invalid.request'));
+      }
+
+      $actorPersonId = $json['actorPersonId'];
+      $subjectPersonId = $json['personId'];
+      $identifier = $json['identifier'];
+    } else {
+      // For use with the AJAX API, if the current user is a CO Admin the subject may be
+      // specified. Otherwise nothing may be specified.
+
+      $identifier = $this->RegistryAuth->getAuthenticatedUser();
+      $actorPersonId = $this->RegistryAuth->getPersonID($coId);
+
+      if($this->RegistryAuth->isCoAdmin($coId) && !empty($json['personId'])) {
+        // Only CO Admins may agree on behalf of other People
+        $subjectPersonId = $json['personId'];
+      } else {
+        $subjectPersonId = $actorPersonId;
+      }
     }
 
     $TAndCAgreements = TableRegistry::getTableLocator()->get('TAndCAgreements');
 
     $agreement = $TAndCAgreements->record(
       termsAndConditionsId: (int)$id,
-      personId: $json['personId'],
-      actorPersonId: $json['actorPersonId'],
-      identifier: $json['identifier']
+      personId: $subjectPersonId,
+      actorPersonId: $actorPersonId,
+      identifier: $identifier
     );
 
     $TAndCAgreements->People->requestProvisioning(
-      id: $json['personId'],
+      id: $subjectPersonId,
       context: ProvisioningContextEnum::Automatic
     );
 
@@ -552,21 +602,12 @@ class ApiV2Controller extends AppController {
 
     // Default behavior is to not handle Auth
     $mode = 'no';
-    
-    // We require Models to explicitly turn on Model Specific API support
-    // in order to ensure the API behavior is documented and works as expected.
-
-    if(!method_exists($Table, "isMsrApiEnabled") || !$Table->isMsrApiEnabled()) {
-      return 'notauth';
-    }
 
     $auth = $session->read('Auth');
 
-    // Calculate people picker permissions on the fly
     if(
       $this->name == 'People'
       && $reqAction == 'pick'
-      && !empty($request->getQuery('petition_id'))
     ) {
       // While this check is primarily intended for the Attribute Collection
       // steps of an Enrollment Flow, we use a global configuration because
@@ -588,12 +629,14 @@ class ApiV2Controller extends AppController {
             }
             break;
           case PeoplePickerAuthzEnum::CoAdmin:
-            if($this->RegistryAuth->isCoAdmin($coId)) {
+            if($this->RegistryAuth->isCoAdmin($coId)
+               || $this->RegistryAuth->isPlatformAdmin()) {
               return 'yes';
             }
             break;
           case PeoplePickerAuthzEnum::CoOrCouAdmin:
-            if($this->RegistryAuth->isCoOrCouAdmin($coId)) {
+            if($this->RegistryAuth->isCoOrCouAdmin($coId)
+               || $this->RegistryAuth->isPlatformAdmin()) {
               return 'yes';
             }
             break;
@@ -602,12 +645,14 @@ class ApiV2Controller extends AppController {
             return 'open';
             break;
           case PeoplePickerAuthzEnum::Person:
-            if($this->RegistryAuth->isCoMember($coId)) {
+            if($this->RegistryAuth->isCoMember($coId)
+               || $this->RegistryAuth->isPlatformAdmin()) {
               return 'yes';
             }
             break;
         }
 
+        $this->llog('debug', "Person Picker called with insufficient permissions");
         return 'notauth';
       }
     }

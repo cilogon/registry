@@ -72,16 +72,18 @@ class ApiSourcesTable extends Table {
     $this->setRequiresCO(true);
 
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'delete' =>   false, // Delete the pluggable object instead
-        'edit' =>     ['platformAdmin', 'coAdmin'],
-        'view' =>     ['platformAdmin', 'coAdmin']
-      ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      false,
-        'index' =>    ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false, // Delete the pluggable object instead
+          'edit' =>     ['platformAdmin', 'coAdmin'],
+          'view' =>     ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platformAdmin', 'coAdmin']
+        ]
       ]
     ]);
   }

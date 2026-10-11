@@ -59,8 +59,14 @@
 
     // Mainly required for the Group Members people picker since this is placed as an action url
     $actionUrl = $actionUrl ?? []; // the url of the page to launch on select for a stand-alone picker
-    $viewConfigParameters = $viewConfigParameters ?? [];
     $containerClasses = $containerClasses ?? 'cm-autocomplete-container';
+    $viewConfigParameters = $viewConfigParameters ?? [];
+
+    // By default, the Person Picker selects People, meaning the target entity is the CO itself.
+    // However, some Pickers have a different context, eg a Group or a Petition, and those are
+    // the target entity (which the Picker will use to determine the current CO).
+    $targetKey = $targetKey ?? 'co_id';
+    $targetValue = $targetValue ?? ($targetKey == 'co_id' ? $vv_cur_co->id : 0);
 
     // Load my helper functions
     $vueHelper = $this->loadHelper('Vue');
@@ -78,10 +84,8 @@
       $personRecord = $this->Petition->getRecordForId('person_id', $inputValue, ['PrimaryName', 'EmailAddresses']);
       $canvasUrl = $this->Url->build(['controller' => 'people', 'action' => 'edit', $inputValue]);
     }
-    $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id;
-    if(isset($vv_petition->id)) {
-      $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?co_id=' . $vv_cur_co->id . '&petition_id=' . $vv_petition->id;
-    }
+
+    $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?' . $targetKey . '=' . $targetValue;
 
     // This is the actual field that will be submitted.
     print $this->Form->control($fieldName, [
@@ -116,7 +120,6 @@
       api: {
         viewConfigParameters: <?= json_encode($viewConfigParameters) ?>,
         webroot: '<?= $this->request->getAttribute('webroot') ?>',
-        // co_id query parameter is required since it is the People's primary link
         searchPeople: `<?= $searchPeople ?>`
       }
     };

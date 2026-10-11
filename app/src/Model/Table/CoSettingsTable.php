@@ -210,22 +210,34 @@ class CoSettingsTable extends Table {
       ]
     ]);
 
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id). Since each CO's
-      // CoSetting is created during CO Setup, admins can only edit.
-      'entity' => [
-        'delete' => false,
-        'edit'   => ['platformAdmin', 'coAdmin'],
-        'view'   => ['platformAdmin', 'coAdmin']    // Required for REST API
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id). Since each CO's
+        // CoSetting is created during CO Setup, admins can only edit.
+        'entity' => [
+          'delete' => false,
+          'edit'   => ['platformAdmin', 'coAdmin'],
+          'view'   => ['platformAdmin', 'coAdmin']    // Required for REST API
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add'    => false,
+          'index'  => ['platformAdmin', 'coAdmin'],   // Required for REST API
+          'manage' => ['platformAdmin', 'coAdmin']
+        ]
       ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add'    => false,
-        'index'  => ['platformAdmin', 'coAdmin'],   // Required for REST API
-        'manage' => ['platformAdmin', 'coAdmin']
+      'api-ms' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>   false,
+          'edit' =>     ['platform', 'privileged'],
+          'view' =>     ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      false,
+          'index' =>    ['platform', 'privileged']
+        ]
       ]
     ]);
   }

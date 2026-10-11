@@ -115,25 +115,25 @@ class ProvisioningTargetsTable extends Table {
       ]
     ]);
     
-    // Enable the Model Specific REST API for this Table
-    $this->enableMsrApi();
-    
     $this->setPermissions([
-      // Actions that operate over an entity (ie: require an $id)
-      'entity' => [
-        'configure' =>    ['platformAdmin', 'coAdmin'],
-        'delete' =>       ['platformAdmin', 'coAdmin'],
-        'edit' =>         ['platformAdmin', 'coAdmin'],
-        // Used by ApiV2Controller
-        'provision' =>    ['platformAdmin', 'coAdmin'],
-        'reprovision' =>  ['platformAdmin', 'coAdmin'],
-        'view' =>         ['platformAdmin', 'coAdmin']
+      'ui' => [
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'configure' =>    ['platformAdmin', 'coAdmin'],
+          'delete' =>       ['platformAdmin', 'coAdmin'],
+          'edit' =>         ['platformAdmin', 'coAdmin'],
+          'reprovision' =>  ['platformAdmin', 'coAdmin'],
+          'view' =>         ['platformAdmin', 'coAdmin']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>      ['platformAdmin', 'coAdmin'],
+          'index' =>    ['platformAdmin', 'coAdmin'],
+          'status' =>   ['platformAdmin', 'coAdmin']
+        ]
       ],
-      // Actions that operate over a table (ie: do not require an $id)
-      'table' => [
-        'add' =>      ['platformAdmin', 'coAdmin'],
-        'index' =>    ['platformAdmin', 'coAdmin'],
-        'status' =>   ['platformAdmin', 'coAdmin']
+      'api-ms' => [
+        'provision' =>  ['platform', 'privileged'],
       ]
     ]);
   }
