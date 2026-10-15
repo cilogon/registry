@@ -33,6 +33,8 @@ use App\Lib\Enum\PermittedCharactersEnum;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use CoreAssigner\Lib\Enum\CollisionModeEnum;
+use InvalidArgumentException;
+use Random\RandomException;
 
 class FormatAssignersTable extends Table {
   use \App\Lib\Traits\AutoViewVarsTrait;
@@ -196,11 +198,11 @@ class FormatAssignersTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  int                $formatAssignerId Format Assigner ID
    * @param  string             $sequenced        Sequenced string as returned by selectSequences()
-   * @param  CollisionModeEnum  $collisionMode    Collision number assignment mode
+   * @param  string             $collisionMode    Collision number assignment mode
    * @param  int                $min              Minimum number to assign
-   * @param  int                $max              Maximum number to assign (for Random mode only)
+   * @param  int|null           $max              Maximum number to assign (for Random mode only)
    * @return string                               Candidate string, possibly with a collision number assigned
-   * @throws InvalidArgumentException
+   * @throws InvalidArgumentException|RandomException
    */
   
   protected function assignCollisionNumber(
@@ -220,25 +222,36 @@ class FormatAssignersTable extends Table {
       switch($collisionMode) {
         case CollisionModeEnum::Random:
           // Simply pick a number between $min and $max.
+          $lmax = mt_getrandmax();
 
-          $lmax = $max;
-          
-          if(!$max) {
-            // We have to be a bit careful with min and max vs mt_rand(). substituteParameters()
-            // will generate something like (%05.5s). If no explicit $max is configured by the
-            // admin, we used mt_getrandmax. However, that could generate a string like 172500398.
-            // We take the first (eg) 5 digits, which are "17250". If $min is 20000, we'll
-            // incorrectly assign a collision number outside the permitted range (CO-1933).
-            
-            // Pull the width out of the string
-            $width = (int)rtrim(ltrim(strstr($matches[0], '.'), "."), "s");
-            
-            // And calculate a new max
-            $lmax = (10 ** $width) - 1;
+          if(!empty($max) && $max < $lmax) {
+            // Smaller configured Maximum
+            $lmax = $max;
           }
 
-          $n = random_int($min, $lmax);
-          return sprintf($sequenced, $n);
+          if(str_contains($sequenced, '%s')) {
+            // Unbounded collision placeholder
+            return sprintf($sequenced, random_int($min, $lmax));
+          } elseif(preg_match('/\%[0-9.]+s/', $sequenced, $matches)) {
+            // We have to be a bit careful with min and max. substituteParameters()
+            // will generate something like (%05.5s). If no explicit $max is configured by the
+            // admin, we default to mt_getrandmax. However, that could generate a string like 172500398.
+            // When formatted with width truncation, taking the first (eg) 5 digits ("17250")
+            // could result in a collision number outside the permitted range if $min is 20000 (CO-1933).
+
+            // Pull the width out of the string
+            $width = (int)rtrim(ltrim(strstr($matches[0], '.'), '.'), 's');
+            $wmax = (10 ** $width) - 1;
+
+            if($wmax < $lmax) {
+              // Smaller implicit maximum from width
+              $lmax = $wmax;
+            }
+
+            return sprintf($sequenced, random_int($min, $lmax));
+          } else {
+            return $sequenced;
+          }
           break;
         case CollisionModeEnum::Sequential:
           return sprintf($sequenced, $this->FormatAssignerSequences->next(
@@ -247,7 +260,7 @@ class FormatAssignersTable extends Table {
                                        start: $min));
           break;
         default:
-          throw new InvalidArgumentException(__d('error', 'unknown', $algorithm));
+          throw new InvalidArgumentException(__d('error', 'unknown', $collisionMode));
           break;
       }
     } else {
@@ -263,7 +276,7 @@ class FormatAssignersTable extends Table {
    * @since  COmanage Registry v5.0.0
    * @param  string                   $base       Base string as returned by substituteParameters
    * @param  int                      $iteration  Iteration number (between 0 and 9)
-   * @param  PermittedCharactersEnum  $permitted  Acceptable characters for substituted parameters
+   * @param  string                   $permitted  Acceptable characters for substituted parameters
    * @return string                               Format with sequenced segments selected
    */
   
