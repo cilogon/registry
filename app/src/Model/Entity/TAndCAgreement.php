@@ -46,14 +46,15 @@ class TAndCAgreement extends Entity {
   /**
    * Get the URL for this Terms and Conditions Agreement.
    *
-   * @since  COmanage Registry v5.3.0
    * @return string|null   URL
+   * @throws \Exception
+   * @since  COmanage Registry v5.3.0
    */
 
   protected function _getUrl(): ?string {
     // If the associated TermsAndConditions is already loaded, check it first
     if(!empty($this->terms_and_conditions)) {
-      return $this->terms_and_conditions->url;
+      return $this->terms_and_conditions->document_url;
     }
 
     // Otherwise look up the Terms and Conditions if terms_and_conditions_id is present
@@ -61,7 +62,7 @@ class TAndCAgreement extends Entity {
       try {
         $TermsAndConditions = TableRegistry::getTableLocator()->get('TermsAndConditions');
 
-        return $TermsAndConditions->get($this->terms_and_conditions_id)->url;
+        return $TermsAndConditions->get($this->terms_and_conditions_id)->document_url;
       } catch(\Exception $e) {
         // We will rethrow here to facilitate debugging
         if (Configure::read('debug')) {

@@ -49,6 +49,6 @@ $rowActions = [
   [
     'icon'  => 'arrow_outward',
     'label' => __d('operation', 'visit.tandc'),
-    'callbackUrl' => static fn($entity) => $entity->url
+    'callbackUrl' => static fn($entity) => $entity->document_url
   ]
 ];

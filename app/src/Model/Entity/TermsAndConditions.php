@@ -43,17 +43,21 @@ class TermsAndConditions extends Entity {
     'slug' => false, 
   ];
 
+  protected array $_virtual = [
+    'document_url'
+  ];
+
   /**
-   * Get the URL for this Terms and Conditions as a virtual field.
+   * Get the resolved document URL for this Terms and Conditions as a virtual field.
    *
    * @param string|null $url Existing URL field value
    * @return string|null      URL
    * @throws \Exception
    * @since  COmanage Registry v5.3.0
    */
-  protected function _getUrl(?string $url = null): ?string {
-    if(!empty($url)) {
-      return $url;
+  protected function _getDocumentUrl(?string $url = null): ?string {
+    if(!empty($this->url)) {
+      return $this->url;
     }
 
     if(!empty($this->mostly_static_page?->url)) {
