@@ -51,6 +51,8 @@ trait TableMetaTrait {
    * relations. This is intended for core models (not Pluggable models) where a Plugin
    * might declare a foreign key, eg SshKeys belongsTo People.
    * 
+   * Non-Table Entry Points (Jobs) may declare relations statically via getHasManyPluginRelations().
+   *
    * @since  COmanage Registry v5.3.0
    */
 
@@ -73,36 +75,54 @@ trait TableMetaTrait {
     $activeModels = $Plugins->getActivePluginModels('all');
 
     foreach(array_keys($activeModels) as $entryPointModelName) {
-      // Not all Entry Point Models are Tables (eg: Jobs), so make sure we don't get an Auto-Table.
-      if(!\Cake\Core\App::className($entryPointModelName, 'Model/Table', 'Table')) {
+      if(\Cake\Core\App::className($entryPointModelName, 'Model/Table', 'Table')) {
+        $PluginTable = TableRegistry::getTableLocator()->get($entryPointModelName);
+
+        if(method_exists($PluginTable, 'getHasManyPluginRelations')) {
+          $this->bindHasManyPluginRelations($PluginTable->getHasManyPluginRelations($tableName));
+        }
+
         continue;
       }
 
-      $PluginTable = TableRegistry::getTableLocator()->get($entryPointModelName);
+      // Non-Table Entry Points (Jobs) may declare relations via a static method,
+      // so we don't instantiate them here.
+      $jobClass = '\\' . StringUtilities::pluginPlugin($entryPointModelName)
+        . \App\Model\Table\JobsTable::ENTRY_POINT_NAMESPACE . '\\'
+        . StringUtilities::pluginModel($entryPointModelName);
 
-      if(method_exists($PluginTable, 'getHasManyPluginRelations')) {
-        $pluginRelations = $PluginTable->getHasManyPluginRelations($tableName);
-
-        foreach($pluginRelations as $r) {
-          // We allow an alias to be configured in order to define more than one relation
-          // to the same Table
-
-          // targetModel is (eg) 'CoreEnroller.BasicAttributeCollectors
-          // alias is (eg) 'EmailAddressTypes'
-          $alias = $r['alias'] ?? $r['targetModel'];
-          $config = $r['config'] ?? [];
-
-          if($alias != $r['targetModel']) {
-            $config['className'] = $r['targetModel'];
-          }
-
-          // When $alias is of Plugin.Model form, Cake only uses the Model for the alias
-          if(!$this->associations()->has(StringUtilities::pluginModel($alias))) {
-            $this->hasMany($alias, $config);
-          }
-          // else no need to rebind the same association
-        }
+      if(class_exists($jobClass) && method_exists($jobClass, 'getHasManyPluginRelations')) {
+        $this->bindHasManyPluginRelations($jobClass::getHasManyPluginRelations($tableName));
       }
+    }
+  }
+
+  /**
+   * Bind hasMany relations declared by a Plugin Entry Point Model.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  array  $pluginRelations  Relations, as returned by getHasManyPluginRelations()
+   */
+
+  private function bindHasManyPluginRelations(array $pluginRelations): void {
+    foreach($pluginRelations as $r) {
+      // We allow an alias to be configured in order to define more than one relation
+      // to the same Table
+
+      // targetModel is (eg) 'CoreEnroller.BasicAttributeCollectors
+      // alias is (eg) 'EmailAddressTypes'
+      $alias = $r['alias'] ?? $r['targetModel'];
+      $config = $r['config'] ?? [];
+
+      if($alias != $r['targetModel']) {
+        $config['className'] = $r['targetModel'];
+      }
+
+      // When $alias is of Plugin.Model form, Cake only uses the Model for the alias
+      if(!$this->associations()->has(StringUtilities::pluginModel($alias))) {
+        $this->hasMany($alias, $config);
+      }
+      // else no need to rebind the same association
     }
   }
 

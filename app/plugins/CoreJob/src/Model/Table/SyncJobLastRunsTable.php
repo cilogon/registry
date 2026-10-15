@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry Sync Jobs Table
+ * COmanage Registry Sync Job Last Runs Table
  *
  * Portions licensed to the University Corporation for Advanced Internet
  * Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -27,38 +27,61 @@
 
 declare(strict_types=1);
 
-namespace CoreEnroller\Model\Table;
+namespace CoreJob\Model\Table;
 
 use Cake\ORM\Table;
+use Cake\Validation\Validator;
 
-// We don't really need a SyncJobsTable since Jobs don't have an MVC interface,
-// but we need to declare our foreign keys.
-
-class SyncJobsTable extends Table {
+class SyncJobLastRunsTable extends Table {
+  use \App\Lib\Traits\CoLinkTrait;
+  use \App\Lib\Traits\PrimaryLinkTrait;
   use \App\Lib\Traits\TableMetaTrait;
+  use \App\Lib\Traits\ValidationTrait;
 
   /**
    * Perform Cake Model initialization.
    *
-   * @since  COmanage Registry v5.1.0
+   * @since  COmanage Registry v5.3.0
    * @param  array  $config Configuration options passed to constructor
    */
 
   public function initialize(array $config): void {
     parent::initialize($config);
 
-    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Configuration);
+    $this->setTableType(\App\Lib\Enum\TableTypeEnum::Artifact);
 
     // Define associations
     $this->belongsTo('ExternalIdentitySources');
     $this->belongsTo('Jobs');
-    
-    $this->hasManyPlugins([
-      'Jobs' => [
-        [
-          'targetModel' => 'CoreEnroller.BasicAttributeCollectors'
-        ]
-      ]
+
+    $this->setPrimaryLink('external_identity_source_id');
+    $this->setRequiresCO(true);
+  }
+
+  /**
+   * Set validation rules.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  Validator $validator Validator
+   * @return Validator            Validator
+   */
+
+  public function validationDefault(Validator $validator): Validator {
+    $validator->add('external_identity_source_id', [
+      'content' => ['rule' => 'isInteger']
     ]);
+    $validator->notEmptyString('external_identity_source_id');
+
+    $validator->add('job_id', [
+      'content' => ['rule' => 'isInteger']
+    ]);
+    $validator->allowEmptyString('job_id');
+
+    $validator->add('start_time', [
+      'content' => ['rule' => 'dateTime']
+    ]);
+    $validator->allowEmptyString('start_time');
+
+    return $validator;
   }
 }

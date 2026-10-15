@@ -50,6 +50,10 @@ class JobsTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
   use \App\Lib\Traits\SearchFilterTrait;
+
+  // Namespace (not filesystem path) of Job Entry Point Models within a plugin,
+  // so this must use namespace separators regardless of OS (not DS).
+  public const ENTRY_POINT_NAMESPACE = '\Lib\Jobs';
   
   /**
    * Perform Cake Model initialization.
@@ -496,7 +500,7 @@ class JobsTable extends Table {
     }
 
     // First create an instance of the Entry Point Model
-    $pClass = $this->instantiatePluginModel($job->plugin, '\Lib\Jobs');
+    $pClass = $this->instantiatePluginModel($job->plugin, self::ENTRY_POINT_NAMESPACE);
 
     $JobHistoryRecords = TableRegistry::getTableLocator()->get('JobHistoryRecords');
 
@@ -732,7 +736,7 @@ class JobsTable extends Table {
   protected function validateJobParameters(string $plugin, int $coId, array $params): array {
     $ret = [];
 
-    $pClass = $this->instantiatePluginModel($plugin, '\Lib\Jobs');
+    $pClass = $this->instantiatePluginModel($plugin, self::ENTRY_POINT_NAMESPACE);
 
     // Validate each provided parameter
 

@@ -111,6 +111,11 @@ trait PluggableModelTrait {
     $models = $Plugins->getActivePluginModels($this->getPluggableModelType());
 
     foreach($models as $plugin) {
+      // Not all Entry Point Models are Tables (eg: Jobs), so make sure we don't get an Auto-Table.
+      if(!\Cake\Core\App::className($plugin, 'Model/Table', 'Table')) {
+        continue;
+      }
+
       // Derive association alias from "Plugin.Model"
       [$pluginName, $modelAlias] = explode('.', $plugin, 2);
 

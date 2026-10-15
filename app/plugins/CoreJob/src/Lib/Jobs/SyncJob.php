@@ -29,10 +29,13 @@ declare(strict_types = 1);
 
 namespace CoreJob\Lib\Jobs;
 
+use App\Model\Entity\Job;
+use App\Model\Table\JobHistoryRecordsTable;
+use App\Model\Table\JobsTable;
 use Cake\ORM\TableRegistry;
 use \App\Lib\Enum\JobStatusEnum;
 use \App\Lib\Enum\SyncModeEnum;
-use \App\Lib\Util\TableUtilities;
+use Cake\I18n\DateTime;
 
 class SyncJob {
   use \App\Lib\Traits\LabeledLogTrait;
@@ -72,6 +75,30 @@ class SyncJob {
         'required'  => false
       ]
     ];
+  }
+
+  /**
+   * Obtain the hasMany relations this Entry Point Model declares from core models
+   * to plugin tables, used by TableMetaTrait::bindPluginRelations().
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  string  $modelName  Target core model name
+   * @return array               Array of plugin relation definitions
+   */
+
+  public static function getHasManyPluginRelations(string $modelName): array {
+    $relations = [
+      'ExternalIdentitySources' => [[
+        'targetModel' => 'CoreJob.SyncJobLastRuns',
+        'config' => ['dependent' => true, 'cascadeCallbacks' => true]
+      ]],
+      'Jobs' => [[
+        'targetModel' => 'CoreJob.SyncJobLastRuns',
+        'config' => ['dependent' => true, 'cascadeCallbacks' => true]
+      ]]
+    ];
+
+    return $relations[$modelName] ?? [];
   }
 
   /**
@@ -311,7 +338,6 @@ class SyncJob {
   protected function lastStart(
     int $eisId
   ): int {
-    // There's no formal model, but autovivification should suffice
     $LastRunTable = TableRegistry::getTableLocator()->get('CoreJob.SyncJobLastRuns');
 
     $lastRun = $LastRunTable->find()
@@ -383,19 +409,22 @@ class SyncJob {
     $lastRun = $LastRunTable->find()
                             ->where(['external_identity_source_id' => $this->runContext->eis->id])
                             ->first();
-    
+
+    $startTime = DateTime::createFromTimestamp($curStart);
+
     if($lastRun) {
       // Update the existing row
-      $lastRun->start_time = $curStart;
+      $lastRun->start_time = $startTime;
     } else {
       $lastRun = $LastRunTable->newEntity([
         'external_identity_source_id' => $this->runContext->eis->id,
         'job_id'                      => $this->runContext->job->id,
-        'start_time'                  => $curStart
+        'start_time'                  => $startTime
       ]);
     }
 
-    $LastRunTable->save($lastRun);
+    // Save the last run
+    $LastRunTable->saveOrFail($lastRun);
 
     // Call the plugin if it has anything it wants to do
 
@@ -592,7 +621,11 @@ class SyncJob {
     } else {
       // Maybe update % complete
 
-      $processed = $this->runContext->created + $this->runContext->unchanged + $this->runContext->updated + $this->runContext->errors;
+      $processed = $this->runContext->created
+        + $this->runContext->unchanged
+        + $this->runContext->updated
+        + $this->runContext->errors;
+
       $newPct = ($this->runContext->count > 0
                  ? (int)round(($processed * 100) / $this->runContext->count)
                  : 0);
