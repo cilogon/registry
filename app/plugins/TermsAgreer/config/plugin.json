@@ -27,7 +27,8 @@
         },
         "indexes": {
           "petition_agreements_i1": { "columns": [ "petition_id" ] },
-          "petition_agreements_i2": { "needed": false, "columns": [ "terms_and_conditions_id" ] }
+          "petition_agreements_i2": { "needed": false, "columns": [ "terms_and_conditions_id" ] },
+          "petition_agreements_i3": { "needed": false, "columns": [ "agreement_collector_id" ] }
         }
       }
     }

@@ -17,7 +17,8 @@
           "table_prefix": { "type": "string", "size": 32 }
         },
         "indexes": {
-          "sql_provisioners_i1": { "columns": [ "provisioning_target_id" ]}
+          "sql_provisioners_i1": { "columns": [ "provisioning_target_id" ]},
+          "sql_provisioners_i2": { "needed": false, "columns": [ "server_id" ]}
         }
       },
       "sql_sources": {

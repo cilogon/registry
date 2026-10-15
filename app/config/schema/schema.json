@@ -695,7 +695,8 @@
         "notifications_i4": { "columns": [ "recipient_group_id" ] },
         "notifications_i5": { "columns": [ "source" ] },
         "notifications_i6": { "needed": false, "columns": [ "actor_person_id" ] },
-        "notifications_i7": { "needed": false, "columns": [ "resolver_person_id" ] }
+        "notifications_i7": { "needed": false, "columns": [ "resolver_person_id" ] },
+        "notifications_i8": { "needed": false, "columns": [ "message_template_id" ] }
       }
     },
 
@@ -943,7 +944,8 @@
       "indexes": {
         "identifier_assignments_i1": { "columns": [ "co_id" ] },
         "identifier_assignments_i2": { "needed": false, "columns": [ "email_address_type_id" ] },
-        "identifier_assignments_i3": { "needed": false, "columns": [ "identifier_type_id" ] }
+        "identifier_assignments_i3": { "needed": false, "columns": [ "identifier_type_id" ] },
+        "identifier_assignments_i4": { "needed": false, "columns": [ "group_id" ] }
       },
       "clonable": true
     },

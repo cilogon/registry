@@ -35,7 +35,13 @@
           "telephone_number_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } }
         },
         "indexes": {
-          "orcid_sources_i1": { "columns": [ "external_identity_source_id" ] }
+          "orcid_sources_i1": { "columns": [ "external_identity_source_id" ] },
+          "orcid_sources_i2": { "needed": false, "columns": [ "server_id" ] },
+          "orcid_sources_i3": { "needed": false, "columns": [ "default_affiliation_type_id" ] },
+          "orcid_sources_i4": { "needed": false, "columns": [ "address_type_id" ] },
+          "orcid_sources_i5": { "needed": false, "columns": [ "email_address_type_id" ] },
+          "orcid_sources_i6": { "needed": false, "columns": [ "name_type_id" ] },
+          "orcid_sources_i7": { "needed": false, "columns": [ "telephone_number_type_id" ] }
         }
       },
       "orcid_tokens": {

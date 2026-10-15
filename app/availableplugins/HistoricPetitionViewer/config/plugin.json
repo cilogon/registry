@@ -21,7 +21,8 @@
                 },
                 "indexes": {
                     "petition_hist_attrs_i1": { "columns": [ "petition_id" ] },
-                    "petition_hist_attrs_i2": { "columns": [ "attribute" ] }
+                    "petition_hist_attrs_i2": { "columns": [ "attribute" ] },
+                    "petition_hist_attrs_i3": { "needed": false, "columns": [ "historic_petition_viewer_id" ] }
                 }
             },
             "petition_meta_hist_recs": {
@@ -64,7 +65,11 @@
                     "petition_meta_hist_recs_i1": { "columns": [ "petition_id" ] },
                     "petition_meta_hist_recs_i2": { "columns": [ "enrollee_person_role_id" ] },
                     "petition_meta_hist_recs_i3": { "columns": [ "sponsor_person_id" ] },
-                    "petition_meta_hist_recs_i4": { "columns": [ "approver_person_id" ] }
+                    "petition_meta_hist_recs_i4": { "columns": [ "approver_person_id" ] },
+                    "petition_meta_hist_recs_i5": { "needed": false, "columns": [ "enrollment_flow_id" ] },
+                    "petition_meta_hist_recs_i6": { "needed": false, "columns": [ "historic_petition_viewer_id" ] },
+                    "petition_meta_hist_recs_i7": { "needed": false, "columns": [ "enrollee_external_identity_id" ] },
+                    "petition_meta_hist_recs_i8": { "needed": false, "columns": [ "archived_external_identity_id" ] }
                 }
             },
             "historic_petition_viewers": {

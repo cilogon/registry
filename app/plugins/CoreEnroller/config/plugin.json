@@ -91,7 +91,8 @@
           "hidden": { "type": "boolean" }
         },
         "indexes": {
-          "enrollment_attributes_i1": { "columns": [ "attribute_collector_id" ] }
+          "enrollment_attributes_i1": { "columns": [ "attribute_collector_id" ] },
+          "enrollment_attributes_i2": { "needed": false, "columns": [ "attribute_type" ] }
         }
       },
       "identifier_collectors": {

@@ -64,7 +64,12 @@
           "lookaside_file": { "type": "path" }
         },
         "indexes": {
-          "env_sources_i1": { "columns": [ "external_identity_source_id" ] }
+          "env_sources_i1": { "columns": [ "external_identity_source_id" ] },
+          "env_sources_i2": { "needed": false, "columns": [ "default_affiliation_type_id" ] },
+          "env_sources_i3": { "needed": false, "columns": [ "address_type_id" ] },
+          "env_sources_i4": { "needed": false, "columns": [ "email_address_type_id" ] },
+          "env_sources_i5": { "needed": false, "columns": [ "name_type_id" ] },
+          "env_sources_i6": { "needed": false, "columns": [ "telephone_number_type_id" ] }
         }
       },
       "env_source_identities": {
