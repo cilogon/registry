@@ -1227,8 +1227,8 @@ table.index-table .with-field-actions .form-check {
   padding: 1rem;
   overflow-y: auto;
 }
-#bulk-actions-modal .modal-body h3.data-table-modal-header {
-  margin-bottom: -1.75em;
+#bulk-actions-modal .modal-body div.dt-search {
+  margin-top: -2.5rem;
 }
 #bulk-actions .progress {
   width: 100%;

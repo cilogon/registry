@@ -112,7 +112,6 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
     && empty($action_args)
   ) {
     $action_args = [];
-    $action_args['vv_attr_id'] =  $vv_user['username'];
     $action_args['vv_actions'] = [];
 
     // Include the Add link to actions menu unless suppressed by the page
@@ -199,17 +198,18 @@ if(!empty($subnav) && file_exists(ROOT . DS . 'templates' . DS . 'Standard/subna
         ];
       }
     }
+  }
+  
+  if(!empty($bulkActions)) {
+    $action_args['vv_bulk_actions'] = $bulkActions;
     // Declare the type of actions being sent so we can produce the bulk actions switch only for top-links.
-    // XXX Bulk actions are currently being provided if a user has "add" permissions. Review this.
     $action_args['vv_actions_type'] = 'top-links';
-    
-    if(!empty($bulkActions)) {
-      $action_args['vv_bulk_actions'] = $bulkActions;
-    }
   }
   ?>
 
-  <?php if(!empty($action_args['vv_actions']) || !empty($action_args['vv_people_picker'])): ?>
+  <?php if(!empty($action_args['vv_actions']) 
+    || !empty($action_args['vv_people_picker'])
+    || !empty($action_args['vv_bulk_actions'])): ?>
     <div class="field-actions top-links">
       <?= $this->element('menuAction', $action_args); ?>
     </div>

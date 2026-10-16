@@ -333,7 +333,7 @@
     // Bulk edit select all checkbox
     $('#bulk-action-select-all').click(function() {
       if($(this).is(":checked")) {
-        $('table.index-table.bulk-edit-mode .form-check-input').prop('checked', true);
+        $('table.index-table.bulk-edit-mode .form-check-input:not(:disabled)').prop('checked', true);
       } else {
         $('table.index-table.bulk-edit-mode .form-check-input').prop('checked', false);
       }
