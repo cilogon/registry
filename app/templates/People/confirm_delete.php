@@ -97,7 +97,9 @@ declare(strict_types = 1);
     <?php if(!empty($vv_person_cluster_status)): ?>
     <ul>
       <?php foreach($vv_person_cluster_status as $cs): ?>
-      <li><?= __d('information', 'People.delete.cluster', [$cs['cluster']->description]) ?></li>
+        <?php if($cs['status'] != \App\Lib\Enum\ClusterStatusEnum::NotCreated): ?>
+        <li><?= __d('information', 'People.delete.cluster', [$cs['cluster']->description]) ?></li>
+        <?php endif; ?>
       <?php endforeach; ?>
     </ul>
     <?php endif; // vv_person_cluster_status ?>
