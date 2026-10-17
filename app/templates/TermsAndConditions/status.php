@@ -49,7 +49,7 @@ use App\Lib\Util\StringUtilities;
       </tr>
     </thead>
 
-    </tbody>
+    <tbody>
       <?php foreach($vv_tandc_statuses as $t): ?>
       <tr>
         <td class="with-field-actions">
@@ -64,45 +64,53 @@ use App\Lib\Util\StringUtilities;
             if($t['status'] != TAndCStatusEnum::Agreed) {
               // T&C that are not current can be agreed to on behalf by an admin
 
-              $action_args['vv_actions'][] = [
-                'order' => $this->Menu->getMenuOrder('Default'),
-                'icon' => 'signature',
-                'url' => [
-                  'controller' => 'terms_and_conditions',
-                  'action' => 'proxy',
-                  $t['tandc']->id,
-                  '?' => [
-                    'person_id' => $vv_person_id
+              // We hardcode a check for CO Admin here (and below) because $vv_permissions
+              // will only include table level permissions and not entity level permissions,
+              // since there is no entity ID in the status view and we can't call
+              // calculatePermissionsForResultSet since we don't have a real Result Set.
+              if(isset($vv_user_roles['co']) && $vv_user_roles['co']) {
+                $action_args['vv_actions'][] = [
+                  'order' => $this->Menu->getMenuOrder('Default'),
+                  'icon' => 'signature',
+                  'url' => [
+                    'controller' => 'terms_and_conditions',
+                    'action' => 'proxy',
+                    $t['tandc']->id,
+                    '?' => [
+                      'person_id' => $vv_person_id
+                    ]
+                  ],
+                  'label' => __d('operation', 'TermsAndConditions.proxy'),
+                  'confirm' => [
+                    'dg_body_txt' => __d('operation', 'TermsAndConditions.proxy.confirm'),
+                    'dg_confirm_btn' => __d('operation', 'confirm')
                   ]
-                ],
-                'label' => __d('operation', 'TermsAndConditions.proxy'),
-                'confirm' => [
-                  'dg_body_txt' => __d('operation', 'TermsAndConditions.proxy.confirm'),
-                  'dg_confirm_btn' => __d('operation', 'confirm')
-                ]
-              ];
+                ];
+              }
             }
             
             if($t['status'] != TAndCStatusEnum::NotAgreed) {
               // T&C that are Agreed, Expired, or Outdated can be revoked
 
-              $action_args['vv_actions'][] = [
-                'order' => $this->Menu->getMenuOrder('Default'),
-                'icon' => 'contract_delete',
-                'url' => [
-                  'controller' => 'terms_and_conditions',
-                  'action' => 'revoke',
-                  $t['tandc']->id,
-                  '?' => [
-                    'person_id' => $vv_person_id
+              if(isset($vv_user_roles['co']) && $vv_user_roles['co']) {
+                $action_args['vv_actions'][] = [
+                  'order' => $this->Menu->getMenuOrder('Default'),
+                  'icon' => 'contract_delete',
+                  'url' => [
+                    'controller' => 'terms_and_conditions',
+                    'action' => 'revoke',
+                    $t['tandc']->id,
+                    '?' => [
+                      'person_id' => $vv_person_id
+                    ]
+                  ],
+                  'label' => __d('operation', 'TermsAndConditions.revoke'),
+                  'confirm' => [
+                    'dg_body_txt' => __d('operation', 'TermsAndConditions.revoke.confirm'),
+                    'dg_confirm_btn' => __d('operation', 'confirm')
                   ]
-                ],
-                'label' => __d('operation', 'TermsAndConditions.revoke'),
-                'confirm' => [
-                  'dg_body_txt' => __d('operation', 'TermsAndConditions.revoke.confirm'),
-                  'dg_confirm_btn' => __d('operation', 'confirm')
-                ]
-              ];
+                ];
+              }
             }
 
             if(!empty($action_args['vv_actions'])) {

@@ -116,11 +116,13 @@ class TermsAndConditionsTable extends Table {
           'agree' =>        ['coMember'],
           'delete' =>       ['platformAdmin', 'coAdmin'],
           'edit' =>         ['platformAdmin', 'coAdmin'],
-          // We specifically exclude platform admins from proxying because
-          // they may not be registered as People in the CO, and we won't be
-          // able to record the actor foreign key for audit purposes.
+          // We specifically exclude platform admins from proxying and revocation
+          // because they may not be registered as People in the CO, and we won't
+          // be able to record the actor foreign key for audit purposes.
+          // Note these permissions are also hardcoded in status.php, in case they
+          // ever need updating.
           'proxy' =>        ['coAdmin'],
-          'revoke' =>       ['platformAdmin', 'coAdmin'],
+          'revoke' =>       ['coAdmin'],
           'view' =>         ['platformAdmin', 'coAdmin']
         ],
         // Actions that operate over a table (ie: do not require an $id)
