@@ -88,7 +88,7 @@ class PersonSelectorsController extends StandardEnrollerController {
         $data = $this->getRequest()->getData();
 
         if(!empty($data['enrollee_person_id'])) {
-          if($cfg->confirmation_page_mode == PersonSelectorConfirmationModeEnum::Full
+          if($cfg->confirmation_page_mode == PersonSelectorConfirmationModeEnum::Skip
              || (!empty($data['confirm']) && $data['confirm'] === 'yes')) {
             // We're ready to update the Petiiton and move on to the next step
 
