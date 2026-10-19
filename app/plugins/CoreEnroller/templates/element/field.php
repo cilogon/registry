@@ -37,6 +37,8 @@ $options = [];
 // Get the static configuration of my attribute
 $supportedAttributes = $this->Petition->getSupportedEnrollmentAttribute($attr->attribute);
 
+$tz = $this->get('vv_tz') ?? new \DateTimeZone(date_default_timezone_get());
+
 // Do we have a default value configured?
 // Either a value or an Environmental Variable,
 // Each default value is mutually exclusive to the rest. We do not have to worry about a conflict.
@@ -44,6 +46,14 @@ $supportedAttributes = $this->Petition->getSupportedEnrollmentAttribute($attr->a
 // NOTE: name/address/telephoneNumber are MVEAs and are rendered as grouped sub-fields.
 // Their per-component defaults must be applied at the sub-field level, not here.
 $options['default'] = match(true) {
+  $attr->attribute === 'valid_from' && !empty($attr->default_value_datetime)
+    => $attr->default_value_datetime,
+  $attr->attribute === 'valid_from' && empty($attr->default_value_datetime)
+    => \Cake\I18n\FrozenTime::now($tz)->startOfDay(),
+  $attr->attribute === 'valid_through' && !empty($attr->default_value) && is_numeric($attr->default_value)
+    => \Cake\I18n\FrozenTime::now($tz)->addDays((int)$attr->default_value)->setTime(23, 59, 59),
+  $attr->attribute === 'valid_through' && empty($attr->default_value)
+    => \Cake\I18n\FrozenTime::now($tz)->setTime(23, 59, 59),
   isset($attr->default_value)                          => $attr->default_value,
   isset($attr->default_value_env_name)
   && $attr->attribute !== 'name'
@@ -121,7 +131,11 @@ print match(true) {
   // HIDDEN Field
   // We print directly, we do not delegate to the element for further processing
   // In case this is a hidden field, we need to get only the value
-  $attr->hidden && $hidden => $this->Form->hidden($formArguments['fieldName'], ['value' => $options['default']]),
+  $attr->hidden && $hidden => $this->Form->hidden($formArguments['fieldName'], [
+    'value' => $options['default'] instanceof \DateTimeInterface
+      ? $options['default']->i18nFormat('yyyy-MM-dd HH:mm:ss')
+      : $options['default']
+  ]),
   // For the case of xxx_person_id fields, we will render the People a Picker element.
   str_ends_with($attr->attribute, 'person_id') =>  $this->element('CoreEnroller.spa-field', [
     'vueElementName' => 'peopleAutocomplete',

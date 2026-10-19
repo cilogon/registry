@@ -332,9 +332,9 @@ class FieldHelper extends Helper {
       !empty($queryParams[$fieldName])                                   => FrozenTime::parse($queryParams[$fieldName]),
       // Petition View/ Value saved as string
       isset($fieldArgs['default']) && is_string($fieldArgs['default'])   => FrozenTime::parse($fieldArgs['default']),
-      // Petition View/ Value saved a FronzenTime
+      // Petition View/ Value saved as FrozenTime or DateTime
       isset($fieldArgs['default'])
-      && is_a($fieldArgs['default'], 'Cake\I18n\FrozenTime')             => $fieldArgs['default'],
+      && ($fieldArgs['default'] instanceof \DateTimeInterface || is_a($fieldArgs['default'], 'Cake\I18n\FrozenTime')) => $fieldArgs['default'],
       // Table record/ Retrieve it from the Entity object
       default                                                            => $this->getEntity()?->$fieldName,
     };
@@ -349,7 +349,7 @@ class FieldHelper extends Helper {
     // to specify their types in fields.inc.
     $pickerTypeName = $fieldArgs['fieldNameAlias'] ?? $fieldName;
     $pickerType = match ($pickerTypeName) {
-      'valid_from' => DateTypeEnum::FromTime,
+      'valid_from', 'default_value_datetime' => DateTypeEnum::FromTime,
       'valid_through' => DateTypeEnum::ThroughTime,
       default => $dateType
     };
@@ -363,15 +363,21 @@ class FieldHelper extends Helper {
     $coptions['id'] = str_replace('_', '-', $fieldName);
 
 
+    $tz = $this->getView()->get('vv_tz');
+
     // Default the picker date to today
-    $now = FrozenTime::now();
+    $now = FrozenTime::now($tz);
+    if($pickerType === DateTypeEnum::ThroughTime) {
+      $now = $now->setTime(23, 59, 59);
+    } else {
+      $now = $now->startOfDay();
+    }
     $pickerDate = $now->i18nFormat($dateFormat);
 
     // Get the existing values, if present
     if($date_object !== null) {
       if($date_object instanceof \Cake\I18n\DateTime) {
         // Adjust the time back to the user's timezone
-        $tz = $this->getView()->get('vv_tz');
         if($tz) {
           $date_object = $date_object->setTimezone($tz);
         }

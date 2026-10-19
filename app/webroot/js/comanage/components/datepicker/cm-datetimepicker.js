@@ -66,7 +66,7 @@ export default {
           // A sanity check to see if someone messed up the field.
           // The pattern is also enforced by the browser via the "pattern" attribute.
           if(dateTime[1] === undefined || dateTime[1] === '') {
-            dateTime[1] = '00:00:00';
+            dateTime[1] = (this.type == 'throughtime') ? '23:59:59' : '00:00:00';
           }
           dateField.value = dateTime.join(' ');  
         }
@@ -121,17 +121,17 @@ export default {
       let minutesAndSecondsRegex = /^(0\d|[1-5]\d)$/;
       if(time[1] === undefined) {
         // The minutes are missing (including the colon). Restore them.
-        time.push('00');
+        time.push(this.type == 'throughtime' ? '59' : '00');
       } else if(!minutesAndSecondsRegex.test(time[1])) {
-        // The minutes are invalid. Set them to zero.
-        time[1] = '00';
+        // The minutes are invalid. Set them to zero or 59.
+        time[1] = (this.type == 'throughtime') ? '59' : '00';
       }
       if(time[2] === undefined) {
         // The seconds are missing (including the colon). Restore them.
-        time.push('00');
+        time.push(this.type == 'throughtime' ? '59' : '00');
       } else if(!minutesAndSecondsRegex.test(time[2])) {
-        // The seconds are invalid. Set them to zero.
-        time[2] = '00';
+        // The seconds are invalid. Set them to zero or 59.
+        time[2] = (this.type == 'throughtime') ? '59' : '00';
       }
       dateTime[1] = time.join(':');
       dateField.value = dateTime.join(' ');
@@ -139,10 +139,16 @@ export default {
     },
     formatToday() {
       const today = new Date();
-      // zero out the time so we can set it cleanly
-      today.setHours(0);
-      today.setMinutes(0);
-      today.setSeconds(0);
+      if(this.type == 'throughtime') {
+        today.setHours(23);
+        today.setMinutes(59);
+        today.setSeconds(59);
+      } else {
+        // zero out the time so we can set it cleanly
+        today.setHours(0);
+        today.setMinutes(0);
+        today.setSeconds(0);
+      }
       const formattedToday = this.formatDate(today);
       return formattedToday.split(' ');
     },
