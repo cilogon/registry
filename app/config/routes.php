@@ -48,17 +48,17 @@ use Cake\Routing\Router;
 $routes->setRouteClass(DashedRoute::class);
 
 /*
- * Register all Middleware available to the routes 
+ * Register all Middleware available to the routes
  */
 
-// CSRF Token Protection  
+// CSRF Token Protection
 $routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
   'httponly' => true,
   'secure' => true,
   'cookieName' => 'csrfToken',
   'accessibleHeaders' => ['X-CSRF-Token'],
-]));  
-  
+]));
+
 // BodyParserMiddleware will automatically parse JSON bodies, but we only
 // want that for API transactions, so we only apply it to the /api scope.
 $routes->registerMiddleware('bodyparser', new BodyParserMiddleware());
@@ -68,10 +68,10 @@ $routes->registerMiddleware('postMaxSizeCheck', new \App\Middleware\PostMaxSizeC
 
 /*
  * Registry routes
- */ 
+ */
 
 //// API routes
-$routes->scope('/api/v2', function (RouteBuilder $builder) {  
+$routes->scope('/api/v2', function (RouteBuilder $builder) {
   /*
    * Apply a middleware to the current route scope.
    * Requires middleware to be registered through `Application::routes()` with `registerMiddleware()`
@@ -243,7 +243,7 @@ $routes->scope('/', function (RouteBuilder $builder) {
 $routes->scope('/mostly-static-resources', function (RouteBuilder $builder) {
   $builder->applyMiddleware('postMaxSizeCheck', 'csrf');
   $builder->connect(
-    '/add', 
+    '/add',
     ['controller' => 'MostlyStaticResources', 'action' => 'add']);
   $builder->connect(
     '/edit/{id}',

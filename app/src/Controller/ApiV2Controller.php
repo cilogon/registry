@@ -156,6 +156,8 @@ class ApiV2Controller extends AppController {
    */
   
   public function beforeRender(\Cake\Event\EventInterface $event) {
+    $this->response = $this->response->withType('json');
+
     $this->set('vv_model_name', $this->name);
     $this->set('vv_table_name', $this->tableName);
     
