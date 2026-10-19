@@ -39,7 +39,7 @@ $isRequired = $formArguments['fieldOptions']['required'] ?? false;
   <div class="field">
     <div class="field-name">
       <div class="field-title">
-        <?= $label ?>
+        <?= $this->Form->label($formArguments['fieldName'], $label) ?>
         <?php if($isRequired):?>
         <?= $this->element('form/requiredSpan') ?>
         <?php endif;?>

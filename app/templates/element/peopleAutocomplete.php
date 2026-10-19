@@ -53,6 +53,15 @@
     // Used by the SearchFilter Configuration
     $personType = $personType ?? 'person';
     $htmlId = $htmlId ?? 'person-id-picker';
+
+    // DOM ID and Form Name separation:
+    // - Display Label: Assigned for="field-3" (matching $htmlId).
+    // - Interactive AutoComplete Input: Assigned id="field-3" (via $htmlId). Clicking the visible label natively
+    //   focuses the interactive AutoComplete input, satisfying browser accessibility standards with zero ambiguity.
+    // - Hidden Submission Input: Assigned id="field-3-target" (via $targetId).
+    // Result: Every ID in the DOM is globally unique.
+    $targetId = $targetId ?? ($htmlId === $fieldName ? $fieldName . '-target' : $fieldName);
+    $isRequired = $isRequired ?? $vv_field_arguments["fieldOptions"]["required"] ?? $vv_field_arguments["required"] ?? false;
     // Does it have a value already. Default or stored
     // CAKEPHP automatically generates a select element if the value is an integer. This is not helpful here.
     $inputValue = $inputValue ?? $vv_field_arguments["fieldOptions"]["default"] ?? $vv_field_arguments["fieldOptions"]["value"] ?? '';
@@ -87,12 +96,14 @@
 
     $searchPeople = $this->request->getAttribute('webroot') . 'api/ajax/v2/people/pick?' . $targetKey . '=' . $targetValue;
 
-    // This is the actual field that will be submitted.
-    print $this->Form->control($fieldName, [
-        'id' => $fieldName,
+    // Form Submission name Attributes:
+    // - Hidden Submission Input: Rendered as <input type="hidden" name="field-3" id="field-3-target" value="...">
+    //   This is the actual field that will be submitted on form POST.
+    // - Interactive AutoComplete Input: Rendered without a native form name="field-3" attribute (it uses internal
+    //   Vue props and dataName), preventing duplicate/conflicting payload submissions.
+    print $this->Form->hidden($fieldName, [
+        'id' => $targetId,
         'value' => '',
-        'type' => 'text',
-        'class' => 'visually-hidden'
       ]
     );
   }
@@ -129,7 +140,8 @@
         return {
           autocompleteOptions: {
             label: '<?= $label ?>',
-            fieldName: '<?= $fieldName ?>', // This property hold the form input id
+            fieldName: '<?= $fieldName ?>', // This property holds the form input name
+            targetId: '<?= $targetId ?>', // This property holds the hidden input id
             type: '<?= $type ?>',
             personType: '<?= $personType ?>',
             // XXX probably should be set by config, note the backend (ApiV2Controller::pick)
@@ -143,7 +155,13 @@
               //name: '<?php //= $htmlId ?>//',
               dataName: '<?= $htmlId ?>',
               // This is not translated to data-personid but to datapersonid.
-              dataPersonid: '<?= $inputValue ?>'
+              dataPersonid: '<?= $inputValue ?>',
+              <?php if(!empty($isRequired)): ?>
+              required: true,
+              <?php endif; ?>
+              <?php if($type === 'field'): ?>
+              'aria-describedby': '<?= $htmlId ?>-desc',
+              <?php endif; ?>
             },
             personRecord: <?= json_encode($personRecord ?? [])?>,
             canvasUrl: '<?= $canvasUrl ?? '' ?>'

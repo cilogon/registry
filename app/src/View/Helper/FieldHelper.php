@@ -264,13 +264,21 @@ class FieldHelper extends Helper {
 
     if(!empty($matchesId[0][1]) && !empty($matchesName[0][1])) {
       $vueElementProperties = [
-        'htmlId' => $matchesId[0][1] . '-picker',
+        // htmlId matches CakePHP's label 'for' attribute (e.g. 'field-3') so clicking
+        // the visible label natively focuses the interactive AutoComplete search input.
+        'htmlId' => $matchesId[0][1],
         'fieldName' => $matchesName[0][1],
         'containerClasses' => $matchesClass[0][1],
         'type' => 'field',
         // we want the label to be an empty string to hide the default label introduced by the module.
         'label' => ''
       ];
+
+      // Parse the Required attribute
+      $regexRequired = '/\brequired(=["\']?required["\']?)?/i';
+      if(preg_match($regexRequired, $element)) {
+        $vueElementProperties['isRequired'] = true;
+      }
 
       if (isset($matchesValue[0][1])) {
         $vueElementProperties['inputValue'] = $matchesValue[0][1];

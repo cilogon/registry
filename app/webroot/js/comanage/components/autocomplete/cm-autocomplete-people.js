@@ -190,8 +190,11 @@ export default {
       if(['search', 'field'].includes(this.options.type)) {
         this.options.inputProps.dataPersonid = this.person.value;
         // Update the field that will be submitted
-        let inputElement = document.getElementById(this.options.fieldName)
-        inputElement.value = this.person.value;
+        const targetElementId = this.options.targetId || this.options.fieldName;
+        let inputElement = document.getElementById(targetElementId);
+        if(inputElement) {
+          inputElement.value = this.person.value;
+        }
 
       } else {
         // The picker is stand-alone, and should render the configured page in a modal on @item-select
@@ -211,8 +214,11 @@ export default {
     },
     onClear(ev) {
       // The user cleared the input field - so clear the real field (and the model).
-      let inputElement = document.getElementById(this.options.fieldName)
-      inputElement.value = null;
+      const targetElementId = this.options.targetId || this.options.fieldName;
+      let inputElement = document.getElementById(targetElementId);
+      if(inputElement) {
+        inputElement.value = null;
+      }
       this.person = null;
     },
     onListNavigate(ev) {
@@ -262,11 +268,14 @@ export default {
   mounted() {
     if(this.options.inputValue != undefined
       && this.options.inputValue != ''
-      && this.options.inputProps.dataName.endsWith('person-id-picker')) {
+      && (this.options.inputProps.dataName.endsWith('person-id') || this.options.inputProps.dataName.endsWith('person-id-picker'))) {
       this.person = `${this.options.personRecord.primary_name.given} ${this.options.personRecord.primary_name.family} (ID: ${this.options.personRecord.id})`;
       this.personUrl = `${this.options.canvasUrl}`;
-      let inputElement = document.getElementById(this.options.fieldName)
-      inputElement.value = this.options.personRecord.id;
+      const targetElementId = this.options.targetId || this.options.fieldName;
+      let inputElement = document.getElementById(targetElementId);
+      if(inputElement) {
+        inputElement.value = this.options.personRecord.id;
+      }
     }
   },
   computed: {
@@ -384,8 +393,8 @@ export default {
         </a>
       </div>
       <div v-if="this.options.type == 'field'" class="field-desc field-autocomplete-desc">
-        <span class="material-symbols-outlined">info</span>
-        <span>{{ this.txt['operation.autocomplete.people.field.desc'] }}</span>
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        <span :id="this.options.htmlId + '-desc'">{{ this.txt['operation.autocomplete.people.field.desc'] }}</span>
       </div>
     </div>
   `
