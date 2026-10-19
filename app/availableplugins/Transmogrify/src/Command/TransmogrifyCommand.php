@@ -583,6 +583,22 @@ class TransmogrifyCommand extends BaseCommand {
     $this->cmdPrinter->out('Running assignUuids task via UpgradeCommand...');
     $this->executeCommand(UpgradeCommand::class, ['-D', '-X', '-t', 'assignUuids'], $this->io);
 
+    // Install default Mostly Static Pages
+    $this->cmdPrinter->out('Running installMostlyStaticPages task via UpgradeCommand...');
+    $this->executeCommand(UpgradeCommand::class, ['-D', '-X', '-t', 'installMostlyStaticPages'], $this->io);
+
+    // Rebuild Group Tree hierarchy (lft/rght bounds)
+    $this->cmdPrinter->out('Running buildGroupTree task via UpgradeCommand...');
+    $this->executeCommand(UpgradeCommand::class, ['-D', '-X', '-t', 'buildGroupTree'], $this->io);
+
+    // Create missing default groups (Approvers, MFA Exempt, etc.)
+    $this->cmdPrinter->out('Running createDefaultGroups task via UpgradeCommand...');
+    $this->executeCommand(UpgradeCommand::class, ['-D', '-X', '-P', '-t', 'createDefaultGroups'], $this->io);
+
+    // Initialize default normalizations
+    $this->cmdPrinter->out('Running setupNormalizations task via UpgradeCommand...');
+    $this->executeCommand(UpgradeCommand::class, ['-D', '-X', '-t', 'setupNormalizations'], $this->io);
+
     // Display total execution time
     $executionTime = microtime(true) - $this->startTime;
 

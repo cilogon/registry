@@ -195,7 +195,11 @@ class TypesTable extends Table {
     $table = TableRegistry::getTableLocator()->get($attr[0]);
 
     // The current set of types for this model, of the form value => display_name
-    $current = $table->availableTypes($coId, $attribute);
+    $current = $table->availableTypes(
+      coId: $coId,
+      attribute: $attribute,
+      includeSuspended: true
+    );
     
     // The default types for this model, of the same form
     $modelDefault = $table->defaultTypes($attr[1]);
@@ -213,6 +217,10 @@ class TypesTable extends Table {
           'status'        => SuspendableStatusEnum::Active
         ];
       }
+    }
+
+    if(empty($records)) {
+      return true;
     }
     
     // Convert the arrays to entities

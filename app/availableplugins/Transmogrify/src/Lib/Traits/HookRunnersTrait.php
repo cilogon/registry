@@ -135,7 +135,7 @@ trait HookRunnersTrait {
         'co_group_id',
         'co_department_id',
         'co_provisioning_target_id',
-        'organization_id'
+        'organization_id' // XXX The name in v4 and v5 is the same. As a result this needs to exist in the table.json!!!
       ];
       $fieldMap = $this->tables[$table]['fieldMap'] ?? [];
       $presentFks = array_values(array_intersect($fkCandidates, array_keys($fieldMap)));

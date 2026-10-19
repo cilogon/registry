@@ -123,7 +123,7 @@ trait CacheTrait
    * @param  string     $table       Table to cache
    * @param  array      $row         Row of table data
    * @param  array      $orinRow     Original Row of table data
-   * @param  array      $cacheConfig Optional cache configuration (overrides tables.json)
+   * @param  array|null $cacheConfig Optional cache configuration (overrides tables.json)
    */
 
   protected function cacheResults(string $table, array $row, array $orinRow, ?array $cacheConfig = []): void
@@ -187,6 +187,18 @@ trait CacheTrait
       isset($row['co_group_id']) => $this->getCoIdFromGroupId((int)$row['co_group_id']),
 
       isset($row['co_person_role_id']) => $this->getCoIdFromPersonRoleId((int)$row['co_person_role_id']),
+
+      isset($row['person_role_id']) => $this->getCoIdFromPersonRoleId((int)$row['person_role_id']),
+
+      isset($row['organization_id']) => $this->getCoIdFromOrganizationId((int)$row['organization_id']),
+
+      isset($row['department_id']) => $this->getCoIdFromDepartmentId((int)$row['department_id']),
+
+      isset($row['co_department_id']) => $this->getCoIdFromDepartmentId((int)$row['co_department_id']),
+
+      isset($row['provisioning_target_id']) => $this->getCoIdFromProvisioningTargetId((int)$row['provisioning_target_id']),
+
+      isset($row['co_provisioning_target_id']) => $this->getCoIdFromProvisioningTargetId((int)$row['co_provisioning_target_id']),
 
       default => null,
     };
@@ -309,6 +321,51 @@ trait CacheTrait
     if (isset($this->cache['person_roles']['id'][$personRoleId]['person_id'])) {
       $personId = (int)$this->cache['person_roles']['id'][$personRoleId]['person_id'];
       return $this->getCoIdFromPersonId($personId);
+    }
+    return null;
+  }
+
+  /**
+   * Resolve a CO ID from an Organization ID via cache.
+   *
+   * @param int $organizationId Organization ID to resolve
+   * @return int|null CO ID if found, null otherwise
+   * @since COmanage Registry v5.3.0
+   */
+  private function getCoIdFromOrganizationId(int $organizationId): ?int
+  {
+    if (isset($this->cache['organizations']['id'][$organizationId]['co_id'])) {
+      return (int)$this->cache['organizations']['id'][$organizationId]['co_id'];
+    }
+    return null;
+  }
+
+  /**
+   * Resolve a CO ID from a Department ID via cache.
+   *
+   * @param int $departmentId Department ID to resolve
+   * @return int|null CO ID if found, null otherwise
+   * @since COmanage Registry v5.3.0
+   */
+  private function getCoIdFromDepartmentId(int $departmentId): ?int
+  {
+    if (isset($this->cache['departments']['id'][$departmentId]['co_id'])) {
+      return (int)$this->cache['departments']['id'][$departmentId]['co_id'];
+    }
+    return null;
+  }
+
+  /**
+   * Resolve a CO ID from a Provisioning Target ID via cache.
+   *
+   * @param int $provisioningTargetId Provisioning Target ID to resolve
+   * @return int|null CO ID if found, null otherwise
+   * @since COmanage Registry v5.3.0
+   */
+  private function getCoIdFromProvisioningTargetId(int $provisioningTargetId): ?int
+  {
+    if (isset($this->cache['provisioning_targets']['id'][$provisioningTargetId]['co_id'])) {
+      return (int)$this->cache['provisioning_targets']['id'][$provisioningTargetId]['co_id'];
     }
     return null;
   }

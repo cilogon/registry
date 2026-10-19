@@ -224,6 +224,7 @@ class RawSqlQueries {
    *
    * @param string $tableName Name of the database table containing MVEAs
    * @param bool $isMySQL Whether the target database is MySQL (true) or PostgreSQL (false)
+   * @param array $fkColumns List of foreign key column names
    * @return string SQL query string to select MVEA rows that are linked to valid org identities
    * @since  COmanage Registry v5.2.0
    */
@@ -242,7 +243,7 @@ class RawSqlQueries {
     ];
 
     // In full mode, treat all as supported; otherwise split into supported/unsupported
-    if (false /* $fullMode */) {
+    if (true /* $fullMode */) {
       $supportedInUse   = array_values($fkColumns);
       $unsupportedInUse = [];
     } else {

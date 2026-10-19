@@ -631,8 +631,8 @@ trait RowTransformationTrait
       if (
         isset($origRow['co_id'])
         && (!isset($this->cache['cos'][$origRow['co_id']])
-          || ($this->cache['cos'][$origRow['co_id']]['status'])
-          && $this->cache['cos'][$origRow['co_id']]['status'] == 'TR')
+          || (($this->cache['cos'][$origRow['co_id']]['status'])
+            && $this->cache['cos'][$origRow['co_id']]['status'] == 'TR'))
       ) {
         // This CO has been deleted, so we can't map the type. We will return null
         $roleRow['affiliation_type_id'] = null;
@@ -735,6 +735,10 @@ trait RowTransformationTrait
    */
   private function renameField(array &$row, string $oldname, string $newname): void
   {
+    if ($oldname === $newname) {
+      return;
+    }
+
     // Only copy if the old field exists to avoid notices
     if (array_key_exists($oldname, $row)) {
       $row[$newname] = $row[$oldname];

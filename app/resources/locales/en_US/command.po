@@ -201,6 +201,9 @@ msgstr "Test to perform"
 msgid "opt.upgrade.forcecurrent"
 msgstr "Force the specified current version -- ADVANCED USERS ONLY"
 
+msgid "opt.upgrade.skipprovisioning"
+msgstr "Skip provisioning -- ADVANCED USERS ONLY"
+
 msgid "opt.upgrade.task"
 msgstr "Upgrade task to perform -- ADVANCED USERS ONLY"
 

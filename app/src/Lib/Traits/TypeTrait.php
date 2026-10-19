@@ -34,26 +34,35 @@ use \App\Lib\Enum\SuspendableStatusEnum;
 
 trait TypeTrait {
   use \Cake\ORM\Locator\LocatorAwareTrait;
-  
+
   /**
    * Obtain the available types for this model/attribute, within the requested CO
    *
    * @since  COmanage Registry v5.0.0
    * @param  int    $coId      CO ID
    * @param  string $attribute Attribute to obtain available types for
+   * @param  bool $includeSuspended
    * @return array             Array of available types
    */
   
-  public function availableTypes(int $coId, string $attribute) {
+  public function availableTypes(int $coId, string $attribute, bool $includeSuspended = false): array
+  {
     $Types = $this->getTableLocator()->get("Types");
+
+    $conditions = [
+      'co_id'     => $coId,
+      'attribute' => $attribute,
+    ];
+
+    if(!$includeSuspended) {
+      $conditions['status'] = SuspendableStatusEnum::Active;
+    }
     
     $query = $Types->find('list',
                             keyField:  'value',
                             valueField: 'display_name',
                           )
-                   ->where(['co_id'     => $coId,
-                            'attribute' => $attribute,
-                            'status'    => SuspendableStatusEnum::Active])
+                   ->where($conditions)
                    ->orderBy(['Types.display_name' => 'ASC']);
     
     return $query->toArray();

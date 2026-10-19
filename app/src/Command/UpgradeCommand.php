@@ -45,6 +45,7 @@ class UpgradeCommand extends BaseCommand
 {
   use \Cake\ORM\Locator\LocatorAwareTrait;
 
+  protected ?Arguments $args = null;
   protected $io = null;
 
   /**
@@ -176,6 +177,14 @@ class UpgradeCommand extends BaseCommand
         'help'      => __d('command', 'opt.upgrade.version'),
         'required'  => false
       ]
+    )->addOption(
+      'skipprovisioning',
+      [
+        'short'     => 'P',
+        'help'      => __d('command', 'opt.upgrade.skipprovisioning'),
+        'required'  => false,
+        'boolean'   => true
+      ]
     );
 
     return $parser;
@@ -194,6 +203,7 @@ class UpgradeCommand extends BaseCommand
     global $argv;
 
     $this->io = $io;
+    $this->args = $args;
 
     // Are we being asked to run a specific task?
     $task = $args->getOption('task');
@@ -532,8 +542,8 @@ class UpgradeCommand extends BaseCommand
    * Create Approver and MFA Exemption Groups.
    * 
    * @since  COmanage Registry v5.2.0
-   * @param  int  $coId   CO ID
-   * @param  int  $couId  COU ID
+   * @param  int       $coId   CO ID
+   * @param  int|null  $couId  COU ID
    */
 
   protected function createDefaultGroups(int $coId, ?int $couId=null) {
@@ -541,7 +551,14 @@ class UpgradeCommand extends BaseCommand
 
     // Technically this will try to add all the default Groups, which is fine since
     // it will skip the ones that already exist.
-    $GroupsTable->addDefaults($coId, $couId);
+    $skipProvisioning = (bool)($this->args?->getOption('skipprovisioning') ?? false);
+
+    // Pass provision: false to prevent triggering provisioning targets
+    $GroupsTable->addDefaults(
+      coId: $coId,
+      couId: $couId,
+      provision: !$skipProvisioning
+    );
   }
 
   /**

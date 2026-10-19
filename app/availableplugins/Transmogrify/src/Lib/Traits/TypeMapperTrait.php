@@ -255,7 +255,11 @@ trait TypeMapperTrait
     }
 
     $parts = explode('.', $key);
-    return (int)$parts[1] ?? null;
+    if (!isset($parts[1]) || !is_numeric($parts[1])) {
+      return null;
+    }
+
+    return (int)$parts[1];
   }
 
 
@@ -330,13 +334,14 @@ trait TypeMapperTrait
    * Examples:
    *   EnvSource           -> EnvSource.EnvSources
    *   FileSource          -> FileConnector.FileSources
+   *   FederationSource    -> FederationConnector.FederationSources
    *
    * @param array $row A row from cm_org_identity_sources containing 'plugin'
    * @return string|null
    */
-  protected function mapExternalIdentitySourcePlugin(array $row): ?string
+  protected function mapSourcePlugin(array $row): ?string
   {
-    return $this->mapPlugin($row, 'Source', 'External Identity Source');
+    return $this->mapPlugin($row, 'Source', 'External (Identity) Source');
   }
 
 
@@ -529,7 +534,13 @@ trait TypeMapperTrait
    */
   protected function mapMessageTemplateContext(array $row): ?string
   {
-    return (string)self::MESSAGE_TEMPLATE_CONTEXT_MAP[$row['context']] ?? null;
+    $context = $row['context'] ?? null;
+
+    if ($context === null || !array_key_exists($context, self::MESSAGE_TEMPLATE_CONTEXT_MAP)) {
+      return null;
+    }
+
+    return self::MESSAGE_TEMPLATE_CONTEXT_MAP[$context];
   }
 
   /**
@@ -638,6 +649,75 @@ trait TypeMapperTrait
     return $this->mapType(
       $row,
       'Names.type',
+      $this->findCoId($row),
+      $type
+    );
+  }
+
+  /**
+   * Map department type to corresponding type ID
+   *
+   * @param array $row Row data containing department type
+   * @return int|null       Mapped type ID
+   * @since  COmanage Registry v5.3.0
+   */
+  protected function mapDepartmentType(array $row): ?int
+  {
+    $type = 'type';
+    if (isset($row['department_type'])) {
+      $type = 'department_type';
+    }
+
+    $row[$type] = strtolower($row[$type]);
+
+    return $this->mapType(
+      $row,
+      'Departments.type',
+      $this->findCoId($row),
+      $type
+    );
+  }
+
+  /**
+   * Map Organziation type to corresponding type ID
+   *
+   * @param array $row Row data containing name type
+   * @return int|null       Mapped type ID
+   * @since  COmanage Registry v5.2.0
+   */
+  protected function mapOrganizationType(array $row): ?int
+  {
+    $type = 'type';
+    if (isset($row['organization_type'])) {
+      $type = 'organization_type';
+    }
+
+    return $this->mapType(
+      $row,
+      'Organizations.type',
+      $this->findCoId($row),
+      $type
+    );
+  }
+
+
+  /**
+   * Map Organziation type to corresponding type ID
+   *
+   * @param array $row Row data containing name type
+   * @return int|null       Mapped type ID
+   * @since  COmanage Registry v5.2.0
+   */
+  protected function mapContactType(array $row): ?int
+  {
+    $type = 'type';
+    if (isset($row['contact_type'])) {
+      $type = 'contact_type';
+    }
+
+    return $this->mapType(
+      $row,
+      'Contacts.type',
       $this->findCoId($row),
       $type
     );
@@ -900,7 +980,13 @@ trait TypeMapperTrait
    */
   protected function mapServerTypeToPlugin(array $row): ?string
   {
-    return (string)self::SERVER_TYPE_MAP[$row['server_type']] ?? null;
+    $serverType = $row['server_type'] ?? null;
+
+    if ($serverType === null || !isset(self::SERVER_TYPE_MAP[$serverType])) {
+      return null;
+    }
+
+    return self::SERVER_TYPE_MAP[$serverType];
   }
 
   /**

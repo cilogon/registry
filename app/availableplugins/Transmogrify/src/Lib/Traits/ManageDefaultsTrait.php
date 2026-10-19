@@ -287,6 +287,39 @@ trait ManageDefaultsTrait
   }
 
   /**
+   * Insert default types for all COs.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @return void
+   */
+  protected function insertDefaultTypes(): void
+  {
+    $Types = TableRegistry::getTableLocator()->get('Types');
+
+    foreach (array_keys($this->cache['cos']['id']) as $coId) {
+      $Types->addDefaults($coId);
+    }
+
+    // Populate cache with all default and extended types
+    $allTypes = $Types->find()
+      ->where([
+        'co_id IN' => array_keys($this->cache['cos']['id']),
+      ])
+      ->all();
+
+    foreach ($allTypes as $type) {
+      $row = [
+        'id'        => $type->id,
+        'co_id'     => $type->co_id,
+        'attribute' => $type->attribute,
+        'value'     => $type->value,
+      ];
+
+      $this->cacheCompositeKey('types', $row, ['co_id', 'attribute', 'value']);
+    }
+  }
+
+  /**
    * Insert default Pronoun types for all COs.
    *
    * @since  COmanage Registry v5.2.0

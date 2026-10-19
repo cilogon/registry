@@ -46,7 +46,7 @@
     "types": {
         "source": "cm_co_extended_types",
         "displayField": "display_name",
-        "postTable": "insertPronounTypes",
+        "postTable": "insertDefaultTypes",
         "fieldMap": {
             "attribute": "&mapExtendedType",
             "name": "value",
@@ -107,6 +107,15 @@
         "displayField": "name",
         "sqlSelect": "couSqlSelect",
         "dependencies": ["cos"]
+    },
+    "organizations": {
+        "source": "cm_organizations",
+        "displayField": "name",
+        "cache": ["id", "co_id"],
+        "fieldMap": {
+            "type_id": "&mapOrganizationType",
+            "type": null
+        }
     },
     "servers": {
         "source": "cm_servers",
@@ -237,7 +246,7 @@
         "booleans": ["hash_source_record"],
         "cache": ["co_id"],
         "fieldMap": {
-            "plugin": "&mapExternalIdentitySourcePlugin",
+            "plugin": "&mapSourcePlugin",
             "co_pipeline_id": "pipeline_id",
             "org_identity_source_id": "external_identity_source_id",
             "status": "&mapStatusAndSyncToStatus",
@@ -309,6 +318,30 @@
             "sp_type": null
         },
         "dependencies": ["external_identity_sources", "types"]
+    },
+    "organization_sources": {
+        "source": "cm_organization_sources",
+        "displayField": "description",
+        "plugin": "FederationConnector",
+        "fieldMap": {
+            "plugin": "&mapSourcePlugin",
+            "sync_mode": null
+        },
+        "dependencies": ["co_id"]
+    },
+    "federation_sources": {
+        "source": "cm_federation_sources",
+        "displayField": "id",
+        "plugin": "FederationConnector",
+        "fieldMap": {},
+        "dependencies": ["co_id", "organization_sources", "organizations"]
+    },
+    "organization_source_records": {
+        "source": "cm_organization_source_records",
+        "displayField": "id",
+        "plugin": "FederationConnector",
+        "fieldMap": {},
+        "dependencies": ["co_id", "organization_sources", "organizations"]
     },
     "api_sources": {
         "source": "cm_api_sources",
@@ -605,6 +638,21 @@
         },
         "dependencies": ["groups", "people", "group_nestings"]
     },
+    "departments": {
+        "source": "cm_co_departments",
+        "displayField": "name",
+        "cache": ["id", "co_id"],
+        "fieldMap": {
+            "co_department_id": "department_id",
+            "leadership_co_group_id": "leadership_group_id",
+            "administrative_co_group_id": "administrative_group_id",
+            "support_co_group_id": "support_group_id",
+            "type_id": "&mapDepartmentType",
+            "introduction": "public_description",
+            "type": null
+        },
+        "dependencies": ["co", "cous", "groups", "types"]
+    },
     "names": {
         "source": "cm_names",
         "displayField": "id",
@@ -627,11 +675,11 @@
             "type_id": "&mapEmailType",
             "co_person_id": "person_id",
             "org_identity_id": "external_identity_id",
-            "co_department_id": null,
-            "organization_id": null,
+            "co_department_id": "department_id",
+            "organization_id": "organization_id",
             "type": null
         },
-        "dependencies": ["people", "external_identities", "types"]
+        "dependencies": ["people", "external_identities", "types", "departments", "organizations"]
     },
     "identifiers": {
         "source": "cm_identifiers",
@@ -644,13 +692,13 @@
             "co_group_id": "group_id",
             "co_person_id": "person_id",
             "org_identity_id": "external_identity_id",
-            "co_department_id": null,
-            "co_provisioning_target_id": null,
-            "organization_id": null,
+            "co_department_id": "department_id",
+            "organization_id": "organization_id",
+            "co_provisioning_target_id": "provisioning_target_id",
             "type": null,
             "language": null
         },
-        "dependencies": ["groups", "people", "external_identities", "types"]
+        "dependencies": ["groups", "people", "external_identities", "types", "departments", "organizations"]
     },
     "urls": {
         "source": "cm_urls",
@@ -660,12 +708,12 @@
             "type_id": "&mapUrlType",
             "co_person_id": "person_id",
             "org_identity_id": "external_identity_id",
-            "co_department_id": null,
-            "organization_id": null,
+            "co_department_id": "department_id",
+            "organization_id": "organization_id",
             "type": null,
             "language": null
         },
-        "dependencies": ["people", "external_identities", "types"]
+        "dependencies": ["people", "external_identities", "types", "departments", "organizations"]
     },
     "addresses": {
         "source": "cm_addresses",
@@ -675,11 +723,11 @@
             "type_id": "&mapAddressType",
             "co_person_role_id": "person_role_id",
             "org_identity_id": "external_identity_id",
-            "co_department_id": null,
-            "organization_id": null,
+            "co_department_id": "department_id",
+            "organization_id": "organization_id",
             "type": null
         },
-        "dependencies": ["person_roles", "external_identities", "types"]
+        "dependencies": ["person_roles", "external_identities", "types", "departments", "organizations"]
     },
     "telephone_numbers": {
         "source": "cm_telephone_numbers",
@@ -689,11 +737,11 @@
             "type_id": "&mapTelephoneType",
             "co_person_role_id": "person_role_id",
             "org_identity_id": "external_identity_id",
-            "co_department_id": null,
-            "organization_id": null,
+            "co_department_id": "department_id",
+            "organization_id": "organization_id",
             "type": null
         },
-        "dependencies": ["person_roles", "external_identities", "types"]
+        "dependencies": ["person_roles", "external_identities", "types", "departments", "organizations"]
     },
     "ad_hoc_attributes": {
         "source": "cm_ad_hoc_attributes",
@@ -702,11 +750,25 @@
         "fieldMap": {
             "co_person_role_id": "person_role_id",
             "org_identity_id": "external_identity_id",
-            "co_department_id": null,
-            "organization_id": null
+            "co_department_id": "department_id",
+            "organization_id": "organization_id"
         },
         "postTable": "migrateExtendedAttributesToAdHocAttributes",
-        "dependencies": ["person_roles", "external_identities"]
+        "dependencies": ["person_roles", "external_identities", "organizations", "departments"]
+    },
+    "contacts": {
+        "source": "cm_contacts",
+        "displayField": "id",
+        "booleans": [
+            "frozen"
+        ],
+        "fieldMap": {
+            "type_id": "&mapContactType",
+            "organization_id": "organization_id",
+            "co_department_id": "department_id",
+            "type": null
+        },
+        "dependencies": ["organizations", "departments"]
     },
     "notifications": {
         "source": "cm_co_notifications",
