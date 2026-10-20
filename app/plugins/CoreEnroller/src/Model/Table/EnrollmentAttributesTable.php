@@ -29,7 +29,9 @@ declare(strict_types=1);
 
 namespace CoreEnroller\Model\Table;
 
+use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
+use Cake\I18n\FrozenTime;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\GroupTypeEnum;
@@ -193,6 +195,81 @@ class EnrollmentAttributesTable extends Table {
         ]
       ]
     ]);
+  }
+
+  /**
+   * Callback before data is marshaled into an entity.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  EventInterface $event   beforeMarshal event
+   * @param  ArrayObject    $data    Entity data
+   * @param  ArrayObject    $options Callback options
+   */
+
+  public function beforeMarshal(EventInterface $event, \ArrayObject $data, \ArrayObject $options)
+  {
+    // valid_from uses default_value_datetime for its default. Clear any default_value
+    // so it can't take precedence over the configured date when the petition form is rendered.
+    if(($data['attribute'] ?? null) === 'valid_from') {
+      $data['default_value'] = null;
+    }
+  }
+
+  /**
+   * Resolve a valid_from/valid_through Petition Attribute value into a database
+   * datetime string. For valid_through, the Enrollment Attribute default_value
+   * is an offset in days after finalization, applied when no value was provided
+   * or when the field is not modifiable by the enrollee (read only or hidden).
+   * The resulting date is set to the end of that day (23:59:59).
+   *
+   * @param  string               $attribute           Attribute name (valid_from or valid_through)
+   * @param  mixed                $value               Petition Attribute value
+   * @param  EntityInterface|null $enrollmentAttribute Enrollment Attribute configuration
+   * @param  FrozenTime|null      $now                 Reference timestamp (defaults to current time)
+   * @return string|null                               Datetime string, or null if no date applies
+   * @since  COmanage Registry v5.3.0
+   */
+
+  public function resolveValidityDate(
+    string $attribute,
+    mixed $value,
+    ?EntityInterface $enrollmentAttribute = null,
+    ?FrozenTime $now = null
+  ): ?string {
+    $dateFormat = 'yyyy-MM-dd HH:mm:ss';
+    $now ??= FrozenTime::now();
+
+    $isEmpty = ($value === null || (is_string($value) && trim($value) === ''));
+
+    // valid_through: determine days-after-finalization offset if configured
+    $offsetDays = null;
+    if($attribute === 'valid_through'
+       && $enrollmentAttribute !== null
+       && is_numeric($enrollmentAttribute->default_value ?? null)) {
+      $offsetDays = (int)$enrollmentAttribute->default_value;
+    }
+
+    $isLocked = $enrollmentAttribute !== null
+                && ((isset($enrollmentAttribute->modifiable) && !$enrollmentAttribute->modifiable)
+                    || !empty($enrollmentAttribute->hidden));
+
+    // valid_through: apply offset from finalization time when field is blank or locked (read-only/hidden),
+    // expiring at the end of that day
+    if($offsetDays !== null && ($isEmpty || $isLocked)) {
+      return $now->addDays($offsetDays)->endOfDay()->i18nFormat($dateFormat);
+    }
+
+    // valid_from & valid_through: an empty value means no date applies (null, not "now")
+    if($isEmpty) {
+      return null;
+    }
+
+    // valid_from & valid_through: format explicit datetime value entered or provided
+    if($value instanceof \DateTimeInterface) {
+      return FrozenTime::instance($value)->i18nFormat($dateFormat);
+    }
+
+    return FrozenTime::parse((string)$value)->i18nFormat($dateFormat);
   }
 
   /**
@@ -420,6 +497,15 @@ class EnrollmentAttributesTable extends Table {
     $validator->allowEmptyString('ordr');
 
     $this->registerStringValidation($validator, $schema, 'default_value', false);
+
+    // For valid_through, default_value is the number of days after finalization
+    $validator->add('default_value', [
+      'validThroughDays' => [
+        'rule'    => ['naturalNumber', true],
+        'on'      => fn(array $context): bool => ($context['data']['attribute'] ?? null) === 'valid_through',
+        'message' => __d('core_enroller', 'error.EnrollmentAttributes.valid_through.default_value')
+      ]
+    ]);
 
     $validator->allowEmptyString('default_value_datetime');
     

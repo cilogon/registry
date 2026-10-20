@@ -331,10 +331,12 @@ class FieldHelper extends Helper {
       // filtering block
       !empty($queryParams[$fieldName])                                   => FrozenTime::parse($queryParams[$fieldName]),
       // Petition View/ Value saved as string
-      isset($fieldArgs['default']) && is_string($fieldArgs['default'])   => FrozenTime::parse($fieldArgs['default']),
+      !empty($fieldArgs['default'])
+      && is_string($fieldArgs['default'])
+      && trim($fieldArgs['default']) !== ''                              => FrozenTime::parse($fieldArgs['default']),
       // Petition View/ Value saved as FrozenTime or DateTime
-      isset($fieldArgs['default'])
-      && ($fieldArgs['default'] instanceof \DateTimeInterface || is_a($fieldArgs['default'], 'Cake\I18n\FrozenTime')) => $fieldArgs['default'],
+      !empty($fieldArgs['default'])
+      && $fieldArgs['default'] instanceof \DateTimeInterface             => $fieldArgs['default'],
       // Table record/ Retrieve it from the Entity object
       default                                                            => $this->getEntity()?->$fieldName,
     };
@@ -395,7 +397,10 @@ class FieldHelper extends Helper {
     ) {
       // return the date as plaintext
       // Add a hidden field
-      $element = $this->getView()->element('form/notSetDiv', [], [
+      // Always emit the hidden field, even when empty, so the field is still posted
+      // (e.g. a read only valid_through whose offset is applied at finalization)
+      $element = $this->Form->hidden($fieldName, ['value' => '', 'id' => $coptions['id']])
+      . $this->getView()->element('form/notSetDiv', [], [
         'cache' => '_html_elements',
       ]);
       if ($date_object !== null) {

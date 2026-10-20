@@ -45,15 +45,17 @@ $tz = $this->get('vv_tz') ?? new \DateTimeZone(date_default_timezone_get());
 //
 // NOTE: name/address/telephoneNumber are MVEAs and are rendered as grouped sub-fields.
 // Their per-component defaults must be applied at the sub-field level, not here.
+//
+// NOTE: for valid_through, default_value is an offset in days after finalization,
+// not a value. It is applied server side at finalization (see EnrollmentAttributesTable::resolveValidityDate()).
+$isOffsetDefault = ($attr->attribute === 'valid_through');
+
 $options['default'] = match(true) {
+  $isOffsetDefault                                     => '',
   $attr->attribute === 'valid_from' && !empty($attr->default_value_datetime)
     => $attr->default_value_datetime,
   $attr->attribute === 'valid_from' && empty($attr->default_value_datetime)
     => \Cake\I18n\FrozenTime::now($tz)->startOfDay(),
-  $attr->attribute === 'valid_through' && !empty($attr->default_value) && is_numeric($attr->default_value)
-    => \Cake\I18n\FrozenTime::now($tz)->addDays((int)$attr->default_value)->setTime(23, 59, 59),
-  $attr->attribute === 'valid_through' && empty($attr->default_value)
-    => \Cake\I18n\FrozenTime::now($tz)->setTime(23, 59, 59),
   isset($attr->default_value)                          => $attr->default_value,
   isset($attr->default_value_env_name)
   && $attr->attribute !== 'name'
@@ -82,6 +84,17 @@ $formArguments = [
   'fieldDescription' => $attr->description,
   'fieldNameAlias'   => $attr->attribute  // the field name to its enrollment attribute field name
 ];
+
+// Explain to the enrollee what happens if the valid_through field is left blank.
+// A required field can't be left blank, so the hint would be misleading there.
+if($isOffsetDefault
+   && is_numeric($attr->default_value ?? null)
+   && empty($attr->required)) {
+  $formArguments['fieldDescription'] = trim(
+    ($attr->description ?? '') . ' '
+    . __d('core_enroller', 'field.AttributeCollectors.valid_through.default.after.hint', [(int)$attr->default_value])
+  );
+}
 
 
 /*

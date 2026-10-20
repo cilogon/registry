@@ -40,6 +40,7 @@ use Cake\Validation\Validator;
 use \App\Lib\Enum\ActionEnum;
 use \App\Lib\Enum\AuthenticatorStatusEnum;
 use \App\Lib\Enum\GroupTypeEnum;
+use \App\Lib\Enum\PetitionActionEnum;
 use \App\Lib\Enum\ProvisioningContextEnum;
 use \App\Lib\Enum\ProvisioningEligibilityEnum;
 use \App\Lib\Enum\StatusEnum;

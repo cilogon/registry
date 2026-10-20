@@ -747,23 +747,13 @@ class PersonRolesTable extends Table {
    */
   public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): PersonRole
   {
-    $dateFormat = 'yyyy-MM-dd HH:mm:ss';
-
     $role = [
       'person_id'     => $personId,
     ];
 
     foreach($fields as $fld) {
       $attribute = $fld->enrollment_attribute->attribute;
-      $value = $fld->value;
-      if(
-        ($attribute === 'valid_from' || $attribute === 'valid_through')
-        && is_string($value)
-      ) {
-        $dob =  FrozenTime::parse($value);
-        $value = $dob->i18nFormat($dateFormat);
-      }
-      $role[$attribute] = $value;
+      $role[$attribute] = $fld->value;
     }
 
     return $this->saveOrFail($this->newEntity($role));

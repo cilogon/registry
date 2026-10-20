@@ -37,6 +37,7 @@ use Cake\Collection\Collection;
 use Cake\Database\Connection;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Datasource\EntityInterface;
+use Cake\I18n\FrozenTime;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -270,6 +271,19 @@ class AttributeCollectorsTable extends Table {
 
     // Save the Person Role only if we collected something meaningful for it,
     if(!empty($fieldsForPersonRole)) {
+      $now = FrozenTime::now();
+      foreach($fieldsForPersonRole as $fld) {
+        $attrName = $fld->enrollment_attribute->attribute ?? null;
+        if($attrName === 'valid_from' || $attrName === 'valid_through') {
+          $fld->value = $this->EnrollmentAttributes->resolveValidityDate(
+            $attrName,
+            $fld->value,
+            $fld->enrollment_attribute,
+            $now
+          );
+        }
+      }
+
       $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
       $role = $personRoleObj->saveAttributeCollectorPetitionAttributes((int)$person->id, $fieldsForPersonRole);
     }
