@@ -340,11 +340,17 @@ class PeopleTable extends Table {
         ]
       ],
       'api-ms' => [
-        'add' =>          ['platform', 'privileged'],
-        'delete' =>       ['platform', 'privileged'],
-        'edit' =>         ['platform', 'privileged'],
-        'index' =>        ['platform', 'privileged'],
-        'view' =>         ['platform', 'privileged']
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'delete' =>       ['platform', 'privileged'],
+          'edit' =>         ['platform', 'privileged'],
+          'view' =>         ['platform', 'privileged']
+        ],
+        // Actions that operate over a table (ie: do not require an $id)
+        'table' => [
+          'add' =>          ['platform', 'privileged'],
+          'index' =>        ['platform', 'privileged']
+        ]
       ]
     ]);
   }

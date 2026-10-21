@@ -279,12 +279,16 @@ class BasicAttributeCollectorsTable extends Table {
 
     $EmailAddresses->saveOrFail($EmailAddresses->newEntity($email));
 
+    // If there is already a cou_id attached to the Petition, use that,
+    // otherwise use the configured COU
+    $couId = $petition->cou_id ?? $cfg->cou_id;
+
     $PersonRoles = TableRegistry::getTableLocator()->get('PersonRoles');
 
     $personRole = [
       'person_id'           => $person->id,
       'affiliation_type_id' => $cfg->affiliation_type_id,
-      'cou_id'              => $cfg->cou_id,
+      'cou_id'              => $couId,
       'status'              => StatusEnum::Active
     ];
 
@@ -335,15 +339,17 @@ class BasicAttributeCollectorsTable extends Table {
     );
 
     if(!empty($basicAttributeCollector->cou_id)) {
-      // Insert the COU ID into the primary Petition artifact
+      // Insert the COU ID into the primary Petition artifact, if one isn't already set
 
       $Petitions = TableRegistry::getTableLocator()->get('Petitions');
 
       $petition = $Petitions->get($petitionId);
 
-      $petition->cou_id = $basicAttributeCollector->cou_id;
-
-      $Petitions->save($petition);
+      if(empty($petition->cou_id)) {
+        $petition->cou_id = $basicAttributeCollector->cou_id;
+        
+        $Petitions->save($petition);
+      }
     }
 
     // Record Petition History

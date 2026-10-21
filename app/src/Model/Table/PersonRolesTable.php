@@ -211,12 +211,12 @@ class PersonRolesTable extends Table {
         'entity' => [
           'delete' =>   ['platformAdmin', 'coAdmin'],
           'edit' =>     ['platformAdmin', 'coAdmin'],
-          'view' =>     ['platformAdmin', 'coAdmin', 'self'],
+          'view' =>     ['platformAdmin', 'coAdmin'],
         ],
         // Actions that operate over a table (ie: do not require an $id)
         'table' => [
           'add' =>      ['platformAdmin', 'coAdmin'],
-          'index' =>    ['platformAdmin', 'coAdmin', 'self']
+          'index' =>    ['platformAdmin', 'coAdmin']
         ]
       ],
       'api-ms' => [
@@ -396,6 +396,34 @@ class PersonRolesTable extends Table {
     ];
     
     return new PaginatedSqlIterator($this, $conditions);
+  }
+  
+  /**
+   * Obtain the set of COU IDs associated with the requested Person.
+   * Only valid COU Memberships are returned, and only unique values are returned.
+   * 
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $personId Person ID
+   * @return array            Array of COU IDs and Names, suitable for a select
+   */
+
+  public function getValidCous(int $personId): array {
+    $cous = [];
+
+    $roles = $this->find()
+                  ->where(['person_id' => $personId])
+                  ->contain(['Cous'])
+                  ->all();
+    
+    foreach($roles as $role) {
+      if($role->isValid()) {
+        $cous[$role->cou_id] = $role->cou->name;
+      }
+    }
+
+    sort($cous);
+
+    return $cous;
   }
   
   /**

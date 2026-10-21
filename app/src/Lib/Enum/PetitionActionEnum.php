@@ -33,6 +33,7 @@ class PetitionActionEnum extends StandardEnum {
   const Accepted                = 'IC';  // Previously "Invitation Confirmed"
   const Approved                = 'PY';
   const AttributesUpdated       = 'AU';
+  const CouAttached             = 'CA';
   const Declined                = 'PX';
   const Denied                  = 'PN';
   const EmailVerified           = 'EV';

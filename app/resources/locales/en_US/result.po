@@ -332,7 +332,7 @@ msgid "search.results"
 msgstr "Search Results"
 
 msgid "search.retry"
-msgstr "Please select an option from a menu, or try your search again."
+msgstr "No records found. Please try another search."
 
 msgid "set.not"
 msgstr "Not Set"

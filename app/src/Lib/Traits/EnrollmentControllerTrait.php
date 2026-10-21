@@ -125,6 +125,18 @@ trait EnrollmentControllerTrait {
         
         if($ret['person_id'] === $petition->enrollee_person_id) {
           $ret['roles'][] = EnrollmentActorEnum::Enrollee;
+
+          // If this is a Self Signup flow, the Enrollee is also the
+          // Petitioner, and the Person record was created during the
+          // flow. If the Identifiers match, grant the Petitioner role,
+          // which may be necessary (eg) to finalize the Petition.
+
+          if(empty($petition->petitioner_person_id)
+             && !empty($ret['identifier'])
+             && !empty($petition->petitioner_identifier)
+             && $ret['identifier'] == $petition->petitioner_identifier) {
+            $ret['roles'][] = EnrollmentActorEnum::Petitioner;
+          }
         }
 
         // Only People (as opposed to authenticated, unregistered Enrollees)

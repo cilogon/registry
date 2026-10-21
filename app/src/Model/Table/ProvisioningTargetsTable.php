@@ -133,7 +133,10 @@ class ProvisioningTargetsTable extends Table {
         ]
       ],
       'api-ms' => [
-        'provision' =>  ['platform', 'privileged'],
+        // Actions that operate over an entity (ie: require an $id)
+        'entity' => [
+          'provision' =>  ['platform', 'privileged']
+        ]
       ]
     ]);
   }

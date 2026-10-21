@@ -4,6 +4,7 @@
       "ApprovalCollectors",
       "AttributeCollectors",
       "BasicAttributeCollectors",
+      "CouSelectors",
       "EmailVerifiers",
       "IdentifierCollectors",
       "InformationRenderers",
@@ -43,7 +44,7 @@
           "name_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
           "email_address_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
           "affiliation_type_id": { "type": "integer", "foreignkey": { "table": "types", "column": "id" } },
-          "cou_id": {  "type": "integer", "foreignkey": { "table": "cous", "column": "id" } }
+          "cou_id": {}
         },
         "indexes": {
           "basic_attribute_collectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
@@ -51,6 +52,19 @@
           "basic_attribute_collectors_i3": { "needed": false, "columns": [ "email_address_type_id" ] },
           "basic_attribute_collectors_i4": { "needed": false, "columns": [ "affiliation_type_id" ] },
           "basic_attribute_collectors_i5": { "needed": false, "columns": [ "cou_id" ] }
+        }
+      },
+      "cou_selectors": {
+        "columns": {
+          "id": {},
+          "enrollment_flow_step_id": {},
+          "mode": { "type": "string", "size": 2 },
+          "default_cou_id": { "type": "integer", "foreignkey": { "table": "cous", "column": "id" } },
+          "auto_select": { "type": "boolean" }
+        },
+        "indexes": {
+          "cou_selectors_i1": { "columns": [ "enrollment_flow_step_id" ] },
+          "cou_selectors_i2": { "needed": false, "columns": [ "default_cou_id" ] }
         }
       },
       "email_verifiers": {

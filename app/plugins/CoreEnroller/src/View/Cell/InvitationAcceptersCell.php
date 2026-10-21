@@ -83,7 +83,12 @@ class InvitationAcceptersCell extends Cell
   {
     $vv_pa = $this->fetchTable('CoreEnroller.PetitionAcceptances')
       ->find()
-      ->where(['petition_id' => $this->vv_obj->id])
+      ->where([
+        'petition_id' => $this->vv_obj->id,
+        // InvitationAccepters::prepare() creates an empty row to track timestamps,
+        // so we need to filter it out if there isn't actually a response
+        'accepted IS NOT NULL'
+      ])
       ->first();
     
     $this->set('vv_pa', $vv_pa);

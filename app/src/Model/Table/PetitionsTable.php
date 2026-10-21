@@ -135,6 +135,7 @@ class PetitionsTable extends Table {
     ]);
 
     $viewContainsRelations = [
+      'Cous',
       'EnrollmentFlows' => ['EnrollmentFlowSteps' => 
         // This magic will pass the Step plugin configuration to each Cell automatically
         array_merge($this->EnrollmentFlows->EnrollmentFlowSteps->getPluginRelations(),

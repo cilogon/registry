@@ -409,6 +409,12 @@ class PetitionsController extends StandardController {
           return true;
         }
       }
+    } elseif($action == 'finalize') {
+      // We always allow finalization because if a Person record is in the
+      // middle of construction, finalization will fail if the unregistered
+      // identity (without MFA) becomes an active Person (still without MFA).
+
+      return true;
     }
 
     return false;

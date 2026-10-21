@@ -28,6 +28,9 @@ msgstr "{0,plural,=1{Attribute Collector} other{Attribute Collectors}}"
 msgid "controller.BasicAttributeCollectors"
 msgstr "{0,plural,=1{Basic Attribute Collector} other{Basic Attribute Collectors}}"
 
+msgid "controller.CouSelectors"
+msgstr "{0,plural,=1{COU Selector} other{COU Selectors}}"
+
 msgid "controller.EmailVerifiers"
 msgstr "{0,plural,=1{Email Verifier} other{Email Verifiers}}"
 
@@ -60,6 +63,15 @@ msgstr "{0,plural,=1{Petition Identifier} other{Petition Identifiers}}"
 
 msgid "controller.PetitionVerifications"
 msgstr "{0,plural,=1{Petition Verification} other{Petition Verifications}}"
+
+msgid "enumeration.CouSelectorModeEnum.A"
+msgstr "All COUs"
+
+msgid "enumeration.CouSelectorModeEnum.M"
+msgstr "Membership COUs"
+
+msgid "enumeration.CouSelectorModeEnum.1"
+msgstr "Specific COU"
 
 msgid "enumeration.PersonSelectorConfirmationModeEnum.A"
 msgstr "All Person Attributes"
@@ -96,6 +108,12 @@ msgstr "DefaultVerificationValidity"
 
 msgid "error.ApprovalCollectors.comment"
 msgstr "Comment is required"
+
+msgid "error.CouSelectors.cou_id.invalid"
+msgstr "Requested COU {0} is not a valid option"
+
+msgid "error.CouSelectors.default_cou_id"
+msgstr "Default COU not set (mode = Specific)"
 
 msgid "error.EmailVerifiers.candidate"
 msgstr "Requested address is not a valid candidate"
@@ -225,6 +243,18 @@ msgstr "Name Type"
 
 msgid "field.BasicAttributeCollectors.name_type_id.desc"
 msgstr "Type assigned to the Name collected by this Step"
+
+msgid "field.CouSelectors.auto_select"
+msgstr "Auto Select"
+
+msgid "field.CouSelectors.auto_select.desc"
+msgstr "If exactly one COU is available for selection, automatically select it and do not render a confirmation page"
+
+msgid "field.CouSelectors.default_cou_id"
+msgstr "Default COU"
+
+msgid "field.CouSelectors.mode"
+msgstr "COU Population Mode"
 
 msgid "field.EmailVerifiers.mode"
 msgstr "Email Verification Mode"
@@ -390,6 +420,9 @@ msgstr "Petition Denied"
 
 msgid "result.ApprovalCollectors.status"
 msgstr "Petition {0} by {1} at {2} ({3})"
+
+msgid "result.CouSelectors.attached"
+msgstr "COU {0} attached using {1} mode"
 
 msgid "result.EmailVerifiers.verified"
 msgstr "Verified {0} of {1} available {2}"

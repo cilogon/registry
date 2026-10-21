@@ -68,7 +68,24 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
       </div>
     </div>
     <div class="field-info">
-      <?= $vv_enrollee_name ?? __d('field', 'Petitions.enrollee.new') ?>
+      <?php
+        if(!empty($vv_enrollee_name)) {
+          if(!empty($petitionObj->enrollee_person_id)) {
+            print $this->Html->link(
+              $vv_enrollee_name,
+              [
+                'controller' => 'people',
+                'action' => 'edit',
+                $petitionObj->enrollee_person_id
+              ]
+            );
+          } else {
+            print filter_var($vv_enrollee_name, FILTER_SANITIZE_SPECIAL_CHARS);
+          }
+        } else {
+          print __d('field', 'Petitions.enrollee.new');
+        }
+      ?>
     </div>
   </div>
 </li>
@@ -153,6 +170,29 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
   </div>
 </li>
 <?php endif; ?>
+
+<?php // COU, if set ?>
+<li>
+  <div class="field">
+    <div class="field-name ">
+      <div class="field-title">
+        <?= __d('controller','Cous', [1]) ?>
+      </div>
+    </div>
+    <div class="field-info">
+      <?=
+        $this->Html->link(
+          $petitionObj->cou->name,
+          [
+            'controller' => 'cous',
+            'action' => 'edit',
+            $petitionObj->cou->id
+          ]
+        )
+      ?>
+    </div>
+  </div>
+</li>
 
 <?php // Petition dates. ?>
 <li> 
