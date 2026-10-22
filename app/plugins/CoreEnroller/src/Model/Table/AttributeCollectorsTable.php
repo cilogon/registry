@@ -54,6 +54,10 @@ class AttributeCollectorsTable extends Table {
   use \App\Lib\Traits\TableMetaTrait;
   use \App\Lib\Traits\ValidationTrait;
 
+  // Person Role created per Petition during finalization (Petition ID => PersonRole),
+  // so all Attribute Collectors of a Petition add to the same single Role
+  private array $petitionRoles = [];
+
   /**
    * Perform Cake Model initialization.
    *
@@ -245,10 +249,19 @@ class AttributeCollectorsTable extends Table {
     $attributes = $this->EnrollmentAttributes
       ->PetitionAttributes
       ->find()
-      ->where(['petition_id' => $petition->id])
+      ->where(['PetitionAttributes.petition_id' => $petition->id])
+      ->matching('EnrollmentAttributes', function($q) use ($id) {
+        return $q->where(['EnrollmentAttributes.attribute_collector_id' => $id]);
+      })
       ->contain(
         ['EnrollmentAttributes' => ['AttributeTypes']]
       )->toArray();
+
+    // A multi-valued attribute (email, phone, ad hoc, ...) collected again by a later
+    // Attribute Collector of this Petition is superseded by the later value, so that
+    // finalization creates only one record. The Petition Attributes in the database
+    // are the shared state between the per-step hydrate() calls.
+    $attributes = $this->removeSupersededMveaAttributes($cfg, $petition, $attributes);
 
     // Get the collection object
     $attributesCollection = new Collection($attributes);
@@ -284,8 +297,23 @@ class AttributeCollectorsTable extends Table {
         }
       }
 
+      // Petition.cou_id may have been set by another step (eg the COU Selector), so read
+      // it from the database. If set, it overrides the collected COU.
+      $petitionCouId = TableRegistry::getTableLocator()->get('Petitions')
+                                    ->get($petition->id)->cou_id;
+
       $personRoleObj = TableRegistry::getTableLocator()->get('PersonRoles');
-      $role = $personRoleObj->saveAttributeCollectorPetitionAttributes((int)$person->id, $fieldsForPersonRole);
+      $role = $personRoleObj->saveAttributeCollectorPetitionAttributes(
+        (int)$person->id,
+        $fieldsForPersonRole,
+        $this->petitionRoles[(int)$petition->id] ?? null,
+        !empty($petitionCouId) ? (int)$petitionCouId : null
+      );
+      // Remember the Role so later Attribute Collectors of this Petition add to it
+      $this->petitionRoles[(int)$petition->id] = $role;
+    } else {
+      // Only a Role created for this Petition by an earlier Attribute Collector
+      $role = $this->petitionRoles[(int)$petition->id] ?? null;
     }
 
     /*********  MVEAS **************/
@@ -307,7 +335,7 @@ class AttributeCollectorsTable extends Table {
 
     // MVEAs for Role
     // Save the MVEAs for the PersonRole only if we collected something meaningful for it, and the role was created
-    if(!empty($fieldsForPersonRole)) {
+    if(!empty($role)) {
       $this->handleMveaAttributes(
         $person,
         $role,
@@ -354,6 +382,84 @@ class AttributeCollectorsTable extends Table {
     $cxn->commit();
 
     return true;
+  }
+
+  /**
+   * Remove the multi-valued Petition Attributes of an Attribute Collector that are
+   * superseded by the same kind of attribute (attribute, type, parent, tag, language)
+   * collected by a later Attribute Collector (by Enrollment Flow Step order) of the Petition.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  \CoreEnroller\Model\Entity\AttributeCollector $cfg  Current Attribute Collector
+   * @param  \App\Model\Entity\Petition $petition                Petition
+   * @param  array                       $attributes              Petition Attributes of the current collector
+   * @return array                                                Remaining Petition Attributes
+   */
+
+  protected function removeSupersededMveaAttributes($cfg, \App\Model\Entity\Petition $petition, array $attributes): array {
+    $mveaAttributes = array_keys(array_filter(
+      $this->EnrollmentAttributes->supportedAttributes(),
+      fn($a) => isset($a['mveaModel'])
+    ));
+
+    $keyOf = function($ea) {
+      return implode('|', [
+        $ea->attribute,
+        $ea->attribute_type,
+        $ea->attribute_mvea_parent,
+        $ea->attribute_tag,
+        $ea->attribute_language
+      ]);
+    };
+
+    // Order of every Attribute Collector in the flow
+    $order = [];
+    $collectors = $this->find()
+                       ->contain(['EnrollmentFlowSteps'])
+                       ->where(['EnrollmentFlowSteps.enrollment_flow_id' => $this->EnrollmentFlowSteps->get($cfg->enrollment_flow_step_id)->enrollment_flow_id])
+                       ->toArray();
+    foreach($collectors as $c) {
+      $order[(int)$c->id] = [(int)$c->enrollment_flow_step->ordr, (int)$c->id];
+    }
+
+    if(!isset($order[(int)$cfg->id])) {
+      return $attributes;
+    }
+
+    // Keys collected by later Attribute Collectors
+    $others = $this->EnrollmentAttributes
+                   ->PetitionAttributes
+                   ->find()
+                   ->where(['PetitionAttributes.petition_id' => $petition->id])
+                   ->matching('EnrollmentAttributes', function($q) use ($cfg) {
+                     return $q->where(['EnrollmentAttributes.attribute_collector_id !=' => $cfg->id]);
+                   })
+                   ->contain(['EnrollmentAttributes'])
+                   ->toArray();
+
+    $later = [];
+    foreach($others as $pa) {
+      $ea = $pa->enrollment_attribute;
+      $acId = (int)$ea->attribute_collector_id;
+
+      if(!in_array($ea->attribute, $mveaAttributes, true) || !isset($order[$acId])) {
+        continue;
+      }
+
+      if($order[$acId] > $order[(int)$cfg->id]) {
+        $later[$keyOf($ea)] = true;
+      }
+    }
+
+    if(empty($later)) {
+      return $attributes;
+    }
+
+    return array_values(array_filter($attributes, function($pa) use ($later, $keyOf, $mveaAttributes) {
+      $ea = $pa->enrollment_attribute;
+
+      return !(in_array($ea->attribute, $mveaAttributes, true) && isset($later[$keyOf($ea)]));
+    }));
   }
 
   /**
@@ -411,6 +517,101 @@ class AttributeCollectorsTable extends Table {
   }
 
   /**
+   * Obtain the COU that is locked for the Attribute Collector, ie the COU attached to the
+   * Petition when the Enrollment Flow also contains a COU Selector step.
+   *
+   * Collecting a COU in an Attribute Collector next to a COU Selector is an Enrollment Flow
+   * misconfiguration: the COU Selector owns Petition.cou_id, and the Attribute Collector must
+   * ignore any COU it collects and use the one on the Petition (the same Actor rule applies
+   * regardless of who runs the step). Deciding this from the Enrollment Flow configuration,
+   * rather than by comparing Petition.cou_id with the values collected so far, is
+   * deterministic: it does not depend on step order, reruns, or on the selector and the
+   * collector happening to pick the same COU. Without a COU Selector, the Attribute
+   * Collector fully owns the COU, so nothing is locked and the latest step wins.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int       $petitionId  Petition ID
+   * @return int|null               Locked COU ID, or null if the COU can be collected
+   */
+
+  public function lockedCouId(int $petitionId): ?int {
+    $petition = TableRegistry::getTableLocator()->get('Petitions')->get($petitionId);
+
+    if(empty($petition->cou_id)) {
+      return null;
+    }
+
+    $hasCouSelector = TableRegistry::getTableLocator()->get('CoreEnroller.CouSelectors')
+                                   ->find()
+                                   ->contain(['EnrollmentFlowSteps'])
+                                   ->where(['EnrollmentFlowSteps.enrollment_flow_id' => $petition->enrollment_flow_id])
+                                   ->count() > 0;
+
+    return $hasCouSelector ? (int)$petition->cou_id : null;
+  }
+
+  /**
+   * Enforce the COU of the Petition on the submitted COU fields, to prevent form tampering.
+   *
+   * If a COU was attached to the Petition by another component (eg the COU Selector), it
+   * overrides any submitted COU. Otherwise a submitted COU must belong to the CO of the
+   * Petition, since Petition.cou_id selects the approvers.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  int    $id           Attribute Collector ID
+   * @param  int    $petitionId   Petition ID
+   * @param  array  $attributes   Submitted form fields
+   * @return array                Form fields with the COU enforced
+   * @throws \InvalidArgumentException
+   */
+
+  protected function enforceCouAttributes(int $id, int $petitionId, array $attributes): array {
+    $couAttributeIds = $this->EnrollmentAttributes
+                            ->find('list', keyField: 'id', valueField: 'id')
+                            ->where([
+                              'attribute_collector_id' => $id,
+                              'attribute'              => 'cou_id'
+                            ])
+                            ->toArray();
+
+    if(empty($couAttributeIds)) {
+      return $attributes;
+    }
+
+    $coId = TableRegistry::getTableLocator()->get('Petitions')->findCoForRecord($petitionId);
+    $lockedCouId = $this->lockedCouId($petitionId);
+
+    foreach($attributes as $label => $value) {
+      $parts = explode('-', (string)$label);
+      $eaId = (int)array_pop($parts);
+
+      if(!isset($couAttributeIds[$eaId])) {
+        continue;
+      }
+
+      if(!empty($lockedCouId)) {
+        $attributes[$label] = (string)$lockedCouId;
+        continue;
+      }
+
+      if($value === null || $value === '') {
+        continue;
+      }
+
+      $valid = TableRegistry::getTableLocator()->get('Cous')->exists([
+        'Cous.id'    => (int)$value,
+        'Cous.co_id' => $coId
+      ]);
+
+      if(!$valid) {
+        throw new \InvalidArgumentException(__d('error', 'notfound', [__d('controller', 'Cous', [1])]));
+      }
+    }
+
+    return $attributes;
+  }
+
+  /**
    * Insert or update a set of Petition Attributes.
    * 
    * @since  COmanage Registry v5.0.0
@@ -423,6 +624,9 @@ class AttributeCollectorsTable extends Table {
 
   public function upsert(int $id, int $petitionId, array $attributes) {
     $attributeCollector = $this->get($id);
+
+    // Enforce the COU server side, before anything is stored
+    $attributes = $this->enforceCouAttributes($id, $petitionId, $attributes);
 
     // Do we have existing attributes for this petition? Note this will pull
     // _all_ attributes for the Petition, not just those associated with this

@@ -83,6 +83,19 @@ if(!empty($vv_petition_attributes)) {
     'column_name' => $field
   ]);
 
+  // Pre-populate from another step only when it collects the same kind of value
+  // (eg an official email is not pre-filled from a personal one)
+  if(empty($curEntity)) {
+    $curEntity = $vv_petition_attributes->firstMatch([
+      'enrollment_attribute.attribute' => $attr->attribute,
+      'enrollment_attribute.attribute_type' => $attr->attribute_type,
+      'enrollment_attribute.attribute_mvea_parent' => $attr->attribute_mvea_parent,
+      'enrollment_attribute.attribute_tag' => $attr->attribute_tag,
+      'enrollment_attribute.attribute_language' => $attr->attribute_language,
+      'column_name' => $field
+    ]);
+  }
+
   if(!empty($curEntity->value)) {
     $options['default'] = $curEntity->value;
   }

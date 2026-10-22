@@ -69,6 +69,18 @@ $options['default'] = match(true) {
 if(!empty($vv_petition_attributes)) {
   $curEntity = $vv_petition_attributes->firstMatch(['enrollment_attribute_id' => $attr->id]);
 
+  if(empty($curEntity)) {
+    // Pre-populate from another step only when it collects the same kind of value
+    // (eg an official email is not pre-filled from a forwarded one)
+    $curEntity = $vv_petition_attributes->firstMatch([
+      'enrollment_attribute.attribute' => $attr->attribute,
+      'enrollment_attribute.attribute_type' => $attr->attribute_type,
+      'enrollment_attribute.attribute_mvea_parent' => $attr->attribute_mvea_parent,
+      'enrollment_attribute.attribute_tag' => $attr->attribute_tag,
+      'enrollment_attribute.attribute_language' => $attr->attribute_language
+    ]);
+  }
+
   if(!empty($curEntity->value)) {
     $options['default'] = $curEntity->value;
   }
@@ -85,17 +97,18 @@ $formArguments = [
   'fieldNameAlias'   => $attr->attribute  // the field name to its enrollment attribute field name
 ];
 
-// Explain to the enrollee what happens if the valid_through field is left blank.
-// A required field can't be left blank, so the hint would be misleading there.
-if($isOffsetDefault
-   && is_numeric($attr->default_value ?? null)
-   && empty($attr->required)) {
+// Explain to the enrollee what happens with the valid_through field.
+if($isOffsetDefault && is_numeric($attr->default_value ?? null)) {
+  $isEditable = !isset($attr->modifiable) || $attr->modifiable;
+  $hintKey = $isEditable
+    ? 'field.AttributeCollectors.valid_through.default.after.hint.editable'
+    : 'field.AttributeCollectors.valid_through.default.after.hint';
+
   $formArguments['fieldDescription'] = trim(
     ($attr->description ?? '') . ' '
-    . __d('core_enroller', 'field.AttributeCollectors.valid_through.default.after.hint', [(int)$attr->default_value])
+    . __d('core_enroller', $hintKey, [(int)$attr->default_value])
   );
 }
-
 
 /*
  * Get the values for the attributes ending with _id
@@ -119,6 +132,17 @@ if(str_ends_with($attr->attribute, '_id')) {
 // READ-ONLY
 if (isset($attr->modifiable) && !$attr->modifiable) {
   $options['readonly'] = true;
+}
+
+// If the Petition already has a COU (eg from the COU Selector), it overrides whatever
+// is collected here (also enforced server side in AttributeCollectorsTable::upsert()),
+// so show it read-only and explain why
+if($attr->attribute === 'cou_id' && !empty($vv_petition_cou_id)) {
+  $options['default'] = (string)$vv_petition_cou_id;
+  $options['readonly'] = true;
+  $formArguments['fieldDescription'] = trim(
+    ($attr->description ?? '') . ' ' . __d('core_enroller', 'field.AttributeCollectors.cou_id.locked.hint')
+  );
 }
 
 // REQUIRED

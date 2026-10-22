@@ -768,12 +768,15 @@ class PersonRolesTable extends Table {
    * Save attributes for a person.
    * @param int $personId ID of the person for whom attributes are being saved
    * @param array $fields Array of fields/attributes to be saved
+   * @param PersonRole|null $existingRole Role already created for the same Petition by an earlier
+   *                                      Attribute Collector; when null a new Role is always created
+   * @param int|null $couId COU of the Petition; when set it overrides any collected COU
    *
-   * @return PersonRole The newly saved Role
+   * @return PersonRole The saved Role
    * @throws \Cake\Datasource\Exception\RecordNotFoundException If an issue occurs during saving
    * @since  COmanage Registry v5.1.0
    */
-  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields): PersonRole
+  public function saveAttributeCollectorPetitionAttributes(int $personId, array $fields, ?PersonRole $existingRole = null, ?int $couId = null): PersonRole
   {
     $role = [
       'person_id'     => $personId,
@@ -782,6 +785,18 @@ class PersonRolesTable extends Table {
     foreach($fields as $fld) {
       $attribute = $fld->enrollment_attribute->attribute;
       $role[$attribute] = $fld->value;
+    }
+
+    // The COU of the Petition (eg from the COU Selector) overrides any collected COU
+    if(!empty($couId)) {
+      $role['cou_id'] = $couId;
+    }
+
+    // A Role is only ever reused when it was created for this same Petition. An Enrollment
+    // Flow creates one Role and never modifies a Role it did not create.
+    if(!empty($existingRole)) {
+      $existingRole = $this->patchEntity($existingRole, $role);
+      return $this->saveOrFail($existingRole);
     }
 
     return $this->saveOrFail($this->newEntity($role));

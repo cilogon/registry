@@ -32,6 +32,7 @@ namespace CoreEnroller\Model\Table;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\EventInterface;
 use Cake\I18n\FrozenTime;
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use \App\Lib\Enum\GroupTypeEnum;
@@ -270,6 +271,58 @@ class EnrollmentAttributesTable extends Table {
     }
 
     return FrozenTime::parse((string)$value)->i18nFormat($dateFormat);
+  }
+
+  /**
+   * Define business rules.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  RulesChecker $rules RulesChecker object
+   * @return RulesChecker
+   */
+  public function buildRules(RulesChecker $rules): RulesChecker {
+    // AR-EnrollmentAttribute-1 Single-valued Person Role attributes may only be configured
+    // once per Attribute Collector.
+    $rules->add([$this, 'ruleSingleValuedAttributeUnique'],
+                'singleValuedAttributeUnique',
+                ['errorField' => 'attribute']);
+
+    return $rules;
+  }
+
+  /**
+   * Application Rule to ensure single-valued Person and Person Role attributes are unique per Attribute Collector.
+   *
+   * Only Person and PersonRole attributes are covered; MVEAs, Group and Petition
+   * attributes are not checked. The rule applies per Attribute Collector, so a later
+   * step may still modify a value collected by an earlier step.
+   *
+   * @since  COmanage Registry v5.3.0
+   * @param  \Cake\Datasource\EntityInterface $entity
+   * @param  array $options
+   * @return bool|string
+   */
+  public function ruleSingleValuedAttributeUnique($entity, array $options): bool|string {
+    if(empty($entity->attribute) || empty($entity->attribute_collector_id)) {
+      return true;
+    }
+
+    $supported = $this->supportedAttributes();
+    if(!empty($supported[$entity->attribute]['model']) && in_array($supported[$entity->attribute]['model'], ['PersonRole', 'Person'])) {
+      $conditions = [
+        'attribute_collector_id' => $entity->attribute_collector_id,
+        'attribute' => $entity->attribute
+      ];
+      if(!empty($entity->id)) {
+        $conditions['id !='] = $entity->id;
+      }
+      $exists = $this->find()->where($conditions)->first();
+      if($exists) {
+        return __d('core_enroller', 'error.EnrollmentAttributes.single_valued_exists', [$supported[$entity->attribute]['label'] ?? $entity->attribute]);
+      }
+    }
+
+    return true;
   }
 
   /**
