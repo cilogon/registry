@@ -59,13 +59,6 @@ RUN apt-get update && apt-get install -y \
             libmysqlclient-dev \
          && apt-get clean
 
-# Build the redis extension to use Redis for session storage.
-RUN docker-php-source extract \
-    && pecl bundle -d /usr/src/php/ext redis \
-    && docker-php-ext-install redis \
-    && docker-php-ext-enable redis \
-    && docker-php-source delete
-
 # Copy the production php.ini into place.
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
