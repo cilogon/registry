@@ -81,10 +81,6 @@ class TransmogrifyCommand extends BaseCommand {
   protected ?DBALConnection $inconn = null;
   protected ?DBALConnection $outconn = null;
 
-  // Shell arguments, for easier access
-  protected ?Arguments $args = null;
-  protected ?ConsoleIo $io = null;
-
   protected ?CommandLinePrinter $cmdPrinter = null;
 
   /** @var float Start time of command execution */
@@ -221,9 +217,6 @@ class TransmogrifyCommand extends BaseCommand {
 
   public function execute(Arguments $args, ConsoleIo $io): int
   {
-    $this->args = $args;
-    $this->io = $io;
-
     // Now that BaseCommand set verbosity, construct the printer so it can detect it correctly 
     $this->cmdPrinter = new CommandLinePrinter($io, 'green', 50, true);
 
