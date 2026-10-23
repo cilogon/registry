@@ -180,6 +180,7 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
       </div>
     </div>
     <div class="field-info">
+      <?php if(!empty($petitionObj->cou->name)): ?>
       <?=
         $this->Html->link(
           $petitionObj->cou->name,
@@ -190,6 +191,7 @@ $statusCssClass = 'petition-status-title petition-status-title-' . Inflector::da
           ]
         )
       ?>
+      <?php endif; ?>
     </div>
   </div>
 </li>
