@@ -46,7 +46,7 @@ use Cake\Log\LogTrait;
  * - `afterFilter(EventInterface $event)`
  *   Called after the action is complete and the view has been rendered but
  *   before Controller::afterFilter().
- * - `beforeRedirect(EventInterface $event $url, Response $response)`
+ * - `beforeRedirect(EventInterface $event, $url, Response $response)`
  *   Called before a redirect is done. Allows you to change the URL that will
  *   be redirected to by returning a Response instance with new URL set using
  *   Response::location(). Redirection can be prevented by stopping the event
@@ -66,14 +66,14 @@ class Component implements EventListenerInterface
     /**
      * Component registry class used to lazy load components.
      *
-     * @var \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller>
+     * @var \Cake\Controller\ComponentRegistry
      */
     protected ComponentRegistry $_registry;
 
     /**
      * Other Components this component uses.
      *
-     * @var array
+     * @var array<int|string, string|array<string, mixed>>
      */
     protected array $components = [];
 
@@ -96,7 +96,7 @@ class Component implements EventListenerInterface
     /**
      * Constructor
      *
-     * @param \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller> $registry A component registry
+     * @param \Cake\Controller\ComponentRegistry $registry A component registry
      *  this component can use to lazy load its components.
      * @param array<string, mixed> $config Array of configuration settings.
      */

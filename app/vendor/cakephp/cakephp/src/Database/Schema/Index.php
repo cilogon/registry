@@ -39,6 +39,17 @@ class Index
     public const FULLTEXT = 'fulltext';
 
     /**
+     * PostgreSQL index access methods
+     *
+     * @var string
+     */
+    public const GIN = 'gin';
+    public const GIST = 'gist';
+    public const SPGIST = 'spgist';
+    public const BRIN = 'brin';
+    public const HASH = 'hash';
+
+    /**
      * Constructor
      *
      * @param string $name The name of the index.
@@ -48,6 +59,7 @@ class Index
      * @param array<string>|null $order The sort order of the index columns.
      * @param array<string>|null $include The included columns for covering indexes.
      * @param ?string $where The where clause for partial indexes.
+     * @param ?string $accessMethod The index access method for PostgreSQL (gin, gist, spgist, brin, hash).
      */
     public function __construct(
         protected string $name,
@@ -57,7 +69,31 @@ class Index
         protected ?array $order = null,
         protected ?array $include = null,
         protected ?string $where = null,
+        protected ?string $accessMethod = null,
     ) {
+    }
+
+    /**
+     * Re-initializes nullable properties that may be absent when unserializing
+     * index data produced by an older CakePHP version.
+     *
+     * Nullable index attributes were added incrementally (e.g. `include` in 5.3,
+     * `accessMethod` in 5.4). A serialized payload created before a given property
+     * existed does not contain it, and PHP does not apply the promoted default on
+     * the unserialize path. Reading such a property would otherwise fail with
+     * "Typed property ...::$accessMethod must not be accessed before
+     * initialization". This most commonly surfaces via the Migrations plugin's
+     * `schema-dump-*.lock` files during `migrations diff`.
+     *
+     * @return void
+     */
+    public function __wakeup(): void
+    {
+        $this->length ??= null;
+        $this->order ??= null;
+        $this->include ??= null;
+        $this->where ??= null;
+        $this->accessMethod ??= null;
     }
 
     /**
@@ -232,6 +268,32 @@ class Index
     }
 
     /**
+     * Set the index access method for PostgreSQL.
+     *
+     * PostgreSQL supports multiple index access methods: btree (default),
+     * gin, gist, spgist, brin, and hash.
+     *
+     * @param ?string $accessMethod The access method (gin, gist, spgist, brin, hash).
+     * @return $this
+     */
+    public function setAccessMethod(?string $accessMethod)
+    {
+        $this->accessMethod = $accessMethod;
+
+        return $this;
+    }
+
+    /**
+     * Get the index access method for PostgreSQL.
+     *
+     * @return ?string
+     */
+    public function getAccessMethod(): ?string
+    {
+        return $this->accessMethod;
+    }
+
+    /**
      * Utility method that maps an array of index options to this object's methods.
      *
      * @param array<string, mixed> $attributes Attributes to set.
@@ -241,7 +303,7 @@ class Index
     public function setAttributes(array $attributes)
     {
         // Valid Options
-        $validOptions = ['columns', 'type', 'name', 'length', 'order', 'include', 'where'];
+        $validOptions = ['columns', 'type', 'name', 'length', 'order', 'include', 'where', 'accessMethod'];
         foreach ($attributes as $attr => $value) {
             if (!in_array($attr, $validOptions, true)) {
                 throw new RuntimeException(sprintf('"%s" is not a valid index option.', $attr));
@@ -260,7 +322,7 @@ class Index
      */
     public function toArray(): array
     {
-        return [
+        $result = [
             'name' => $this->getName(),
             'columns' => $this->getColumns(),
             'type' => $this->getType(),
@@ -269,5 +331,11 @@ class Index
             'include' => $this->getInclude(),
             'where' => $this->getWhere(),
         ];
+        // Only include accessMethod when set (PostgreSQL-specific)
+        if ($this->accessMethod !== null) {
+            $result['accessMethod'] = $this->accessMethod;
+        }
+
+        return $result;
     }
 }

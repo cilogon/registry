@@ -30,10 +30,15 @@ use Throwable;
  */
 class RollbackCommand extends Command
 {
-    /**
-     * @use \Cake\Event\EventDispatcherTrait<\Migrations\Command\MigrateCommand>
-     */
     use EventDispatcherTrait;
+
+    /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'Rollback reversible migrations.';
+    }
 
     /**
      * The default name added to the application command list

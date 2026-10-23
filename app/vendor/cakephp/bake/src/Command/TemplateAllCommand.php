@@ -32,20 +32,17 @@ class TemplateAllCommand extends BakeCommand
     /**
      * @inheritDoc
      */
-    public static function defaultName(): string
+    public static function getDescription(): string
     {
-        return 'bake template all';
+        return 'Create all view templates for all controllers in an application or plugin.';
     }
 
     /**
-     * initialize
-     *
-     * @return void
+     * @inheritDoc
      */
-    public function initialize(): void
+    public static function defaultName(): string
     {
-        parent::initialize();
-        $this->templateCommand = new TemplateCommand();
+        return 'bake template all';
     }
 
     /**
@@ -85,6 +82,11 @@ class TemplateAllCommand extends BakeCommand
      */
     protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
+        // Assigned here (not initialize()) because on CakePHP 5.4+ the parser is built
+        // before initialize() runs, while older versions build it after. buildOptionParser()
+        // always runs before execute(), so this guarantees the subcommand is available there.
+        $this->templateCommand ??= new TemplateCommand();
+
         $parser = $this->_setCommonOptions($parser);
         $parser
             ->setDescription('Bake all view template files.')

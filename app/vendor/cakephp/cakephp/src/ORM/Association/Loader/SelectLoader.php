@@ -16,10 +16,15 @@ declare(strict_types=1);
  */
 namespace Cake\ORM\Association\Loader;
 
+use Cake\Database\Driver\Mysql;
 use Cake\Database\Exception\DatabaseException;
+use Cake\Database\Expression\AggregateExpression;
+use Cake\Database\Expression\FieldInterface;
 use Cake\Database\Expression\IdentifierExpression;
+use Cake\Database\Expression\QueryExpression;
 use Cake\Database\Expression\TupleComparison;
 use Cake\Database\ExpressionInterface;
+use Cake\Database\PostgresCompiler;
 use Cake\Database\ValueBinder;
 use Cake\ORM\Association;
 use Cake\ORM\Query\SelectQuery;
@@ -294,11 +299,24 @@ class SelectLoader
     protected function _addFilteringJoin(SelectQuery $query, array|string $key, SelectQuery $subquery): SelectQuery
     {
         $filter = [];
+        $joinFields = [];
         $aliasedTable = $this->sourceAlias;
+        $keyCount = count((array)$key);
+
+        // When source and target use the same alias (self-referential associations
+        // like a tree structure), the subquery join alias would collide with the
+        // outer query's table alias, causing ambiguous column references.
+        // Use a suffixed alias to avoid the collision.
+        if ($aliasedTable === $this->targetAlias) {
+            $aliasedTable = $this->sourceAlias . '_subquery';
+        }
 
         foreach ($subquery->clause('select') as $aliasedField => $field) {
             if (is_int($aliasedField)) {
-                $filter[] = new IdentifierExpression($field);
+                $filter[] = $field;
+                if (count($joinFields) < $keyCount) {
+                    $joinFields[] = $this->_rewriteJoinIdentifier($query, $field, $aliasedTable);
+                }
             } else {
                 $filter[$aliasedField] = $field;
             }
@@ -306,16 +324,52 @@ class SelectLoader
         $subquery->select($filter, true);
 
         if (is_array($key)) {
-            $conditions = $this->_createTupleCondition($query, $key, $filter, '=');
+            $conditions = $this->_createTupleCondition($query, $key, $joinFields, '=');
         } else {
-            $filter = current($filter);
-            $conditions = $query->expr([$key => $filter]);
+            $conditions = $query->expr([$key => $joinFields[0]]);
         }
 
         return $query->innerJoin(
             [$aliasedTable => $subquery],
             $conditions,
         );
+    }
+
+    /**
+     * Rewrites a subquery field reference for use in the outer join condition.
+     *
+     * The subquery body must continue to reference its own internal table alias,
+     * while the outer join condition must reference the alias assigned to the
+     * derived table itself.
+     *
+     * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query Target table's query
+     * @param mixed $field The original selected field.
+     * @param string $aliasedTable The alias assigned to the joined subquery.
+     * @return mixed
+     */
+    protected function _rewriteJoinIdentifier(SelectQuery $query, mixed $field, string $aliasedTable): mixed
+    {
+        if (!is_string($field)) {
+            return $field;
+        }
+
+        $identifier = $field;
+        $selectAlias = null;
+        if (preg_match('/^' . preg_quote($this->sourceAlias, '/') . '\.(.+)$/', $field, $matches)) {
+            $selectAlias = $this->sourceAlias . '__' . $matches[1];
+            $identifier = $aliasedTable . '.' . $selectAlias;
+        }
+
+        $driver = $query->getDriver();
+        if (
+            $selectAlias !== null &&
+            !$driver->isAutoQuotingEnabled() &&
+            $driver->newCompiler() instanceof PostgresCompiler
+        ) {
+            $identifier = $aliasedTable . '.' . $driver->quoteIdentifier($selectAlias);
+        }
+
+        return new IdentifierExpression($identifier);
     }
 
     /**
@@ -431,8 +485,18 @@ class SelectLoader
             }
         }
 
-        $fields = $this->_subqueryFields($query);
-        $filterQuery->select($fields['select'], true)->groupBy($fields['group']);
+        $driver = $filterQuery->getDriver();
+        $useDistinct = !$filterQuery->clause('group')
+            && $driver instanceof Mysql
+            && $driver->isMariadb();
+        $fields = $this->_subqueryFields($query, $useDistinct);
+        $filterQuery->select($fields['select'], true);
+        if ($useDistinct) {
+            // DISTINCT deduplicates joined rows without triggering MariaDB's lateral GROUP BY optimization.
+            $filterQuery->distinct();
+        } else {
+            $filterQuery->groupBy($fields['group']);
+        }
 
         return $filterQuery;
     }
@@ -440,14 +504,19 @@ class SelectLoader
     /**
      * Calculate the fields that need to participate in a subquery.
      *
-     * Normally this includes the binding key columns. If there is a an ORDER BY,
-     * those columns are also included as the fields may be calculated or constant values,
-     * that need to be present to ensure the correct association data is loaded.
+     * Normally this includes the binding key columns. If the subquery keeps an ORDER BY, whatever
+     * it sorts on joins the GROUP BY too, and aliased columns additionally stay in the SELECT list
+     * as they may be calculated or constant values needed to load the correct association data.
+     *
+     * When a HAVING clause is present the original SELECT aliases are preserved as
+     * well, since HAVING may reference computed aliases that would otherwise be
+     * dropped from the reduced subquery SELECT list.
      *
      * @param \Cake\ORM\Query\SelectQuery<\Cake\Datasource\EntityInterface|array> $query The query to get fields from.
+     * @param bool $includeOrderFields Whether ordered fields should be included in the SELECT list.
      * @return array<string, array> The list of fields for the subquery.
      */
-    protected function _subqueryFields(SelectQuery $query): array
+    protected function _subqueryFields(SelectQuery $query, bool $includeOrderFields = false): array
     {
         $keys = (array)$this->bindingKey;
 
@@ -459,18 +528,138 @@ class SelectLoader
         $group = array_values($fields);
         $fields = $group;
 
-        /** @var \Cake\Database\Expression\QueryExpression $order */
+        $columns = $query->clause('select');
+
+        /** @var \Cake\Database\Expression\QueryExpression|null $order */
         $order = $query->clause('order');
-        if ($order) {
-            $columns = $query->clause('select');
-            $order->iterateParts(function ($direction, $field) use (&$fields, $columns): void {
-                if (isset($columns[$field])) {
-                    $fields[$field] = $columns[$field];
+        // _buildSubquery() only keeps the ORDER BY when the query is limited.
+        if ($order && $query->clause('limit') !== null) {
+            // iterateParts() rebuilds the expression from the callback's return value, so each part
+            // has to be handed back. Returning nothing would strip the ORDER BY from $query itself,
+            // which is the caller's query, not a clone of it.
+            $order->iterateParts(function (
+                $direction,
+                $field,
+            ) use (
+                &$fields,
+                &$group,
+                $columns,
+                $includeOrderFields,
+            ) {
+                // A numeric key carries its own column and must not be read as a SELECT offset.
+                if (is_string($field) && isset($columns[$field])) {
+                    $column = $columns[$field];
+                    $fields[$field] = $column;
+                } else {
+                    $column = $this->orderColumn($field, $direction);
                 }
+
+                // Constant values such as `select(['score' => 100])` are not columns.
+                if (!is_string($column) && !$column instanceof ExpressionInterface) {
+                    return $direction;
+                }
+
+                $selectColumn = $column;
+                // Auto-quoting may have already converted the order field to SQL. Keep that form
+                // as an expression so aliasFields() does not quote it a second time.
+                if (is_string($column) && $column !== '' && str_contains('`"[', $column[0])) {
+                    $selectColumn = new QueryExpression($column);
+                }
+                if ($includeOrderFields && !in_array($selectColumn, $fields, true)) {
+                    $fields[] = $selectColumn;
+                }
+
+                if (!$this->isAggregate($column) && !in_array($column, $group, true)) {
+                    $group[] = $column;
+                }
+
+                return $direction;
             });
         }
 
+        $having = $query->clause('having');
+        if ($having instanceof QueryExpression && $having->count() > 0) {
+            $reserved = [];
+            foreach ($keys as $k) {
+                $reserved[strtolower(trim((string)$k, '`"[]'))] = true;
+            }
+
+            $havingSql = $having->sql(new ValueBinder());
+            foreach ($columns as $alias => $column) {
+                if (!is_string($alias) || isset($fields[$alias])) {
+                    continue;
+                }
+                $cleanAlias = trim($alias, '`"[]');
+                if (isset($reserved[strtolower($cleanAlias)])) {
+                    continue;
+                }
+                if (preg_match('/\b' . preg_quote($cleanAlias, '/') . '\b/', $havingSql) !== 1) {
+                    continue;
+                }
+                $fields[$alias] = $column;
+
+                if (!$this->isAggregate($column)) {
+                    $group[] = $column;
+                }
+            }
+        }
+
         return ['select' => $fields, 'group' => $group];
+    }
+
+    /**
+     * Resolves the column an ORDER BY part sorts on, so it can join the subquery GROUP BY.
+     *
+     * Associative parts (`['Articles.title' => 'ASC']`) carry it as their key, orderByAsc()/
+     * orderByDesc() and raw expressions in the value. Plain SQL fragments such as
+     * `orderBy('Articles.title DESC')` cannot be told apart from their direction.
+     *
+     * @param mixed $field The key of the ORDER BY part.
+     * @param mixed $direction The value of the ORDER BY part.
+     * @return \Cake\Database\ExpressionInterface|string|null The column, or null if it cannot be resolved.
+     */
+    protected function orderColumn(mixed $field, mixed $direction): ExpressionInterface|string|null
+    {
+        if (is_string($field)) {
+            return $field;
+        }
+
+        if ($direction instanceof FieldInterface) {
+            $field = $direction->getField();
+
+            return is_string($field) || $field instanceof ExpressionInterface ? $field : null;
+        }
+
+        if ($direction instanceof ExpressionInterface) {
+            return $direction;
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks whether a column aggregates rows, in which case it must stay out of the GROUP BY.
+     *
+     * @param mixed $column The column to check.
+     * @return bool
+     */
+    protected function isAggregate(mixed $column): bool
+    {
+        if (!$column instanceof ExpressionInterface) {
+            return false;
+        }
+        if ($column instanceof AggregateExpression) {
+            return true;
+        }
+
+        $isAggregate = false;
+        $column->traverse(function ($sub) use (&$isAggregate): void {
+            if ($sub instanceof AggregateExpression) {
+                $isAggregate = true;
+            }
+        });
+
+        return $isAggregate;
     }
 
     /**

@@ -35,20 +35,17 @@ class ModelAllCommand extends BakeCommand
     /**
      * @inheritDoc
      */
-    public static function defaultName(): string
+    public static function getDescription(): string
     {
-        return 'bake model all';
+        return 'Create all models, fixtures and tests in an application or plugin.';
     }
 
     /**
-     * initialize
-     *
-     * @return void
+     * @inheritDoc
      */
-    public function initialize(): void
+    public static function defaultName(): string
     {
-        parent::initialize();
-        $this->modelCommand = new ModelCommand();
+        return 'bake model all';
     }
 
     /**
@@ -59,6 +56,11 @@ class ModelAllCommand extends BakeCommand
      */
     protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
+        // Assigned here (not initialize()) because on CakePHP 5.4+ the parser is built
+        // before initialize() runs, while older versions build it after. ??= keeps it
+        // safe under either ordering and idempotent across repeated calls.
+        $this->modelCommand ??= new ModelCommand();
+
         $parser = $this->modelCommand->buildOptionParser($parser);
         $parser
             ->setDescription('Bake all model files with associations and validation.')

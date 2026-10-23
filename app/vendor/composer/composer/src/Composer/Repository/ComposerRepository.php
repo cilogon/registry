@@ -14,6 +14,9 @@ namespace Composer\Repository;
 
 use Composer\Advisory\PartialSecurityAdvisory;
 use Composer\Advisory\SecurityAdvisory;
+use Composer\FilterList\ComposerRepositoryFilterInformation;
+use Composer\FilterList\FilterListApiClient;
+use Composer\FilterList\FilterListEntryBuilder;
 use Composer\Package\BasePackage;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
@@ -46,7 +49,7 @@ use React\Promise\PromiseInterface;
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class ComposerRepository extends ArrayRepository implements ConfigurableRepositoryInterface, AdvisoryProviderInterface
+class ComposerRepository extends ArrayRepository implements ConfigurableRepositoryInterface, AdvisoryProviderInterface, FilterListProviderInterface
 {
     /**
      * @var mixed[]
@@ -111,6 +114,16 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
     private $displayedWarningAboutNonMatchingPackageIndex = false;
     /** @var array{metadata: bool, api-url: string|null}|null */
     private $securityAdvisoryConfig = null;
+    /** @var ComposerRepositoryFilterInformation|null */
+    private $filterConfig = null;
+    /**
+     * Per-repo user filter config from the composer.json:
+     * - `false` disables every advertised list from this repo entirely.
+     * - An array names advertised lists set to `false` to opt out of them.
+     *
+     * @var false|array<string, false>
+     */
+    private $userFilterConfig = [];
 
     /**
      * @var array list of package names which are fresh and can be loaded from the cache directly in case loadPackage is called several times
@@ -130,6 +143,16 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
      * @var VersionParser
      */
     private $versionParser;
+
+    /**
+     * @var ?FilterListApiClient
+     */
+    private $filterApiClient = null;
+
+    /**
+     * @var ?FilterListEntryBuilder
+     */
+    private $filterEntryBuilder = null;
 
     /**
      * @param array<string, mixed> $repoConfig
@@ -158,7 +181,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
 
         $urlBits = parse_url(strtr($repoConfig['url'], '\\', '/'));
         if ($urlBits === false || empty($urlBits['scheme'])) {
-            throw new \UnexpectedValueException('Invalid url given for Composer repository: '.$repoConfig['url']);
+            throw new \UnexpectedValueException('Invalid url given for Composer repository: '.Url::sanitize($repoConfig['url']));
         }
 
         if (!isset($repoConfig['options'])) {
@@ -188,6 +211,44 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
         $this->eventDispatcher = $eventDispatcher;
         $this->repoConfig = $repoConfig;
         $this->loop = new Loop($this->httpDownloader);
+        $this->userFilterConfig = self::parseUserFilterConfig($repoConfig['filter'] ?? null);
+    }
+
+    /**
+     * @param mixed $rawFilter The `filter` value from the user's repo config.
+     * @return false|array<string, false>
+     */
+    private static function parseUserFilterConfig($rawFilter)
+    {
+        if ($rawFilter === false) {
+            return false;
+        }
+
+        if ($rawFilter === null || $rawFilter === true) {
+            return [];
+        }
+
+        if (!is_array($rawFilter)) {
+            throw new \UnexpectedValueException('Repository "filter" must be a boolean or an object mapping advertised list names to false.');
+        }
+
+        $parsed = [];
+        foreach ($rawFilter as $listName => $value) {
+            if (!is_string($listName) || $listName === '') {
+                throw new \UnexpectedValueException('Repository "filter" keys must be non-empty list-name strings.');
+            }
+            if ($value === true) {
+                continue;
+            }
+
+            if ($value !== false) {
+                throw new \UnexpectedValueException(sprintf('Repository "filter" entry for "%s" must be a boolean; got %s.', $listName, var_export($value, true)));
+            }
+
+            $parsed[$listName] = false;
+        }
+
+        return $parsed;
     }
 
     public function getRepoName()
@@ -458,6 +519,8 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
             $url .= '?filter='.urlencode($packageFilter);
             $result = $this->httpDownloader->get($url, $this->options)->decodeJson();
 
+            HttpDownloader::outputWarnings($this->io, $this->url, $result);
+
             return $result['packageNames'];
         }
 
@@ -470,6 +533,9 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
         }
 
         $result = $this->httpDownloader->get($url, $this->options)->decodeJson();
+
+        HttpDownloader::outputWarnings($this->io, $this->url, $result);
+
         if (!$this->cache->isReadOnly()) {
             $this->cache->write($cacheKey, implode("\n", $result['packageNames']));
         }
@@ -507,9 +573,9 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                     $namesFound[$name] = true;
 
                     if (!$constraint || $constraint->matches(new Constraint('==', $candidate->getVersion()))) {
-                        $matches[spl_object_hash($candidate)] = $candidate;
-                        if ($candidate instanceof AliasPackage && !isset($matches[spl_object_hash($candidate->getAliasOf())])) {
-                            $matches[spl_object_hash($candidate->getAliasOf())] = $candidate->getAliasOf();
+                        $matches[spl_object_id($candidate)] = $candidate;
+                        if ($candidate instanceof AliasPackage && !isset($matches[spl_object_id($candidate->getAliasOf())])) {
+                            $matches[spl_object_id($candidate->getAliasOf())] = $candidate->getAliasOf();
                         }
                     }
                 }
@@ -517,8 +583,8 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                 // add aliases of matched packages even if they did not match the constraint
                 foreach ($candidates as $candidate) {
                     if ($candidate instanceof AliasPackage) {
-                        if (isset($matches[spl_object_hash($candidate->getAliasOf())])) {
-                            $matches[spl_object_hash($candidate)] = $candidate;
+                        if (isset($matches[spl_object_id($candidate->getAliasOf())])) {
+                            $matches[spl_object_id($candidate)] = $candidate;
                         }
                     }
                 }
@@ -557,6 +623,8 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
 
             $search = $this->httpDownloader->get($url, $this->options)->decodeJson();
 
+            HttpDownloader::outputWarnings($this->io, $this->url, $search);
+
             if (empty($search['results'])) {
                 return [];
             }
@@ -591,6 +659,8 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
             if (Preg::isMatchStrictGroups('{^\^(?P<query>(?P<vendor>[a-z0-9_.-]+)/[a-z0-9_.-]*)\*?$}i', $query, $match) && $this->listUrl !== null) {
                 $url = $this->listUrl . '?vendor='.urlencode($match['vendor']).'&filter='.urlencode($match['query'].'*');
                 $result = $this->httpDownloader->get($url, $this->options)->decodeJson();
+
+                HttpDownloader::outputWarnings($this->io, $this->url, $result);
 
                 $results = [];
                 foreach ($result['packageNames'] as $name) {
@@ -709,8 +779,10 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
 
             $response = $this->httpDownloader->get($apiUrl, $options);
             $warned = false;
+            $advisoryData = $response->decodeJson();
+            HttpDownloader::outputWarnings($this->io, $this->url, $advisoryData);
             /** @var string $name */
-            foreach ($response->decodeJson()['advisories'] as $name => $list) {
+            foreach ($advisoryData['advisories'] as $name => $list) {
                 if (!isset($packageConstraintMap[$name])) {
                     if (!$warned) {
                         $this->io->writeError('<warning>'.$this->getRepoName().' returned names which were not requested in response to the security-advisories API. '.$name.' was not requested but is present in the response. Requested names were: '.implode(', ', array_keys($packageConstraintMap)).'</warning>');
@@ -733,6 +805,205 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
         return ['namesFound' => array_keys($namesFound), 'advisories' => array_filter($advisories, static function ($adv): bool { return \count($adv) > 0; })];
     }
 
+    public function hasFilter(): bool
+    {
+        if ($this->userFilterConfig === false) {
+            return false;
+        }
+
+        $this->loadRootServerFile(600);
+
+        return $this->filterConfig !== null && $this->filterConfig->metadata;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFilter(array $packageConstraintMap, array $configuredLists): array
+    {
+        $this->loadRootServerFile(600);
+
+        // respect available-package-patterns / available-packages directives from the repo
+        if ($this->hasAvailablePackageList) {
+            foreach ($packageConstraintMap as $name => $constraint) {
+                if (!$this->lazyProvidersRepoContains(strtolower($name))) {
+                    unset($packageConstraintMap[$name]);
+                }
+            }
+        }
+
+        // api-url returns the matched filter entries directly: skip the summary + per-package
+        // metadata path entirely. As with summary-url below, fall through to the cached metadata
+        // path if package metadata was already pulled in this run.
+        if ($this->filterConfig !== null && $this->filterConfig->apiUrl !== null && $this->freshMetadataUrls === []) {
+            $response = $this->getFilterApiClient()->postPurls(
+                $this->filterConfig->apiUrl,
+                $packageConstraintMap,
+                $configuredLists
+            );
+            $decoded = $response->decodeJson();
+            HttpDownloader::outputWarnings($this->io, $this->url, $decoded);
+            if (!isset($decoded['filter']) || !is_array($decoded['filter'])) {
+                throw new TransportException('Filter api-url '.$this->filterConfig->apiUrl.' returned an unexpected response for '.$this->getRepoName(), 0);
+            }
+
+            return ['filter' => $this->getFilterEntryBuilder()->build($decoded['filter'], $packageConstraintMap)];
+        }
+
+        // skip the summary fetch if we already pulled package metadata in this run; per-package
+        // calls below will short-circuit on the cache, so the summary would be wasted work.
+        if ($this->filterConfig !== null && $this->filterConfig->summaryUrl !== null && $this->freshMetadataUrls === []) {
+            $summary = $this->loadFilterSummary();
+
+            $candidates = [];
+            foreach ($configuredLists as $listName) {
+                if (!isset($summary[$listName])) {
+                    continue;
+                }
+
+                foreach ($summary[$listName] as $packageName => $summaryConstraint) {
+                    if (!isset($packageConstraintMap[$packageName])) {
+                        continue;
+                    }
+
+                    if (!$packageConstraintMap[$packageName] instanceof MatchAllConstraint && !$this->versionParser->parseConstraints($summaryConstraint)->matches($packageConstraintMap[$packageName])) {
+                        continue;
+                    }
+
+                    $candidates[$packageName] = true;
+                }
+            }
+            $packageConstraintMap = array_intersect_key($packageConstraintMap, $candidates);
+        }
+
+        $entryBuilder = $this->getFilterEntryBuilder();
+        $filter = [];
+        $promises = [];
+        foreach ($packageConstraintMap as $name => $constraint) {
+            $name = strtolower($name);
+
+            // skip platform packages, root package and composer-plugin-api
+            if (PlatformRepository::isPlatformPackage($name) || '__root__' === $name) {
+                continue;
+            }
+
+            $promises[] = $this->startCachedAsyncDownload($name, $name)
+                ->then(static function (array $spec) use (&$filter, $name, $entryBuilder, $packageConstraintMap): void {
+                    [$response] = $spec;
+
+                    if (!isset($response['filter']) || !is_array($response['filter'])) {
+                        return;
+                    }
+
+                    foreach ($entryBuilder->build($response['filter'], $packageConstraintMap, $name) as $listName => $entries) {
+                        foreach ($entries as $entry) {
+                            $filter[$listName][] = $entry;
+                        }
+                    }
+                });
+        }
+
+        $this->loop->wait($promises);
+
+        return ['filter' => $filter];
+    }
+
+    private function getFilterApiClient(): FilterListApiClient
+    {
+        if ($this->filterApiClient === null) {
+            $this->filterApiClient = new FilterListApiClient($this->httpDownloader, $this->options);
+        }
+
+        return $this->filterApiClient;
+    }
+
+    private function getFilterEntryBuilder(): FilterListEntryBuilder
+    {
+        if ($this->filterEntryBuilder === null) {
+            $this->filterEntryBuilder = new FilterListEntryBuilder($this->versionParser);
+        }
+
+        return $this->filterEntryBuilder;
+    }
+
+    /**
+     * @return array<string, array<string, string>> List name → package name → constraint
+     */
+    private function loadFilterSummary(): array
+    {
+        if ($this->filterConfig === null || $this->filterConfig->summaryUrl === null) {
+            return [];
+        }
+
+        $cacheKey = 'filter-summary.json';
+        $contents = null;
+        $lastModified = null;
+        $cached = $this->cache->read($cacheKey);
+        if ($cached !== false) {
+            $cached = json_decode($cached, true);
+            if (is_array($cached)) {
+                $contents = $cached;
+                $lastModified = $cached['last-modified'] ?? null;
+            }
+        }
+
+        $data = null;
+        $promise = $this->asyncFetchFile($this->filterConfig->summaryUrl, $cacheKey, $lastModified)
+            ->then(static function ($response) use (&$data, $contents): void {
+                if (true === $response) {
+                    $data = $contents;
+                } else {
+                    $data = $response;
+                }
+            });
+        $this->loop->wait([$promise]);
+
+        if (!is_array($data) || !isset($data['filter']) || !is_array($data['filter'])) {
+            throw new TransportException('Filter summary URL '.$this->filterConfig->summaryUrl.' returned 404 for '.$this->getRepoName(), 404);
+        }
+
+        $summary = [];
+        foreach ($data['filter'] as $listName => $packages) {
+            if (!is_string($listName) || !is_array($packages)) {
+                throw new \UnexpectedValueException('Invalid filter summary received from '.$this->getRepoName().': list "'.(is_string($listName) ? $listName : '').'" must map to an object of package => constraint');
+            }
+
+            foreach ($packages as $packageName => $constraintString) {
+                if (!is_string($packageName) || !is_string($constraintString)) {
+                    throw new \UnexpectedValueException('Invalid filter summary received from '.$this->getRepoName().': list "'.$listName.'" entries must be strings');
+                }
+                $summary[$listName][strtolower($packageName)] = $constraintString;
+            }
+        }
+
+        return $summary;
+    }
+
+    public function getFilterLists(): array
+    {
+        if ($this->userFilterConfig === false) {
+            return [];
+        }
+
+        $this->loadRootServerFile(600);
+
+        if ($this->filterConfig === null) {
+            return [];
+        }
+
+        $skipped = $this->userFilterConfig;
+        if ($skipped === []) {
+            return $this->filterConfig->lists;
+        }
+
+        return array_values(array_filter(
+            $this->filterConfig->lists,
+            static function (string $listName) use ($skipped): bool {
+                return !isset($skipped[$listName]);
+            }
+        ));
+    }
+
     public function getProviders(string $packageName)
     {
         $this->loadRootServerFile();
@@ -747,6 +1018,8 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                 }
                 throw $e;
             }
+
+            HttpDownloader::outputWarnings($this->io, $this->url, $apiResult);
 
             foreach ($apiResult['providers'] as $provider) {
                 $result[$provider['name']] = $provider;
@@ -1002,7 +1275,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
      * @phpstan-param array<string, BasePackage::STABILITY_*>|null $stabilityFlags
      * @param array<string, array<string, PackageInterface>> $alreadyLoaded
      *
-     * @return array{namesFound: array<string, true>, packages: array<string, BasePackage>}
+     * @return array{namesFound: array<string, true>, packages: array<int, BasePackage>}
      */
     private function loadAsyncPackages(array $packageNames, ?array $acceptableStabilities = null, ?array $stabilityFlags = null, array $alreadyLoaded = []): array
     {
@@ -1072,11 +1345,11 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                     $loadedPackages = $this->createPackages($versionsToLoad, $packagesSource);
                     foreach ($loadedPackages as $package) {
                         $package->setRepository($this);
-                        $packages[spl_object_hash($package)] = $package;
+                        $packages[spl_object_id($package)] = $package;
 
-                        if ($package instanceof AliasPackage && !isset($packages[spl_object_hash($package->getAliasOf())])) {
+                        if ($package instanceof AliasPackage && !isset($packages[spl_object_id($package->getAliasOf())])) {
                             $package->getAliasOf()->setRepository($this);
-                            $packages[spl_object_hash($package->getAliasOf())] = $package->getAliasOf();
+                            $packages[spl_object_id($package->getAliasOf())] = $package->getAliasOf();
                         }
                     }
                 });
@@ -1117,7 +1390,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                     $response = $contents;
                 }
 
-                if (!isset($response['packages'][$packageName]) && !isset($response['security-advisories'])) {
+                if (!isset($response['packages'][$packageName]) && !isset($response['security-advisories']) && !isset($response['filter'])) {
                     return [null, $packagesSource];
                 }
 
@@ -1177,7 +1450,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
         }
 
         if (!extension_loaded('openssl') && strpos($this->url, 'https') === 0) {
-            throw new \RuntimeException('You must enable the openssl extension in your php.ini to load information from '.$this->url);
+            throw new \RuntimeException('You must enable the openssl extension in your php.ini to load information from '.Url::sanitize($this->url));
         }
 
         if ($cachedData = $this->cache->read('packages.json')) {
@@ -1269,6 +1542,10 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                 if ($this->securityAdvisoryConfig['api-url'] === null && !$this->hasAvailablePackageList) {
                     throw new \UnexpectedValueException('Invalid security advisory configuration on '.$this->getRepoName().': If the repository does not provide a security-advisories.api-url then available-packages or available-package-patterns are required to be provided for performance reason.');
                 }
+            }
+
+            if (isset($data['filter']) && is_array($data['filter'])) {
+                $this->filterConfig = ComposerRepositoryFilterInformation::fromData($data['filter'], \Closure::fromCallable([$this, 'canonicalizeUrl']));
             }
         }
 
@@ -1498,7 +1775,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
                     }
 
                     // TODO use scarier wording once we know for sure it doesn't do false positives anymore
-                    throw new RepositorySecurityException('The contents of '.$filename.' do not match its signature. This could indicate a man-in-the-middle attack or e.g. antivirus software corrupting files. Try running composer again and report this if you think it is a mistake.');
+                    throw new RepositorySecurityException('The contents of '.Url::sanitize($filename).' do not match its signature. This could indicate a man-in-the-middle attack or e.g. antivirus software corrupting files. Try running composer again and report this if you think it is a mistake.');
                 }
 
                 if ($this->eventDispatcher) {
@@ -1538,7 +1815,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
 
                 if ($cacheKey && ($contents = $this->cache->read($cacheKey))) {
                     if (!$this->degradedMode) {
-                        $this->io->writeError('<warning>'.$this->url.' could not be fully loaded ('.$e->getMessage().'), package information was loaded from the local cache and may be out of date</warning>');
+                        $this->io->writeError('<warning>'.Url::sanitize($this->url).' could not be fully loaded ('.$e->getMessage().'), package information was loaded from the local cache and may be out of date</warning>');
                     }
                     $this->degradedMode = true;
                     $data = JsonFile::parseJson($contents, $this->cache->getRoot().$cacheKey);
@@ -1615,7 +1892,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
             }
 
             if (!$this->degradedMode) {
-                $this->io->writeError('<warning>'.$this->url.' could not be fully loaded ('.$e->getMessage().'), package information was loaded from the local cache and may be out of date</warning>');
+                $this->io->writeError('<warning>'.Url::sanitize($this->url).' could not be fully loaded ('.$e->getMessage().'), package information was loaded from the local cache and may be out of date</warning>');
             }
             $this->degradedMode = true;
 
@@ -1715,7 +1992,7 @@ class ComposerRepository extends ArrayRepository implements ConfigurableReposito
             }
 
             if (!$degradedMode) {
-                $io->writeError('<warning>'.$url.' could not be fully loaded ('.$e->getMessage().'), package information was loaded from the local cache and may be out of date</warning>');
+                $io->writeError('<warning>'.Url::sanitize($url).' could not be fully loaded ('.$e->getMessage().'), package information was loaded from the local cache and may be out of date</warning>');
             }
             $degradedMode = true;
 

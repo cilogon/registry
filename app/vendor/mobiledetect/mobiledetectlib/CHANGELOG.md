@@ -1,5 +1,18 @@
 # Change log
 
+# 4.11.0
+
+## Security
+- [x] **GHSA-mgj4-qjmw-v56v** — the bundled `Detection\Cache\Cache` is now bounded (default 1000 entries, FIFO eviction). Prevents unbounded in-memory growth when one `MobileDetect` instance is reused across many distinct User-Agents in a long-running PHP runtime (RoadRunner, Laravel Octane, FrankenPHP worker mode, Swoole, ReactPHP, queue workers). **Not applicable** to classic PHP-FPM / mod_php deployments — the cache dies with the request. Custom PSR-16 adapters (Redis, APCu, Memcached, Filesystem) are out of scope; their eviction policy is the operator's responsibility.
+
+## Added
+- [x] `Detection\Cache\Cache::__construct(int $maxEntries = Cache::DEFAULT_MAX_ENTRIES)` — tune the in-memory cap via `new MobileDetect(new Cache($n))`.
+- [x] `Cache::DEFAULT_MAX_ENTRIES` constant (1000) and `Cache::getMaxEntries()` accessor.
+
+## Changed
+- [x] `README-EXAMPLES.md` "Long-Running Processes" — worker example now uses `clear()` (was `evictExpired()`, which is a no-op against fresh entries under the default 86 400 s TTL); added explicit note framing in-memory cache bounding as a systems-level concern with the bundled cap, and pointing operators at their own adapter's eviction for custom PSR-16 backends.
+- [x] `Cache::evictExpired()` docblock — clarified that it bounds by *expiration*, not by *cardinality*. Method behavior is unchanged.
+
 # 4.10.0
 
 ## Changed

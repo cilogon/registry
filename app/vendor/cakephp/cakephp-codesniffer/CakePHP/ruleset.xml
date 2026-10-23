@@ -234,7 +234,6 @@
             <property name="withSpacesAroundOperators" value="no"/>
             <property name="withSpacesInsideParentheses" value="no"/>
             <property name="shortNullable" value="yes"/>
-            <property name="nullPosition" value="last"/>
         </properties>
         <exclude-pattern>*/tests/*</exclude-pattern>
     </rule>
@@ -256,6 +255,16 @@
     <rule ref="SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment"/>
     <rule ref="SlevomatCodingStandard.Classes.BackedEnumTypeSpacing"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/>
+    <rule ref="SlevomatCodingStandard.Whitespaces.DuplicateSpaces">
+        <properties>
+            <property name="ignoreSpacesInComment" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing">
+        <properties>
+            <property name="allowOnSameLine" value="true"/>
+        </properties>
+    </rule>
 
     <!-- phpcs Zend sniffs -->
     <rule ref="Zend.NamingConventions.ValidVariableName">

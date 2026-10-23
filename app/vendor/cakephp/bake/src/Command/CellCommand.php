@@ -34,6 +34,14 @@ class CellCommand extends SimpleBakeCommand
     /**
      * @inheritDoc
      */
+    public static function getDescription(): string
+    {
+        return 'Create a view cell, template and test.';
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function name(): string
     {
         return 'cell';
@@ -59,8 +67,7 @@ class CellCommand extends SimpleBakeCommand
      * Get template data.
      *
      * @param \Cake\Console\Arguments $arguments Arguments object.
-     * @return array
-     * @phpstan-return array<string, mixed>
+     * @return array<string, mixed>
      */
     public function templateData(Arguments $arguments): array
     {

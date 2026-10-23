@@ -32,6 +32,14 @@ class CommandCommand extends SimpleBakeCommand
     /**
      * @inheritDoc
      */
+    public static function getDescription(): string
+    {
+        return 'Create a console command and test.';
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function name(): string
     {
         return 'command';
@@ -57,8 +65,7 @@ class CommandCommand extends SimpleBakeCommand
      * Get template data.
      *
      * @param \Cake\Console\Arguments $arguments Arguments object.
-     * @return array
-     * @phpstan-return array<string, mixed>
+     * @return array<string, mixed>
      */
     public function templateData(Arguments $arguments): array
     {

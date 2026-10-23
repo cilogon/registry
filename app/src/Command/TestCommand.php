@@ -40,8 +40,6 @@ class TestCommand extends BaseCommand
 {
   use \Cake\ORM\Locator\LocatorAwareTrait;
 
-  protected $io = null;
-
   /**
    * Register command specific options.
    *
@@ -81,8 +79,6 @@ class TestCommand extends BaseCommand
   public function execute(Arguments $args, ConsoleIo $io)
   {
     global $argv;
-
-    $this->io = $io;
 
     // The test we want to run
     $test = $args->getOption('test');

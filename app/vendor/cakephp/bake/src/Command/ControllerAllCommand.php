@@ -35,20 +35,17 @@ class ControllerAllCommand extends BakeCommand
     /**
      * @inheritDoc
      */
-    public static function defaultName(): string
+    public static function getDescription(): string
     {
-        return 'bake controller all';
+        return 'Create all controllers for an application or plugin.';
     }
 
     /**
-     * initialize
-     *
-     * @return void
+     * @inheritDoc
      */
-    public function initialize(): void
+    public static function defaultName(): string
     {
-        parent::initialize();
-        $this->controllerCommand = new ControllerCommand();
+        return 'bake controller all';
     }
 
     /**
@@ -82,6 +79,11 @@ class ControllerAllCommand extends BakeCommand
      */
     protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
+        // Assigned here (not initialize()) because on CakePHP 5.4+ the parser is built
+        // before initialize() runs, while older versions build it after. ??= keeps it
+        // safe under either ordering and idempotent across repeated calls.
+        $this->controllerCommand ??= new ControllerCommand();
+
         $parser = $this->controllerCommand->buildOptionParser($parser);
         $parser
             ->setDescription('Bake all controller files with tests.')

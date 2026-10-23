@@ -172,15 +172,23 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
             'unsigned' => null,
         ],
         'geometry' => [
+            'geometryType' => null,
+            'srid' => null,
+        ],
+        'geography' => [
+            'geometryType' => null,
             'srid' => null,
         ],
         'point' => [
+            'geometryType' => null,
             'srid' => null,
         ],
         'linestring' => [
+            'geometryType' => null,
             'srid' => null,
         ],
         'polygon' => [
+            'geometryType' => null,
             'srid' => null,
         ],
         'datetime' => [
@@ -220,6 +228,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         'constraint' => null,
         'deferrable' => null,
         'expression' => null,
+        'accessMethod' => null,
     ];
 
     /**
@@ -435,18 +444,14 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         if (isset(static::$_columnExtras[$attrs['type']])) {
             $expected += static::$_columnExtras[$attrs['type']];
         }
-        // Remove any attributes that weren't in the allow list.
-        // This is to provide backwards compatible keys
-        $remove = array_diff(array_keys($attrs), array_keys($expected));
-        foreach ($remove as $key) {
-            unset($attrs[$key]);
-        }
 
         if (isset($attrs['baseType']) && $attrs['baseType'] === $attrs['type']) {
             unset($attrs['baseType']);
         }
 
-        return $attrs;
+        // Remove any attributes that weren't in the allow list.
+        // This is to provide backwards compatible keys
+        return array_intersect_key($attrs, $expected);
     }
 
     /**
@@ -835,7 +840,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         // Map the backwards compatible attributes in. Need to check for existing instance.
         $attrs['referencedTable'] = $attrs['references'][0];
         $attrs['referencedColumns'] = (array)$attrs['references'][1];
-        unset($attrs['type'], $attrs['references'], $attrs['length'], $attrs['expression']);
+        unset($attrs['type'], $attrs['references'], $attrs['length'], $attrs['expression'], $attrs['accessMethod']);
 
         return $attrs;
     }

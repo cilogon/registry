@@ -1467,7 +1467,14 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
                 ->execute();
         }
 
-        $result = $statement->fetch(PDO::FETCH_ASSOC);
+        try {
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+        } finally {
+            // A count always returns a single row, and leaving an unbuffered statement
+            // open would keep the connection busy until the statement is garbage
+            // collected.
+            $statement->closeCursor();
+        }
 
         return $result === false ? 0 : (int)$result['count'];
     }
@@ -1519,6 +1526,10 @@ class SelectQuery extends DbSelectQuery implements JsonSerializable, QueryInterf
      * Disabling hydration will cause array results to be returned for the query
      * instead of entities.
      *
+     * @deprecated 5.4.0 Use {@see \Cake\ORM\Table::unhydratedFind()} for
+     *   type-safe non-hydrated reads. The fluent toggle returns a `static`
+     *   that lies about its result shape; `unhydratedFind()` returns an
+     *   `UnhydratedSelectQuery` whose type matches the runtime. Removed in 6.0.
      * @return static<array<string,mixed>>
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
      */

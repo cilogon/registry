@@ -36,6 +36,14 @@ class EnumCommand extends SimpleBakeCommand
     /**
      * @inheritDoc
      */
+    public static function getDescription(): string
+    {
+        return 'Create a model Enum';
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function name(): string
     {
         return 'enum';
@@ -61,8 +69,7 @@ class EnumCommand extends SimpleBakeCommand
      * Get template data.
      *
      * @param \Cake\Console\Arguments $arguments The arguments for the command
-     * @return array
-     * @phpstan-return array<string, mixed>
+     * @return array<string, mixed>
      */
     public function templateData(Arguments $arguments): array
     {

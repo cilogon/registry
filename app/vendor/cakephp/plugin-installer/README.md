@@ -3,7 +3,7 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/cakephp/plugin-installer/ci.yml?style=flat-square)](https://github.com/cakephp/plugin-installer/actions/workflows/ci.yml)
 [![Latest Stable Version](https://img.shields.io/github/v/release/cakephp/plugin-installer?sort=semver&style=flat-square)](https://packagist.org/packages/cakephp/plugin-installer)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/plugin-installer?style=flat-square)](https://packagist.org/packages/cakephp/plugin-installer/stats)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
 
 A composer installer for installing CakePHP plugins.
 
@@ -16,7 +16,7 @@ Your CakePHP application should already depend on `cakephp/plugin-installer`, if
 not in your CakePHP application run:
 
 ```
-composer require cakephp/plugin-installer:*
+composer require cakephp/plugin-installer
 ```
 
 Your plugins themselves do **not** need to require `cakephp/plugin-installer`. They
@@ -25,6 +25,13 @@ only need to specify the `type` in their composer config:
 ```json
 "type": "cakephp-plugin"
 ```
+
+## App Plugins
+
+Plugins in your application's `plugins/` directory are added to the generated
+`cakephp-plugins.php` as well. If a plugin exists both there and in `vendor/`,
+the one in `plugins/` is used. This lets you work on a local copy of a plugin
+that is also installed through composer.
 
 ## Multiple Plugin Paths
 

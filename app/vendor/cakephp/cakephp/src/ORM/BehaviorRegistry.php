@@ -33,13 +33,9 @@ use function Cake\Core\deprecationWarning;
  * This class also provides method for checking and dispatching behavior methods.
  *
  * @extends \Cake\Core\ObjectRegistry<\Cake\ORM\Behavior>
- * @implements \Cake\Event\EventDispatcherInterface<\Cake\ORM\Table>
  */
 class BehaviorRegistry extends ObjectRegistry implements EventDispatcherInterface
 {
-    /**
-     * @use \Cake\Event\EventDispatcherTrait<\Cake\ORM\Table>
-     */
     use EventDispatcherTrait;
 
     /**
@@ -91,8 +87,7 @@ class BehaviorRegistry extends ObjectRegistry implements EventDispatcherInterfac
      * Resolve a behavior classname.
      *
      * @param string $class Partial classname to resolve.
-     * @return string|null Either the correct classname or null.
-     * @phpstan-return class-string|null
+     * @return class-string|null Either the correct classname or null.
      */
     public static function className(string $class): ?string
     {

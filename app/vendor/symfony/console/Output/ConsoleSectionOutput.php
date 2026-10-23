@@ -74,7 +74,10 @@ class ConsoleSectionOutput extends StreamOutput
             $this->content = [];
         }
 
-        $this->lines -= $lines;
+        // callers may ask to clear more lines than this section tracks (e.g. ProgressBar
+        // counts "\n"-separated lines while addContent() splits on PHP_EOL), so keep the
+        // counter from going negative, which would break the max-height bookkeeping
+        $this->lines = max(0, $this->lines - $lines);
 
         parent::doWrite($this->popStreamContentUntilCurrentSection($this->maxHeight ? min($this->maxHeight, $lines) : $lines), false);
     }
@@ -102,7 +105,7 @@ class ConsoleSectionOutput extends StreamOutput
         }
 
         foreach ($message as $line) {
-            $this->addContent($line, true);
+            $this->addContent($this->getFormatter()->format($line) ?? '', true);
         }
 
         $erasedContent = $this->popStreamContentUntilCurrentSection($this->maxHeight ? min($this->maxHeight, $linesCleared) : $linesCleared);

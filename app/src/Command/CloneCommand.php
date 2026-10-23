@@ -44,8 +44,6 @@ use App\Lib\Util\StringUtilities;
 use App\Lib\Util\TableUtilities;
 
 class CloneCommand extends BaseCommand {
-  protected $io = null;
-
   // We track which entities we've seen because it's possible we'll end up being asked to
   // clone the same entity multiple times due to predecessor and successor processing.
   protected $seenEntities = [];
@@ -132,8 +130,6 @@ class CloneCommand extends BaseCommand {
     // command line context.
 
     TableRegistry::getTableLocator()->allowFallbackClass(false);
-
-    $this->io = $io;
 
     // By default, the target database is the same as the source (ie: cloning from one
     // CO to another on the same platform), but if -t is specified we'll set up a

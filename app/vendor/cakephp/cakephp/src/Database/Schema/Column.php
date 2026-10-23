@@ -46,6 +46,7 @@ class Column
      * @param bool|null $unsigned Whether the column is unsigned
      * @param string|null $collate Collation for the column
      * @param int|null $srid SRID for geometry fields
+     * @param string|null $geometryType Geometry type for geometry fields (e.g., Point, Polygon)
      * @param string|null $baseType The basic schema type if the column type is a complex/custom type.
      * @param bool|null $fixed Whether the column is fixed-length (BINARY vs VARBINARY)
      */
@@ -65,9 +66,42 @@ class Column
         protected ?bool $unsigned = null,
         protected ?string $collate = null,
         protected ?int $srid = null,
+        protected ?string $geometryType = null,
         protected ?string $baseType = null,
         protected ?bool $fixed = null,
     ) {
+    }
+
+    /**
+     * Re-initializes nullable properties that may be absent when unserializing
+     * column data produced by an older CakePHP version.
+     *
+     * Nullable column attributes were added incrementally (e.g. `geometryType`
+     * and `fixed` after `Column` first shipped). A serialized payload created
+     * before a given promoted property existed does not contain it, and PHP does
+     * not apply the promoted default on the unserialize path. Reading such a
+     * property would otherwise fail with "Typed property ...::$fixed must not be
+     * accessed before initialization". This surfaces via the schema metadata
+     * cache and the Migrations plugin's `schema-dump-*.lock` files.
+     *
+     * @return void
+     */
+    public function __wakeup(): void
+    {
+        $this->null ??= null;
+        $this->length ??= null;
+        $this->generated ??= null;
+        $this->precision ??= null;
+        $this->increment ??= null;
+        $this->after ??= null;
+        $this->onUpdate ??= null;
+        $this->comment ??= null;
+        $this->unsigned ??= null;
+        $this->collate ??= null;
+        $this->srid ??= null;
+        $this->geometryType ??= null;
+        $this->baseType ??= null;
+        $this->fixed ??= null;
     }
 
     /**
@@ -409,7 +443,7 @@ class Column
     /**
      * Gets the column comment.
      *
-     * @return string
+     * @return string|null
      */
     public function getComment(): ?string
     {
@@ -506,6 +540,29 @@ class Column
     }
 
     /**
+     * Sets the geometry type for geometry fields.
+     *
+     * @param string $geometryType Geometry type (e.g., Point, Polygon)
+     * @return $this
+     */
+    public function setGeometryType(string $geometryType)
+    {
+        $this->geometryType = $geometryType;
+
+        return $this;
+    }
+
+    /**
+     * Gets the geometry type for geometry fields.
+     *
+     * @return string|null
+     */
+    public function getGeometryType(): ?string
+    {
+        return $this->geometryType;
+    }
+
+    /**
      * Sets whether the column is fixed-length.
      *
      * Used for binary columns to distinguish between BINARY and VARBINARY.
@@ -562,6 +619,7 @@ class Column
             'properties',
             'collate',
             'srid',
+            'geometryType',
             'increment',
             'generated',
             'fixed',
@@ -597,7 +655,7 @@ class Column
     /**
      * Convert an index into an array that is compatible with the Column constructor.
      *
-     * @return array
+     * @return array{name: ?string, baseType: ?string, type: string, length: ?int, null: ?bool, default: mixed, generated: ?string, unsigned: ?bool, onUpdate: ?string, collate: ?string, precision: ?int, srid: ?int, comment: ?string, autoIncrement: bool, identity: bool, fixed: ?bool, geometryType?: ?string}
      */
     public function toArray(): array
     {
@@ -612,7 +670,7 @@ class Column
             }
         }
 
-        return [
+        $result = [
             'name' => $this->getName(),
             'baseType' => $this->getBaseType(),
             'type' => $type,
@@ -630,5 +688,12 @@ class Column
             'identity' => $this->getIdentity(),
             'fixed' => $this->getFixed(),
         ];
+
+        // Only include geometryType when set (for PostGIS reflection)
+        if ($this->getGeometryType() !== null) {
+            $result['geometryType'] = $this->getGeometryType();
+        }
+
+        return $result;
     }
 }

@@ -28,7 +28,26 @@ use function time;
  */
 class Cache implements CacheInterface
 {
+    public const DEFAULT_MAX_ENTRIES = 1000;
+
     protected array $cache = [];
+
+    /**
+     * Hard cap on the number of entries retained in memory.
+     *
+     * Prevents unbounded growth when this in-memory cache is reused across
+     * many distinct keys in a long-running PHP runtime (RoadRunner, Octane,
+     * Swoole, FrankenPHP worker mode, queue workers). When the cap is reached,
+     * the oldest entry by insertion order is evicted before a new one is
+     * inserted (FIFO). Existing keys overwrite in place and do not trigger
+     * eviction. See GHSA-mgj4-qjmw-v56v.
+     */
+    protected int $maxEntries;
+
+    public function __construct(int $maxEntries = self::DEFAULT_MAX_ENTRIES)
+    {
+        $this->maxEntries = $maxEntries;
+    }
 
     /**
      * @param string $key
@@ -73,6 +92,12 @@ class Cache implements CacheInterface
 
         if ($ttl !== null) {
             $ttl = (time() + $ttl);
+        }
+
+        // FIFO eviction: if inserting a new key would exceed the cap, drop the oldest first.
+        // Overwriting an existing key never triggers eviction.
+        if (!isset($this->cache[$key]) && count($this->cache) >= $this->maxEntries) {
+            unset($this->cache[array_key_first($this->cache)]);
         }
 
         $this->cache[$key] = ['ttl' => $ttl, 'content' => $value];
@@ -261,10 +286,24 @@ class Cache implements CacheInterface
     }
 
     /**
+     * Get the configured maximum number of cache entries.
+     */
+    public function getMaxEntries(): int
+    {
+        return $this->maxEntries;
+    }
+
+    /**
      * Evict all expired items from the cache.
      *
-     * Useful for long-running processes (CLI scripts, workers, daemons)
-     * to periodically clean up expired entries and free memory.
+     * Removes only entries whose TTL has already elapsed (`ttl <= time()`).
+     * Entries with a null TTL or a TTL still in the future are kept.
+     *
+     * This is bounded by *expiration*, not by *cardinality*: under the default
+     * cacheTtl of 86400 seconds, repeated calls during a single run typically
+     * evict zero entries. For cardinality bounding (the case that matters in
+     * long-running workers facing attacker-controlled keys) the in-memory
+     * Cache enforces a hard cap; see $maxEntries / the constructor.
      *
      * @return int Number of items evicted
      */

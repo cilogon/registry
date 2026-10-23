@@ -140,18 +140,23 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            $ns = $this->getPrimaryNamespace($package);
+            // Same key format as app plugins, so `Vendor/Plugin` in plugins/ can replace it.
+            $ns = str_replace('\\', '/', $this->getPrimaryNamespace($package));
             $path = $vendorDir . DIRECTORY_SEPARATOR . $package->getPrettyName();
             $plugins[$ns] = $path;
         }
 
+        $appPlugins = [];
         foreach ($pluginDirs as $path) {
             $path = $this->getFullPath($path, $vendorDir);
             if (!is_dir($path)) {
                 continue;
             }
-            $plugins += $this->findAppPlugins($path, true);
+            $appPlugins += $this->findAppPlugins($path, true);
         }
+
+        // App plugins take priority over vendor plugins of the same name.
+        $plugins = $appPlugins + $plugins;
 
         ksort($plugins);
 
@@ -347,7 +352,7 @@ PHP;
     {
         $primaryNs = null;
         $autoLoad = $package->getAutoload();
-        /** @var array<string, string> $pathMap */
+        /** @var array<string, array<string>|string> $pathMap */
         foreach ($autoLoad as $type => $pathMap) {
             if ($type !== 'psr-4') {
                 continue;
@@ -359,16 +364,20 @@ PHP;
                 break;
             }
 
-            $matches = preg_grep('#^(\./)?src/?$#', $pathMap);
-            if ($matches) {
-                $primaryNs = key($matches);
-                break;
+            // A namespace can map to a list of paths.
+            foreach ($pathMap as $namespace => $paths) {
+                if (preg_grep('#^(\./)?src/?$#', (array)$paths)) {
+                    $primaryNs = $namespace;
+                    break 2;
+                }
             }
 
             foreach (['', '.'] as $path) {
-                $key = array_search($path, $pathMap, true);
-                if ($key !== false) {
-                    $primaryNs = $key;
+                foreach ($pathMap as $namespace => $paths) {
+                    if (in_array($path, (array)$paths, true)) {
+                        $primaryNs = $namespace;
+                        break;
+                    }
                 }
             }
             break;

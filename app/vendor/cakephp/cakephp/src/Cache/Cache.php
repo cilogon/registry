@@ -72,8 +72,7 @@ class Cache
      * An array mapping URL schemes to fully qualified caching engine
      * class names.
      *
-     * @var array<string, string>
-     * @phpstan-var array<string, class-string>
+     * @var array<string, class-string>
      */
     protected static array $_dsnClassMap = [
         'array' => Engine\ArrayEngine::class,
@@ -92,6 +91,14 @@ class Cache
     protected static bool $_enabled = true;
 
     /**
+     * Names of the pools currently being constructed, used to detect reentrant calls.
+     *
+     * @see \Cake\Cache\Cache::pool()
+     * @var array<string, true>
+     */
+    protected static array $building = [];
+
+    /**
      * Group to Config mapping
      *
      * @var array<string, array>
@@ -101,14 +108,14 @@ class Cache
     /**
      * Cache Registry used for creating and using cache adapters.
      *
-     * @var \Cake\Cache\CacheRegistry<\Cake\Cache\CacheEngine<object>>
+     * @var \Cake\Cache\CacheRegistry<\Cake\Cache\CacheEngine>
      */
     protected static CacheRegistry $_registry;
 
     /**
      * Returns the Cache Registry instance used for creating and using cache adapters.
      *
-     * @return \Cake\Cache\CacheRegistry<\Cake\Cache\CacheEngine<object>>
+     * @return \Cake\Cache\CacheRegistry<\Cake\Cache\CacheEngine>
      */
     public static function getRegistry(): CacheRegistry
     {
@@ -120,7 +127,7 @@ class Cache
      *
      * Also allows for injecting of a new registry instance.
      *
-     * @param \Cake\Cache\CacheRegistry<\Cake\Cache\CacheEngine<object>> $registry Injectable registry object.
+     * @param \Cake\Cache\CacheRegistry<\Cake\Cache\CacheEngine> $registry Injectable registry object.
      * @return void
      */
     public static function setRegistry(CacheRegistry $registry): void
@@ -152,7 +159,6 @@ class Cache
             $registry->load($name, $config);
         } catch (RuntimeException $e) {
             if (!array_key_exists('fallback', $config)) {
-                // @phpstan-ignore argument.type (NullEngine is valid fallback)
                 $registry->set($name, new NullEngine());
                 trigger_error($e->getMessage(), E_USER_WARNING);
 
@@ -213,7 +219,21 @@ class Cache
             return $registry->get($config);
         }
 
-        static::_buildEngine($config);
+        if (isset(static::$building[$config])) {
+            // Reentered while this pool is still being constructed. An engine that cannot reach
+            // its backend may log that failure, and the logger may in turn ask for a cache pool -
+            // for example one that stores database schema metadata. Nothing is registered yet at
+            // that point, so without this check the two would call each other until the process
+            // runs out of memory. Degrade to a null engine instead.
+            return new NullEngine();
+        }
+
+        static::$building[$config] = true;
+        try {
+            static::_buildEngine($config);
+        } finally {
+            unset(static::$building[$config]);
+        }
 
         return $registry->get($config);
     }

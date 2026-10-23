@@ -45,9 +45,6 @@ class UpgradeCommand extends BaseCommand
 {
   use \Cake\ORM\Locator\LocatorAwareTrait;
 
-  protected ?Arguments $args = null;
-  protected $io = null;
-
   /**
    * Cache of EnvSource SP Modes.
    *
@@ -201,9 +198,6 @@ class UpgradeCommand extends BaseCommand
   public function execute(Arguments $args, ConsoleIo $io)
   {
     global $argv;
-
-    $this->io = $io;
-    $this->args = $args;
 
     // Are we being asked to run a specific task?
     $task = $args->getOption('task');

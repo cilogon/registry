@@ -3,11 +3,12 @@
 MobileDetect, PHP mobile detection class
 ========================================
 
-![Workflow status](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/4.x-test.yml?style=flat-square)
-![Latest tag](https://img.shields.io/github/v/tag/serbanghita/Mobile-Detect?filter=4.*&style=flat-square)
-![Monthly Downloads](https://img.shields.io/packagist/dm/mobiledetect/mobiledetectlib?style=flat-square&label=installs)
-![Total Downloads](https://img.shields.io/packagist/dt/mobiledetect/mobiledetectlib?style=flat-square&label=installs)
-![MIT License](https://img.shields.io/packagist/l/mobiledetect/mobiledetectlib?style=flat-square)
+[![Build status](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/4.x-test.yml?branch=4.x&label=build&style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/4.x-test.yml)
+[![Latest stable version](https://img.shields.io/packagist/v/mobiledetect/mobiledetectlib?style=flat-square)](https://packagist.org/packages/mobiledetect/mobiledetectlib)
+[![Latest tag](https://img.shields.io/github/v/tag/serbanghita/Mobile-Detect?filter=4.*&style=flat-square)](https://github.com/serbanghita/Mobile-Detect/tags)
+[![Monthly Downloads](https://img.shields.io/packagist/dm/mobiledetect/mobiledetectlib?style=flat-square&label=installs)](https://packagist.org/packages/mobiledetect/mobiledetectlib/stats)
+[![Total Downloads](https://img.shields.io/packagist/dt/mobiledetect/mobiledetectlib?style=flat-square&label=installs)](https://packagist.org/packages/mobiledetect/mobiledetectlib/stats)
+[![MIT License](https://img.shields.io/packagist/l/mobiledetect/mobiledetectlib?style=flat-square)](https://github.com/serbanghita/Mobile-Detect/blob/4.x/LICENSE)
 
 Mobile Detect is a lightweight PHP class for detecting mobile devices (including tablets).
 It uses the User-Agent string combined with specific HTTP headers to detect the mobile environment.
@@ -16,11 +17,11 @@ It uses the User-Agent string combined with specific HTTP headers to detect the 
 
 MobileDetect is maintained on one rolling branch per major line. Tags follow the pattern `<major>.<minor>.<patch>` and always live on the matching branch.
 
-| Version | Namespace                | Branch | PHP Version  | Purpose                  |
-|---------|--------------------------|--------|--------------|--------------------------|
-| 2.*     | `\Mobile_Detect`         | `2.x`  | \>=5.0,<7.0  | Deprecated               |
-| 3.*     | `Detection\MobileDetect` | `3.x`  | \>=7.4,<8.0  | LTS                      |
-| 4.*     | `Detection\MobileDetect` | `4.x`  | \>=8.2 (since 4.10.0, previously \>=8.0) | Current, **Recommended** |
+| Version | Tests | Namespace                | Branch                                                          | PHP Version  | Purpose                  |
+|---------|-------|--------------------------|-----------------------------------------------------------------|--------------|--------------------------|
+| 2.*     | [![2.x tests](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/2.x-test.yml?branch=2.x&style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/2.x-test.yml) | `\Mobile_Detect`         | [`2.x`](https://github.com/serbanghita/Mobile-Detect/tree/2.x)  | \>=5.6,<7.0  | Deprecated               |
+| 3.*     | [![3.x tests](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/3.x-test.yml?branch=3.x&style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/3.x-test.yml) | `Detection\MobileDetect` | [`3.x`](https://github.com/serbanghita/Mobile-Detect/tree/3.x)  | \>=7.4,<8.0  | LTS                      |
+| 4.*     | [![4.x tests](https://img.shields.io/github/actions/workflow/status/serbanghita/Mobile-Detect/4.x-test.yml?branch=4.x&style=flat-square)](https://github.com/serbanghita/Mobile-Detect/actions/workflows/4.x-test.yml)       | `Detection\MobileDetect` | [`4.x`](https://github.com/serbanghita/Mobile-Detect/tree/4.x)  | \>=8.2 (since 4.10.0, previously \>=8.0) | Current, **Recommended** |
 
 ## 🤝 Supporting
 

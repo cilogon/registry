@@ -129,10 +129,23 @@ class ChangelogBehavior extends Behavior
     // Take into account all joined associations
     if(!empty($query->clause('join'))) {
       foreach($query->clause('join') as $mdl => $opts) {
-        $ascParentfk = Inflector::singularize($opts['table']) . '_id';
+        if(is_string($opts['table'])) {
+          $ascParentfk = Inflector::singularize($opts['table']) . '_id';
 
-        $query->where([$opts['alias'] . '.deleted IS NOT true'])
-              ->where([$opts['alias'] . '.' . $ascParentfk . ' IS NULL']);
+          $query->where([$opts['alias'] . '.deleted IS NOT true'])
+                ->where([$opts['alias'] . '.' . $ascParentfk . ' IS NULL']);
+        } else {
+          // This is most likely Cake injecting a SelectQuery to execute a contain()
+          // request via a join. We'll use the alias to construct the foreign key,
+          // which might not work in all cases...
+
+          $Table = $query->getRepository();
+
+          $ascParentfk = Inflector::singularize($Table->getTable()) . '_id';
+          
+          $query->where([$Table->getAlias() . '.deleted IS NOT true'])
+                ->where([$Table->getAlias() . '.' . $ascParentfk . ' IS NULL']);
+        }
       }
     }
     // We use IS NOT TRUE to check for null || false, since pre-Changelog data

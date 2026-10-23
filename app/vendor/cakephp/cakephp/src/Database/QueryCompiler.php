@@ -53,7 +53,7 @@ class QueryCompiler
      */
     protected array $_selectParts = [
         'comment', 'with', 'select', 'from', 'join', 'where', 'group', 'having', 'window', 'order',
-        'limit', 'offset', 'union', 'epilog', 'intersect',
+        'limit', 'offset', 'union', 'except', 'epilog', 'intersect',
     ];
 
     /**
@@ -191,7 +191,7 @@ class QueryCompiler
         $driver = $query->getDriver();
         $select = 'SELECT%s%s %s%s';
         if (
-            ($query->clause('union') || $query->clause('intersect')) &&
+            ($query->clause('union') || $query->clause('except') || $query->clause('intersect')) &&
             $driver->supports(DriverFeatureEnum::SET_OPERATIONS_ORDER_BY)
         ) {
             $select = '(SELECT%s%s %s%s';
@@ -397,6 +397,21 @@ class QueryCompiler
     }
 
     /**
+     * Builds the SQL string for all the EXCEPT clauses in this query, when dealing
+     * with query objects it will also transform them using their configured SQL
+     * dialect.
+     *
+     * @param array $parts list of queries to be operated with EXCEPT
+     * @param \Cake\Database\Query $query The query that is being compiled
+     * @param \Cake\Database\ValueBinder $binder Value binder used to generate parameter placeholder
+     * @return string
+     */
+    protected function _buildExceptPart(array $parts, Query $query, ValueBinder $binder): string
+    {
+        return $this->_buildSetOperationPart('EXCEPT', $parts, $query, $binder);
+    }
+
+    /**
      * Builds the SQL string for all the UNION clauses in this query, when dealing
      * with query objects it will also transform them using their configured SQL
      * dialect.
@@ -468,7 +483,7 @@ class QueryCompiler
     /**
      * Builds the optimizer hint comment part.
      *
-     * @param list<string> $parts The optmizer hints
+     * @param list<string> $parts The optimizer hints
      * @param \Cake\Database\Query $query The query that is being compiled
      * @param \Cake\Database\ValueBinder $binder Value binder used to generate parameter placeholder
      * @return string Optimizer hint comment
@@ -500,7 +515,7 @@ class QueryCompiler
     }
 
     /**
-     * Helper function used to covert ExpressionInterface objects inside an array
+     * Helper function used to convert ExpressionInterface objects inside an array
      * into their string representation.
      *
      * @param array $expressions list of strings and ExpressionInterface objects

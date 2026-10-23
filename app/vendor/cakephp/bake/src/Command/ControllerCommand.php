@@ -35,6 +35,14 @@ class ControllerCommand extends BakeCommand
     public string $pathFragment = 'Controller/';
 
     /**
+     * @inheritDoc
+     */
+    public static function getDescription(): string
+    {
+        return 'Create a controller and test';
+    }
+
+    /**
      * Execute the command.
      *
      * @param \Cake\Console\Arguments $args The command arguments.
@@ -110,14 +118,15 @@ class ControllerCommand extends BakeCommand
 
         $currentModelName = $controllerName;
         $plugin = $this->plugin;
-        if ($plugin) {
-            $plugin .= '.';
+        $pluginPath = $plugin;
+        if ($pluginPath) {
+            $pluginPath .= '.';
         }
 
-        if ($this->getTableLocator()->exists($plugin . $currentModelName)) {
-            $modelObj = $this->getTableLocator()->get($plugin . $currentModelName);
+        if ($this->getTableLocator()->exists($pluginPath . $currentModelName)) {
+            $modelObj = $this->getTableLocator()->get($pluginPath . $currentModelName);
         } else {
-            $modelObj = $this->getTableLocator()->get($plugin . $currentModelName, [
+            $modelObj = $this->getTableLocator()->get($pluginPath . $currentModelName, [
                 'connectionName' => $this->connection,
             ]);
         }
@@ -166,7 +175,7 @@ class ControllerCommand extends BakeCommand
      * Generate the controller code
      *
      * @param string $controllerName The name of the controller.
-     * @param array $data The data to turn into code.
+     * @param array<string, mixed> $data The data to turn into code.
      * @param \Cake\Console\Arguments $args The console args
      * @param \Cake\Console\ConsoleIo $io The console io
      * @return void

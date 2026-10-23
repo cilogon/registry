@@ -59,11 +59,16 @@ class EnvSourceDetoursController extends StandardDetourController {
     $CoIdEventListener = new CoIdEventListener();
     EventManager::instance()->on($CoIdEventListener);
 
-    $this->EnvSourceDetours->refresh(
-      detourId: (int)$detourId,
-      sourceKey: $session->read('Auth.external.user'),
-      coidListener: $CoIdEventListener
-    );
+    // This should be not-empty, but you never know
+    $user = $session->read('Auth.external.user');
+
+    if($user) {
+      $this->EnvSourceDetours->refresh(
+        detourId: (int)$detourId,
+        sourceKey: $user,
+        coidListener: $CoIdEventListener
+      );
+    }
 
     return $this->finishDetour();
   }
